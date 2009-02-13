@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -95,29 +95,45 @@ public class LocalBackendAddOperation
 
 
 
-  // The backend in which the entry is to be added.
-  private Backend backend;
+  /**
+   * The backend in which the entry is to be added.
+   */
+  protected Backend backend;
 
-  // Indicates whether the request includes the LDAP no-op control.
-  private boolean noOp;
+  /**
+   * Indicates whether the request includes the LDAP no-op control.
+   */
+  protected boolean noOp;
 
-  // The DN of the entry to be added.
-  private DN entryDN;
+  /**
+   * The DN of the entry to be added.
+   */
+  protected DN entryDN;
 
-  // The entry being added to the server.
-  private Entry entry;
+  /**
+   * The entry being added to the server.
+   */
+  protected Entry entry;
 
-  // The post-read request control included in the request, if applicable.
-  LDAPPostReadRequestControl postReadRequest;
+  /**
+   * The post-read request control included in the request, if applicable.
+   */
+  protected LDAPPostReadRequestControl postReadRequest;
 
-  // The set of object classes for the entry to add.
-  private Map<ObjectClass, String> objectClasses;
+  /**
+   * The set of object classes for the entry to add.
+   */
+  protected Map<ObjectClass, String> objectClasses;
 
-  // The set of operational attributes for the entry to add.
-  private Map<AttributeType,List<Attribute>> operationalAttributes;
+  /**
+   * The set of operational attributes for the entry to add.
+   */
+  protected Map<AttributeType,List<Attribute>> operationalAttributes;
 
-  // The set of user attributes for the entry to add.
-  private Map<AttributeType,List<Attribute>> userAttributes;
+  /**
+   * The set of user attributes for the entry to add.
+   */
+  protected Map<AttributeType,List<Attribute>> userAttributes;
 
 
 
@@ -159,7 +175,7 @@ public class LocalBackendAddOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalAdd(final LocalBackendWorkflowElement wfe)
+  public void processLocalAdd(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -862,7 +878,7 @@ addProcessing:
    *                              attributes and the server is configured to
    *                              reject such entries.
    */
-  private void addRDNAttributesIfNecessary()
+  protected void addRDNAttributesIfNecessary()
           throws DirectoryException
   {
     RDN rdn = entryDN.getRDN();
@@ -1272,7 +1288,7 @@ addProcessing:
    * @throws  DirectoryException  If the entry violates the server schema
    *                              configuration.
    */
-  private void checkSchema(Entry parentEntry)
+  protected void checkSchema(Entry parentEntry)
           throws DirectoryException
   {
     MessageBuilder invalidReason = new MessageBuilder();
@@ -1443,7 +1459,7 @@ addProcessing:
    * @throws  DirectoryException  If there is a problem with any of the
    *                              request controls.
    */
-  private void processControls(DN parentDN)
+  protected void processControls(DN parentDN)
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
@@ -1581,7 +1597,7 @@ addProcessing:
   /**
    * Adds the post-read response control to the response.
    */
-  private void addPostReadResponse()
+  protected void addPostReadResponse()
   {
     Entry addedEntry = entry.duplicate(true);
 

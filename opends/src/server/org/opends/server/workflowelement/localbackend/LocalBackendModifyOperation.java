@@ -97,45 +97,67 @@ public class LocalBackendModifyOperation
 
 
 
-  // The backend in which the target entry exists.
-  private Backend backend;
+  /**
+   * The backend in which the target entry exists.
+   */
+  protected Backend backend;
 
   // Indicates whether the request included the user's current password.
   private boolean currentPasswordProvided;
 
-  // Indicates whether the user's account has been enabled or disabled by this
-  // modify operation.
-  private boolean enabledStateChanged;
+  /**
+   * Indicates whether the user's account has been enabled or disabled
+   * by this modify operation.
+   */
+  protected boolean enabledStateChanged;
 
   // Indicates whether the user's account is currently enabled.
   private boolean isEnabled;
 
-  // Indicates whether the request included the LDAP no-op control.
-  private boolean noOp;
+  /**
+   * Indicates whether the request included the LDAP no-op control.
+   */
+  protected boolean noOp;
 
-  // Indicates whether this modify operation includees a password change.
-  private boolean passwordChanged;
+  /**
+   * Indicates whether this modify operation includees a password change.
+   */
+  protected boolean passwordChanged;
 
-  // Indicates whether the request included the password policy request control.
-  private boolean pwPolicyControlRequested;
+  /**
+   * Indicates whether the request included the password policy request control.
+   */
+  protected boolean pwPolicyControlRequested;
 
-  // Indicates whether the password change is a self-change.
-  private boolean selfChange;
+  /**
+   * Indicates whether the password change is a self-change.
+   */
+  protected boolean selfChange;
 
-  // Indicates whether the user's account was locked before this change.
-  private boolean wasLocked;
+  /**
+   * Indicates whether the user's account was locked before this change.
+   */
+  protected boolean wasLocked;
 
-  // The client connection associated with this operation.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection associated with this operation.
+   */
+  protected ClientConnection clientConnection;
 
-  // The DN of the entry to modify.
-  private DN entryDN;
+  /**
+   * The DN of the entry to modify.
+   */
+  protected DN entryDN;
 
-  // The current entry, before any changes are applied.
-  private Entry currentEntry = null;
+  /**
+   * The current entry, before any changes are applied.
+   */
+  protected Entry currentEntry = null;
 
-  // The modified entry that will be stored in the backend.
-  private Entry modifiedEntry = null;
+  /**
+   * The modified entry that will be stored in the backend.
+   */
+  protected Entry modifiedEntry = null;
 
   // The number of passwords contained in the modify operation.
   private int numPasswords;
@@ -152,14 +174,20 @@ public class LocalBackendModifyOperation
   // The set of clear-text new passwords (if any were provided).
   private List<AttributeValue> newPasswords = null;
 
-  // The set of modifications contained in this request.
-  private List<Modification> modifications;
+  /**
+   * The set of modifications contained in this request.
+   */
+  protected List<Modification> modifications;
 
-  // The password policy error type for this operation.
-  private PasswordPolicyErrorType pwpErrorType;
+  /**
+   * The password policy error type for this operation.
+   */
+  protected PasswordPolicyErrorType pwpErrorType;
 
-  // The password policy state for this modify operation.
-  private PasswordPolicyState pwPolicyState;
+  /**
+   * The password policy state for this modify operation.
+   */
+  protected PasswordPolicyState pwPolicyState;
 
 
 
@@ -273,7 +301,7 @@ public class LocalBackendModifyOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalModify(final LocalBackendWorkflowElement wfe)
+  public void processLocalModify(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -719,7 +747,7 @@ modifyProcessing:
    * @throws  DirectoryException  If a problem is encountered with any of the
    *                              controls.
    */
-  private void processRequestControls()
+  protected void processRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
@@ -869,7 +897,7 @@ modifyProcessing:
    * @throws  DirectoryException  If a problem is encountered that should cause
    *                              the modify operation to fail.
    */
-  private void handleSchemaProcessing() throws DirectoryException
+  protected void handleSchemaProcessing() throws DirectoryException
   {
 
     for (Modification m : modifications)
@@ -982,7 +1010,7 @@ modifyProcessing:
    * @throws  DirectoryException  If a problem is encountered that should cause
    *                              the modify operation to fail.
    */
-  private void handleInitialPasswordPolicyProcessing()
+  protected void handleInitialPasswordPolicyProcessing()
           throws DirectoryException
   {
     // Declare variables used for password policy state processing.
@@ -1921,7 +1949,7 @@ modifyProcessing:
    * @throws  DirectoryException  If the modify operation should not be allowed
    *                              as a result of the writability check.
    */
-  private void checkWritability()
+  protected void checkWritability()
           throws DirectoryException
   {
     // If it is not a private backend, then check to see if the server or
@@ -1968,7 +1996,7 @@ modifyProcessing:
    * Handles any account status notifications that may be needed as a result of
    * modify processing.
    */
-  private void handleAccountStatusNotifications()
+  protected void handleAccountStatusNotifications()
   {
     if (passwordChanged)
     {
@@ -2037,7 +2065,7 @@ modifyProcessing:
    * Handles any processing that is required for the LDAP pre-read and/or
    * post-read controls.
    */
-  private void handleReadEntryProcessing()
+  protected void handleReadEntryProcessing()
   {
     if (preReadRequest != null)
     {
@@ -2138,7 +2166,12 @@ modifyProcessing:
 
 
 
-  private boolean handleConflictResolution() {
+  /**
+   * Handle conflict resolution.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean handleConflictResolution() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -2169,7 +2202,12 @@ modifyProcessing:
       return returnVal;
   }
 
-  private boolean processPreOperation() {
+  /**
+   * Process pre operation.
+   * @return  {@code true} if processing should continue for the operation, or
+   *          {@code false} if not.
+   */
+  protected boolean processPreOperation() {
       boolean returnVal = true;
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
@@ -2198,7 +2236,10 @@ modifyProcessing:
       return returnVal;
   }
 
-  private void processSynchPostOperationPlugins() {
+  /**
+   * Invoke post operation synchronization providers.
+   */
+  protected void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {

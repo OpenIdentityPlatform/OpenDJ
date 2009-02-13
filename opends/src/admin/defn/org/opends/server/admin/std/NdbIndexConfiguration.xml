@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2008-2009 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="ndb-index" plural-name="ndb-indexes"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    are used to store information that makes it possible to locate
+    entries very quickly when processing search operations.
+  </adm:synopsis>
+  <adm:description>
+    Indexing is performed on a per-attribute level and different types
+    of indexing may be performed for different kinds of attributes, based
+    on how they are expected to be accessed during search operations.
+  </adm:description>
+  <adm:tag name="database" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-ndb-index</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="attribute" mandatory="true" read-only="true">
+    <adm:synopsis>
+      Specifies the name of the attribute for which the index is to
+      be maintained.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="index-entry-limit">
+    <adm:synopsis>
+      Specifies the maximum number of entries that are allowed
+      to match a given index key before that particular index key is no
+      longer maintained.
+    </adm:synopsis>
+    <adm:description>
+      This is analogous to the ALL IDs threshold in the Sun Java System
+      Directory Server. If this is specified, its value overrides any
+      backend-wide configuration. For no limit, use 0 for the value.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          If any index keys have already reached this limit, indexes
+          must be rebuilt before they will be allowed to use the
+          new limit.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:inherited>
+        <adm:relative property-name="index-entry-limit" offset="1"
+          managed-object-name="ndb-backend" />
+      </adm:inherited>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" upper-limit="2147483647">
+        <adm:unit-synopsis>Number of entries</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-index-entry-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="index-type" mandatory="true"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies the type(s) of indexing that should be performed
+      for the associated attribute.
+    </adm:synopsis>
+    <adm:description>
+      For equality, presence, and substring index types, the associated
+      attribute type must have a corresponding matching rule.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          If any new index types are added for an attribute, and 
+          values for that attribute already exist in the
+          database, the index must be rebuilt before it
+          will be accurate.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="equality">
+          <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using equality search filters.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ordering">
+          <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using "greater than or equal to" or "less then
+            or equal to" search filters.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="presence">
+          <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using the presence search filters.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="substring">
+          <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using substring search filters.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="approximate">
+          <adm:synopsis>
+            This index type is used to improve the efficiency
+            of searches using approximate matching search filters.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-index-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="substring-length" advanced="true">
+    <adm:synopsis>
+      The length of substrings in a substring index.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          The index must be rebuilt before it will reflect the
+          new value.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>6</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="3" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-substring-length</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

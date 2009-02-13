@@ -1,0 +1,30 @@
+
+dn: ds-cfg-backend-id=ndbRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-ndb-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.ndb.BackendImpl
+ds-cfg-backend-id: ndbRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=example,dc=com
+ds-cfg-ndb-connect-string: localhost
+ds-cfg-sql-connect-string: localhost
+ds-cfg-ndb-dbname: ldap
+ds-cfg-sql-user: root
+ds-cfg-ndb-attr-len: 128
+ds-cfg-ndb-attr-blob: audio
+ds-cfg-ndb-attr-blob: photo
+ds-cfg-ndb-attr-blob: jpegPhoto
+ds-cfg-ndb-attr-blob: personalSignature
+ds-cfg-ndb-attr-blob: userCertificate
+ds-cfg-ndb-attr-blob: caCertificate
+ds-cfg-ndb-attr-blob: authorityRevocationList
+ds-cfg-ndb-attr-blob: certificateRevocationList
+ds-cfg-ndb-attr-blob: crossCertificatePair
+ds-cfg-ndb-attr-blob: userSMIMECertificate
+ds-cfg-ndb-attr-blob: userPKCS12
+ds-cfg-ndb-thread-count: 24
+ds-cfg-ndb-num-connections: 4
+ds-cfg-deadlock-retry-limit: 10
+

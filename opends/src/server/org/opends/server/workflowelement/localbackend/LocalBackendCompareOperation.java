@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -73,17 +73,25 @@ public class LocalBackendCompareOperation
 
 
 
-  // The backend in which the comparison is to be performed.
-  private Backend backend;
+  /**
+   * The backend in which the comparison is to be performed.
+   */
+  protected Backend backend;
 
-  // The client connection for this operation.
-  private ClientConnection clientConnection;
+  /**
+   * The client connection for this operation.
+   */
+  protected ClientConnection clientConnection;
 
-  // The DN of the entry to compare.
-  private DN entryDN;
+  /**
+   * The DN of the entry to compare.
+   */
+  protected DN entryDN;
 
-  // The entry to be compared.
-  private Entry entry = null;
+  /**
+   * The entry to be compared.
+   */
+  protected Entry entry = null;
 
 
 
@@ -121,7 +129,7 @@ public class LocalBackendCompareOperation
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalCompare(LocalBackendWorkflowElement wfe)
+  public void processLocalCompare(LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
@@ -406,7 +414,7 @@ compareProcessing:
    * @throws  DirectoryException  If a problem occurs that should prevent the
    *                              operation from succeeding.
    */
-  private void handleRequestControls()
+  protected void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();

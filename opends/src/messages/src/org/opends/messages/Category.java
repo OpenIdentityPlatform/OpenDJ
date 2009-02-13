@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -160,6 +160,11 @@ public enum Category {
    * The category used for messages associated with the Servicetag registration.
    */
   SERVICETAG(0x01400000),
+
+  /**
+   * The category used for messages associated with the NDB backend.
+   */
+  NDB(0x01500000),
 
   /**
    * The category that will be used for messages associated with
