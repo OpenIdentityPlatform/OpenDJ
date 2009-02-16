@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -70,7 +70,7 @@ public class TLSByteChannel implements
     //Write encrypted
     private ByteBuffer netData, tempData;
     private int sslBufferSize, appBufSize;
-
+    private boolean reading = false;
 
     //Map of cipher phrases to effective key size (bits). Taken from the
     //following RFCs: 5289, 4346, 3268,4132 and 4162.
@@ -203,8 +203,8 @@ public class TLSByteChannel implements
      */
     public int read(ByteBuffer clearBuffer) throws IOException {
         SSLEngineResult.HandshakeStatus hsStatus;
-        appData.clear();
-        appNetData.clear();
+        if(!reading)
+          appNetData.clear();
         if(!socketChannel.isOpen())
             return -1;
         if(sslEngine.isInboundDone())
@@ -220,26 +220,27 @@ public class TLSByteChannel implements
                     hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
                 doHandshakeRead(hsStatus);
             if(wrappedBytes == 0)
-                return 0;
+              return 0;
             while (appNetData.hasRemaining()) {
                 appData.clear();
                 SSLEngineResult res = sslEngine.unwrap(appNetData, appData);
                 appData.flip();
-                if(res.getStatus() != SSLEngineResult.Status.OK)
+                if(res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                  appNetData.compact();
+                  reading = true;
+                  break;
+                } else  if(res.getStatus() != SSLEngineResult.Status.OK)
                     return -1;
                 hsStatus = sslEngine.getHandshakeStatus();
                 if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
                         hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
                     doHandshakeOp(hsStatus);
-                int limit = appData.remaining();
-                for(int i = 0; i < limit; i++) {
-                    clearBuffer.put(appData.get());
-                }
+                clearBuffer.put(appData);
             }
             hsStatus = sslEngine.getHandshakeStatus();
         } while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                 hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP);
-        return clearBuffer.remaining();
+                 hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP );
+        return clearBuffer.position();
     }
 
     /**
