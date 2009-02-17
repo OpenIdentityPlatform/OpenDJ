@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
  package org.opends.server.util;
@@ -32,6 +32,7 @@
  import static org.opends.server.util.DynamicConstants.*;
  import org.opends.server.core.DirectoryServer;
  import java.net.InetAddress;
+import java.io.File;
  import java.lang.management.RuntimeMXBean;
  import java.lang.management.ManagementFactory;
  import java.util.List;
@@ -123,6 +124,34 @@ import com.sleepycat.je.JEVersion;
              NOTE_JE_VERSION.get(JEVersion.CURRENT_VERSION.toString()));
      System.out.println(
              NOTE_CURRENT_DIRECTORY.get(System.getProperty("user.dir")));
+     String installDir = DirectoryServer.getServerRoot();
+     try
+     {
+       installDir = new File(installDir).getCanonicalPath();
+     }
+     catch (Exception e){}
+     if (installDir == null)
+     {
+       System.out.println(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
+     }
+     else
+     {
+       System.out.println(NOTE_INSTALL_DIRECTORY.get(installDir));
+     }
+     String instanceDir = DirectoryServer.getInstanceRoot();
+     try
+     {
+       instanceDir = new File(instanceDir).getCanonicalPath();
+     }
+     catch (Exception e){}
+     if (instanceDir == null)
+     {
+       System.out.println(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
+     }
+     else
+     {
+       System.out.println(NOTE_INSTANCE_DIRECTORY.get(instanceDir));
+     }
      System.out.println(
              NOTE_OPERATING_SYSTEM.get(System.getProperty("os.name") + " " +
                      System.getProperty("os.version") + " " +
@@ -234,6 +263,34 @@ import com.sleepycat.je.JEVersion;
     * Write runtime information to error log.
     */
    public static void logInfo() {
+     String installDir = DirectoryServer.getServerRoot();
+     try
+     {
+       installDir = new File(installDir).getCanonicalPath();
+     }
+     catch (Exception e){}
+     if (installDir == null)
+     {
+       logError(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
+     }
+     else
+     {
+       logError(NOTE_INSTALL_DIRECTORY.get(installDir));
+     }
+     String instanceDir = DirectoryServer.getInstanceRoot();
+     try
+     {
+       instanceDir = new File(instanceDir).getCanonicalPath();
+     }
+     catch (Exception e){}
+     if (instanceDir == null)
+     {
+       logError(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
+     }
+     else
+     {
+       logError(NOTE_INSTANCE_DIRECTORY.get(instanceDir));
+     }
     logError(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
                                System.getProperty("java.vendor"),
                                getArch(),Runtime.getRuntime().maxMemory()));
