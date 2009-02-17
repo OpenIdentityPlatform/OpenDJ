@@ -1876,7 +1876,13 @@ public final class Schema
   public ExtensibleMatchingRule getExtensibleMatchingRule(
                                       String lowerName)
   {
-    return extensibleMatchingRules.get(lowerName);
+    //An ExtensibleMatchingRule can be of multiple types.
+    MatchingRule rule = matchingRules.get(lowerName);
+    if(rule instanceof ExtensibleMatchingRule)
+    {
+      return (ExtensibleMatchingRule)rule;
+    }
+    return null;
   }
 
 

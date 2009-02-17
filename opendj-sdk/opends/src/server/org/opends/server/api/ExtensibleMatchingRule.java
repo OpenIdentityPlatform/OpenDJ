@@ -37,7 +37,7 @@ import org.opends.server.types.IndexConfig;
 
 
 /**
- * This class defines the set of methods and structures that must be
+ * This interface defines the set of methods that must be
  * implemented by a Directory Server module that implements an
  * Extensible matching rule.
  */
@@ -46,7 +46,7 @@ import org.opends.server.types.IndexConfig;
     mayInstantiate = false,
     mayExtend = true,
     mayInvoke = false)
-public abstract class ExtensibleMatchingRule extends MatchingRule
+public interface ExtensibleMatchingRule extends MatchingRule
 {
   /**
    * Returns a collection of extensible indexers associated with this
@@ -58,7 +58,7 @@ public abstract class ExtensibleMatchingRule extends MatchingRule
    * @return The collection of extensible indexers associated with
    *         this matching rule.
    */
-  public abstract Collection<ExtensibleIndexer> getIndexers(
+  Collection<ExtensibleIndexer> getIndexers(
       IndexConfig config);
 
 
@@ -79,6 +79,6 @@ public abstract class ExtensibleMatchingRule extends MatchingRule
    * @throws DirectoryException
    *           If an error occurs while generating the index query.
    */
-  public abstract <T> T createIndexQuery(ByteSequence assertionValue,
+  <T> T createIndexQuery(ByteSequence assertionValue,
       IndexQueryFactory<T> factory) throws DirectoryException;
 }

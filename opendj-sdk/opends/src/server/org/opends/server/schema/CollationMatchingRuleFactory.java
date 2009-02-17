@@ -58,11 +58,13 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
+import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -75,6 +77,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.IndexConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -721,8 +724,9 @@ public final class CollationMatchingRuleFactory extends
   /**
    * Collation Extensible matching rule.
    */
-  private abstract class CollationMatchingRule extends
-      ExtensibleMatchingRule
+  private abstract class CollationMatchingRule
+          extends AbstractMatchingRule
+          implements ExtensibleMatchingRule
   {
     // Names for this class.
     private final Collection<String> names;
@@ -857,7 +861,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
     {
       if (indexer == null)
@@ -873,9 +876,21 @@ public final class CollationMatchingRuleFactory extends
   /**
    * Collation rule for Equality matching rule.
    */
-  private final class CollationEqualityMatchingRule extends
-      CollationMatchingRule
+  private final class CollationEqualityMatchingRule
+          extends CollationMatchingRule
+          implements OrderingMatchingRule
   {
+
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = 3990778178484159862L;
+
+
+
     /**
      * Constructs a new CollationEqualityMatchingRule.
      *
@@ -929,13 +944,32 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
       // Normalize the assertion value.
       return factory.createExactMatchQuery(indexer
           .getExtensibleIndexID(), normalizeValue(assertionValue));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int compare(byte[] arg0, byte[] arg1)
+    {
+      return StaticUtils.compare(arg0, arg1);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int compareValues(ByteSequence value1, ByteSequence value2)
+    {
+      return value1.compareTo(value2);
     }
   }
 
@@ -1645,7 +1679,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1690,9 +1723,21 @@ public final class CollationMatchingRuleFactory extends
   /**
    * An abstract Collation rule for Ordering matching rule.
    */
-  private abstract class CollationOrderingMatchingRule extends
-      CollationMatchingRule
+  private abstract class CollationOrderingMatchingRule
+          extends CollationMatchingRule
+          implements OrderingMatchingRule
   {
+
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = 7354051060508436941L;
+
+
+
     /**
      * Constructs a new CollationOrderingMatchingRule.
      *
@@ -1721,6 +1766,26 @@ public final class CollationMatchingRuleFactory extends
       CollationKey key = collator.getCollationKey(value.toString());
       return ByteString.wrap(key.toByteArray());
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int compare(byte[] arg0, byte[] arg1)
+    {
+      return StaticUtils.compare(arg0, arg1);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int compareValues(ByteSequence value1, ByteSequence value2)
+    {
+      return value1.compareTo(value2);
+    }
   }
 
   /**
@@ -1729,6 +1794,15 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationLessThanMatchingRule extends
       CollationOrderingMatchingRule
   {
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = -7578406829946732713L;
+
+
 
     /**
      * Constructs a new CollationLessThanMatchingRule.
@@ -1772,7 +1846,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1788,6 +1861,15 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationLessThanOrEqualToMatchingRule extends
       CollationOrderingMatchingRule
   {
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = 7222067708233629974L;
+
+
 
     /**
      * Constructs a new CollationLessThanOrEqualToMatchingRule.
@@ -1831,7 +1913,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1848,6 +1929,15 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationGreaterThanMatchingRule extends
       CollationOrderingMatchingRule
   {
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = 1204368277332957024L;
+
+
 
     /**
      * Constructs a new CollationGreaterThanMatchingRule.
@@ -1891,7 +1981,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1907,6 +1996,15 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationGreaterThanOrEqualToMatchingRule extends
       CollationOrderingMatchingRule
   {
+    /**
+     * The serial version identifier required to satisfy the compiler because
+     * this class implements the <CODE>java.io.Serializable</CODE> interface.
+     * This value was generated using the <CODE>serialver</CODE> command-line
+     * utility included with the Java SDK.
+     */
+    private static final long serialVersionUID = -5212358378014047933L;
+
+
 
     /**
      * Constructs a new CollationGreaterThanOrEqualToMatchingRule.
@@ -1950,7 +2048,6 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
-    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {

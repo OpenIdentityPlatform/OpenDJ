@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -42,7 +42,9 @@ import org.opends.server.types.*;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class EqualityMatchingRule extends MatchingRule
+public abstract class EqualityMatchingRule
+        extends AbstractMatchingRule
+        implements MatchingRule
 {
   /**
    * Indicates whether the two provided normalized values are equal to

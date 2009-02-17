@@ -43,7 +43,9 @@ import org.opends.server.types.*;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class SubstringMatchingRule extends MatchingRule
+public abstract class SubstringMatchingRule
+        extends AbstractMatchingRule
+        implements MatchingRule
 {
   /**
    * Normalizes the provided value fragment into a form that can be
@@ -173,37 +175,6 @@ public abstract class SubstringMatchingRule extends MatchingRule
 
 
     return true;
-  }
-
-
-
-  /**
-   * Indicates whether the provided attribute value should be
-   * considered a match for the given assertion value.  This will only
-   * be used for the purpose of extensible matching.
-   * <BR><BR>
-   * Note that substring matching rules by default do not support
-   * extensible matching, and therefore this method will always return
-   * {@code UNDEFINED}.  If a substring matching rule does support
-   * extensible matching operations, then it should override this
-   * method and provide an appropriate implementation.
-   *
-   * @param  attributeValue  The attribute value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   * @param  assertionValue  The assertion value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   *
-   * @return  {@code true} if the attribute value should be considered
-   *          a match for the provided assertion value, or
-   *          {@code false} if not.
-   */
-  @Override
-  public ConditionResult valuesMatch(ByteSequence attributeValue,
-                                     ByteSequence assertionValue)
-  {
-    return ConditionResult.UNDEFINED;
   }
 }
 

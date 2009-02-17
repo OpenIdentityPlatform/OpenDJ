@@ -1415,6 +1415,7 @@ public final class StaticUtils
    *         if the first byte array is less than, equal to, or greater
    *         than the second.
    */
+  @Deprecated
   public static int compare(ByteSequence a, ByteSequence a2) {
     if (a == a2) {
       return 0;

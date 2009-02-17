@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -38,16 +38,15 @@ import org.opends.server.types.DirectoryException;
 
 
 /**
- * This class defines the set of methods and structures that must be
- * implemented by a Directory Server module that implements a matching
- * rule.
+ * This interface defines the set of methods that must be implemented
+ * by a Directory Server module that implements a matching rule.
  */
 @org.opends.server.types.PublicAPI(
     stability = org.opends.server.types.StabilityLevel.VOLATILE,
     mayInstantiate = false,
     mayExtend = true,
     mayInvoke = false)
-public abstract class MatchingRule
+public interface MatchingRule
 {
   /**
    * Retrieves the common name for this matching rule.
@@ -55,7 +54,7 @@ public abstract class MatchingRule
    * @return The common name for this matching rule, or {@code null}
    *         if it does not have a name.
    */
-  public abstract String getName();
+  String getName();
 
 
 
@@ -64,7 +63,7 @@ public abstract class MatchingRule
    *
    * @return All names for this matching rule.
    */
-  public abstract Collection<String> getAllNames();
+  Collection<String> getAllNames();
 
 
 
@@ -73,7 +72,7 @@ public abstract class MatchingRule
    *
    * @return The OID for this matching rule.
    */
-  public abstract String getOID();
+  String getOID();
 
 
 
@@ -89,12 +88,8 @@ public abstract class MatchingRule
    *           If the provided value is invalid according to the
    *           associated attribute syntax.
    */
-  public ByteString normalizeAssertionValue(ByteSequence value)
-      throws DirectoryException
-  {
-    // Default implementation is to use attribute value normalization.
-    return normalizeValue(value);
-  }
+  ByteString normalizeAssertionValue(ByteSequence value)
+      throws DirectoryException;
 
 
 
@@ -105,18 +100,7 @@ public abstract class MatchingRule
    *
    * @return The name or OID for this matching rule.
    */
-  public final String getNameOrOID()
-  {
-    String name = getName();
-    if ((name == null) || (name.length() == 0))
-    {
-      return getOID();
-    }
-    else
-    {
-      return name;
-    }
-  }
+  String getNameOrOID();
 
 
 
@@ -126,7 +110,7 @@ public abstract class MatchingRule
    * @return The description for this matching rule, or {@code null}
    *         if there is none.
    */
-  public abstract String getDescription();
+  String getDescription();
 
 
 
@@ -137,7 +121,7 @@ public abstract class MatchingRule
    * @return The OID of the syntax with which this matching rule is
    *         associated.
    */
-  public abstract String getSyntaxOID();
+  String getSyntaxOID();
 
 
 
@@ -151,10 +135,7 @@ public abstract class MatchingRule
    * @return {@code true} if this matching rule is declared
    *         "OBSOLETE", or {@code false} if not.
    */
-  public boolean isObsolete()
-  {
-    return false;
-  }
+  boolean isObsolete();
 
 
 
@@ -170,7 +151,7 @@ public abstract class MatchingRule
    *           If the provided value is invalid according to the
    *           associated attribute syntax.
    */
-  public abstract ByteString normalizeValue(ByteSequence value)
+  ByteString normalizeValue(ByteSequence value)
       throws DirectoryException;
 
 
@@ -193,81 +174,8 @@ public abstract class MatchingRule
    *         if it does not match, or {@code UNDEFINED} if the result
    *         is undefined.
    */
-  public abstract ConditionResult valuesMatch(
+  ConditionResult valuesMatch(
       ByteSequence attributeValue, ByteSequence assertionValue);
-
-
-
-  /**
-   * Retrieves the hash code for this matching rule. It will be
-   * calculated as the sum of the characters in the OID.
-   *
-   * @return The hash code for this matching rule.
-   */
-  @Override
-  public final int hashCode()
-  {
-    int hashCode = 0;
-
-    String oidString = getOID();
-    int oidLength = oidString.length();
-    for (int i = 0; i < oidLength; i++)
-    {
-      hashCode += oidString.charAt(i);
-    }
-
-    return hashCode;
-  }
-
-
-
-  /**
-   * Indicates whether the provided object is equal to this matching
-   * rule. The provided object will be considered equal to this
-   * matching rule only if it is a matching rule with the same OID.
-   *
-   * @param o
-   *          The object for which to make the determination.
-   * @return {@code true} if the provided object is equal to this
-   *         matching rule, or {@code false} if it is not.
-   */
-  @Override
-  public final boolean equals(Object o)
-  {
-    if (o == null)
-    {
-      return false;
-    }
-
-    if (this == o)
-    {
-      return true;
-    }
-
-    if (!(o instanceof MatchingRule))
-    {
-      return false;
-    }
-
-    return getOID().equals(((MatchingRule) o).getOID());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of this matching rule in the
-   * format defined in RFC 2252.
-   *
-   * @return A string representation of this matching rule in the
-   *         format defined in RFC 2252.
-   */
-  @Override
-  public final String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
 
 
 
@@ -278,30 +186,5 @@ public abstract class MatchingRule
    * @param buffer
    *          The buffer to which the information should be appended.
    */
-  public final void toString(StringBuilder buffer)
-  {
-    buffer.append("( ");
-    buffer.append(getOID());
-    buffer.append(" NAME '");
-    buffer.append(getName());
-
-    String description = getDescription();
-    if ((description != null) && (description.length() > 0))
-    {
-      buffer.append("' DESC '");
-      buffer.append(description);
-    }
-
-    if (isObsolete())
-    {
-      buffer.append("' OBSOLETE SYNTAX ");
-    }
-    else
-    {
-      buffer.append("' SYNTAX ");
-    }
-
-    buffer.append(getSyntaxOID());
-    buffer.append(" )");
-  }
+  void toString(StringBuilder buffer);
 }
