@@ -79,6 +79,14 @@ public class NetworkGroupStatistics
 
 
   /**
+   * Finalize the statistics.
+   */
+  public void finalizeStatistics() {
+    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+  }
+
+
+  /**
    * Increments the number of operations managed by this network group.
    * @param message The LDAP Message containing the operation to be
    * managed by the network group.

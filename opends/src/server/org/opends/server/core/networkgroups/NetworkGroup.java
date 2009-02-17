@@ -1105,6 +1105,8 @@ public class NetworkGroup
     resourceLimitsPolicy = null;
     criteria = ConnectionCriteria.TRUE;
     policies.clear();
+    // Remove the stats
+    statistics.finalizeStatistics();
   }
 
 
