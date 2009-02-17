@@ -30,14 +30,13 @@ package org.opends.server.api;
 
 import java.io.Serializable;
 import java.util.Comparator;
-
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ByteSequence;
 
 
+
 /**
- * This class defines the set of methods and structures that must be
- * implemented by a Directory Server module that implements a matching
+ * This interface defines the set of methods that must be implemented
+ * by a Directory Server module that implements a matching
  * rule used for determining the correct order of values when sorting
  * or processing range filters.
  */
@@ -46,20 +45,9 @@ import org.opends.server.types.ByteSequence;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class OrderingMatchingRule
-       extends MatchingRule
-       implements Comparator<byte[]>, Serializable
+public interface OrderingMatchingRule
+        extends MatchingRule,Comparator<byte[]>,Serializable
 {
-  /**
-   * The serial version identifier required to satisfy the compiler
-   * because this class implements the {@code java.io.Serializable}
-   * interface.  This value was generated using the {@code serialver}
-   * command-line utility included with the Java SDK.
-   */
-  private static final long serialVersionUID = -5322529685787024597L;
-
-
-
   /**
    * Compares the first value to the second and returns a value that
    * indicates their relative order.
@@ -77,35 +65,4 @@ public abstract class OrderingMatchingRule
    */
   public abstract int compareValues(ByteSequence value1,
                                     ByteSequence value2);
-
-
-
-  /**
-   * Indicates whether the provided attribute value should be
-   * considered a match for the given assertion value.  This will only
-   * be used for the purpose of extensible matching.
-   * <BR><BR>
-   * Note that ordering matching rules by default do not support
-   * extensible matching, and therefore this method will always return
-   * {@code UNDEFINED}.  If an ordering matching rule does support
-   * extensible matching operations, then it should override this
-   * method and provide an appropriate implementation.
-   *
-   * @param  attributeValue  The attribute value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   * @param  assertionValue  The assertion value in a form that has
-   *                         been normalized according to this
-   *                         matching rule.
-   *
-   * @return  {@code true} if the attribute value should be considered
-   *          a match for the provided assertion value, or
-   *          {@code false} if not.
-   */
-  public ConditionResult valuesMatch(ByteSequence attributeValue,
-                                     ByteSequence assertionValue)
-  {
-    return ConditionResult.UNDEFINED;
-  }
 }
-

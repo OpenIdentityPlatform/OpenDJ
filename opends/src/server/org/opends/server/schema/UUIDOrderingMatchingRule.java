@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.opends.messages.Message;
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -51,7 +52,8 @@ import org.opends.server.util.StaticUtils;
  * This will be the default ordering matching rule for the UUID syntax.
  */
 class UUIDOrderingMatchingRule
-       extends OrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -279,10 +281,9 @@ class UUIDOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return StaticUtils.compare(value1, value2);
+    return value1.compareTo(value2);
   }
 
 
@@ -303,6 +304,6 @@ class UUIDOrderingMatchingRule
   public int compare(byte[] b1, byte[] b2)
   {
     return StaticUtils.compare(b1, b2);
-  }
+}
 }
 

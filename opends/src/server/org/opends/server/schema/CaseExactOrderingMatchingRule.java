@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -33,6 +33,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
@@ -47,7 +48,8 @@ import org.opends.server.util.StaticUtils;
  * and referenced in RFC 4519.
  */
 class CaseExactOrderingMatchingRule
-       extends OrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -201,10 +203,9 @@ class CaseExactOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    return StaticUtils.compare(value1, value2);
+    return value1.compareTo(value2);
   }
 
 

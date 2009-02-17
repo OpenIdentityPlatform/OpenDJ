@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteSequence;
@@ -36,7 +37,8 @@ import org.opends.server.types.ByteSequence;
  * Used to establish an order between historical information and index them.
  */
 public class HistoricalCsnOrderingMatchingRule
-       extends OrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -63,7 +65,6 @@ public class HistoricalCsnOrderingMatchingRule
    * @param value2 second value to compare
    * @return 0 when equals, -1 or 1 to establish order
    */
-  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
     String[] token1 = value1.toString().split(":", 3);

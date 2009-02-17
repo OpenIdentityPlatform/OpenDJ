@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -35,6 +35,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -50,7 +51,8 @@ import org.opends.server.types.DirectoryException;
  * X.520 and referenced in RFC 2252.
  */
 class GeneralizedTimeOrderingMatchingRule
-       extends OrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
 {
   /**
    * The tracer object for the debug logger.
@@ -203,7 +205,6 @@ class GeneralizedTimeOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
-  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
     try
@@ -253,6 +254,6 @@ class GeneralizedTimeOrderingMatchingRule
   public int compare(byte[] b1, byte[] b2)
   {
     return compareValues(ByteString.wrap(b1), ByteString.wrap(b2));
-  }
+}
 }
 
