@@ -250,6 +250,147 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
+
+          <!--- Test Case information
+          #@TestMarker      Export tasks
+          #@TestName        Schedule a recurring Export task
+          #@TestPurpose     Schedule a recurring Export in task mode
+          #@TestPreamble
+          #@TestStep        Create a recurring Export in task mode
+          #@TestStep        specify the recurringTask option with the value
+          #@TestStep        non null to schedule a recurring execution
+          #@TestPostamble
+          #@TestResult
+          -->
+
+        <testcase name="getTestCaseName('schedule recurring export task')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+
+            <!--- ReStart DS to clear the output of manage-tasks-->
+            <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <call function="'exportLdif'">
+              { 'location'          : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+              'ldifFile'            : '%s/tasks/export_schedule_recurring' % remote.data,
+              'schedulePattern'     : '"0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *"',
+              'backEnd'             : DIRECTORY_INSTANCE_BE}
+            </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'ExportTask-',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Completed successfully',
+              'expectedResult'	   : '0' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Waiting on start time',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'Sleep'">
+              { 'location'  :	 STAF_REMOTE_HOSTNAME,
+              'sleepForMilliSeconds'  :  120000 }
+            </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'ExportTask-*',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Completed successfully',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Waiting on start time',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <!-- cancel the recurring task ExportTask-* with manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsCancel'       : 'ExportTask-*',
+              'dsQuiet'        : ' '
+              }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Task ExportTask-',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'canceled',
+              'expectedResult'	   : '1' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
         
         
         <call function="'testSuite_Postamble'" />
