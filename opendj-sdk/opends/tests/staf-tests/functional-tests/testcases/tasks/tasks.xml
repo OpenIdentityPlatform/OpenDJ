@@ -59,7 +59,8 @@
             testList.append('export-ldif')
             testList.append('import-ldif')
             testList.append('backup_db')
-            testList.append('allowed-tasks')            
+            testList.append('restore_db')
+            testList.append('allowed-tasks')
             testList.append('cleanup')
           </script>
           <iterate var="__test" in="testList" >
