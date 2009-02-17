@@ -609,7 +609,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
-    </function-map-args>
+     </function-map-args>
       
     <sequence>
         <script>
@@ -816,6 +816,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+      <function-arg-def name="schedulePattern" type="optional">
+        <function-arg-description>
+          Indicates the task is recurring and will be scheduled
+          according to the value argument expressed in crontab(5)
+          compatible time/date pattern
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -900,7 +908,10 @@
   
         if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
-                  
+
+        if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
@@ -1507,7 +1518,15 @@
           Known issue. Corresponds to an issue number.
         </function-arg-description>
         <function-arg-property name="type" value="string" />
-      </function-arg-def> 
+      </function-arg-def>
+      <function-arg-def name="schedulePattern" type="optional">
+        <function-arg-description>
+          Indicates the task is recurring and will be scheduled
+          according to the value argument expressed in crontab(5)
+          compatible time/date pattern
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -1537,7 +1556,10 @@
 
         if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
-                                                         
+
+        if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
+                                                        
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
@@ -1894,6 +1916,20 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+      <function-arg-def name="schedulePattern" type="optional">
+        <function-arg-description>
+          Indicates the task is recurring and will be scheduled
+          according to the value argument expressed in crontab(5)
+          compatible time/date pattern
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="backupID" type="optional">
+        <function-arg-description>
+          Use the provided identifier for the backup
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -1920,9 +1956,16 @@
        if extraParams:
           STAFCmdParamsList.append('%s' % extraParams)    
 
-        if startTask:
+       if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
-                                                         
+
+       if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
+
+       if backupID:
+          STAFCmdParamsList.append('-I %s' % backupID)
+
+
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
@@ -2238,6 +2281,20 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
+      <function-arg-def name="schedulePattern" type="optional">
+        <function-arg-description>
+          Indicates the task is recurring and will be scheduled
+          according to the value argument expressed in crontab(5)
+          compatible time/date pattern
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="backupID" type="optional">
+        <function-arg-description>
+          Use the provided identifier for the backup
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
 
@@ -2263,6 +2320,12 @@
 
         if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
+
+        if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
+
+        if backupID:
+          STAFCmdParamsList.append('-I %s' % backupID)
                                                          
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
