@@ -22,22 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.extensions;
 
 import java.nio.channels.ByteChannel;
 import java.security.cert.Certificate;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SocketChannel;
 import javax.security.sasl.Sasl;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -48,27 +44,34 @@ import org.opends.server.util.StaticUtils;
 public class
 SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
 
-    // The tracer object for the debug logger.
-    private static final DebugTracer TRACER = getTracer();
-
     // The client connection associated with this provider.
     private ClientConnection connection;
-
-    // The socket channel associated with this provider.
-    private SocketChannel sockChannel;
 
     // The SASL context associated with the provider
     private SASLContext saslContext;
 
+    // The byte channel associated with this provider.
+    private RedirectingByteChannel channel;
+
     // The number of bytes in the length buffer.
     private final int lengthSize = 4;
 
-    // A byte buffer used to hold the length of the clear buffer.
-    private ByteBuffer lengthBuf = ByteBuffer.allocate(lengthSize);
+    //Length of the buffer.
+    private int bufLength;
 
     // The SASL mechanism name.
     private String name;
 
+    //Buffers used in reading and decoding (unwrap)
+    private ByteBuffer readBuffer, decodeBuffer;
+
+    //How many bytes of the subsequent buffer is needed to complete a partially
+    //read buffer.
+    private int neededBytes = 0;
+
+    //Used to not reset the buffer length size because the first 4 bytes of a
+    //buffer are not size bytes.
+    private boolean reading = false;
 
     /**
      * Create a SASL byte channel with the specified parameters
@@ -87,7 +90,9 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
       this.connection = connection;
       this.name = name;
       this.saslContext = saslContext;
-      this.sockChannel = ((LDAPClientConnection) connection).getSocketChannel();
+      this.channel = connection.getChannel();
+      this.readBuffer = ByteBuffer.allocate(connection.getAppBufferSize());
+      this.decodeBuffer = ByteBuffer.allocate(connection.getAppBufferSize());
     }
 
     /**
@@ -96,7 +101,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
      *
      * @param c A client connection associated with the instance.
      * @param name The name of the instance (SASL mechanism name).
-     * @param context A SASL context associaetd with the instance.
+     * @param context A SASL context associated with the instance.
      * @return A SASL byte channel.
      */
     public static SASLByteChannel
@@ -106,8 +111,44 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     }
 
     /**
-     * Read from the socket channel into the specified byte buffer the
-     * number of bytes specified in the total parameter.
+     * Finish processing a previous, partially read buffer using some, or, all
+     * of the bytes of the current buffer.
+     *
+     */
+    private int processPartial(int readResult, ByteBuffer clearDst)
+    throws IOException {
+      readBuffer.flip();
+      //Use all of the bytes of the current buffer and read some more.
+      if(neededBytes > readResult) {
+        neededBytes -= readResult;
+        decodeBuffer.put(readBuffer);
+        readBuffer.clear();
+        reading = false;
+        return 0;
+      }
+      //Use a portion of the current buffer.
+      for(;neededBytes > 0;neededBytes--) {
+        decodeBuffer.put(readBuffer.get());
+      }
+      //Unwrap the now completed buffer.
+      byte[] inBytes = decodeBuffer.array();
+      byte[]clearBytes = saslContext.unwrap(inBytes, lengthSize, bufLength);
+      clearDst.put(clearBytes);
+      decodeBuffer.clear();
+      readBuffer.compact();
+      //If the read buffer has bytes, these are a new buffer. Reset the
+      //buffer length to the new value.
+      if(readBuffer.position() != 0) {
+        bufLength = getBufLength(readBuffer);
+        reading = true;
+      } else
+        reading=false;
+      return clearDst.position();
+    }
+
+    /**
+     * Read from the socket channel into the specified byte buffer at least
+     * the number of bytes specified in the total parameter.
      *
      * @param byteBuf
      *          The byte buffer to put the bytes in.
@@ -121,8 +162,8 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     private int readAll(ByteBuffer byteBuf, int total) throws IOException
     {
       int count = 0;
-      while (sockChannel.isOpen() && total > 0) {
-        count = sockChannel.read(byteBuf);
+      while (channel.isOpen() && total > 0) {
+        count = channel.read(byteBuf);
         if (count == -1) return -1;
         if (count == 0) return 0;
         total -= count;
@@ -144,43 +185,53 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     private int getBufLength(ByteBuffer byteBuf)
     {
       int answer = 0;
-      byte[] buf = byteBuf.array();
 
       for (int i = 0; i < lengthSize; i++)
       {
+        byte b = byteBuf.get(i);
         answer <<= 8;
-        answer |= ((int) buf[i] & 0xff);
+        answer |= ((int) b & 0xff);
       }
       return answer;
     }
-
 
     /**
      * {@inheritDoc}
      */
     public int read(ByteBuffer clearDst) throws IOException {
-        int recvBufSize = getAppBufSize();
-        if(recvBufSize > clearDst.capacity())
-            return -1;
-        lengthBuf.clear();
-        int readResult = readAll(lengthBuf, lengthSize);
-        if (readResult == -1)
-            return -1;
-        else if (readResult == 0) return 0;
-        int bufLength = getBufLength(lengthBuf);
-        if (bufLength > recvBufSize) //TODO SASLPhase2 add message
-            return -1;
-        ByteBuffer readBuf = ByteBuffer.allocate(bufLength);
-        readResult = readAll(readBuf, bufLength);
-        if (readResult == -1)
-            return -1;
-        else if (readResult == 0) return 0;
-        byte[] inBytes = readBuf.array();
-        byte[] clearBytes = saslContext.unwrap(inBytes, 0, inBytes.length);
-        for(int i = 0; i < clearBytes.length; i++) {
-            clearDst.put(clearBytes[i]);
-        }
-        return clearDst.remaining();
+      int bytesToRead = lengthSize;
+      if(reading)
+        bytesToRead = neededBytes;
+      int readResult = readAll(readBuffer, bytesToRead);
+      if (readResult == -1)
+        return -1;
+      //The previous buffer read was not complete, the current
+      //buffer completes it.
+      if(neededBytes > 0 && readResult > 0)
+          return(processPartial(readResult, clearDst));
+      if(readResult == 0 && !reading) return 0;
+      if(!reading) {
+        bufLength = getBufLength(readBuffer);
+      }
+      reading=false;
+      //The buffer length is greater than what is there, save what is there,
+      //figure out how much more is needed and return.
+      if(bufLength > readBuffer.position()) {
+        neededBytes = bufLength - readBuffer.position() + 4;
+        readBuffer.flip();
+        decodeBuffer.put(readBuffer);
+        readBuffer.clear();
+        return 0;
+      } else {
+        readBuffer.flip();
+        decodeBuffer.put(readBuffer);
+        byte[] inBytes = decodeBuffer.array();
+        byte[]clearBytes = saslContext.unwrap(inBytes, lengthSize, bufLength);
+        decodeBuffer.clear();
+        clearDst.put(clearBytes);
+        readBuffer.clear();
+      }
+      return clearDst.position();
     }
 
     /**
@@ -258,12 +309,11 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
      *         to the socket channel, or, {@code false} if not.
      */
     private int writeChannel(ByteBuffer buffer) throws IOException {
-        int bytesWritten = sockChannel.write(buffer);
+        int bytesWritten = channel.write(buffer);
         if (bytesWritten < 0)
             throw new ClosedChannelException();
         else if (bytesWritten == 0) {
-            if(!StaticUtils.writeWithTimeout(
-                    connection, sockChannel, buffer))
+            if(!StaticUtils.writeWithTimeout(connection, buffer))
                 throw new ClosedChannelException();
         }
         return bytesWritten;
@@ -288,7 +338,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
      * {@inheritDoc}
      */
     public int getAppBufSize() {
-        return saslContext.getBufSize(Sasl.RAW_SEND_SIZE) + lengthSize;
+        return saslContext.getBufSize(Sasl.MAX_BUFFER);
     }
 
     /**

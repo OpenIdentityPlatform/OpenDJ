@@ -205,6 +205,8 @@ public class TLSByteChannel implements
         SSLEngineResult.HandshakeStatus hsStatus;
         if(!reading)
           appNetData.clear();
+        else
+          reading = false;
         if(!socketChannel.isOpen())
             return -1;
         if(sslEngine.isInboundDone())
@@ -369,8 +371,7 @@ public class TLSByteChannel implements
                     throw new ClosedChannelException();
                 else if (bytesWritten == 0) {
                     int bytesSent = netData.remaining();
-                    if(!StaticUtils.writeWithTimeout(
-                            connection, socketChannel, netData))
+                    if(!StaticUtils.writeWithTimeout(connection, netData))
                         throw new ClosedChannelException();
                     totBytesSent += bytesSent;
                 } else

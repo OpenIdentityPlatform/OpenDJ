@@ -31,6 +31,7 @@ package org.opends.server.api;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
+import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -1387,6 +1389,50 @@ public abstract class ClientConnection
   public final void setSASLAuthStateInfo(Object saslAuthState)
   {
     this.saslAuthState = saslAuthState;
+  }
+
+
+  /**
+   * Return the lowest level channel associated with a connection.
+   * This is normally the channel associated with the socket
+   * channel.
+   *
+   * @return The lowest level channel associated with a connection.
+   */
+  public RedirectingByteChannel getChannel() {
+    // By default, return null, which indicates that there should
+    // be no channel.  Subclasses should override this if
+    // they want to support a channel.
+    return null;
+  }
+
+
+
+  /**
+   * Return the Socket channel associated with a connection.
+   *
+   * @return The Socket channel associated with a connection.
+   */
+  public SocketChannel getSocketChannel() {
+    // By default, return null, which indicates that there should
+    // be no socket channel.  Subclasses should override this if
+    // they want to support a socket channel.
+    return null;
+  }
+
+
+
+  /**
+   * Return the largest application buffer size that should be used
+   * for a connection.
+   *
+   * @return The application buffer size.
+   */
+  public int getAppBufferSize() {
+    // By default, return 0, which indicates that there should
+    // be no application buffer size.  Subclasses should override
+    //this if they want to support a application buffer size.
+    return 0;
   }
 
 
