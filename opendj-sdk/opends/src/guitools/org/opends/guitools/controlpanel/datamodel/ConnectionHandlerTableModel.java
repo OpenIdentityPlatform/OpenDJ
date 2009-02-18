@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -265,7 +265,7 @@ implements Comparator<ConnectionHandlerDescriptor>
     {
       if (desc.getPort() > 0)
       {
-        returnValue = "0.0.0.0:"+desc.getPort();
+        returnValue = String.valueOf(desc.getPort());
       }
       else
       {
