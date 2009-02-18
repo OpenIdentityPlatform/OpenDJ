@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -254,11 +254,10 @@ public abstract class BackupListPanel extends StatusGenericPanel
       TableColumn col = backupList.getColumn(model.getColumnName(i));
       col.setCellRenderer(renderer);
     }
-    backupList.getTableHeader().setVisible(false);
-    backupList.getTableHeader().setPreferredSize(new Dimension(0, 0));
-    backupList.getTableHeader().setMinimumSize(new Dimension(0, 0));
+    backupList.setTableHeader(null);
     Utilities.updateTableSizes(backupList);
     tableScroll = Utilities.createScrollPane(backupList);
+    tableScroll.setColumnHeaderView(null);
     tableScroll.setPreferredSize(backupList.getPreferredSize());
     gbc.anchor = GridBagConstraints.NORTHWEST;
     add(tableScroll, gbc);

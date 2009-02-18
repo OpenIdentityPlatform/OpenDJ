@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -88,7 +88,8 @@ public class CustomObjectClassPanel extends StandardObjectClassPanel
     gbc.gridx = 0;
     gbc.gridy = 0;
     JScrollPane scroll = Utilities.createBorderLessScrollBar(p);
-    scrollListener = new ScrollPaneBorderListener(scroll);
+    scrollListener =
+      ScrollPaneBorderListener.createBottomBorderListener(scroll);
     add(scroll, gbc);
 
     gbc.gridy ++;

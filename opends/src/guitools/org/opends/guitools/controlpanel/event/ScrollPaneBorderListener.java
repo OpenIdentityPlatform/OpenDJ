@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -52,32 +52,61 @@ public class ScrollPaneBorderListener extends ComponentAdapter
   private Border etchedBorder = BorderFactory.createMatteBorder(0, 0, 1, 0,
       ColorAndFontConstants.defaultBorderColor);
 
-
   /**
-   * The constructor of the listener.
-   * @param scroll the scroll pane to update.
-   * @param addTopBorder whether we want to add a top border or only a bottom
-   * border when the border must be displayed.
+   * Private constructor.
+   *
    */
-  public ScrollPaneBorderListener(JScrollPane scroll, boolean addTopBorder)
+  private ScrollPaneBorderListener()
   {
-    this.scroll = scroll;
-    scroll.getHorizontalScrollBar().addComponentListener(this);
-    scroll.getVerticalScrollBar().addComponentListener(this);
-    if (addTopBorder)
-    {
-      etchedBorder = BorderFactory.createMatteBorder(1, 0, 1, 0,
-          ColorAndFontConstants.defaultBorderColor);
-    }
   }
 
   /**
-   * The constructor of the listener.
+   * Returns a scroll pane border listener that will apply a border only on the
+   * bottom of the scroll.
    * @param scroll the scroll pane to update.
+   * @return a scroll pane border listener that will apply a border only on the
+   * bottom of the scroll.
    */
-  public ScrollPaneBorderListener(JScrollPane scroll)
+  public static ScrollPaneBorderListener createBottomBorderListener(
+      JScrollPane scroll)
   {
-    this(scroll, false);
+    ScrollPaneBorderListener listener = new ScrollPaneBorderListener();
+    listener.scroll = scroll;
+    scroll.getHorizontalScrollBar().addComponentListener(listener);
+    scroll.getVerticalScrollBar().addComponentListener(listener);
+    return listener;
+  }
+
+  /**
+   * Returns a scroll pane border listener that will apply a border on the
+   * bottom and on the top of the scroll.
+   * @param scroll the scroll pane to update.
+   * @return a scroll pane border listener that will apply a border on the
+   * bottom and on the top of the scroll.
+   */
+  public static ScrollPaneBorderListener createBottomAndTopBorderListener(
+      JScrollPane scroll)
+  {
+    ScrollPaneBorderListener listener = createBottomBorderListener(scroll);
+    listener.etchedBorder = BorderFactory.createMatteBorder(1, 0, 1, 0,
+        ColorAndFontConstants.defaultBorderColor);
+    return listener;
+  }
+
+  /**
+   * Returns a scroll pane border listener that will apply a full border to the
+   * scroll.
+   * @param scroll the scroll pane to update.
+   * @return a scroll pane border listener that will apply a full border to the
+   * scroll.
+   */
+  public static ScrollPaneBorderListener createFullBorderListener(
+      JScrollPane scroll)
+  {
+    ScrollPaneBorderListener listener = createBottomBorderListener(scroll);
+    listener.etchedBorder = BorderFactory.createMatteBorder(1, 1, 1, 1,
+        ColorAndFontConstants.defaultBorderColor);
+    return listener;
   }
 
   /**
