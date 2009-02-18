@@ -275,9 +275,13 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       {
         // The socket has probably been closed as part of the
         // shutdown or changing the port number process.
-        // just log debug information and loop.
-        Message message = ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
-        logError(message);
+        // Just log debug information and loop.
+        // Do not log the message during shutdown.
+        if (shutdown == false) {
+          Message message =
+            ERR_EXCEPTION_LISTENING.get(e.getLocalizedMessage());
+          logError(message);
+        }
       }
     }
   }
