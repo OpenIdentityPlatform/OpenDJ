@@ -772,7 +772,7 @@ public class Utilities
     int headerMaxWidth = 0;
 
     JTableHeader header = table.getTableHeader();
-    if (header.isVisible())
+    if (header != null && header.isVisible())
     {
       for (int col=0; col<table.getColumnCount(); col++)
       {
@@ -801,14 +801,18 @@ public class Utilities
       TableColumn tcol = table.getColumnModel().getColumn(col);
       TableCellRenderer renderer = tcol.getHeaderRenderer();
 
-      if (renderer == null)
+      if ((renderer == null) && (header != null))
       {
-        renderer = table.getTableHeader().getDefaultRenderer();
+        renderer = header.getDefaultRenderer();
       }
 
-      Component comp = renderer.getTableCellRendererComponent(table,
+      if (renderer != null)
+      {
+        Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getColumnName(col), false, false, 0, col);
-      colMaxWidth = comp.getPreferredSize().width  + 8;
+        colMaxWidth = comp.getPreferredSize().width  + (2 * horizontalMargin) +
+        8;
+      }
 
       if (colMaxWidth > screenSize.width)
       {
@@ -818,7 +822,7 @@ public class Utilities
       for (int row=0; row<table.getRowCount(); row++)
       {
         renderer = table.getCellRenderer(row, col);
-        comp = table.prepareRenderer(renderer, row, col);
+        Component comp = table.prepareRenderer(renderer, row, col);
         int colWidth = comp.getPreferredSize().width + (2 * horizontalMargin);
         colMaxWidth = Math.max(colMaxWidth, colWidth);
       }
@@ -827,7 +831,7 @@ public class Utilities
     }
 
 
-    if (header.isVisible())
+    if (header != null && header.isVisible())
     {
       header.setPreferredSize(new Dimension(
           headerMaxWidth,
@@ -835,24 +839,25 @@ public class Utilities
     }
 
 
-    int maxRow = 0;
+    int maxRow = table.getRowHeight();
     for (int row=0; row<table.getRowCount(); row++)
     {
-      int rowMaxHeight = table.getRowHeight();
       for (int col=0; col<table.getColumnCount(); col++)
       {
         TableCellRenderer renderer = table.getCellRenderer(row, col);
         Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getValueAt(row, col), false, false, row, col);
-        int colHeight = comp.getPreferredSize().height;
+        int colHeight = comp.getPreferredSize().height + (2 * verticalMargin);
         if (colHeight > screenSize.height)
         {
           colHeight = 0;
         }
-        rowMaxHeight = Math.max(rowMaxHeight, colHeight);
+        maxRow = Math.max(maxRow, colHeight);
       }
-      table.setRowHeight(row, rowMaxHeight);
-      maxRow = Math.max(maxRow, rowMaxHeight);
+    }
+    if (maxRow > table.getRowHeight())
+    {
+      table.setRowHeight(maxRow);
     }
     Dimension d1;
     if (rows == -1)

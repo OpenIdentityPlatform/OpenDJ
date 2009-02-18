@@ -250,7 +250,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     gbc.gridx = 0;
     gbc.gridy = 0;
     JScrollPane scroll = Utilities.createBorderLessScrollBar(p);
-    scrollListener = new ScrollPaneBorderListener(scroll);
+    scrollListener =
+      ScrollPaneBorderListener.createBottomBorderListener(scroll);
     add(scroll, gbc);
 
     gbc.gridy ++;

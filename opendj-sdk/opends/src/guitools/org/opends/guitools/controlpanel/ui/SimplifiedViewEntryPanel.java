@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -421,7 +421,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     gbc.gridy ++;
     gbc.fill = GridBagConstraints.BOTH;
     scrollAttributes = Utilities.createBorderLessScrollBar(attributesPanel);
-    scrollListener = new ScrollPaneBorderListener(scrollAttributes, true);
+    scrollListener = ScrollPaneBorderListener.createBottomAndTopBorderListener(
+        scrollAttributes);
     gbc.insets = new Insets(0, 0, 0, 0);
     add(scrollAttributes, gbc);
   }
