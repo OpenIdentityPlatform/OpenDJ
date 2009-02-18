@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
 import org.opends.server.types.*;
 
@@ -149,6 +151,11 @@ public class RootDseWorkflowTopology extends WorkflowTopology
     // Now restore the original request base DN and original search scope
     searchOp.setBaseDN(originalBaseDN);
     searchOp.setScope(originalScope);
+
+    // If the result code is still uninitialized (ie no naming context),
+    // we should return NO_SUCH_OBJECT
+    workflowResultCode.elaborateGlobalResultCode(
+      ResultCode.NO_SUCH_OBJECT, new MessageBuilder(Message.EMPTY));
 
     // Set the operation result code and error message
     searchOp.setResultCode(workflowResultCode.resultCode());
