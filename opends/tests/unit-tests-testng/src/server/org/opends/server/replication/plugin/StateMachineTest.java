@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -36,6 +36,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -46,6 +48,11 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
@@ -275,6 +282,7 @@ public class StateMachineTest extends ReplicationTestCase
    * Creates and starts a new ReplicationDomain configured for the replication
    * server
    */
+  @SuppressWarnings("unchecked")
   private LDAPReplicationDomain createReplicationDomain(short dsId)
   {
     try
@@ -288,6 +296,14 @@ public class StateMachineTest extends ReplicationTestCase
       LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
       replicationDomain.start();
+      SynchronizationProvider<SynchronizationProviderCfg> provider =
+        DirectoryServer.getSynchronizationProviders().get(0);
+      if (provider instanceof ConfigurationChangeListener)
+      {
+        ConfigurationChangeListener<MultimasterReplicationFakeConf> mmr =
+          (ConfigurationChangeListener<MultimasterReplicationFakeConf>) provider;
+        mmr.applyConfigurationChange(new MultimasterReplicationFakeConf());
+      }
 
       return replicationDomain;
 
@@ -547,7 +563,7 @@ public class StateMachineTest extends ReplicationTestCase
    * ->NC->D->N->NC->N->D->NC->D->N->BG->NC->N->D->BG->FU->NC->N->D->FU->NC->BG->NC->N->FU->NC->N->NC
    * @throws Exception If a problem occurred
    */
-  @Test(enabled = true, groups = "slow")
+  @Test(enabled = false, groups = "slow")
   public void testStateMachineFull() throws Exception
   {
     String testCase = "testStateMachineFull";
