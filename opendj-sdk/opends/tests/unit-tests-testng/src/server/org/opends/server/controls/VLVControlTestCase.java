@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -44,6 +44,10 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Constants;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -383,7 +387,41 @@ public class VLVControlTestCase
     assertNotNull(vlvRequest.toString());
   }
 
+  /**
+   * Tests the ASN.1 encoding for the response control.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testASN1ValueEncoding()
+         throws Exception
+  {
+    ByteStringBuilder builder = new ByteStringBuilder();
+    ASN1Writer writer = ASN1.getWriter(builder);
+    VLVResponseControl vlvResponse = new VLVResponseControl(true, 0, 15, 0,
+        ByteString.valueOf("foo"));
+    vlvResponse.writeValue(writer);
 
+    ASN1Reader reader = ASN1.getReader(builder.toByteString());
+    // Should start as an octet string with a nested sequence
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE);
+    reader.readStartSequence();
+    // Should be an sequence start
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_SEQUENCE_TYPE);
+    reader.readStartSequence();
+    // Should be an integer with targetPosition
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_INTEGER_TYPE);
+    assertEquals(reader.readInteger(), 0);
+    // Should be an integer with contentCount
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_INTEGER_TYPE);
+    assertEquals(reader.readInteger(), 15);
+    // Should be an enumerated with virtualListViewResult
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_ENUMERATED_TYPE);
+    assertEquals(reader.readEnumerated(), 0);
+    // Should be an octet string with contextID
+    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE);
+    assertEquals(reader.readOctetStringAsString(), "foo");
+  }
 
   /**
    * Tests the first constructor for the response control.

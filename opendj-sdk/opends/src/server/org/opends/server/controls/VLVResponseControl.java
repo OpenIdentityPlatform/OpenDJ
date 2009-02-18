@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -248,7 +248,7 @@ public class VLVResponseControl
     writer.writeStartSequence();
     writer.writeInteger(targetPosition);
     writer.writeInteger(contentCount);
-    writer.writeInteger(vlvResultCode);
+    writer.writeEnumerated(vlvResultCode);
     if (contextID != null)
     {
       writer.writeOctetString(contextID);
