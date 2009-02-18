@@ -4170,21 +4170,14 @@ public final class StaticUtils
    * problem). If possible, it will attempt to use the selector returned
    * by the {@code ClientConnection.getWriteSelector} method, but it is
    * capable of working even if that method returns {@code null}. <BR>
-   * <BR>
-   * Note that this method has been written in a generic manner so that
-   * other connection security providers can use it to send data to the
-   * client, provided that the given buffer contains the appropriate
-   * pre-encoded information. <BR>
-   * <BR>
-   * Also note that the original position and limit values will not be
+   *
+   * Note that the original position and limit values will not be
    * preserved, so if that is important to the caller, then it should
    * record them before calling this method and restore them after it
    * returns.
    *
    * @param clientConnection
    *          The client connection to which the data is to be written.
-   * @param socketChannel
-   *          The socket channel over which to write the data.
    * @param buffer
    *          The data to be written to the client.
    * @return <CODE>true</CODE> if all the data in the provided buffer was
@@ -4198,10 +4191,10 @@ public final class StaticUtils
    *           client. The caller will be responsible for catching this
    *           and terminating the client connection.
    */
-  public static boolean writeWithTimeout(
-      ClientConnection clientConnection, SocketChannel socketChannel,
+  public static boolean writeWithTimeout(ClientConnection clientConnection,
       ByteBuffer buffer) throws IOException
   {
+    SocketChannel socketChannel = clientConnection.getSocketChannel();
     long startTime = System.currentTimeMillis();
     long waitTime = clientConnection.getMaxBlockedWriteTimeLimit();
     if (waitTime <= 0)

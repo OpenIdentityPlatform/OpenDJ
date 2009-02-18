@@ -383,8 +383,19 @@ public class GSSAPISASLMechanismHandler extends
     {
       try
       {
-        saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
-            SASL_MECHANISM_GSSAPI, identityMapper);
+        //If the connection is secure already (i.e., TLS), then make the
+        //receive buffers sizes match.
+        if(clientConn.isSecure()) {
+          HashMap<String, String>secProps =
+                                  new HashMap<String,String>(saslProps);
+          int maxBuf = clientConn.getAppBufferSize();
+          secProps.put(Sasl.MAX_BUFFER, Integer.toString(maxBuf));
+          saslContext = SASLContext.createSASLContext(secProps, serverFQDN,
+                                  SASL_MECHANISM_GSSAPI, identityMapper);
+        } else {
+          saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
+                                  SASL_MECHANISM_GSSAPI, identityMapper);
+        }
       }
       catch (SaslException ex)
       {

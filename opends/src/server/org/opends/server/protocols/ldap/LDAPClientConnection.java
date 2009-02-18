@@ -195,6 +195,8 @@ public class LDAPClientConnection extends ClientConnection implements
 
   private ASN1ByteChannelReader asn1Reader;
 
+  private static int APPLICATION_BUFFER_SIZE = 4096;
+
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
   private ConnectionSecurityProvider activeProvider = null;
@@ -286,7 +288,7 @@ public class LDAPClientConnection extends ClientConnection implements
     saslChannel =
         RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
     this.asn1Reader =
-        ASN1.getReader(saslChannel, 4096, connectionHandler
+        ASN1.getReader(saslChannel, APPLICATION_BUFFER_SIZE, connectionHandler
             .getMaxRequestSize());
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
@@ -349,6 +351,7 @@ public class LDAPClientConnection extends ClientConnection implements
    * @return The socket channel that can be used to communicate with the
    *         client.
    */
+  @Override
   public SocketChannel getSocketChannel()
   {
     return clientChannel;
@@ -775,7 +778,8 @@ public class LDAPClientConnection extends ClientConnection implements
         writerBuffer.writer = ASN1.getWriter(saslChannel, appBufSize);
       }
       else
-        writerBuffer.writer = ASN1.getWriter(saslChannel, 4096);
+        writerBuffer.writer =
+                          ASN1.getWriter(saslChannel, APPLICATION_BUFFER_SIZE);
       cachedBuffers.set(writerBuffer);
     }
     try
@@ -795,7 +799,7 @@ public class LDAPClientConnection extends ClientConnection implements
 
         if (keepStats)
         {
-          // TODO SASLPhase2 hard-coded for now, flush probably needs to
+          // TODO hard-coded for now, flush probably needs to
           // return how many bytes were flushed.
           statTracker.updateMessageWritten(message, 4096);
         }
@@ -2552,6 +2556,19 @@ public class LDAPClientConnection extends ClientConnection implements
 
 
   /**
+   * Retrieves the TLS redirecting byte channel used in a LDAP client
+   * connection.
+   *
+   * @return The TLS redirecting byte channel.
+   */
+   @Override
+   public RedirectingByteChannel getChannel() {
+     return this.tlsChannel;
+   }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -2561,6 +2578,23 @@ public class LDAPClientConnection extends ClientConnection implements
       return activeProvider.getSSF();
     else
       return 0;
+  }
+
+
+
+  /**
+   * Retrieves the application buffer size used in a LDAP client connection.
+   * If a active security provider is being used, then the application buffer
+   * size of that provider is returned.
+   *
+   * @return The application buffer size.
+   */
+  @Override
+  public int getAppBufferSize() {
+    if(activeProvider != null)
+      return activeProvider.getAppBufSize();
+    else
+      return APPLICATION_BUFFER_SIZE;
   }
 
 
