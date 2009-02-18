@@ -35,6 +35,7 @@ import static org.opends.messages.ToolMessages.*;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.config.ConfigException;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionFactory;
@@ -61,6 +62,12 @@ import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.AdministrationConnectorCfg;
+import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * Supports interacting with a user through the command line to
@@ -120,6 +127,9 @@ public class LDAPConnectionConsoleInteraction {
 
   // The command builder that we can return with the connection information.
   private CommandBuilder commandBuilder;
+
+  private boolean configurationInitialized = false;
+
 
   /**
    * Enumeration description protocols for interactive CLI choices.
@@ -397,6 +407,7 @@ public class LDAPConnectionConsoleInteraction {
     copySecureArgsList.hostNameArg.addValue(hostName);
     commandBuilder.addArgument(copySecureArgsList.hostNameArg);
 
+    // Connection type
     useSSL = secureArgsList.useSSL();
     useStartTLS = secureArgsList.useStartTLS();
     boolean connectionTypeIsSet =
@@ -489,11 +500,6 @@ public class LDAPConnectionConsoleInteraction {
       commandBuilder.addArgument(copySecureArgsList.useStartTLSArg);
     }
 
-    if ((useSSL || useStartTLS) && (trustManager == null))
-    {
-      initializeTrustManager();
-    }
-
     // Get the LDAP port.
     if (!useSSL)
     {
@@ -510,6 +516,12 @@ public class LDAPConnectionConsoleInteraction {
         if (secureArgsList.alwaysSSL()) {
           portNumber =
             AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+          // Try to get the port from the config file
+          try {
+            portNumber = getAdminPortFromConfig();
+          } catch (ConfigException ex) {
+            // nothing to do
+            }
         } else {
           portNumber = 636;
         }
@@ -575,6 +587,12 @@ public class LDAPConnectionConsoleInteraction {
     copySecureArgsList.portArg.clearValues();
     copySecureArgsList.portArg.addValue(String.valueOf(portNumber));
     commandBuilder.addArgument(copySecureArgsList.portArg);
+
+    // Handle certificate
+    if ((useSSL || useStartTLS) && (trustManager == null))
+    {
+      initializeTrustManager();
+    }
 
     // Get the LDAP bind credentials.
     bindDN = secureArgsList.bindDnArg.getValue();
@@ -827,6 +845,16 @@ public class LDAPConnectionConsoleInteraction {
           secureArgsList.trustStorePasswordFileArg.isPresent()
         );
     boolean askForTrustStore = false;
+
+    // Try to use the local instance trustore, to avoid certifacte validation
+    // when both the CLI and the server are in the same instance.
+    if (weDontKnowTheTrustMethod) {
+      if (addLocalTrustStore()) {
+        weDontKnowTheTrustMethod = false;
+
+      }
+    }
+
     if (app.isInteractive() && weDontKnowTheTrustMethod)
     {
       checkHeadingDisplayed();
@@ -1905,6 +1933,15 @@ public class LDAPConnectionConsoleInteraction {
  }
 
  /**
+  * Resets the trust manager, so that next time we call the run() method
+  * the trust manager takes into account the local truststore.
+  */
+ public void resetTrustManager()
+ {
+   trustManager = null;
+ }
+
+ /**
   * Forces the initialization of the trust manager with the arguments provided
   * by the user.
   * @throws ArgumentException if there is an error with the arguments provided
@@ -1949,4 +1986,92 @@ public class LDAPConnectionConsoleInteraction {
  {
    return providedBindDN;
  }
+
+ /**
+  * Add the TrustStore of the administration connector of the local instance.
+  *
+  *  @return true if the local trustore has been added.
+  */
+  private boolean addLocalTrustStore() {
+    TrustManagerProviderCfg trustManagerCfg = null;
+    AdministrationConnectorCfg administrationConnectorCfg = null;
+    try {
+      // If remote host, return
+      if (!InetAddress.getLocalHost().getHostName().equals(hostName)) {
+        return false;
+      }
+      // Initialization for admin framework
+      if (!configurationInitialized) {
+        initializeConfiguration();
+      }
+      // Get the Directory Server configuration handler and use it.
+      RootCfg root =
+        ServerManagementContext.getInstance().getRootConfiguration();
+      administrationConnectorCfg =
+        root.getAdministrationConnector();
+      // check if we are in a local instance. Already checked the host,
+      // now check the port
+
+      if (administrationConnectorCfg.getListenPort() != portNumber) {
+        return false;
+      }
+      String trustManagerStr = administrationConnectorCfg.
+        getTrustManagerProvider();
+      trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
+    } catch (Exception ex) {
+      // do nothing
+      return false;
+    }
+    if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
+      FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
+        (FileBasedTrustManagerProviderCfg) trustManagerCfg;
+      String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
+      // Check the file
+      String truststoreFileAbsolute = null;
+      if (truststoreFile.startsWith(File.separator)) {
+        truststoreFileAbsolute = truststoreFile;
+      } else {
+        truststoreFileAbsolute =
+          DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
+      }
+      File f = new File(truststoreFileAbsolute);
+      if (f.exists() && f.canRead() && !f.isDirectory()) {
+        secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  private int getAdminPortFromConfig() throws ConfigException {
+    // Initialization for admin framework
+    if (!configurationInitialized) {
+      initializeConfiguration();
+    }
+    RootCfg root =
+      ServerManagementContext.getInstance().getRootConfiguration();
+    return root.getAdministrationConnector().getListenPort();
+  }
+
+  private boolean initializeConfiguration() {
+    // check if the initialization is required
+    try {
+      ServerManagementContext.getInstance().getRootConfiguration().
+        getAdministrationConnector();
+    } catch (java.lang.Throwable th) {
+      try {
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
+        DirectoryServer.getInstance().initializeConfiguration();
+      } catch (Exception ex) {
+        // do nothing
+        return false;
+      }
+    }
+    configurationInitialized = true;
+    return true;
+  }
 }

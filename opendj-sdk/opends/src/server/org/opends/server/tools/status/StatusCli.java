@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.status;
@@ -330,12 +330,22 @@ class StatusCli extends ConsoleApplication
           SecureConnectionCliArgs secureArgsList =
             argParser.getSecureArgsList();
 
+          int port =
+            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+          controlInfo.setConnectionPolicy(
+            ConnectionProtocolPolicy.USE_ADMIN);
+          String ldapUrl = controlInfo.getURLToConnect();
+          try {
+            URI uri = new URI(ldapUrl);
+            port = uri.getPort();
+          } catch (Throwable t) {
+            LOG.log(Level.SEVERE, "Error parsing url: " + ldapUrl);
+          }
           secureArgsList.hostNameArg.setPresent(true);
           secureArgsList.portArg.setPresent(true);
           secureArgsList.hostNameArg.addValue(
             secureArgsList.hostNameArg.getDefaultValue());
-          secureArgsList.portArg.addValue(
-            secureArgsList.portArg.getDefaultValue());
+          secureArgsList.portArg.addValue(Integer.toString(port));
           // We already know if SSL or StartTLS can be used.  If we cannot
           // use them we will not propose them in the connection parameters
           // and if none of them can be used we will just not ask for the
@@ -348,18 +358,6 @@ class StatusCli extends ConsoleApplication
             bindDn = ci.getBindDN();
             bindPwd = ci.getBindPassword();
 
-            int port =
-              AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-            controlInfo.setConnectionPolicy(
-              ConnectionProtocolPolicy.USE_ADMIN);
-            String ldapUrl = controlInfo.getURLToConnect();
-            try {
-              URI uri = new URI(ldapUrl);
-              port = uri.getPort();
-              ci.setPortNumber(port);
-            } catch (Throwable t) {
-              LOG.log(Level.SEVERE, "Error parsing url: " + ldapUrl);
-            }
             LDAPManagementContextFactory factory =
               new LDAPManagementContextFactory(alwaysSSL);
             ctx = factory.getManagementContext(this, ci);

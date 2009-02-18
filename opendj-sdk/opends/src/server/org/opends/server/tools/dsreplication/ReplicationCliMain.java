@@ -988,6 +988,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String bindDn2 = null;
     String pwd2 = null;
     ci.resetHeadingDisplayed();
+    ci.resetTrustManager();
     if (!cancelled)
     {
       host2 = argParser.getHostName2();
