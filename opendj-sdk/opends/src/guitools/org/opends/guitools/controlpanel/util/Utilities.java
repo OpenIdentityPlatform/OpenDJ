@@ -1736,7 +1736,7 @@ public class Utilities
 
   private final static String[] configurationSchemaFileNames =
   {
-      "02-config.ldif"
+      "02-config.ldif", "06-compat.ldif"
   };
 
   /**
