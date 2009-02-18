@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-15">
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE></TITLE>
 	<META NAME="GENERATOR" CONTENT="StarOffice 8  (Solaris Sparc)">
 	<META NAME="CREATED" CONTENT="20081208;17270700">
-	<META NAME="CHANGED" CONTENT="20081218;12554600">
+	<META NAME="CHANGED" CONTENT="20090218;10450200">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <P><FONT SIZE=5 STYLE="font-size: 20pt"><U><B>Control Panel Sanity
@@ -50,6 +50,10 @@ Check</B></U></FONT></P>
 				<LI><P><A HREF="#Restore backup">Restore backup</A></P>
 				<LI><P><A HREF="#Create new base DN 2">Create new base DN 2</A></P>
 				<LI><P><A HREF="#Restore backup 2">Restore backup 2</A></P>
+				<LI><P><A HREF="#Monitoring - General Information">Monitoring -
+				General Information</A></P>
+				<LI><P><A HREF="#Monitoring - Connection Handler">Monitoring -
+				Connection Handler</A></P>
 			</OL>
 		</TD>
 	</TR>
@@ -162,10 +166,10 @@ Check</B></U></FONT></P>
 				<UL>
 					<UL>
 						<LI><P STYLE="background: transparent"><I><B>Check Syntax<BR></B></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">----&gt;
-						Check for Error because of <BR></SPAN></SPAN><B><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal">&ldquo;multiple
-						values for single-valued attribute cptestattr&rdquo;</SPAN></FONT></B><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium"><BR>==&gt;
-						Remove '</SPAN></SPAN><B><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal">cptestattr:
-						bla bla bla bla</SPAN></FONT></B><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">'
+						Check for Error because of <BR></SPAN></SPAN>“<FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal"><B>multiple
+						values for single-valued attribute cptestattr”</B></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium"><BR>==&gt;
+						Remove '</SPAN></SPAN><FONT FACE="Cumberland, monospace"><SPAN STYLE="font-style: normal"><B>cptestattr:
+						bla bla bla bla</B></SPAN></FONT><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">'
 						---&gt; </SPAN></SPAN><I><B>Check Syntax</B></I></P>
 					</UL>
 				</UL>
@@ -412,8 +416,60 @@ Check</B></U></FONT></P>
 </P>
 <P><BR><BR>
 </P>
+<P><B>18. Monitoring - General Information</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>Verify OpenDS Version 1.3.0</B></I></P>
+				<LI><P><I><B>System Information : Verify</B></I></P>
+				<LI><P><I><B>Java Information : Verify</B></I></P>
+			</UL>
+			<P STYLE="margin-left: 0.79in"><I>expand Other Attributes then
+			Memory Attributes</I></P>
+			<UL>
+				<LI><P><I><B>Work Queue : Verify</B></I></P>
+				<LI><P><I><B>Entry Cache : Verify</B></I></P>
+				<LI><P><I><B>Database Environment : Verify</B></I></P>
+			</UL>
+			<P STYLE="margin-left: 0.79in; font-weight: medium"><I>click on
+			Show Operations... (issue 3800 for the size)</I></P>
+		</TD>
+	</TR>
+</TABLE>
 <P><BR><BR>
 </P>
+<P><BR><BR>
+</P>
+<P><B>19. Monitoring - Connection Handler</B></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#e1e9ff" STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP BGCOLOR="#e1e9ff">
+			<UL>
+				<LI><P><I><B>In the &quot;Connection Handlers&quot; Filter,
+				select each filter and verify the filter is working </B></I>
+				</P>
+			</UL>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><I>LDAP</I></P>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><I>SNMP</I></P>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><I>JMX</I></P>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><I>LDAPS </I>
+			</P>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><I>Administration
+			Connector</I></P>
+			<P STYLE="margin-left: 0.79in; margin-bottom: 0in"><BR>
+			</P>
+			<UL>
+				<LI><P><I><B>In the View menu, select &quot;Show Operations&quot;</B></I></P>
+				<LI><P>I<I><B>n the View menu, select &quot;Show Averages&quot;</B></I></P>
+				<LI><P><I><B>In the Help menu, select Administration Guide</B></I></P>
+				<LI><P><I><B>In the Help menu, select Documentation Wiki</B></I></P>
+			</UL>
+		</TD>
+	</TR>
+</TABLE>
 <P><BR><BR>
 </P>
 </BODY>
