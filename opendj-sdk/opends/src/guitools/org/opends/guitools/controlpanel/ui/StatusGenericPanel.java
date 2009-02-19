@@ -331,6 +331,15 @@ implements ConfigChangeListener
     {
       gbc.insets = new Insets(20, 20, 0, 20);
     }
+    createErrorPane();
+    p.add(errorPane, gbc);
+  }
+
+  /**
+   * Creates the error pane.
+   */
+  protected void createErrorPane()
+  {
     errorPane = Utilities.makeHtmlPane("", ColorAndFontConstants.progressFont);
     errorPane.setOpaque(false);
     errorPane.setEditable(false);
@@ -351,7 +360,6 @@ implements ConfigChangeListener
       }
     });
     errorPane.setEditorKit(htmlEditor);
-    p.add(errorPane, gbc);
   }
 
   /**
