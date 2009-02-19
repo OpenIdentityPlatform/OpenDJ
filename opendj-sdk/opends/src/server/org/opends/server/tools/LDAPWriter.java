@@ -93,6 +93,7 @@ public class LDAPWriter
     }
 
     message.write(asn1Writer);
+    asn1Writer.flush();
 
     if(debugOutputStream.isRecordingEnabled())
     {
