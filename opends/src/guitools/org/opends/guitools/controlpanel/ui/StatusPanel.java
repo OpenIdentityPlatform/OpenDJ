@@ -61,6 +61,7 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
 import org.opends.guitools.controlpanel.ui.renderer.BaseDNCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.CustomCellRenderer;
@@ -104,8 +105,6 @@ class StatusPanel extends StatusGenericPanel
   private ConnectionHandlerTableModel connectionHandlerTableModel;
   private JTable connectionHandlersTable;
 
-  private JButton authenticate;
-
   /**
    * Default constructor.
    *
@@ -117,50 +116,46 @@ class StatusPanel extends StatusGenericPanel
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.gridwidth = 1;
-    addErrorPane(gbc);
-    gbc.gridy ++;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(0, 0, 0, 0);
+    createErrorPane();
+    gbc.insets = new Insets(20, 20, 10, 20);
+    gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
-    add(createServerStatusPanel(), gbc);
+    add(errorPane, gbc);
+    JPanel inScrollPanel = new JPanel(new GridBagLayout());
+    inScrollPanel.setOpaque(false);
+    gbc.gridy ++;
+    gbc.weighty = 1.0;
+    JScrollPane scroll = Utilities.createBorderLessScrollBar(inScrollPanel);
+    gbc.insets = new Insets(0, 0, 0, 0);
+    add(scroll, gbc);
+    ScrollPaneBorderListener.createFullBorderListener(scroll);
 
-    gbc.insets.top = 15;
+    gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
+    gbc.insets = new Insets(15, 10, 0, 10);
+    gbc.weighty = 0.0;
+    inScrollPanel.add(createServerStatusPanel(), gbc);
 
     gbc.gridy ++;
-    add(createServerDetailsPanel(), gbc);
+    inScrollPanel.add(createServerDetailsPanel(), gbc);
 
-    // To compensate titled border.
-    gbc.insets.left = 3;
-    gbc.insets.right = 3;
+//  To compensate titled border.
+    gbc.insets.left += 3;
+    gbc.insets.right += 3;
     gbc.gridy ++;
-    add(createListenersPanel(), gbc);
-
-    gbc.gridy ++;
-    add(createBackendsPanel(), gbc);
-
-    addBottomGlue(gbc);
+    inScrollPanel.add(createListenersPanel(), gbc);
 
     gbc.gridy ++;
-    gbc.anchor = GridBagConstraints.EAST;
-    authenticate = Utilities.createButton(
-        INFO_AUTHENTICATE_BUTTON_LABEL.get());
-    authenticate.setToolTipText(
-        INFO_AUTHENTICATE_CONTROL_PANEL_BUTTON_TOOLTIP.get().toString());
-    authenticate.setOpaque(false);
-    gbc.fill = GridBagConstraints.NONE;
-    gbc.insets.bottom = 0;
-    authenticate.setOpaque(false);
-    authenticate.addActionListener(new ActionListener()
-    {
-      /**
-       * {@inheritDoc}
-       */
-      public void actionPerformed(ActionEvent ev)
-      {
-        authenticate();
-      }
-    });
-    add(authenticate, gbc);
+    gbc.insets.bottom = 20;
+    inScrollPanel.add(createBackendsPanel(), gbc);
+
+    gbc.gridy ++;
+    gbc.weighty = 1.0;
+    gbc.insets = new Insets(0, 0, 0, 0);
+    gbc.fill = GridBagConstraints.VERTICAL;
+    inScrollPanel.add(Box.createVerticalGlue(), gbc);
   }
 
   /**
@@ -168,11 +163,7 @@ class StatusPanel extends StatusGenericPanel
    */
   public Component getPreferredFocusComponent()
   {
-    if (authenticate.isVisible())
-    {
-      return authenticate;
-    }
-    else if (startButton.isVisible())
+    if (startButton.isVisible())
     {
       return startButton;
     }
@@ -180,6 +171,15 @@ class StatusPanel extends StatusGenericPanel
     {
       return stopButton;
     }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean requiresBorder()
+  {
+    return false;
   }
 
   private void recalculateSizes()
@@ -248,7 +248,28 @@ class StatusPanel extends StatusGenericPanel
     Collection<OpenDsException> exceptions = desc.getExceptions();
     if (exceptions.size() == 0)
     {
-      errorPane.setVisible(false);
+      boolean errorPaneVisible = false;
+      if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
+      {
+        if (!desc.isAuthenticated())
+        {
+          errorPaneVisible = true;
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(
+              INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
+              get());
+          mb.append("<br><br>"+getAuthenticateHTML());
+          Message title =
+            INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
+          updateErrorPane(errorPane, title,
+              ColorAndFontConstants.errorTitleFont,
+              mb.toMessage(), ColorAndFontConstants.defaultFont);
+        }
+      }
+      if (errorPane.isVisible() != errorPaneVisible)
+      {
+        errorPane.setVisible(errorPaneVisible);
+      }
     }
     else
     {
@@ -266,6 +287,16 @@ class StatusPanel extends StatusGenericPanel
           mb.append("<br>");
         }
         mb.append(error);
+      }
+      if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
+      {
+        if (!desc.isAuthenticated())
+        {
+          mb.append(
+     INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
+     get());
+          mb.append("<br><br>"+getAuthenticateHTML());
+        }
       }
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -421,8 +452,6 @@ class StatusPanel extends StatusGenericPanel
     connectionHandlersTable.setVisible(hasConnectionHandlers);
     connectionHandlersTable.getTableHeader().setVisible(hasConnectionHandlers);
     connectionHandlerTableEmpty.setVisible(!hasConnectionHandlers);
-
-    authenticate.setVisible(!isAuthenticated && isRunning);
 
     recalculateSizes();
 
