@@ -437,6 +437,12 @@
               'expectedResult'	   : '0' }
             </call>
 
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Waiting on start time',
+              'expectedResult'	   : '1' }
+            </call>
+
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
               'sleepForMilliSeconds'  :  120000 }
@@ -467,6 +473,24 @@
               'testString'	   : 'Completed successfully',
               'expectedResult'	   : '1' }
             </call>
+
+            <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <call function="'checktestStringNotPresent'">
+               {'testString'     : 'because another task already exists with the same ID' ,
+               'returnString' : returnString,
+               'issue'             : '3773'}
+             </call>
 
             <call function="'testCase_Postamble'"/>
           </sequence>
