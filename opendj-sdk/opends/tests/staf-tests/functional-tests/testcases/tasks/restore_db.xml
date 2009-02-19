@@ -228,12 +228,6 @@
 
             <call function="'searchStringForSubstring'">
               { 'returnString'	   : returnString,
-              'testString'	   : 'Completed successfully',
-              'expectedResult'	   : '0' }
-            </call>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
               'testString'	   : 'Waiting on start time',
               'expectedResult'	   : '1' }
             </call>
