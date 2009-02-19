@@ -137,7 +137,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'replicationPort' argument for the second server.
    */
-  private IntegerArgument replicationPort2Arg = null;
+  IntegerArgument replicationPort2Arg = null;
 
   /**
    * The 'secureReplication' argument for the second server.

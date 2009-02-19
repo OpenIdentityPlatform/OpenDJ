@@ -4871,6 +4871,19 @@ public class ReplicationCliMain extends ConsoleApplication
             ConnectionUtils.getHostPort(ctx1)),
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
+      if (argParser.replicationPort1Arg.isPresent())
+      {
+        // Inform the user that the provided value will be ignored
+        if (uData.getReplicationPort1() !=
+          server1.getReplicationServerPort())
+        {
+          LOG.log(Level.WARNING, "Ignoring provided replication port for "+
+              "first server (already configured with port "+
+              server1.getReplicationServerPort()+")");
+          println(WARN_FIRST_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+              server1.getReplicationServerPort(), uData.getReplicationPort1()));
+        }
+      }
     }
     alreadyConfiguredReplicationServers.add(server1.getId());
     if (!server2.isReplicationServer())
@@ -4901,6 +4914,19 @@ public class ReplicationCliMain extends ConsoleApplication
             getMessageForReplicationServerException(ode,
             ConnectionUtils.getHostPort(ctx1)),
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
+      }
+      if (argParser.replicationPort2Arg.isPresent())
+      {
+        // Inform the user that the provided value will be ignored
+        if (uData.getReplicationPort2() !=
+          server2.getReplicationServerPort())
+        {
+          LOG.log(Level.WARNING, "Ignoring provided replication port for "+
+              "second server (already configured with port "+
+              server2.getReplicationServerPort()+")");
+          println(WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED.get(
+              server2.getReplicationServerPort(), uData.getReplicationPort2()));
+        }
       }
     }
     alreadyConfiguredReplicationServers.add(server2.getId());
