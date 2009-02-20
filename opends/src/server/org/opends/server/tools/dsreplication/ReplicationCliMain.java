@@ -305,7 +305,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              "org.opends.guitools.replicationcli");
+              ReplicationCliMain.class.getPackage().getName());
       QuickSetupLog.disableConsoleLogging();
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
