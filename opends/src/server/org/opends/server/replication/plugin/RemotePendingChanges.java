@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -88,6 +88,16 @@ public class RemotePendingChanges
   public RemotePendingChanges(ServerState state)
   {
     this.state = state;
+  }
+
+  /**
+   * Returns the number of changes currently in this list.
+   *
+   * @return The number of changes currently in this list.
+   */
+  public synchronized int getQueueSize()
+  {
+    return pendingChanges.size();
   }
 
   /**

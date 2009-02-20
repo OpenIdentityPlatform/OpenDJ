@@ -3038,6 +3038,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     ReplicationMonitor.addMonitorData(attributes, "unresolved-naming-conflicts",
         getNumUnresolvedNamingConflicts());
 
+    ReplicationMonitor.addMonitorData(attributes, "remote-pending-changes-size",
+        remotePendingChanges.getQueueSize());
+
     return attributes;
   }
 }
