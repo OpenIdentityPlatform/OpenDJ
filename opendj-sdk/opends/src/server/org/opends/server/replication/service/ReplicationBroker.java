@@ -137,6 +137,7 @@ public class ReplicationBroker
   private List<RSInfo> rsList = new ArrayList<RSInfo>();
 
   private long generationID;
+  private int updateDoneCount = 0;
 
   /**
    * Creates a new ReplicationServer Broker for a particular ReplicationDomain.
@@ -1363,6 +1364,13 @@ public class ReplicationBroker
       try
       {
         ReplicationMsg msg = session.receive();
+        if (msg instanceof UpdateMsg)
+        {
+          synchronized (this)
+          {
+            rcvWindow--;
+          }
+        }
         if (msg instanceof WindowMsg)
         {
           WindowMsg windowMsg = (WindowMsg) msg;
@@ -1410,11 +1418,12 @@ public class ReplicationBroker
   {
     try
     {
-      rcvWindow--;
-      if ((rcvWindow < halfRcvWindow) && (session != null))
+      updateDoneCount ++;
+      if ((updateDoneCount >= halfRcvWindow) && (session != null))
       {
-        session.publish(new WindowMsg(halfRcvWindow));
-        rcvWindow += halfRcvWindow;
+        session.publish(new WindowMsg(updateDoneCount));
+        rcvWindow += updateDoneCount;
+        updateDoneCount = 0;
       }
     } catch (IOException e)
     {

@@ -182,7 +182,7 @@ public class DbHandler implements Runnable
       {
         try
         {
-          msgQueue.wait(5000);
+          msgQueue.wait(500);
         } catch (InterruptedException e)
         {
           // simply loop to try again.
@@ -337,7 +337,7 @@ public class DbHandler implements Runnable
       }
       if ((msgQueue.size() < queueLowmark) &&
           (queueByteSize < queueLowmarkBytes))
-        msgQueue.notify();
+        msgQueue.notifyAll();
     }
   }
 
