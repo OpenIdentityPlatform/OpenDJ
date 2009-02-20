@@ -2690,6 +2690,8 @@ public class DirectoryServer
     supportedControls.add(OID_REAL_ATTRS_ONLY);
     supportedControls.add(OID_VIRTUAL_ATTRS_ONLY);
     supportedControls.add(OID_ACCOUNT_USABLE_CONTROL);
+    supportedControls.add(OID_NS_PASSWORD_EXPIRED);
+    supportedControls.add(OID_NS_PASSWORD_EXPIRING);
   }
 
 
