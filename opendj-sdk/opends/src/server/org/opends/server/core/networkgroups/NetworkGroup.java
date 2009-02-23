@@ -1246,8 +1246,11 @@ public class NetworkGroup
     {
       // Search the highest workflow in the topology that can handle
       // the baseDN.
+      //First search the private workflows
+      // The order is important to ensure that the admin network group
+      // is not broken and can always find cn=config
       for (WorkflowTopologyNode curWorkflow : namingContexts
-          .getNamingContexts())
+          .getPrivateNamingContexts())
       {
         workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
         if (workflowCandidate != null)
@@ -1255,6 +1258,19 @@ public class NetworkGroup
           break;
         }
       }
+      // If not found, search the public
+      if (workflowCandidate == null) {
+        for (WorkflowTopologyNode curWorkflow : namingContexts
+            .getPublicNamingContexts())
+        {
+          workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
+          if (workflowCandidate != null)
+          {
+            break;
+          }
+        }
+      }
+
     }
 
     return workflowCandidate;
