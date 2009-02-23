@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -176,7 +176,7 @@ public class CaseIgnoreEqualityMatchingRule
       byte b = value.byteAt(i);
       if ((b & 0x7F) != b)
       {
-        return normalizeNonASCII(value);
+        return normalizeNonASCII(value.subSequence(startPos, endPos + 1));
       }
 
       switch (b)
