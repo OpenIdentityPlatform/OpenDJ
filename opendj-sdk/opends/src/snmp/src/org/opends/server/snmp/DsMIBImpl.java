@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.snmp;
 
@@ -341,12 +341,16 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
  * @return true if the MBean is a Connection Handler else false
  */
   private boolean isAConnectionHandler(ObjectName name) {
-    String canonicalName = name.getCanonicalName();
-    if ((canonicalName.contains("Connection_Handler")) &&
-            (!(canonicalName.endsWith("_Statistics")))) {
-      return true;
-    } else {
-      return false;
+    // First level
+    String Rdn2 = name.getKeyProperty("Rdn2");
+    // Second level
+    String Rdn3 = name.getKeyProperty("Rdn3");
+    if ((Rdn3==null) || (Rdn3.length()==0)) {
+      if ((Rdn2.contains("Connection_Handler")) &&
+            (!(Rdn2.endsWith("_Statistics")))) {
+         return true;
+      }
     }
+    return false;
   }
 }
