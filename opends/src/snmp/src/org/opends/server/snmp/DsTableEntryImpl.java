@@ -22,15 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.snmp;
 
 import com.sun.management.snmp.agent.SnmpMib;
+import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -178,9 +180,8 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
     public String getDsServerDescription() {
         String result = null;
         try {
-            result = (String) this.monitor.getAttribute(
-        SNMPConnectionHandlerDefinitions.MONITOR_SYSTEM_INFORMATION_OBJECTNAME,
-                    "workingDirectory");
+            result = DirectoryServer.getServerRoot() +
+                    File.separatorChar + "bin";
         } catch (Exception ex) {
             if (DebugLogger.debugEnabled()) {
                 TRACER.debugCaught(DebugLogLevel.ERROR, ex);
