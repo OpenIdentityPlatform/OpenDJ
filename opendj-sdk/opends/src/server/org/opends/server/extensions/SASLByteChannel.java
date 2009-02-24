@@ -92,7 +92,8 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
       this.saslContext = saslContext;
       this.channel = connection.getChannel();
       this.readBuffer = ByteBuffer.allocate(connection.getAppBufferSize());
-      this.decodeBuffer = ByteBuffer.allocate(connection.getAppBufferSize());
+      this.decodeBuffer =
+                ByteBuffer.allocate(connection.getAppBufferSize() + lengthSize);
     }
 
     /**
@@ -217,7 +218,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
       //The buffer length is greater than what is there, save what is there,
       //figure out how much more is needed and return.
       if(bufLength > readBuffer.position()) {
-        neededBytes = bufLength - readBuffer.position() + 4;
+        neededBytes = bufLength - readBuffer.position() + lengthSize;
         readBuffer.flip();
         decodeBuffer.put(readBuffer);
         readBuffer.clear();
