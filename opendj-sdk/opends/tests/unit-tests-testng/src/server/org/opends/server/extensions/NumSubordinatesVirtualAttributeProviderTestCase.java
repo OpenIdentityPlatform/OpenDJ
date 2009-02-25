@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -187,8 +187,8 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
       new Object[] { DN.decode("uid=user.1,ou=People,dc=example,dc=com"), 0 },
       new Object[] { DN.decode("uid=user.2,ou=Employees,ou=People" +
                                ",dc=example,dc=com"), 0 },
-      new Object[] { DN.decode("cn=monitor"),
-          DirectoryServer.getMonitorProviders().size() },
+//      new Object[] { DN.decode("cn=monitor"),
+//          DirectoryServer.getMonitorProviders().size() },
       new Object[] { DN.decode("cn=Backends,cn=config"),
           DirectoryServer.getBackends().size() },
       new Object[] { DN.decode("cn=Work Queue,cn=config"), 0 },
