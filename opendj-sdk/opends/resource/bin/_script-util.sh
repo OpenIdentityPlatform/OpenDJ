@@ -303,7 +303,7 @@ then
 	  OPT_CHECK_VERSION=""
       fi
   # Launch the CheckInstance process.
-      "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
+      "${OPENDS_JAVA_BIN}" ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
   # return part
       RETURN_CODE=$?
       if [ ${RETURN_CODE} -ne 0 ]
