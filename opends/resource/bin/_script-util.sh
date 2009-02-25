@@ -308,7 +308,7 @@ then
       RETURN_CODE=$?
       if [ ${RETURN_CODE} -ne 0 ]
       then
-	  exit ${RETURN_CODE}
+	  exit 1
       fi
   fi
 fi
