@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -471,6 +471,7 @@ public final class CertificateManager
       KEYTOOL_COMMAND,
       "-selfcert",
       "-alias", alias,
+      "-sigalg", "SHA256withRSA",
       "-validity", String.valueOf(validity),
       "-keystore", keyStorePath,
       "-storetype", keyStoreType
