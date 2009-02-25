@@ -283,7 +283,7 @@ public class LDAPAuthenticationHandler
          throws ClientException, LDAPException
   {
     // See if we need to prompt the user for the password.
-    if ( (bindPassword == null) || (bindPassword.length() == 0 ))
+    if (bindPassword == null)
     {
       if (bindDN == null)
       {
