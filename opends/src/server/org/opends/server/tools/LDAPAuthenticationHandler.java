@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -283,7 +283,7 @@ public class LDAPAuthenticationHandler
          throws ClientException, LDAPException
   {
     // See if we need to prompt the user for the password.
-    if (bindPassword == null)
+    if ( (bindPassword == null) || (bindPassword.length() == 0 ))
     {
       if (bindDN == null)
       {
