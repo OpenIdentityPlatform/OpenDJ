@@ -45,7 +45,6 @@ import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.QuickSetupLog;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import static org.opends.server.util.DynamicConstants.*;
@@ -114,12 +113,14 @@ public class CheckInstance {
 
     installRootFromSystem = System.getProperty("INSTALL_ROOT");
     if (installRootFromSystem == null) {
-      System.err.println("INSTALL_ROOT property not specified");
+      System.err
+          .println(ERR_INTERNAL.get(ERR_INSTALL_ROOT_NOT_SPECIFIED.get()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
     instanceRootFromSystem = System.getProperty("INSTANCE_ROOT");
     if (instanceRootFromSystem == null) {
-      System.err.println("INSTANCE_ROOT property not specified");
+      System.err.println(ERR_INTERNAL
+          .get(ERR_INSTANCE_ROOT_NOT_SPECIFIED.get()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -139,7 +140,7 @@ public class CheckInstance {
               INFO_CHECK_DESCRIPTION_CHECK_VERSION.get());
       argParser.addArgument(checkVersionArg);
     } catch (ArgumentException ae) {
-      System.err.println(ae.getMessageObject());
+      System.err.println(ERR_INTERNAL.get(ae.getMessageObject()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -148,7 +149,7 @@ public class CheckInstance {
     try {
       argParser.parseArguments(args);
     } catch (ArgumentException ae) {
-      System.err.println(ae.getMessageObject());
+      System.err.println(ERR_INTERNAL.get(ae.getMessageObject()));
       System.exit(ARGS_ERROR);
     }
 
@@ -174,13 +175,19 @@ public class CheckInstance {
       exit = proc.exitValue();
       if (exit != 0) {
         LOG.log(Level.FINEST, cmd + " error= " + exit);
+        System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+            installRootFromSystem + File.separator + "instance.loc"));
         System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
       }
     } catch (InterruptedException ex) {
       LOG.log(Level.SEVERE, "InterruptedException" + ex.getMessage());
+      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+          installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, "IOException" + ex.getMessage() );
+      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+          installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
@@ -197,14 +204,17 @@ public class CheckInstance {
           LOG.log(Level.FINEST, "instanceOwner=[" + instanceOwner + "]");
         } else {
           LOG.log(Level.SEVERE, "no instanceOwner");
+          System.err.println(ERR_INTERNAL.get(Message.raw("no instanceOwner")));
           System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
         }
       } else {
         LOG.log(Level.SEVERE, "no inode");
+        System.err.println(ERR_INTERNAL.get(Message.raw("no inode")));
         System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
       }
     } else {
       LOG.log(Level.SEVERE, "no access rights");
+      System.err.println(ERR_INTERNAL.get(Message.raw("no access rights")));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
 
