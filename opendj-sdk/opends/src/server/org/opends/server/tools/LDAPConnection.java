@@ -304,7 +304,7 @@ public class LDAPConnection
       ByteString bindPW;
       if (bindPassword == null)
       {
-        bindPW =  ByteString.empty();
+        bindPW =  null;
       }
       else
       {
