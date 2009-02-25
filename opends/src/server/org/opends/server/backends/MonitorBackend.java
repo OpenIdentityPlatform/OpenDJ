@@ -22,11 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
-
-
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -41,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -102,8 +101,6 @@ public class MonitorBackend
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   // The set of user-defined attributes that will be included in the base
   // monitor entry.
   private ArrayList<Attribute> userDefinedAttributes;
@@ -129,7 +126,10 @@ public class MonitorBackend
   // The set of supported features for this backend.
   private HashSet<String> supportedFeatures;
 
-
+  // The mapping between entry DNs and the corresponding entries.
+  private LinkedHashMap<DN,Entry> entryMap;
+  // The mapping between parent DNs and their immediate children.
+  private HashMap<DN,HashSet<DN>> childDNs;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -139,8 +139,6 @@ public class MonitorBackend
   public MonitorBackend()
   {
     super();
-
-    // Perform all initialization in initializeBackend.
   }
 
 
@@ -248,6 +246,10 @@ public class MonitorBackend
     // Register with the Directory Server as a configurable component.
     currentConfig.addMonitorChangeListener(this);
 
+    entryMap = new LinkedHashMap<DN,Entry>();
+    childDNs = new HashMap<DN,HashSet<DN>>();
+
+    this.initEntryMaps();
 
     // Register the monitor base as a private suffix.
     try
@@ -275,6 +277,8 @@ public class MonitorBackend
   @Override()
   public void finalizeBackend()
   {
+    entryMap.clear();
+    childDNs.clear();
     currentConfig.removeMonitorChangeListener(this);
 
     try
@@ -336,7 +340,10 @@ public class MonitorBackend
   @Override()
   public long getEntryCount()
   {
-    return DirectoryServer.getMonitorProviders().size() + 1;
+    if (entryMap != null) {
+      return entryMap.size();
+    }
+    return -1;
   }
 
 
@@ -387,63 +394,39 @@ public class MonitorBackend
     }
   }
 
-
-
   /**
    * {@inheritDoc}
    */
   @Override()
   public long numSubordinates(DN entryDN, boolean subtree)
-         throws DirectoryException
-  {
-    // If the requested entry was null, then return undefined.
-    if (entryDN == null)
+         throws DirectoryException {
+
+    Set<DN> children = childDNs.get(entryDN);
+    if (children == null)
     {
+      if(entryMap.get(entryDN) != null)
+      {
+        // The entry does exist but just no children.
+        return 0;
+      }
       return -1;
     }
 
-
-    // If the requested entry was the monitor base entry, then return
-    // the number of monitor providers.
-    if (entryDN.equals(baseMonitorDN))
+    if(!subtree)
     {
-      // This backend is only 1 level deep so the count is the same for
-      // subtree and immediate subordinates.
-      return DirectoryServer.getMonitorProviders().size();
+      return children.size();
     }
-
-
-    // See if the monitor base entry is the immediate parent for the requested
-    // entry.  If not, then its undefined.
-    DN parentDN = entryDN.getParentDNInSuffix();
-    if ((parentDN == null) || (! parentDN.equals(baseMonitorDN)))
+    else
     {
-      return -1;
+      long count = 0;
+      for(DN child : children)
+      {
+        count += numSubordinates(child, true);
+        count++;
+      }
+      return count;
     }
-
-
-    // Get the RDN for the requested DN and make sure it is single-valued.
-    RDN entryRDN = entryDN.getRDN();
-    if (entryRDN.isMultiValued())
-    {
-      return -1;
-    }
-
-
-    // Get the RDN value and see if it matches the instance name for one of
-    // the directory server monitor providers.
-    String rdnValue = entryRDN.getAttributeValue(0).getValue().toString();
-    MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
-         DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
-    if (monitorProvider == null)
-    {
-      return -1;
-    }
-
-    return 0;
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -684,8 +667,6 @@ public class MonitorBackend
    */
   public Entry getBranchMonitorEntry(DN dn) {
 
-    Entry e=null;
-    // Construct the set of objectclasses to include in the base monitor entry.
     HashMap<ObjectClass,String> monitorClasses =
          new LinkedHashMap<ObjectClass,String>(3);
     monitorClasses.putAll(monitorObjectClasses);
@@ -693,19 +674,9 @@ public class MonitorBackend
                                                            true);
     monitorClasses.put(monitorOC, OC_MONITOR_BRANCH);
 
-    // Iterate through all of the monitor providers defined in the server.
-
-    for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
-           DirectoryServer.getMonitorProviders().values()) {
-
-      DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
-      if (providerDN.isDescendantOf(dn)) {
-         // Construct and return the entry.
-         e = new Entry(dn, monitorClasses, null, null);
-         break;
-      }
-    }
-
+    // Construct and return the entry.
+    Entry  e = new Entry(dn, monitorClasses, null, null);
+    e.processVirtualAttributes();
     return e;
   }
 
@@ -774,22 +745,6 @@ public class MonitorBackend
 
 
 
-  /**
-   * Creates an attribute for a monitor entry with the following criteria.
-   *
-   * @param  name       The name for the attribute.
-   * @param  lowerName  The name for the attribute formatted in all lowercase
-   *                    characters.
-   * @param  value      The value to use for the attribute.
-   *
-   * @return  The constructed attribute.
-   */
-  private Attribute createAttribute(String name, String lowerName,
-                                    String value)
-  {
-    return Attributes.create(name, value);
-  }
-
 
 
   /**
@@ -856,104 +811,100 @@ public class MonitorBackend
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
-    // Get the base entry for the search, if possible.  If it doesn't exist,
-    // then this will throw an exception.
-    DN    baseDN    = searchOperation.getBaseDN();
-    Entry baseEntry = getEntry(baseDN);
 
-    if (baseEntry==null) {
-      Message message =
-          ERR_MONITOR_NO_SUCH_PROVIDER.get(String.valueOf(baseDN.toString()));
-      throw new DirectoryException(
-              ResultCode.NO_SUCH_OBJECT, message, baseMonitorDN, null);
-
-    }
-
-    // Figure out whether the base is the monitor base entry or one of its
-    // children for a specific monitor.
+    // Get the base DN, scope, and filter for the search.
+    DN           baseDN = searchOperation.getBaseDN();
     SearchScope  scope  = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
-    if ((scope == SearchScope.BASE_OBJECT) ||
-        (scope == SearchScope.WHOLE_SUBTREE))
+
+
+    // Make sure the base entry exists if it's supposed to be in this backend.
+    this.initEntryMaps();
+    Entry baseEntry = entryMap.get(baseDN);
+    if ((baseEntry == null) && handlesEntry(baseDN))
+    {
+      DN matchedDN = baseDN.getParentDNInSuffix();
+      while (matchedDN != null)
+      {
+        if (entryMap.containsKey(matchedDN))
+        {
+          break;
+        }
+
+        matchedDN = matchedDN.getParentDNInSuffix();
+      }
+
+      Message message =
+          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(baseDN));
+      throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
+    }
+
+    if (baseEntry != null)
+    {
+      baseEntry = baseEntry.duplicate(true);
+    }
+
+
+    // If it's a base-level search, then just get that entry and return it if it
+    // matches the filter.
+    if (scope == SearchScope.BASE_OBJECT)
     {
       if (filter.matchesEntry(baseEntry))
       {
         searchOperation.returnEntry(baseEntry, null);
       }
-
-
-      // If it is a base-level search, then we're done.
-      if (scope == SearchScope.BASE_OBJECT)
-      {
-        return;
-      }
     }
-
-    HashSet<DN> branches = new HashSet<DN>();
-    // Iterate through all of the monitor providers defined in the server.
-    // Get an entry for each and compare it against the filter.
-    for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
-           DirectoryServer.getMonitorProviders().values()) {
-
-      DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
-      if (baseDN.isAncestorOf(providerDN)) {
-         DN parentDN = providerDN.getParentDNInSuffix();
-         while ((parentDN!=null) && (!parentDN.equals(baseMonitorDN)) &&
-                 (!parentDN.equals(baseDN))) {
-            if ((!branches.contains(parentDN)) && (
-                    isABranch(parentDN))) {
-              Entry branchEntry = getBranchMonitorEntry(parentDN);
-              if (filter.matchesEntry(branchEntry)) {
-                  searchOperation.returnEntry(branchEntry, null);
-              }
-              branches.add(parentDN);
+    else
+    {
+      // Walk through all entries and send the ones that match.
+      for (Entry e : entryMap.values()) {
+        boolean matched = filter.matchesEntry(e);
+        if (matched) {
+            if (e.matchesBaseAndScope(baseDN, scope)==true) {
+                searchOperation.returnEntry(e, null);
             }
-            parentDN = parentDN.getParentDNInSuffix();
-         }
-         if (!providerDN.equals(baseDN)) {
-             Entry monitorEntry = getMonitorEntry(providerDN, monitorProvider);
-             if (filter.matchesEntry(monitorEntry)) {
-                searchOperation.returnEntry(monitorEntry, null);
-             }
-         }
-
+        }
       }
     }
   }
 
-  private boolean isABranch(DN dn) {
-      boolean found=false;
+  // Build te internal monitor tree (entries, and children)
+  private void initEntryMaps() {
+      this.entryMap.clear();
+      this.childDNs.clear();
       for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
            DirectoryServer.getMonitorProviders().values()) {
-         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
-         if (dn.equals(providerDN)) {
-             found=true;
-         }
+            try {
+                DN providerdn =
+                        DirectoryServer.getMonitorProviderDN(monitorProvider);
+                if (!entryMap.containsKey(providerdn)) {
+                    Entry entry = getEntry(providerdn);
+                    entryMap.put(providerdn, entry);
+                }
+                DN parentdn = providerdn.getParentDNInSuffix();
+                DN child = providerdn;
+                while (parentdn!=null) {
+                    if (!entryMap.containsKey(parentdn)) {
+                        Entry entry = getEntry(parentdn);
+                        entryMap.put(parentdn, entry);
+                    }
+                     if (childDNs.containsKey(parentdn)) {
+                        HashSet<DN> children = childDNs.get(parentdn);
+                        children.add(child);
+                        childDNs.put(parentdn, children);
+                    }
+                    else {
+                        HashSet<DN> children = new HashSet<DN>();
+                        children.add(child);
+                        childDNs.put(parentdn, children);
+                    }
+                    child=parentdn;
+                    parentdn = parentdn.getParentDNInSuffix();
+                }
+            } catch (Exception ex) {
+            }
       }
-      return (!found);
-  }
-
-  private boolean isATreeNode(DN dn) {
-      boolean found=false;
-
-      if (dn.equals(baseMonitorDN)) {
-          return true;
-      }
-      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
-           DirectoryServer.getMonitorProviders().values()) {
-         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
-         if ((dn.isAncestorOf(providerDN)) ||
-                 (dn.equals(providerDN))) {
-             found=true;
-             return (found);
-         }
-      }
-      return (found);
-  }
-
-  private String getRdns(DN dn) {
-      int index = dn.toString().lastIndexOf(",");
-      return dn.toString().substring(3, index);
   }
 
 
@@ -1299,4 +1250,44 @@ public class MonitorBackend
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
+
+  // Private Methods
+  private boolean isATreeNode(DN dn) {
+      boolean found=false;
+
+      if (dn.equals(baseMonitorDN)) {
+          return true;
+      }
+      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
+           DirectoryServer.getMonitorProviders().values()) {
+         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);
+         if ((dn.isAncestorOf(providerDN)) ||
+                 (dn.equals(providerDN))) {
+             found=true;
+             return (found);
+         }
+      }
+      return (found);
+  }
+
+  private String getRdns(DN dn) {
+      int index = dn.toString().lastIndexOf(",");
+      return dn.toString().substring(3, index);
+  }
+
+   /**
+   * Creates an attribute for a monitor entry with the following criteria.
+   *
+   * @param  name       The name for the attribute.
+   * @param  lowerName  The name for the attribute formatted in all lowercase
+   *                    characters.
+   * @param  value      The value to use for the attribute.
+   *
+   * @return  The constructed attribute.
+   */
+  private Attribute createAttribute(String name, String lowerName,
+                                    String value) {
+    return Attributes.create(name, value);
+  }
+
 }

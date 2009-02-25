@@ -645,7 +645,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         Thread.sleep(100);
       op = connection.processSearch(
           ByteString.valueOf("cn=monitor"),
-                                    SearchScope.SINGLE_LEVEL,
+                                    SearchScope.WHOLE_SUBTREE,
                                     LDAPFilter.decode(monitorFilter));
     }
     while (op.getSearchEntries().isEmpty() && (count<100));

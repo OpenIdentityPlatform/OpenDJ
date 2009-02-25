@@ -1865,7 +1865,7 @@ public class AssuredReplicationPluginTest
         Thread.sleep(100);
       op = connection.processSearch(
                                     ByteString.valueOf("cn=monitor"),
-                                    SearchScope.SINGLE_LEVEL,
+                                    SearchScope.WHOLE_SUBTREE,
                                     LDAPFilter.decode(monitorFilter));
     }
     while (op.getSearchEntries().isEmpty() && (count<100));
