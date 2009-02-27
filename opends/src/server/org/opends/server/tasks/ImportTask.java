@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -283,10 +283,33 @@ public class ImportTask extends Task
     List<Attribute> attrList;
 
     attrList = taskEntry.getAttribute(typeLdifFile);
-    ldifFiles = TaskUtils.getMultiValueString(attrList);
+    ArrayList<String> ldifFilestmp = TaskUtils.getMultiValueString(attrList);
+    ldifFiles = new ArrayList<String>(ldifFilestmp.size());
+    for (String s : ldifFilestmp)
+    {
+      File f = new File (s);
+      if (!f.isAbsolute())
+      {
+        ldifFiles.add(new File(DirectoryServer.getInstanceRoot(), s)
+            .getAbsolutePath());
+      }
+      else
+      {
+        ldifFiles.add(s);
+      }
+    }
 
     attrList = taskEntry.getAttribute(typeTemplateFile);
     templateFile = TaskUtils.getSingleValueString(attrList);
+    if (templateFile != null)
+    {
+      File f = new File(templateFile);
+      if (!f.isAbsolute())
+      {
+        templateFile = new File(DirectoryServer.getInstanceRoot(), templateFile)
+            .getAbsolutePath();
+      }
+    }
 
     attrList = taskEntry.getAttribute(typeAppend);
     append = TaskUtils.getBoolean(attrList, false);
