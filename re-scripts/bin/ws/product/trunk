@@ -1,0 +1,13 @@
+PROD=""
+BUILDS_DIR=/daily-builds
+PROMOTED_DIR=/promoted-builds
+SVN_URL=file:///svn-mirror/trunk/opends
+RECIPIENT="dev@opends.dev.java.net"
+RECIPIENT="jeanine.pikus@sun.com"
+
+
+
+export PROD
+export BUILDS_DIR
+export SVN_URL
+export RECIPIENT
