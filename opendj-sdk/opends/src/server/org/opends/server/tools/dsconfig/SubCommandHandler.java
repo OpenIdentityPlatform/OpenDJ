@@ -1273,6 +1273,10 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       MenuResult<String> result = menu.run();
       try
       {
+        if (result.getValue() == null) {
+          // nothing has been entered ==> cancel
+          return MenuResult.cancel();
+        }
         String argName = CLIProfile.getInstance().getNamingArgument(r);
         StringArgument arg = new StringArgument(argName, null, argName, false,
             true, INFO_NAME_PLACEHOLDER.get(),
