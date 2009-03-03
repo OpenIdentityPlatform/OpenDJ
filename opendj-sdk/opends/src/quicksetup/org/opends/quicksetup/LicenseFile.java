@@ -30,7 +30,8 @@ package org.opends.quicksetup;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import org.opends.server.core.DirectoryServer;
+
+import org.opends.quicksetup.util.Utils;
 
 /**
  * Represents information about the license file.
@@ -53,21 +54,36 @@ public class LicenseFile {
    */
   static private String getName()
   {
-    String installRootFromSystem = DirectoryServer.getServerRoot();
-
-    if (installRootFromSystem == null) {
-      installRootFromSystem = System.getenv("INSTALL_ROOT");
+    if (Utils.isWebStart())
+    {
+      return
+      File.pathSeparator +
+      "Legal" +
+      File.pathSeparator +
+      "license_to_accept.txt";
     }
+    else
+    {
+      // NOTE: make a whole reference to the package of DirectoryServer
+      // instead of using an import clause.  Using an import breaks the
+      // Java Web Start installer.
+      String installRootFromSystem =
+        org.opends.server.core.DirectoryServer.getServerRoot();
 
-    if (installRootFromSystem == null) {
-      installRootFromSystem = "";
+      if (installRootFromSystem == null) {
+        installRootFromSystem = System.getenv("INSTALL_ROOT");
+      }
+
+      if (installRootFromSystem == null) {
+        installRootFromSystem = "";
+      }
+
+      return installRootFromSystem +
+      File.pathSeparator +
+      "Legal" +
+      File.pathSeparator +
+      "license_to_accept.txt";
     }
-
-    return installRootFromSystem +
-            File.pathSeparator +
-            "Legal" +
-            File.pathSeparator +
-            "license_to_accept.txt";
   }
 
   /**
@@ -91,7 +107,14 @@ public class LicenseFile {
    */
   static public boolean exists()
   {
-    return getFile().exists();
+    if (Utils.isWebStart())
+    {
+      return false;
+    }
+    else
+    {
+      return getFile().exists();
+    }
   }
 
 
