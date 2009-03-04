@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
+import java.util.ArrayList;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
-
+import java.util.List;
 
 
 /**
@@ -43,4 +44,12 @@ import org.opends.server.admin.std.server.WorkflowElementCfg;
 public abstract class LeafWorkflowElement <T extends WorkflowElementCfg>
   extends WorkflowElement<WorkflowElementCfg>
 {
+  /**
+   * {@inheritDoc}
+   */
+  public List<WorkflowElement<?>> getChildWorkflowElements() {
+    // A leaf workflow element has no child
+    return new ArrayList<WorkflowElement<?>>();
+  }
+
 }
