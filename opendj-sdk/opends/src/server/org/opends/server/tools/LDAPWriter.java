@@ -40,6 +40,7 @@ import org.opends.server.util.ServerConstants;
 
 import java.net.Socket;
 import java.io.IOException;
+import java.io.BufferedOutputStream;
 
 /**
  * This class defines a utility that can be used to write LDAP messages over a
@@ -71,7 +72,8 @@ public class LDAPWriter
   {
     this.socket = socket;
     this.debugOutputStream =
-        new RecordingOutputStream(socket.getOutputStream());
+        new RecordingOutputStream(
+        new BufferedOutputStream(socket.getOutputStream(), 4096));
     this.asn1Writer = ASN1.getWriter(debugOutputStream);
   }
 
