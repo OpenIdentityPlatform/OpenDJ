@@ -1,0 +1,594 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+</head>
+<body>
+<br>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">Test ID</td>
+      <td style="vertical-align: top;">setup_japanesesuffix<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Panel<br>
+      </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+Graphical QuickSetUp -&gt; Directory Data Panel<br>
+      <small>Directory Base DN: o=</small>東京大学<br>
+      <small>Import Data from LDIF File tokyo.ldif<br>
+      </small><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Items<br>
+      </td>
+      <td style="vertical-align: top;">- create a japanese suffix
+o=東京大学 (Tokyo University) using the tokyo.ldif file<br>
+- run an ldap command on this suffix<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Specific checks</td>
+      <td style="vertical-align: top;">verify the suffix is created
+correctly and the&nbsp; characters are ok <br>
+      <span style="text-decoration: underline;">Note</span> : Set you
+locale to any UTF-8 locale, for example: <br>
+$ export LC_ALL=en_US.UTF-8<br>
+$ export LANG=en_US.UTF-8<br>
+Set the encoding in your browser to UTF-8
+(View-&gt; Character Encoding -&gt; Unicode (UTF-8)<br>
+      <span style="text-decoration: underline;">Note</span> :
+attributes with multibyte characters (dn, postalAdress, street, sn, cn,
+description)<br>
+      <span style="text-decoration: underline;">Note</span> :
+userPassword: password<br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+<br>
+<br>
+<br>
+<span style="font-family: monospace; color: rgb(0, 0, 0);">tokyo.ldif</span><br
+ style="color: rgb(0, 0, 0);">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">#</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">#
+PROPRIETARY/CONFIDENTIAL. Use
+of this product is subject to</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;"># license
+terms. Copyright (c)
+2001 Sun Microsystems, Inc.</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;"># Some
+preexisting portions
+Copyright (c) 2001 Netscape Communications Corp.</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;"># All rights
+reserved.</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;"># </span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn: o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">o:東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectclass:
+Top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectclass:
+organization</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalunit</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">ou: People</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=nbin,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: NB</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-7855-7715</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8135717 4131<br>
+homePhone: +8135717 5522</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+nbin@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+0</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: 紀子</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 大箱</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 紀子 大箱</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: nbin</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Noriko 紀子 Bin 大箱</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=xchen,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: XC</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-9955-7615</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8134232 2428</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8134278 2528</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+xchen@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+1</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: 西安</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 陳</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 西安 陳</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: xchen</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Xian 西安 Chen 陳</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=ycheng,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials:YC</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-9742-3114</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8135282 3498</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8237277 2421</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+ycheng@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+2</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: 矢尾</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: チェン</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 矢尾 チェン</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: ycheng</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Yao 矢尾 Cheng チェン</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=lchiba,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: LC</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-8822-8154</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8135885 3379</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8239237 2427</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+lchiba@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+3</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: リー</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 千葉</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: リー 千葉</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: lchiba</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Lee リー Chiba 千葉</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=sendo,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: SE</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-5522-8564</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8565885 3089</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8266237 2827</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+sendo@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+4</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName:
+避けなさい</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 内部</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 避けなさい 内部</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: sendo</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Shun 避けなさい Endo 内部</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=wfukui,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: WF</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-5526-7256</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8305656 5012</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8667257 4521</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+wfukui@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+5</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName:
+弱々しい</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 福井</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 弱々しい 福井</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: wfukui</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Wan 弱々しい Fukui 福井</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=bhe,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: BH</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-3326-7119</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8348752 8562</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8664175 6586</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+bhe@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+6</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName:
+ビング</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 彼</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: ビング 彼</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: bhe</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Bing ビング He 彼</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=pkawasaki,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: PK</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-7856-7456</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8457441 6482</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8568945 6532</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+pkawasaki@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+7</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName:
+ポーン</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 川崎</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: ポーン 川崎</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid:
+pkawasaki</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Ping ポーン Kawasaki 川崎</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;"><br>
+dn: uid=ztang,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: ZT</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-1245-6341</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8528596 6541</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8545825 9586</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail:
+ztang@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+8</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: 朱</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 独特の味</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 朱 独特の味</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: ztang</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Zhu 朱 Tang 独特の味</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">dn:
+uid=wyamato,ou=People,o=東京大学</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+inetorgperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+person</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+top</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">objectClass:
+organizationalperson</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalAddress:
+43 南李, 剛毛ビジネス正方形 16-28f , 4-10-2 ヨガ, 東京</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">initials: WY</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">street: 43 南李</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">postalCode:
+158-8633</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mobile:
+090-5896-1287</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">telephoneNumber:
++8556894 4175</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">homePhone:
++8545825 6593</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">mail: wyamato@maildomain.net</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">employeeNumber:
+9</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">givenName: 魏</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">sn: 大和</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">cn: 魏 大和</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">uid: wyamato</span><br
+ style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">userPassword:
+password</span><br style="color: rgb(0, 0, 0); font-family: monospace;">
+<span style="color: rgb(0, 0, 0); font-family: monospace;">description:
+Wei 魏 Yamato 大和</span>
+</body>
+</html>
