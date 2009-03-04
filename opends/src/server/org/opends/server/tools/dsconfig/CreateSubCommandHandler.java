@@ -736,7 +736,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           properties.add(pd);
         }
 
-        MenuResult<Void> result = editor.edit(mo, properties, false);
+        MenuResult<Void> result = editor.edit(mo, properties, true);
 
         // Interactively enable/edit referenced components.
         if (result.isSuccess()) {
