@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
@@ -430,5 +430,34 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   public void deregisterForSaturationIndexUpdate(Observer observer)
   {
     observableStatus.deleteObserver(observer);
+  }
+
+  /**
+   * Retrieves the list of child workflow elements, ie the
+   * WorkflowElements below this one in the topology tree.
+   *
+   * @return child workflow elements
+   */
+  public abstract List<WorkflowElement<?>> getChildWorkflowElements();
+
+  /**
+   * Checks whether the tree of workflow elements below this one
+   * contains the provided workflow element.
+   *
+   * @param element The WorkflowElement we are looking for in the topology
+   *        below this object.
+   * @return boolean
+   */
+  public boolean hasChildWorkflowElement(WorkflowElement element) {
+    if (this.getChildWorkflowElements().size() == 0) {
+      return (this.equals(element));
+    }
+
+    for (WorkflowElement subElement:this.getChildWorkflowElements()) {
+      if (subElement.hasChildWorkflowElement(element)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
