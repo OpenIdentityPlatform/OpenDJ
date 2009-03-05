@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -151,7 +151,13 @@ final class PropertyValueEditor {
           Message pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
           Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+          if (app.isInteractive()) {
+            app.println();
+            app.printVerboseMessage(msg);
+            return MenuResult.cancel();
+          } else {
+            throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+          }
         }
 
         // Now let the user create the child component.
