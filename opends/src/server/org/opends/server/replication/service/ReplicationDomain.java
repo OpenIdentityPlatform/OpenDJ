@@ -2618,14 +2618,18 @@ public abstract class ReplicationDomain
    */
   public void publish(byte[] msg)
   {
-    UpdateMsg update = new UpdateMsg(generator.newChangeNumber(), msg);
+    UpdateMsg update;
+    synchronized (this)
+    {
+      update = new UpdateMsg(generator.newChangeNumber(), msg);
 
-    // If assured replication is configured, this will prepare blocking
-    // mechanism. If assured replication is disabled, this returns
-    // immediately
-    prepareWaitForAckIfAssuredEnabled(update);
+      // If assured replication is configured, this will prepare blocking
+      // mechanism. If assured replication is disabled, this returns
+      // immediately
+      prepareWaitForAckIfAssuredEnabled(update);
 
-    publish(update);
+      publish(update);
+    }
 
     try
     {
