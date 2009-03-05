@@ -261,7 +261,13 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       if (!forceArgument.isPresent()) {
         Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
         Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+        if (app.isInteractive()) {
+          app.println();
+          app.printVerboseMessage(msg);
+          return MenuResult.cancel();
+        } else {
+          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+        }
       } else {
         return MenuResult.success(0);
       }
