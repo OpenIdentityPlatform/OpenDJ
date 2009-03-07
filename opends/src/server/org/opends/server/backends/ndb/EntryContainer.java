@@ -358,7 +358,15 @@ public class EntryContainer
           }
 
           // Fetch the candidate entry from the database.
-          Entry entry = dn2id.get(txn, eid, NdbOperation.LockMode.LM_Read);
+          Entry entry = null;
+          AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
+          try {
+            entry = dn2id.get(subTxn, eid, NdbOperation.LockMode.LM_Read);
+          } finally {
+            if (subTxn != null) {
+              subTxn.close();
+            }
+          }
 
           // We have found a subordinate entry.
           DN dn = entry.getDN();
@@ -499,7 +507,15 @@ public class EntryContainer
 
           if (isInScope) {
             // Fetch the candidate entry from the database.
-            Entry entry = dn2id.get(txn, dn, NdbOperation.LockMode.LM_Read);
+            Entry entry = null;
+            AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
+            try {
+              entry = dn2id.get(subTxn, dn, NdbOperation.LockMode.LM_Read);
+            } finally {
+              if (subTxn != null) {
+                subTxn.close();
+              }
+            }
             // Process the candidate entry.
             if (entry != null) {
               lookthroughCount++;
@@ -1176,7 +1192,14 @@ public class EntryContainer
             long entryID = result.id;
             DN subordinateDN = DN.decode(result.dn);
 
-            deleteLeaf(txn, subordinateDN, entryID, deleteOperation);
+            AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
+            try {
+              deleteLeaf(subTxn, subordinateDN, entryID, deleteOperation);
+            } finally {
+              if (subTxn != null) {
+                subTxn.commit();
+              }
+            }
 
             deletedDNList.add(subordinateDN);
             countDeletedDN++;
@@ -1203,7 +1226,7 @@ public class EntryContainer
           adminSizeLimitExceeded = true;
         }
         else if (deleteBatchSize > 0 &&
-                                      deletedDNList.size() >= deleteBatchSize)
+                 deletedDNList.size() >= deleteBatchSize)
         {
           batchSizeExceeded = true;
         }
@@ -1706,30 +1729,38 @@ public class EntryContainer
           // We have found a subordinate entry.
           long oldID = result.id;
           String oldDN = result.dn;
-          Entry oldEntry = dn2id.get(txn, DN.decode(oldDN),
-            NdbOperation.LockMode.LM_Exclusive);
+          Entry oldEntry = null;
+          AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
+          try {
+            oldEntry = dn2id.get(subTxn, DN.decode(oldDN),
+              NdbOperation.LockMode.LM_Exclusive);
 
-          if (!isManageDsaITOperation(modifyDNOperation)) {
-            checkTargetForReferral(oldEntry, null);
-          }
-
-          // Construct the new DN of the entry.
-          DN newDN = modDN(oldEntry.getDN(),
-            oldApexDN.getNumComponents(),
-            newApexEntry.getDN());
-
-          if (requestedNewSuperiorDN != null) {
-            // Assign a new entry ID if we are renumbering.
-            long newID = oldID;
-            if (newApexID != oldApexID) {
-              newID = rootContainer.getNextEntryID(txn.getNdb());
+            if (!isManageDsaITOperation(modifyDNOperation)) {
+              checkTargetForReferral(oldEntry, null);
             }
 
-            // Move this entry.
-            moveSubordinateEntry(txn, newID, oldEntry, newDN);
-          } else {
-            // Rename this entry.
-            renameSubordinateEntry(txn, oldID, oldEntry, newDN);
+            // Construct the new DN of the entry.
+            DN newDN = modDN(oldEntry.getDN(),
+              oldApexDN.getNumComponents(),
+              newApexEntry.getDN());
+
+            if (requestedNewSuperiorDN != null) {
+              // Assign a new entry ID if we are renumbering.
+              long newID = oldID;
+              if (newApexID != oldApexID) {
+                newID = rootContainer.getNextEntryID(subTxn.getNdb());
+              }
+
+              // Move this entry.
+              moveSubordinateEntry(subTxn, newID, oldEntry, newDN);
+            } else {
+              // Rename this entry.
+              renameSubordinateEntry(subTxn, oldID, oldEntry, newDN);
+            }
+          } finally {
+            if (subTxn != null) {
+              subTxn.commit();
+            }
           }
 
           if (modifyDNOperation != null) {

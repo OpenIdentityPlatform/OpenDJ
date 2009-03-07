@@ -1519,7 +1519,7 @@ public class OperationContainer extends DatabaseContainer
 
     op = ndbTxn.getSelectIndexScanOperation(
       PRIMARY_INDEX_NAME, name,
-      NdbOperation.LockMode.LM_Read);
+      NdbOperation.LockMode.LM_CommittedRead);
 
     int numComponents = dn.getNumComponents();
     int componentIndex = numComponents - 1;
