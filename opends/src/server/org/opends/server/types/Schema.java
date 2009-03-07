@@ -3595,7 +3595,7 @@ public final class Schema
                                 builder.toAttribute()));
     }
 
-    builder.clear();
+    builder.setAttributeType(elementType);
     for (String s : newElements)
     {
       if (!oldElements.contains(s))
