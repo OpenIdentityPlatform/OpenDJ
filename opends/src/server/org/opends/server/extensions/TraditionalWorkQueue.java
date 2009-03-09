@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -49,7 +49,6 @@ import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
@@ -103,10 +102,6 @@ public class TraditionalWorkQueue
   // Indicates whether the Directory Server is shutting down.
   private boolean shutdownRequested;
 
-  // The DN of the configuration entry with information to use to configure the
-  // work queue.
-  private DN configEntryDN;
-
   // The thread number used for the last worker thread that was created.
   private int lastThreadNumber;
 
@@ -156,8 +151,7 @@ public class TraditionalWorkQueue
 
 
     // Get the necessary configuration from the provided entry.
-    configEntryDN    = configuration.dn();
-    numWorkerThreads = configuration.getNumWorkerThreads();
+    numWorkerThreads = getNumWorkerThreads(configuration);
     maxCapacity      = configuration.getMaxWorkQueueCapacity();
 
 
@@ -292,6 +286,7 @@ public class TraditionalWorkQueue
    *                              down or the pending operation queue is already
    *                              at its maximum capacity).
    */
+  @Override
   public void submitOperation(AbstractOperation operation)
          throws DirectoryException
   {
@@ -710,6 +705,28 @@ public class TraditionalWorkQueue
       }
 
       return true;
+    }
+  }
+
+
+
+  // Determine the number of worker threads.
+  private int getNumWorkerThreads(TraditionalWorkQueueCfg configuration)
+  {
+    if (configuration.getNumWorkerThreads() == null)
+    {
+      // Automatically choose based on the number of processors.
+      int cpus = Runtime.getRuntime().availableProcessors();
+      int value = Math.max(24, cpus * 2);
+
+      Message message = INFO_ERGONOMIC_SIZING_OF_WORKER_THREAD_POOL.get(value);
+      logError(message);
+
+      return value;
+    }
+    else
+    {
+      return configuration.getNumWorkerThreads();
     }
   }
 }
