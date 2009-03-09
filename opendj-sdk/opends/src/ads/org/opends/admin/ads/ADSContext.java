@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -427,7 +427,8 @@ public class ADSContext
   throws ADSContextException
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
-    BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
+    BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties,
+        true);
     try
     {
       // This check is required because by default the server container entry
@@ -511,7 +512,8 @@ public class ADSContext
         dn = newDn ;
         serverProperties.put(ServerProperty.ID,newServerId);
       }
-      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
+      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties,
+          false);
       dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE,
           attrs);
       if (serverProperties.containsKey(
@@ -1574,10 +1576,11 @@ public class ADSContext
   /**
    * Returns the attributes for some server properties.
    * @param serverProperties the server properties.
+   * @param addObjectClass Indicates if the object class has to be added.
    * @return the attributes for the given server properties.
    */
   private static BasicAttributes makeAttrsFromServerProperties(
-      Map<ServerProperty, Object> serverProperties)
+      Map<ServerProperty, Object> serverProperties, boolean addObjectClass)
   {
     BasicAttributes result = new BasicAttributes();
 
@@ -1591,13 +1594,16 @@ public class ADSContext
         result.put(attr);
       }
     }
-    // Add the objectclass attribute value
-    // TODO: use another structural objectclass
-    Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top");
-    oc.add("ds-cfg-branch");
-    oc.add("extensibleobject");
-    result.put(oc);
+    if (addObjectClass)
+    {
+      // Add the objectclass attribute value
+      // TODO: use another structural objectclass
+      Attribute oc = new BasicAttribute("objectclass");
+      oc.add("top");
+      oc.add("ds-cfg-branch");
+      oc.add("extensibleobject");
+      result.put(oc);
+    }
     return result;
   }
 
