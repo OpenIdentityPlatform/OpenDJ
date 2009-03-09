@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -35,6 +35,7 @@ import org.opends.server.types.DebugLogLevel;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
@@ -50,8 +51,10 @@ import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
 
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class maps JE properties to configuration attributes.
@@ -306,6 +309,36 @@ public class ConfigurableEnvironment
       else
       {
         Object value = method.invoke(cfg);
+
+        if (attrName.equals(ATTR_NUM_CLEANER_THREADS) && value == null)
+        {
+          // Automatically choose based on the number of processors.
+          int cpus = Runtime.getRuntime().availableProcessors();
+          value = Integer.valueOf(Math.max(2, cpus / 2));
+
+          Message message =
+              INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
+                  .valueOf(cfg.dn()), (Number) value);
+          logError(message);
+        }
+        else if (attrName.equals(ATTR_NUM_LOCK_TABLES)
+            && value == null)
+        {
+          // Automatically choose based on the number of processors.
+          // We'll assume that the user has also allowed automatic
+          // configuration of cleaners and workers.
+          int cpus = Runtime.getRuntime().availableProcessors();
+          int cleaners = Math.max(2, cpus / 2);
+          int workers = Math.max(24, cpus * 2);
+          BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
+          value = tmp.nextProbablePrime();
+
+          Message message =
+              INFO_ERGONOMIC_SIZING_OF_JE_LOCK_TABLES.get(String
+                  .valueOf(cfg.dn()), (Number) value);
+          logError(message);
+        }
+
         return String.valueOf(value);
       }
     }

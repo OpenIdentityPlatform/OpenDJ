@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="traditional-work-queue"
   plural-name="traditional-work-queues" extends="work-queue"
@@ -61,7 +61,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="num-worker-threads" mandatory="true">
+  <adm:property name="num-worker-threads">
     <adm:synopsis>
       Specifies the number of worker threads to be used for processing
       operations placed in the queue. 
@@ -72,6 +72,13 @@
       value is reduced, the appropriate number of threads are destroyed 
       as operations complete processing.
     </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="2147483647" />
     </adm:syntax>

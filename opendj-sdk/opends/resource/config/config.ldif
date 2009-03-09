@@ -189,7 +189,6 @@ ds-cfg-db-cache-size: 0 megabytes
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
 ds-cfg-db-run-cleaner: true
-ds-cfg-db-num-cleaner-threads: 1
 ds-cfg-db-cleaner-min-utilization: 75
 ds-cfg-db-evictor-lru-only: true
 ds-cfg-db-evictor-nodes-per-scan: 10
@@ -198,7 +197,6 @@ ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
 ds-cfg-db-checkpointer-bytes-interval: 20 megabytes
 ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-db-num-lock-tables: 19
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -2423,7 +2421,6 @@ objectClass: ds-cfg-work-queue
 objectClass: ds-cfg-traditional-work-queue
 cn: Work Queue
 ds-cfg-java-class: org.opends.server.extensions.TraditionalWorkQueue
-ds-cfg-num-worker-threads: 24
 ds-cfg-max-work-queue-capacity: 0
 
 dn: cn=Administration Connector,cn=config

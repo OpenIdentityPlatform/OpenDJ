@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -696,9 +696,11 @@
       <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>19</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="32767" />
@@ -719,9 +721,11 @@
       threads may be required to maintain the desired utilization.
     </adm:description>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>1</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" />
