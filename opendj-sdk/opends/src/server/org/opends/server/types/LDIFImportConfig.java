@@ -1338,15 +1338,18 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public void close()
   {
-    try
+    if (reader != null)
     {
-      reader.close();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        reader.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
     }
 
