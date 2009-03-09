@@ -4024,3 +4024,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.950
   STRUCTURAL
   MUST cn
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.200
+  NAME 'ds-cfg-null-backend'
+  SUP ds-cfg-backend
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
+
