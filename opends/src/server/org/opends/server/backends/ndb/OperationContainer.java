@@ -489,7 +489,7 @@ public class OperationContainer extends DatabaseContainer
     for (int i=0; i < BackendImpl.DN2ID_DN_NC; i++) {
       while (componentIndex >= 0) {
         op.equalString(BackendImpl.DN2ID_DN + Integer.toString(i),
-          dn.getRDN(componentIndex).toNormalizedString());
+          dn.getRDN(componentIndex).toString());
         componentIndex--;
         i++;
       }
