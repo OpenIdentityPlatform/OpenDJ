@@ -201,7 +201,7 @@ public class BackendImpl
   /**
    * Name prefix for server specific objectclasses.
    */
-  private static final String DSOBJ_NAME_PREFIX = "ds-";
+  private static final String DSOBJ_NAME_PREFIX = "ds-cfg";
 
   /**
    * EID column name.
