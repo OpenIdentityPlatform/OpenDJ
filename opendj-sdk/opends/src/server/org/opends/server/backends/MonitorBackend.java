@@ -808,7 +808,7 @@ public class MonitorBackend
    * {@inheritDoc}
    */
   @Override()
-  public void search(SearchOperation searchOperation)
+  public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
 
@@ -869,8 +869,8 @@ public class MonitorBackend
     }
   }
 
-  // Build te internal monitor tree (entries, and children)
-  private void initEntryMaps() {
+  // Build the internal monitor tree (entries, and children)
+  private synchronized void initEntryMaps() {
       this.entryMap.clear();
       this.childDNs.clear();
       for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
@@ -879,34 +879,46 @@ public class MonitorBackend
                 DN providerdn =
                         DirectoryServer.getMonitorProviderDN(monitorProvider);
                 if (!entryMap.containsKey(providerdn)) {
-                    Entry entry = getEntry(providerdn);
-                    entryMap.put(providerdn, entry);
-                }
-                DN parentdn = providerdn.getParentDNInSuffix();
-                DN child = providerdn;
-                while (parentdn!=null) {
-                    if (!entryMap.containsKey(parentdn)) {
-                        Entry entry = getEntry(parentdn);
-                        entryMap.put(parentdn, entry);
-                    }
-                     if (childDNs.containsKey(parentdn)) {
-                        HashSet<DN> children = childDNs.get(parentdn);
-                        children.add(child);
-                        childDNs.put(parentdn, children);
-                    }
-                    else {
-                        HashSet<DN> children = new HashSet<DN>();
-                        children.add(child);
-                        childDNs.put(parentdn, children);
-                    }
-                    child=parentdn;
-                    parentdn = parentdn.getParentDNInSuffix();
-                }
+                  getAndAddParentInMaps(providerdn);
+                  Entry entry = getEntry(providerdn);
+                  entryMap.put(providerdn, entry);
+              }
             } catch (Exception ex) {
             }
       }
   }
 
+ /**
+  * Recursively builds the entryMap and the childDN Map.
+  */
+  private void getAndAddParentInMaps(DN providerDN)
+  {
+    try
+    {
+      DN parentdn = providerDN.getParentDNInSuffix();
+      DN child = providerDN;
+
+      if ((parentdn != null) && (!entryMap.containsKey(parentdn)))
+      {
+        getAndAddParentInMaps(parentdn);
+        entryMap.put(parentdn, getEntry(parentdn));
+      }
+
+      if (childDNs.containsKey(parentdn))
+      {
+        HashSet<DN> children = childDNs.get(parentdn);
+        children.add(child);
+        childDNs.put(parentdn, children);
+      }
+      else
+      {
+        HashSet<DN> children = new HashSet<DN>();
+        children.add(child);
+        childDNs.put(parentdn, children);
+      }
+    } catch (Exception e)
+    {}
+  }
 
   /**
    * {@inheritDoc}
