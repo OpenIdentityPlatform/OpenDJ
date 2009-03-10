@@ -2738,7 +2738,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
-    return true;
+    if (this.importInProgress() || this.exportInProgress())
+    {
+      unacceptableReasons.add(
+          NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
+      return false;
+    }
+    else
+      return true;
   }
 
   /**

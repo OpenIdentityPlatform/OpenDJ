@@ -2656,7 +2656,7 @@ public abstract class ReplicationDomain
    * @return A boolean indicating if a total update import is currently
    *         in Progress.
    */
-  boolean importInProgress()
+  public boolean importInProgress()
   {
     if (ieContext == null)
       return false;
@@ -2671,7 +2671,7 @@ public abstract class ReplicationDomain
    * @return A boolean indicating if a total update export is currently
    *         in Progress.
    */
-  boolean exportInProgress()
+  public boolean exportInProgress()
   {
     if (ieContext == null)
       return false;
