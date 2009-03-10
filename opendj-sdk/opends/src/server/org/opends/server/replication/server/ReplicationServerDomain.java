@@ -31,6 +31,9 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
@@ -57,6 +60,9 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
@@ -89,7 +95,7 @@ import org.opends.server.replication.protocol.ProtocolVersion;
  * received to the disk and for trimming them
  * Decision to trim can be based on disk space or age of the message
  */
-public class ReplicationServerDomain
+public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 {
   private final Object flowControlLock = new Object();
   private final String baseDn;
@@ -184,10 +190,15 @@ public class ReplicationServerDomain
   public ReplicationServerDomain(
       String baseDn, ReplicationServer replicationServer)
   {
+    super("Replication Server " + replicationServer.getReplicationPort() + " "
+        + baseDn + " " + replicationServer.getServerId());
+
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
     this.assuredTimeoutTimer = new Timer("Replication Assured Timer for " +
       baseDn + " in RS " + replicationServer.getServerId(), true);
+
+    DirectoryServer.registerMonitorProvider(this);
   }
 
   /**
@@ -1556,6 +1567,8 @@ public class ReplicationServerDomain
    */
   public void shutdown()
   {
+    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();
 
@@ -2187,7 +2200,7 @@ public class ReplicationServerDomain
    * @return The monitor data.
    * @throws DirectoryException When an error occurs.
    */
-  synchronized protected MonitorData getMonitorData()
+  synchronized protected MonitorData computeMonitorData()
     throws DirectoryException
   {
     if (monitorData.getBuildDate() + monitorDataLifeTime > TimeThread.getTime())
@@ -2608,6 +2621,78 @@ public class ReplicationServerDomain
     {
       statusAnalyzer.setDeradedStatusThreshold(degradedStatusThreshold);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
+  {
+    // Nothing to do for now
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getMonitorInstanceName()
+  {
+    return "Replication Server "
+           + replicationServer.getReplicationPort() + " "
+           + " " + replicationServer.getServerId()
+           + ",cn=" + baseDn.replace(',', '_').replace('=', '_')
+           + ",cn=replication";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getUpdateInterval()
+  {
+    /* we don't wont to do polling on this monitor */
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateMonitorData()
+  {
+    // As long as getUpdateInterval() returns 0, this will never get called
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ArrayList<Attribute> getMonitorData()
+  {
+    /*
+     * publish the server id and the port number.
+     */
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(Attributes.create("replication server id",
+        String.valueOf(replicationServer.getServerId())));
+    attributes.add(Attributes.create("replication server port",
+        String.valueOf(replicationServer.getReplicationPort())));
+
+    /*
+     * Add all the base DNs that are known by this replication server.
+     */
+    AttributeBuilder builder = new AttributeBuilder("domain-name");
+    builder.add(baseDn);
+    attributes.add(builder.toAttribute());
+
+    // Publish to monitor the generation ID by replicationServerDomain
+    builder = new AttributeBuilder("generation-id");
+    builder.add(baseDn.toString() + " " + generationId);
+    attributes.add(builder.toAttribute());
+
+    return attributes;
   }
 }
 

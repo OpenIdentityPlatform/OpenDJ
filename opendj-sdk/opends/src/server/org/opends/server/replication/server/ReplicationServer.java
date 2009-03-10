@@ -50,13 +50,11 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
-import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -64,9 +62,6 @@ import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -90,8 +85,8 @@ import com.sleepycat.je.DatabaseException;
  * It is responsible for creating the replication server replicationServerDomain
  * and managing it
  */
-public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
-  implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>,
+public class ReplicationServer
+  implements ConfigurationChangeListener<ReplicationServerCfg>,
              BackupTaskListener, RestoreTaskListener, ImportTaskListener,
              ExportTaskListener
 {
@@ -164,8 +159,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public ReplicationServer(ReplicationServerCfg configuration)
     throws ConfigException
   {
-    super("Replication Server" + configuration.getReplicationPort());
-
     replicationPort = configuration.getReplicationPort();
     serverId = (short) configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
@@ -205,8 +198,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     replSessionSecurity = new ReplSessionSecurity();
     initialize(replicationPort);
     configuration.addChangeListener(this);
-    DirectoryServer.registerMonitorProvider(this);
-
     try
     {
       backendConfigEntryDN = DN.decode(
@@ -550,7 +541,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     {
       dbEnv.shutdown();
     }
-    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
 }
 
 
@@ -757,86 +747,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       ReplicationServerCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
-  {
-    // Nothing to do for now
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMonitorInstanceName()
-  {
-    return "Replication Server " + this.replicationPort + " "
-           + serverId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ArrayList<Attribute> getMonitorData()
-  {
-    /*
-     * publish the server id and the port number.
-     */
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(Attributes.create("replication server id",
-        String.valueOf(serverId)));
-    attributes.add(Attributes.create("replication server port",
-        String.valueOf(replicationPort)));
-
-    /*
-     * Add all the base DNs that are known by this replication server.
-     */
-    AttributeBuilder builder = new AttributeBuilder("base-dn");
-    for (String base : baseDNs.keySet())
-    {
-      builder.add(base.toString());
-    }
-    attributes.add(builder.toAttribute());
-
-    // Publish to monitor the generation ID by replicationServerDomain
-    builder = new AttributeBuilder("base-dn-generation-id");
-    for (String base : baseDNs.keySet())
-    {
-      long generationId=-1;
-      ReplicationServerDomain replicationServerDomain =
-              getReplicationServerDomain(base, false);
-      if (replicationServerDomain != null)
-        generationId = replicationServerDomain.getGenerationId();
-      builder.add(base.toString() + " " + generationId);
-    }
-    attributes.add(builder.toAttribute());
-
-    return attributes;
   }
 
   /**
@@ -1146,5 +1056,23 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     {
       replicationServerDomain.stopReplicationServers(serversToDisconnect);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getMonitorInstanceName()
+  {
+    return "Replication Server " + replicationPort + " " + serverId;
+  }
+
+  /**
+   * Retrieves the port used by this ReplicationServer.
+   *
+   * @return The port used by this ReplicationServer.
+   */
+  public int getReplicationPort()
+  {
+    return replicationPort;
   }
 }

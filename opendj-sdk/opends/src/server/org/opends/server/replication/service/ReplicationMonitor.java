@@ -76,8 +76,9 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    return "Replication Domain "  + domain.getServiceID()
-       + " " + domain.getServerId();
+    return "Replication Domain " + domain.getServerId()
+           + ",cn=" + domain.getServiceID().replace(',', '_').replace('=', '_')
+           + ",cn=replication";
   }
 
   /**
@@ -94,7 +95,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     /* get the base dn */
-    Attribute attr = Attributes.create("base-dn", domain.getServiceID());
+    Attribute attr = Attributes.create("domain-name", domain.getServiceID());
     attributes.add(attr);
 
     /* get the base dn */

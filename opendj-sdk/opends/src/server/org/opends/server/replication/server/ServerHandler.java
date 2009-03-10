@@ -1968,13 +1968,14 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   @Override
   public String getMonitorInstanceName()
   {
-    String str = baseDn.toString() +
-      " " + serverURL + " " + String.valueOf(serverId);
+    String str = serverURL + " " + String.valueOf(serverId);
 
     if (serverIsLDAPserver)
-      return "Directory Server " + str;
+      return "Connected Replica " + str +
+                ",cn=" + replicationServerDomain.getMonitorInstanceName();
     else
-      return "Remote Replication Server " + str;
+      return "Connected Replication Server " + str +
+                ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
   /**
@@ -2020,7 +2021,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     if (serverIsLDAPserver)
     {
-      attributes.add(Attributes.create("LDAP-Server", serverURL));
+      attributes.add(Attributes.create("replica", serverURL));
       attributes.add(Attributes.create("connected-to",
           this.replicationServerDomain.getReplicationServer()
               .getMonitorInstanceName()));
@@ -2028,17 +2029,17 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     }
     else
     {
-      attributes.add(Attributes.create("ReplicationServer-Server",
+      attributes.add(Attributes.create("Replication-Server",
           serverURL));
     }
     attributes.add(Attributes.create("server-id", String
         .valueOf(serverId)));
-    attributes.add(Attributes.create("base-dn", baseDn.toString()));
+    attributes.add(Attributes.create("domain-name", baseDn.toString()));
 
     try
     {
       MonitorData md;
-      md = replicationServerDomain.getMonitorData();
+      md = replicationServerDomain.computeMonitorData();
 
       if (serverIsLDAPserver)
       {

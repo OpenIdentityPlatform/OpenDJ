@@ -1855,7 +1855,7 @@ public class AssuredReplicationPluginTest
      * Find monitoring entry for requested base DN
      */
     String monitorFilter =
-         "(&(cn=replication Domain*)(base-dn=" + baseDn + "))";
+         "(&(cn=replication Domain*)(domain-name=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;

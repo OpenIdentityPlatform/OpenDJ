@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -203,9 +203,9 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
   public String getMonitorInstanceName()
   {
     String serverURL=""; // FIXME
-    String str = rsDomain.getBaseDn().toString() + " " + serverURL + " "
-       + String.valueOf(serverId);
-    return "Undirect LDAP Server " + str;
+    String str = serverURL + " " + String.valueOf(serverId);
+    return "Undirect Replica " + str +
+                          ",cn=" + replServerHandler.getMonitorInstanceName();
   }
 
   /**
@@ -253,7 +253,7 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
 
     attributes.add(Attributes.create("server-id",
         String.valueOf(serverId)));
-    attributes.add(Attributes.create("base-dn",
+    attributes.add(Attributes.create("domain-name",
         rsDomain.getBaseDn()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
@@ -262,7 +262,7 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
     MonitorData md;
     try
     {
-      md = rsDomain.getMonitorData();
+      md = rsDomain.computeMonitorData();
 
       ServerState remoteState = md.getLDAPServerState(serverId);
       if (remoteState == null)

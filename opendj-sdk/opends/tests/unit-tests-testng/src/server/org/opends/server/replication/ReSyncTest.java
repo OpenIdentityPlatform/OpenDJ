@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -224,9 +224,7 @@ public class ReSyncTest extends ReplicationTestCase
     connection.processDelete(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN));
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = buildRoot + File.separator + "build" +
-                  File.separator + "unit-tests" + File.separator +
-                  "package-instance"+ File.separator + "ReSynchTest";
+    String path = "ReSynchTest";
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"

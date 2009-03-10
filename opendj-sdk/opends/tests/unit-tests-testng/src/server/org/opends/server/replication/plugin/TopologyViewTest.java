@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -1086,7 +1086,7 @@ public class TopologyViewTest extends ReplicationTestCase
      /**
       * Get the topo view of the current analyzed DS
       */
-     List<DSInfo> internalDsList = rd.getDsList();
+     List<DSInfo> internalDsList = rd.getReplicasList();
      // Add info for DS itself:
      // we need to clone the list as we don't want to modify the list kept
      // inside the DS.

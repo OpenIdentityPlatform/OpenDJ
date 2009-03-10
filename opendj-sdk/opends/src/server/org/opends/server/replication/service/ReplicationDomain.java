@@ -540,10 +540,10 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Gets the info for DSs in the topology (except us).
-   * @return The info for DSs in the topology (except us)
+   * Gets the info for Replicas in the topology (except us).
+   * @return The info for Replicas in the topology (except us)
    */
-  public List<DSInfo> getDsList()
+  public List<DSInfo> getReplicasList()
   {
     return broker.getDsList();
   }

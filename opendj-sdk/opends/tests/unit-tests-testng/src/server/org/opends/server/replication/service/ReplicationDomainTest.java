@@ -129,7 +129,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 1);
       }
 
-      for (DSInfo serverInfo : domain1.getDsList())
+      for (DSInfo serverInfo : domain1.getReplicasList())
       {
         assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
       }
@@ -145,7 +145,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 2);
       }
 
-      for (DSInfo serverInfo : domain1.getDsList())
+      for (DSInfo serverInfo : domain1.getReplicasList())
       {
         if (serverInfo.getDsId() == 2)
           assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
@@ -156,7 +156,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
         }
       }
 
-      for (DSInfo serverInfo : domain2.getDsList())
+      for (DSInfo serverInfo : domain2.getReplicasList())
       {
         if (serverInfo.getDsId() == 2)
           assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
@@ -231,7 +231,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
-      for (DSInfo remoteDS : domain2.getDsList())
+      for (DSInfo remoteDS : domain2.getReplicasList())
       {
         if (remoteDS.getDsId() != domain2.getServerId())
         {
@@ -361,7 +361,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       boolean alone = true;
       while (alone)
       {
-        for (DSInfo remoteDS : domain1.getDsList())
+        for (DSInfo remoteDS : domain1.getReplicasList())
         {
           if (remoteDS.getDsId() != domain1.getServerId())
           {
