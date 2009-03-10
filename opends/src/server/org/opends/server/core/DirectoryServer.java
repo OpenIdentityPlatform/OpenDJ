@@ -1292,7 +1292,6 @@ public class DirectoryServer
       logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
                                                   BUILD_ID, REVISION_NUMBER));
 
-      RuntimeInformation.logInfo();
       // Acquire an exclusive lock for the Directory Server process.
       if (! serverLocked)
       {
@@ -1363,6 +1362,7 @@ public class DirectoryServer
       loggerConfigManager = new LoggerConfigManager();
       loggerConfigManager.initializeLoggerConfig();
 
+      RuntimeInformation.logInfo();
 
       // Initialize the server alert handlers.
       initializeAlertHandlers();
