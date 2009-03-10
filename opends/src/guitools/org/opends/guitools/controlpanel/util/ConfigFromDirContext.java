@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -531,35 +531,42 @@ public class ConfigFromDirContext extends ConfigReader
       }
     }
 
-    String dn = ConnectionUtils.getFirstValue(sr, "base-dn");
+    String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
     String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
+    String missingChanges = ConnectionUtils.getFirstValue(sr,
+        "missing-changes");
 
-    if ((dn != null)  && (replicaId != null))
+    if ((dn != null)  && (replicaId != null) && (missingChanges != null))
     {
       for (BackendDescriptor backend : backends)
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
-          if (Utilities.areDnsEqual(baseDN.getDn().toString(), dn) &&
-              String.valueOf(baseDN.getReplicaID()).equals(replicaId))
+          try
           {
-            try
+            if (baseDN.getDn().equals(DN.decode(dn)) &&
+                String.valueOf(baseDN.getReplicaID()).equals(replicaId))
             {
-              baseDN.setAgeOfOldestMissingChange(
-                  new Long(ConnectionUtils.getFirstValue(sr,
-              "approx-older-change-not-synchronized-millis")));
+              try
+              {
+                baseDN.setAgeOfOldestMissingChange(
+                    new Long(ConnectionUtils.getFirstValue(sr,
+                    "approx-older-change-not-synchronized-millis")));
+              }
+              catch (Throwable t)
+              {
+              }
+              try
+              {
+                baseDN.setMissingChanges(new Integer(missingChanges));
+              }
+              catch (Throwable t)
+              {
+              }
             }
-            catch (Throwable t)
-            {
-            }
-            try
-            {
-              baseDN.setMissingChanges(new Integer(
-                  ConnectionUtils.getFirstValue(sr, "missing-changes")));
-            }
-            catch (Throwable t)
-            {
-            }
+          }
+          catch (Throwable t)
+          {
           }
         }
       }
