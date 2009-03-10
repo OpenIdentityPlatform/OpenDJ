@@ -1102,11 +1102,11 @@ public class ServerDescriptor
     if (cacheFilter.searchMonitoringInformation())
     {
       ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
       ctls.setReturningAttributes(
           new String[] {
               "approx-older-change-not-synchronized-millis", "missing-changes",
-              "base-dn", "server-id"
+              "domain-name", "server-id"
           });
       filter = "(missing-changes=*)";
 
@@ -1122,7 +1122,7 @@ public class ServerDescriptor
           {
             SearchResult sr = (SearchResult)monitorEntries.next();
 
-            String dn = getFirstValue(sr, "base-dn");
+            String dn = getFirstValue(sr, "domain-name");
             int replicaId = -1;
             try
             {

@@ -579,8 +579,11 @@ public class DbHandler implements Runnable
     @Override
     public String getMonitorInstanceName()
     {
-      return "ReplicationServer database " + baseDn.toString() +
-             " " + String.valueOf(serverId);
+      ReplicationServerDomain domain =
+        replicationServer.getReplicationServerDomain(baseDn, false);
+
+      return "ReplicationServer database " + String.valueOf(serverId) +
+             ",cn=" + domain.getMonitorInstanceName();
     }
 
     /**

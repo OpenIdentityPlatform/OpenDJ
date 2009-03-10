@@ -635,7 +635,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
   {
     String monitorFilter =
-         "(&(cn=replication Domain*)(base-dn=" + baseDn + "))";
+         "(&(cn=replication Domain*)(domain-name=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
