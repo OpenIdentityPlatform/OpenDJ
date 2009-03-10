@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.installer;
 
@@ -4350,7 +4350,7 @@ public abstract class Installer extends GuiApplication {
     attrs.put(oc);
     attrs.put(
         "ds-task-class-name",
-        "org.opends.server.replication.service.InitializeTask");
+        "org.opends.server.replication.plugin.InitializeTask");
     attrs.put("ds-task-initialize-domain-dn", suffixDn);
     attrs.put("ds-task-initialize-replica-server-id",
         String.valueOf(replicaId));
@@ -4667,7 +4667,7 @@ public abstract class Installer extends GuiApplication {
     oc.add("ds-task-reset-generation-id");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.replication.service.SetGenerationIdTask");
+        "org.opends.server.replication.plugin.SetGenerationIdTask");
     attrs.put("ds-task-reset-generation-id-domain-base-dn", suffixDn);
     while (!taskCreated)
     {

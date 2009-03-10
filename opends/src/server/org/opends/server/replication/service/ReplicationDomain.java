@@ -52,6 +52,9 @@ import java.util.Map;
 
 import org.opends.server.config.ConfigException;
 import java.util.Collection;
+
+import org.opends.server.replication.plugin.InitializeTargetTask;
+import org.opends.server.replication.plugin.InitializeTask;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 
@@ -949,11 +952,8 @@ public abstract class ReplicationDomain
     ReplicationDomain replicationDomain = domains.get(serviceID);
     if (replicationDomain == null)
     {
-      MessageBuilder mb = new MessageBuilder(ERR_NO_MATCHING_DOMAIN.get());
-      mb.append(" ");
-      mb.append(serviceID);
       throw new DirectoryException(ResultCode.OTHER,
-         mb.toMessage());
+          ERR_NO_MATCHING_DOMAIN.get(serviceID));
     }
     return replicationDomain;
   }
@@ -1177,17 +1177,25 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Process the initialization of some other server or servers in the topology
-   * specified by the target argument.
+   * Initializes a remote server from this server.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on this server, and the {@link #importBackend(InputStream)}
+   * will be called on the remote server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
    *
-   * @param target    The target that should be initialized
-   * @param initTask  The task that triggers this initialization and that should
-   *                  be updated with its progress.
+   * @param target   The server-id of the server that should be initialized.
+   *                 The target can be discovered using the
+   *                 {@link #getDsList()} method.
+   * @param initTask The task that triggers this initialization and that should
+   *                 be updated with its progress.
    *
-   * @exception DirectoryException  If the Replication Initialization protocol
-   *                                failed.
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
    */
-  void initializeRemote(short target, Task initTask)
+  public void initializeRemote(short target, Task initTask)
   throws DirectoryException
   {
     initializeRemote(target, serverID, initTask);
@@ -1485,7 +1493,7 @@ public abstract class ReplicationDomain
    * @param source   The server-id of the source from which to initialize.
    *                 The source can be discovered using the
    *                 {@link #getDsList()} method.
-
+   *
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
    */
@@ -1519,13 +1527,27 @@ public abstract class ReplicationDomain
 
   /**
    * Initializes this domain from another source server.
+   * <p>
+   * When this method is called, a request for initialization will
+   * be sent to the source server asking for initialization.
+   * <p>
+   * The {@link #exportBackend(OutputStream)} will therefore be called
+   * on the source server, and the {@link #importBackend(InputStream)}
+   * will be called on his server.
+   * <p>
+   * The InputStream and OutpuStream given as a parameter to those
+   * methods will be connected through the replication protocol.
    *
-   * @param source The source from which to initialize
+   * @param source   The server-id of the source from which to initialize.
+   *                 The source can be discovered using the
+   *                 {@link #getDsList()} method.
    * @param initTask The task that launched the initialization
    *                 and should be updated of its progress.
-   * @throws DirectoryException when an error occurs
+   *
+   * @throws DirectoryException If it was not possible to publish the
+   *                            Initialization message to the Topology.
    */
-  void initializeFromRemote(short source, Task initTask)
+  public void initializeFromRemote(short source, Task initTask)
   throws DirectoryException
   {
     if (debugEnabled())
@@ -1665,48 +1687,6 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Verifies that the given string represents a valid source
-   * from which this server can be initialized.
-   * @param sourceString The string representing the source
-   * @return The source as a short value
-   * @throws DirectoryException if the string is not valid
-   */
-  short decodeSource(String sourceString)
-  throws DirectoryException
-  {
-    short  source = 0;
-    Throwable cause = null;
-    try
-    {
-      source = Integer.decode(sourceString).shortValue();
-      if ((source >= -1) && (source != serverID))
-      {
-        // TODO Verifies serverID is in the domain
-        // We should check here that this is a server implied
-        // in the current domain.
-        return source;
-      }
-    }
-    catch(Exception e)
-    {
-      cause = e;
-    }
-
-    ResultCode resultCode = ResultCode.OTHER;
-    Message message = ERR_INVALID_IMPORT_SOURCE.get();
-    if (cause != null)
-    {
-      throw new DirectoryException(
-          resultCode, message, cause);
-    }
-    else
-    {
-      throw new DirectoryException(
-          resultCode, message);
-    }
-  }
-
-  /**
    * Check the value of the Replication Servers generation ID.
    *
    * @param generationID        The expected value of the generation ID.
@@ -1789,7 +1769,7 @@ public abstract class ReplicationDomain
    * @param generationIdNewValue  The new value of the generation Id.
    * @throws DirectoryException   When an error occurs
    */
-  void resetGenerationId(Long generationIdNewValue)
+  public void resetGenerationId(Long generationIdNewValue)
   throws DirectoryException
   {
     if (debugEnabled())

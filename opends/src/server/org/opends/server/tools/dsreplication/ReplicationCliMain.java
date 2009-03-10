@@ -6386,7 +6386,7 @@ public class ReplicationCliMain extends ConsoleApplication
     oc.add("ds-task-reset-generation-id");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.replication.service.SetGenerationIdTask");
+        "org.opends.server.replication.plugin.SetGenerationIdTask");
     if (isPre)
     {
       if (!localOnly)
@@ -6557,7 +6557,7 @@ public class ReplicationCliMain extends ConsoleApplication
     oc.add("ds-task-initialize-remote-replica");
     attrs.put(oc);
     attrs.put("ds-task-class-name",
-        "org.opends.server.replication.service.InitializeTargetTask");
+        "org.opends.server.replication.plugin.InitializeTargetTask");
     attrs.put("ds-task-initialize-domain-dn", baseDN);
     attrs.put("ds-task-initialize-replica-server-id", "all");
     while (!taskCreated)
