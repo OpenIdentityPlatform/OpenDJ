@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -196,6 +196,9 @@ public final class SelectableCertificateKeyManager
    * the provided critieria.  This will either return the preferred alias
    * configured for this key manager, or {@code null} if no server certificate
    * with that alias is configured in the underlying key manager.
+   * Note that the returned alias can be transformed in lowercase, depending
+   * on the KeyStore implementation. It is recommended not to use aliases in a
+   * KeyStore that only differ in case.
    *
    * @param  keyType  The public key type for the certificate.
    * @param  issuers  The list of acceptable issuer subject names, or
@@ -213,9 +216,9 @@ public final class SelectableCertificateKeyManager
     {
       for (String serverAlias : serverAliases)
       {
-        if (serverAlias.equals(alias))
+        if (serverAlias.equalsIgnoreCase(alias))
         {
-          return alias;
+          return serverAlias;
         }
       }
     }
