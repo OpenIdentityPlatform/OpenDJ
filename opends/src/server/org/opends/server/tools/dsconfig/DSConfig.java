@@ -946,13 +946,11 @@ public final class DSConfig extends ConsoleApplication {
       MenuResult<Integer> result = handler.run(this, factory);
 
       if (result.isSuccess()) {
-        if (isInteractive())
+        if (isInteractive() &&
+            handler.isCommandBuilderUseful())
         {
-          println();
-          println(INFO_DSCFG_NON_INTERACTIVE.get(
-              getCommandBuilder(handler).toString()));
+          printCommandBuilder(getCommandBuilder(handler));
         }
-
         return result.getValue();
       } else {
         // User must have quit.
