@@ -2626,11 +2626,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     if (replicationDomain == null)
     {
-      MessageBuilder mb = new MessageBuilder(ERR_NO_MATCHING_DOMAIN.get());
-      mb.append(" ");
-      mb.append(String.valueOf(baseDn));
       throw new DirectoryException(ResultCode.OTHER,
-         mb.toMessage());
+          ERR_NO_MATCHING_DOMAIN.get(String.valueOf(baseDn)));
     }
     return replicationDomain;
   }
@@ -3042,5 +3039,47 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         remotePendingChanges.getQueueSize());
 
     return attributes;
+  }
+
+  /**
+   * Verifies that the given string represents a valid source
+   * from which this server can be initialized.
+   * @param sourceString The string representing the source
+   * @return The source as a short value
+   * @throws DirectoryException if the string is not valid
+   */
+  short decodeSource(String sourceString)
+  throws DirectoryException
+  {
+    short  source = 0;
+    Throwable cause = null;
+    try
+    {
+      source = Integer.decode(sourceString).shortValue();
+      if ((source >= -1) && (source != serverId))
+      {
+        // TODO Verifies serverID is in the domain
+        // We should check here that this is a server implied
+        // in the current domain.
+        return source;
+      }
+    }
+    catch(Exception e)
+    {
+      cause = e;
+    }
+
+    ResultCode resultCode = ResultCode.OTHER;
+    Message message = ERR_INVALID_IMPORT_SOURCE.get();
+    if (cause != null)
+    {
+      throw new DirectoryException(
+          resultCode, message, cause);
+    }
+    else
+    {
+      throw new DirectoryException(
+          resultCode, message);
+    }
   }
 }

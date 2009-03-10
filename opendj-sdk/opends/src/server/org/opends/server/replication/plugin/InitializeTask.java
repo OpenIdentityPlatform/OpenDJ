@@ -22,9 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.service;
+package org.opends.server.replication.plugin;
 import org.opends.server.tasks.TaskUtils;
 
 import org.opends.server.types.ResultCode;
@@ -47,6 +47,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -64,7 +65,7 @@ public class InitializeTask extends Task
 
   private String  domainString            = null;
   private short  source;
-  private ReplicationDomain domain        = null;
+  private LDAPReplicationDomain domain        = null;
   private TaskState initState;
 
   // The total number of entries expected to be processed when this import
@@ -111,7 +112,9 @@ public class InitializeTask extends Task
 
     try
     {
-      domain = ReplicationDomain.retrievesReplicationDomain(domainString);
+      DN dn = DN.decode(domainString);
+      // We can assume that this is an LDAP replication domain
+      domain = LDAPReplicationDomain.retrievesReplicationDomain(dn);
     }
     catch(DirectoryException e)
     {

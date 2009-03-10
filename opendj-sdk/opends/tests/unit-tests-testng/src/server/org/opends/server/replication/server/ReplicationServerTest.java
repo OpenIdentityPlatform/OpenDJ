@@ -1295,9 +1295,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    throws Exception
    {
      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-     String path = buildRoot + File.separator + "build" +
-                   File.separator + "unit-tests" + File.separator +
-                   "package-instance"+ File.separator + "exportLDIF.ldif";
+     String path = "exportLDIF.ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
@@ -1314,9 +1312,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    {
      String root = suffix.substring(suffix.indexOf('=')+1, suffix.indexOf(','));
      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-     String path = buildRoot + File.separator + "build" +
-                   File.separator + "unit-tests" + File.separator +
-                   "package-instance"+ File.separator + "exportLDIF" + root +".ldif";
+     String path = "exportLDIF" + root +".ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",

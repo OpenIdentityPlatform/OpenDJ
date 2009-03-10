@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -198,7 +198,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -208,7 +208,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -218,7 +218,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + EXAMPLE_DN,
         "ds-task-initialize-replica-server-id: all");
   }
@@ -961,7 +961,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-remote-replica",
-          "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
           "ds-task-initialize-domain-dn: foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.INVALID_DN_SYNTAX,
@@ -974,11 +974,11 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-remote-replica",
-          "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-remote-replica-server-id: " + server2ID);
       addTask(taskInitTarget, ResultCode.OTHER,
-          ERR_NO_MATCHING_DOMAIN.get());
+          ERR_NO_MATCHING_DOMAIN.get(""));
 
       // Invalid scope
       // createTask(taskInitTargetS2);
@@ -1022,11 +1022,11 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
-          "ds-task-initialize-domain-dn: foo",
+          "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
+          "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
       addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
-          ERR_NO_MATCHING_DOMAIN.get());
+          ERR_NO_MATCHING_DOMAIN.get("dc=foo"));
 
       // Domain base dn not related to any domain
       taskInit = TestCaseUtils.makeEntry(
@@ -1035,11 +1035,11 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
           "ds-task-initialize-domain-dn: dc=foo",
           "ds-task-initialize-replica-server-id: " + server2ID);
       addTask(taskInit, ResultCode.INVALID_DN_SYNTAX,
-          ERR_NO_MATCHING_DOMAIN.get());
+          ERR_NO_MATCHING_DOMAIN.get("dc=foo"));
 
       // Invalid Source
       taskInit = TestCaseUtils.makeEntry(
@@ -1048,7 +1048,7 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
-          "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
           "ds-task-initialize-domain-dn: " + baseDn,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
@@ -1311,7 +1311,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + 20);
 
@@ -1327,7 +1327,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server1ID);
 
@@ -1369,7 +1369,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + 0);
 
@@ -1443,7 +1443,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
@@ -1457,7 +1457,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
 

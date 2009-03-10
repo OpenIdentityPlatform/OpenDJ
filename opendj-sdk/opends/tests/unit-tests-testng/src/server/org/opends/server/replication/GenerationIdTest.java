@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -210,7 +210,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
-        "ds-task-class-name: org.opends.server.replication.service.InitializeTargetTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.InitializeTargetTask",
         "ds-task-initialize-domain-dn: " + baseDn,
         "ds-task-initialize-replica-server-id: " + server2ID);
   }
@@ -882,7 +882,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-reset-generation-id",
-          "ds-task-class-name: org.opends.server.replication.service.SetGenerationIdTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.SetGenerationIdTask",
           "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
       addTask(taskReset, ResultCode.SUCCESS, null);
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
@@ -1032,7 +1032,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "objectclass: top",
           "objectclass: ds-task",
           "objectclass: ds-task-reset-generation-id",
-          "ds-task-class-name: org.opends.server.replication.service.SetGenerationIdTask",
+          "ds-task-class-name: org.opends.server.replication.plugin.SetGenerationIdTask",
           "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
 
       addTask(taskReset, ResultCode.SUCCESS, null);
@@ -1225,7 +1225,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-reset-generation-id",
-        "ds-task-class-name: org.opends.server.replication.service.SetGenerationIdTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
       addTask(taskReset, ResultCode.SUCCESS, null);
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
@@ -1244,7 +1244,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-reset-generation-id",
-        "ds-task-class-name: org.opends.server.replication.service.SetGenerationIdTask",
+        "ds-task-class-name: org.opends.server.replication.plugin.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
         "ds-task-reset-generation-id-new-value: -1");
       addTask(taskReset, ResultCode.SUCCESS, null);
