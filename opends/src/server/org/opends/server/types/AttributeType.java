@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -68,7 +68,7 @@ import static org.opends.server.util.Validator.*;
      mayInvoke=true)
 public final class AttributeType
        extends CommonSchemaElements
-       implements SchemaFileElement
+       implements SchemaFileElement, Comparable<AttributeType>
 {
   /**
    * The tracer object for the debug logger.
@@ -750,6 +750,14 @@ public final class AttributeType
       buffer.append(" USAGE ");
       buffer.append(attributeUsage.toString());
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int compareTo(AttributeType o) {
+    return getNormalizedPrimaryNameOrOID().compareTo(
+      o.getNormalizedPrimaryNameOrOID());
   }
 }
 
