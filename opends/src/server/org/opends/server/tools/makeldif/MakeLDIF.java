@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -31,6 +31,8 @@ import org.opends.messages.Message;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -38,6 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -73,7 +76,8 @@ public class MakeLDIF
   // The total number of entries that have been written.
   private long entriesWritten;
 
-
+  private PrintStream out = System.out;
+  private PrintStream err = System.err;
 
   /**
    * Invokes the <CODE>makeLDIFMain</CODE> method with the provided set of
@@ -103,20 +107,45 @@ public class MakeLDIF
     entriesWritten = 0L;
   }
 
-
-
   /**
    * Processes the provided set of command-line arguments and begins generating
    * the LDIF content.
    *
    * @param  args  The command-line arguments provided for this program.
-   *
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  initializeSchema  Indicates whether to initialize the schema.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           {@code null} if standard output is not needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           {@code null} if standard error is not needed.
    * @return  A result code of zero if all processing completed properly, or
    *          a nonzero result if a problem occurred.
+   *
    */
-  public int makeLDIFMain(String[] args)
+  public int makeLDIFMain(String[] args, boolean initializeServer,
+      boolean initializeSchema,
+      OutputStream outStream,
+      OutputStream errStream)
   {
-    // Create and initialize the argument parser for this program.
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
+//  Create and initialize the argument parser for this program.
     Message toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
     ArgumentParser  argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                    false);
@@ -188,7 +217,7 @@ public class MakeLDIF
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -201,8 +230,8 @@ public class MakeLDIF
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -215,46 +244,52 @@ public class MakeLDIF
     }
 
 
-    // Initialize the Directory Server configuration handler using the
-    // information that was provided.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
+    if (initializeServer)
+    {
+      // Initialize the Directory Server configuration handler using the
+      // information that was provided.
+      DirectoryServer directoryServer = DirectoryServer.getInstance();
+      directoryServer.bootstrapClient();
 
-    try
-    {
-      directoryServer.initializeJMX();
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(
-              String.valueOf(configFile.getValue()), e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      try
+      {
+        directoryServer.initializeJMX();
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_JMX.get(
+            String.valueOf(configFile.getValue()), e.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      try
+      {
+        directoryServer.initializeConfiguration(configClass.getValue(),
+            configFile.getValue());
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(
+            String.valueOf(configFile.getValue()), e.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
     }
 
-    try
+    if (initializeSchema)
     {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_CONFIG.get(
-              String.valueOf(configFile.getValue()), e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(
-              String.valueOf(configFile.getValue()), e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      try
+      {
+        DirectoryServer.getInstance().initializeSchema();
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_MAKELDIF_CANNOT_INITIALIZE_SCHEMA.get(
+            String.valueOf(configFile.getValue()), e.getMessage());
+        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
     }
 
 
@@ -284,7 +319,7 @@ public class MakeLDIF
     {
       Message message = ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(
               resourcePath.getValue());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -301,14 +336,14 @@ public class MakeLDIF
     {
       Message message = ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(
               ioe.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
       Message message = ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(
               e.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -318,7 +353,7 @@ public class MakeLDIF
     {
       for (Message s : warnings)
       {
-        System.err.println(wrapText(s, MAX_LINE_WIDTH));
+        err.println(wrapText(s, MAX_LINE_WIDTH));
       }
     }
 
@@ -335,7 +370,7 @@ public class MakeLDIF
     {
       Message message = ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(
               ldifFile.getValue(), String.valueOf(ioe));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -349,7 +384,7 @@ public class MakeLDIF
     {
       Message message = ERR_MAKELDIF_ERROR_WRITING_LDIF.get(
               ldifFile.getValue(), stackTraceToSingleLineString(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
     finally
@@ -363,6 +398,21 @@ public class MakeLDIF
 
     // If we've gotten here, then everything was successful.
     return 0;
+  }
+
+
+  /**
+   * Processes the provided set of command-line arguments and begins generating
+   * the LDIF content.
+   *
+   * @param  args  The command-line arguments provided for this program.
+   *
+   * @return  A result code of zero if all processing completed properly, or
+   *          a nonzero result if a problem occurred.
+   */
+  public int makeLDIFMain(String[] args)
+  {
+     return makeLDIFMain(args, true, true, System.out, System.err);
   }
 
 
@@ -390,7 +440,7 @@ public class MakeLDIF
       if ((++entriesWritten % 1000) == 0)
       {
         Message message = INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten);
-        System.out.println(wrapText(message, MAX_LINE_WIDTH));
+        out.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
       return true;
@@ -416,7 +466,7 @@ public class MakeLDIF
   public void closeEntryWriter()
   {
     Message message = INFO_MAKELDIF_PROCESSING_COMPLETE.get(entriesWritten);
-    System.out.println(wrapText(message, MAX_LINE_WIDTH));
+    out.println(wrapText(message, MAX_LINE_WIDTH));
   }
 }
 
