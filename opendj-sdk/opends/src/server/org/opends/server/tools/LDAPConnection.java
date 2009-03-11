@@ -204,6 +204,14 @@ public class LDAPConnection
 
         // Read the response from the server.
         msg = ldapReader.readMessage();
+      }catch (LDAPException ex1)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex1);
+        }
+        throw new LDAPConnectionException(Message.raw(ex1.getMessage()), ex1
+            .getResultCode(), null, ex1);
       } catch (Exception ex1)
       {
         if (debugEnabled())
