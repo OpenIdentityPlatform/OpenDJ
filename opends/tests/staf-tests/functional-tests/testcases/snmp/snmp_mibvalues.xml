@@ -303,7 +303,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -370,7 +370,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -404,7 +405,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -482,7 +483,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -516,7 +518,7 @@
            <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -583,7 +585,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -617,7 +620,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -683,7 +686,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -717,7 +721,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -785,7 +789,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 
@@ -819,7 +824,7 @@
           <!--- Test Case information
             #@TestMarker          SNMP MIB values
             #@TestName            snmp_mibvalues: TODO
-            #@TestIssue           none
+            #@TestIssue           3862
             #@TestPurpose         TODO.
             #@TestPreamble        none
             #@TestStep            TODO.
@@ -935,7 +940,8 @@
                 'snmpHost'      : DIRECTORY_INSTANCE_HOST ,
                 'snmpPort'      : SNMP_PORT ,
                 'snmpCommunity' : community ,
-                'index'         : indexLDAP
+                'index'         : indexLDAP ,
+                'knownIssue'    : '3862'
                 }
               </call>
 

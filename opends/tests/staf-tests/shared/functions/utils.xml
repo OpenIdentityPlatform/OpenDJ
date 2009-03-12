@@ -221,8 +221,113 @@
        <tcstatus result="'fail'"/>          
     </sequence>
   </function>
-    
-<!-- checktestString -->  
+
+  <!-- Search string -->
+  <function name="searchString" scope="local">
+    <function-prolog>
+      This function search for a string in the retrun string of a testcase
+      Return 0 if the string is found, 1 otherwise
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="expectedString" type="required">
+        <function-arg-description>
+          the substring expected from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="returnString" type="required">
+        <function-arg-description>
+          the return string received from command
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        searchre = re.compile('%s' % expectedString)
+        myRC = 0
+        myReason = 'None'
+      </script>
+
+      <!-- Check that returnString is really a string -->
+      <if expr='returnString.__class__ is not org.python.core.PyString'>
+        <sequence>
+          <message log="1" level="'Error'">
+            'ERROR : Invalid returnString type (%s), requires org.python.core.PyString.' \
+            % returnString.__class__
+          </message>
+          <script>
+            myRC = 1
+            myReason = 'Python error'
+          </script>
+
+          <return>[myRC, myReason]</return>
+        </sequence>
+      </if>
+
+      <!-- Search for the expectedString -->
+      <if expr='re.search(searchre, returnString) != None'>
+        <sequence>
+          <message log="1">
+            'SUCCESS :  Found substring, %s, in the return string' \
+            % (expectedString)
+          </message>
+          <script>
+            myRC = 0
+            myReason = 'String found'
+          </script>
+        </sequence>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">
+              'ERROR : Did not find substring, %s, in the return string, %s' \
+              % (expectedString, returnString)
+            </message>
+            <script>
+              myRC = 1
+              myReason = 'String not found'
+            </script>
+          </sequence>
+        </else>
+      </if>
+
+      <!-- Manage expectedRC and knownIssue -->
+      <if expr="expectedRC != 'noCheck'">
+          <if expr="myRC == expectedRC">
+            <tcstatus result="'pass'"/>
+            <else>
+              <if expr="knownIssue == None">
+                <tcstatus result="'fail'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : knownIssue }
+                  </call>
+                </else>
+              </if>
+            </else>
+          </if>
+      </if>
+
+      <return>[myRC, myReason]</return>
+    </sequence>
+  </function>
+
+  <!-- DEPRECATED, use searchString function -->
   <function name="checktestString">
     <function-prolog>
       This function checks the return string against an expected return substring for a testcase
@@ -291,6 +396,7 @@
     </sequence>
   </function>
 
+  <!-- DEPRECATED, use searchString function -->
   <function name="checktestStringNotPresent">
     <function-prolog>
       This function checks the return string against an expected return substring that should not be present for a testcase
@@ -348,6 +454,7 @@
     </sequence>
   </function>
 
+  <!-- DEPRECATED, use searchString function -->
   <function name="searchStringForSubstring">
     <function-prolog>
       This function simply searches a string for a substring

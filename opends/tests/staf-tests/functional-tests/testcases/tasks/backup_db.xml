@@ -206,27 +206,39 @@
               'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
 
-            <!-- manage-tasks -->
-            <call function="'manage-tasks'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsQuiet'        : ' '
-              }
-            </call>
-  
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-        
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Backup',
-              'expectedResult'	   : '1' }
-            </call>              
-            
-            
+            <script>checkRC=9999</script>
+            <loop from="1" to="10" var="loop" while="checkRC != 0">
+              <sequence>
+                <message>'LOOP %s' % loop</message>
+                <!-- manage-tasks -->
+                <call function="'manage-tasks'">
+                  { 'location'     : STAF_REMOTE_HOSTNAME ,
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsQuiet'        : ' '
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                  currentDate=strftime("%Y%m%d",localtime())
+                </script>
+
+                <call function="'searchString'">
+                  { 'expectedString' : '%s.*  Backup  Completed successfully' \
+                                       % currentDate,
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : 'noCheck' }
+                </call>
+
+                <script>
+                  checkRC = STAXResult[0]
+                </script>
+
+              </sequence>
+            </loop>
+
             <message>'--- Check log files backup_asynchronous ---'</message>
             <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),

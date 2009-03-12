@@ -218,7 +218,12 @@
                     'expectedRC'     :  0
                   }
                 </call>
-                
+
+                <call function="'Sleep'">
+                  { 'location'             : STAF_REMOTE_HOSTNAME,
+                    'sleepForMilliSeconds' : 5000 }
+                </call>
+
                 <call function="'listFolder'">
                   { 'location'   : DIRECTORY_INSTANCE_HOST,
                     'foldername' : '%s/%s/logs' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
