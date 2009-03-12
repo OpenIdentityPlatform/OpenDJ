@@ -664,6 +664,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -703,10 +709,12 @@
         'result: %s' % result
       </message>
 
-      <call function="'checktestStringNotPresent'">
+      <call function="'searchString'">
         {
-        'returnString' : result ,
-        'testString'   : 'ERROR'
+        'expectedString' : 'ERROR' ,
+        'returnString'	 : result ,
+        'knownIssue'     : knownIssue ,
+        'expectedRC'     : 1
         }
       </call>
 
