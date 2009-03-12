@@ -8,4 +8,5 @@ ds-cfg-java-class: org.opends.server.snmp.SNMPConnectionHandler
 ds-cfg-enabled: false
 ds-cfg-trap-port: 162
 ds-cfg-listen-port: 161
+ds-cfg-listen-address: 0.0.0.0
 

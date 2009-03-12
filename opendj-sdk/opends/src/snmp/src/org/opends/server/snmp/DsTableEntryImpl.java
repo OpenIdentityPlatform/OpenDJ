@@ -181,7 +181,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
         String result = null;
         try {
             result = DirectoryServer.getServerRoot() +
-                    File.separatorChar + "bin";
+                    File.separatorChar;
         } catch (Exception ex) {
             if (DebugLogger.debugEnabled()) {
                 TRACER.debugCaught(DebugLogLevel.ERROR, ex);

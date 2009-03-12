@@ -57,9 +57,9 @@ public class LicenseFile {
     if (Utils.isWebStart())
     {
       return
-      File.pathSeparator +
+      File.separatorChar +
       "Legal" +
-      File.pathSeparator +
+      File.separatorChar +
       "license_to_accept.txt";
     }
     else
@@ -79,9 +79,9 @@ public class LicenseFile {
       }
 
       return installRootFromSystem +
-      File.pathSeparator +
+      File.separatorChar +
       "Legal" +
-      File.pathSeparator +
+      File.separatorChar +
       "license_to_accept.txt";
     }
   }

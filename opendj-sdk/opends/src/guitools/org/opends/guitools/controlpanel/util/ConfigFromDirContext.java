@@ -764,6 +764,11 @@ public class ConfigFromDirContext extends ConfigReader
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMX;
       }
+      SortedSet<InetAddress> v = jmx.getListenAddress();
+      if (v != null)
+      {
+        addresses.addAll(v);
+      }
       port = jmx.getListenPort();
     }
     else if (connHandler instanceof LDIFConnectionHandlerCfgClient)
@@ -776,6 +781,11 @@ public class ConfigFromDirContext extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.SNMP;
       SNMPConnectionHandlerCfgClient snmp =
         (SNMPConnectionHandlerCfgClient)connHandler;
+      SortedSet<InetAddress> v = snmp.getListenAddress();
+      if (v != null)
+      {
+        addresses.addAll(v);
+      }
       port = snmp.getListenPort();
     }
     else
