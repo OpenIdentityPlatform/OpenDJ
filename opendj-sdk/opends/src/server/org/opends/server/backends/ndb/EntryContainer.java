@@ -371,12 +371,23 @@ public class EntryContainer
           // We have found a subordinate entry.
           DN dn = entry.getDN();
 
-          boolean isInScope = true;
+          boolean isInScope = false;
           if (searchScope == SearchScope.SINGLE_LEVEL) {
             // Check if this entry is an immediate child.
-            if ((dn.getNumComponents() !=
-              baseDN.getNumComponents() + 1)) {
-              isInScope = false;
+            if ((dn.getNumComponents() ==
+              baseDN.getNumComponents() + 1) &&
+              dn.isDescendantOf(baseDN)) {
+              isInScope = true;
+            }
+          } else if (searchScope == SearchScope.WHOLE_SUBTREE) {
+            if (dn.isDescendantOf(baseDN)) {
+              isInScope = true;
+            }
+          } else if (searchScope == SearchScope.SUBORDINATE_SUBTREE) {
+            if ((dn.getNumComponents() >
+              baseDN.getNumComponents()) &&
+              dn.isDescendantOf(baseDN)) {
+              isInScope = true;
             }
           }
 
