@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <adm:managed-object name="snmp-connection-handler"
                     plural-name="snmp-connection-handlers"
@@ -63,6 +63,35 @@
     </adm:property-override>
     <!-- SNMP Port -->
     <adm:property-reference name="listen-port" />
+    <adm:property name="listen-address" multi-valued="true" read-only="true">
+    <adm:synopsis>
+      Specifies the address or set of addresses on which this
+      <adm:user-friendly-name />
+      should listen for connections from SNMP clients.
+    </adm:synopsis>
+    <adm:description>
+      Multiple addresses may be provided as separate values for this
+      attribute. If no values are provided, then the
+      <adm:user-friendly-name />
+      listens on all interfaces.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0.0.0.0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-listen-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
     <adm:property name="trap-port" mandatory="true">
         <adm:synopsis>
             Specifies the port to use to send SNMP Traps.

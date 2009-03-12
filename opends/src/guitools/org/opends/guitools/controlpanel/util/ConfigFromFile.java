@@ -432,6 +432,11 @@ public class ConfigFromFile extends ConfigReader
       {
         protocol = ConnectionHandlerDescriptor.Protocol.JMX;
       }
+      SortedSet<InetAddress> v = jmx.getListenAddress();
+      if (v != null)
+      {
+        addresses.addAll(v);
+      }
       port = jmx.getListenPort();
     }
     else if (connHandler instanceof LDIFConnectionHandlerCfg)
@@ -443,6 +448,11 @@ public class ConfigFromFile extends ConfigReader
     {
       protocol = ConnectionHandlerDescriptor.Protocol.SNMP;
       SNMPConnectionHandlerCfg snmp = (SNMPConnectionHandlerCfg)connHandler;
+      SortedSet<InetAddress> v = snmp.getListenAddress();
+      if (v != null)
+      {
+        addresses.addAll(v);
+      }
       port = snmp.getListenPort();
     }
     else
