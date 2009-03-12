@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -459,7 +459,7 @@ public class LDAPModify
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toString(buffer, 78);
+            searchEntry.toString(buffer, 0);
             out.println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
             out.println(buffer);
           }
@@ -493,7 +493,7 @@ public class LDAPModify
             }
 
             StringBuilder buffer = new StringBuilder();
-            searchEntry.toString(buffer, 78);
+            searchEntry.toString(buffer, 0);
             out.println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
             out.println(buffer);
           }
