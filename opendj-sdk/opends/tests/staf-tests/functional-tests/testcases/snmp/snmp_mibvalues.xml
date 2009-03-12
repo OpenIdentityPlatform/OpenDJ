@@ -290,6 +290,10 @@
                       '%s' % msg
                     </message>
                     <tcstatus result="'fail'"></tcstatus>
+                    
+                    <call function="'setKnownIssue'">
+                      { 'issueId' : '3690' }
+                    </call>
                   </sequence>
                 </else>
               </if>
