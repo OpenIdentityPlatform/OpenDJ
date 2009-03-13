@@ -469,59 +469,83 @@ modifyDNProcessing:
         List<Modification> modifications = this.getModifications();
 
 
-
-        // Apply any changes to the entry based on the change in its RDN.  Also,
-        // perform schema checking on the updated entry.
-        try
-        {
-          applyRDNChanges(modifications);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyDNProcessing;
-        }
-
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-        // Get a count of the current number of modifications.  The
-        // pre-operation plugins may alter this list, and we need to be able to
-        // identify which changes were made after they're done.
-        int modCount = modifications.size();
-
-
         // If the operation is not a synchronization operation,
-        // Invoke the pre-operation modify DN plugins.
-        if (! isSynchronizationOperation())
+        //  - Apply the RDN changes.
+        //  - Invoke the pre-operation modify DN plugins.
+        //  - apply additional modifications provided by the plugins.
+        // If the operation is a synchronization operation
+        //  - apply the operation as it was originally done on the master.
+        if (! isSynchronizationOperation() || (modifications.size() == 0))
         {
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break modifyDNProcessing;
-          }
-        }
-
-
-        // Check to see if any of the pre-operation plugins made any changes to
-        // the entry.  If so, then apply them.
-        if (modifications.size() > modCount)
-        {
+          // Apply any changes to the entry based on the change in its RDN.
+          // Also perform schema checking on the updated entry.
           try
           {
-            applyPreOpModifications(modifications, modCount);
+            applyRDNChanges(modifications);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            setResponseData(de);
+            break modifyDNProcessing;
+          }
+
+
+          // Check for a request to cancel this operation.
+          checkIfCanceled(false);
+
+          if (! isSynchronizationOperation())
+          {
+            // Get a count of the current number of modifications.  The
+            // pre-operation plugins may alter this list, and we need to be able
+            // to identify which changes were made after they're done.
+            int modCount = modifications.size();
+
+            executePostOpPlugins = true;
+            PluginResult.PreOperation preOpResult =
+              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
+            if (!preOpResult.continueProcessing())
+            {
+              setResultCode(preOpResult.getResultCode());
+              appendErrorMessage(preOpResult.getErrorMessage());
+              setMatchedDN(preOpResult.getMatchedDN());
+              setReferralURLs(preOpResult.getReferralURLs());
+              break modifyDNProcessing;
+            }
+
+
+            // Check to see if any of the pre-operation plugins made any changes
+            // to the entry.  If so, then apply them.
+            if (modifications.size() > modCount)
+            {
+              try
+              {
+                applyPreOpModifications(modifications, modCount);
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                setResponseData(de);
+                break modifyDNProcessing;
+              }
+            }
+          }
+        }
+        else
+        {
+          // This is a synchronization operation
+          // Apply the modifications as they were originally done.
+          try
+          {
+            applyPreOpModifications(modifications, 0);
           }
           catch (DirectoryException de)
           {
