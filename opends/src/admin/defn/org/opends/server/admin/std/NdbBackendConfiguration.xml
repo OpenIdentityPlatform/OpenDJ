@@ -397,4 +397,39 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="index-entry-limit" advanced="true">
+    <adm:synopsis>
+      Specifies the maximum number of entries that is allowed to
+      match a given index key before that particular index key is no
+      longer maintained.
+    </adm:synopsis>
+    <adm:description>
+      This property is analogous to the ALL IDs threshold in the Sun
+      Java System Directory Server. Note that this is the default limit
+      for the backend, and it may be overridden on a per-attribute
+      basis. A value of 0 means there is no limit.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          If any index keys have already reached this limit, indexes
+          need to be rebuilt before they are allowed to use the
+          new limit.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>4000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-index-entry-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

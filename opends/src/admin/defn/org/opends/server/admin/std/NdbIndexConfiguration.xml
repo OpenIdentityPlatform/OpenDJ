@@ -60,7 +60,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="index-entry-limit">
+  <adm:property name="index-entry-limit" advanced="true">
     <adm:synopsis>
       Specifies the maximum number of entries that are allowed
       to match a given index key before that particular index key is no
@@ -97,8 +97,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="index-type" mandatory="true"
-    multi-valued="true">
+  <adm:property name="index-type" multi-valued="true" advanced="true">
     <adm:synopsis>
       Specifies the type(s) of indexing that should be performed
       for the associated attribute.
@@ -110,13 +109,16 @@
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          If any new index types are added for an attribute, and 
+          If any new index types are added for an attribute, and
           values for that attribute already exist in the
           database, the index must be rebuilt before it
           will be accurate.
         </adm:synopsis>
       </adm:other>
     </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="equality">
