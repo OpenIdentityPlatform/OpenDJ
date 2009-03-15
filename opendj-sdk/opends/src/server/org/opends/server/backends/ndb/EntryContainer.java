@@ -313,6 +313,7 @@ public class EntryContainer
     AbstractTransaction txn = new AbstractTransaction(rootContainer);
     try {
       // Fetch the base entry.
+      long baseEntryID = 0;
       Entry baseEntry = null;
       baseEntry = dn2id.get(txn, baseDN, NdbOperation.LockMode.LM_Read);
 
@@ -326,6 +327,8 @@ public class EntryContainer
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
           message, matchedDN, null);
       }
+
+      baseEntryID = (Long) baseEntry.getAttachment();
 
       if (!manageDsaIT) {
         checkTargetForReferral(baseEntry, searchScope);
@@ -346,15 +349,19 @@ public class EntryContainer
 
       indexFilter.scan();
       try {
-        long eid = indexFilter.getNext();
-
-        while (eid != 0) {
+        long eid = 0;
+        while ((eid = indexFilter.getNext()) != 0) {
           if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit) {
-            //Lookthrough limit exceeded
+            // Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
             searchOperation.appendErrorMessage(
               NOTE_NDB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
             return;
+          }
+
+          // Skip over base entry.
+          if (eid == baseEntryID) {
+            continue;
           }
 
           // Fetch the candidate entry from the database.
@@ -430,9 +437,6 @@ public class EntryContainer
           }
 
           searchOperation.checkIfCanceled(false);
-
-          // Move to the next record.
-          eid = indexFilter.getNext();
         }
       } finally {
         indexFilter.close();
@@ -497,7 +501,7 @@ public class EntryContainer
 
         while (result != null) {
           if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit) {
-            //Lookthrough limit exceeded
+            // Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
             searchOperation.appendErrorMessage(
               NOTE_NDB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
