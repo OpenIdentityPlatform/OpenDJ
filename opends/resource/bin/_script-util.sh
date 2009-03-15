@@ -66,7 +66,7 @@ set_java_home_and_args() {
   fi
 }
 
-# Determine whether the detected Java environment is acceptable for use. 
+# Determine whether the detected Java environment is acceptable for use.
 test_java() {
   if test -z "${OPENDS_JAVA_ARGS}"
   then
@@ -138,7 +138,7 @@ set_environment_vars() {
   LD_PRELOAD_32=
   LD_PRELOAD_64=
   export PATH LD_LIBRARY_PATH LD_LIBRARY_PATH_32 LD_LIBRARY_PATH_64 \
-       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_34
+       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_64
   SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${SCRIPT_NAME}
 	export SCRIPT_NAME_ARG
 }
@@ -167,14 +167,14 @@ set_classpath() {
 isVersionOrHelp() {
   for opt in `echo $*`
   do
-	if [ $opt = "-V" ] || [ $opt = "--version" ] || 
+	if [ $opt = "-V" ] || [ $opt = "--version" ] ||
 		[ $opt = "-H" ] || [ $opt = "--help" ] ||
                 [ $opt = "-F" ] || [ $opt = "--fullversion" ]
 	then
 		return 0
 	fi
   done
-  return 1 
+  return 1
 }
 
 if test "${INSTALL_ROOT}" = ""
@@ -195,7 +195,7 @@ then
   if [ -f ${INSTALL_ROOT}/configure ]
   then
     if [ -f /etc/opends/instance.loc ]
-    then 
+    then
       if [ "${SCRIPT_NAME}" = "configure" ]
       then
         isVersionOrHelp $*
@@ -204,7 +204,7 @@ then
           echo "${INSTALL_ROOT}/configure has already been run. Exiting."
           exit 0
 	fi
-      fi	
+      fi
       INSTANCE_ROOT=`cat /etc/opends/instance.loc`
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
@@ -276,7 +276,7 @@ IFS=${CURRENT_IFS}
 }
 
 if [ "${SCRIPT_NAME}" != "configure" ] &&  [ "${SCRIPT_NAME}" != "unconfigure" ]
-then 
+then
   # Perform check unless it is specified not to do it
   if [ -z "$NO_CHECK" ]
   then
