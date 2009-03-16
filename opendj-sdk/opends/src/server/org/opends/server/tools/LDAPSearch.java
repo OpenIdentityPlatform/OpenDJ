@@ -366,7 +366,7 @@ public class LDAPSearch
                 break;
             }
 
-            if(resultCode != SUCCESS && resultCode != REFERRAL)
+            if(resultCode != SUCCESS)
             {
               Message msg = INFO_OPERATION_FAILED.get("SEARCH");
               throw new LDAPException(resultCode, errorMessage, msg,
@@ -1761,17 +1761,22 @@ public class LDAPSearch
 
     } catch(LDAPException le)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
-
-      LDAPToolUtils.printErrorMessage(err,
-                                      le.getMessageObject(),
-                                      le.getResultCode(),
-                                      le.getErrorMessage(),
-                                      le.getMatchedDN());
       int code = le.getResultCode();
+      if (code == REFERRAL)
+      {
+        out.println();
+        out.println(wrapText(le.getErrorMessage(), MAX_LINE_WIDTH));
+      }
+      else
+      {
+      if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, le);
+        }
+
+        LDAPToolUtils.printErrorMessage(err, le.getMessageObject(), code,
+            le.getErrorMessage(), le.getMatchedDN());
+      }
       return code;
     } catch(LDAPConnectionException lce)
     {
