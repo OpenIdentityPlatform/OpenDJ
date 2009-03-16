@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.CheckedOutputStream;
@@ -178,7 +178,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   // The update to replay message queue where the listener thread is going to
   // push incoming update messages.
-  private final LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
+  private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
   private final AtomicInteger numResolvedNamingConflicts = new AtomicInteger();
   private final AtomicInteger numResolvedModifyConflicts = new AtomicInteger();
   private final AtomicInteger numUnresolvedNamingConflicts =
@@ -301,7 +301,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * @throws ConfigException In case of invalid configuration.
    */
   public LDAPReplicationDomain(ReplicationDomainCfg configuration,
-    LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue)
+    BlockingQueue<UpdateToReplay> updateToReplayQueue)
     throws ConfigException
   {
     super(configuration.getBaseDN().toNormalizedString(),
@@ -702,6 +702,16 @@ public class LDAPReplicationDomain extends ReplicationDomain
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
         }
+      }
+      /*
+       * If the object has been renamed more recently than this
+       * operation, cancel the operation.
+       */
+      Historical hist = Historical.load(modifyDNOperation.getOriginalEntry());
+      if (hist.AddedOrRenamedAfter(ctx.getChangeNumber()))
+      {
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.SUCCESS, null);
       }
     }
     else

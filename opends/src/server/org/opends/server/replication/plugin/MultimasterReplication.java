@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -33,6 +33,7 @@ ReplicationRepairRequestControl.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.opends.messages.Message;
@@ -201,6 +202,30 @@ public class MultimasterReplication
        */
       createReplayThreads();
     }
+
+    domains.put(domain.getBaseDN(), domain);
+    return domain;
+  }
+
+  /**
+   * Creates a new domain from its configEntry, do the
+   * necessary initialization and starts it so that it is
+   * fully operational when this method returns.
+   *
+   * @param configuration The entry with the configuration of this domain.
+   * @param queue         The BlockingQueue that this domain will use.
+   *
+   * @return              The domain created.
+   *
+   * @throws ConfigException When the configuration is not valid.
+   */
+  public static LDAPReplicationDomain createNewDomain(
+      ReplicationDomainCfg configuration,
+      BlockingQueue<UpdateToReplay> queue)
+      throws ConfigException
+  {
+    LDAPReplicationDomain domain;
+    domain = new LDAPReplicationDomain(configuration, queue);
 
     domains.put(domain.getBaseDN(), domain);
     return domain;
