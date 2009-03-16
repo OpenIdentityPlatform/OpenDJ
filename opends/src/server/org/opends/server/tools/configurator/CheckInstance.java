@@ -154,9 +154,9 @@ public class CheckInstance {
     }
 
     // Check user
-    Installation installation = new Installation(installRootFromSystem,
-            instanceRootFromSystem);
-    File conf = installation.getCurrentConfigurationFile();
+    File confDir = new File (instanceRootFromSystem,
+      Installation.CONFIG_PATH_RELATIVE);
+    File conf = new File (confDir, Installation.CURRENT_CONFIG_FILE_NAME);
     String cmd = null;
     Process proc = null;
     int exit = 0;
@@ -238,8 +238,7 @@ public class CheckInstance {
       BuildInformation instanceBi = installBi;
 
       try {
-        File bif = new File(installation.getConfigurationDirectory(),
-          Installation.BUILDINFO_RELATIVE_PATH);
+        File bif = new File(confDir, Installation.BUILDINFO_RELATIVE_PATH);
 
         if (bif.exists()) {
           BufferedReader breader = new BufferedReader(new FileReader(bif));
