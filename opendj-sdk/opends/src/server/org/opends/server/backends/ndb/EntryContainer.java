@@ -315,7 +315,8 @@ public class EntryContainer
       // Fetch the base entry.
       long baseEntryID = 0;
       Entry baseEntry = null;
-      baseEntry = dn2id.get(txn, baseDN, NdbOperation.LockMode.LM_Read);
+      baseEntry = dn2id.get(txn, baseDN,
+        NdbOperation.LockMode.LM_CommittedRead);
 
       // The base entry must exist for a successful result.
       if (baseEntry == null) {
@@ -368,39 +369,40 @@ public class EntryContainer
           Entry entry = null;
           AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
           try {
-            entry = dn2id.get(subTxn, eid, NdbOperation.LockMode.LM_Read);
+            entry = dn2id.get(subTxn, eid,
+              NdbOperation.LockMode.LM_CommittedRead);
           } finally {
             if (subTxn != null) {
               subTxn.close();
             }
           }
 
-          // We have found a subordinate entry.
-          DN dn = entry.getDN();
+          if (entry != null) {
+            // We have found a subordinate entry.
+            DN dn = entry.getDN();
 
-          boolean isInScope = false;
-          if (searchScope == SearchScope.SINGLE_LEVEL) {
-            // Check if this entry is an immediate child.
-            if ((dn.getNumComponents() ==
-              baseDN.getNumComponents() + 1) &&
-              dn.isDescendantOf(baseDN)) {
-              isInScope = true;
+            boolean isInScope = false;
+            if (searchScope == SearchScope.SINGLE_LEVEL) {
+              // Check if this entry is an immediate child.
+              if ((dn.getNumComponents() ==
+                baseDN.getNumComponents() + 1) &&
+                dn.isDescendantOf(baseDN)) {
+                isInScope = true;
+              }
+            } else if (searchScope == SearchScope.WHOLE_SUBTREE) {
+              if (dn.isDescendantOf(baseDN)) {
+                isInScope = true;
+              }
+            } else if (searchScope == SearchScope.SUBORDINATE_SUBTREE) {
+              if ((dn.getNumComponents() >
+                baseDN.getNumComponents()) &&
+                dn.isDescendantOf(baseDN)) {
+                isInScope = true;
+              }
             }
-          } else if (searchScope == SearchScope.WHOLE_SUBTREE) {
-            if (dn.isDescendantOf(baseDN)) {
-              isInScope = true;
-            }
-          } else if (searchScope == SearchScope.SUBORDINATE_SUBTREE) {
-            if ((dn.getNumComponents() >
-              baseDN.getNumComponents()) &&
-              dn.isDescendantOf(baseDN)) {
-              isInScope = true;
-            }
-          }
 
-          if (isInScope) {
-            // Process the candidate entry.
-            if (entry != null) {
+            if (isInScope) {
+              // Process the candidate entry.
               lookthroughCount++;
               if (manageDsaIT || !entry.isReferral()) {
                 // Filter the entry.
@@ -435,7 +437,6 @@ public class EntryContainer
               }
             }
           }
-
           searchOperation.checkIfCanceled(false);
         }
       } finally {
@@ -465,7 +466,8 @@ public class EntryContainer
     try {
       // Fetch the base entry.
       Entry baseEntry = null;
-      baseEntry = dn2id.get(txn, baseDN, NdbOperation.LockMode.LM_Read);
+      baseEntry = dn2id.get(txn, baseDN,
+        NdbOperation.LockMode.LM_CommittedRead);
 
       // The base entry must exist for a successful result.
       if (baseEntry == null) {
@@ -497,9 +499,8 @@ public class EntryContainer
 
       cursor.open();
       try {
-        SearchCursorResult result = cursor.getNext();
-
-        while (result != null) {
+        SearchCursorResult result = null;
+        while ((result = cursor.getNext()) != null) {
           if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit) {
             // Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
@@ -525,7 +526,8 @@ public class EntryContainer
             Entry entry = null;
             AbstractTransaction subTxn = new AbstractTransaction(rootContainer);
             try {
-              entry = dn2id.get(subTxn, dn, NdbOperation.LockMode.LM_Read);
+              entry = dn2id.get(subTxn, dn,
+                NdbOperation.LockMode.LM_CommittedRead);
             } finally {
               if (subTxn != null) {
                 subTxn.close();
@@ -567,11 +569,7 @@ public class EntryContainer
               }
             }
           }
-
           searchOperation.checkIfCanceled(false);
-
-          // Move to the next record.
-          result = cursor.getNext();
         }
       } finally {
         cursor.close();
@@ -977,8 +975,7 @@ public class EntryContainer
     // Check that the entry exists.
     if (entry == null)
     {
-      Message msg = ERR_NDB_MISSING_ID2ENTRY_RECORD.get(Long.toString(leafID));
-      throw new NDBException(msg);
+      return;
     }
 
     if (!isManageDsaITOperation(operation))
@@ -1175,18 +1172,8 @@ public class EntryContainer
         cursor.open();
         try {
           SearchCursorResult result = cursor.getNext();
-
           while (result != null) {
             // We have found a subordinate entry.
-            if (!isSubtreeDelete) {
-              // The subtree delete control was not specified and
-              // the target entry is not a leaf.
-              Message message =
-                ERR_NDB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN.toString());
-              throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                message);
-            }
-
             // Enforce any subtree delete size limit.
             if (adminSizeLimit > 0 && countDeletedDN >= adminSizeLimit) {
               adminSizeLimitExceeded = true;
@@ -1738,9 +1725,9 @@ public class EntryContainer
       cursor.open();
 
       try {
-        SearchCursorResult result = cursor.getNext();
+        SearchCursorResult result = null;
         // Step forward until we pass the ending value.
-        while (result != null) {
+        while ((result = cursor.getNext()) != null) {
           // We have found a subordinate entry.
           long oldID = result.id;
           String oldDN = result.dn;
@@ -1749,28 +1736,28 @@ public class EntryContainer
           try {
             oldEntry = dn2id.get(subTxn, DN.decode(oldDN),
               NdbOperation.LockMode.LM_Exclusive);
-
-            if (!isManageDsaITOperation(modifyDNOperation)) {
-              checkTargetForReferral(oldEntry, null);
-            }
-
-            // Construct the new DN of the entry.
-            DN newDN = modDN(oldEntry.getDN(),
-              oldApexDN.getNumComponents(),
-              newApexEntry.getDN());
-
-            if (requestedNewSuperiorDN != null) {
-              // Assign a new entry ID if we are renumbering.
-              long newID = oldID;
-              if (newApexID != oldApexID) {
-                newID = rootContainer.getNextEntryID(subTxn.getNdb());
+            if (oldEntry != null) {
+              if (!isManageDsaITOperation(modifyDNOperation)) {
+                checkTargetForReferral(oldEntry, null);
               }
 
-              // Move this entry.
-              moveSubordinateEntry(subTxn, newID, oldEntry, newDN);
-            } else {
-              // Rename this entry.
-              renameSubordinateEntry(subTxn, oldID, oldEntry, newDN);
+              // Construct the new DN of the entry.
+              DN newDN = modDN(oldEntry.getDN(),
+                oldApexDN.getNumComponents(),
+                newApexEntry.getDN());
+
+              if (requestedNewSuperiorDN != null) {
+                // Assign a new entry ID if we are renumbering.
+                long newID = oldID;
+                if (newApexID != oldApexID) {
+                  newID = rootContainer.getNextEntryID(subTxn.getNdb());
+                }
+                // Move this entry.
+                moveSubordinateEntry(subTxn, newID, oldEntry, newDN);
+              } else {
+                // Rename this entry.
+                renameSubordinateEntry(subTxn, oldID, oldEntry, newDN);
+              }
             }
           } finally {
             if (subTxn != null) {
@@ -1781,8 +1768,6 @@ public class EntryContainer
           if (modifyDNOperation != null) {
             modifyDNOperation.checkIfCanceled(false);
           }
-
-          result = cursor.getNext();
         }
       } finally {
         cursor.close();
