@@ -12,8 +12,8 @@
  ! See the License for the specific language governing permissions
  ! and limitations under the License.
  !
- ! When distributing Covered Code, exclude this CDDL HEADER in each
- ! file and exclude the License file at
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
  ! add the following below this CDDL HEADER, with the fields enclosed
  ! by brackets "[]" replaced with your own identifying information:
@@ -21,13 +21,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 
 <!--
    STAf eXecution (STAX) Document Type Definition (DTD)
 
-   Generated Date: 20070622-12:02:15
+   Generated Date: 20090312-15:22:34
 
    This DTD module is identified by the SYSTEM identifier:
 
@@ -445,6 +445,21 @@
      is the same option that was specified for the parent job.  Valid
      values include 'parent', 'default', 'enabled', and 'disabled'.
 
+     The pythonoutput attribute specifies where to write Python stdout/stderr
+     (e.g. from a print statement in a script element).  This attribute
+     is equivalent to the PYTHONOUTPUT option for a STAX EXECUTE command.
+     The default is the same option that was specified for the parent job.
+     Valid values include 'parent', 'default', 'jobuserlog', 'message',
+     'jobuserlogandmsg', and 'jvmlog'.
+
+     The pythonloglevel attribute specifies the log level to use when writing
+     Python stdout (e.g. from a print statement in a script element) if the
+     python output is written to the STAX Job User Log.  This attribute is
+     equivalent to the PYTHONLOGLEVEL option for a STAX EXECUTE command.
+     The default is the same option that was specified for the parent job.
+     Valid values include 'parent', 'default', or a valid STAF log level
+     such as 'Info', 'Trace', 'User1', etc.
+
      The job element must contain either a job-file or job-data element.
 
      The job element has the following optional elements:
@@ -470,6 +485,8 @@
           logtcelapsedtime  CDATA   "'parent'"
           logtcnumstarts    CDATA   "'parent'"
           logtcstartstop    CDATA   "'parent'"
+          pythonoutput      CDATA   "'parent'"
+          pythonloglevel    CDATA   "'parent'"
 >
 
 <!--
@@ -1171,4 +1188,3 @@
           typevar    CDATA        #IMPLIED 
 > 
 <!ELEMENT finally    (%task;)> 
-
