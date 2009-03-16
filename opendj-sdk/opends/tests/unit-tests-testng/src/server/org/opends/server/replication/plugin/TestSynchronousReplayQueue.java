@@ -108,7 +108,7 @@ public class TestSynchronousReplayQueue implements BlockingQueue<UpdateToReplay>
 
   public UpdateToReplay take() throws InterruptedException
   {
-    return list.pop();
+    return list.removeFirst();
   }
 
   public UpdateToReplay element()
