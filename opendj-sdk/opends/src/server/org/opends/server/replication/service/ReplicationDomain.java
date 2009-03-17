@@ -1199,6 +1199,33 @@ public abstract class ReplicationDomain
   throws DirectoryException
   {
     initializeRemote(target, serverID, initTask);
+
+    if (target == RoutableMsg.ALL_SERVERS)
+    {
+      // Check for the status of all remote servers to check if they
+      // are all finished with the import.
+      boolean done = true;
+      do
+      {
+        done = true;
+        for (DSInfo dsi : getReplicasList())
+        {
+          if (dsi.getStatus() == ServerStatus.FULL_UPDATE_STATUS)
+          {
+            done = false;
+            try
+            {
+              Thread.sleep(100);
+            } catch (InterruptedException e)
+            {
+              // just loop again.
+            }
+            break;
+          }
+        }
+      }
+      while (!done);
+    }
   }
 
   /**
