@@ -312,7 +312,7 @@
     
       <script>
         logs   = test_env.logs(localDir)
-        source = test_env.source(sourceDir)
+        source = test_env.source(sourceDir,TESTS_TYPE)
         local  = test_env.data(localDir)
         remote = test_env.data(remoteDir)                
       </script>

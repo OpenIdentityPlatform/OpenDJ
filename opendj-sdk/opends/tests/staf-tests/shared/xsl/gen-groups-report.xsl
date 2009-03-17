@@ -29,16 +29,34 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
 
-<xsl:param name="group">''</xsl:param>
-
-<xsl:variable name="groupdir" select="translate($group, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
-
 <xsl:template match="/">
-    
-  <!--- Test Suites Report Header Variables -->
-  <xsl:variable name="ft"             select="qa/functional-tests"/>
-  <xsl:variable name="id"             select="$ft/identification"/>
+  <xsl:apply-templates select="qa"/>
+</xsl:template>
+
+<xsl:template match="qa">
+  <xsl:apply-templates select="stress-tests"/>
+  <xsl:apply-templates select="functional-tests"/>
+</xsl:template>
+
+<xsl:template match="stress-tests">
+  <xsl:call-template name="main">
+    <xsl:with-param name="tests-type" select="normalize-space('Stress Tests')"/>
+  </xsl:call-template>
+</xsl:template>
+
+<xsl:template match="functional-tests">
+  <xsl:call-template name="main">
+    <xsl:with-param name="tests-type" select="normalize-space('Functional Tests')"/>
+  </xsl:call-template>
+</xsl:template>
+
+<xsl:template name="main">
+  <xsl:param name="tests-type"/>
+  
+  <!-- Test Groups Report Header Variables -->
+  <xsl:variable name="id"             select="identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
+  <xsl:variable name="testware"       select="$id/testware"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
   <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
@@ -48,14 +66,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="revision"       select="normalize-space($sut/revision)"/>
   <xsl:variable name="os"             select="normalize-space($sut/os-label)"/>
   <xsl:variable name="jvm"            select="normalize-space($sut/jvm-label)"/>
-  <xsl:variable name="testgroup"      select="$ft/results/testgroup[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz') = $groupdir]"/>
+  <xsl:variable name="testgroup"      select="results/testgroup"/>
   <xsl:variable name="testsuite"      select="$testgroup/testsuite"/>
   <xsl:variable name="testcase"       select="$testsuite/testcase"/>
   <xsl:variable name="total-tests"    select="count($testcase)"/>
   <xsl:variable name="pass-tests"     select="count($testcase[@result='pass'])"/>
+  <xsl:variable name="kfail-tests"    select="count($testcase/issues)"/>
   <xsl:variable name="fail-tests"     select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"   select="count($testcase[@result='unknown'])"/>
-  <xsl:variable name="kfail-tests"    select="count($testcase/issues)"/>
   
   <xsl:element name="html">
   
@@ -72,15 +90,23 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <link rel="stylesheet" href="https://opends.dev.java.net/public/css/opends.css" type="text/css" />
 
     <xsl:element name="title">
-      <xsl:value-of select="concat('Test Suites Report for OpenDS ',$version)"/>
+      <xsl:value-of select="concat('Test Groups Report for OpenDS ',$version)"/>
     </xsl:element>
   
   </xsl:element>
-  
+
   <table class="tertmasttable" width="100%" cellspacing="0">
     <tbody>
       <tr>
-        <td><div class="collectionheader"><xsl:value-of select="concat('Test Suites Report for OpenDS ',$version)"/></div></td>
+        <td align="center"><div class="collectionheader"><xsl:value-of select="$tests-type"/></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="tertmasttable" width="100%" cellspacing="0">
+    <tbody>
+      <tr>
+        <td><div class="collectionheader"><xsl:value-of select="concat('Test Groups Report for OpenDS ',$version)"/></div></td>
         <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
@@ -344,7 +370,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </xsl:attribute>
   
         <xsl:element name="th">
-          <xsl:value-of select="'Test Suite'"/>
+          <xsl:value-of select="'Test Group'"/>
         </xsl:element>
         <xsl:element name="th">
           <xsl:value-of select="'Start Time'"/>
@@ -376,19 +402,18 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
       </xsl:element>
 
-      <xsl:for-each select="$testsuite">
-        <xsl:sort select="suite" order="ascending"/>
-        <xsl:variable name="suite" select="@name"/>
-        <xsl:if test="generate-id(.)=generate-id($testsuite[@name = $suite])">
+      <xsl:for-each select="$testgroup">
+        <xsl:sort select="group" order="ascending"/>
+        <xsl:variable name="group" select="@name"/>
+        <xsl:if test="generate-id(.)=generate-id($testgroup[@name = $group])">
 
-          <xsl:variable name="all-tests" select="$testcase[@suite = $suite]"/>
-          <xsl:variable name="test-num"  select="count($all-tests)"/>
+          <xsl:variable name="all-tests" select="$testcase[@group = $group]"/>
+          <xsl:variable name="test-num" select="count($all-tests)"/>
           <xsl:variable name="test-pass" select="count($all-tests[@result = 'pass'])"/>
           <xsl:variable name="test-fail" select="count($all-tests[@result = 'fail'])"/>
-          <xsl:variable name="test-inc"  select="count($all-tests[@result = 'unknown'])"/>
-          <xsl:variable name="test-kfail" select="count($all-tests[@suite=$suite]/issues)"/>
+          <xsl:variable name="test-inc" select="count($all-tests[@result = 'unknown'])"/>
+          <xsl:variable name="test-kfail" select="count($all-tests[@group=$group]/issues)"/>
           <xsl:variable name="test-percent" select="round((($test-pass div $test-num) * 100) - 0.5)"/>
-          <xsl:variable name="suitename" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
 
           <xsl:variable name="end-time">
             <xsl:for-each select="$all-tests/@stop">
@@ -400,12 +425,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:for-each>
           </xsl:variable>
 
+          <xsl:variable name="groupdir" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
+          
           <xsl:variable name="duration">
             <xsl:call-template name="countDuration">
               <xsl:with-param name="testList" select="$all-tests"/>
             </xsl:call-template>
           </xsl:variable>
-            
+
           <xsl:element name="tr">
             <xsl:attribute name="bgcolor">
               <xsl:choose>
@@ -428,7 +455,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               </xsl:attribute>
               <xsl:element name="a">
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',@shortname,'-report.html')"/>
+                  <xsl:value-of select="concat($url,$tests-dir,'/testlogs/',$groupdir,'/',$groupdir,'.html')"/>
                 </xsl:attribute>
                 <xsl:value-of select="@name"/>
               </xsl:element>
@@ -439,7 +466,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               <xsl:attribute name="align">
                 <xsl:value-of select="'center'"/>
               </xsl:attribute>
-              <xsl:value-of select="testcase/@start[1]"/>
+              <xsl:value-of select="testsuite/testcase/@start[1]"/>
             </xsl:element>
         
             <!-- End Time -->
@@ -530,6 +557,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   </xsl:element>
 
   <xsl:element name="table">
+    <xsl:attribute name="cellpadding">
+      <xsl:value-of select="'1'"/>
+    </xsl:attribute>
     <xsl:element name="tr">
       <xsl:element name="td">
         <xsl:element name="b">
@@ -628,5 +658,5 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:choose>
   </xsl:attribute>
 </xsl:template>
-
+    
 </xsl:stylesheet>

@@ -1275,7 +1275,7 @@
       <script>
         xmlFile   = '%s-log.xml' % logFile
         htmlFile  = '%s-log.html' % logFile
-        xslFile   = '%s/xsl/gen-logs.xsl' % TESTS_SHARED_DIR
+        xslFile   = '%s/gen-logs.xsl' % TESTS_XSL_DIR
       </script>
         
       <!-- Query STAF to obtain the logs for the test case -->

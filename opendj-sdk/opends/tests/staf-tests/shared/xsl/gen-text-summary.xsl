@@ -30,15 +30,31 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="text"/>
 
 <xsl:template match="/">
+  <xsl:apply-templates select="qa"/>
+</xsl:template>
+
+<xsl:template match="qa">
+  <xsl:apply-templates select="stress-tests"/>
+  <xsl:apply-templates select="functional-tests"/>
+</xsl:template>
+
+<xsl:template match="stress-tests">
+  <xsl:call-template name="main"/>
+</xsl:template>
+
+<xsl:template match="functional-tests">
+  <xsl:call-template name="main"/>
+</xsl:template>
+
+<xsl:template name="main">
 
   <!-- Test Report Header -->
-  <xsl:variable name="ft"               select="qa/functional-tests"/>
-  <xsl:variable name="id"               select="$ft/identification"/>
+  <xsl:variable name="id"               select="identification"/>
   <xsl:variable name="sut"              select="$id/sut"/>
   <xsl:value-of select="concat('tests-dir: ', normalize-space($id/tests-dir),'&#xa;')"/>
 
   <!-- Test Case Totals -->
-  <xsl:variable name="testcase"     select="$ft/results/testgroup/testsuite/testcase"/>
+  <xsl:variable name="testcase"     select="results/testgroup/testsuite/testcase"/>
   <xsl:variable name="total"  select="count($testcase)"/>
   <xsl:variable name="pass"   select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail"   select="count($testcase[@result='fail'])"/>
