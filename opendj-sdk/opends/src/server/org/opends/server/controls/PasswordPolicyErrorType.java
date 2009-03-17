@@ -22,14 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
 
 
 
 import static org.opends.messages.ProtocolMessages.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.opends.messages.Message;
 
 
 
@@ -44,7 +48,7 @@ public enum PasswordPolicyErrorType
    * The error type that will be used to indicate that the user's password is
    * expired.
    */
-  PASSWORD_EXPIRED(PasswordPolicyErrorType.TYPE_PASSWORD_EXPIRED,
+  PASSWORD_EXPIRED(0,
                    INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED.get()),
 
 
@@ -53,7 +57,7 @@ public enum PasswordPolicyErrorType
    * The error type that will be used to indicate that the user's account is
    * locked.
    */
-  ACCOUNT_LOCKED(PasswordPolicyErrorType.TYPE_ACCOUNT_LOCKED,
+  ACCOUNT_LOCKED(1,
                  INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED.get()),
 
 
@@ -62,7 +66,7 @@ public enum PasswordPolicyErrorType
    * The error type that will be used to indicate that the user's password must
    * be changed because it has been administratively reset.
    */
-  CHANGE_AFTER_RESET(PasswordPolicyErrorType.TYPE_CHANGE_AFTER_RESET,
+  CHANGE_AFTER_RESET(2,
                      INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET.get()),
 
 
@@ -72,7 +76,7 @@ public enum PasswordPolicyErrorType
    * not allowed.
    */
   PASSWORD_MOD_NOT_ALLOWED(
-       PasswordPolicyErrorType.TYPE_PASSWORD_MOD_NOT_ALLOWED,
+       3,
        INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED.get()),
 
 
@@ -82,7 +86,7 @@ public enum PasswordPolicyErrorType
    * password must be provided in order to choose a new password.
    */
   MUST_SUPPLY_OLD_PASSWORD(
-       PasswordPolicyErrorType.TYPE_MUST_SUPPLY_OLD_PASSWORD,
+       4,
        INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD.get()),
 
 
@@ -92,7 +96,7 @@ public enum PasswordPolicyErrorType
    * not acceptable according to the configured password validators.
    */
   INSUFFICIENT_PASSWORD_QUALITY(
-       PasswordPolicyErrorType.TYPE_INSUFFICIENT_PASSWORD_QUALITY,
+       5,
        INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY.get()),
 
 
@@ -101,7 +105,7 @@ public enum PasswordPolicyErrorType
    * The error type that will be used to indicate that the provided password is
    * too short.
    */
-  PASSWORD_TOO_SHORT(PasswordPolicyErrorType.TYPE_PASSWORD_TOO_SHORT,
+  PASSWORD_TOO_SHORT(6,
                      INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT.get()),
 
 
@@ -111,7 +115,7 @@ public enum PasswordPolicyErrorType
    * too young (i.e., it was changed too recently to allow it to be changed
    * again).
    */
-  PASSWORD_TOO_YOUNG(PasswordPolicyErrorType.TYPE_PASSWORD_TOO_YOUNG,
+  PASSWORD_TOO_YOUNG(7,
                      INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG.get()),
 
 
@@ -120,71 +124,24 @@ public enum PasswordPolicyErrorType
    * The error type that will be used to indicate that the provided password is
    * in the user's password history.
    */
-  PASSWORD_IN_HISTORY(PasswordPolicyErrorType.TYPE_PASSWORD_IN_HISTORY,
+  PASSWORD_IN_HISTORY(8,
                       INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY.get());
 
 
 
-  /**
-   * The value that will be used for the passwordExpired type.
-   */
-  public static final int TYPE_PASSWORD_EXPIRED = 0;
+  // A lookup table for resolving an error type from its integer value.
+  private static final Map<Integer, PasswordPolicyErrorType> TABLE;
+  static
+  {
+    TABLE = new HashMap<Integer, PasswordPolicyErrorType>();
 
-
-
-  /**
-   * The value that will be used for the accountLocked type.
-   */
-  public static final int TYPE_ACCOUNT_LOCKED = 1;
-
-
-
-  /**
-   * The value that will be used for the changeAfterReset type.
-   */
-  public static final int TYPE_CHANGE_AFTER_RESET = 2;
-
-
-
-  /**
-   * The value that will be used for the passwordModNotAllowed type.
-   */
-  public static final int TYPE_PASSWORD_MOD_NOT_ALLOWED = 3;
-
-
-
-  /**
-   * The value that will be used for the mustSupplyOldPassword type.
-   */
-  public static final int TYPE_MUST_SUPPLY_OLD_PASSWORD = 4;
-
-
-
-  /**
-   * The value that will be used for the insufficientPasswordQuality type.
-   */
-  public static final int TYPE_INSUFFICIENT_PASSWORD_QUALITY = 5;
-
-
-
-  /**
-   * The value that will be used for the passwordTooShort type.
-   */
-  public static final int TYPE_PASSWORD_TOO_SHORT = 6;
-
-
-
-  /**
-   * The value that will be used for the passwordTooYoung type.
-   */
-  public static final int TYPE_PASSWORD_TOO_YOUNG = 7;
-
-
-
-  /**
-   * The value that will be used for the passwordInHistory type.
-   */
-  public static final int TYPE_PASSWORD_IN_HISTORY = 8;
+    for (PasswordPolicyErrorType type : PasswordPolicyErrorType
+        .values())
+    {
+      TABLE.put(type.value, type);
+      TABLE.put(type.value, type);
+    }
+  }
 
 
 
@@ -241,29 +198,7 @@ public enum PasswordPolicyErrorType
    */
   public static PasswordPolicyErrorType valueOf(int value)
   {
-    switch (value)
-    {
-      case TYPE_PASSWORD_EXPIRED:
-        return PasswordPolicyErrorType.PASSWORD_EXPIRED;
-      case TYPE_ACCOUNT_LOCKED:
-        return PasswordPolicyErrorType.ACCOUNT_LOCKED;
-      case TYPE_CHANGE_AFTER_RESET:
-        return PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-      case TYPE_PASSWORD_MOD_NOT_ALLOWED:
-        return PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-      case TYPE_MUST_SUPPLY_OLD_PASSWORD:
-        return PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
-      case TYPE_INSUFFICIENT_PASSWORD_QUALITY:
-        return PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-      case TYPE_PASSWORD_TOO_SHORT:
-        return PasswordPolicyErrorType.PASSWORD_TOO_SHORT;
-      case TYPE_PASSWORD_TOO_YOUNG:
-        return PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
-      case TYPE_PASSWORD_IN_HISTORY:
-        return PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
-      default:
-        return null;
-    }
+    return TABLE.get(Integer.valueOf(value));
   }
 
 
@@ -273,6 +208,7 @@ public enum PasswordPolicyErrorType
    *
    * @return  A string representation of this password policy error type.
    */
+  @Override
   public String toString()
   {
     return description.toString();

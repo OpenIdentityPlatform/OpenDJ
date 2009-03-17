@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
 
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +49,7 @@ public enum PluginType
    * The plugin type for plugins that are invoked when the Directory
    * Server is starting up.
    */
-  STARTUP(PluginType.NAME_STARTUP),
+  STARTUP("startup"),
 
 
 
@@ -58,7 +57,7 @@ public enum PluginType
    * The plugin type for plugins that are invoked when the Directory
    * Server is performing a graceful shutdown.
    */
-  SHUTDOWN(PluginType.NAME_SHUTDOWN),
+  SHUTDOWN("shutdown"),
 
 
 
@@ -66,7 +65,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked whenever a new
    * client connection is established.
    */
-  POST_CONNECT(PluginType.NAME_POST_CONNECT),
+  POST_CONNECT("postconnect"),
 
 
 
@@ -74,7 +73,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked whenever a
    * client connection is closed.
    */
-  POST_DISCONNECT(PluginType.NAME_POST_DISCONNECT),
+  POST_DISCONNECT("postdisconnect"),
 
 
 
@@ -82,7 +81,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked for each entry
    * read during an LDIF import.
    */
-  LDIF_IMPORT(PluginType.NAME_LDIF_IMPORT),
+  LDIF_IMPORT("ldifimport"),
 
 
 
@@ -90,7 +89,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked for each entry
    * written during an LDIF export.
    */
-  LDIF_EXPORT(PluginType.NAME_LDIF_EXPORT),
+  LDIF_EXPORT("ldifexport"),
 
 
 
@@ -98,7 +97,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on an abandon operation.
    */
-  PRE_PARSE_ABANDON(PluginType.NAME_PRE_PARSE_ABANDON),
+  PRE_PARSE_ABANDON("preparseabandon"),
 
 
 
@@ -106,7 +105,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on an add operation.
    */
-  PRE_PARSE_ADD(PluginType.NAME_PRE_PARSE_ADD),
+  PRE_PARSE_ADD("preparseadd"),
 
 
 
@@ -114,7 +113,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a bind operation.
    */
-  PRE_PARSE_BIND(PluginType.NAME_PRE_PARSE_BIND),
+  PRE_PARSE_BIND("preparsebind"),
 
 
 
@@ -122,7 +121,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a compare operation.
    */
-  PRE_PARSE_COMPARE(PluginType.NAME_PRE_PARSE_COMPARE),
+  PRE_PARSE_COMPARE("preparsecompare"),
 
 
 
@@ -130,7 +129,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a delete operation.
    */
-  PRE_PARSE_DELETE(PluginType.NAME_PRE_PARSE_DELETE),
+  PRE_PARSE_DELETE("preparsedelete"),
 
 
 
@@ -138,7 +137,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on an extended operation.
    */
-  PRE_PARSE_EXTENDED(PluginType.NAME_PRE_PARSE_EXTENDED),
+  PRE_PARSE_EXTENDED("preparseextended"),
 
 
 
@@ -146,7 +145,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a modify operation.
    */
-  PRE_PARSE_MODIFY(PluginType.NAME_PRE_PARSE_MODIFY),
+  PRE_PARSE_MODIFY("preparsemodify"),
 
 
 
@@ -154,7 +153,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a modify DN operation.
    */
-  PRE_PARSE_MODIFY_DN(PluginType.NAME_PRE_PARSE_MODIFY_DN),
+  PRE_PARSE_MODIFY_DN("preparsemodifydn"),
 
 
 
@@ -162,7 +161,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on a search operation.
    */
-  PRE_PARSE_SEARCH(PluginType.NAME_PRE_PARSE_SEARCH),
+  PRE_PARSE_SEARCH("preparsesearch"),
 
 
 
@@ -170,7 +169,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before
    * processing begins on an unbind operation.
    */
-  PRE_PARSE_UNBIND(PluginType.NAME_PRE_PARSE_UNBIND),
+  PRE_PARSE_UNBIND("preparseunbind"),
 
 
 
@@ -178,7 +177,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for an add operation.
    */
-  PRE_OPERATION_ADD(PluginType.NAME_PRE_OPERATION_ADD),
+  PRE_OPERATION_ADD("preoperationadd"),
 
 
 
@@ -186,7 +185,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a bind operation.
    */
-  PRE_OPERATION_BIND(PluginType.NAME_PRE_OPERATION_BIND),
+  PRE_OPERATION_BIND("preoperationbind"),
 
 
 
@@ -194,7 +193,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a compare operation.
    */
-  PRE_OPERATION_COMPARE(PluginType.NAME_PRE_OPERATION_COMPARE),
+  PRE_OPERATION_COMPARE("preoperationcompare"),
 
 
 
@@ -202,7 +201,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a delete operation.
    */
-  PRE_OPERATION_DELETE(PluginType.NAME_PRE_OPERATION_DELETE),
+  PRE_OPERATION_DELETE("preoperationdelete"),
 
 
 
@@ -210,7 +209,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for an extended operation.
    */
-  PRE_OPERATION_EXTENDED(PluginType.NAME_PRE_OPERATION_EXTENDED),
+  PRE_OPERATION_EXTENDED("preoperationextended"),
 
 
 
@@ -218,7 +217,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a modify operation.
    */
-  PRE_OPERATION_MODIFY(PluginType.NAME_PRE_OPERATION_MODIFY),
+  PRE_OPERATION_MODIFY("preoperationmodify"),
 
 
 
@@ -226,7 +225,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a modify DN operation.
    */
-  PRE_OPERATION_MODIFY_DN(PluginType.NAME_PRE_OPERATION_MODIFY_DN),
+  PRE_OPERATION_MODIFY_DN("preoperationmodifydn"),
 
 
 
@@ -234,7 +233,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just before
    * the core processing for a search operation.
    */
-  PRE_OPERATION_SEARCH(PluginType.NAME_PRE_OPERATION_SEARCH),
+  PRE_OPERATION_SEARCH("preoperationsearch"),
 
 
 
@@ -242,7 +241,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for an abandon operation.
    */
-  POST_OPERATION_ABANDON(PluginType.NAME_POST_OPERATION_ABANDON),
+  POST_OPERATION_ABANDON("postoperationabandon"),
 
 
 
@@ -250,7 +249,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for an add operation.
    */
-  POST_OPERATION_ADD(PluginType.NAME_POST_OPERATION_ADD),
+  POST_OPERATION_ADD("postoperationadd"),
 
 
 
@@ -258,7 +257,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a bind operation.
    */
-  POST_OPERATION_BIND(PluginType.NAME_POST_OPERATION_BIND),
+  POST_OPERATION_BIND("postoperationbind"),
 
 
 
@@ -266,7 +265,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a compare operation.
    */
-  POST_OPERATION_COMPARE(PluginType.NAME_POST_OPERATION_COMPARE),
+  POST_OPERATION_COMPARE("postoperationcompare"),
 
 
 
@@ -274,7 +273,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a delete operation.
    */
-  POST_OPERATION_DELETE(PluginType.NAME_POST_OPERATION_DELETE),
+  POST_OPERATION_DELETE("postoperationdelete"),
 
 
 
@@ -282,7 +281,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for an extended operation.
    */
-  POST_OPERATION_EXTENDED(PluginType.NAME_POST_OPERATION_EXTENDED),
+  POST_OPERATION_EXTENDED("postoperationextended"),
 
 
 
@@ -290,7 +289,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a modify operation.
    */
-  POST_OPERATION_MODIFY(PluginType.NAME_POST_OPERATION_MODIFY),
+  POST_OPERATION_MODIFY("postoperationmodify"),
 
 
 
@@ -298,7 +297,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a modify DN operation.
    */
-  POST_OPERATION_MODIFY_DN(PluginType.NAME_POST_OPERATION_MODIFY_DN),
+  POST_OPERATION_MODIFY_DN("postoperationmodifydn"),
 
 
 
@@ -306,7 +305,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for a search operation.
    */
-  POST_OPERATION_SEARCH(PluginType.NAME_POST_OPERATION_SEARCH),
+  POST_OPERATION_SEARCH("postoperationsearch"),
 
 
 
@@ -314,7 +313,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * core processing for an unbind operation.
    */
-  POST_OPERATION_UNBIND(PluginType.NAME_POST_OPERATION_UNBIND),
+  POST_OPERATION_UNBIND("postoperationunbind"),
 
 
 
@@ -322,7 +321,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for an add operation.
    */
-  POST_RESPONSE_ADD(PluginType.NAME_POST_RESPONSE_ADD),
+  POST_RESPONSE_ADD("postresponseadd"),
 
 
 
@@ -330,7 +329,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a bind operation.
    */
-  POST_RESPONSE_BIND(PluginType.NAME_POST_RESPONSE_BIND),
+  POST_RESPONSE_BIND("postresponsebind"),
 
 
 
@@ -338,7 +337,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a compare operation.
    */
-  POST_RESPONSE_COMPARE(PluginType.NAME_POST_RESPONSE_COMPARE),
+  POST_RESPONSE_COMPARE("postresponsecompare"),
 
 
 
@@ -346,7 +345,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a delete operation.
    */
-  POST_RESPONSE_DELETE(PluginType.NAME_POST_RESPONSE_DELETE),
+  POST_RESPONSE_DELETE("postresponsedelete"),
 
 
 
@@ -354,7 +353,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for an extended operation.
    */
-  POST_RESPONSE_EXTENDED(PluginType.NAME_POST_RESPONSE_EXTENDED),
+  POST_RESPONSE_EXTENDED("postresponseextended"),
 
 
 
@@ -362,7 +361,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a modify operation.
    */
-  POST_RESPONSE_MODIFY(PluginType.NAME_POST_RESPONSE_MODIFY),
+  POST_RESPONSE_MODIFY("postresponsemodify"),
 
 
 
@@ -370,7 +369,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a modify DN operation.
    */
-  POST_RESPONSE_MODIFY_DN(PluginType.NAME_POST_RESPONSE_MODIFY_DN),
+  POST_RESPONSE_MODIFY_DN("postresponsemodifydn"),
 
 
 
@@ -378,7 +377,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after the
    * response is sent for a search operation.
    */
-  POST_RESPONSE_SEARCH(PluginType.NAME_POST_RESPONSE_SEARCH),
+  POST_RESPONSE_SEARCH("postresponsesearch"),
 
 
 
@@ -386,7 +385,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked just after an
    * add operation has been completed via synchronization.
    */
-  POST_SYNCHRONIZATION_ADD(PluginType.NAME_POST_SYNCHRONIZATION_ADD),
+  POST_SYNCHRONIZATION_ADD("postsynchronizationadd"),
 
 
 
@@ -395,7 +394,7 @@ public enum PluginType
    * delete operation has been completed via synchronization.
    */
   POST_SYNCHRONIZATION_DELETE(
-       PluginType.NAME_POST_SYNCHRONIZATION_DELETE),
+       "postsynchronizationdelete"),
 
 
 
@@ -404,7 +403,7 @@ public enum PluginType
    * modify operation has been completed via synchronization.
    */
   POST_SYNCHRONIZATION_MODIFY(
-       PluginType.NAME_POST_SYNCHRONIZATION_MODIFY),
+       "postsynchronizationmodify"),
 
 
 
@@ -413,7 +412,7 @@ public enum PluginType
    * modify DN operation has been completed via synchronization.
    */
   POST_SYNCHRONIZATION_MODIFY_DN(
-       PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN),
+       "postsynchronizationmodifydn"),
 
 
 
@@ -421,7 +420,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before each
    * search result entry is sent to a client.
    */
-  SEARCH_RESULT_ENTRY(PluginType.NAME_SEARCH_ENTRY),
+  SEARCH_RESULT_ENTRY("searchresultentry"),
 
 
 
@@ -429,7 +428,7 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before each
    * search result reference is sent to a client.
    */
-  SEARCH_RESULT_REFERENCE(PluginType.NAME_SEARCH_REFERENCE),
+  SEARCH_RESULT_REFERENCE("searchresultreference"),
 
 
 
@@ -438,7 +437,7 @@ public enum PluginType
    * subordinate entry that is moved or renamed as part of a modify DN
    * operation.
    */
-  SUBORDINATE_MODIFY_DN(PluginType.NAME_SUBORDINATE_MODIFY_DN),
+  SUBORDINATE_MODIFY_DN("subordinatemodifydn"),
 
 
 
@@ -446,578 +445,21 @@ public enum PluginType
    * The plugin type for plugins that are to be invoked before each
    * intermediate response message is sent to a client.
    */
-  INTERMEDIATE_RESPONSE(PluginType.NAME_INTERMEDIATE_RESPONSE);
+  INTERMEDIATE_RESPONSE("intermediateresponse");
 
 
 
-  /**
-   * The name that will be used for startup plugins.
-   */
-  private static final String NAME_STARTUP = "startup";
-
-
-
-  /**
-   * The name that will be used for shutdown plugins.
-   */
-  private static final String NAME_SHUTDOWN = "shutdown";
-
-
-
-  /**
-   * The name that will be used for post-connect plugins.
-   */
-  private static final String NAME_POST_CONNECT = "postconnect";
-
-
-
-  /**
-   * The name that will be used for post-disconnect plugins.
-   */
-  private static final String NAME_POST_DISCONNECT = "postdisconnect";
-
-
-
-  /**
-   * The name that will be used for LDIF import plugins.
-   */
-  private static final String NAME_LDIF_IMPORT = "ldifimport";
-
-
-
-  /**
-   * The name that will be used for LDIF export plugins.
-   */
-  private static final String NAME_LDIF_EXPORT = "ldifexport";
-
-
-
-  /**
-   * The name that will be used for pre-parse abandon plugins.
-   */
-  private static final String NAME_PRE_PARSE_ABANDON =
-       "preparseabandon";
-
-
-
-  /**
-   * The name that will be used for pre-parse add plugins.
-   */
-  private static final String NAME_PRE_PARSE_ADD = "preparseadd";
-
-
-
-  /**
-   * The name that will be used for pre-parse bind plugins.
-   */
-  private static final String NAME_PRE_PARSE_BIND = "preparsebind";
-
-
-
-  /**
-   * The name that will be used for pre-parse compare plugins.
-   */
-  private static final String NAME_PRE_PARSE_COMPARE =
-       "preparsecompare";
-
-
-
-  /**
-   * The name that will be used for pre-parse delete plugins.
-   */
-  private static final String NAME_PRE_PARSE_DELETE =
-       "preparsedelete";
-
-
-
-  /**
-   * The name that will be used for pre-parse extended plugins.
-   */
-  private static final String NAME_PRE_PARSE_EXTENDED =
-       "preparseextended";
-
-
-
-  /**
-   * The name that will be used for pre-parse modify plugins.
-   */
-  private static final String NAME_PRE_PARSE_MODIFY =
-       "preparsemodify";
-
-
-
-  /**
-   * The name that will be used for pre-parse modify DN plugins.
-   */
-  private static final String NAME_PRE_PARSE_MODIFY_DN =
-       "preparsemodifydn";
-
-
-
-  /**
-   * The name that will be used for pre-parse search plugins.
-   */
-  private static final String NAME_PRE_PARSE_SEARCH =
-       "preparsesearch";
-
-
-
-  /**
-   * The name that will be used for pre-parse unbind plugins.
-   */
-  private static final String NAME_PRE_PARSE_UNBIND =
-       "preparseunbind";
-
-
-
-  /**
-   * The name that will be used for pre-operation add plugins.
-   */
-  private static final String NAME_PRE_OPERATION_ADD =
-       "preoperationadd";
-
-
-
-  /**
-   * The name that will be used for pre-operation bind plugins.
-   */
-  private static final String NAME_PRE_OPERATION_BIND =
-       "preoperationbind";
-
-
-
-  /**
-   * The name that will be used for pre-operation compare plugins.
-   */
-  private static final String NAME_PRE_OPERATION_COMPARE =
-       "preoperationcompare";
-
-
-
-  /**
-   * The name that will be used for pre-operation delete plugins.
-   */
-  private static final String NAME_PRE_OPERATION_DELETE =
-       "preoperationdelete";
-
-
-
-  /**
-   * The name that will be used for pre-operation extended plugins.
-   */
-  private static final String NAME_PRE_OPERATION_EXTENDED =
-       "preoperationextended";
-
-
-
-  /**
-   * The name that will be used for pre-operation modify plugins.
-   */
-  private static final String NAME_PRE_OPERATION_MODIFY =
-       "preoperationmodify";
-
-
-
-  /**
-   * The name that will be used for pre-operation modify DN plugins.
-   */
-  private static final String NAME_PRE_OPERATION_MODIFY_DN =
-       "preoperationmodifydn";
-
-
-
-  /**
-   * The name that will be used for pre-operation search plugins.
-   */
-  private static final String NAME_PRE_OPERATION_SEARCH =
-       "preoperationsearch";
-
-
-
-  /**
-   * The name that will be used for post-operation abandon plugins.
-   */
-  private static final String NAME_POST_OPERATION_ABANDON =
-       "postoperationabandon";
-
-
-
-  /**
-   * The name that will be used for post-operation add plugins.
-   */
-  private static final String NAME_POST_OPERATION_ADD =
-       "postoperationadd";
-
-
-
-  /**
-   * The name that will be used for post-operation bind plugins.
-   */
-  private static final String NAME_POST_OPERATION_BIND =
-       "postoperationbind";
-
-
-
-  /**
-   * The name that will be used for post-operation compare plugins.
-   */
-  private static final String NAME_POST_OPERATION_COMPARE =
-       "postoperationcompare";
-
-
-
-  /**
-   * The name that will be used for post-operation delete plugins.
-   */
-  private static final String NAME_POST_OPERATION_DELETE =
-       "postoperationdelete";
-
-
-
-  /**
-   * The name that will be used for post-operation extended plugins.
-   */
-  private static final String NAME_POST_OPERATION_EXTENDED =
-       "postoperationextended";
-
-
-
-  /**
-   * The name that will be used for post-operation modify plugins.
-   */
-  private static final String NAME_POST_OPERATION_MODIFY =
-       "postoperationmodify";
-
-
-
-  /**
-   * The name that will be used for post-operation modify DN plugins.
-   */
-  private static final String NAME_POST_OPERATION_MODIFY_DN =
-       "postoperationmodifydn";
-
-
-
-  /**
-   * The name that will be used for post-operation search plugins.
-   */
-  private static final String NAME_POST_OPERATION_SEARCH =
-       "postoperationsearch";
-
-
-
-  /**
-   * The name that will be used for post-operation unbind plugins.
-   */
-  private static final String NAME_POST_OPERATION_UNBIND =
-       "postoperationunbind";
-
-
-
-  /**
-   * The name that will be used for post-response add plugins.
-   */
-  private static final String NAME_POST_RESPONSE_ADD =
-       "postresponseadd";
-
-
-
-  /**
-   * The name that will be used for post-response bind plugins.
-   */
-  private static final String NAME_POST_RESPONSE_BIND =
-       "postresponsebind";
-
-
-
-  /**
-   * The name that will be used for post-response compare plugins.
-   */
-  private static final String NAME_POST_RESPONSE_COMPARE =
-       "postresponsecompare";
-
-
-
-  /**
-   * The name that will be used for post-response delete plugins.
-   */
-  private static final String NAME_POST_RESPONSE_DELETE =
-       "postresponsedelete";
-
-
-
-  /**
-   * The name that will be used for post-response extended plugins.
-   */
-  private static final String NAME_POST_RESPONSE_EXTENDED =
-       "postresponseextended";
-
-
-
-  /**
-   * The name that will be used for post-response modify plugins.
-   */
-  private static final String NAME_POST_RESPONSE_MODIFY =
-       "postresponsemodify";
-
-
-
-  /**
-   * The name that will be used for post-response modify DN plugins.
-   */
-  private static final String NAME_POST_RESPONSE_MODIFY_DN =
-       "postresponsemodifydn";
-
-
-
-  /**
-   * The name that will be used for post-response search plugins.
-   */
-  private static final String NAME_POST_RESPONSE_SEARCH =
-       "postresponsesearch";
-
-
-
-  /**
-   * The name that will be used for post-synchronization add plugins.
-   */
-  private static final String NAME_POST_SYNCHRONIZATION_ADD =
-       "postsynchronizationadd";
-
-
-
-  /**
-   * The name that will be used for post-synchronization delete
-   * plugins.
-   */
-  private static final String NAME_POST_SYNCHRONIZATION_DELETE =
-       "postsynchronizationdelete";
-
-
-
-  /**
-   * The name that will be used for post-synchronization modify
-   * plugins.
-   */
-  private static final String NAME_POST_SYNCHRONIZATION_MODIFY =
-       "postsynchronizationmodify";
-
-
-
-  /**
-   * The name that will be used for post-synchronization modify DN
-   * plugins.
-   */
-  private static final String NAME_POST_SYNCHRONIZATION_MODIFY_DN =
-       "postsynchronizationmodifydn";
-
-
-
-  /**
-   * The name that will be used for search result entry plugins.
-   */
-  private static final String NAME_SEARCH_ENTRY = "searchresultentry";
-
-
-
-  /**
-   * The name that will be used for search result reference plugins.
-   */
-  private static final String NAME_SEARCH_REFERENCE =
-      "searchresultreference";
-
-
-
-  /**
-   * The name that will be used for subordinate modify DN plugins.
-   */
-  private static final String NAME_SUBORDINATE_MODIFY_DN =
-       "subordinatemodifydn";
-
-
-
-  /**
-   * The name that will be used for intermediate response plugins.
-   */
-  private static final String NAME_INTERMEDIATE_RESPONSE =
-       "intermediateresponse";
-
-
-
-  /**
-   * A hash set containing the names of all the available plugin
-   * types.
-   */
-  private static final Set<String> PLUGIN_TYPE_NAMES =
-       new HashSet<String>(50);
-
-
-
-  /**
-   * A hash map that relates the plugin type names to the
-   * corresponding plugin type.
-   */
-  private static final Map<String,PluginType> PLUGIN_TYPE_MAP =
-       new HashMap<String,PluginType>(50);
-
-
-
+  // A hash map that relates the plugin type names to the
+  // corresponding plugin type.
+  private static final Map<String, PluginType> PLUGIN_TYPE_MAP;
   static
   {
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_STARTUP);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_SHUTDOWN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_CONNECT);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_DISCONNECT);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_LDIF_IMPORT);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_LDIF_EXPORT);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_ABANDON);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_ADD);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_BIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_COMPARE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_DELETE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_EXTENDED);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_MODIFY);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_SEARCH);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_PARSE_UNBIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_ADD);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_BIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_COMPARE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_DELETE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_EXTENDED);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_MODIFY);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_PRE_OPERATION_SEARCH);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_ABANDON);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_ADD);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_BIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_COMPARE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_DELETE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_EXTENDED);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_MODIFY);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_SEARCH);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_OPERATION_UNBIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_ADD);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_BIND);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_COMPARE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_DELETE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_EXTENDED);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_MODIFY);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_SEARCH);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_SYNCHRONIZATION_ADD);
-    PLUGIN_TYPE_NAMES.add(
-         PluginType.NAME_POST_SYNCHRONIZATION_DELETE);
-    PLUGIN_TYPE_NAMES.add(
-         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY);
-    PLUGIN_TYPE_NAMES.add(
-         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_ENTRY);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_REFERENCE);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_SUBORDINATE_MODIFY_DN);
-    PLUGIN_TYPE_NAMES.add(PluginType.NAME_INTERMEDIATE_RESPONSE);
-
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_STARTUP, PluginType.STARTUP);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_SHUTDOWN,
-                        PluginType.SHUTDOWN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_CONNECT,
-                        PluginType.POST_CONNECT);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_DISCONNECT,
-                        PluginType.POST_DISCONNECT);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_LDIF_IMPORT,
-                        PluginType.LDIF_IMPORT);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_LDIF_EXPORT,
-                        PluginType.LDIF_EXPORT);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_ABANDON,
-                        PluginType.PRE_PARSE_ABANDON);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_ADD,
-                        PluginType.PRE_PARSE_ADD);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_BIND,
-                        PluginType.PRE_PARSE_BIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_COMPARE,
-                        PluginType.PRE_PARSE_COMPARE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_DELETE,
-                        PluginType.PRE_PARSE_DELETE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_EXTENDED,
-                        PluginType.PRE_PARSE_EXTENDED);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_MODIFY,
-                        PluginType.PRE_PARSE_MODIFY);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_MODIFY_DN,
-                        PluginType.PRE_PARSE_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_SEARCH,
-                        PluginType.PRE_PARSE_SEARCH);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_PARSE_UNBIND,
-                        PluginType.PRE_PARSE_UNBIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_ADD,
-                        PluginType.PRE_OPERATION_ADD);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_BIND,
-                        PluginType.PRE_OPERATION_BIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_COMPARE,
-                        PluginType.PRE_OPERATION_COMPARE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_DELETE,
-                        PluginType.PRE_OPERATION_DELETE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_EXTENDED,
-                        PluginType.PRE_OPERATION_EXTENDED);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_MODIFY,
-                        PluginType.PRE_OPERATION_MODIFY);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_MODIFY_DN,
-                        PluginType.PRE_OPERATION_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_PRE_OPERATION_SEARCH,
-                        PluginType.PRE_OPERATION_SEARCH);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_ABANDON,
-                        PluginType.POST_OPERATION_ABANDON);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_ADD,
-                        PluginType.POST_OPERATION_ADD);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_BIND,
-                        PluginType.POST_OPERATION_BIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_COMPARE,
-                        PluginType.POST_OPERATION_COMPARE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_DELETE,
-                        PluginType.POST_OPERATION_DELETE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_EXTENDED,
-                        PluginType.POST_OPERATION_EXTENDED);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_MODIFY,
-                        PluginType.POST_OPERATION_MODIFY);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_MODIFY_DN,
-                        PluginType.POST_OPERATION_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_SEARCH,
-                        PluginType.POST_OPERATION_SEARCH);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_OPERATION_UNBIND,
-                        PluginType.POST_OPERATION_UNBIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_ADD,
-                        PluginType.POST_RESPONSE_ADD);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_BIND,
-                        PluginType.POST_RESPONSE_BIND);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_COMPARE,
-                        PluginType.POST_RESPONSE_COMPARE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_DELETE,
-                        PluginType.POST_RESPONSE_DELETE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_EXTENDED,
-                        PluginType.POST_RESPONSE_EXTENDED);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_MODIFY,
-                        PluginType.POST_RESPONSE_MODIFY);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_MODIFY_DN,
-                        PluginType.POST_RESPONSE_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_SEARCH,
-                        PluginType.POST_RESPONSE_SEARCH);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_ADD,
-                        PluginType.POST_SYNCHRONIZATION_ADD);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_DELETE,
-                        PluginType.POST_SYNCHRONIZATION_DELETE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_MODIFY,
-                        PluginType.POST_SYNCHRONIZATION_MODIFY);
-    PLUGIN_TYPE_MAP.put(
-         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN,
-         PluginType.POST_SYNCHRONIZATION_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_SEARCH_ENTRY,
-                        PluginType.SEARCH_RESULT_ENTRY);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_SEARCH_REFERENCE,
-                        PluginType.SEARCH_RESULT_REFERENCE);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_SUBORDINATE_MODIFY_DN,
-                        PluginType.SUBORDINATE_MODIFY_DN);
-    PLUGIN_TYPE_MAP.put(PluginType.NAME_INTERMEDIATE_RESPONSE,
-                        PluginType.INTERMEDIATE_RESPONSE);
+    PLUGIN_TYPE_MAP =
+        new HashMap<String, PluginType>(PluginType.values().length);
+    for (PluginType type : PluginType.values())
+    {
+      PLUGIN_TYPE_MAP.put(type.name, type);
+    }
   }
 
 
@@ -1056,6 +498,7 @@ public enum PluginType
    *
    * @return  A string representation of this plugin type.
    */
+  @Override
   public String toString()
   {
     return name;
@@ -1071,7 +514,7 @@ public enum PluginType
    */
   public static Set<String> getPluginTypeNames()
   {
-    return PLUGIN_TYPE_NAMES;
+    return PLUGIN_TYPE_MAP.keySet();
   }
 
 
