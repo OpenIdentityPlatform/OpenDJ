@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -48,7 +48,7 @@
 
         testlog=open('%s/tests-log.xml' % logs.tests,'w')
         testlog.write('&lt;qa&gt;\n')
-        testlog.write('  &lt;functional-tests&gt;\n')
+        testlog.write('  &lt;%s&gt;\n' % TESTS_TYPE)
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
 
@@ -311,7 +311,7 @@
         testlog.write('        %s\n' % logs.directory)
         testlog.write('      &lt;/tests-dir&gt;\n')
         testlog.write('    &lt;/identification&gt;\n')
-        testlog.write('  &lt;/functional-tests&gt;\n')
+        testlog.write('  &lt;/%s&gt;\n' % TESTS_TYPE)
         testlog.write('&lt;/qa&gt;\n')
         testlog.close()
       </script>

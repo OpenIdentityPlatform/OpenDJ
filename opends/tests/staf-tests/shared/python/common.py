@@ -476,9 +476,9 @@ class test_env:
 
   class source:
     'Container to hold source data instance objects'
-    def __init__(self,dir):
+    def __init__(self,dir,tests_type):
       self.directory=dir
-      self.data='%s/functional-tests/shared/data' % dir
+      self.data='%s/%s/shared/data' % (dir,tests_type)
       self.common='%s/shared' % dir
       self.java='%s/java' % self.common
 

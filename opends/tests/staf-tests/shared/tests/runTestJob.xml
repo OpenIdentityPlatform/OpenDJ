@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -484,7 +484,7 @@
         doc.appendChild(qa)
         
         # Create the functional-tests element
-        ft = doc.createElement("functional-tests")
+        ft = doc.createElement("%s" % TESTS_TYPE)
         qa.appendChild(ft)
         
         # Create the identification element
@@ -712,7 +712,7 @@
       <!-- Generate the standard test report showing all testcases -->
       <script>
         _message='Generated standard test report.'
-        xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
+        xslfile= '%s/gen-alltests-report.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/results.html' % logsReportDir
 
         standardReport=report_generation()
@@ -733,7 +733,7 @@
       <!-- Generate the test report by test groups-->
       <script>
         _message='Generated groups test report.'
-        xslfile= '%s/xsl/gen-groups-report.xsl' % TESTS_SHARED_DIR
+        xslfile= '%s/gen-groups-report.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/groups.html' % logsReportDir
         testslog= '%s/tests-log.xml' % logsTestsDir
         groupsReport=report_generation()
@@ -763,7 +763,7 @@
 
             xmlfile='%s/results.xml' % logsReportDir
             htmlfile='%s/%s.html' % (groupDir,testGroupName)
-            xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
+            xslfile= '%s/gen-suites-report.xsl' % TESTS_XSL_DIR
 
             suitesReport=report_generation()
             stringParamsDict={ 'group' : testGroupName }
@@ -796,7 +796,7 @@
             testSuiteFilesList=glob.glob('%s/*.xml' % groupDir)
 
             xmlfile='%s/results.xml' % logsReportDir
-            xslfile= '%s/xsl/gen-tests-report.xsl' % TESTS_SHARED_DIR
+            xslfile= '%s/gen-tests-report.xsl' % TESTS_XSL_DIR
 
             for testSuiteFile in testSuiteFilesList:
 
@@ -826,11 +826,11 @@
                   _message='Unable to generate test case report %s !!!' % groupDir
       </script>
       <message>_message</message>
-
+      
       <!-- Generate the product identification report -->
        <script>
-        _message='Generated product identification test report.'
-        xslfile= '%s/xsl/id.xsl' % TESTS_SHARED_DIR
+        _message='Generated product identification test report.' 
+        xslfile= '%s/id.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/id.html' % logsReportDir
 
         idReport=report_generation()
@@ -851,7 +851,7 @@
       <!-- Generate the summary text file -->
       <script>
         _message='Generated the summary text report'
-        mysummaryxsl='%s/xsl/gen-text-summary.xsl' % TESTS_SHARED_DIR
+        mysummaryxsl='%s/gen-text-summary.xsl' % TESTS_XSL_DIR
         mysummarytext='%s/summary.txt' % logsReportDir
         mysummaryxml=xmlfile
 

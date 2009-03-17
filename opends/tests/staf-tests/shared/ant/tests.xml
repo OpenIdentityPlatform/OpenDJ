@@ -67,7 +67,7 @@
          separator by a forward slash. Staf otherwise fails to find the files. -->
     <replace file="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}" token="\" value="/"/>
 
-    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.run.dir}/${tests.run.time}/config/${tests.config.file} WAIT CLEARLOGS"/>
+    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_${tests.type} SCRIPTFILE ${tests.run.dir}/${tests.run.time}/config/${tests.config.file} WAIT CLEARLOGS"/>
 
     <echo>While the tests are running you may tail the job logs at</echo>
     <echo>${staf.install.dir}/logs/MACHINE/${host.name}</echo>

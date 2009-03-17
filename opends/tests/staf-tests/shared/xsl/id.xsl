@@ -30,10 +30,31 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
 
 <xsl:template match="/">
+  <xsl:apply-templates select="qa"/>
+</xsl:template>
 
+<xsl:template match="qa">
+  <xsl:apply-templates select="stress-tests"/>
+  <xsl:apply-templates select="functional-tests"/>
+</xsl:template>
+
+<xsl:template match="stress-tests">
+  <xsl:call-template name="main">
+    <xsl:with-param name="tests-type" select="normalize-space('Stress Tests')"/>
+  </xsl:call-template>
+</xsl:template>
+
+<xsl:template match="functional-tests">
+  <xsl:call-template name="main">
+    <xsl:with-param name="tests-type" select="normalize-space('Functional Tests')"/>
+  </xsl:call-template>
+</xsl:template>
+
+<xsl:template name="main">
+  <xsl:param name="tests-type"/>
+  
   <!-- Test Report Header Variables -->
-  <xsl:variable name="ft"             select="qa/functional-tests"/>
-  <xsl:variable name="id"             select="$ft/identification"/>
+  <xsl:variable name="id"             select="identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
   <xsl:variable name="testware"       select="$id/testware"/>
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
@@ -60,7 +81,15 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:element>
   
   </xsl:element>
-  
+
+  <table class="tertmasttable" width="100%" cellspacing="0">
+    <tbody>
+      <tr>
+        <td align="center"><div class="collectionheader"><xsl:value-of select="$tests-type"/></div></td>
+      </tr>
+    </tbody>
+  </table>
+
   <table class="tertmasttable" width="100%" cellspacing="0">
     <tbody>
       <tr>
