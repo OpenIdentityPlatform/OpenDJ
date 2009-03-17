@@ -74,6 +74,9 @@ import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+
 /**
  * This class is used to load the Replication code inside the JVM
  * and to trigger initialization of the replication.
@@ -193,18 +196,26 @@ public class MultimasterReplication
       throws ConfigException
   {
     LDAPReplicationDomain domain;
-    domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
-
-    if (domains.size() == 0)
+    try
     {
-      /*
-       * Create the threads that will process incoming update messages
-       */
-      createReplayThreads();
-    }
+      domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
+      if (domains.size() == 0)
+      {
+        /*
+         * Create the threads that will process incoming update messages
+         */
+        createReplayThreads();
+      }
 
-    domains.put(domain.getBaseDN(), domain);
-    return domain;
+      domains.put(domain.getBaseDN(), domain);
+      return domain;
+    }
+    catch (ConfigException e)
+    {
+      logError(ERR_COULD_NOT_START_REPLICATION.get(
+          configuration.dn().toString(), e.getLocalizedMessage()));
+      return null;
+    }
   }
 
   /**
