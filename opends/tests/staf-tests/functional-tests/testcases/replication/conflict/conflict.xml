@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -61,8 +61,8 @@
             file="'%s/testcases/replication/replication_setup.xml' 
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            { 'topologyFile'       : '%s/config/replication/basic_topology.txt'\
-                                      % TESTS_DIR,
+            { 'topologyFile'       : '%s/basic_topology.txt' \
+                                      % TESTS_TOPOLOGY_DIR,
               'dataFile'           : 'Short_Example.ldif',
               'isolateLdapServers' : True,
               'enableDebugLogs'    : False

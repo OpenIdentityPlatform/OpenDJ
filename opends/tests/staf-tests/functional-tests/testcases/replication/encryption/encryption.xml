@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -61,8 +61,8 @@
             file="'%s/testcases/replication/replication_setup.xml'
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            { 'topologyFile'     : '%s/config/replication/3server_topology.txt'\
-                                   % TESTS_DIR,
+            { 'topologyFile'     : '%s/3server_topology.txt' \
+                                    % TESTS_TOPOLOGY_DIR,
               'secureReplication': True,
               'dataFile'         : 'Example.ldif'
             }
