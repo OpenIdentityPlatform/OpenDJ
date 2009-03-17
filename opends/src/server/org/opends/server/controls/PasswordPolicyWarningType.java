@@ -22,14 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
 
 
 
 import static org.opends.messages.ProtocolMessages.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.opends.messages.Message;
 
 
 
@@ -45,7 +49,7 @@ public enum PasswordPolicyWarningType
    * expire in the near future and to provide the length of time in seconds
    * until expiration.
    */
-  TIME_BEFORE_EXPIRATION(PasswordPolicyWarningType.TYPE_TIME_BEFORE_EXPIRATION,
+  TIME_BEFORE_EXPIRATION((byte) 0x80,
                      INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION.get()),
 
 
@@ -55,31 +59,33 @@ public enum PasswordPolicyWarningType
    * authenticating using a grace login and to provide the number of grace
    * logins that the user has left.
    */
-  GRACE_LOGINS_REMAINING(PasswordPolicyWarningType.TYPE_GRACE_LOGINS_REMAINING,
+  GRACE_LOGINS_REMAINING((byte) 0x81,
                      INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING.get());
 
 
 
-  /**
-   * The BER type that will be used for the time before expiration type.
-   */
-  public static final byte TYPE_TIME_BEFORE_EXPIRATION = (byte) 0x80;
+  // A lookup table for resolving a warning type from its BER type.
+  private static final Map<Byte, PasswordPolicyWarningType> TABLE;
+  static
+  {
+    TABLE = new HashMap<Byte, PasswordPolicyWarningType>();
 
-
-
-  /**
-   * The BER type that will be used for the grace logins remaining type.
-   */
-  public static final byte TYPE_GRACE_LOGINS_REMAINING = (byte) 0x81;
+    for (PasswordPolicyWarningType value : PasswordPolicyWarningType
+        .values())
+    {
+      TABLE.put(value.type, value);
+      TABLE.put(value.type, value);
+    }
+  }
 
 
 
   // The BER type to use for the associated element in the password policy
   // control.
-  private byte type;
+  private final byte type;
 
   // The message ID for the description of this password policy error type.
-  private Message description;
+  private final Message description;
 
 
 
@@ -125,15 +131,7 @@ public enum PasswordPolicyWarningType
    */
   public static PasswordPolicyWarningType valueOf(byte type)
   {
-    switch (type)
-    {
-      case TYPE_TIME_BEFORE_EXPIRATION:
-        return PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION;
-      case TYPE_GRACE_LOGINS_REMAINING:
-        return PasswordPolicyWarningType.GRACE_LOGINS_REMAINING;
-      default:
-        return null;
-    }
+    return TABLE.get(Byte.valueOf(type));
   }
 
 
@@ -143,6 +141,7 @@ public enum PasswordPolicyWarningType
    *
    * @return  A string representation of this password policy warning type.
    */
+  @Override
   public String toString()
   {
     return Message.toString(description);
