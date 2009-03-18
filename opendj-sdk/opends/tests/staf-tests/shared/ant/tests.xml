@@ -101,8 +101,8 @@
     <delete dir="${staf.install.dir}/logs"/>
     <echo>Saving report</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/report">
-      <fileset dir="${tests.tmp.dir}">
-        <include name="r*"/>
+      <fileset dir="${tests.tmp.dir}/${tests.run.time}">
+        <include name="**"/>
       </fileset>
     </copy>
     <delete file="${tests.tmp.dir}/percentage.properties"/>

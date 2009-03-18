@@ -33,6 +33,7 @@ OPENDSDIR                   = '${project.home}'
 OPENDSNAME                  = '${product.name}'
 ZIPNAME                     = '${product.name}.zip'
 ZIPPATH                     = '${opends.dir}'
+TESTS_RUN_TIME              = '${tests.run.time}'
 TESTS_TYPE                  = '${tests.type}'
 TESTS_ROOT                  = '%s/tests/staf-tests' % OPENDSDIR
 TESTS_DIR                   = '%s/%s' % (TESTS_ROOT, TESTS_TYPE)
