@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -65,6 +65,7 @@ import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureWindowsService;
+import org.opends.server.tools.ToolConstants;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.AdminToolMessages.*;
@@ -94,6 +95,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private boolean runStarted;
   private boolean errorOnRemoteOccurred;
   private boolean errorDeletingOccurred;
+
+  private UninstallerArgumentParser parser;
 
   private HashMap<ProgressStep, Integer> hmRatio =
           new HashMap<ProgressStep, Integer>();
@@ -143,6 +146,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     // Switch off attribute type name validation in client.
     AttributeTypePropertyDefinition.setCheckSchema(false);
+
+    LOG.log(Level.INFO, "Uninstaller is created.");
   }
   /**
    * {@inheritDoc}
@@ -573,8 +578,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public UserData createUserData(Launcher launcher)
           throws UserDataException, ApplicationException {
+    parser = (UninstallerArgumentParser)launcher.getArgumentParser();
     return cliHelper.createUserData(
-        (UninstallerArgumentParser)launcher.getArgumentParser(),
+        parser,
         launcher.getArguments());
 
   }
@@ -759,6 +765,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public void run() {
     runStarted = true;
+    LOG.log(Level.INFO, "run of the Uninstaller started");
+
     initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
@@ -772,6 +780,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       boolean displaySeparator = false;
 
+      LOG.log(Level.INFO, "Update remote replication? "+
+          getUninstallUserData().getUpdateRemoteReplication());
       if (getUninstallUserData().getUpdateRemoteReplication())
       {
         status = UninstallProgressStep.UNCONFIGURING_REPLICATION;
@@ -779,6 +789,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         displaySeparator = true;
       }
 
+      LOG.log(Level.INFO, "Stop server? "+getUserData().getStopServer());
       if (getUserData().getStopServer()) {
         status = UninstallProgressStep.STOPPING_SERVER;
         if (displaySeparator && isVerbose()) {
@@ -796,6 +807,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
         displaySeparator = true;
       }
+      LOG.log(Level.INFO, "Is Windows Service Enabled? "+
+          isWindowsServiceEnabled());
       if (isWindowsServiceEnabled()) {
         status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
         if (displaySeparator && isVerbose()) {
@@ -1569,8 +1582,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       BackgroundTask worker = new BackgroundTask()
       {
-        public Object processBackgroundTask()throws TopologyCacheException
+        public Object processBackgroundTask() throws Throwable
         {
+          LOG.log(Level.INFO, "Loading Topology Cache in askForAuthentication");
           ADSContext adsContext = new ADSContext(ctx);
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager());
@@ -1583,6 +1597,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           qs.getDialog().workerFinished();
           if (throwable != null)
           {
+            LOG.log(Level.WARNING, "Throwable: "+throwable, throwable);
             if (throwable instanceof TopologyCacheException)
             {
               qs.displayError(
@@ -1596,6 +1611,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                   getThrowableMsg(INFO_BUG_MSG.get(), throwable),
                   INFO_ERROR_TITLE.get());
             }
+            LOG.log(Level.INFO, "Error was displayed");
           }
           else
           {
@@ -1633,6 +1649,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void handleTopologyCache(QuickSetup qs, TopologyCache cache)
   {
+    LOG.log(Level.INFO, "Handling TopologyCache");
     boolean stopProcessing = false;
     Set<TopologyCacheException> exceptions =
       new HashSet<TopologyCacheException>();
@@ -1769,8 +1786,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         getTrustManager().acceptCertificate(chain, authType, host);
         BackgroundTask worker = new BackgroundTask()
         {
-          public Object processBackgroundTask() throws TopologyCacheException
+          public Object processBackgroundTask() throws Throwable
           {
+            LOG.log(Level.INFO, "Reloading topology");
+            cache.getFilter().setSearchMonitoringInformation(false);
             cache.reloadTopology();
             return cache;
           }
@@ -1936,6 +1955,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
     }
 
+    if (!hasReferences)
+    {
+      LOG.log(Level.INFO, "No references in: "+ server.getHostPort(true));
+    }
     if (hasReferences)
     {
       LOG.log(Level.INFO, "Updating references in: "+ server.getHostPort(true));
@@ -1964,7 +1987,15 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
         if (!getUninstallUserData().isForceOnError())
         {
-          throw ae;
+          Message msg =
+            ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
+              "--"+
+              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
+              "--"+ToolConstants.OPTION_LONG_BINDPWD,
+              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              "--"+parser.forceOnErrorArg.getLongIdentifier(),
+              ae.getMessageObject().toString());
+          throw new ApplicationException(ae.getType(), msg, ae);
         }
         else
         {

@@ -22,10 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
@@ -49,6 +52,9 @@ public class QuickSetupCli {
 
   private UserData userData;
 
+  static private final Logger LOG =
+    Logger.getLogger(QuickSetupCli.class.getName());
+
   /**
    * Creates a QuickSetupCli instance.
    * @param cliApp the application to be run
@@ -69,7 +75,7 @@ public class QuickSetupCli {
 
   /**
    * Parses the user data and prompts the user for data if required.  If the
-   * user provides all the required data it launches the Uninstaller.
+   * user provides all the required data it launches the application.
    *
    * @return the return code (SUCCESSFUL, CANCELLED, USER_DATA_ERROR,
    * ERROR_ACCESSING_FILE_SYSTEM, ERROR_STOPPING_SERVER or BUG.
@@ -102,6 +108,7 @@ public class QuickSetupCli {
                   });
         }
         Thread appThread = new Thread(cliApp, "CLI Application");
+        LOG.log(Level.INFO, "Launching application");
         appThread.start();
         while (!Thread.State.TERMINATED.equals(appThread.getState())) {
           try {
@@ -111,10 +118,12 @@ public class QuickSetupCli {
           }
         }
         returnValue = cliApp.getReturnCode();
+        LOG.log(Level.INFO, "Application returnValue: "+returnValue);
         if (returnValue == null) {
           ApplicationException ue = cliApp.getRunError();
           if (ue != null)
           {
+            LOG.log(Level.INFO, "Application run error: "+ue, ue);
             returnValue = ue.getType();
           }
           else
@@ -131,6 +140,7 @@ public class QuickSetupCli {
     }
     catch (UserDataException uude)
     {
+      LOG.log(Level.SEVERE, "UserDataException: "+uude, uude);
       System.err.println();
       System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
@@ -146,11 +156,18 @@ public class QuickSetupCli {
     }
     catch (ApplicationException ae)
     {
+      LOG.log(Level.SEVERE, "ApplicationException: "+ae, ae);
       System.err.println();
       System.err.println(ae.getLocalizedMessage());
       System.err.println();
       returnValue = ae.getType();
     }
+    catch (Throwable t)
+    {
+      LOG.log(Level.SEVERE, "Unexpected error: "+t, t);
+      returnValue = ReturnCode.UNKNOWN;
+    }
+    LOG.log(Level.INFO, "returnValue: "+returnValue.getReturnCode());
     return returnValue;
   }
 

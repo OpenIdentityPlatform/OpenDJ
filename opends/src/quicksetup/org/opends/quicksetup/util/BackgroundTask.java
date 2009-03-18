@@ -55,10 +55,10 @@ public abstract class BackgroundTask<T>
    * @return  An {@code Object} with information about the processing performed
    *          for this task, or {@code null} if no return value is needed.
    *
-   * @throws Exception exception that will be passed through the method
+   * @throws Throwable throwable that will be passed through the method
    *          backgroundTaskCompleted.
    */
-  public abstract T processBackgroundTask() throws Exception;
+  public abstract T processBackgroundTask() throws Throwable;
 
 
 

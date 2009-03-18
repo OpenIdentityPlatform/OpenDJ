@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -33,6 +33,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.*;
+
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.util.SetupUtils;
@@ -141,99 +142,120 @@ public class ServerController {
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
       env.remove(SetupUtils.OPENDS_JAVA_ARGS);
 
-      try {
-        Process process = pb.start();
+      LOG.log(Level.INFO, "Before calling stop-ds.  Is server running? "+
+          installation.getStatus().isServerRunning());
 
-        BufferedReader err =
-                new BufferedReader(
-                        new InputStreamReader(process.getErrorStream()));
-        BufferedReader out =
-                new BufferedReader(
-                        new InputStreamReader(process.getInputStream()));
+      int stopTries = 3;
+      while (stopTries > 0)
+      {
+        stopTries --;
+        LOG.log(Level.INFO, "Launching stop command, stopTries left: "+
+            stopTries);
 
-        /* Create these objects to resend the stop process output to the details
-        * area.
-        */
-        new StopReader(err, true);
-        new StopReader(out, false);
+        try
+        {
+          LOG.log(Level.INFO, "Launching stop command, argList: "+argList);
+          Process process = pb.start();
 
-        int returnValue = process.waitFor();
+          BufferedReader err =
+            new BufferedReader(
+                new InputStreamReader(process.getErrorStream()));
+          BufferedReader out =
+            new BufferedReader(
+                new InputStreamReader(process.getInputStream()));
 
-        int clientSideError =
-                org.opends.server.protocols.ldap.
-                        LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
-        if ((returnValue == clientSideError) || (returnValue == 0)) {
-          if (Utils.isWindows()) {
-            /*
-            * Sometimes the server keeps some locks on the files.
-            * TODO: remove this code once stop-ds returns properly when server
-            * is stopped.
-            */
-            int nTries = 10;
-            boolean stopped = false;
+          /* Create these objects to resend the stop process output to the
+           * details area.
+           */
+          new StopReader(err, true);
+          new StopReader(out, false);
 
-            for (int i = 0; i < nTries && !stopped; i++) {
-              stopped = !installation.getStatus().isServerRunning();
-              if (!stopped) {
-                if (application != null) {
-                  MessageBuilder mb = new MessageBuilder();
-                  mb.append(application.getFormattedLog(
-                          INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()));
-                  mb.append(application.getLineBreak());
-                  application.notifyListeners(mb.toMessage());
-                }
+          int returnValue = process.waitFor();
+
+          int clientSideError =
+            org.opends.server.protocols.ldap.
+            LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
+          if ((returnValue == clientSideError) || (returnValue == 0)) {
+            if (Utils.isWindows()) {
+              /*
+               * Sometimes the server keeps some locks on the files.
+               * TODO: remove this code once stop-ds returns properly when
+               * server is stopped.
+               */
+              int nTries = 10;
+              boolean stopped = false;
+
+              for (int i = 0; i < nTries && !stopped; i++) {
                 LOG.log(Level.FINE, "waiting for server to stop");
                 try {
                   Thread.sleep(5000);
                 }
-                catch (Exception ex) {
-
+                catch (Exception ex)
+                {
                 }
-              } else {
-                break;
+                stopped = !installation.getStatus().isServerRunning();
+                LOG.log(Level.INFO,
+                    "After calling stop-ds.  Is server running? "+!stopped);
+
+                if (!stopped) {
+                  if (application != null) {
+                    MessageBuilder mb = new MessageBuilder();
+                    mb.append(application.getFormattedLog(
+                        INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()));
+                    mb.append(application.getLineBreak());
+                    application.notifyListeners(mb.toMessage());
+                  }
+                } else {
+                  break;
+                }
+              }
+              if (!stopped) {
+                returnValue = -1;
               }
             }
-            if (!stopped) {
-              returnValue = -1;
+          }
+
+          if (returnValue == clientSideError) {
+            if (application != null) {
+              MessageBuilder mb = new MessageBuilder();
+              mb.append(application.getLineBreak());
+              mb.append(application.getFormattedLog(
+                  INFO_PROGRESS_SERVER_ALREADY_STOPPED.get()));
+              mb.append(application.getLineBreak());
+              application.notifyListeners(mb.toMessage());
             }
-          }
-        }
-
-        if (returnValue == clientSideError) {
-          if (application != null) {
-            MessageBuilder mb = new MessageBuilder();
-            mb.append(application.getLineBreak());
-            mb.append(application.getFormattedLog(
-                            INFO_PROGRESS_SERVER_ALREADY_STOPPED.get()));
-            mb.append(application.getLineBreak());
-            application.notifyListeners(mb.toMessage());
-          }
-          LOG.log(Level.INFO, "server already stopped");
-
-        } else if (returnValue != 0) {
-          /*
-          * The return code is not the one expected, assume the server could
-          * not be stopped.
-          */
-          throw new ApplicationException(
-              ReturnCode.STOP_ERROR,
+            LOG.log(Level.INFO, "server already stopped");
+            break;
+          } else if (returnValue != 0) {
+            if (stopTries <= 0)
+            {
+              /*
+               * The return code is not the one expected, assume the server
+               * could not be stopped.
+               */
+              throw new ApplicationException(
+                  ReturnCode.STOP_ERROR,
                   INFO_ERROR_STOPPING_SERVER_CODE.get(
-                          String.valueOf(returnValue)),
-                  null);
-        } else {
-          if (application != null) {
-            application.notifyListeners(application.getFormattedLog(
-                    INFO_PROGRESS_SERVER_STOPPED.get()));
+                      String.valueOf(returnValue)),
+                      null);
+            }
+          } else {
+            if (application != null) {
+              application.notifyListeners(application.getFormattedLog(
+                  INFO_PROGRESS_SERVER_STOPPED.get()));
+            }
+            LOG.log(Level.INFO, "server stopped");
+            break;
           }
-          LOG.log(Level.INFO, "server stopped");
-        }
 
-      } catch (Exception e) {
-        throw new ApplicationException(
-            ReturnCode.STOP_ERROR, getThrowableMsg(
-                INFO_ERROR_STOPPING_SERVER.get(), e), e);
+        } catch (Exception e) {
+          throw new ApplicationException(
+              ReturnCode.STOP_ERROR, getThrowableMsg(
+                  INFO_ERROR_STOPPING_SERVER.get(), e), e);
+        }
       }
-    } finally {
+    }
+    finally {
       if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
         StandardOutputSuppressor.unsuppress();
       }

@@ -134,158 +134,177 @@ public class UninstallCliHelper extends ConsoleApplication {
   {
     parser = args;
     UninstallUserData userData = new UninstallUserData();
-
-    boolean isInteractive;
-    boolean isQuiet;
-    boolean isVerbose;
-    boolean isCancelled = false;
-
-    /* Step 1: analyze the arguments.
-     */
-
-    isInteractive = args.isInteractive();
-
-    isQuiet = args.isQuiet();
-
-    isVerbose = args.isVerbose();
-
-    userData.setQuiet(isQuiet);
-    userData.setVerbose(isVerbose);
-    userData.setForceOnError(args.isForceOnError());
-    userData.setTrustManager(args.getTrustManager());
-
-    /*
-     * Step 2: check that the provided parameters are compatible.
-     */
-    MessageBuilder buf = new MessageBuilder();
-    int v = args.validateGlobalOptions(buf);
-    if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    try
     {
-      throw new UserDataException(null, buf.toMessage());
-    }
+      boolean isInteractive;
+      boolean isQuiet;
+      boolean isVerbose;
+      boolean isCancelled = false;
 
-    /* Step 3: If this is an interactive uninstall ask for confirmation to
-     * delete the different parts of the installation if the user did not
-     * specify anything to delete.  If we are not in interactive mode
-     * check that the user specified something to be deleted.
-     */
-    Set<String> outsideDbs;
-    Set<String> outsideLogs;
-    Configuration config =
-            Installation.getLocal().getCurrentConfiguration();
-    try {
-      outsideDbs = config.getOutsideDbs();
-    } catch (IOException ioe) {
-      outsideDbs = Collections.emptySet();
-      LOG.log(Level.INFO, "error determining outside databases", ioe);
-    }
+      /* Step 1: analyze the arguments.
+       */
 
-    try {
-      outsideLogs = config.getOutsideLogs();
-    } catch (IOException ioe) {
-      outsideLogs = Collections.emptySet();
-      LOG.log(Level.INFO, "error determining outside logs", ioe);
-    }
+      isInteractive = args.isInteractive();
 
-    boolean somethingSpecifiedToDelete =
-      args.removeAll() ||
-      args.removeBackupFiles() ||
-      args.removeDatabases() ||
-      args.removeLDIFFiles() ||
-      args.removeConfigurationFiles() ||
-      args.removeLogFiles() ||
-      args.removeServerLibraries();
+      isQuiet = args.isQuiet();
 
-    if (somethingSpecifiedToDelete)
-    {
-      userData.setRemoveBackups(args.removeAll() || args.removeBackupFiles());
-      userData.setRemoveConfigurationAndSchema(args.removeAll() ||
-          args.removeConfigurationFiles());
-      userData.setRemoveDatabases(args.removeAll() || args.removeDatabases());
-      userData.setRemoveLDIFs(args.removeAll() || args.removeLDIFFiles());
-      userData.setRemoveLibrariesAndTools(args.removeAll() ||
-          args.removeServerLibraries());
-      userData.setRemoveLogs(args.removeAll() || args.removeLogFiles());
+      isVerbose = args.isVerbose();
 
-      userData.setExternalDbsToRemove(outsideDbs);
-      userData.setExternalLogsToRemove(outsideLogs);
-    }
-    else
-    {
-      if (!isInteractive)
+      userData.setQuiet(isQuiet);
+      userData.setVerbose(isVerbose);
+      userData.setForceOnError(args.isForceOnError());
+      userData.setTrustManager(args.getTrustManager());
+
+      /*
+       * Step 2: check that the provided parameters are compatible.
+       */
+      MessageBuilder buf = new MessageBuilder();
+      int v = args.validateGlobalOptions(buf);
+      if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
       {
-        throw new UserDataException(null,
-            ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
+        throw new UserDataException(null, buf.toMessage());
+      }
+
+      /* Step 3: If this is an interactive uninstall ask for confirmation to
+       * delete the different parts of the installation if the user did not
+       * specify anything to delete.  If we are not in interactive mode
+       * check that the user specified something to be deleted.
+       */
+      Set<String> outsideDbs;
+      Set<String> outsideLogs;
+      Configuration config =
+        Installation.getLocal().getCurrentConfiguration();
+      try {
+        outsideDbs = config.getOutsideDbs();
+      } catch (IOException ioe) {
+        outsideDbs = Collections.emptySet();
+        LOG.log(Level.INFO, "error determining outside databases", ioe);
+      }
+
+      try {
+        outsideLogs = config.getOutsideLogs();
+      } catch (IOException ioe) {
+        outsideLogs = Collections.emptySet();
+        LOG.log(Level.INFO, "error determining outside logs", ioe);
+      }
+
+      boolean somethingSpecifiedToDelete =
+        args.removeAll() ||
+        args.removeBackupFiles() ||
+        args.removeDatabases() ||
+        args.removeLDIFFiles() ||
+        args.removeConfigurationFiles() ||
+        args.removeLogFiles() ||
+        args.removeServerLibraries();
+
+      if (somethingSpecifiedToDelete)
+      {
+        userData.setRemoveBackups(args.removeAll() || args.removeBackupFiles());
+        userData.setRemoveConfigurationAndSchema(args.removeAll() ||
+            args.removeConfigurationFiles());
+        userData.setRemoveDatabases(args.removeAll() || args.removeDatabases());
+        userData.setRemoveLDIFs(args.removeAll() || args.removeLDIFFiles());
+        userData.setRemoveLibrariesAndTools(args.removeAll() ||
+            args.removeServerLibraries());
+        userData.setRemoveLogs(args.removeAll() || args.removeLogFiles());
+
+        userData.setExternalDbsToRemove(outsideDbs);
+        userData.setExternalLogsToRemove(outsideLogs);
       }
       else
       {
-        isCancelled = askWhatToDelete(userData, outsideDbs, outsideLogs);
+        if (!isInteractive)
+        {
+          throw new UserDataException(null,
+             ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
+        }
+        else
+        {
+          isCancelled = askWhatToDelete(userData, outsideDbs, outsideLogs);
+        }
       }
-    }
-    String adminUid = args.getAdministratorUID();
-    if ((adminUid == null) && !args.isInteractive())
-    {
-      adminUid = args.getDefaultAdministratorUID();
-    }
-    userData.setAdminUID(adminUid);
-    userData.setAdminPwd(args.getBindPassword());
-    String referencedHostName = args.getReferencedHostName();
-    if ((referencedHostName == null) && !args.isInteractive())
-    {
-      referencedHostName = args.getDefaultReferencedHostName();
-    }
-    try
-    {
-      UninstallData d = new UninstallData(Installation.getLocal());
-      userData.setReplicationServer(
-          referencedHostName+":"+d.getReplicationServerPort());
+      String adminUid = args.getAdministratorUID();
+      if ((adminUid == null) && !args.isInteractive())
+      {
+        adminUid = args.getDefaultAdministratorUID();
+      }
+      userData.setAdminUID(adminUid);
+      userData.setAdminPwd(args.getBindPassword());
+      String referencedHostName = args.getReferencedHostName();
+      if ((referencedHostName == null) && !args.isInteractive())
+      {
+        referencedHostName = args.getDefaultReferencedHostName();
+      }
+      try
+      {
+        UninstallData d = new UninstallData(Installation.getLocal());
+        userData.setReplicationServer(
+            referencedHostName+":"+d.getReplicationServerPort());
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
+        userData.setReplicationServer(
+            referencedHostName+":8989");
+      }
+      info = ControlPanelInfo.getInstance();
+      info.setTrustManager(userData.getTrustManager());
+      info.regenerateDescriptor();
+      info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+
+      String adminConnectorUrl = info.getAdminConnectorURL();
+
+      if (adminConnectorUrl == null)
+      {
+        LOG.log(Level.WARNING,
+        "Error retrieving a valid LDAP URL in conf file.");
+        if (!parser.isInteractive())
+        {
+          Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
+              null);
+        }
+      }
+      userData.setLocalServerUrl(adminConnectorUrl);
+      userData.setReferencedHostName(referencedHostName);
+
+      /*
+       * Step 4: check if server is running.  Depending if it is running and the
+       * OS we are running, ask for authentication information.
+       */
+      if (!isCancelled)
+      {
+        isCancelled = checkServerState(userData);
+      }
+
+      if (isCancelled && !userData.isForceOnError())
+      {
+        LOG.log(Level.INFO, "User cancelled uninstall.");
+        userData = null;
+      }
+
+      if ((userData != null) && !args.isQuiet())
+      {
+        println();
+      }
     }
     catch (Throwable t)
     {
-      LOG.log(Level.SEVERE, "Could not create UninstallData: "+t, t);
-      userData.setReplicationServer(
-          referencedHostName+":8989");
-    }
-    info = ControlPanelInfo.getInstance();
-    info.setTrustManager(userData.getTrustManager());
-    info.regenerateDescriptor();
-    info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-
-    String adminConnectorUrl = info.getAdminConnectorURL();
-
-    if (adminConnectorUrl == null)
-    {
-      LOG.log(Level.WARNING,
-          "Error retrieving a valid LDAP URL in conf file.");
-      if (!parser.isInteractive())
+      LOG.log(Level.WARNING, "Exception: "+t, t);
+      if (t instanceof UserDataException)
       {
-        Message msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg, null);
+        throw (UserDataException)t;
+      }
+      else if (t instanceof ApplicationException)
+      {
+        throw (ApplicationException)t;
+      }
+      else
+      {
+        throw new IllegalStateException("Unexpected error: "+t, t);
       }
     }
-    userData.setLocalServerUrl(adminConnectorUrl);
-    userData.setReferencedHostName(referencedHostName);
-
-    /*
-     * Step 4: check if server is running.  Depending if it is running and the
-     * OS we are running, ask for authentication information.
-     */
-    if (!isCancelled)
-    {
-      isCancelled = checkServerState(userData);
-    }
-
-    if (isCancelled && !userData.isForceOnError())
-    {
-      LOG.log(Level.INFO, "User cancelled uninstall.");
-      userData = null;
-    }
-
-    if ((userData != null) && !args.isQuiet())
-    {
-      println();
-    }
-
+    LOG.log(Level.INFO, "Successfully created user data");
     return userData;
   }
 
@@ -472,7 +491,8 @@ public class UninstallCliHelper extends ConsoleApplication {
           {
             somethingSelected = false;
             println();
-            println(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
+            printErrorMessage(
+                ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
           }
           else
           {
@@ -516,6 +536,12 @@ public class UninstallCliHelper extends ConsoleApplication {
       throw new UserDataException(Step.CONFIRM_UNINSTALL,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
+    LOG.log(Level.INFO, "interactive: "+interactive);
+    LOG.log(Level.INFO, "forceOnError: "+forceOnError);
+    LOG.log(Level.INFO, "conf.isADS(): "+conf.isADS());
+    LOG.log(Level.INFO, "conf.isReplicationServer(): "+
+        conf.isReplicationServer());
+    LOG.log(Level.INFO, "conf.isServerRunning(): "+conf.isServerRunning());
     if (conf.isADS() && conf.isReplicationServer())
     {
       if (conf.isServerRunning())
@@ -562,6 +588,8 @@ public class UninstallCliHelper extends ConsoleApplication {
           boolean errorWithRemote =
             !updateUserUninstallDataWithRemoteServers(userData);
           cancelled = errorWithRemote && !parser.isForceOnError();
+          LOG.log(Level.INFO, "Non interactive mode.  errorWithRemote: "+
+              errorWithRemote);
         }
       }
       else
@@ -595,6 +623,7 @@ public class UninstallCliHelper extends ConsoleApplication {
                     cancelled = !confirmToStopServer();
                   }
                 }
+                userData.setStopServer(true);
               }
               else
               {
@@ -639,6 +668,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         /* During all the confirmations, the server might be stopped. */
         userData.setStopServer(
             Installation.getLocal().getStatus().isServerRunning());
+        LOG.log(Level.INFO, "Must stop the server after confirmations? "+
+            userData.getStopServer());
       }
     }
     else
@@ -659,6 +690,8 @@ public class UninstallCliHelper extends ConsoleApplication {
             /* During all the confirmations, the server might be stopped. */
             userData.setStopServer(
                 Installation.getLocal().getStatus().isServerRunning());
+            LOG.log(Level.INFO, "Must stop the server after confirmations? "+
+                userData.getStopServer());
           }
         }
         catch (CLIException ce)
@@ -684,6 +717,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
       }
     }
+    LOG.log(Level.INFO, "cancelled: "+cancelled);
     return cancelled;
   }
 
@@ -862,11 +896,11 @@ public class UninstallCliHelper extends ConsoleApplication {
         couldConnect = true;
       }
       catch (ArgumentException e) {
-        println(e.getMessageObject());
+        printErrorMessage(e.getMessageObject());
         println();
       }
       catch (ClientException e) {
-        println(e.getMessageObject());
+        printErrorMessage(e.getMessageObject());
         println();
       }
       finally
@@ -943,6 +977,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   private boolean startServer(boolean supressOutput)
   {
+    LOG.log(Level.INFO, "startServer, supressOutput: "+supressOutput);
     boolean serverStarted = false;
     Application application = new Application()
     {
@@ -1074,13 +1109,21 @@ public class UninstallCliHelper extends ConsoleApplication {
         printlnProgress();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
+      LOG.log(Level.INFO, "server started successfully. serverStarted: "+
+          serverStarted);
     }
     catch (ApplicationException ae)
     {
+      LOG.log(Level.WARNING, "ApplicationException: "+ae, ae);
       if (!supressOutput)
       {
-        println(ae.getMessageObject());
+        printErrorMessage(ae.getMessageObject());
       }
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.SEVERE, "Unexpected error: "+t, t);
+      throw new IllegalStateException("Unexpected error: "+t, t);
     }
     return serverStarted;
   }
@@ -1109,6 +1152,10 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean forceOnError = parser.isForceOnError();
 
     boolean exceptionOccurred = true;
+
+    Message exceptionMsg = null;
+
+    LOG.log(Level.INFO, "Updating user data with remote servers.");
 
     InitialLdapContext ctx = null;
     try
@@ -1146,6 +1193,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         forceTrustManagerInitialization();
         updateTrustManager(userData, ci);
       }
+      LOG.log(Level.INFO, "Reloading topology");
       TopologyCache cache = new TopologyCache(adsContext,
           userData.getTrustManager());
       cache.getFilter().setSearchMonitoringInformation(false);
@@ -1160,21 +1208,20 @@ public class UninstallCliHelper extends ConsoleApplication {
       LOG.log(Level.WARNING, "Error connecting to server: "+ne, ne);
       if (Utils.isCertificateException(ne))
       {
-        println();
-        println(INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(
-            ne.getMessage()));
+        String details = ne.getMessage() != null ?
+            ne.getMessage() : ne.toString();
+        exceptionMsg =
+          INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(details);
       }
       else
       {
-        println();
-        println(
-            Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne));
+        exceptionMsg = Utils.getThrowableMsg(
+            INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       }
     } catch (TopologyCacheException te)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+te, te);
-      println();
-      println(Utils.getMessage(te));
+      exceptionMsg = Utils.getMessage(te);
 
     } catch (ApplicationException ae)
     {
@@ -1183,8 +1230,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     } catch (Throwable t)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
-      println();
-      println(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
+      exceptionMsg = Utils.getThrowableMsg(INFO_BUG_MSG.get(), t);
     }
     finally
     {
@@ -1206,20 +1252,24 @@ public class UninstallCliHelper extends ConsoleApplication {
       {
         if (forceOnError)
         {
-          println(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
+          println();
+          printErrorMessage(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
               "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               "--"+ToolConstants.OPTION_LONG_BINDPWD,
-              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE));
+              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              String.valueOf(exceptionMsg)));
         }
         else
         {
+          println();
           throw new UserDataException(null,
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
                   "--"+
                   parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
                   "--"+ToolConstants.OPTION_LONG_BINDPWD,
                   "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
-                  "--"+parser.forceOnErrorArg.getLongIdentifier()));
+                  "--"+parser.forceOnErrorArg.getLongIdentifier(),
+                  String.valueOf(exceptionMsg)));
         }
       }
       else
@@ -1237,6 +1287,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
     }
     userData.setUpdateRemoteReplication(accepted);
+    LOG.log(Level.INFO, "accepted: "+accepted);
     return accepted;
   }
 
@@ -1261,6 +1312,8 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean reloadTopologyCache = false;
     boolean interactive = parser.isInteractive();
 
+    LOG.log(Level.INFO, "Handle topology cache.");
+
     Set<TopologyCacheException> exceptions =
       new HashSet<TopologyCacheException>();
     /* Analyze if we had any exception while loading servers.  For the moment
@@ -1282,6 +1335,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
+      LOG.log(Level.INFO, "Analyzing exception: "+e, e);
       if (stopProcessing)
       {
         break;
@@ -1290,7 +1344,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       {
       case NOT_GLOBAL_ADMINISTRATOR:
         println();
-        println(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
+        printErrorMessage(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
         stopProcessing = true;
         break;
       case GENERIC_CREATING_CONNECTION:
@@ -1356,18 +1410,28 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     else
     {
+      LOG.log(Level.INFO, "exceptionMsgs: "+exceptionMsgs);
       if (exceptionMsgs.size() > 0)
       {
-        Message msg = Utils.getMessageFromCollection(exceptionMsgs,
-            Constants.LINE_SEPARATOR);
         if (parser.isForceOnError())
         {
+          Message msg = Utils.getMessageFromCollection(exceptionMsgs,
+              Constants.LINE_SEPARATOR);
           println();
-          println(msg);
+          printErrorMessage(msg);
           returnValue = false;
         }
         else
         {
+          Message msg =
+            ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
+              "--"+
+              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
+              "--"+ToolConstants.OPTION_LONG_BINDPWD,
+              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              "--"+parser.forceOnErrorArg.getLongIdentifier(),
+              Utils.getMessageFromCollection(exceptionMsgs,
+                  Constants.LINE_SEPARATOR).toString());
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, msg,
               null);
         }
@@ -1377,6 +1441,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         returnValue = true;
       }
     }
+    LOG.log(Level.INFO, "Return value: "+returnValue);
     return returnValue;
   }
 
@@ -1484,5 +1549,11 @@ public class UninstallCliHelper extends ConsoleApplication {
        LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
      }
      forceNonInteractive = false;
+   }
+
+   private void printErrorMessage(Message msg)
+   {
+     super.println(msg);
+     LOG.log(Level.WARNING, msg.toString());
    }
 }
