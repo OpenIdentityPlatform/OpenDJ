@@ -689,6 +689,8 @@
                                 
               <!-- Try to add entry to servers; should be rejected with error 65
                 (objectclass violation) -->
+              <!-- If the add doesn't return 65, it may mean we came across
+                issue 2355 (Manual schema objectclass delete not replicated) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
                   { 'location'       : clientHost,
@@ -699,7 +701,8 @@
                     'dsInstancePswd' : server.getRootPwd(),
                     'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % \
                                        clientDataDir,
-                    'expectedRC'     : 65
+                    'expectedRC'     : 65,
+                    'knownIssue'     : '2355'
                   }
                 </call>                             
               </iterate> 
@@ -716,9 +719,6 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
-              <call function="'setKnownIssue'">
-                { 'issueId' : '2355' }
-              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -792,6 +792,8 @@
                                                                                                                                 
               <!-- Try to add entry to servers; should be rejected with error 65
                 (objectclass violation) -->
+              <!-- If the add doesn't return 65, it may mean we came across
+                issue 2355 (Manual schema objectclass delete not replicated) -->
               <iterate var="server" in="_topologyServerList">
                 <call function="'addEntry'">
                   { 'location'       : clientHost,
@@ -802,15 +804,20 @@
                     'dsInstancePswd' : server.getRootPwd(),
                     'entryToBeAdded' : '%s/replication/newtestuser-2.ldif' % \
                                        clientDataDir,
-                    'expectedRC'     : 65
+                    'expectedRC'     : 65,
+                    'knownIssue'     : '2355'
                   }
                 </call>                             
               </iterate> 
                        
               <!-- Verify the synchronization of the schema among the servers in
                 the topology -->
+              <!-- Since this testcase inherits the 99-user.ldif from the one
+                before, as long as 2355 is still present, the schema files will
+                differ as the second server will still have newobjectclass-0 -->
               <call function="'verifySchemas'">
-                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif',
+                  '2355' ]
               </call> 
                 
               <!-- Verify the synchronization of the trees among the servers in
@@ -819,9 +826,6 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
-              <call function="'setKnownIssue'">
-                { 'issueId' : '2355' }
-              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>

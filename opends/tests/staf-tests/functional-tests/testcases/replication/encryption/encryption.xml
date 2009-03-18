@@ -97,6 +97,16 @@
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                     userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
+                    
+                    if i == 0:
+                      myKnownIssue = None
+                    else:
+                      # if we fail to add the entry to the 'consumer' servers
+                      # => it may mean that the initialize-all is not completely
+                      # done yet, and so we may have come across Issue 3315
+                      # (dsreplication initialize-all returns before peer 
+                      # has completed initialisation)
+                      myKnownIssue = '3315'
                   </script>
                     
                   <!-- Add entry to one of the other servers -->
@@ -121,7 +131,8 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'DNToAdd'        : userDn,
                       'listAttributes' : listAttr,
-                      'expectedRC'     : 0
+                      'expectedRC'     : 0,
+                      'knownIssue'     : myKnownIssue
                     }
                   </call>
               
@@ -134,11 +145,6 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
-              <!-- #3315: dsreplication initialize-all returns before peer has
-                   completed initialisation -->
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3315' }
-              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -169,6 +175,16 @@
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                     userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
+                    
+                    if i == 0:
+                      myKnownIssue = None
+                    else:
+                      # if we fail to modify the entry in the 'consumer' servers
+                      # => it may mean that the initialize-all is not completely
+                      # done yet, and so we may have come across Issue 3315
+                      # (dsreplication initialize-all returns before peer 
+                      # has completed initialisation)
+                      myKnownIssue = '3315'                    
                   </script>
                                     
                   <!-- Modify entry on one of the servers -->
@@ -182,7 +198,8 @@
                       'DNToModify'        : userDn,
                       'attributeName'     : 'l',
                       'newAttributeValue' : 'GEC',
-                      'changetype'        : 'replace'
+                      'changetype'        : 'replace',
+                      'knownIssue'        : myKnownIssue
                     }
                   </call>                       
                 </sequence>
@@ -193,12 +210,6 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-
-              <!-- #3315: dsreplication initialize-all returns before peer has
-                   completed initialisation -->
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3315' }
-              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -229,6 +240,16 @@
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                     userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
+                    
+                    if i == 0:
+                      myKnownIssue = None
+                    else:
+                      # if we fail to delete the entry to the 'consumer' servers
+                      # => it may mean that the initialize-all is not completely
+                      # done yet, and so we may have come across Issue 3315
+                      # (dsreplication initialize-all returns before peer 
+                      # has completed initialisation)
+                      myKnownIssue = '3315'                    
                   </script>
                     
                   <!-- Delete entry on one of the servers -->    
@@ -239,7 +260,8 @@
                       'dsInstancePort' : server.getPort() ,
                       'dsInstanceDn'   : server.getRootDn() ,
                       'dsInstancePswd' : server.getRootPwd() ,
-                      'dsBaseDN'       : userDn
+                      'dsBaseDN'       : userDn,
+                      'knownIssue'     : myKnownIssue
                     }
                   </call>
                 </sequence>
@@ -251,11 +273,6 @@
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
-              <!-- #3315: dsreplication initialize-all returns before peer has
-                   completed initialisation -->
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3315' }
-              </call>
          
               <call function="'testCase_Postamble'"/>
             </sequence>

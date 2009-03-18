@@ -1315,16 +1315,21 @@
                       # => expect NO entry returned
                       # => len(searchResult) = 0 => resultLength = 0
                       myExpectedRC = 0
+                      # if entry not purged => we may have run into Issue 3736
+                      # (Dynamic purge delay change not taken into account)
+                      myKnownIssue = '3736'
                     else:
                       # purge delay not expired (default purge delay: 1 day)
                       # => expect entry returned
                       # => len(searchResult) > 0 => resultLength = 1
                       myExpectedRC = 1
+                      myKnownIssue = None
                   </script>
                   <call function="'checktestRC'">
                     { 'returncode' : resultLength ,
                       'result'     : searchResult ,
-                      'expected'   : myExpectedRC
+                      'expected'   : myExpectedRC,
+                      'issue'      : myKnownIssue
                     }
                   </call>                                           
                                
@@ -1332,16 +1337,11 @@
               </paralleliterate>
                                                 
               <!-- Verify the synchronization of the trees among the servers in
-                the topology -->          
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
-              <!-- #3736: Dynamic purge delay change not properly taken into 
-                   account -->
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3736' }
-              </call>
              
               <call function="'testCase_Postamble'"/>
             </sequence>
