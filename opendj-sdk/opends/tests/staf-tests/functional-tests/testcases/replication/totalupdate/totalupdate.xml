@@ -345,8 +345,12 @@
 
               <!-- Verify the synchronization of the schema among the servers
                 in the topology -->
+              <!-- If the schema files differ, it could be due to Issue 2599
+                (Replication adds modifiersName and modifyTimestamp to schema 
+                updates) -->
               <call function="'verifySchemas'">
-                [ clientHost, clientPath, master, consumerList, '99-user.ldif' ]
+                [ clientHost, clientPath, master, consumerList, '99-user.ldif',
+                  '2599' ]
               </call> 
                                                 
               <!-- Verify the synchronization of the trees among the servers in
@@ -355,9 +359,6 @@
                 [ clientHost, clientPath, master, consumerList, 'o=example' ]
               </call>                
 
-              <call function="'setKnownIssue'">
-                { 'issueId' : '2599' }
-              </call>
               
               <call function="'testCase_Postamble'"/>
             </sequence>

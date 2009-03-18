@@ -535,6 +535,13 @@
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
 
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
     </function-list-args>
     <sequence>
       <script>
@@ -612,7 +619,7 @@
       <if expr="len(failedServers) > 0">
         <!-- If at least one server failed to successfully compare to the
          !   reference tree, return an error, along with the list of the 
-         !   servers that failed to do so -->  
+         !   servers that failed to do so --> 
         <script>
           myRC = 1
           comma = ','  
@@ -629,7 +636,8 @@
       <call function="'checktestRC'">
         { 'returncode' : myRC,
           'result'     : failingServerList,
-          'expected'   : 0
+          'expected'   : 0,
+          'issue'      : knownIssue
         }
       </call>
       <return>[myRC, failedServers]</return>
@@ -681,6 +689,13 @@
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
 
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
     </function-list-args>
     <sequence>
       <script>
@@ -742,7 +757,8 @@
       <call function="'checktestRC'">
         { 'returncode' : myRC,
           'result'     : failingServerList ,
-          'expected'   : 0
+          'expected'   : 0,
+          'issue'      : knownIssue
         }
       </call>
       <return>[myRC, failedServers]</return>

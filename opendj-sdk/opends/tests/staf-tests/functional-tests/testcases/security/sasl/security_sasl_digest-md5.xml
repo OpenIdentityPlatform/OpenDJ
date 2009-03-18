@@ -908,14 +908,12 @@
                  returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, simple authentication'
@@ -934,14 +932,12 @@
                  returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, delete global search ACI'
@@ -975,17 +971,15 @@
                  returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -994,43 +988,43 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, adding authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, adding authmethod ACI'
             </message>
 
             <script>
-                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"sasl DIGEST-MD5\";)"
+              curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"sasl DIGEST-MD5\";)"
             </script>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'add' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'add'
+              }
             </call>
                 
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1038,61 +1032,60 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, simple authentication'
             </message>
 
             <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'frogleg' ,
-                'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
+                'dsInstancePswd' : 'frogleg' ,
+                'dsBaseDN'       : 'dc=example,dc=com' ,
+                'dsFilter'       : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
     
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, deleting authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, deleting authmethod ACI'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'delete' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                 'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                 'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                 'attributeName'          : 'aci' ,
+                 'newAttributeValue'      : curr_aci ,
+                  'changetype'             : 'delete'
+              }
              </call>
                 
              <message>
@@ -1100,11 +1093,12 @@
             </message>
 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'add' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'add'
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1147,21 +1141,20 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
@@ -1173,40 +1166,40 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, delete global search ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, delete global search ACI'
             </message>
 
             <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'remove' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'remove'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1214,24 +1207,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1240,43 +1232,43 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, adding authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, adding authmethod ACI'
             </message>
 
             <script>
-                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"simple\";)"
+              curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"simple\";)"
             </script>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'add' }
-             </call>
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'add'
+              }
+            </call>
                 
-             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
+            <message>
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1284,24 +1276,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1310,35 +1301,35 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, deleting authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, deleting authmethod ACI'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'delete' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'delete'
+              }
              </call>
                 
              <message>
@@ -1346,11 +1337,12 @@
             </message>
 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'add' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'add'
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1393,24 +1385,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1419,40 +1410,40 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, delete global search ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, delete global search ACI'
             </message>
 
             <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'remove' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'remove'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1460,24 +1451,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1486,43 +1476,43 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, adding authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, adding authmethod ACI'
             </message>
 
             <script>
-                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod!=\"simple\";)"
+              curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod!=\"simple\";)"
             </script>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'add' }
-             </call>
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'add'
+              }
+            </call>
                 
-             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
+            <message>
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1530,24 +1520,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1556,47 +1545,48 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, deleting authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, deleting authmethod ACI'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'delete' }
-             </call>
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'delete'
+              }
+            </call>
                 
-             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, put back global search ACI'
+            <message>
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, put back global search ACI'
             </message>
 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'add' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'add'
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1631,7 +1621,7 @@
             <call function="'testCase_Preamble'"/>
 
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1639,24 +1629,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1665,40 +1654,40 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, delete global search ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, delete global search ACI'
             </message>
 
             <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'remove' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'remove'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1707,24 +1696,23 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w bad',
-                'expectedRC'       : 49 }
+                'expectedRC'       : 49
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1734,43 +1722,43 @@
                 'dsInstancePswd'   : 'bad' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expectedRC'       : 49 }
+                'expectedRC'       : 49
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
+              }
             </call>
-                
-            <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, adding authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, adding authmethod ACI'
             </message>
 
             <script>
-                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"none\";)"
+              curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"none\";)"
             </script>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'add' }
-             </call>
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'add'
+              }
+            </call>
                 
-             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
+            <message>
+              'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -1778,24 +1766,23 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, simple authentication'
             </message>
 
             <call function="'SearchObject'">
@@ -1804,47 +1791,48 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'frogleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*'
+              }
             </call>
 
             <script> 
-                 returnString = STAXResult[0][1]
+              returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=tmorris,ou=People' }
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 1
+              }
             </call>
-                
-            <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-            </if>
             
             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, deleting authmethod ACI'
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, deleting authmethod ACI'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
-                    'attributeName'          : 'aci' ,
-                    'newAttributeValue'      : curr_aci ,
-                    'changetype'             : 'delete' }
-             </call>
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                'attributeName'          : 'aci' ,
+                'newAttributeValue'      : curr_aci ,
+                'changetype'             : 'delete'
+              }
+            </call>
                 
-             <message>
-               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, put back global search ACI'
+            <message>
+              'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, put back global search ACI'
             </message>
 
             <call function="'modifyGlobalAci'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
-                    'opType'                 : 'add' }
+              { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                'aciValue'               : global_aci ,
+                'opType'                 : 'add'
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -3276,15 +3264,13 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -3339,15 +3325,13 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -3417,17 +3401,14 @@
             <script> 
               returnString = STAXResult[0][1]
             </script> 
-    
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString ,
-                'testString'   : 'dn: uid=tmorris,ou=People'
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'dn: uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
-            
+    
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -3501,15 +3482,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -3587,15 +3565,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -3674,15 +3649,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -3761,15 +3733,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -3848,15 +3817,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -3934,15 +3900,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -4021,15 +3984,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -4108,19 +4068,13 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
-              }
-            </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
-            
             <!-- #3723: SSF bind rule: != operator not working -->
-            <call function="'setKnownIssue'">
-              { 'issueId' : '3723' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0,
+                'knownIssue'     : '3723'
+              }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -4200,19 +4154,13 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
-              }
-            </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
-
             <!-- #3723: SSF bind rule: != operator not working -->
-            <call function="'setKnownIssue'">
-              { 'issueId' : '3723' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1,
+                'knownIssue'     : '3723'
+              }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -4292,19 +4240,13 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
-              }
-            </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
-
             <!-- #3723: SSF bind rule: != operator not working -->
-            <call function="'setKnownIssue'">
-              { 'issueId' : '3723' }
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1,
+                'knownIssue'     : '3723'
+              }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -4420,15 +4362,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 1
               }
             </call>
-                
-            <if expr="returnCode != '1'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -4504,15 +4443,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -4626,15 +4562,12 @@
               'Search result:   %s' % returnString
             </message>
 
-            <call function="'searchStringForSubstring'">
-              { 'returnString' : returnString,
-                'testString'   : 'uid=tmorris,ou=People'
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'uid=tmorris,ou=People',
+                'expectedRC'     : 0
               }
             </call>
-                
-            <if expr="returnCode != '0'">
-              <tcstatus result="'fail'"/>
-            </if>
             
             <call function="'testCase_Postamble'"/>
             
@@ -4671,50 +4604,54 @@
             </message>
 
             <call function="'modifyPwdPolicy'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'Salted SHA-1' }
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'propertyName'   : 'Default Password Policy' ,
+                'attributeName'  : 'default-password-storage-scheme' ,
+                'attributeValue' : 'Salted SHA-1'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: Postamble Step 2 - Admin Restting Password for two users'
+              'Security: SASL DIGEST-MD5: Postamble Step 2 - Admin Restting Password for two users'
             </message>
 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'catleg' ,
-                    'changetype'             : 'replace' }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                'attributeName'     : 'userpassword' ,
+                'newAttributeValue' : 'catleg' ,
+                'changetype'        : 'replace'
+              }
             </call>
                 
             <call function="'modifyAnAttribute'">
-                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
-                    'attributeName'          : 'userpassword' ,
-                    'newAttributeValue'      : 'catleg' ,
-                    'changetype'             : 'replace' }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'DNToModify'        : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
+                'attributeName'     : 'userpassword' ,
+                'newAttributeValue' : 'catleg' ,
+                'changetype'        : 'replace'
+              }
             </call>
             
             <message>
-               'Security: SASL DIGEST-MD5: Postamble Step 3 - Admin Deleting Realm'
+              'Security: SASL DIGEST-MD5: Postamble Step 3 - Admin Deleting Realm'
             </message>
 
             <call function="'modifyEntry'">
-              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_del_realm.ldif' % remote.data }
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/sasl/admin_del_realm.ldif' % remote.data
+              }
             </call>
 
             <message>
@@ -4728,20 +4665,22 @@
                 'dsInstancePswd'   : 'catleg' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base'
+              }
             </call>
 
             <message>
-               'Security: SASL DIGEST-MD5: Postamble Step 5 - User (dn:) Binding 2'
+              'Security: SASL DIGEST-MD5: Postamble Step 5 - User (dn:) Binding 2'
             </message>
 
-           <call function="'AnonSearchObject'">
+            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w catleg' ,
-                'expectedRC'       : 49 }
+                'expectedRC'       : 49
+              }
             </call>
             
             <call function="'testCase_Postamble'"/>

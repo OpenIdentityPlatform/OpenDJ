@@ -225,13 +225,13 @@
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
+              <!-- If the trees differ, it could be due to Issue 3122
+                (Off-line import-export sequence produces no generationID) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix,
+                  '3122' ]
               </call> 
 
-              <call function="'setKnownIssue'">
-                { 'issueId' : '3122' }
-              </call>
 
               <call function="'testCase_Postamble'"/>
             </sequence>
