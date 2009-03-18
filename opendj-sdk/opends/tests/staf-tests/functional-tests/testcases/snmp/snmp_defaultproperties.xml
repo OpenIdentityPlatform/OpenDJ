@@ -60,6 +60,7 @@
             EXPECTED_PROPERTIES['community'] = 'OpenDS'
             EXPECTED_PROPERTIES['denied-client'] = ''
             EXPECTED_PROPERTIES['enabled'] = 'false'
+            EXPECTED_PROPERTIES['listen-address'] = '0.0.0.0'
             EXPECTED_PROPERTIES['listen-port'] = '161'
             EXPECTED_PROPERTIES['opendmk-jarfile'] = ''
             EXPECTED_PROPERTIES['registered-mbean'] = 'false'
