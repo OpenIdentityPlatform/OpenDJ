@@ -413,7 +413,7 @@
       <!-- Set variables to build unique path to store data -->
       <script>
         # Private
-        logsDate=strftime("%Y%m%d-%H%M%S",localtime())
+        logsDate= '%s' % TESTS_RUN_TIME
         logsArch=\
           DSInfo.getServerArch(DSInfo.ServerDict['system os'])
         logsOSName=\
