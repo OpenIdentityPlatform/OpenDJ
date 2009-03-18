@@ -1039,7 +1039,8 @@ public class OperationContainer extends DatabaseContainer
       new LinkedHashMap<ObjectClass, String>();
 
     List<NdbResultSet> ocRsList = new ArrayList<NdbResultSet>();
-    Map<String, NdbBlob> blobMap = new HashMap<String, NdbBlob>();
+    Map<String, Map<String, NdbBlob>> blobMap =
+      new HashMap<String, Map<String, NdbBlob>>();
     LinkedHashMap<ObjectClass, String> objectClasses =
       new LinkedHashMap<ObjectClass, String>(ocsStringArray.length);
 
@@ -1070,7 +1071,12 @@ public class OperationContainer extends DatabaseContainer
         String attrName = reqAttr.getNameOrOID();
         if (BackendImpl.blobAttributes.contains(attrName)) {
           NdbBlob blob = indexScanOp.getBlobHandle(attrName);
-          blobMap.put(attrName, blob);
+          Map<String, NdbBlob> attr2Blob = blobMap.get(ocName);
+          if (attr2Blob == null) {
+            attr2Blob = new HashMap<String, NdbBlob>();
+          }
+          attr2Blob.put(attrName, blob);
+          blobMap.put(ocName, attr2Blob);
         } else {
           indexScanOp.getValue(attrName);
         }
@@ -1079,7 +1085,12 @@ public class OperationContainer extends DatabaseContainer
         String attrName = optAttr.getNameOrOID();
         if (BackendImpl.blobAttributes.contains(attrName)) {
           NdbBlob blob = indexScanOp.getBlobHandle(attrName);
-          blobMap.put(attrName, blob);
+          Map<String, NdbBlob> attr2Blob = blobMap.get(ocName);
+          if (attr2Blob == null) {
+            attr2Blob = new HashMap<String, NdbBlob>();
+          }
+          attr2Blob.put(attrName, blob);
+          blobMap.put(ocName, attr2Blob);
         } else {
           indexScanOp.getValue(attrName);
         }
@@ -1114,7 +1125,12 @@ public class OperationContainer extends DatabaseContainer
           String attrName = reqAttr.getNameOrOID();
           if (BackendImpl.blobAttributes.contains(attrName)) {
             NdbBlob blob = indexScanOp.getBlobHandle(attrName);
-            blobMap.put(attrName, blob);
+            Map<String, NdbBlob> attr2Blob = blobMap.get(xocName);
+            if (attr2Blob == null) {
+              attr2Blob = new HashMap<String, NdbBlob>();
+            }
+            attr2Blob.put(attrName, blob);
+            blobMap.put(xocName, attr2Blob);
           } else {
             indexScanOp.getValue(attrName);
           }
@@ -1123,7 +1139,12 @@ public class OperationContainer extends DatabaseContainer
           String attrName = optAttr.getNameOrOID();
           if (BackendImpl.blobAttributes.contains(attrName)) {
             NdbBlob blob = indexScanOp.getBlobHandle(attrName);
-            blobMap.put(attrName, blob);
+            Map<String, NdbBlob> attr2Blob = blobMap.get(xocName);
+            if (attr2Blob == null) {
+              attr2Blob = new HashMap<String, NdbBlob>();
+            }
+            attr2Blob.put(attrName, blob);
+            blobMap.put(xocName, attr2Blob);
           } else {
             indexScanOp.getValue(attrName);
           }
@@ -1179,7 +1200,7 @@ public class OperationContainer extends DatabaseContainer
     NdbResultSet tagRs,
     Map<ObjectClass, String> objectClasses,
     Map<ObjectClass, String> xObjectClasses,
-    Map<String, NdbBlob> blobMap,
+    Map<String, Map<String, NdbBlob>> blobMap,
     boolean extensibleObject) throws NdbApiException
   {
     LinkedHashMap<AttributeType, List<Attribute>> userAttributes =
@@ -1237,7 +1258,9 @@ public class OperationContainer extends DatabaseContainer
           byte[] attrValBytes = null;
           NdbBlob blob = null;
           if (BackendImpl.blobAttributes.contains(attrName)) {
-            blob = blobMap.get(attrName);
+            Map<String, NdbBlob> attr2Blob =
+              blobMap.get(objectClasses.get(oc));
+            blob = attr2Blob.get(attrName);
           } else {
             attrValBytes = ocRs.getStringBytes(attrName);
             if (ocRs.wasNull()) {
@@ -1298,7 +1321,9 @@ public class OperationContainer extends DatabaseContainer
           byte[] attrValBytes = null;
           NdbBlob blob = null;
           if (BackendImpl.blobAttributes.contains(attrName)) {
-            blob = blobMap.get(attrName);
+            Map<String, NdbBlob> attr2Blob =
+              blobMap.get(objectClasses.get(oc));
+            blob = attr2Blob.get(attrName);
           } else {
             attrValBytes = ocRs.getStringBytes(attrName);
             if (ocRs.wasNull()) {
