@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -52,15 +52,198 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   // The real update message this message represents
   private UpdateMsg realUpdateMsg = null;
 
+  // V1 serialized form of the real message with assured flag set to false.
+  // Ready to be sent.
+  private byte[] realUpdateMsgNotAssuredBytesV1 = null;
+
+  // V2 serialized form of the real message with assured flag set to false.
+  // Ready to be sent.
+  private byte[] realUpdateMsgNotAssuredBytesV2 = null;
+
   /**
    * Creates a new empty UpdateMsg.
    * This class is only used by replication server code so constructor is not
    * public by security.
    * @param updateMsg The real underlying update message this object represents.
+   * @throws UnsupportedEncodingException  When the pre-encoding of the message
+   *         failed because the UTF-8 encoding is not supported or the
+   *         requested protocol version to use is not supported by this PDU.
+   *
    */
-  NotAssuredUpdateMsg(UpdateMsg updateMsg)
+  NotAssuredUpdateMsg(UpdateMsg updateMsg) throws UnsupportedEncodingException
   {
     realUpdateMsg = updateMsg;
+
+    /**
+     * Prepare serialized forms
+     */
+    if (realUpdateMsg instanceof LDAPUpdateMsg)
+    {
+      /**
+       * Prepare V1 serialized form of the message:
+       * Get the encoding form of the real message then overwrite the assured
+       * flag to always be false.
+       */
+      byte[] origBytes = realUpdateMsg.getBytes(
+        ProtocolVersion.REPLICATION_PROTOCOL_V1);
+      // Clone the byte array to be able to modify it without problems
+      // (ModifyMsg messages for instance do not return a cloned version of
+      // their byte array)
+      byte[] bytes = new byte[origBytes.length];
+      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
+
+      int maxLen = bytes.length;
+      int pos = -1;
+      int nZeroFound = 0; // Number of 0 value found
+      boolean found = false;
+
+      /* Look for assured flag position:
+       * The message header is stored in the form :
+       * <operation type><changenumber><dn><assured><entryuuid><change>
+       * the length of result byte array is therefore :
+       *   1 + change number length + 1 + dn length + 1  + 1 +
+       *   uuid length + 1 + additional_length
+       * See LDAPUpdateMsg.encodeHeader_V1() for more information
+       */
+      // Find end of change number then end of dn
+      for (pos = 1; pos < maxLen; pos++)
+      {
+        if (bytes[pos] == (byte) 0)
+        {
+          nZeroFound++;
+          if (nZeroFound == 2) // 2 end of string to find
+          {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found)
+        throw new UnsupportedEncodingException("Could not find end of " +
+          "change number.");
+      pos++;
+      if (pos >= maxLen)
+        throw new UnsupportedEncodingException("Reached end of packet.");
+      // Force assured flag to false
+      bytes[pos] = (byte) 0;
+
+      // Store computed V1 serialized form
+      realUpdateMsgNotAssuredBytesV1 = bytes;
+
+      /**
+       * Prepare V2 serialized form of the message:
+       * Get the encoding form of the real message then overwrite the assured
+       * flag to always be false.
+       */
+      origBytes = realUpdateMsg.getBytes(
+        ProtocolVersion.REPLICATION_PROTOCOL_V2);
+      // Clone the byte array to be able to modify it without problems
+      // (ModifyMsg messages for instance do not return a cloned version of
+      // their byte array)
+      bytes = new byte[origBytes.length];
+      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
+
+      maxLen = bytes.length;
+      pos = -1;
+      nZeroFound = 0; // Number of 0 value found
+      found = false;
+
+      /* Look for assured flag position:
+       * The message header is stored in the form :
+       * <operation type><protocol version><changenumber><dn><entryuuid>
+       * <assured> <assured mode> <safe data level>
+       * the length of result byte array is therefore :
+       *   1 + 1 + change number length + 1 + dn length + 1 + uuid length +
+       *   1 + 1 + 1 + 1 + additional_length
+       * See LDAPUpdateMsg.encodeHeader() for more information
+       */
+      // Find end of change number then end of dn then end of uuid
+      for (pos = 2; pos < maxLen; pos++)
+      {
+        if (bytes[pos] == (byte) 0)
+        {
+          nZeroFound++;
+          if (nZeroFound == 3) // 3 end of string to find
+          {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found)
+        throw new UnsupportedEncodingException("Could not find end of " +
+          "change number.");
+      pos++;
+      if (pos >= maxLen)
+        throw new UnsupportedEncodingException("Reached end of packet.");
+      // Force assured flag to false
+      bytes[pos] = (byte) 0;
+
+      // Store computed V2 serialized form
+      realUpdateMsgNotAssuredBytesV2 = bytes;
+
+    } else
+    {
+      if (!(realUpdateMsg instanceof UpdateMsg))
+      {
+        // Should never happen
+        throw new UnsupportedEncodingException(
+          "Unknown underlying real message type.");
+      }
+
+      /**
+       * Prepare V2 serialized form of the message:
+       * Get the encoding form of the real message then overwrite the assured
+       * flag to always be false.
+       */
+      byte[] origBytes = realUpdateMsg.getBytes(
+        ProtocolVersion.REPLICATION_PROTOCOL_V2);
+      // Clone the byte array to be able to modify it without problems
+      // (ModifyMsg messages for instance do not return a cloned version of
+      // their byte array)
+      byte[] bytes = new byte[origBytes.length];
+      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
+
+      int maxLen = bytes.length;
+      int pos = -1;
+      int nZeroFound = 0; // Number of 0 value found
+      boolean found = false;
+
+      // This is a generic update message
+      /* Look for assured flag position:
+       * The message header is stored in the form :
+       * <operation type><protocol version><changenumber><assured>
+       * <assured mode> <safe data level>
+       * the length of result byte array is therefore :
+       *   1 + 1 + change number length + 1 + 1
+       *   + 1 + 1 + additional_length
+       * See UpdateMsg.encodeHeader() for more  information
+       */
+      // Find end of change number
+      for (pos = 2; pos < maxLen; pos++)
+      {
+        if (bytes[pos] == (byte) 0)
+        {
+          nZeroFound++;
+          if (nZeroFound == 1) // 1 end of string to find
+          {
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found)
+        throw new UnsupportedEncodingException("Could not find end of " +
+          "change number.");
+      pos++;
+      if (pos >= maxLen)
+        throw new UnsupportedEncodingException("Reached end of packet.");
+      // Force assured flag to false
+      bytes[pos] = (byte) 0;
+
+      // Store computed V2 serialized form
+      realUpdateMsgNotAssuredBytesV2 = bytes;
+    }
   }
 
   /**
@@ -137,127 +320,16 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
   {
-    // Get the encoding of the real message then overwrite the assured flag byte
-    // to always be false
-    byte[] bytes = realUpdateMsg.getBytes(reqProtocolVersion);
-    int maxLen = bytes.length;
-    int pos = -1;
-    int nZeroFound = 0; // Number of 0 value found
-    boolean found = false;
-
-    /**
-     * Overwrite the assured flag at the right position according to
-     * message type.
-     */
-    // Look for assured flag position
-    if (realUpdateMsg instanceof LDAPUpdateMsg)
+    switch (reqProtocolVersion)
     {
-      // LDAP update message
-      switch (reqProtocolVersion)
-      {
-        case ProtocolVersion.REPLICATION_PROTOCOL_V1:
-          /* The message header is stored in the form :
-           * <operation type><changenumber><dn><assured><entryuuid><change>
-           * the length of result byte array is therefore :
-           *   1 + change number length + 1 + dn length + 1  + 1 +
-           *   uuid length + 1 + additional_length
-           * See LDAPUpdateMsg.encodeHeader_V1() for more information
-           */
-          // Find end of change number then end of dn
-          for (pos = 1 ; pos < maxLen ; pos++ ) {
-            if (bytes[pos] == (byte)0)
-            {
-              nZeroFound++;
-              if (nZeroFound == 2) // 2 end of string to find
-              {
-                found = true;
-                break;
-              }
-            }
-          }
-          if (!found)
-            throw new UnsupportedEncodingException("Could not find end of " +
-              "change number.");
-          pos++;
-          if (pos >= maxLen)
-            throw new UnsupportedEncodingException("Reached end of packet.");
-          // Force assured flag to false
-          bytes[pos] = (byte)0;
-          break;
-        case ProtocolVersion.REPLICATION_PROTOCOL_V2:
-          /* The message header is stored in the form :
-           * <operation type><protocol version><changenumber><dn><entryuuid>
-           * <assured> <assured mode> <safe data level>
-           * the length of result byte array is therefore :
-           *   1 + 1 + change number length + 1 + dn length + 1 + uuid length +
-           *   1 + 1 + 1 + 1 + additional_length
-           * See LDAPUpdateMsg.encodeHeader() for more information
-           */
-          // Find end of change number then end of dn then end of uuid
-          for (pos = 2 ; pos < maxLen ; pos++ ) {
-            if (bytes[pos] == (byte)0)
-            {
-              nZeroFound++;
-              if (nZeroFound == 3) // 3 end of string to find
-              {
-                found = true;
-                break;
-              }
-            }
-          }
-          if (!found)
-            throw new UnsupportedEncodingException("Could not find end of " +
-              "change number.");
-          pos++;
-          if (pos >= maxLen)
-            throw new UnsupportedEncodingException("Reached end of packet.");
-          // Force assured flag to false
-          bytes[pos] = (byte)0;
-          break;
-        default:
-          throw new UnsupportedEncodingException("Unsupported requested " +
-            " protocol version: " + reqProtocolVersion);
-      }
-    } else
-    {
-      if (!(realUpdateMsg instanceof UpdateMsg))
-      {
-        // Should never happen
-        throw new UnsupportedEncodingException(
-          "Unknown underlying real message type.");
-      }
-      // This is a generic update message
-      /* The message header is stored in the form :
-       * <operation type><protocol version><changenumber><assured>
-       * <assured mode> <safe data level>
-       * the length of result byte array is therefore :
-       *   1 + 1 + change number length + 1 + 1
-       *   + 1 + 1 + additional_length
-       * See UpdateMsg.encodeHeader() for more  information
-       */
-      // Find end of change number
-      for (pos = 2 ; pos < maxLen ; pos++ )
-      {
-        if (bytes[pos] == (byte)0)
-        {
-          nZeroFound++;
-          if (nZeroFound == 1) // 1 end of string to find
-          {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-        throw new UnsupportedEncodingException("Could not find end of " +
-          "change number.");
-      pos++;
-      if (pos >= maxLen)
-        throw new UnsupportedEncodingException("Reached end of packet.");
-      // Force assured flag to false
-      bytes[pos] = (byte) 0;
+      case ProtocolVersion.REPLICATION_PROTOCOL_V1:
+        return realUpdateMsgNotAssuredBytesV1;
+      case ProtocolVersion.REPLICATION_PROTOCOL_V2:
+        return realUpdateMsgNotAssuredBytesV2;
+      default:
+        throw new UnsupportedEncodingException("Unsupported requested " +
+          " protocol version: " + reqProtocolVersion);
     }
-    return bytes;
   }
 
   /**
@@ -332,7 +404,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   protected byte[] encodeHeader(byte type, int additionalLength)
     throws UnsupportedEncodingException
   {
-    // No called as only used by constructors using bytes
+    // Not called as only used by constructors using bytes
     return null;
   }
 
@@ -343,7 +415,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   public int decodeHeader(byte type, byte[] encodedMsg)
                           throws DataFormatException
   {
-    // No called as only used by getBytes methods
+    // Not called as only used by getBytes methods
     return -1;
   }
 
