@@ -309,10 +309,29 @@ public class ReplicationServer
           {
             InetAddress inetAddress = InetAddress.getByName(hostname);
             String serverAddress = inetAddress.getHostAddress() + ":" + port;
+            String alternServerAddress = null;
+            if (hostname.equalsIgnoreCase("localhost"))
+
+            {
+              // if "localhost" was used as the hostname in the configuration
+              // also check is the connection is already opened with the
+              // local address.
+              alternServerAddress =
+                InetAddress.getLocalHost().getHostAddress() + ":" + port;
+            }
+            if (inetAddress.equals(InetAddress.getLocalHost()))
+            {
+              // if the host address is the local one, also check
+              // if the connection is already opened with the "localhost"
+              // address
+              alternServerAddress = "127.0.0.1" + ":" + port;
+            }
 
             if ((serverAddress.compareTo("127.0.0.1:" + replicationPort) != 0)
                 && (serverAddress.compareTo(this.localURL) != 0)
-                && (!connectedReplServers.contains(serverAddress)))
+                && (!connectedReplServers.contains(serverAddress)
+                && ((alternServerAddress == null)
+                    || !connectedReplServers.contains(alternServerAddress))))
             {
               this.connect(serverURL, replicationServerDomain.getBaseDn());
             }
