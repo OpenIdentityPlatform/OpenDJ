@@ -324,7 +324,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     this.updateToReplayQueue = updateToReplayQueue;
 
     // Get assured configuration
-    readAssuredConfig(configuration);
+    readAssuredConfig(configuration, false);
 
     setGroupId((byte)configuration.getGroupId());
     setURLs(configuration.getReferralsUrl());
@@ -408,17 +408,19 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * a boolean indicating if the passed configuration has changed compared to
    * previous values and the changes require a reconnection.
    * @param configuration The configuration object
-   * @return True if the assured configuration changed and we need to reconnect
+   * @param allowReconnection Tells if one must reconnect if significant changes
+   *        occurred
    */
-  private boolean readAssuredConfig(ReplicationDomainCfg configuration)
+  private void readAssuredConfig(ReplicationDomainCfg configuration,
+    boolean allowReconnection)
   {
-    boolean needReconnect = false;
+    boolean needReconnection = false;
 
     byte newSdLevel = (byte) configuration.getAssuredSdLevel();
     if ((isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)) &&
       (newSdLevel != getAssuredSdLevel()))
     {
-      needReconnect = true;
+      needReconnection = true;
     }
 
     AssuredType newAssuredType = configuration.getAssuredType();
@@ -427,24 +429,30 @@ public class LDAPReplicationDomain extends ReplicationDomain
       case NOT_ASSURED:
         if (isAssured())
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
       case SAFE_DATA:
         if (!isAssured() ||
           (isAssured() && (getAssuredMode() == AssuredMode.SAFE_READ_MODE)))
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
       case SAFE_READ:
         if (!isAssured() ||
           (isAssured() && (getAssuredMode() == AssuredMode.SAFE_DATA_MODE)))
         {
-          needReconnect = true;
+          needReconnection = true;
         }
         break;
     }
+
+    // Disconnect if required: changing configuration values before
+    // disconnection would make assured replication used immediately and
+    // disconnection could cause some timeouts error.
+    if (needReconnection && allowReconnection)
+      disableService();
 
     switch (newAssuredType)
     {
@@ -461,12 +469,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
         break;
     }
     setAssuredSdLevel(newSdLevel);
-
-    // Changing timeout does not require restart as it is not sent in
-    // StartSessionMsg
     setAssuredTimeout(configuration.getAssuredTimeout());
 
-    return needReconnect;
+    // Reconnect if required
+    if (needReconnection && allowReconnection)
+      enableService();
   }
 
   /**
@@ -2729,15 +2736,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         configuration.getHeartbeatInterval(),
         (byte)configuration.getGroupId());
 
-    // Get assured configuration
-    boolean needReconnect = readAssuredConfig(configuration);
-
-    // Reconnect if required
-    if (needReconnect)
-    {
-      disableService();
-      enableService();
-    }
+    // Read assured configuration and reconnect if needed
+    readAssuredConfig(configuration, true);
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
