@@ -254,6 +254,8 @@ public class BuildInformation implements Comparable {
             String.valueOf(DynamicConstants.VERSION_QUALIFIER));
     bi.values.put(REVISION_NUMBER,
             String.valueOf(DynamicConstants.REVISION_NUMBER));
+    bi.values.put(URL_REPOSITORY,
+            String.valueOf(DynamicConstants.URL_REPOSITORY));
     bi.values.put(FIX_IDS, DynamicConstants.FIX_IDS);
     bi.values.put(DEBUG_BUILD, String.valueOf(DynamicConstants.DEBUG_BUILD));
     bi.values.put(BUILD_OS, DynamicConstants.BUILD_OS);
@@ -338,6 +340,15 @@ public class BuildInformation implements Comparable {
    */
   public Integer getRevisionNumber() {
     return new Integer(values.get(REVISION_NUMBER));
+  }
+
+  /**
+   * Gets the SVN URL repository.
+   *
+   * @return String representing the SVN URL repository
+   */
+  public String getURLRepository() {
+    return new String(values.get(URL_REPOSITORY));
   }
 
   /**

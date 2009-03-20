@@ -127,6 +127,12 @@ public final class DynamicConstants
   public static final long REVISION_NUMBER = ${REVISION_NUMBER};
 
   /**
+   * The Subversion url repository location on which this build is based.
+   */
+  public static final String URL_REPOSITORY = 
+      "${URL_REPOSITORY}";
+
+  /**
    * Indicates wheater this build includes AspectJ weaving for the debug logging
    * framework.
    */
