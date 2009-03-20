@@ -1340,6 +1340,10 @@ public class DirectoryServer
       initializeSchema();
 
 
+      // Initialize all the virtual attribute handlers.
+      initializeVirtualAttributes();
+
+
       // Initialize the core Directory Server configuration.
       coreConfigManager = new CoreConfigManager();
       coreConfigManager.initializeCoreConfig();
@@ -1450,10 +1454,6 @@ public class DirectoryServer
 
       // Initialize all the SASL mechanism handlers.
       initializeSASLMechanisms();
-
-
-      // Initialize all the virtual attribute handlers.
-      initializeVirtualAttributes();
 
 
       // Initialize all the connection handlers
