@@ -64,6 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.server.NdbBackendCfg;
 import org.opends.server.admin.std.server.NdbIndexCfg;
 import org.opends.server.backends.SchemaBackend;
@@ -581,13 +582,18 @@ public class BackendImpl
         operationalAttributes.add(attrName);
       }
     }
+
     // Strip virtual attributes.
     for (VirtualAttributeRule rule :
       DirectoryServer.getVirtualAttributes())
     {
-      String attrName = rule.getAttributeType().getNameOrOID();
-      if (operationalAttributes.contains(attrName)) {
-        operationalAttributes.remove(attrName);
+      if (rule.getConflictBehavior() ==
+        VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL)
+      {
+        String attrName = rule.getAttributeType().getNameOrOID();
+        if (operationalAttributes.contains(attrName)) {
+          operationalAttributes.remove(attrName);
+        }
       }
     }
 
