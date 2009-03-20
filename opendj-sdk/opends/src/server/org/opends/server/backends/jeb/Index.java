@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -1342,7 +1342,8 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
       throws DatabaseException
   {
-    HashMap<byte[], Boolean> modifiedKeys = new HashMap<byte[], Boolean>();
+    TreeMap<byte[], Boolean> modifiedKeys =
+      new TreeMap<byte[], Boolean>(indexer.getComparator());
 
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
     for (Map.Entry<byte[], Boolean> modifiedKey : modifiedKeys.entrySet())
