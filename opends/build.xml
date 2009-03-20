@@ -466,6 +466,21 @@
 
     <getsvnrevision property="REVISION_NUMBER" />
 
+    <!-- Get the url repo of the current Subversion workspace -->
+    <taskdef name="getsvnurlrepo"
+             classname="org.opends.build.tools.GetSubversionUrlRepo">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${svnkit.dir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getsvnurlrepo property="URL_REPOSITORY" />
+
 
     <!-- Construct the version number string -->
     <taskdef name="getversionnumber"
@@ -484,7 +499,7 @@
       Be warned that the .stubs file references the following properties
       PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
       VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
-      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,
+      java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,URL_REPOSITORY,
       WEAVE_ENABLED, VERSION_NUMBER_STRING
       If you change the name of any of those properties in this build.xml
       you'll need to reflect the same change in the .stubs file
