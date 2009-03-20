@@ -911,7 +911,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -935,7 +935,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -974,7 +974,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -999,7 +999,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1043,7 +1043,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1068,7 +1068,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1152,7 +1152,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1177,7 +1177,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1218,7 +1218,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1243,7 +1243,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1287,7 +1287,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1312,7 +1312,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1396,7 +1396,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1421,7 +1421,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1462,7 +1462,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1487,7 +1487,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1531,7 +1531,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1556,7 +1556,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1640,7 +1640,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1665,7 +1665,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1707,7 +1707,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1733,7 +1733,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -1777,7 +1777,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -1802,7 +1802,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -3267,7 +3267,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -3328,7 +3328,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -3405,7 +3405,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'dn: uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
     
@@ -3485,7 +3485,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -3568,7 +3568,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -3652,7 +3652,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -3736,7 +3736,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -3820,7 +3820,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -3903,7 +3903,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -3987,7 +3987,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -4072,7 +4072,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0,
+                'expectedRC'     : 1,
                 'knownIssue'     : '3723'
               }
             </call>
@@ -4158,7 +4158,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1,
+                'expectedRC'     : 0,
                 'knownIssue'     : '3723'
               }
             </call>
@@ -4244,7 +4244,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1,
+                'expectedRC'     : 0,
                 'knownIssue'     : '3723'
               }
             </call>
@@ -4365,7 +4365,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 1
+                'expectedRC'     : 0
               }
             </call>
             
@@ -4446,7 +4446,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
@@ -4565,7 +4565,7 @@
             <call function="'searchString'">
               { 'returnString'   : returnString ,
                 'expectedString' : 'uid=tmorris,ou=People',
-                'expectedRC'     : 0
+                'expectedRC'     : 1
               }
             </call>
             
