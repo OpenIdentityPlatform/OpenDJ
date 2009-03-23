@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.extensions;
@@ -44,6 +44,8 @@ import javax.security.sasl.RealmCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
+
+import org.ietf.jgss.GSSException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
@@ -297,14 +299,13 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      * @throws SaslException If the SASL server cannot evaluate the byte array.
      */
     private ByteString evaluateResponse(ByteString response)
-      throws SaslException
-    {
+      throws SaslException  {
       if (response == null)
-      {
         response = ByteString.empty();
-      }
-      return ByteString.wrap(saslServer.evaluateResponse(
-          response.toByteArray()));
+      byte[] evalResponse = saslServer.evaluateResponse(response.toByteArray());
+      if(evalResponse == null)
+        return ByteString.empty();
+      else return ByteString.wrap(evalResponse);
     }
 
 
@@ -750,13 +751,17 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
        if(saslServer == null) {
            try {
                initSASLServer();
-           } catch (SaslException e) {
-               if (debugEnabled()) {
-                   TRACER.debugCaught(DebugLogLevel.ERROR, e);
-               }
-               Message msg =
-                   ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_DIGEST_MD5,
-                                                     getExceptionMessage(e));
+           } catch (SaslException ex) {
+               if (debugEnabled())
+                   TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+               Message msg;
+               GSSException gex = (GSSException) ex.getCause();
+               if(gex != null)
+                 msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
+                     GSSAPISASLMechanismHandler.getGSSExceptionMessage(gex));
+               else
+                  msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
+                                                     getExceptionMessage(ex));
                clientConn.setSASLAuthStateInfo(null);
                bindOp.setAuthFailureReason(msg);
                bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
