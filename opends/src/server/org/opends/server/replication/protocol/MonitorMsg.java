@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -186,7 +186,6 @@ public class MonitorMsg extends RoutableMsg
     if (reader.get() != MSG_TYPE_REPL_SERVER_MONITOR)
       throw new DataFormatException("input is not a valid " +
           this.getClass().getCanonicalName());
-    int pos = 1;
 
     // sender
     this.senderID = reader.getShort();

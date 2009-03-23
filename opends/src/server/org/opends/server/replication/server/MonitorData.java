@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -193,7 +193,7 @@ public class MonitorData
     }
 
     // Computes the missing changes counters for RS :
-    // Sum the difference of seqnuence numbers for each element in the States.
+    // Sum the difference of sequence numbers for each element in the States.
 
     for (short lsiSid : RSStates.keySet())
     {
@@ -390,4 +390,50 @@ public class MonitorData
     }
   }
 
+  /**
+   * Returns an iterator on the serverId of the Replicas for which
+   * we have monitoring data.
+   *
+   * @return The iterator.
+   */
+  public Iterator<Short> ldapIterator()
+  {
+    return LDAPStates.keySet().iterator();
+  }
+
+  /**
+   * Returns an iterator on the serverId of the Replication Servers for which
+   * we have monitoring data.
+   *
+   * @return The iterator.
+   */
+  public Iterator<Short> rsIterator()
+  {
+    return RSStates.keySet().iterator();
+  }
+
+  /**
+   * Get the state of the RS server with the provided serverId.
+   *
+   * @param serverId The server ID.
+   * @return The server state.
+   */
+  public ServerState getRSStates(short serverId)
+  {
+    return RSStates.get(serverId);
+  }
+
+  /**
+   * Get an approximation of the date of the first missing update.
+   *
+   * @param serverId The server ID.
+   * @return The date.
+   */
+  public long getRSApproxFirstMissingDate(short serverId)
+  {
+    Long res;
+    if ((res = fmRSDate.get(serverId)) != null)
+      return res;
+    return 0;
+  }
 }
