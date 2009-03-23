@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1213,8 +1213,9 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
               {
                 try
                 {
-                  controller.setConnections(getInfo().getDirContext(),
-                        getInfo().getUserDataDirContext());
+                  controller.setConnections(getInfo().getServerDescriptor(),
+                      getInfo().getDirContext(),
+                      getInfo().getUserDataDirContext());
                   applyButtonClicked();
                 }
                 catch (NamingException ne)
