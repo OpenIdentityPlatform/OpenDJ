@@ -1427,6 +1427,58 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           errorMsg.getDetails()));
       } else if (msg instanceof MonitorRequestMsg)
       {
+        // If the request comes from a Directory Server we need to
+        // build the full list of all servers in the topology
+        // and send back a MonitorMsg with the full list of all the servers
+        // in the topology.
+        if (senderHandler.isLDAPserver())
+        {
+          MonitorMsg returnMsg =
+            new MonitorMsg(msg.getDestination(), msg.getsenderID());
+          try
+          {
+            returnMsg.setReplServerDbState(getDbServerState());
+            // Update the information we have about all servers
+            // in the topology.
+            MonitorData md = computeMonitorData();
+
+            // Add the informations about the Replicas currently in
+            // the topology.
+            Iterator<Short> it = md.ldapIterator();
+            while (it.hasNext())
+            {
+              short replicaId = it.next();
+              returnMsg.setServerState(
+                  replicaId, md.getLDAPServerState(replicaId),
+                  md.getApproxFirstMissingDate(replicaId), true);
+            }
+
+            // Add the informations about the Replication Servers
+            // currently in the topology.
+            it = md.rsIterator();
+            while (it.hasNext())
+            {
+              short replicaId = it.next();
+              returnMsg.setServerState(
+                  replicaId, md.getRSStates(replicaId),
+                  md.getRSApproxFirstMissingDate(replicaId), false);
+            }
+          }
+          catch (DirectoryException e)
+          {
+            // If we can't compute the Monitor Information, send
+            // back an empty message.
+          }
+          try
+          {
+            senderHandler.send(returnMsg);
+          } catch (IOException e)
+          {
+            // the connection was closed.
+          }
+          return;
+        }
+
         MonitorRequestMsg replServerMonitorRequestMsg =
           (MonitorRequestMsg) msg;
 

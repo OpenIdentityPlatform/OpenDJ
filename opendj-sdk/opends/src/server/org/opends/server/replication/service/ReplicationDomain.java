@@ -64,6 +64,7 @@ import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -89,6 +90,8 @@ import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
+import org.opends.server.replication.protocol.MonitorMsg;
+import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -287,7 +290,7 @@ public abstract class ReplicationDomain
   // Indicates the date when the status changed. This may be used to indicate
   // the date the session with the current replication server started (when
   // status is NORMAL for instance). All the above assured monitoring fields
-  // are also resetted each time the status is changed
+  // are also reset each time the status is changed
   private Date lastStatusChangeDate = new Date();
 
   /**
@@ -300,6 +303,20 @@ public abstract class ReplicationDomain
    * for this domain.
    */
   private final ChangeNumberGenerator generator;
+
+  /**
+   * This object is used as a conditional event to be notified about
+   * the reception of monitor information from the Replication Server.
+   */
+  private Object monitorResponse = new Object();
+
+
+  /**
+   * A Map containing of the ServerStates of all the replicas in the topology
+   * as seen by the ReplicationServer the last time it was polled.
+   */
+  private Map<Short, ServerState> replicaStates =
+    new HashMap<Short, ServerState>();
 
   /**
    * Returns the {@link ChangeNumberGenerator} that will be used to
@@ -549,6 +566,35 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Gets the States of all the Replicas currently in the
+   * Topology.
+   * When this method is called, a Monitoring message will be sent
+   * to the Replication to which this domain is currently connected
+   * so that it computes a table containing information about
+   * all Directory Servers in the topology.
+   * This Computation involves communications will all the servers
+   * currently connected and
+   *
+   * @return The States of all Replicas in the topology (except us)
+   */
+  public Map<Short, ServerState> getReplicaStates()
+  {
+    // publish Monitor Request Message to the Replication Server
+    broker.publish(new MonitorRequestMsg(serverID, broker.getRsServerId()));
+
+    // wait for Response up to 10 seconds.
+    try
+    {
+      synchronized (monitorResponse)
+      {
+        monitorResponse.wait(10000);
+      }
+    } catch (InterruptedException e)
+    {}
+    return replicaStates;
+  }
+
+  /**
    * Gets the info for RSs in the topology (except the one we are connected
    * to).
    * @return The info for RSs in the topology (except the one we are connected
@@ -775,6 +821,25 @@ public abstract class ReplicationDomain
           generator.adjust(((UpdateMsg) msg).getChangeNumber());
           update = (UpdateMsg) msg;
           generator.adjust(update.getChangeNumber());
+        }
+        else if (msg instanceof MonitorMsg)
+        {
+          // This is the response to a MonitorRequest that was sent earlier
+          // build the replicaStates Map.
+          replicaStates = new HashMap<Short, ServerState>();
+          MonitorMsg monitorMsg = (MonitorMsg) msg;
+          Iterator<Short> it = monitorMsg.ldapIterator();
+          while (it.hasNext())
+          {
+            short serverId = it.next();
+            replicaStates.put(
+                serverId, monitorMsg.getLDAPServerState(serverId));
+          }
+          // Notify the sender that the response was received.
+          synchronized (monitorResponse)
+          {
+            monitorResponse.notify();
+          }
         }
       }
       catch (SocketTimeoutException e)
