@@ -522,14 +522,14 @@
             '%s Postamble Step 1. Admin Resetting password-validator' % msg
             </message>
 
-            <call function="'modifyPwdPolicy'">
+            <call function="'modifyPwdValidator'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator' ,
-                    'attributeValue'         : 'Character Set' ,
-                    'modifyType'             : 'remove' }
+                    'propertyName'           : 'Character Set' ,
+                    'attributeName'          : 'enabled' ,
+                    'attributeValue'         : 'false' ,
+                    'modifyType'             : 'set' }
             </call>
             
             <!--- User Change Password -->
