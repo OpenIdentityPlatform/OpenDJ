@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.util;
 
@@ -1214,7 +1214,7 @@ public class Utils
     try
     {
       line = reader.readLine();
-      File instanceLoc =  new File (line);
+      File instanceLoc =  new File (line.trim());
       if (instanceLoc.isAbsolute())
       {
         return instanceLoc.getAbsolutePath();
