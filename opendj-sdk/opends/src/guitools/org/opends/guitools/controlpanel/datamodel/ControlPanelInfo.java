@@ -889,9 +889,7 @@ public class ControlPanelInfo
         {
           if (port > 0)
           {
-            url = sProtocol +"://"+
-            ConnectionUtils.getHostNameForLdapUrl(
-                server.getHostname())+":"+port;
+            url = sProtocol +"://localhost:"+port;
           }
         }
         else
@@ -924,9 +922,7 @@ public class ControlPanelInfo
     SortedSet<InetAddress> addresses = desc.getAddresses();
     if (addresses.size() == 0) {
       if (port > 0) {
-        url = "ldaps://" +
-          ConnectionUtils.getHostNameForLdapUrl(
-          server.getHostname()) + ":" + port;
+        url = "ldaps://localhost:" + port;
       }
     } else {
       if (port > 0) {

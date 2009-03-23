@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -57,6 +57,7 @@ import javax.swing.tree.TreePath;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
 import org.opends.guitools.controlpanel.event.BrowserEventListener;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
@@ -174,14 +175,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Set the connection for accessing the directory.  Since we must use
    * different controls when searching the configuration and the user data,
    * two connections must be provided (this is done to avoid synchronization
-   * issues).
+   * issues).  We also pass the server descriptor corresponding to the
+   * connections to have a proper rendering of the root node.
+   * @param server the server descriptor.
    * @param ctxConfiguration the connection to be used to retrieve the data in
    * the configuration base DNs.
    * @param ctxUserData the connection to be used to retrieve the data in the
    * user base DNs.
    * @throws NamingException if an error occurs.
    */
-  public void setConnections(InitialLdapContext ctxConfiguration,
+  public void setConnections(
+      ServerDescriptor server,
+      InitialLdapContext ctxConfiguration,
       InitialLdapContext ctxUserData) throws NamingException {
     String rootNodeName;
     if (ctxConfiguration != null)
@@ -192,7 +197,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       this.ctxConfiguration.setRequestControls(
           getConfigurationRequestControls());
       this.ctxUserData.setRequestControls(getRequestControls());
-      rootNodeName = ConnectionUtils.getHostName(ctxConfiguration) + ":" +
+      rootNodeName = server.getHostname() + ":" +
       ConnectionUtils.getPort(ctxConfiguration);
     }
     else {
