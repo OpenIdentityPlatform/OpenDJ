@@ -310,6 +310,33 @@
                     'attributeValue'         : 'Dictionary' ,
                     'modifyType'             : 'remove' }
             </call>
+
+            <call function="'modifyPwdValidator'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Dictionary' ,
+                    'attributeName'          : 'enabled' ,
+                    'attributeValue'         : 'false' ,
+                    'modifyType'             : 'set' }
+            </call>
+
+            <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'list-password-validators' ,
+                    'expectedRC'           : 0 }
+            </call>
+
+            <script>
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'dictionary          : false' }
+            </call>
             
             <!--- User Change Password -->
             <message>
@@ -322,7 +349,7 @@
                     'dsInstanceDn'           : 'dn:uid=abergin,%s' % basedn ,
                     'dsInstancePswd'         : 'tcilfni' ,
                     'dsAuthzID'              : 'dn:uid=abergin, %s' % basedn,
-                    'dsNewPassword'          : 'zymochemistry'  }
+                    'dsNewPassword'          : 'chemistry'  }
             </call>
             
             <message>
