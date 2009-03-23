@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -52,7 +52,9 @@ import javax.security.auth.login.LoginException;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 
+import org.ietf.jgss.GSSException;
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   GSSAPISASLMechanismHandlerCfgDefn.QualityOfProtection;
@@ -129,27 +131,14 @@ public class GSSAPISASLMechanismHandler extends
   @Override()
   public void initializeSASLMechanismHandler(
       GSSAPISASLMechanismHandlerCfg configuration) throws ConfigException,
-      InitializationException
-  {
-    configuration.addGSSAPIChangeListener(this);
-    this.configuration = configuration;
-    configEntryDN = configuration.dn();
-    try
-    {
-      DN identityMapperDN = configuration.getIdentityMapperDN();
-      identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-      serverFQDN = getFQDN(configuration);
-      Message msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
-      logError(msg);
-      saslProps = new HashMap<String, String>();
-      saslProps.put(Sasl.QOP, getQOP(configuration));
-      saslProps.put(Sasl.REUSE, "false");
-      String configFileName = configureLoginConfFile(configuration);
-      System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
-      System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
-      getKdcRealm(configuration);
+      InitializationException {
+    try {
+      initialize(configuration);
       DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI, this);
-      login();
+      configuration.addGSSAPIChangeListener(this);
+      this.configuration = configuration;
+      Message msg = INFO_GSSAPI_STARTED.get();
+      logError(msg);
     }
     catch (UnknownHostException unhe)
     {
@@ -305,8 +294,8 @@ public class GSSAPISASLMechanismHandler extends
    *           If the configuration file cannot be created.
    */
   private String configureLoginConfFile(
-      GSSAPISASLMechanismHandlerCfg configuration) throws IOException
-  {
+      GSSAPISASLMechanismHandlerCfg configuration)
+  throws IOException, InitializationException {
     String configFileName;
     File tempFile = File.createTempFile("login", "conf");
     configFileName = tempFile.getAbsolutePath();
@@ -315,27 +304,28 @@ public class GSSAPISASLMechanismHandler extends
     w.write(getClass().getName() + " {");
     w.newLine();
     w.write("  com.sun.security.auth.module.Krb5LoginModule required "
-        + "storeKey=true useKeyTab=true ");
-    String keyTabFile = configuration.getKeytab();
-    if (keyTabFile != null)
-    {
-      w.write("keyTab=\"" + keyTabFile + "\" ");
+        + "storeKey=true useKeyTab=true doNotPrompt=true ");
+    String keyTabFilePath = configuration.getKeytab();
+    if(keyTabFilePath == null) {
+      String home = System.getProperty("user.home");
+      String sep = System.getProperty("file.separator");
+      keyTabFilePath = home+sep+"krb5.keytab";
     }
+    File keyTabFile = new File(keyTabFilePath);
+    if(!keyTabFile.exists()) {
+      Message msg = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
+      throw new InitializationException(msg);
+    }
+    w.write("keyTab=\"" + keyTabFile + "\" ");
     StringBuilder principal = new StringBuilder();
     String principalName = configuration.getPrincipalName();
     String realm = configuration.getRealm();
     if (principalName != null)
-    {
       principal.append("principal=\"" + principalName);
-    }
     else
-    {
       principal.append("principal=\"ldap/" + serverFQDN);
-    }
     if (realm != null)
-    {
       principal.append("@" + realm);
-    }
     w.write(principal.toString());
     Message msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
     logError(msg);
@@ -354,14 +344,23 @@ public class GSSAPISASLMechanismHandler extends
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeSASLMechanismHandler()
-  {
+  public void finalizeSASLMechanismHandler() {
     logout();
+    if(configuration != null)
     configuration.removeGSSAPIChangeListener(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
+    clearProperties();
+    Message msg = INFO_GSSAPI_STOPPED.get();
+    logError(msg);
   }
 
 
+private void clearProperties() {
+  System.clearProperty(KRBV_PROPERTY_KDC);
+  System.clearProperty(KRBV_PROPERTY_REALM);
+  System.clearProperty(JAAS_PROPERTY_CONFIG_FILE);
+  System.clearProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY);
+}
 
   /**
    * {@inheritDoc}
@@ -379,10 +378,8 @@ public class GSSAPISASLMechanismHandler extends
     }
     ClientConnection clientConn = bindOp.getClientConnection();
     SASLContext saslContext = (SASLContext) clientConn.getSASLAuthStateInfo();
-    if (saslContext == null)
-    {
-      try
-      {
+    if (saslContext == null) {
+      try {
         //If the connection is secure already (i.e., TLS), then make the
         //receive buffers sizes match.
         if(clientConn.isSecure()) {
@@ -396,15 +393,18 @@ public class GSSAPISASLMechanismHandler extends
           saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
                                   SASL_MECHANISM_GSSAPI, identityMapper);
         }
-      }
-      catch (SaslException ex)
-      {
+      } catch (SaslException ex) {
         if (debugEnabled())
-        {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message msg;
+        GSSException gex = (GSSException) ex.getCause();
+        if(gex != null) {
+          msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
+              getGSSExceptionMessage(gex));
+        } else {
+          msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
+              getExceptionMessage(ex));
         }
-        Message msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
-            getExceptionMessage(ex));
         clientConn.setSASLAuthStateInfo(null);
         bindOp.setAuthFailureReason(msg);
         bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -415,6 +415,26 @@ public class GSSAPISASLMechanismHandler extends
   }
 
 
+  /**
+   * Get the underlying GSSException messages that really tell what the
+   * problem is. The major code is the GSS-API status and the minor is the
+   * mechanism specific error.
+   *
+   * @param gex The GSSExcption thrown.
+   *
+   * @return The message containing the major and (optional) minor codes and
+   *         strings.
+   */
+  public static Message getGSSExceptionMessage(GSSException gex) {
+    MessageBuilder message = new MessageBuilder();
+    message.append("major code (" + Integer.valueOf(gex.getMajor()).toString()
+                  + ") " +  gex.getMajorString());
+    if(gex.getMinor() != 0)
+      message.append(", minor code (" +
+                      Integer.valueOf(gex.getMinor()).toString()
+                       +  ") "  + gex.getMinorString());
+    return message.toMessage();
+  }
 
   /**
    * Retrieves the user account for the user associated with the
@@ -472,9 +492,9 @@ public class GSSAPISASLMechanismHandler extends
   public boolean isConfigurationAcceptable(
       SASLMechanismHandlerCfg configuration, List<Message> unacceptableReasons)
   {
-    GSSAPISASLMechanismHandlerCfg config =
+    GSSAPISASLMechanismHandlerCfg newConfig =
       (GSSAPISASLMechanismHandlerCfg) configuration;
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+    return isConfigurationChangeAcceptable(newConfig, unacceptableReasons);
   }
 
 
@@ -483,10 +503,56 @@ public class GSSAPISASLMechanismHandler extends
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      GSSAPISASLMechanismHandlerCfg configuration,
-      List<Message> unacceptableReasons)
-  {
-    return true;
+      GSSAPISASLMechanismHandlerCfg newConfiguration,
+      List<Message> unacceptableReasons) {
+    boolean returnCode = true;
+    boolean newStateEnabled = newConfiguration.isEnabled();
+    boolean oldStateEnabled = false;
+    if(this.configuration != null)
+      oldStateEnabled = configuration.isEnabled();
+    if(newStateEnabled) {
+      try {
+       if(oldStateEnabled)
+         finalizeSASLMechanismHandler();
+       initialize(newConfiguration);
+       finalizeSASLMechanismHandler();
+      } catch (InitializationException ex) {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message message = ex.getMessageObject();
+        unacceptableReasons.add(message);
+        clearProperties();
+        returnCode = false;
+      } catch (UnknownHostException ex) {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+            .valueOf(configEntryDN), getExceptionMessage(ex));
+        unacceptableReasons.add(message);
+        clearProperties();
+        returnCode = false;
+      } catch (IOException ex) {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
+            .get(getExceptionMessage(ex));
+        unacceptableReasons.add(message);
+        clearProperties();
+        returnCode = false;
+      } catch (LoginException ex) {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
+            .get(getExceptionMessage(ex));
+        unacceptableReasons.add(message);
+        clearProperties();
+        returnCode = false;
+      }
+    } else {
+      if(oldStateEnabled)
+       this.finalizeSASLMechanismHandler();
+    }
+    return returnCode;
   }
 
 
@@ -495,23 +561,41 @@ public class GSSAPISASLMechanismHandler extends
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      GSSAPISASLMechanismHandlerCfg configuration)
-  {
+      GSSAPISASLMechanismHandlerCfg configuration) {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper<?> newIdentityMapper = DirectoryServer
-        .getIdentityMapper(identityMapperDN);
-    identityMapper = newIdentityMapper;
-    saslProps = new HashMap<String, String>();
-    saslProps.put(Sasl.QOP, getQOP(configuration));
-    saslProps.put(Sasl.REUSE, "false");
-    this.configuration = configuration;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-
+/**
+ * Try to initialize the GSSAPI mechanism handler with the specified config.
+ *
+ * @param config The configuration to use.
+ *
+ * @throws UnknownHostException If a host name does not resolve.
+ * @throws IOException If there was a problem creating the login file.
+ * @throws LoginException If the context could not login.
+ * @throws InitializationException If the keytab file does not exist.
+ */
+private void initialize(GSSAPISASLMechanismHandlerCfg config)
+throws UnknownHostException, IOException,
+       LoginException, InitializationException {
+    configEntryDN = config.dn();
+    DN identityMapperDN = config.getIdentityMapperDN();
+    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+    serverFQDN = getFQDN(config);
+    Message msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
+    logError(msg);
+    saslProps = new HashMap<String, String>();
+    saslProps.put(Sasl.QOP, getQOP(config));
+    saslProps.put(Sasl.REUSE, "false");
+    String configFileName = configureLoginConfFile(config);
+    System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
+    System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
+    getKdcRealm(config);
+    login();
+}
 
   /**
    * Retrieves the QOP (quality-of-protection) from the specified
