@@ -159,7 +159,8 @@ if test ${MUST_STOP_USING_SYSTEM_CALL} -eq 0
 then
   if test -f "${INSTANCE_ROOT}/logs/server.pid"
   then
-    kill `cat "${INSTANCE_ROOT}/logs/server.pid"`
+    read PID < "${INSTANCE_ROOT}/logs/server.pid"
+    kill ${PID}
     EXIT_CODE=${?}
     if test ${EXIT_CODE} -eq 0
     then

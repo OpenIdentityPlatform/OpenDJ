@@ -205,7 +205,7 @@ then
           exit 0
 	fi
       fi
-      INSTANCE_ROOT=`cat /etc/opends/instance.loc`
+      read INSTANCE_ROOT <  /etc/opends/instance.loc
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
       then
@@ -220,12 +220,17 @@ then
   else
     if [ -f ${INSTALL_ROOT}/instance.loc ]
     then
-      if cat ${INSTALL_ROOT}/instance.loc | grep '^/' > /dev/null
-      then
-         INSTANCE_ROOT=`cat ${INSTALL_ROOT}/instance.loc`
-      else
-         INSTANCE_ROOT=${INSTALL_ROOT}/`cat ${INSTALL_ROOT}/instance.loc`
-      fi
+      read location < ${INSTALL_ROOT}/instance.loc
+      case `echo ${location}` in
+           /*)
+              INSTANCE_ROOT=${location}
+              break
+              ;;
+           *)
+              INSTANCE_ROOT=${INSTALL_ROOT}/${location}
+              break
+              ;;
+      esac
     else
          INSTANCE_ROOT=${INSTALL_ROOT}
     fi
