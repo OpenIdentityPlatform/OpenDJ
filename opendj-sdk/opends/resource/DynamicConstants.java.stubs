@@ -129,7 +129,7 @@ public final class DynamicConstants
   /**
    * The Subversion url repository location on which this build is based.
    */
-  public static final String URL_REPOSITORY = 
+  public static final String URL_REPOSITORY =
       "${URL_REPOSITORY}";
 
   /**
