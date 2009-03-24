@@ -258,8 +258,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param suffixDn the DN of the suffix to be analyzed.
    * @return <CODE>true</CODE> if the provided String is the DN of a suffix
    * and <CODE>false</CODE> otherwise.
+   * @throws IllegalArgumentException if a node with the given dn exists but
+   * is not a suffix node.
    */
-  public boolean hasSuffix(String suffixDn) {
+  public boolean hasSuffix(String suffixDn)
+  throws IllegalArgumentException
+  {
     return (findSuffixNode(suffixDn, rootNode) != null);
   }
 
@@ -270,8 +274,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param parentSuffixDn the DN of the parent suffix (or <CODE>null</CODE> if
    * there is no parent DN).
    * @return the TreePath of the new node.
+   * @throws IllegalArgumentException if a node with the given dn exists.
    */
-  public TreePath addSuffix(String suffixDn, String parentSuffixDn) {
+  public TreePath addSuffix(String suffixDn, String parentSuffixDn)
+  throws IllegalArgumentException
+  {
     SuffixNode parentNode;
     if (parentSuffixDn != null) {
       parentNode = findSuffixNode(parentSuffixDn, rootNode);
@@ -1926,8 +1933,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param suffixNode the node from which we start searching.
    * @return the SuffixNode associated with the provided DN.  <CODE>null</CODE>
    * if nothing is found.
+   * @throws IllegalArgumentException if a node with the given dn exists but
+   * is not a suffix node.
    */
-  SuffixNode findSuffixNode(String suffixDn, SuffixNode suffixNode) {
+  SuffixNode findSuffixNode(String suffixDn, SuffixNode suffixNode)
+  throws IllegalArgumentException
+  {
     SuffixNode result;
 
     if (Utilities.areDnsEqual(suffixNode.getDN(), suffixDn)) {
