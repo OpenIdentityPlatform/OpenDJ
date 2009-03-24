@@ -664,6 +664,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
     setPrimaryValid(lFilter);
     String s = getBaseDN();
     boolean displayAll = false;
+    DN theDN = null;
     if (s != null)
     {
       displayAll = s.equals(ALL_BASE_DNS);
@@ -671,7 +672,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
       {
         try
         {
-          DN.decode(s);
+          theDN = DN.decode(s);
         }
         catch (Throwable t)
         {
@@ -712,6 +713,10 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
         {
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {
+            if ((theDN != null) && baseDN.getDn().equals(theDN))
+            {
+              isBaseDN = true;
+            }
             String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
             if (displayAll)
             {
@@ -720,7 +725,6 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
             else if (s.equals(dn))
             {
               controller.addSuffix(dn, null);
-              isBaseDN = true;
             }
           }
         }
@@ -1331,16 +1335,22 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
                 }
                 if (baseDN.getEntries() > 0)
                 {
-                  if (!controller.hasSuffix(dn))
+                  try
                   {
-                    if (displayAll)
+                    if (!controller.hasSuffix(dn))
                     {
-                      controller.addSuffix(dn, null);
+                      if (displayAll || isBaseDN)
+                      {
+                        controller.addSuffix(dn, null);
+                      }
                     }
-                    else if (s.equals(dn))
-                    {
-                      controller.addSuffix(dn, null);
-                    }
+                  }
+                  catch (IllegalArgumentException iae)
+                  {
+                    // The suffix node exists but is not a suffix node.
+                    // Simply log a message.
+                    LOG.log(Level.WARNING, "Suffix: "+dn+
+                        " added as a non suffix node. Exception: "+iae, iae);
                   }
                 }
               }
