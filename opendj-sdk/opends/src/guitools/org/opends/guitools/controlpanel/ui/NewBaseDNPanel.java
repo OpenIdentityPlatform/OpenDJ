@@ -475,6 +475,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     Set<BackendDescriptor> backendObjects = desc.getBackends();
 
     Object o = backends.getSelectedItem();
+    String backendName = String.valueOf(o);
     if (o == null)
     {
       errors.add(ERR_CTRL_PANEL_NO_BACKENDS_SELECTED.get());
@@ -482,7 +483,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
     else if (o.equals(NEW_BACKEND))
     {
-      String backendName = newBackend.getText().trim();
+      backendName = newBackend.getText().trim();
       if (backendName.length() == 0)
       {
         errors.add(ERR_NEW_BACKEND_NAME_REQUIRED.get());
@@ -529,19 +530,25 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
             else if (baseDN.getDn().isAncestorOf(theDN))
             {
-              errors.add(ERR_BASE_DN_ANCESTOR_EXISTS.get(
-                  baseDN.getDn().toString()));
-              setPrimaryInvalid(lDirectoryBaseDN);
-              baseDNAlreadyDefined = true;
-              break;
+              if (backendName.equalsIgnoreCase(backend.getBackendID()))
+              {
+                errors.add(ERR_BASE_DN_ANCESTOR_EXISTS.get(
+                    baseDN.getDn().toString()));
+                setPrimaryInvalid(lDirectoryBaseDN);
+                baseDNAlreadyDefined = true;
+                break;
+              }
             }
             else if (theDN.isAncestorOf(baseDN.getDn()))
             {
-              errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(
-                  baseDN.getDn().toString()));
-              setPrimaryInvalid(lDirectoryBaseDN);
-              baseDNAlreadyDefined = true;
-              break;
+              if (backendName.equalsIgnoreCase(backend.getBackendID()))
+              {
+                errors.add(ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(
+                    baseDN.getDn().toString()));
+                setPrimaryInvalid(lDirectoryBaseDN);
+                baseDNAlreadyDefined = true;
+                break;
+              }
             }
           }
           if (baseDNAlreadyDefined)
