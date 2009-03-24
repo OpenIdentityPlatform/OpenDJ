@@ -3233,6 +3233,7 @@
                 the topology -->
               <!-- If the trees don't match, we may have come across Issue 3401
                (RFE: Solve naming conflict of 2 adds with same dn, different
+               attr value) -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, server1, [server2], synchroSuffix,
                   '3401' ]
