@@ -857,12 +857,14 @@
               <message>
                 '++++ Check search return %s' % descDefaultValue
               </message>
-              <call function="'CheckMatches'">
-                { 'string2find' : '%s' % descDefaultValue,
-                'mainString'    : ldapsearchReturn,
-                'nbExpected'    : 1
+              <call function="'searchString'">
+                {
+                'expectedString' : '%s' % descDefaultValue ,
+                'returnString'   : ldapsearchReturn ,
+                'knownIssue'     : '3779'
                 }
               </call>
+
               <!-- ========================================= -->
               <message>
                 '++++ Check search return %s' % attributeValue
