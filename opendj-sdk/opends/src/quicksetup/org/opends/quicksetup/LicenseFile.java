@@ -64,11 +64,8 @@ public class LicenseFile {
     }
     else
     {
-      // NOTE: make a whole reference to the package of DirectoryServer
-      // instead of using an import clause.  Using an import breaks the
-      // Java Web Start installer.
-      String installRootFromSystem =
-        org.opends.server.core.DirectoryServer.getServerRoot();
+
+      String installRootFromSystem = System.getProperty("INSTALL_ROOT");
 
       if (installRootFromSystem == null) {
         installRootFromSystem = System.getenv("INSTALL_ROOT");
