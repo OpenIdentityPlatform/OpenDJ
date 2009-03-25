@@ -44,6 +44,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
+import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -657,7 +658,7 @@ public class LDAPSearch
     StringArgument    proxyAuthzID             = null;
     StringArgument    pSearchInfo              = null;
     StringArgument    saslOptions              = null;
-    StringArgument    searchScope              = null;
+    MultiChoiceArgument searchScope              = null;
     StringArgument    sortOrder                = null;
     StringArgument    trustStorePath           = null;
     StringArgument    trustStorePassword       = null;
@@ -748,11 +749,18 @@ public class LDAPSearch
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
-      searchScope = new StringArgument(
+      HashSet<String> allowedScopes = new HashSet<String>();
+      allowedScopes.add("base");
+      allowedScopes.add("one");
+      allowedScopes.add("sub");
+      allowedScopes.add("subordinate");
+      searchScope = new MultiChoiceArgument(
               "searchScope", 's', "searchScope", false,
-              false, true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), null, null,
+              true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), allowedScopes,
+              false,
               INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
       searchScope.setPropertyName("searchScope");
+      searchScope.setDefaultValue("sub");
       argParser.addArgument(searchScope);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
@@ -1043,7 +1051,6 @@ public class LDAPSearch
     }
     catch (ArgumentException ae)
     {
-
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
