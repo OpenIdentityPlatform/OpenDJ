@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.crypto;
 
@@ -2884,7 +2884,13 @@ public class CryptoManagerImpl
     }
 
     final Cipher cipher = getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
-    return cipher.doFinal(data, readIndex, data.length - readIndex);
+    if(data.length - readIndex > 0)
+          return cipher.doFinal(data, readIndex, data.length - readIndex);
+    else {
+      //IBM Java 6 throws an IllegalArgumentException when there's n
+      // data to process.
+      return cipher.doFinal();
+    }
   }
 
 
