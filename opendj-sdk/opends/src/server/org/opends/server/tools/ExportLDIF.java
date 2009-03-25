@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -53,6 +53,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.CLIException;
 
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
@@ -328,6 +329,13 @@ public class ExportLDIF extends TaskTool {
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
+      return 1;
+    }
+    catch (CLIException ce)
+    {
+      // No need to display the usage since the problem comes with a provided
+      // value.
+      err.println(wrapText(ce.getMessageObject(), MAX_LINE_WIDTH));
       return 1;
     }
 

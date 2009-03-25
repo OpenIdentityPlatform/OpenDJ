@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -32,6 +32,8 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.ArgumentGroup;
+import org.opends.server.util.cli.CLIException;
+
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
@@ -233,12 +235,21 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * called after the <code>ArgumentParser.parseArguments</code> has
    * been called.
    *
-   * @throws ArgumentException if there is a problem with the arguments
+   * @throws ArgumentException if there is a problem with the arguments.
+   * @throws CLIException if there is a problem with one of the values provided
+   * by the user.
    */
-  protected void validateTaskArgs() throws ArgumentException {
+  protected void validateTaskArgs() throws ArgumentException, CLIException {
     if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
       try {
-        StaticUtils.parseDateTimeString(startArg.getValue());
+        Date date = StaticUtils.parseDateTimeString(startArg.getValue());
+        // Check that the provided date is not previous to the current date.
+        Date currentDate = new Date(System.currentTimeMillis());
+        if (currentDate.after(date))
+        {
+          throw new CLIException(ERR_START_DATETIME_ALREADY_PASSED.get(
+              startArg.getValue()));
+        }
       } catch (ParseException pe) {
         throw new ArgumentException(ERR_START_DATETIME_FORMAT.get());
       }
