@@ -120,16 +120,16 @@ public class LDAPSearchOptions extends LDAPToolOptions
       {
         searchScope = WHOLE_SUBTREE;
       }
-      else if(scope.equals("base"))
+      else if(scope.equalsIgnoreCase("base"))
       {
         searchScope = BASE_OBJECT;
-      } else if(scope.equals("one"))
+      } else if(scope.equalsIgnoreCase("one"))
       {
         searchScope = SINGLE_LEVEL;
-      } else if (scope.equals("sub"))
+      } else if (scope.equalsIgnoreCase("sub"))
       {
         searchScope = WHOLE_SUBTREE;
-      } else if (scope.equals("subordinate"))
+      } else if (scope.equalsIgnoreCase("subordinate"))
       {
         searchScope = SUBORDINATE_SUBTREE;
       } else
