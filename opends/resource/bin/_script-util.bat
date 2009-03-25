@@ -57,10 +57,10 @@ goto scriptBegin
 
 :setClassPath
 if "%SET_CLASSPATH_DONE%" == "true" goto end
-FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+FOR %%x in ("%INSTALL_ROOT%\resources\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 :setClassPathDone
 set SET_CLASSPATH_DONE=true

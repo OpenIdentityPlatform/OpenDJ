@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.snmp;
 
@@ -233,7 +233,9 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor = this.getSnmpAdaptor(this.currentConfig);
 
             if (this.snmpAdaptor == null) {
-                throw new Exception();
+               Exception ex = new Exception(
+                    ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
+               throw ex;
             }
 
             // Create the Usm MIB to allow user management
@@ -298,9 +300,6 @@ public class SNMPClassLoaderProvider {
             this.server.registerMBean(this.snmpAdaptor, snmpObjName);
 
         } catch (Exception ex) {
-            if (debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
             throw new Exception(
                     ERR_SNMP_CONNHANDLER_BAD_CONFIGURATION.get().toString());
         }
