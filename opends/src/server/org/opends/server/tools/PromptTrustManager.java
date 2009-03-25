@@ -163,13 +163,19 @@ public class PromptTrustManager
       {
         System.out.print(prompt);
         String line = reader.readLine().toLowerCase();
-        if (line.equals("y") || line.equals("yes"))
+        if (line.equalsIgnoreCase(
+            INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString()) ||
+            line.equalsIgnoreCase(
+            INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString()))
         {
           // Returning without an exception is sufficient to consider the
           // certificate trusted.
           return;
         }
-        else if (line.equals("n") || line.equals("no"))
+        if (line.equalsIgnoreCase(
+            INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString()) ||
+            line.equalsIgnoreCase(
+            INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString()))
         {
           Message message = ERR_PROMPTTM_USER_REJECTED.get();
           throw new CertificateException(message.toString());
