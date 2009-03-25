@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -920,7 +920,7 @@ public class CertificateManagerTestCase
   public void testGenerateCSRAliasInUse()
          throws Exception
   {
-    if (! CERT_MANAGER_AVAILABLE)
+    if (! CERT_MANAGER_AVAILABLE || Platform.isVendor("IBM"))
     {
       return;
     }
@@ -1002,7 +1002,7 @@ public class CertificateManagerTestCase
   public void testGenerateCSRInvalidSubject()
          throws Exception
   {
-    if (! CERT_MANAGER_AVAILABLE)
+    if (! CERT_MANAGER_AVAILABLE || Platform.isVendor("IBM"))
     {
       return;
     }
@@ -1037,7 +1037,7 @@ public class CertificateManagerTestCase
   public void testGenerateCSRJKS()
          throws Exception
   {
-    if (! CERT_MANAGER_AVAILABLE)
+    if (! CERT_MANAGER_AVAILABLE || Platform.isVendor("IBM"))
     {
       return;
     }
@@ -1068,7 +1068,7 @@ public class CertificateManagerTestCase
   public void testGenerateCSRPKCS12()
          throws Exception
   {
-    if (! CERT_MANAGER_AVAILABLE)
+    if (! CERT_MANAGER_AVAILABLE || Platform.isVendor("IBM"))
     {
       return;
     }

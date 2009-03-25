@@ -44,6 +44,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 
+import org.opends.server.util.Platform;
+
 
 /**
  * This class is in charge of checking whether the certificates that are
@@ -79,6 +81,13 @@ public class ApplicationKeyManager implements X509KeyManager
       System.getProperty("org.opends.admin.keymanageralgo");
     String userSpecifiedProvider =
       System.getProperty("org.opends.admin.keymanagerprovider");
+
+    //Handle IBM specific cases if the user did not specify a algorithm and/or
+    //provider.
+    if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+      userSpecifiedAlgo = "IbmX509";
+    if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
+      userSpecifiedProvider = "IBMJSEE2";
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,

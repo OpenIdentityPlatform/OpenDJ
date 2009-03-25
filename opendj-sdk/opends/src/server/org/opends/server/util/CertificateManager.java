@@ -24,59 +24,33 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
+
 package org.opends.server.util;
 
-
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.File;
-import java.io.OutputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
+import java.io.*;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
-import org.opends.server.types.OperatingSystem;
+import org.opends.messages.Message;
+import static org.opends.messages.UtilityMessages.*;
 
 
 /**
  * This class provides an interface for generating self-signed certificates and
  * certificate signing requests, and for importing, exporting, and deleting
- * certificates from a key store.  It supports JKS, JCEKS PKCS11, and PKCS12 key
- * store types.
+ * certificates from a key store.  It supports JKS, PKCS11, and PKCS12 key store
+ * types.
  * <BR><BR>
- * Note that for some operations, particularly those that require updating the
- * contents of a key store (including generating certificates and/or certificate
- * signing  requests, importing certificates, or removing certificates), this
- * class relies on the keytool utility provided with Sun's implementation of the
- * Java runtime  environment.  It will perform the associated operations by
- * invoking the appropriate command.  It is possible that the keytool command
- * will not exist in all Java runtime environments, especially those not created
- * by Sun.  In those cases, it will not be possible to invoke operations that
- * require altering the contents of the key store.  Therefore, it is strongly
- * recommended that any code that may want to make use of this facility should
- * first call {@code mayUseCertificateManager} and if it returns {@code false}
- * the caller should gracefully degrade and suggest that the user perform the
- * operation manually.
+   This code uses the Platform class to perform all of the certificate
+    management.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class CertificateManager
-{
-  /**
-   * The path to the keytool command, which will be required to perform
-   * operations that modify the contents of a key store.
-   */
-  public static final String KEYTOOL_COMMAND;
-
-
+public final class CertificateManager {
 
   /**
    * The key store type value that should be used for the "JKS" key store.
@@ -93,14 +67,10 @@ public final class CertificateManager
    */
   public static final String KEY_STORE_TYPE_PKCS11 = "PKCS11";
 
-
-
   /**
    * The key store type value that should be used for the "PKCS12" key store.
    */
   public static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
-
-
 
   /**
    * The key store path value that must be used in conjunction with the PKCS11
@@ -108,70 +78,32 @@ public final class CertificateManager
    */
   public static final String KEY_STORE_PATH_PKCS11 = "NONE";
 
-
-
+  //Error message strings.
+  private static final String KEYSTORE_PATH_MSG = "key store path";
+  private static final String KEYSTORE_TYPE_MSG = "key store type";
+  private static final String KEYSTORE_PWD_MSG = "key store password";
+  private static final String SUBJECT_DN_MSG = "subject DN";
+  private static final String CERT_ALIAS_MSG = "certificate alias";
+  private static final String CERT_REQUEST_FILE_MSG =
+                                                    "certificate request file";
   // The parsed key store backing this certificate manager.
   private KeyStore keyStore;
 
-  // The password that should be used to interact with the key store.
-  private String keyStorePIN;
-
   // The path to the key store that we should be using.
-  private String keyStorePath;
+  private final String keyStorePath;
 
   // The name of the key store type we are using.
-  private String keyStoreType;
+  private final String keyStoreType;
 
-
-
-  static
-  {
-    String keytoolCommand = null;
-
-    try
-    {
-      String cmd = System.getProperty("java.home") + File.separator + "bin" +
-                   File.separator + "keytool";
-      File cmdFile = new File(cmd);
-      if (cmdFile.exists())
-      {
-        keytoolCommand = cmdFile.getAbsolutePath();
-      }
-      else
-      {
-        cmd = cmd + ".exe";
-        cmdFile = new File(cmd);
-        if (cmdFile.exists())
-        {
-          keytoolCommand = cmdFile.getAbsolutePath();
-        }
-        else
-        {
-          keytoolCommand = null;
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      keytoolCommand = null;
-    }
-
-    KEYTOOL_COMMAND = SetupUtils.getScriptPath(keytoolCommand);
-  }
-
-
+  private final char[] password;
 
   /**
-   * Indicates whether it is possible to use this certificate manager code to
-   * perform operations which may alter the contents of a key store.
+   * Always return true.
    *
-   * @return  {@code true} if it appears that the keytool utility is available
-   *          and may be used to execute commands that may alter the contents of
-   *          a key store, or {@code false} if not.
+   * @return  This always returns true;
    */
-  public static boolean mayUseCertificateManager()
-  {
-    return (KEYTOOL_COMMAND != null);
+  public static boolean mayUseCertificateManager() {
+    return true;
   }
 
 
@@ -192,89 +124,49 @@ public final class CertificateManager
    *                       {@code KEY_STORE_TYPE_JCEKS},
    *                       {@code KEY_STORE_TYPE_PKCS11}, or
    *                       {@code KEY_STORE_TYPE_PKCS12}.
-   * @param  keyStorePIN   The PIN required to access the key store.  It must
-   *                       not be {@code null}.
+   * @param  keyStorePassword   The password required to access the key store.
+   *                         It must not be {@code null}.
+   * @throws IllegalArgumentException If an argument is invalid or {@code null}.
    *
-   * @throws  IllegalArgumentException  If any of the provided arguments is
-   *                                    invalid.
-   *
-   * @throws  NullPointerException  If any of the provided arguments is
-   *                                {@code null}.
-   *
-   * @throws  UnsupportedOperationException  If it is not possible to use the
-   *                                         certificate manager on the
-   *                                         underlying platform.
    */
   public CertificateManager(String keyStorePath, String keyStoreType,
-                            String keyStorePIN)
-         throws IllegalArgumentException, NullPointerException,
-                UnsupportedOperationException
-  {
-    if ((keyStorePath == null) || (keyStorePath.length() == 0))
-    {
-      throw new NullPointerException("keyStorePath");
-    }
-    else if ((keyStoreType == null) || (keyStoreType.length() == 0))
-    {
-      throw new NullPointerException("keyStoreType");
-    }
-    else if ((keyStorePIN == null) || (keyStorePIN.length() == 0))
-    {
-      throw new NullPointerException("keyStorePIN");
-    }
-
-
-    if (keyStoreType.equals(KEY_STORE_TYPE_PKCS11))
-    {
-      if (! keyStorePath.equals(KEY_STORE_PATH_PKCS11))
-      {
-        // FIXME -- Make this an internationalizeable string.
-        throw new IllegalArgumentException("Invalid key store path for " +
-                                           "PKCS11 keystore -- it must be " +
-                                           KEY_STORE_PATH_PKCS11);
+                            String keyStorePassword)
+  throws IllegalArgumentException {
+    ensureValid(keyStorePath, KEYSTORE_PATH_MSG);
+    ensureValid(keyStoreType, KEYSTORE_TYPE_MSG);
+    ensureValid(keyStorePassword, KEYSTORE_PWD_MSG);
+    if (keyStoreType.equals(KEY_STORE_TYPE_PKCS11)) {
+      if (! keyStorePath.equals(KEY_STORE_PATH_PKCS11)) {
+        Message msg =
+          ERR_CERTMGR_INVALID_PKCS11_PATH.get(KEY_STORE_PATH_PKCS11);
+        throw new IllegalArgumentException(msg.toString());
       }
-    }
-    else if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+    } else if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
         keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
-             keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
-    {
+        keyStoreType.equals(KEY_STORE_TYPE_PKCS12)) {
       File keyStoreFile = new File(keyStorePath);
-      if (keyStoreFile.exists())
-      {
-        if (! keyStoreFile.isFile())
-        {
-          // FIXME -- Make this an internationalizeable string.
-          throw new IllegalArgumentException("Key store path " + keyStorePath +
-                                             " exists but is not a file.");
+      if (keyStoreFile.exists()) {
+        if (! keyStoreFile.isFile()) {
+          Message msg = ERR_CERTMGR_INVALID_KEYSTORE_PATH.get(keyStorePath);
+          throw new IllegalArgumentException(msg.toString());
         }
-      }
-      else
-      {
-        File keyStoreDirectory = keyStoreFile.getParentFile();
+      } else {
+        final File keyStoreDirectory = keyStoreFile.getParentFile();
         if ((keyStoreDirectory == null) || (! keyStoreDirectory.exists()) ||
-            (! keyStoreDirectory.isDirectory()))
-        {
-          // FIXME -- Make this an internationalizeable string.
-          throw new IllegalArgumentException("Parent directory for key " +
-                         "store path " + keyStorePath + " does not exist or " +
-                         "is not a directory.");
+            (! keyStoreDirectory.isDirectory())) {
+          Message msg = ERR_CERTMGR_INVALID_PARENT.get(keyStorePath);
+          throw new IllegalArgumentException(msg.toString());
         }
       }
+    } else {
+      Message msg =  ERR_CERTMGR_INVALID_STORETYPE.get(
+          KEY_STORE_TYPE_JKS, KEY_STORE_TYPE_JCEKS,
+          KEY_STORE_TYPE_PKCS11, KEY_STORE_TYPE_PKCS12);
+      throw new IllegalArgumentException(msg.toString());
     }
-    else
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("Invalid key store type -- it must " +
-                  "be one of " + KEY_STORE_TYPE_JKS + ", " +
-                  "be one of " + KEY_STORE_TYPE_JCEKS + ", " +
-                  KEY_STORE_TYPE_PKCS11 + ", or " + KEY_STORE_TYPE_PKCS12);
-    }
-
-
     this.keyStorePath = keyStorePath;
     this.keyStoreType = keyStoreType;
-    this.keyStorePIN  = keyStorePIN;
-
+    this.password  = keyStorePassword.toCharArray();
     keyStore = null;
   }
 
@@ -291,25 +183,13 @@ public final class CertificateManager
    *
    * @throws  KeyStoreException  If a problem occurs while attempting to
    *                             interact with the key store.
-   *
-   * @throws  NullPointerException  If the provided alias is {@code null} or a
-   *                                zero-length string.
    */
-  public boolean aliasInUse(String alias)
-         throws KeyStoreException, NullPointerException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
-    }
-
-
+  public boolean aliasInUse(final String alias)
+  throws KeyStoreException {
+    ensureValid(alias, CERT_ALIAS_MSG);
     KeyStore keyStore = getKeyStore();
     if (keyStore == null)
-    {
       return false;
-    }
-
     return keyStore.containsAlias(alias);
   }
 
@@ -324,28 +204,17 @@ public final class CertificateManager
    * @throws  KeyStoreException  If a problem occurs while attempting to
    *                             interact with the key store.
    */
-  public String[] getCertificateAliases()
-         throws KeyStoreException
-  {
+  public String[] getCertificateAliases() throws KeyStoreException {
+    Enumeration<String> aliasEnumeration = null;
     KeyStore keyStore = getKeyStore();
     if (keyStore == null)
-    {
       return null;
-    }
-
-    Enumeration<String> aliasEnumeration = keyStore.aliases();
+    aliasEnumeration = keyStore.aliases();
     if (aliasEnumeration == null)
-    {
       return new String[0];
-    }
-
     ArrayList<String> aliasList = new ArrayList<String>();
     while (aliasEnumeration.hasMoreElements())
-    {
       aliasList.add(aliasEnumeration.nextElement());
-    }
-
-
     String[] aliases = new String[aliasList.size()];
     return aliasList.toArray(aliases);
   }
@@ -362,29 +231,20 @@ public final class CertificateManager
    *          certificate does not exist.
    *
    * @throws  KeyStoreException  If a problem occurs while interacting with the
-   *                             key store, or the key store does not exist.
-   *
-   * @throws  NullPointerException  If the provided alias is {@code null} or a
-   *                                zero-length string.
+   *                             key store, or the key store does not exist..
    */
-  public Certificate getCertificate(String alias)
-         throws KeyStoreException, NullPointerException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
+  public Certificate  getCertificate(String alias)
+  throws KeyStoreException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    Certificate cert = null;
+    KeyStore ks = getKeyStore();
+    if (ks == null) {
+      Message msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+      throw new KeyStoreException(msg.toString());
     }
-
-    KeyStore keyStore = getKeyStore();
-    if (keyStore == null)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new KeyStoreException("The key store does not exist.");
-    }
-
-    return keyStore.getCertificate(alias);
+    cert = ks.getCertificate(alias);
+    return cert;
   }
-
 
 
   /**
@@ -398,88 +258,29 @@ public final class CertificateManager
    * @param  validity   The length of time in days that the certificate should
    *                    be valid, starting from the time the certificate is
    *                    generated.  It must be a positive integer value.
-   *
-   * @throws  IllegalArgumentException  If the validity is not positive.
-   *
    * @throws  KeyStoreException  If a problem occurs while actually attempting
    *                             to generate the certificate in the key store.
-   *
-   * @throws  NullPointerException  If either the alias or subject DN is null or
-   *                                a zero-length string.
-   *
-   * @throws  UnsupportedOperationException  If it is not possible to use the
-   *                                         keytool utility to alter the
-   *                                         contents of the key store.
+   *@throws IllegalArgumentException If the validity parameter is not a
+   *                                 positive integer, or the alias is already
+   *                                 in the keystore.
    */
   public void generateSelfSignedCertificate(String alias, String subjectDN,
                                             int validity)
-         throws KeyStoreException, IllegalArgumentException,
-                NullPointerException, UnsupportedOperationException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
+  throws KeyStoreException, IllegalArgumentException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    ensureValid(subjectDN, SUBJECT_DN_MSG);
+    if (validity <= 0) {
+      Message msg = ERR_CERTMGR_VALIDITY.get(validity);
+      throw new IllegalArgumentException(msg.toString());
     }
-    else if ((subjectDN == null) || (subjectDN.length() == 0))
-    {
-      throw new NullPointerException("subjectDN");
+    if (aliasInUse(alias)) {
+      Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+      throw new IllegalArgumentException(msg.toString());
     }
-    else if (validity <= 0)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("The validity must be positive.");
-    }
-
-    if (KEYTOOL_COMMAND == null)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new UnsupportedOperationException("The certificate manager may " +
-                     "not be used to alter the contents of key stores on " +
-                     "this system.");
-    }
-
-    if (aliasInUse(alias))
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("A certificate with alias " + alias +
-                                         " already exists in the key store.");
-    }
-
-
-    // Clear the reference to the key store, since it will be altered by
-    // invoking the KeyTool command.
     keyStore = null;
-
-    // First, we need to run with the "-genkey" command to create the private
-    // key.
-    String[] commandElements =
-    {
-      KEYTOOL_COMMAND,
-      getGenKeyCommand(),
-      "-alias", alias,
-      "-dname", subjectDN,
-      "-keyalg", "rsa",
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
-
-    // Next, we need to run with the "-selfcert" command to self-sign the
-    // certificate.
-    commandElements = new String[]
-    {
-      KEYTOOL_COMMAND,
-      "-selfcert",
-      "-alias", alias,
-      "-sigalg", "SHA256withRSA",
-      "-validity", String.valueOf(validity),
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    Platform.generateSelfSignedCertificate(getKeyStore(), keyStoreType,
+        keyStorePath, alias, password, subjectDN, validity);
   }
-
-
 
   /**
    * Generates a certificate signing request (CSR) using the provided
@@ -497,82 +298,21 @@ public final class CertificateManager
    *                             to generate the private key in the key store or
    *                             generate the certificate signing request based
    *                             on that key.
-   *
-   * @throws  IOException  If a problem occurs while attempting to create the
-   *                       file to which the certificate signing request will be
-   *                       written.
-   *
-   * @throws  NullPointerException  If either the alias or subject DN is null or
-   *                                a zero-length string.
-   *
-   * @throws  UnsupportedOperationException  If it is not possible to use the
-   *                                         keytool utility to alter the
-   *                                         contents of the key store.
+   *@throws IllegalArgumentException If the alias already exists in the
+   *                                 keystore.
    */
-  public File generateCertificateSigningRequest(String alias, String subjectDN)
-         throws KeyStoreException, IOException, NullPointerException,
-                UnsupportedOperationException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
+  public File
+  generateCertificateSigningRequest(final String alias, final String subjectDN)
+  throws KeyStoreException, IllegalArgumentException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    ensureValid(subjectDN, SUBJECT_DN_MSG);
+    if (aliasInUse(alias)) {
+      Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+      throw new IllegalArgumentException(msg.toString());
     }
-    else if ((subjectDN == null) || (subjectDN.length() == 0))
-    {
-      throw new NullPointerException("subjectDN");
-    }
-
-    if (KEYTOOL_COMMAND == null)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new UnsupportedOperationException("The certificate manager may " +
-                     "not be used to alter the contents of key stores on " +
-                     "this system.");
-    }
-
-    if (aliasInUse(alias))
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("A certificate with alias " + alias +
-                                         " already exists in the key store.");
-    }
-
-
-    // Clear the reference to the key store, since it will be altered by
-    // invoking the KeyTool command.
     keyStore = null;
-
-
-    // First, we need to run with the "-genkey" command to create the private
-    // key.
-    String[] commandElements =
-    {
-      KEYTOOL_COMMAND,
-      getGenKeyCommand(),
-      "-alias", alias,
-      "-dname", subjectDN,
-      "-keyalg", "rsa",
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
-
-    // Next, we need to run with the "-certreq" command to generate the
-    // certificate signing request.
-    File csrFile = File.createTempFile("CertificateManager-", ".csr");
-    csrFile.deleteOnExit();
-    commandElements = new String[]
-    {
-      KEYTOOL_COMMAND,
-      "-certreq",
-      "-alias", alias,
-      "-file", csrFile.getAbsolutePath(),
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
-
-    return csrFile;
+    return Platform.generateCertificateRequest(getKeyStore(), keyStoreType,
+        keyStorePath, alias, password, subjectDN);
   }
 
 
@@ -586,68 +326,25 @@ public final class CertificateManager
    *                          be {@code null} or empty.
    * @param  certificateFile  The file containing the encoded certificate.  It
    *                          must not be {@code null}, and the file must exist.
-   *
-   * @throws  IllegalArgumentException  If the provided certificate file does
-   *                                    not exist.
-   *
+
    * @throws  KeyStoreException  If a problem occurs while interacting with the
    *                             key store.
    *
-   * @throws  NullPointerException  If the provided alias is {@code null} or a
-   *                                zero-length string, or the certificate file
-   *                                is {@code null}.
-   *
-   * @throws  UnsupportedOperationException  If it is not possible to use the
-   *                                         keytool utility to alter the
-   *                                         contents of the key store.
+   *@throws IllegalArgumentException If the certificate file is not valid.
    */
   public void addCertificate(String alias, File certificateFile)
-         throws IllegalArgumentException, KeyStoreException,
-                NullPointerException, UnsupportedOperationException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
+  throws  KeyStoreException, IllegalArgumentException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    ensureFileValid(certificateFile, CERT_REQUEST_FILE_MSG);
+    if ((! certificateFile.exists()) ||
+        (! certificateFile.isFile())) {
+      Message msg = ERR_CERTMGR_INVALID_CERT_FILE.get(
+          certificateFile.getAbsolutePath());
+      throw new IllegalArgumentException(msg.toString());
     }
-
-    if (certificateFile == null)
-    {
-      throw new NullPointerException("certificateFile");
-    }
-    else if ((! certificateFile.exists()) ||
-             (! certificateFile.isFile()))
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("Certificate file " +
-                                         certificateFile.getAbsolutePath() +
-                                         " does not exist or is not a file.");
-    }
-
-    if (KEYTOOL_COMMAND == null)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new UnsupportedOperationException("The certificate manager may " +
-                     "not be used to alter the contents of key stores on " +
-                     "this system.");
-    }
-
-
-    // Clear the reference to the key store, since it will be altered by
-    // invoking the KeyTool command.
     keyStore = null;
-
-
-    String[] commandElements =
-    {
-      KEYTOOL_COMMAND,
-      "-import",
-      "-noprompt",
-      "-alias", alias,
-      "-file", certificateFile.getAbsolutePath(),
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    Platform.addCertificate(getKeyStore(), keyStoreType, keyStorePath, alias,
+        password, certificateFile.getAbsolutePath());
   }
 
 
@@ -658,224 +355,21 @@ public final class CertificateManager
    *                be {@code null} or an empty string, and it must exist in
    *                the key store.
    *
-   * @throws  IllegalArgumentException  If the specified certificate does not
-   *                                    exist in the key store.
-   *
    * @throws  KeyStoreException  If a problem occurs while interacting with the
    *                             key store.
-   *
-   * @throws  NullPointerException  If the provided alias is {@code null} or a
-   *                                zero-length string, or the certificate file
-   *                                is {@code null}.
-   *
-   * @throws  UnsupportedOperationException  If it is not possible to use the
-   *                                         keytool utility to alter the
-   *                                         contents of the key store.
+   *@throws IllegalArgumentException If the alias is in use and cannot be
+   *                                 deleted.
    */
   public void removeCertificate(String alias)
-         throws IllegalArgumentException, KeyStoreException,
-                NullPointerException, UnsupportedOperationException
-  {
-    if ((alias == null) || (alias.length() == 0))
-    {
-      throw new NullPointerException("alias");
+  throws KeyStoreException, IllegalArgumentException {
+    ensureValid(alias, CERT_ALIAS_MSG);
+    if (!aliasInUse(alias)) {
+      Message msg = ERR_CERTMGR_ALIAS_CAN_NOT_DELETE.get(alias);
+      throw new IllegalArgumentException(msg.toString());
     }
-
-    if (KEYTOOL_COMMAND == null)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new UnsupportedOperationException("The certificate manager may " +
-                     "not be used to alter the contents of key stores on " +
-                     "this system.");
-    }
-
-    if (! aliasInUse(alias))
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new IllegalArgumentException("There is no certificate with alias " +
-                                         alias + " in the key store.");
-    }
-
-
-    // Clear the reference to the key store, since it will be altered by
-    // invoking the KeyTool command.
     keyStore = null;
-
-
-    String[] commandElements =
-    {
-      KEYTOOL_COMMAND,
-      "-delete",
-      "-alias", alias,
-      "-keystore", keyStorePath,
-      "-storetype", keyStoreType
-    };
-    runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
+    Platform.deleteAlias(getKeyStore(), keyStorePath, alias, password);
   }
-
-
-
-  /**
-   * Attempts to run the keytool utility with the provided arguments.
-   *
-   * @param  commandElements   The command and arguments to execute.  The first
-   *                           element of the array must be the command, and the
-   *                           remaining elements must be the arguments.
-   * @param  keyStorePassword  The password of the key store.
-   * @param  storePassword     The password of the certificate.
-   * @param  outputAcceptable  Indicates whether it is acceptable for the
-   *                           command to generate output, as long as the exit
-   *                           code is zero.  Some commands (like "keytool
-   *                           -import") may generate output even on successful
-   *                           completion.  If the command generates output and
-   *                           this is {@code false}, then an exception will
-   *                           be thrown.
-   *
-   * @throws  KeyStoreException  If a problem occurs while attempting to invoke
-   *                             the keytool utility, if it does not exit with
-   *                             the expected exit code, or if any unexpected
-   *                             output is generated while running the tool.
-   */
-  private void runKeyTool(String[] commandElements, String keyStorePassword,
-      String storePassword, boolean outputAcceptable)
-          throws KeyStoreException
-  {
-    String lineSeparator = System.getProperty("line.separator");
-    if (lineSeparator == null)
-    {
-      lineSeparator = "\n";
-    }
-    boolean keyStoreDefined;
-    File keyStoreFile = new File(keyStorePath);
-    keyStoreDefined = (keyStoreFile.exists() && (keyStoreFile.length() > 0)) ||
-      KEY_STORE_TYPE_PKCS11.equals(keyStoreType);
-
-    boolean isNewKeyStorePassword = !keyStoreDefined &&
-      (getGenKeyCommand().equalsIgnoreCase(commandElements[1]) ||
-      "-import".equalsIgnoreCase(commandElements[1]));
-
-    boolean isNewStorePassword =
-      getGenKeyCommand().equalsIgnoreCase(commandElements[1]);
-
-    boolean askForStorePassword =
-      !"-import".equalsIgnoreCase(commandElements[1]);
-
-    try
-    {
-      ProcessBuilder processBuilder = new ProcessBuilder(commandElements);
-      processBuilder.redirectErrorStream(true);
-
-      ByteArrayOutputStream output = new ByteArrayOutputStream();
-      byte[] buffer = new byte[1024];
-      Process process = processBuilder.start();
-      InputStream inputStream = process.getInputStream();
-      OutputStream out = process.getOutputStream();
-      if (!isJDK15() &&
-          (SetupUtils.getOperatingSystem() == OperatingSystem.AIX))
-      {
-        // This is required when using JDK 1.6 on AIX to be able to write
-        // on the OutputStream.
-        try
-        {
-          Thread.sleep(1500);
-        } catch (Throwable t) {}
-      }
-      out.write(keyStorePassword.getBytes()) ;
-      out.write(lineSeparator.getBytes()) ;
-      out.flush() ;
-      // With Java6 and above, keytool asks for the password twice.
-      if (!isJDK15() && isNewKeyStorePassword)
-      {
-        if (SetupUtils.getOperatingSystem() == OperatingSystem.AIX)
-        {
-          // This is required when using JDK 1.6 on AIX to be able to write
-          // on the OutputStream.
-          try
-          {
-            Thread.sleep(1500);
-          } catch (Throwable t) {}
-        }
-        out.write(keyStorePassword.getBytes()) ;
-        out.write(lineSeparator.getBytes()) ;
-        out.flush() ;
-      }
-
-      if (askForStorePassword)
-      {
-        out.write(storePassword.getBytes()) ;
-        out.write(lineSeparator.getBytes()) ;
-        out.flush() ;
-
-        // With Java6 and above, keytool asks for the password twice (if we
-        // are not running AIX).
-        if (!isJDK15() && isNewStorePassword &&
-            (SetupUtils.getOperatingSystem() != OperatingSystem.AIX))
-        {
-          out.write(storePassword.getBytes()) ;
-          out.write(lineSeparator.getBytes()) ;
-          out.flush() ;
-        }
-      }
-      // Close the output stream since it can generate a deadlock on IBM JVM
-      // (issue 2795).
-      out.close();
-      while (true)
-      {
-        int bytesRead = inputStream.read(buffer);
-        if (bytesRead < 0)
-        {
-          break;
-        }
-        else if (bytesRead > 0)
-        {
-          output.write(buffer, 0, bytesRead);
-        }
-      }
-      process.waitFor();
-      int exitValue = process.exitValue();
-      byte[] outputBytes = output.toByteArray();
-      if (exitValue != 0)
-      {
-        // FIXME -- Make this an internationalizeable string.
-        StringBuilder message = new StringBuilder();
-        message.append("Unexpected exit code of ");
-        message.append(exitValue);
-        message.append(" returned from the keytool utility.");
-
-        if ((outputBytes != null) && (outputBytes.length > 0))
-        {
-          message.append("  The generated output was:  '");
-          message.append(new String(outputBytes));
-          message.append("'.");
-        }
-
-        throw new KeyStoreException(message.toString());
-      }
-      else if ((! outputAcceptable) && (outputBytes != null) &&
-               (outputBytes.length > 0))
-      {
-        // FIXME -- Make this an internationalizeable string.
-        StringBuilder message = new StringBuilder();
-        message.append("Unexpected output generated by the keytool " +
-                       "utility:  '");
-        message.append(new String(outputBytes));
-        message.append("'.");
-
-        throw new KeyStoreException(message.toString());
-      }
-    }
-    catch (KeyStoreException kse)
-    {
-      throw kse;
-    }
-    catch (Exception e)
-    {
-      // FIXME -- Make this an internationalizeable string.
-      throw new KeyStoreException("Could not invoke the KeyTool.run method:  " +
-                                  e, e);
-    }
-  }
-
 
 
   /**
@@ -888,97 +382,74 @@ public final class CertificateManager
    *                             key store.
    */
   private KeyStore getKeyStore()
-          throws KeyStoreException
+  throws KeyStoreException
   {
-    if (keyStore != null)
-    {
-      return keyStore;
-    }
-
-    // For JKS, JCEKS and PKCS12 key stores, we should make sure the file
-    // exists, and we'll need an input stream that we can use to read it.
-    // For PKCS11 key stores there won't be a file and the input stream should
-    // be null.
-    FileInputStream keyStoreInputStream = null;
-    if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
-        keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
-        keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
-    {
-      File keyStoreFile = new File(keyStorePath);
-      if (! keyStoreFile.exists())
+      if (keyStore != null)
       {
-        return null;
+          return keyStore;
       }
 
+      // For JKS and PKCS12 key stores, we should make sure the file exists, and
+      // we'll need an input stream that we can use to read it.  For PKCS11 key
+      // stores there won't be a file and the input stream should be null.
+      FileInputStream keyStoreInputStream = null;
+      if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
+          keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
+          keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
+      {
+          final File keyStoreFile = new File(keyStorePath);
+          if (! keyStoreFile.exists())
+          {
+              return null;
+          }
+
+          try
+          {
+              keyStoreInputStream = new FileInputStream(keyStoreFile);
+          }
+          catch (final Exception e)
+          {
+              throw new KeyStoreException(String.valueOf(e), e);
+          }
+      }
+
+
+      final KeyStore keyStore = KeyStore.getInstance(keyStoreType);
       try
       {
-        keyStoreInputStream = new FileInputStream(keyStoreFile);
+          keyStore.load(keyStoreInputStream, password);
+          return this.keyStore = keyStore;
       }
-      catch (Exception e)
+      catch (final Exception e)
       {
-        throw new KeyStoreException(String.valueOf(e), e);
+          throw new KeyStoreException(String.valueOf(e), e);
       }
-    }
-
-
-    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-    try
-    {
-      keyStore.load(keyStoreInputStream, keyStorePIN.toCharArray());
-      return this.keyStore = keyStore;
-    }
-    catch (Exception e)
-    {
-      throw new KeyStoreException(String.valueOf(e), e);
-    }
-    finally
-    {
-      if (keyStoreInputStream != null)
+      finally
       {
-        try
-        {
-          keyStoreInputStream.close();
-        }
-        catch (Throwable t)
-        {
-        }
+          if (keyStoreInputStream != null)
+          {
+              try
+              {
+                  keyStoreInputStream.close();
+              }
+              catch (final Throwable t)
+              {
+              }
+          }
       }
+  }
+
+  private static void ensureFileValid(File arg, String msgStr) {
+    if(arg == null) {
+      Message msg = ERR_CERTMGR_FILE_NAME_INVALID.get(msgStr);
+      throw new NullPointerException(msg.toString());
     }
   }
 
-  /**
-   * Returns whether we are running JDK 1.5 or not.
-   * @return <CODE>true</CODE> if we are running JDK 1.5 and <CODE>false</CODE>
-   * otherwise.
-   */
-  private boolean isJDK15()
-  {
-    boolean isJDK15 = false;
-    try
-    {
-      String javaRelease = System.getProperty ("java.version");
-      isJDK15 = javaRelease.startsWith("1.5");
+  private static void ensureValid(String arg, String msgStr) {
+    if(arg == null || arg.length() == 0) {
+     Message msg = ERR_CERTMGR_VALUE_INVALID.get(msgStr);
+      throw new NullPointerException(msg.toString());
     }
-    catch (Throwable t)
-    {
-      System.err.println("Cannot get the java version: " + t);
-    }
-    return isJDK15;
-  }
-
-  private String getGenKeyCommand()
-  {
-    String genKeyCommand;
-    if (!isJDK15())
-    {
-      genKeyCommand = "-genkeypair";
-    }
-    else
-    {
-      genKeyCommand = "-genkey";
-    }
-    return genKeyCommand;
   }
 }
-
-
