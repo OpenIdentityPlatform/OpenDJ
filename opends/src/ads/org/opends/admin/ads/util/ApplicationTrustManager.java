@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2009 Brighton Consulting, Inc.
  */
 
 package org.opends.admin.ads.util;
