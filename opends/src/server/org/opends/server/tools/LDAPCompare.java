@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -933,7 +933,25 @@ public class LDAPCompare
         rdr = new InputStreamReader(System.in);
       } else if(fileNameValue != null)
       {
-        rdr = new FileReader(fileNameValue);
+        try
+        {
+          rdr = new FileReader(fileNameValue);
+        }
+        catch (Throwable t)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, t);
+          }
+          String details = t.getMessage();
+          if (details == null)
+          {
+            details = t.toString();
+          }
+          err.println(wrapText(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(
+              fileNameValue, details), MAX_LINE_WIDTH));
+          return 1;
+        }
       }
       if(rdr != null)
       {
