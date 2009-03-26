@@ -283,7 +283,7 @@ public class Installation {
   public static final String WINDOWS_STATUSCLI_FILE_NAME = "status.bat";
 
   /**
-   * Name of the file kept in the histoy directory containing logs
+   * Name of the file kept in the history directory containing logs
    * of upgrade and reversions.
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
@@ -474,14 +474,29 @@ public class Installation {
   public Installation(File rootDirectory, File instanceDirectory) {
     setRootDirectory(rootDirectory);
     setInstanceDirectory(instanceDirectory);
-    if (rootDirectory.getAbsolutePath().
-        equals(instanceDirectory.getAbsolutePath()))
+    try
     {
-      instanceAndInstallInSameDir = true ;
+      if (rootDirectory.getCanonicalFile().
+          equals(instanceDirectory.getCanonicalFile()))
+      {
+        instanceAndInstallInSameDir = true ;
+      }
+      else
+      {
+        instanceAndInstallInSameDir = false;
+      }
     }
-    else
+    catch (Throwable t)
     {
-      instanceAndInstallInSameDir = false;
+      if (rootDirectory.getAbsolutePath().
+          equals(instanceDirectory.getAbsolutePath()))
+      {
+        instanceAndInstallInSameDir = true ;
+      }
+      else
+      {
+        instanceAndInstallInSameDir = false;
+      }
     }
   }
 
