@@ -3726,6 +3726,10 @@ outerComponentLoop:
         }
         else
         {
+          if (f.subInitialElement == null)
+          {
+            return false;
+          }
           try
           {
             ByteString nSI1 =
@@ -3753,6 +3757,10 @@ outerComponentLoop:
         }
         else
         {
+          if (f.subFinalElement == null)
+          {
+            return false;
+          }
           try
           {
             ByteString nSF1 =

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -30,7 +30,7 @@ package org.opends.server.schema;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -147,7 +147,7 @@ class CaseIgnoreIA5EqualityMatchingRule
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value, buffer, true);
+    prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -44,7 +44,7 @@ public class CaseIgnoreIA5EqualityMatchingRuleTest extends
   public Object[][] createEqualityMatchingRuleInvalidValues()
   {
     return new Object[][] {
-        {"12345678\u2163"},
+        {"12345678\uFFFD"},
     };
   }
 

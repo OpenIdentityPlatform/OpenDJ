@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -61,6 +61,15 @@ public class CaseIgnoreOrderingMatchingRuleTest extends
         {"abcdef", "ABCDEF", 0},
         {"abcdef", "aCcdef", -1},
         {"aCcdef", "abcdef", 1},
+        {"foo\u0020bar\u0020\u0020","foo bar",0},
+        {"test\u00AD\u200D","test",0},
+        {"foo\u070Fbar" ,"foobar",0},
+        //Case-folding data below.
+        {"foo\u0149bar","foo\u02BC\u006Ebar",0},
+        {"foo\u017Bbar", "foo\u017Cbar",0},
+        {"foo\u017Bbar", "goo\u017Cbar",-1},
+        //issue# 3583
+        {"a","\u00f8",-1},
     };
   }
 
