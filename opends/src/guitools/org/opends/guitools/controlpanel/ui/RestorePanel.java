@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -415,6 +415,23 @@ implements BackupCreatedListener
       {
         lastException = t;
         state = State.FINISHED_WITH_ERROR;
+      }
+      HashSet<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
+      for (BackendDescriptor backend :
+        getInfo().getServerDescriptor().getBackends())
+      {
+        for (String backendID : getBackends())
+        {
+          if (backendID.equalsIgnoreCase(backend.getBackendID()))
+          {
+            backends.add(backend);
+            break;
+          }
+        }
+      }
+      if (!backends.isEmpty())
+      {
+        getInfo().backendPopulated(backends);
       }
     }
 

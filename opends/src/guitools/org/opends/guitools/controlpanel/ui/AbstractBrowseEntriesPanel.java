@@ -72,6 +72,7 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -84,6 +85,8 @@ import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
+import org.opends.guitools.controlpanel.event.BackendPopulatedEvent;
+import org.opends.guitools.controlpanel.event.BackendPopulatedListener;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
 import org.opends.guitools.controlpanel.event.BrowserEventListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -109,6 +112,7 @@ import org.opends.server.types.*;
  *
  */
 public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
+implements BackendPopulatedListener
 {
   private JComboBox baseDNs;
   /**
@@ -239,6 +243,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
     }
     super.setInfo(info);
     treePane.setInfo(info);
+    info.addBackendPopulatedListener(this);
   }
 
   /**
@@ -707,28 +712,26 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
       {
         treePane.getTree().setRootVisible(displayAll);
         treePane.getTree().setShowsRootHandles(!displayAll);
-        boolean isBaseDN = false;
+        boolean added = false;
         for (BackendDescriptor backend :
           getInfo().getServerDescriptor().getBackends())
         {
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {
+            boolean isBaseDN = false;
             if ((theDN != null) && baseDN.getDn().equals(theDN))
             {
               isBaseDN = true;
             }
             String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
-            if (displayAll)
+            if (displayAll || isBaseDN)
             {
               controller.addSuffix(dn, null);
-            }
-            else if (s.equals(dn))
-            {
-              controller.addSuffix(dn, null);
+              added = true;
             }
           }
         }
-        if (!isBaseDN && !displayAll)
+        if (!added && !displayAll)
         {
           BasicNode rootNode =
             (BasicNode)controller.getTree().getModel().getRoot();
@@ -839,6 +842,103 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
    * and the buttons panel.
    */
   protected abstract Component createMainPanel();
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void backendPopulated(BackendPopulatedEvent ev)
+  {
+    if (controller.getConfigurationConnection() != null)
+    {
+      boolean displayAll = false;
+      boolean errorOccurred = false;
+      DN theDN = null;
+      String s = getBaseDN();
+      if (s != null)
+      {
+        displayAll = s.equals(ALL_BASE_DNS);
+        if (!displayAll)
+        {
+          try
+          {
+            theDN = DN.decode(s);
+          }
+          catch (Throwable t)
+          {
+            errorOccurred = true;
+          }
+        }
+      }
+      else
+      {
+        errorOccurred = true;
+      }
+      if (!errorOccurred)
+      {
+        treePane.getTree().setRootVisible(displayAll);
+        treePane.getTree().setShowsRootHandles(!displayAll);
+        BasicNode rootNode =
+          (BasicNode)controller.getTree().getModel().getRoot();
+        boolean isSubordinate = false;
+        for (BackendDescriptor backend : ev.getBackends())
+        {
+          for (BaseDNDescriptor baseDN : backend.getBaseDns())
+          {
+            boolean isBaseDN = false;
+            if ((theDN != null) && baseDN.getDn().equals(theDN))
+            {
+              isBaseDN = true;
+            }
+            else if ((theDN != null) && baseDN.getDn().isAncestorOf(theDN))
+            {
+              isSubordinate = true;
+            }
+            String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
+            if (displayAll || isBaseDN)
+            {
+              try
+              {
+                if (!controller.hasSuffix(dn))
+                {
+                  controller.addSuffix(dn, null);
+                }
+                else
+                {
+                  int index = controller.findChildNode(rootNode, dn);
+                  if (index >= 0)
+                  {
+                    TreeNode node = rootNode.getChildAt(index);
+                    if (node != null)
+                    {
+                      TreePath path = new TreePath(
+                          controller.getTreeModel().getPathToRoot(node));
+                      controller.startRefresh(
+                          controller.getNodeInfoFromPath(path));
+                    }
+                  }
+                }
+              }
+              catch (IllegalArgumentException iae)
+              {
+                // The suffix node exists but is not a suffix node.
+                // Simply log a message.
+                LOG.log(Level.WARNING, "Suffix: "+dn+
+                    " added as a non suffix node. Exception: "+iae, iae);
+              }
+            }
+          }
+        }
+        if (isSubordinate)
+        {
+          if (controller.findChildNode(rootNode, s) == -1)
+          {
+            controller.addNodeUnderRoot(s);
+          }
+        }
+      }
+    }
+  }
 
   /**
    * {@inheritDoc}
@@ -1322,12 +1422,13 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
           treePane.getTree().setShowsRootHandles(!displayAll);
           if (s != null)
           {
-            boolean isBaseDN = false;
+            boolean added = false;
             for (BackendDescriptor backend :
               getInfo().getServerDescriptor().getBackends())
             {
               for (BaseDNDescriptor baseDN : backend.getBaseDns())
               {
+                boolean isBaseDN = false;
                 String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
                 if ((theDN != null) && baseDN.getDn().equals(theDN))
                 {
@@ -1337,11 +1438,12 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
                 {
                   try
                   {
-                    if (!controller.hasSuffix(dn))
+                    if (displayAll || isBaseDN)
                     {
-                      if (displayAll || isBaseDN)
+                      if (!controller.hasSuffix(dn))
                       {
                         controller.addSuffix(dn, null);
+                        added = true;
                       }
                     }
                   }
@@ -1354,7 +1456,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
                   }
                 }
               }
-              if (!isBaseDN && !displayAll)
+              if (!added && !displayAll)
               {
                 BasicNode rootNode =
                   (BasicNode)controller.getTree().getModel().getRoot();
