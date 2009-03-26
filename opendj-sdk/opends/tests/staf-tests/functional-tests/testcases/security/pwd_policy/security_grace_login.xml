@@ -74,6 +74,7 @@
        <script>
        listAttrs=[]
        listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
+       listAttrs.append("ds-cfg-allow-expired-password-changes:true")
        listAttrs.append("ds-cfg-min-password-age:1 seconds")
        listAttrs.append("ds-cfg-max-password-age:3 seconds")
        listAttrs.append("ds-cfg-password-expiration-warning-interval:1 seconds")
@@ -609,6 +610,7 @@
             <script>
              listAttrs=[]
              listAttrs.append("ds-cfg-expire-passwords-without-warning:false")
+             listAttrs.append("ds-cfg-allow-expired-password-changes:false")
              listAttrs.append("ds-cfg-max-password-age:0 seconds")
              listAttrs.append("ds-cfg-min-password-age:0 seconds")
              listAttrs.append("ds-cfg-password-expiration-warning-interval:5 d")
