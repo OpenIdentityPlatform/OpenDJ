@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -154,7 +155,7 @@ class CaseExactOrderingMatchingRule
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(value.toString().trim());
+    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)

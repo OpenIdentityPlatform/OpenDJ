@@ -543,49 +543,38 @@ public final class Platform {
     /**
      * Sun 5 JDK platform class.
      */
-    private static class Sun5PlatformIMPL extends PlatformIMPL
-   {
+    private static class Sun5PlatformIMPL extends PlatformIMPL {
        //normalize method.
       private static final Method NORMALIZE;
       //Normalized form method.
       private static final Object FORM_NFKC;
 
-      static
-      {
+      static {
         Method normalize = null;
         Object formNFKC = null;
-        try
-        {
+        try {
           Class<?> normalizer = Class.forName("sun.text.Normalizer");
           formNFKC = normalizer.getField("DECOMP_COMPAT").get(null);
           Class<?> normalizerForm = Class.forName("sun.text.Normalizer$Mode");
           normalize = normalizer.getMethod("normalize", String.class,
                  normalizerForm, Integer.TYPE);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
         // Do not use Normalizer. The values are already set to null.
         }
       NORMALIZE = normalize;
       FORM_NFKC = formNFKC;
      }
 
-     private Sun5PlatformIMPL()
-     {
-       super();
-     }
 
       @Override
-      public void normalize(StringBuilder buffer)
-      {
-        try
-        {
+      public void normalize(StringBuilder buffer) {
+        try {
           String normal =
                (String) NORMALIZE.invoke(null, buffer.toString(), FORM_NFKC,0);
           buffer.replace(0,buffer.length(),normal);
         }
-        catch(Exception ex)
-        {
+        catch(Exception ex) {
           //Don't do anything. buffer should be used.
         }
       }
@@ -594,48 +583,38 @@ public final class Platform {
     /**
      * Default platform class.
      */
-     private static class DefaultPlatformIMPL extends PlatformIMPL
-   {
+     private static class DefaultPlatformIMPL extends PlatformIMPL {
        //normalize method.
       private static final Method NORMALIZE;
       //Normalized form method.
       private static final Object FORM_NFKC;
 
-      static
-      {
+      static {
+
         Method normalize = null;
         Object formNFKC = null;
-        try
-        {
+        try {
           Class<?> normalizer = Class.forName("java.text.Normalizer");
           Class<?> normalizerForm = Class.forName("java.text.Normalizer$Form");
           normalize = normalizer.getMethod("normalize", CharSequence.class,
                 normalizerForm);
           formNFKC = normalizerForm.getField("NFKD").get(null);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
         // Do not use Normalizer. The values are already set to null.
         }
         NORMALIZE = normalize;
         FORM_NFKC = formNFKC;
      }
 
-     private DefaultPlatformIMPL()
-     {
-       super();
-     }
 
       @Override
-      public void normalize(StringBuilder buffer)
-      {
-        try
-        {
+      public void normalize(StringBuilder buffer) {
+        try {
           String normal = (String) NORMALIZE.invoke(null, buffer, FORM_NFKC);
           buffer.replace(0,buffer.length(),normal);
         }
-        catch(Exception ex)
-        {
+        catch(Exception ex) {
           //Don't do anything. buffer should be used.
         }
       }
@@ -644,15 +623,10 @@ public final class Platform {
    /**
     * IBM JDK 5 platform class.
     */
-   private static class IBM5PlatformIMPL extends PlatformIMPL
-   {
-   private IBM5PlatformIMPL()
-     {
-       super();
-     }
+   private static class IBM5PlatformIMPL extends PlatformIMPL {
+
     @Override
-    public void normalize(StringBuilder buffer)
-    {
+    public void normalize(StringBuilder buffer) {
       //No implementation.
     }
    }
@@ -662,8 +636,7 @@ public final class Platform {
     *
     * @param buffer The buffer to normalize.
     */
-   public static void normalize(StringBuilder buffer)
-   {
+   public static void normalize(StringBuilder buffer) {
      IMPL.normalize(buffer);
    }
 

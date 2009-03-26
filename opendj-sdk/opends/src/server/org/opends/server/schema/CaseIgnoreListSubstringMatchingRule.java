@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -142,7 +142,7 @@ class CaseIgnoreListSubstringMatchingRule
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(value, buffer, true);
+    prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)
@@ -210,7 +210,7 @@ class CaseIgnoreListSubstringMatchingRule
     // normalizing a full value with the exception that it may include an
     // opening or trailing space.
     StringBuilder buffer = new StringBuilder();
-    toLowerCase(substring, buffer, false);
+    prepareUnicode(buffer, substring, false, CASE_FOLD);
 
     int bufferLength = buffer.length();
     if (bufferLength == 0)

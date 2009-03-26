@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -38,6 +38,7 @@ import static org.testng.Assert.fail;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.Platform;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -222,10 +223,13 @@ public final class TestRDN extends TypesTestCase {
         { "CN=James \\\"Jim\\\" Smith\\, III",
             "cn=james \\\"jim\\\" smith\\, iii",
             "CN=James \\\"Jim\\\" Smith\\, III" },
-        { "CN=Before\\0dAfter", "cn=before\\0dafter",
+            //\0d is a hex representation of Carriage return. It is mapped
+             //to a SPACE as defined in the MAP ( RFC 4518)
+        { "CN=Before\\0dAfter", "cn=before after",
             "CN=Before\\0dAfter" },
         { "1.3.6.1.4.1.1466.0=#04024869",
-            "1.3.6.1.4.1.1466.0=\\04\\02hi",
+            //Unicode codepoints from 0000-0008 are mapped to nothing.
+            "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107",
             "CN=Lu\u010di\u0107" },
@@ -237,7 +241,8 @@ public final class TestRDN extends TypesTestCase {
         { "AB-global=", "ab-global=", "AB-global=" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
-            "1.3.6.1.4.1.1466.0=\\04\\02hi",
+            //Unicode codepoints from 0000-0008 are mapped to nothing.
+            "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "O=\"Sue, Grabbit and Runn\"", "o=sue\\, grabbit and runn",
             "O=Sue\\, Grabbit and Runn" }, };
@@ -261,7 +266,10 @@ public final class TestRDN extends TypesTestCase {
   public void testDecodeString(String rawRDN, String normRDN,
       String stringRDN) throws Exception {
     RDN rdn = RDN.decode(rawRDN);
-    assertEquals(rdn.toNormalizedString(), normRDN);
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(normRDN);
+    Platform.normalize(buffer);
+    assertEquals(rdn.toNormalizedString(), buffer.toString());
   }
 
 

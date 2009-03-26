@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -312,12 +312,12 @@ public final class TestStaticUtils extends UtilTestCase {
         { new byte[] { 0x00 }, new byte[] { 0x00 }, 0 },
         { new byte[] { 0x01 }, new byte[] { 0x00 }, 1 },
         { new byte[] { 0x7f }, new byte[] { 0x00 }, 1 },
-        { new byte[] { (byte) 0x80 }, new byte[] { 0x00 }, -1 },
-        { new byte[] { (byte) 0xff }, new byte[] { 0x00 }, -1 },
+        { new byte[] { (byte) 0x80 }, new byte[] { 0x00 }, 1 },
+        { new byte[] { (byte) 0xff }, new byte[] { 0x00 }, 1 },
         { new byte[] { 0x00 }, new byte[] { 0x01 }, -1 },
         { new byte[] { 0x00 }, new byte[] { 0x7f }, -1 },
-        { new byte[] { 0x00 }, new byte[] { (byte) 0x80 }, 1 },
-        { new byte[] { 0x00 }, new byte[] { (byte) 0xff }, 1 },
+        { new byte[] { 0x00 }, new byte[] { (byte) 0x80 }, -1 },
+        { new byte[] { 0x00 }, new byte[] { (byte) 0xff }, -1 },
         { new byte[] { 0x00, 0x01, 0x02 },
             new byte[] { 0x00, 0x01, 0x02 }, 0 },
         { new byte[] { 0x00, 0x01 }, new byte[] { 0x00, 0x01, 0x02 },

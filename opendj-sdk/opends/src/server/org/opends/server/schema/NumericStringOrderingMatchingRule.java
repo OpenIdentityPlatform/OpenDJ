@@ -31,6 +31,7 @@ package org.opends.server.schema;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.schema.StringPrepProfile.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -158,41 +159,46 @@ class NumericStringOrderingMatchingRule
   public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
-    String        valueString = value.toString();
-    int           valueLength = valueString.length();
-    StringBuilder valueBuffer = new StringBuilder(valueLength);
+    StringBuilder buffer = new StringBuilder();
+    prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+    int bufferLength = buffer.length();
 
     boolean logged = false;
-    for (int i=0; i < valueLength; i++)
+    for (int pos = bufferLength-1; pos > 0; pos--)
     {
-      char c = valueString.charAt(i);
-      if (isDigit(c))
+      char c = buffer.charAt(pos);
+      if (!isDigit(c))
       {
-        valueBuffer.append(c);
-      }
-      else if (c != ' ')
-      {
-        // This is an illegal character.  Either log it or reject it.
-
-        Message message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
-                valueString, String.valueOf(c), i);
-
-        switch (DirectoryServer.getSyntaxEnforcementPolicy())
+        if (c == ' ')
         {
-          case REJECT:
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
-          case WARN:
-            if (! logged)
-            {
-              ErrorLogger.logError(message);
-              logged = true;
-            }
+          buffer.delete(pos, pos+1);
+        }
+        else
+        {
+          // This is an illegal character.  Either log it or reject it.
+          Message message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
+                  value.toString(), String.valueOf(c), pos);
+
+          switch (DirectoryServer.getSyntaxEnforcementPolicy())
+          {
+            case REJECT:
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                           message);
+            case WARN:
+              if (! logged)
+              {
+                ErrorLogger.logError(message);
+                logged = true;
+              }
+          }
         }
       }
     }
-
-    return ByteString.valueOf(valueBuffer.toString());
+    if(buffer.length() == 0)
+    {
+      return ByteString.empty();
+    }
+    return ByteString.valueOf(buffer.toString());
   }
 
 

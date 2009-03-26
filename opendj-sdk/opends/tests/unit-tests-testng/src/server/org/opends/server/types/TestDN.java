@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.Platform;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -98,10 +98,13 @@ public class TestDN extends TypesTestCase {
             "cn=\\#john smith,dc=example,dc=net",
             "CN=\\#John Smith\\ ,DC=example,DC=net" },
         { "CN=Before\\0dAfter,DC=example,DC=net",
-            "cn=before\\0dafter,dc=example,dc=net",
+             //\0d is a hex representation of Carriage return. It is mapped
+             //to a SPACE as defined in the MAP ( RFC 4518)
+            "cn=before after,dc=example,dc=net",
             "CN=Before\\0dAfter,DC=example,DC=net" },
         { "1.3.6.1.4.1.1466.0=#04024869",
-            "1.3.6.1.4.1.1466.0=\\04\\02hi",
+             //Unicode codepoints from 0000-0008 are mapped to nothing.
+            "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "1.1.1=", "1.1.1=", "1.1.1=" },
         { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107",
@@ -117,7 +120,8 @@ public class TestDN extends TypesTestCase {
             "OU=Sales+CN=J. Smith,DC=example,DC=net" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
-            "1.3.6.1.4.1.1466.0=\\04\\02hi",
+             //Unicode codepoints from 0000-0008 are mapped to nothing.
+            "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "O=\"Sue, Grabbit and Runn\",C=US",
             "o=sue\\, grabbit and runn,c=us",
@@ -295,7 +299,10 @@ public class TestDN extends TypesTestCase {
   public void testDecodeString(String rawDN, String normDN,
       String stringDN) throws Exception {
     DN dn = DN.decode(rawDN);
-    assertEquals(dn.toNormalizedString(), normDN);
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(normDN);
+    Platform.normalize(buffer);
+    assertEquals(dn.toNormalizedString(), buffer.toString());
   }
 
 
@@ -319,7 +326,10 @@ public class TestDN extends TypesTestCase {
     ByteString octetString = ByteString.valueOf(rawDN);
 
     DN dn = DN.decode(octetString);
-    assertEquals(dn.toNormalizedString(), normDN);
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(normDN);
+    Platform.normalize(buffer);
+    assertEquals(dn.toNormalizedString(), buffer.toString());
   }
 
 

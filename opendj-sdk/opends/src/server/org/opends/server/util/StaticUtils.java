@@ -1388,10 +1388,12 @@ public final class StaticUtils
 
     int minLength = Math.min(a.length, a2.length);
     for (int i = 0; i < minLength; i++) {
-      if (a[i] != a2[i]) {
-        if (a[i] < a2[i]) {
+      int firstByte = 0xFF & a[i];
+      int secondByte = 0xFF & a2[i];
+      if (firstByte != secondByte) {
+        if (firstByte < secondByte) {
           return -1;
-        } else if (a[i] > a2[i]) {
+        } else if (firstByte > secondByte) {
           return 1;
         }
       }
