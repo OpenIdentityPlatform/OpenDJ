@@ -813,8 +813,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      getUserData().setStartServer(
+      if (!Utils.isWebStart())
+      {
+        // The command-line upgrade has not the option of leaving the server
+        // started or stopped, so we must leave it as it was at the beginning of
+        // the upgrade.
+        getUserData().setStartServer(
           getInstallation().getStatus().isServerRunning());
+      }
 
       try {
         LOG.log(Level.INFO, "initializing upgrade");
