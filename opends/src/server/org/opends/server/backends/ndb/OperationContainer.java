@@ -161,6 +161,8 @@ public class OperationContainer extends DatabaseContainer
     Map<ObjectClass, String> ocMap = entry.getObjectClasses();
     Map<AttributeType, List<Attribute>> userAttrMap =
       entry.getUserAttributes();
+    Map<NdbBlob, byte[]> blobMap =
+      new HashMap<NdbBlob, byte[]>(BackendImpl.blobAttributes.size());
     ArrayList<AttributeType> userAttributes =
       new ArrayList<AttributeType>();
 
@@ -252,7 +254,9 @@ public class OperationContainer extends DatabaseContainer
               }
               if (BackendImpl.blobAttributes.contains(attrName)) {
                 NdbBlob blob = attrOp.getBlobHandle(attrName);
-                blob.setValue(attrVal.getValue().toByteArray());
+                blob.setValue(new byte[0]);
+                byte[] blobBytes = attrVal.getValue().toByteArray();
+                blobMap.put(blob, blobBytes);
               } else {
                 attrOp.setString(attrName, attrStringVal);
               }
@@ -328,7 +332,9 @@ public class OperationContainer extends DatabaseContainer
               }
               if (BackendImpl.blobAttributes.contains(attrName)) {
                 NdbBlob blob = attrOp.getBlobHandle(attrName);
-                blob.setValue(attrVal.getValue().toByteArray());
+                blob.setValue(new byte[0]);
+                byte[] blobBytes = attrVal.getValue().toByteArray();
+                blobMap.put(blob, blobBytes);
               } else {
                 attrOp.setString(attrName, attrStringVal);
               }
@@ -421,7 +427,9 @@ public class OperationContainer extends DatabaseContainer
               }
               if (BackendImpl.blobAttributes.contains(attrName)) {
                 NdbBlob blob = attrOp.getBlobHandle(attrName);
-                blob.setValue(attrVal.getValue().toByteArray());
+                blob.setValue(new byte[0]);
+                byte[] blobBytes = attrVal.getValue().toByteArray();
+                blobMap.put(blob, blobBytes);
               } else {
                 attrOp.setString(attrName, attrStringVal);
               }
@@ -474,6 +482,17 @@ public class OperationContainer extends DatabaseContainer
         for (AttributeValue attrVal : attr) {
           op.setString(attrName, attrVal.toString());
         }
+      }
+    }
+
+    // Move this txn into the active state and write blob data if any.
+    if (!blobMap.isEmpty()) {
+      ndbDATxn.execute(ExecType.NoCommit, AbortOption.AbortOnError, true);
+      Set<Map.Entry<NdbBlob, byte[]>> blobEntrySet = blobMap.entrySet();
+      for (Map.Entry blobEntry : blobEntrySet) {
+        NdbBlob blob = (NdbBlob) blobEntry.getKey();
+        byte[] blobBytes = (byte[]) blobEntry.getValue();
+        blob.writeData(blobBytes);
       }
     }
 

@@ -661,7 +661,7 @@ public class EntryContainer
       try
       {
         // Invoke the operation.
-        operation.invokeOperation(txn);
+        operation.invokeOperation(txn, commit);
 
         // One last check before committing.
         if (ldapOperation != null) {
@@ -734,12 +734,13 @@ public class EntryContainer
      * Invoke the operation under the given transaction.
      *
      * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public abstract void invokeOperation(AbstractTransaction txn)
-        throws NdbApiException, DirectoryException,
+    public abstract void invokeOperation(AbstractTransaction txn,
+      boolean willCommit) throws NdbApiException, DirectoryException,
         CanceledOperationException, NDBException;
 
     /**
@@ -785,11 +786,12 @@ public class EntryContainer
      * Invoke the operation under the given transaction.
      *
      * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public void invokeOperation(AbstractTransaction txn)
+    public void invokeOperation(AbstractTransaction txn, boolean willCommit)
         throws NdbApiException, DirectoryException, NDBException
     {
       // Check that the parent entry exists.
@@ -816,7 +818,9 @@ public class EntryContainer
       // Insert.
       try {
         dn2id.insert(txn, entry.getDN(), entryID, entry);
-        txn.execute();
+        if (!willCommit) {
+          txn.execute();
+        }
       } catch (NdbApiException ne) {
         if (ne.getErrorObj().getClassification() ==
           NdbError.Classification.ConstraintViolation)
@@ -1129,11 +1133,12 @@ public class EntryContainer
      * Invoke the operation under the given transaction.
      *
      * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public void invokeOperation(AbstractTransaction txn)
+    public void invokeOperation(AbstractTransaction txn, boolean willCommit)
         throws CanceledOperationException, NdbApiException,
         DirectoryException, NDBException
     {
@@ -1412,12 +1417,13 @@ public class EntryContainer
     /**
      * Invoke the operation under the given transaction.
      *
-     * @param txn The transaction to be used to perform the operation
+     * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public void invokeOperation(AbstractTransaction txn)
+    public void invokeOperation(AbstractTransaction txn, boolean willCommit)
       throws NdbApiException, DirectoryException, NDBException
     {
       entry = dn2id.get(txn, entryDN, lockMode);
@@ -1510,13 +1516,13 @@ public class EntryContainer
      * Invoke the operation under the given transaction.
      *
      * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public void invokeOperation(AbstractTransaction txn) throws NdbApiException,
-                                                        DirectoryException,
-                                                        NDBException
+    public void invokeOperation(AbstractTransaction txn, boolean willCommit)
+      throws NdbApiException, DirectoryException, NDBException
     {
       DN entryDN = newEntry.getDN();
       entryID = (Long) oldEntry.getAttachment();
@@ -1645,11 +1651,12 @@ public class EntryContainer
      * Invoke the operation under the given transaction.
      *
      * @param txn The transaction to be used to perform the operation.
+     * @param willCommit Indicates whether or not the caller will commit.
      * @throws NdbApiException If an error occurs in the NDB database.
      * @throws DirectoryException If a Directory Server error occurs.
      * @throws NDBException If an error occurs in the NDB backend.
      */
-    public void invokeOperation(AbstractTransaction txn)
+    public void invokeOperation(AbstractTransaction txn, boolean willCommit)
       throws NdbApiException, DirectoryException,
       CanceledOperationException, NDBException
     {
