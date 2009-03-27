@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -424,7 +424,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         VLVIndex vlvIndex =
           vlvIndexMap.get(cfg.getName().toLowerCase());
-        vlvIndex.close();
         deleteDatabase(vlvIndex);
         vlvIndexMap.remove(cfg.getName());
       }
@@ -641,7 +640,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     config.removeLocalDBChangeListener(this);
     config.removeLocalDBIndexAddListener(attributeJEIndexCfgManager);
     config.removeLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
-    config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
     config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
