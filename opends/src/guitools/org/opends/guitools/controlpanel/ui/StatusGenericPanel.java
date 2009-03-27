@@ -1718,7 +1718,7 @@ implements ConfigChangeListener
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append(
-                  ".  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -1728,7 +1728,7 @@ implements ConfigChangeListener
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetail);
               mb.append(
-                  ".  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
