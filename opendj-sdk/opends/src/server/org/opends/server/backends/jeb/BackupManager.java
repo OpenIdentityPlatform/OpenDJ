@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -269,7 +269,19 @@ public class BackupManager
       }
 */
 
-      baseBackup = getBackupInfo(backupDir, incrBaseID);
+      if (incrBaseID == null)
+      {
+        // No incremental backup ID: log a message informing that a backup
+        // could not be found and that a normal backup will be done.
+        incremental = false;
+        Message message = WARN_BACKUPDB_INCREMENTAL_NOT_FOUND_DOING_NORMAL.get(
+            backupDir.getPath());
+        logError(message);
+      }
+      else
+      {
+        baseBackup = getBackupInfo(backupDir, incrBaseID);
+      }
     }
 
     // Get information about the latest log file from the base backup.
