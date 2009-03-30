@@ -268,22 +268,6 @@ public abstract class PropertyDefinitionVisitor<R, P> {
 
 
 
- /**
-   * Visit an extensible matching rule property definition.
-   *
-   * @param pd
-   *          The string property definition to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  public R visitExtensibleMatchingRuleType(
-          ExtensibleMatchingRuleTypePropertyDefinition pd, P p) {
-    return visitUnknown(pd, p);
-  }
-
-
-
 
   /**
    * Visit an unknown type of property definition. Implementations of

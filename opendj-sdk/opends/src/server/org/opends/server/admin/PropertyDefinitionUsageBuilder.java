@@ -338,17 +338,6 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-     public Message visitExtensibleMatchingRuleType(
-            ExtensibleMatchingRuleTypePropertyDefinition d, Void p) {
-        return Message.raw("LOCALE | OID");
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public <T> Message visitUnknown(PropertyDefinition<T> d, Void p)
         throws UnknownPropertyDefinitionException {
       return Message.raw("?");

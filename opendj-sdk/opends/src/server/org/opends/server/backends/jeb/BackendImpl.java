@@ -1142,10 +1142,16 @@ subIndex:
           hasSubIndex = true;
           break;
         }
-        Set<ExtensibleMatchingRule> matchingRules =
+        Set<String> matchingRules =
                               indexCfg.getIndexExtensibleMatchingRule();
-        for(ExtensibleMatchingRule rule: matchingRules)
+        for(String ruleName: matchingRules)
         {
+          ExtensibleMatchingRule rule =
+                  DirectoryServer.getExtensibleMatchingRule(ruleName);
+          if(rule == null)
+          {
+            continue;
+          }
           for(ExtensibleIndexer indexer: rule.getIndexers(null))
           {
             String indexID = indexer.getExtensibleIndexID();
