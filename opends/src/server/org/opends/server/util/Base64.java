@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -37,6 +37,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -607,7 +608,15 @@ public final class Base64
       byte[] dataToEncode = null;
       if (rawData.isPresent())
       {
-        dataToEncode = rawData.getValue().getBytes();
+        try
+        {
+          dataToEncode = rawData.getValue().getBytes("UTF-8");
+        }
+        catch(UnsupportedEncodingException ex)
+        {
+          System.err.println(ERR_UNEXPECTED.get(ex.toString()).toString());
+          System.exit(1);
+        }
       }
       else
       {
