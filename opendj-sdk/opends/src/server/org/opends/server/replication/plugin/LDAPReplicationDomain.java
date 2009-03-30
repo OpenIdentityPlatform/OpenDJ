@@ -3065,7 +3065,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return The source as a short value
    * @throws DirectoryException if the string is not valid
    */
-  short decodeSource(String sourceString)
+  public short decodeSource(String sourceString)
   throws DirectoryException
   {
     short  source = 0;

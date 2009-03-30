@@ -24,8 +24,8 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.plugin;
-import org.opends.server.tasks.TaskUtils;
+package org.opends.server.tasks;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 
 import org.opends.messages.TaskMessages;
 import org.opends.server.types.ResultCode;
