@@ -47,6 +47,8 @@ import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.config.ConfigException;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
@@ -250,7 +252,7 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      Set<ExtensibleMatchingRule> extensibleRules =
+      Set<String> extensibleRules =
               indexConfig.getIndexExtensibleMatchingRule();
       if(extensibleRules == null || extensibleRules.size() == 0)
       {
@@ -264,8 +266,19 @@ public class AttributeIndex
       //indexer and index. A Collation substring matching rule is treated
       // differently as it uses a separate indexer and index.
       IndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
-      for(ExtensibleMatchingRule rule:extensibleRules)
+      for(String ruleName:extensibleRules)
       {
+        ExtensibleMatchingRule rule =
+                DirectoryServer.getExtensibleMatchingRule(
+                                                    toLowerCase(ruleName));
+        if(rule == null)
+        {
+          Message message =
+                  ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
+                  String.valueOf(attrType),ruleName);
+          logError(message);
+          continue;
+        }
         Map<String,Index> indexMap = new HashMap<String,Index>();
         for(ExtensibleIndexer indexer : rule.getIndexers(config))
         {
@@ -1485,6 +1498,7 @@ public class AttributeIndex
    * Get a string representation of this object.
    * @return return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     return getName();
@@ -1545,7 +1559,7 @@ public class AttributeIndex
     }
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      Set<ExtensibleMatchingRule> newRules =
+      Set<String> newRules =
               cfg.getIndexExtensibleMatchingRule();
       if (newRules == null || newRules.size() == 0)
       {
@@ -1895,15 +1909,29 @@ public class AttributeIndex
       if (cfg.getIndexType().contains(
               LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
       {
-        Set<ExtensibleMatchingRule> extensibleRules =
+        Set<String> extensibleRules =
             cfg.getIndexExtensibleMatchingRule();
+        Set<ExtensibleMatchingRule> validRules =
+                                      new HashSet<ExtensibleMatchingRule>();
         if(extensibleIndexes == null)
         {
           extensibleIndexes = new ExtensibleMatchingRuleIndex();
         }
         IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
-        for(ExtensibleMatchingRule rule:extensibleRules)
+        for(String ruleName:extensibleRules)
         {
+          ExtensibleMatchingRule rule =
+                  DirectoryServer.getExtensibleMatchingRule(
+                                            toLowerCase(ruleName));
+           if(rule == null)
+          {
+            Message message =
+                    ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE.get(
+                    String.valueOf(attrType),ruleName);
+            logError(message);
+            continue;
+          }
+          validRules.add(rule);
           Map<String,Index> indexMap = new HashMap<String,Index>();
           for(ExtensibleIndexer indexer: rule.getIndexers(config))
           {
@@ -1929,6 +1957,14 @@ public class AttributeIndex
                                         env,
                                         entryContainer);
               extensibleIndexes.addIndex(extensibleIndex,indexID);
+              extensibleIndex.open();
+
+              if(!extensibleIndex.isTrusted())
+              {
+                adminActionRequired = true;
+                messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+                    extensibleIndex.getName()));
+              }
             }
             else
             {
@@ -1946,7 +1982,7 @@ public class AttributeIndex
               {
                 Indexer extensibleIndexer =
                       new JEExtensibleIndexer(attrType,
-                                                 rule,
+                                                  rule,
                                                  indexer);
                 extensibleIndex.setIndexer(extensibleIndexer);
               }
@@ -1963,7 +1999,7 @@ public class AttributeIndex
                 new HashSet<ExtensibleMatchingRule>();
         for(ExtensibleMatchingRule r:extensibleIndexes.getRules())
         {
-          if(!extensibleRules.contains(r))
+          if(!validRules.contains(r))
           {
             deletedRules.add(r);
           }

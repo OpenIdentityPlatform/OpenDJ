@@ -212,9 +212,17 @@
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
-    <adm:syntax>
-      <adm:extensible-matching-rule-type/>
-    </adm:syntax>
+ <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+          <adm:regex>([a-z][a-z](-[A-Z][A-Z]){0,2}(.(([a-z]{2,3})|\\d))?)|(^\\d.((\\d)+.)+\\d$)</adm:regex>
+          <adm:usage>LOCALE | OID</adm:usage>
+          <adm:synopsis>
+            A Locale or an OID.
+          </adm:synopsis>
+        </adm:pattern>
+       </adm:string>
+   </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-index-extensible-matching-rule</ldap:name>

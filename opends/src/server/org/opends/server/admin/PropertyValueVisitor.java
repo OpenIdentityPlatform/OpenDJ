@@ -35,7 +35,6 @@ import org.opends.server.types.AddressMask;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.authorization.dseecompat.Aci;
-import org.opends.server.api.ExtensibleMatchingRule;
 
 
 /**
@@ -303,25 +302,6 @@ public abstract class PropertyValueVisitor<R, P> {
    * @return Returns a visitor specified result.
    */
   public R visitString(StringPropertyDefinition pd, String v, P p) {
-    return visitUnknown(pd, v, p);
-  }
-
-
-
-  /**
-   * Visit an extensible matching rule type.
-   *
-   * @param pd
-   *          The extensible matching rule type property definition.
-   * @param v
-   *          The property value to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  public R visitExtensibleMatchingRuleType(
-          ExtensibleMatchingRuleTypePropertyDefinition pd,
-          ExtensibleMatchingRule v, P p) {
     return visitUnknown(pd, v, p);
   }
 
