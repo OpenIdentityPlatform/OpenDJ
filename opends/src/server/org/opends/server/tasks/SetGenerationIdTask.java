@@ -24,12 +24,12 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.plugin;
+package org.opends.server.tasks;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.tasks.TaskUtils;
 
 
 import java.util.List;

@@ -36,6 +36,8 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 
 import java.io.BufferedOutputStream;
 
+import org.opends.server.tasks.InitializeTargetTask;
+import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.Attribute;
 
 import org.opends.server.core.DirectoryServer;
@@ -53,8 +55,6 @@ import java.util.Map;
 import org.opends.server.config.ConfigException;
 import java.util.Collection;
 
-import org.opends.server.replication.plugin.InitializeTargetTask;
-import org.opends.server.replication.plugin.InitializeTask;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 
