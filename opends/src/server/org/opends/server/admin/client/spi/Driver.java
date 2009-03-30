@@ -792,6 +792,9 @@ public abstract class Driver {
           isAcceptable = false;
         }
       }
+      if (!isAcceptable) {
+        break;
+      }
     }
 
     if (!isAcceptable) {
