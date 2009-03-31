@@ -341,6 +341,9 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
           }
         }
       }
+      if (!isAcceptable) {
+        break;
+      }
     }
 
     if (!isAcceptable) {
