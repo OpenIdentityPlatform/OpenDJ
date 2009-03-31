@@ -859,7 +859,7 @@ public final class LDIFReader
         return;
       }
 
-      String ocName      = value.toString();
+      String ocName      = value.toString().trim();
       String lowerOCName = toLowerCase(ocName);
 
       ObjectClass objectClass = DirectoryServer.getObjectClass(lowerOCName);
