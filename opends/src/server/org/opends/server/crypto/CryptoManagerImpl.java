@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2009 Brighton Consulting, Inc.
+ *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 package org.opends.server.crypto;
 
