@@ -818,7 +818,6 @@ public abstract class ReplicationDomain
         }
         else if (msg instanceof UpdateMsg)
         {
-          generator.adjust(((UpdateMsg) msg).getChangeNumber());
           update = (UpdateMsg) msg;
           generator.adjust(update.getChangeNumber());
         }

@@ -82,6 +82,8 @@ public class ChangeNumberGenerator
   public ChangeNumber newChangeNumber()
   {
     long curTime = TimeThread.getTime();
+    int mySeqnum;
+    long myTime;
 
     synchronized(this)
     {
@@ -90,13 +92,17 @@ public class ChangeNumberGenerator
         lastTime = curTime;
       }
 
-      if (seqnum++ == 0)
+      if (++seqnum <= 0)
       {
+        seqnum = 0;
         lastTime++;
       }
+      mySeqnum = seqnum;
+      myTime = lastTime;
     }
 
-    return new ChangeNumber(lastTime, seqnum, serverId);
+    return new ChangeNumber(myTime, mySeqnum, serverId);
+
   }
 
   /**
