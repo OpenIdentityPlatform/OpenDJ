@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -70,11 +70,37 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
+  public boolean returnEntry(Entry entry, List<Control> controls,
+                             boolean evaluateAci)
+  {
+    boolean result;
+
+    result = this.search.returnEntry(entry, controls, evaluateAci);
+
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean returnReference(DN dn, SearchResultReference reference)
   {
     boolean result;
 
     result = this.search.returnReference(dn, reference);
+
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean returnReference(DN dn, SearchResultReference reference,
+                                 boolean evaluateAci)
+  {
+    boolean result;
+
+    result = this.search.returnReference(dn, reference, evaluateAci);
 
     return result;
   }

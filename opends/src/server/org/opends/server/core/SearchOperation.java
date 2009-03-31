@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -242,6 +242,26 @@ public interface SearchOperation extends Operation
   public abstract boolean returnEntry(Entry entry, List<Control> controls);
 
   /**
+   * Used as a callback for backends to indicate that the provided entry matches
+   * the search criteria and that additional processing should be performed to
+   * potentially send it back to the client.
+   *
+   * @param  entry        The entry that matches the search criteria and should
+   *                      be sent to the client.
+   * @param  controls     The set of controls to include with the entry (may be
+   *                      <CODE>null</CODE> if none are needed).
+   * @param  evaluateAci  Indicates whether the access rights to the entry
+   *                      should be evaluated.
+   *
+   * @return  <CODE>true</CODE> if the caller should continue processing the
+   *          search request and sending additional entries and references, or
+   *          <CODE>false</CODE> if not for some reason (e.g., the size limit
+   *          has been reached or the search has been abandoned).
+   */
+  public abstract boolean returnEntry(Entry entry, List<Control> controls,
+                                      boolean evaluateAci);
+
+  /**
    * Used as a callback for backends to indicate that the provided search
    * reference was encountered during processing and that additional processing
    * should be performed to potentially send it back to the client.
@@ -256,6 +276,25 @@ public interface SearchOperation extends Operation
    */
   public abstract boolean returnReference(DN dn,
                                           SearchResultReference reference);
+
+  /**
+   * Used as a callback for backends to indicate that the provided search
+   * reference was encountered during processing and that additional processing
+   * should be performed to potentially send it back to the client.
+   *
+   * @param  reference    The search reference to send to the client.
+   * @param  dn           The DN related to the specified search reference.
+   * @param  evaluateAci  Indicates whether the access rights to the entry
+   *                      should be evaluated.
+   *
+   * @return  <CODE>true</CODE> if the caller should continue processing the
+   *          search request and sending additional entries and references , or
+   *          <CODE>false</CODE> if not for some reason (e.g., the size limit
+   *          has been reached or the search has been abandoned).
+   */
+  public abstract boolean returnReference(DN dn,
+                                          SearchResultReference reference,
+                                          boolean evaluateAci);
 
   /**
    * Sends the search result done message to the client.  Note that this method
