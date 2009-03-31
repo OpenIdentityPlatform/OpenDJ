@@ -576,6 +576,15 @@ public class SearchOperationBasis
    */
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
+    return returnEntry(entry, controls, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public final boolean returnEntry(Entry entry, List<Control> controls,
+                                   boolean evaluateAci)
+  {
     boolean typesOnly = getTypesOnly();
 
     // See if the size limit has been exceeded.  If so, then don't send the
@@ -702,11 +711,14 @@ public class SearchOperationBasis
     }
 
     // Check to see if the entry can be read by the client.
-    SearchResultEntry tmpSearchEntry = new SearchResultEntry(entry,
+    if (evaluateAci)
+    {
+      SearchResultEntry tmpSearchEntry = new SearchResultEntry(entry,
         controls);
-    if (AccessControlConfigManager.getInstance()
-        .getAccessControlHandler().maySend(this, tmpSearchEntry) == false) {
-      return true;
+      if (AccessControlConfigManager.getInstance()
+          .getAccessControlHandler().maySend(this, tmpSearchEntry) == false) {
+        return true;
+      }
     }
 
     // Make a copy of the entry and pare it down to only include the set
@@ -803,8 +815,11 @@ public class SearchOperationBasis
 
     // FIXME: need some way to prevent plugins from adding attributes or
     // values that the client is not permitted to see.
-    searchEntry = AccessControlConfigManager.getInstance()
+    if (evaluateAci)
+    {
+      searchEntry = AccessControlConfigManager.getInstance()
         .getAccessControlHandler().filterEntry(this, searchEntry);
+    }
 
     // Invoke any search entry plugins that may be registered with the server.
     PluginResult.IntermediateResponse pluginResult =
@@ -842,6 +857,15 @@ public class SearchOperationBasis
    */
   public final boolean returnReference(DN dn, SearchResultReference reference)
   {
+    return returnReference(dn, reference, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public final boolean returnReference(DN dn, SearchResultReference reference,
+                                       boolean evaluateAci)
+  {
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
     if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
@@ -862,9 +886,12 @@ public class SearchOperationBasis
 
 
     // See if the client has permission to read this reference.
-    if (AccessControlConfigManager.getInstance()
+    if (evaluateAci)
+    {
+      if (AccessControlConfigManager.getInstance()
         .getAccessControlHandler().maySend(dn, this, reference) == false) {
-      return true;
+        return true;
+      }
     }
 
 
