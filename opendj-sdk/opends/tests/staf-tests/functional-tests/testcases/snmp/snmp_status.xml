@@ -559,10 +559,9 @@
               </call>
 
               <script>
-                msg1 = 'An unexpected error occurred while trying to initialize'
-                msg2 = 'the SNMP Connection Handler. Please check the'
-                msg3 = 'configuration attributes'
-                msg = '%s %s %s' % (msg1, msg2, msg3)
+                msg1 = 'Cannot initialize the SNMP Connection Handler.'
+                msg2 = 'Please check the configuration attributes'
+                msg = '%s %s' % (msg1, msg2)
               </script>
 
               <call function="'grep'">
@@ -748,10 +747,9 @@
                   </call>
 
                   <script>
-                    msg1 = 'An unexpected error occurred while trying to'
-                    msg2 = 'initialize the SNMP Connection Handler. Please'
-                    msg3 = 'check the configuration attributes'
-                    msg = '%s %s %s' % (msg1, msg2, msg3)
+                    msg1 = 'Cannot initialize the SNMP Connection Handler.'
+                    msg2 = 'Please check the configuration attributes'
+                    msg = '%s %s' % (msg1, msg2)
                   </script>
 
                   <call function="'grep'">
