@@ -1185,7 +1185,9 @@ public class LDAPSearch
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
     String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
+      (!bindPasswordFile.isPresent()  &&
+      (bindDNValue != null && bindPasswordValue == null)))
     {
       // read the password from the stdin.
       try

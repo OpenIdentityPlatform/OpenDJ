@@ -282,29 +282,10 @@ public class LDAPAuthenticationHandler
                              List<Control> responseControls)
          throws ClientException, LDAPException
   {
-    // See if we need to prompt the user for the password.
+    //Password is empty, set it to ByteString.empty.
     if (bindPassword == null)
     {
-      if (bindDN == null)
-      {
         bindPassword = ByteString.empty();
-      }
-      else
-      {
-        System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(
-                bindDN.toString()));
-        System.out.flush();
-        char[] pwChars = PasswordReader.readPassword();
-        if (pwChars == null)
-        {
-          bindPassword = ByteString.empty();
-        }
-        else
-        {
-          bindPassword = ByteString.wrap(getBytes(pwChars));
-          Arrays.fill(pwChars, '\u0000');
-        }
-      }
     }
 
 
@@ -876,21 +857,10 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // See if the password was null.  If so, then interactively prompt it from
-    // the user.
+    // Set password to ByteString.empty if the password is null.
     if (bindPassword == null)
     {
-      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
-      char[] pwChars = PasswordReader.readPassword();
-      if (pwChars == null)
-      {
         bindPassword = ByteString.empty();
-      }
-      else
-      {
-        bindPassword = ByteString.wrap(getBytes(pwChars));
-        Arrays.fill(pwChars, '\u0000');
-      }
     }
 
 
@@ -1474,21 +1444,10 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // See if the password was null.  If so, then interactively prompt it from
-    // the user.
+    // Set password to ByteString.empty if the password is null.
     if (bindPassword == null)
     {
-      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
-      char[] pwChars = PasswordReader.readPassword();
-      if (pwChars == null)
-      {
         bindPassword = ByteString.empty();
-      }
-      else
-      {
-        bindPassword = ByteString.wrap(getBytes(pwChars));
-        Arrays.fill(pwChars, '\u0000');
-      }
     }
 
 
@@ -3058,21 +3017,10 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // See if the password was null.  If so, then interactively prompt it from
-    // the user.
+    // Set password to ByteString.empty if the password is null.
     if (bindPassword == null)
     {
-      System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(authID));
-      char[] pwChars = PasswordReader.readPassword();
-      if (pwChars == null)
-      {
         bindPassword = ByteString.empty();
-      }
-      else
-      {
-        bindPassword = ByteString.wrap(getBytes(pwChars));
-        Arrays.fill(pwChars, '\u0000');
-      }
     }
 
 
