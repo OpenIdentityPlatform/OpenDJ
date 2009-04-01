@@ -128,7 +128,7 @@
             
             consumerList = _topologyServerList[1:]
               
-            domainMap = {}
+            domainMap = STAXGlobal({})
           </script>       
 
           <if expr="dataFile">
@@ -290,6 +290,108 @@
             </paralleliterate>
           </if>
 
+
+          <script>
+            assuredReplication = globalAssuredReplication
+          </script>
+          <if expr="assuredReplication">
+            <paralleliterate var="server" in="_topologyServerList">
+              <sequence>
+                <script>
+                  ldapServer = '%s:%s' % (server.getHostname(), 
+                                          server.getPort())
+                </script>
+                
+                <if expr="isolateLdapServers">
+                  <!-- this means the domainMap has already been filled up -->
+                  <script>
+                    domain = domainMap[ldapServer]
+                  </script>
+                  <else>
+                    <sequence>
+                      <!-- Retrieve replication-domain name -->
+                      <call function="'dsconfig'">
+                        { 'location'            : server.getHostname(),
+                          'dsPath'              : '%s/%s' \
+                                                  % (server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : server.getHostname(),
+                          'dsInstanceAdminPort' : server.getAdminPort(),
+                          'dsInstanceDn'        : server.getRootDn(),
+                          'dsInstancePswd'      : server.getRootPwd(),
+                          'subcommand'          : 'list-replication-domains',
+                          'objectType'          : 'provider-name',
+                          'objectName'          : 'Multimaster Synchronization',
+                          'optionsString'       : '--script-friendly'
+                        }
+                      </call>
+                      <if expr='RC == 0'>
+                        <script>
+                          replicationDomains = STAXResult[0][1]
+                          for line in replicationDomains.splitlines():
+                            if line.find(synchroSuffix) != -1:
+                              domain = line
+                              domainMap[ldapServer] = domain
+                              break
+                        </script>
+                      </if>
+                    </sequence>
+                  </else>
+                </if>
+                <script>
+                  options = '--domain-name "%s" --set assured-type:%s' \
+                            % (domain, assuredReplication)
+                </script>
+                <message>
+                  'Setting replication assured-type to: %s  for server: %s \
+                  domain: %s' % (assuredReplication, ldapServer, domain)
+                </message>
+                <!-- Set assured -->
+                <call function="'dsconfig'">
+                  { 'location'            : server.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : server.getHostname(),
+                    'dsInstanceAdminPort' : server.getAdminPort(),
+                    'dsInstanceDn'        : server.getRootDn(),
+                    'dsInstancePswd'      : server.getRootPwd(),
+                    'subcommand'          : 'set-replication-domain-prop',
+                    'objectType'          : 'provider-name',
+                    'objectName'          : 'Multimaster Synchronization',
+                    'optionsString'       : options
+                  }
+                </call>
+
+                <if expr="assuredReplication == 'safe-data'">
+                  <sequence>
+                    <script>
+                      assuredDataLevel = len(_topologyServerList)
+                      options = '--domain-name "%s" --set assured-sd-level:%s' \
+                                % (domain, assuredDataLevel)
+                    </script>
+                    <message>
+                      'Setting safe-data level to: %s  for server: %s \
+                      domain: %s' % (assuredDataLevel, ldapServer, domain)
+                    </message>
+                    <!-- Set assured -->
+                    <call function="'dsconfig'">
+                      { 'location'            : server.getHostname(),
+                        'dsPath'              : '%s/%s' \
+                                                % (server.getDir(),OPENDSNAME),
+                        'dsInstanceHost'      : server.getHostname(),
+                        'dsInstanceAdminPort' : server.getAdminPort(),
+                        'dsInstanceDn'        : server.getRootDn(),
+                        'dsInstancePswd'      : server.getRootPwd(),
+                        'subcommand'          : 'set-replication-domain-prop',
+                        'objectType'          : 'provider-name',
+                        'objectName'          : 'Multimaster Synchronization',
+                        'optionsString'       : options
+                      }
+                    </call>
+                  </sequence>
+                </if>
+              </sequence>
+            </paralleliterate>
+          </if>
 
           <if expr="dataFile">
             <sequence>
