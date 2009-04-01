@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_replication-safe-read"/>
