@@ -1771,7 +1771,8 @@ public class BindOperationTestCase
     BindOperation bindOperation =
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.empty());
-    assertEquals(bindOperation.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(bindOperation.getResultCode(),
+                           ResultCode.INAPPROPRIATE_AUTHENTICATION);
   }
 
 
