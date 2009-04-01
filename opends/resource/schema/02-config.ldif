@@ -1323,6 +1323,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.271
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.272
   NAME 'ds-cfg-global-aci'
+  EQUALITY octetStringMatch
   SYNTAX 1.3.6.1.4.1.26027.1.3.4
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.273
