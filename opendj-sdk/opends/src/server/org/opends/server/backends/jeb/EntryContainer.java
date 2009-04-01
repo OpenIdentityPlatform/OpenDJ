@@ -312,7 +312,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
             cfg.getFilter(), cfg.getName(),
-            stackTraceToSingleLineString(e));
+            e.getLocalizedMessage());
         unacceptableReasons.add(msg);
         return false;
       }
