@@ -26,13 +26,13 @@
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
-  <defaultcall function="main_replication"/>
-  <function name="main_replication">
+  <defaultcall function="main_replication-safe-read"/>
+  <function name="main_replication-safe-read">
     <function-list-args>
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
     <sequence>
-      <block name="'replication'">
+      <block name="'replication-safe-read'">
         <sequence>
           <!--- Load the job environment for the test group execution -->
           <import machine="STAF_LOCAL_HOSTNAME"
@@ -41,28 +41,33 @@
                { 'parent' : STAXParentID }
           </call>
           <script>
-            CurrentTestPath['group']='replication'
+            CurrentTestPath['group']='replication-safe-read'
           </script>
           <call function="'testGroup_Preamble'"/>            
 
           <!-- List of replication test suites to run -->
           <script>
-            testList = []
-            testList.append('totalupdate')
-            testList.append('binarycopy')
-            testList.append('ldifimport')
-            testList.append('resynchronization')
-            testList.append('basic')
-            testList.append('schema')
-            testList.append('failover')
-            testList.append('encryption')
-            testList.append('changelog')
-            testList.append('conflict')
+            # Test suites common to all replication modes 
+            # (hosted by replication test group)
+            commonTestList = []
+            commonTestList.append('totalupdate')
+            commonTestList.append('binarycopy')
+            commonTestList.append('ldifimport')
+            commonTestList.append('resynchronization')
+            commonTestList.append('basic')
+            commonTestList.append('schema')
+            commonTestList.append('failover')
+            commonTestList.append('encryption')
+            commonTestList.append('changelog')
+            commonTestList.append('conflict')
             
-            globalAssuredReplication = None
+            # Safe-read mode specific test suites
+            ownTestList = []
+            
+            globalAssuredReplication = 'safe-read'
           </script>
           
-          <iterate var="_test" in="testList" >
+          <iterate var="_test" in="commonTestList" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/%s/%s.xml' % 
@@ -70,6 +75,15 @@
               <call function="'replication_%s'% _test" />
             </sequence>
           </iterate>
+          <iterate var="_test" in="ownTestList" >
+            <sequence>
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/replication-safe-read/%s/%s.xml' % 
+                        (TESTS_DIR,_test,_test)"/>
+              <call function="'replication_%s'% _test" />
+            </sequence>
+          </iterate>
+          
           <call function="'testGroup_Postamble'"/>
         </sequence>
       </block>

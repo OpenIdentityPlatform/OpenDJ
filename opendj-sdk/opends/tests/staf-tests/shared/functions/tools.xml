@@ -546,6 +546,7 @@
     <sequence>
       <script>
         myRC = 0
+        myKnownIssue = knownIssue
         failedServers = []
         failingServerList = ''
         referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)
@@ -637,7 +638,7 @@
         { 'returncode' : myRC,
           'result'     : failingServerList,
           'expected'   : 0,
-          'issue'      : knownIssue
+          'issue'      : myKnownIssue
         }
       </call>
       <return>[myRC, failedServers]</return>
@@ -700,6 +701,7 @@
     <sequence>
       <script>
         myRC = 0
+        myKnownIssue = knownIssue
         failedServers = []
         failingServerList = ''
         referenceServerPath = '%s/%s' % (referenceServer.getDir(), OPENDSNAME)
@@ -758,7 +760,7 @@
         { 'returncode' : myRC,
           'result'     : failingServerList ,
           'expected'   : 0,
-          'issue'      : knownIssue
+          'issue'      : myKnownIssue
         }
       </call>
       <return>[myRC, failedServers]</return>
