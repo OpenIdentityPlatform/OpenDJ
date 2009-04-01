@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -644,7 +644,9 @@ public class LDAPDelete
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
     String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
+      (!bindPasswordFile.isPresent()  &&
+       (bindDNValue != null && bindPasswordValue == null)))
     {
       // read the password from the stdin.
       try
