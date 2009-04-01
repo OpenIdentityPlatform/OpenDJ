@@ -715,7 +715,7 @@ bindProcessing:
     if (DirectoryServer.bindWithDNRequiresPassword() &&
         ((bindDN != null) && (! bindDN.isNullDN())))
     {
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+      throw new DirectoryException(ResultCode.INAPPROPRIATE_AUTHENTICATION,
                                    ERR_BIND_DN_BUT_NO_PASSWORD.get());
     }
 
