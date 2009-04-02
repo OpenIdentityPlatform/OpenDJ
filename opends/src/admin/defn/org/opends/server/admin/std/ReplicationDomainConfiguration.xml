@@ -195,11 +195,11 @@
   </adm:property>
   <adm:property name="assured-type" mandatory="false" advanced="true">
     <adm:synopsis>
-      Defines the assured mode of the replicated domain.
+      Defines the assured replication mode of the replicated domain.
     </adm:synopsis>
     <adm:description>
-      The assured mode can be disable or enabled. When enabled, two sub modes
-      are available: Safe Data or Safe Read modes.
+      The assured replication can be disabled or enabled. When enabled, two
+      modes are available: Safe Data or Safe Read modes.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -210,26 +210,29 @@
       <adm:enumeration>
         <adm:value name="not-assured">
           <adm:synopsis>
-            Updates sent for replication (for being replayed on other LDAP
-            servers of the topology) are sent without waiting for any
-            acknowledgment and the LDAP client call returns immediately.
+            Assured replication is not enabled. Updates sent for replication
+            (for being replayed on other LDAP servers in the topology) are sent
+            without waiting for any acknowledgment and the LDAP client call
+            returns immediately.
           </adm:synopsis>
         </adm:value>
         <adm:value name="safe-data">
           <adm:synopsis>
-            Assured mode is enabled in Safe Data sub mode: updates sent for
-            replication are subject to acknowledgment defined by the
-            assured-sd-level property. After acknowledgment is received, LDAP
-            client call returns.
+            Assured replication is enabled in Safe Data mode: updates sent for
+            replication are subject to acknowledgment from the replication
+            servers that have the same group ID as the local server (defined
+            with the group-id property). The number of acknowledgments to expect
+            is defined by the assured-sd-level property. After acknowledgments
+            are received, LDAP client call returns.
           </adm:synopsis>
         </adm:value>
         <adm:value name="safe-read">
           <adm:synopsis>
-            Assured mode is enabled in Safe Read sub mode: updates sent for
-            replication are subject to acknowledgment of LDAP servers of the
-            topology having the same group id than us (defined with
-            assured-sr-group-id property). After acknowledgment is received,
-            LDAP client call returns.
+            Assured replication is enabled in Safe Read mode: updates sent for
+            replication are subject to acknowledgments from the LDAP servers in
+            the topology that have the same group ID as the local server
+            (defined with the group-id property). After acknowledgments are
+            received, LDAP client call returns.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -245,9 +248,10 @@
       The level of acknowledgment for Safe Data assured sub mode.
     </adm:synopsis>
     <adm:description>
-      When assured mode configured in Safe Data mode, this value defines the
-      number of replication servers that should acknowledge the sent update
-      before the LDAP client call can return.
+      When assured replication is configured in Safe Data mode, this value
+      defines the number of replication servers (with the same group ID of the
+      local server) that should acknowledge the sent update before the LDAP
+      client call can return.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -265,12 +269,12 @@
   </adm:property>
   <adm:property name="assured-timeout" mandatory="false" advanced="true">
     <adm:synopsis>
-      The timeout value when waiting for assured mode acknowledgments.
+      The timeout value when waiting for assured replication acknowledgments.
     </adm:synopsis>
     <adm:description>
       Defines the amount of milliseconds the server will wait for assured
-      acknowledgments (in either Safe Data or Safe Read assured sub modes)
-      before returning anyway the LDAP client call.
+      acknowledgments (in either Safe Data or Safe Read assured replication
+      modes) before returning anyway the LDAP client call.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -288,12 +292,13 @@
   </adm:property>
   <adm:property name="group-id" mandatory="false" advanced="true">
     <adm:synopsis>
-      The group id associated with this replicated domain.
+      The group ID associated with this replicated domain.
     </adm:synopsis>
     <adm:description>
-      This value defines the group id of the replicated domain. The replication
+      This value defines the group ID of the replicated domain. The replication
       system will preferably connect and send updates to replicate to a
-      replication server with the same group id as him.
+      replication server with the same group ID as its own one (the local server
+      group ID).
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -312,13 +317,13 @@
   <adm:property name="referrals-url" multi-valued="true" mandatory="false"
   advanced="true">
     <adm:synopsis>
-      The URLs other LDAP servers should you to refer to us.
+      The URLs other LDAP servers should use to refer to the local server.
     </adm:synopsis>
     <adm:description>
-      URLs used by peer servers of the topology to refer to us through LDAP
-      referrals. If this attribute is not defined, every URLs available to
-      access this server will be used. If defined, only URLs specified here will
-      be used.
+      URLs used by peer servers in the topology to refer to the local server
+      through LDAP referrals. If this attribute is not defined, every URLs
+      available to access this server will be used. If defined, only URLs
+      specified here will be used.
     </adm:description>
     <adm:default-behavior>
       <adm:undefined/>
@@ -326,7 +331,7 @@
     <adm:syntax>
       <adm:string>
         <adm:pattern>
-          <adm:regex>^ldap://.+$</adm:regex>
+          <adm:regex>^[lL][dD][aA][pP][sS]?://.+$</adm:regex>
           <adm:usage>LDAP URL</adm:usage>
           <adm:synopsis>
             A LDAP URL compliant with RFC 2255.
