@@ -185,6 +185,24 @@ public class MonitorData
             "+ diff("+lsjMaxCN+"-"
                      +lsiLastCN+")="+missingChangesLsiLsj;
 
+          // Regarding a DS that is generating changes. If it is a local DS1,
+          // we get its server state, store it, then retrieve server states of
+          // remote DSs. When a remote server state is coming, it may contain
+          // a change number for DS1 which is newer than the one we locally
+          // stored in the server state of DS1. To prevent seeing DS1 has
+          // missing changes whereas it is wrong, we replace the value with 0
+          // if it is a low value. We cannot overwrite big values as they may be
+          // useful for a local server retrieving changes it generated earlier,
+          // when it is recovering from an old snapshot and the local RS is
+          // sending him the changes it is missing.
+          if (lsjSid.equals(lsiSid)) {
+            if (missingChangesLsiLsj <= 50)
+            {
+              missingChangesLsiLsj = 0;
+              mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
+            }
+          }
+
           lsiMissingChanges += missingChangesLsiLsj;
         }
       }
@@ -226,7 +244,7 @@ public class MonitorData
           "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
     }
     this.setBuildDate(TimeThread.getTime());
-  }
+    }
 
   /**
    * Returns a <code>String</code> object representing this
@@ -243,7 +261,7 @@ public class MonitorData
     while (rsite.hasNext())
     {
       Short sid = rsite.next();
-      mds += "\nRSData(" + sid + ")=\t "+ "afmd=" + fmRSDate.get(sid);
+      mds += "\nfmRSDate(" + sid + ")=\t "+ "afmd=" + fmRSDate.get(sid);
     }
 
     // maxCNs
@@ -252,7 +270,7 @@ public class MonitorData
     {
       Short sid = itc.next();
       ChangeNumber cn = maxCNs.get(sid);
-      mds += "\nmaxCNs(" + sid + ")= " + cn.toString();
+      mds += "\nmaxCNs(" + sid + ")= " + cn.toStringUI();
     }
 
     // LDAP data
@@ -269,8 +287,19 @@ public class MonitorData
       }
       mds +=" missingCount=" + missingChanges.get(sid);
     }
+
+    // RS data
+    rsite = RSStates.keySet().iterator();
+    while (rsite.hasNext())
+    {
+      Short sid = rsite.next();
+      ServerState ss = RSStates.get(sid);
+      mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss.toString()
+      + "] missingCount=" + missingChangesRS.get(sid);
+    }
+
     //
-    mds += "--";
+    mds += "\n--";
     return mds;
   }
 

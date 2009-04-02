@@ -174,9 +174,9 @@ public class ChangeNumber implements java.io.Serializable,
   {
     Date date = new Date(timeStamp);
     return String.format(
-        "%016x%04x%08x (%s,%d,%d)",
+        "%016x%04x%08x (sid=%d,tsd=%s,ts=%d,seqnum=%d)",
         timeStamp, serverId, seqnum,
-        date.toString(), serverId, seqnum);
+        serverId, date.toString(), timeStamp, seqnum);
   }
 
   /**
@@ -231,36 +231,39 @@ public class ChangeNumber implements java.io.Serializable,
   * @param op2 the second ChangeNumber
   * @return the difference
   */
- public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
+  public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
   {
-    int totalCount = 0;
-    int max = op1.getSeqnum();
-    long maxTimeStamp = op1.getTime();
-    if (op1 != null)
+    if (op1 == null)
     {
-      if (op2 != null)
+      return 0;
+    }
+    if (op2 == null)
+    {
+      return op1.getSeqnum();
+    }
+    if (op2.newerOrEquals(op1))
+    {
+      return 0;
+    }
+
+    int seqnum1 = op1.getSeqnum();
+    long time1 = op1.getTime();
+    int seqnum2 = op2.getSeqnum();
+    long time2 = op2.getTime();
+
+    if (time2 <= time1)
+    {
+      if (seqnum2 <= seqnum1)
       {
-        int current = op2.getSeqnum();
-        long currentTimestamp = op2.getTime();
-        if (current != max)
-        {
-          if (currentTimestamp <= maxTimeStamp)
-          {
-            if (current < max)
-            {
-              totalCount += max - current;
-            } else
-            {
-              totalCount += Integer.MAX_VALUE - (current - max) + 1;
-            }
-          }
-        }
+        return seqnum1 - seqnum2;
       } else
       {
-        totalCount += max;
+        return Integer.MAX_VALUE - (seqnum2 - seqnum1) + 1;
       }
+    } else
+    {
+      return 0;
     }
-    return totalCount;
   }
 
   /**

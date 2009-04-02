@@ -259,7 +259,7 @@ public class ServerState implements Iterable<Short>
       {
         ChangeNumber change = list.get(key);
         buffer.append(" ");
-        buffer.append(change);
+        buffer.append(change.toStringUI());
       }
     }
 

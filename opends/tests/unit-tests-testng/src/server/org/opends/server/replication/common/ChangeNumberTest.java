@@ -319,27 +319,51 @@ public class ChangeNumberTest extends ReplicationTestCase
     // 3-0 = 3
     CN2 = new ChangeNumber((long)0, 0, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
-    
+
     // 3-1 = 2
     CN2 = new ChangeNumber((long)0, 1, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 2);
-    
+
     // 3-3 = 0
     CN2 = new ChangeNumber((long)0, 3, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    // 3-4 == MAXINT (modulo)
+    // 3-4 = 0 (CN1 must be newer otherwise 0 should be returned)
     CN2 = new ChangeNumber((long)0, 4, (short)0);
-    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), Integer.MAX_VALUE);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
     CN1 = new ChangeNumber((long)0, 0, (short)0);
 
     // 0-0 = 0
     CN2 = new ChangeNumber((long)0, 0, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
-    
-    // 0-1 = MAXINT(modulo)
+
+    // 0-1 = 0 (CN1 must be newer otherwise 0 should be returned)
     CN2 = new ChangeNumber((long)0, 1, (short)0);
-    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), Integer.MAX_VALUE);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
+
+    CN1 = new ChangeNumber((long)0, 5, (short)0);
+    CN2 = new ChangeNumber((long)0, 2, (short)0);
+
+    // 5-null = 5
+    assertEquals(ChangeNumber.diffSeqNum(CN1, null), 5);
+
+    // null-2 = 0
+    assertEquals(ChangeNumber.diffSeqNum(null, CN2), 0);
+
+    // null-null = 0
+    assertEquals(ChangeNumber.diffSeqNum(null, null), 0);
+
+    CN1 = new ChangeNumber((long)1111111, 2, (short)0);
+    CN2 = new ChangeNumber((long)3333333, 4, (short)0);
+
+    // CN1 older than CN2 -> 0
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
+
+    CN1 = new ChangeNumber((long)3333333, 1, (short)0);
+    CN2 = new ChangeNumber((long)1111111, Integer.MAX_VALUE-1, (short)0);
+
+    // CN1 seqnum looped
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
   }
 }
