@@ -207,8 +207,19 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         LocalDBIndexCfg cfg,
         List<Message> unacceptableReasons)
     {
-      // TODO: validate more before returning true?
-      return true;
+      boolean isValid = true;
+      try
+      {
+        //Try creating all the indexes before confirming they are valid ones.
+        AttributeIndex index =
+          new AttributeIndex(cfg, state, env, EntryContainer.this);
+      }
+      catch(Exception e)
+      {
+        unacceptableReasons.add(Message.raw(e.getLocalizedMessage()));
+        isValid = false ;
+      }
+      return isValid;
     }
 
     /**
@@ -235,7 +246,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
       catch(Exception e)
       {
-        messages.add(Message.raw(StaticUtils.stackTraceToSingleLineString(e)));
+        messages.add(Message.raw(e.getLocalizedMessage()));
         ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
             adminActionRequired,
             messages);
