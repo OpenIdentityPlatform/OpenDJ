@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -41,6 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -255,7 +256,9 @@ public class StopDS
       port = new IntegerArgument(
               "port", OPTION_SHORT_PORT,
               OPTION_LONG_PORT, false, false, true,
-              INFO_PORT_PLACEHOLDER.get(), 389, null, true, 1,
+              INFO_PORT_PLACEHOLDER.get(),
+              AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
+              null, true, 1,
               true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
       port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);

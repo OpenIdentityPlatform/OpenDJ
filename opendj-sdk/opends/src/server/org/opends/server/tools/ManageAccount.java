@@ -23,7 +23,7 @@
  *
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -868,7 +869,9 @@ public class ManageAccount
       port = new IntegerArgument(
               "port", OPTION_SHORT_PORT,
               OPTION_LONG_PORT, false, false, true,
-              INFO_PORT_PLACEHOLDER.get(), 389, null, true, 1,
+              INFO_PORT_PLACEHOLDER.get(),
+              AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
+              null, true, 1,
               true, 65535, INFO_PWPSTATE_DESCRIPTION_PORT.get());
       argParser.addGlobalArgument(port);
 
