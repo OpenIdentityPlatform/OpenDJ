@@ -2306,6 +2306,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // - from our own local db state
       // - whatever they are directly or undirectly connected
       ServerState dbServerState = getDbServerState();
+      wrkMonitorData.setRSState(replicationServer.getServerId(), dbServerState);
       Iterator<Short> it = dbServerState.iterator();
       while (it.hasNext())
       {
@@ -2471,8 +2472,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         while (lsidIterator.hasNext())
         {
           short sid = lsidIterator.next();
-          wrkMonitorData.setLDAPServerState(sid,
-            msg.getLDAPServerState(sid).duplicate());
+          ServerState dsServerState = msg.getLDAPServerState(sid);
+          wrkMonitorData.setMaxCNs(dsServerState);
+          wrkMonitorData.setLDAPServerState(sid, dsServerState);
           wrkMonitorData.setFirstMissingDate(sid,
             msg.getLDAPApproxFirstMissingDate(sid));
         }
