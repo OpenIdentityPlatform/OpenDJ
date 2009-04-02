@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -967,6 +967,7 @@ public class PasswordModifyExtendedOperation
                 operation.appendAdditionalLogMessage(
                         ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
               }
+              return;
             }
             else
             {
