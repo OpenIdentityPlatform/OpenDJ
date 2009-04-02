@@ -1148,6 +1148,40 @@ public final class LDIFReader
     }
   }
 
+  /**
+   * Log the specified entry and messages in the reject writer. The method is
+   * intended to be used in a threaded environment, where individual import
+   * threads need to log an entry and message to the reject file.
+   *
+   * @param e The entry to log.
+   * @param message The message to log.
+   */
+  public synchronized void rejectEntry(Entry e, Message message) {
+    BufferedWriter rejectWriter = importConfig.getRejectWriter();
+    entriesRejected++;
+    if (rejectWriter != null) {
+      try {
+        if ((message != null) && (message.length() > 0)) {
+          rejectWriter.write("# ");
+          rejectWriter.write(message.toString());
+          rejectWriter.newLine();
+        }
+        String dnStr = e.getDN().toString();
+        rejectWriter.write(dnStr);
+        rejectWriter.newLine();
+        List<StringBuilder> eLDIF = e.toLDIF();
+        for(StringBuilder l : eLDIF) {
+          rejectWriter.write(l.toString());
+          rejectWriter.newLine();
+        }
+        rejectWriter.newLine();
+      } catch (IOException ex) {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
+    }
+  }
+
 
 
   /**
