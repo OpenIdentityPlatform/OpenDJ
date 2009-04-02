@@ -424,7 +424,7 @@ public class WorkThread extends DirectoryThread {
         dn2id.remove(null, entryDN);
         Message msg =
                 ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
-        context.getLDIFReader().rejectLastEntry(msg);
+        context.getLDIFReader().rejectEntry(entry, msg);
         return false;
       }
     }
@@ -503,7 +503,7 @@ public class WorkThread extends DirectoryThread {
         element.setExistingEntry(existingEntry);
       } else {
         Message msg = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
-        context.getLDIFReader().rejectLastEntry(msg);
+        context.getLDIFReader().rejectEntry(entry, msg);
         entryID = null;
       }
     } else {
