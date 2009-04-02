@@ -1,0 +1,281 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
+ ! -->
+<project name="Directory Server pkg(5) Packaging" basedir="." default="package-pkg-image">
+    <description>
+        This is a build script that extends the OpenDS build script by adding
+        the generation of pkg(5) format packages and a pkg(5)-based installation image.
+
+        To make use of this build script, ensure that this file is placed in the same
+        directory as your build.xml file and add an import of this file at the top
+        of the build.xml file.
+    </description>
+
+    <condition property="ispkgtoolkitpresent">
+     <and>
+       <available file="${pkg.toolkit.dir}/pkg/lib/pkg-ant-tasks.xml"/>
+     </and>
+    </condition>
+ 
+            <import file="${pkg.toolkit.dir}/pkg/lib/pkg-ant-tasks.xml" optional="true"/>
+
+
+  <target name="pkg5messagebuild" if="ispkgtoolkitpresent">
+      <echo message="pkg(5) delivery will be built."/>
+  </target>
+
+  <target name="pkg5messageNotbuild" unless="ispkgtoolkitpresent">
+      <echo message="No pkg(5) delivery built."/>
+      <echo message="To build with pkg(5) delivery set pkg.toolkit.dir build property"/>
+      <echo message="to indicate the location of pkg(5) toolkit"/>
+  </target>
+
+  <target name="pkg5echo" depends="pkg5messageNotbuild,pkg5messagebuild"/>
+
+    <target name="-pkg-init" if="ispkgtoolkitpresent" depends="pkg5echo">
+<echo message="pkg.toolkit.dir is ${pkg.toolkit.dir}" />
+        <property name="pkg.build.dir" location="${package.dir}/pkg"/>
+        <property name="pkg.reference.install.dir" location="${pkg.build.dir}/reference-install"/>
+        <property name="pkg.repo.dir" location="${pkg.build.dir}/repo"/>
+        <property name="pkg.image.container.dir" location="${pkg.build.dir}/image/"/>
+        <property name="pkg.image.dir" location="${pkg.image.container.dir}/${SHORT_NAME}"/>
+        <property name="pkg.authority" value="dev.sun.com"/>
+        <property name="pkg.toolkit.repo.url" value="http://pkg.sun.com/layered-collection/dev"/>
+        <property name="pkg.java.name" value="pkg-java"/>
+    </target>
+
+    <target name="package-pkg-make-packages" if="ispkgtoolkitpresent" depends="dynamicconstants, -pkg-init" description="Publish pkg(5)-based packages to a new repository.">
+
+        <!-- Copy OpenDS content to the reference installlation area from which the package
+             content will be published.
+
+             The reason we're copying the existing "package/OpenDS<version>/" area
+             is that we need we need to insert an opends/ umbrella directory as
+             the base relative directory within the packages.
+
+             The OpenDS project team will ultimately decide how many packages they
+             want to create and where the content of those packages will be installed.
+        -->
+
+        <!-- First copy the DSML content into the reference installation area.
+             The OpenDS project team will decide the most appropriate location
+             for the DSML component.  In this example, we package the DSML
+             component in a separate package.
+        -->
+        <delete dir="${pkg.reference.install.dir}"/>
+
+        <copy tofile="${pkg.reference.install.dir}/opends/dsml/opends-dsml.war" file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}-DSML.war"/>
+        <copy tofile="${pkg.reference.install.dir}/opends/dsml/legal-notices/OpenDS.LICENSE" file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}/legal-notices/OpenDS.LICENSE"/>
+
+        <!-- Copy the core OpenDS content to the reference installation area.
+             Copy on Unix platforms entails the use of a copy approach that
+             preserves execution bit settings that are already in effect
+             by virtue of the main OpenDS build.xml.
+        -->
+        <antcall target="-pkg-copy-windows"/>
+        <antcall target="-pkg-copy-unix"/>
+        <antcall target="create-tmpl-instance"/>
+
+        <delete dir="${pkg.repo.dir}"/>
+
+        <!-- Publish the OpenDS packages to an empty repository. -->
+        <makepkgs repourl="file://${pkg.repo.dir}" basedir="${pkg.reference.install.dir}" version="${VERSION_NUMBER_STRING},0-0.${REVISION_NUMBER}">
+            <fileset dir="src/pkg">
+                <include name="opends_proto.py"/>
+                <include name="opends-dsml-gateway_proto.py"/>
+            </fileset>
+        </makepkgs>
+
+        <zip destfile="${package.dir}/pkg/${SHORT_NAME}-${VERSION_NUMBER_STRING}-repo.zip" basedir="${pkg.repo.dir}"/>
+
+    </target>
+
+    <target name="package-publish" if="ispkgtoolkitpresent" description="Publish packages" depends="dynamicconstants, -pkg-init">
+        <!-- Publish the OpenDS packages to current repository. -->
+ <echo message="pkg.repo.url=${pkg.repo.url}" />
+        <!--
+        <makepkgs repourl="${pkg.repo.url}" basedir="${pkg.reference.install.dir}" version="${VERSION_NUMBER_STRING},0-0.${REVISION_NUMBER}">
+            <fileset dir="src/pkg">
+                <include name="opends_proto.py"/>
+                <include name="opends-dsml-gateway_proto.py"/>
+            </fileset>
+        </makepkgs>
+        -->
+    </target>
+
+    <target name="package-pkg-make-image" if="ispkgtoolkitpresent" depends="package-pkg-make-packages" description="Assemble pre-installed pkg(5)-based image.">
+
+        <!-- Assemble a universal image containing the core OpenDS package and the
+             package containing the pkg(5) Java client API and bootstrap facility.
+             We are only pre-installing the ones of interest for the initial download.
+             The other packages will be available for installation from the repository
+             later on after the initial installation takes place. -->
+
+        <delete dir="${pkg.image.dir}"/>
+
+        <!-- First, create the pre-installed image and add the product-specific
+             packages. -->
+        <makeimage repourl="file://${pkg.repo.dir}" imagedir="${pkg.image.dir}" authority="${pkg.authority}" title="${SHORT_NAME}" description="OpenDS is comprehensive next generation directory service. OpenDS is designed to address large deployments, to provide high performance, to be highly extensible, and to be easy to deploy, manage and monitor. ">
+           <packages>
+              <package name="opends"/>
+           </packages>
+        </makeimage>
+        
+        <!-- Now add the "pkg-java" Java bootstrap for pkg(5) package to the 
+             pre-installed image.  -->
+        <makeimage repourl="${pkg.toolkit.repo.url}" imagedir="${pkg.image.dir}" authority="${pkg.authority}" title="${SHORT_NAME}" description="OpenDS is comprehensive next generation directory service. OpenDS is designed to address large deployments, to provide high performance, to be highly extensible, and to be easy to deploy, manage and monitor. ">
+           <packages>
+              <package name="${pkg.java.name}"/>
+           </packages>
+        </makeimage>
+
+        <!-- Copy bootstub scripts to the image.  When a user executes one of these
+             commands, the user will be asked if he wants to dynamically complete the
+             installation of the pkg(5) and Update Tool packages. If the user answers
+             'yes', then the bootstucb scripts will invoke the pkg(5) Java Bootstrap
+             facility to use Java to install these packages. -->
+        <mkdir dir="${pkg.image.dir}/bin"/>
+        <copy tofile="${pkg.image.dir}/bin/pkg" file="${pkg.toolkit.dir}/pkg/lib/pkg-bootstub.sh"/>
+        <copy tofile="${pkg.image.dir}/bin/pkg.bat" file="${pkg.toolkit.dir}/pkg/lib/pkg-bootstub.bat"/>
+        <copy tofile="${pkg.image.dir}/bin/updatetool" file="${pkg.toolkit.dir}/pkg/lib/pkg-bootstub.sh"/>
+        <copy tofile="${pkg.image.dir}/bin/updatetool.bat" file="${pkg.toolkit.dir}/pkg/lib/pkg-bootstub.bat"/>
+        <chmod file="${pkg.image.dir}/bin/pkg" perm="ugo+rwx"/>
+        <chmod file="${pkg.image.dir}/bin/updatetool" perm="ugo+rwx"/>
+
+        <!-- Edit the cfg_cache file to specify the repository URL that the
+             image will use. -->
+        <replace file="${pkg.image.dir}/.org.opensolaris,pkg/cfg_cache">
+            <replacefilter token="http://localhost:10001/" value="${pkg.repo.url}"/>
+        </replace>
+
+        <makezip basedir="${pkg.image.container.dir}" destfile="${pkg.build.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}-image.zip" include="${SHORT_NAME}"/>
+    </target>
+
+
+    <target name="-pkg-copy-windows" if="os.windows">
+        <copy todir="${pkg.reference.install.dir}/opends">
+            <fileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+        </copy>
+    </target>
+
+
+    <target name="-pkg-copy-unix" unless="os.windows">
+        <exec dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" executable="cp">
+            <arg line="-r . ${pkg.reference.install.dir}/opends"/>
+        </exec>
+    </target>
+
+    <target name="create-tmpl-instance">
+  	<!-- Replace zip upgrade script by pkg upgrade script -->
+	<delete file="${pkg.reference.install.dir}/opends/upgrade" />
+	<copy file="${resource.dir}/upgrade_svr4"
+        tofile="${pkg.reference.install.dir}/opends/upgrade" />
+	<chmod file="${pkg.reference.install.dir}/opends/upgrade" perm="755" />
+	<!-- Copy instance files in ${pkg.reference.install.dir}/tmpl_instance  -->
+	<mkdir dir="${pkg.reference.install.dir}/opends/tmpl_instance"/>
+	<chmod dir="${pkg.reference.install.dir}/opends/tmpl_instance" perm="755"/>
+        <mkdir dir="${pkg.reference.install.dir}/opends/tmpl_instance/lib"/>
+        <chmod dir="${pkg.reference.install.dir}/opends/tmpl_instance/lib" perm="755"/>
+        <mkdir dir="${pkg.reference.install.dir}/opends/tmpl_instance/lib/extensions"/>
+        <chmod dir="${pkg.reference.install.dir}/opends/tmpl_instance/lib/extensions"
+            perm="755"/>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/bak">
+	  <fileset dir="${pkg.reference.install.dir}/opends/bak"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/changelogDb">
+	  <fileset dir="${pkg.reference.install.dir}/opends/changelogDb"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/classes">
+	  <fileset dir="${pkg.reference.install.dir}/opends/classes"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/config">
+	  <fileset dir="${pkg.reference.install.dir}/opends/config"/>
+	</copy>
+        <mkdir dir="${pkg.reference.install.dir}/opends/config"/>
+        <chmod dir="${pkg.reference.install.dir}/opends/config" perm="755"/>
+	<copy todir="${pkg.reference.install.dir}/opends/config/schema">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/config/schema"/>
+	</copy>
+        <mkdir dir="${pkg.reference.install.dir}/opends/tmpl_instance/config/schema"/>
+        <chmod dir="${pkg.reference.install.dir}/opends/tmpl_instance/config/schema"
+            perm="755"/>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/db">
+	  <fileset dir="${pkg.reference.install.dir}/opends/db"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/import-tmp">
+	  <fileset dir="${pkg.reference.install.dir}/opends/import-tmp"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/ldif">
+	  <fileset dir="${pkg.reference.install.dir}/opends/ldif"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/locks">
+	  <fileset dir="${pkg.reference.install.dir}/opends/locks"/>
+	</copy>
+	<copy todir="${pkg.reference.install.dir}/opends/tmpl_instance/logs">
+	  <fileset dir="${pkg.reference.install.dir}/opends/logs"/>
+	</copy>
+        <!-- Create buildinfo files -->
+	<echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
+          file="${pkg.reference.install.dir}/opends/tmpl_instance/config/buildinfo" />
+	<echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
+          file="${pkg.reference.install.dir}/opends/config/buildinfo" />
+        <!-- Remove config/upgrade files -->
+        <delete file="${pkg.reference.install.dir}/opends/config/upgrade/config.ldif.${REVISION_NUMBER}" />
+        <delete file="${pkg.reference.install.dir}/opends/config/upgrade/schema.ldif.${REVISION_NUMBER}" />
+        </target>
+
+    <target name="configure-instance">
+	<!-- Copy instance files in ${pkg.image.dir}   -->
+	<copy todir="${pkg.image.dir}/opends/bak">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/bak"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/changelogDb">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/changelogDb"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/classes">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/classes"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/config">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/config"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/db">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/db"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/import-tmp">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/import-tmp"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/ldif">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/ldif"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/locks">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/locks"/>
+	</copy>
+	<copy todir="${pkg.image.dir}/opends/logs">
+	  <fileset dir="${pkg.reference.install.dir}/opends/tmpl_instance/logs"/>
+	</copy>
+   </target>
+
+</project>

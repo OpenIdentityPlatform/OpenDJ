@@ -165,7 +165,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     "upgrade",
     "upgrade.bat",
     "QuickSetup.app",
-    "Uninstall.app"
+    "Uninstall.app",
+    "tmpl_instance"
   };
 
   // Files that will be ignored during backup

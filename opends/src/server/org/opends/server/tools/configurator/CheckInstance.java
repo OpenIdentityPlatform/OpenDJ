@@ -29,7 +29,10 @@ package org.opends.server.tools.configurator;
 import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -87,6 +90,53 @@ public class CheckInstance {
   private static int ARGS_ERROR = 1;
   private static int USER_ERROR = 2;
   private static int VERSION_ERROR = 3;
+
+  /**
+   * Creates a copy of the specified file.
+   *
+   * @param  from  The source file to be copied.
+   * @param  to    The destination file to be created.
+   *
+   * @throws  IOException  If a problem occurs.
+   */
+  private static void copyFile(File from, File to)
+          throws IOException
+  {
+    byte[]           buffer        = new byte[4096];
+    FileInputStream  inputStream   = null;
+    FileOutputStream outputStream  = null;
+
+    try
+    {
+      inputStream  = new FileInputStream(from);
+      outputStream = new FileOutputStream(to, false);
+
+      int bytesRead = inputStream.read(buffer);
+      while (bytesRead > 0)
+      {
+        outputStream.write(buffer, 0, bytesRead);
+        bytesRead = inputStream.read(buffer);
+      }
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e)
+        {
+        }
+      }
+
+      if (outputStream != null)
+      {
+        outputStream.close();
+      }
+    }
+  }
 
   /**
    * The main method which is called by the configure command lines.
@@ -254,6 +304,18 @@ public class CheckInstance {
             } catch (Exception e) {
             }
           }
+
+          // For pkg(5) delivery: update the file to avoid overwrite
+          // during upgrade
+          FileWriter fwriter  = new FileWriter(bif, true);
+          try {
+            fwriter.append('\n');
+          } finally {
+            try {
+              fwriter.close();
+            } catch (Exception e) {
+            }
+          }
         }
       } catch (Exception e) {
         LOG.log(Level.SEVERE, "error getting build information for " +
@@ -267,6 +329,39 @@ public class CheckInstance {
     } else {
       LOG.log(Level.FINEST, "checkVersion not specified");
     }
+
+    // For pkg(5) delivery: if config/upgrade/*.ldif.REV does not exist
+    try {
+      File upgradeDir = new File(confDir, Installation.UPGRADE_PATH);
+      File tmplUpgradeDir = new File(installRootFromSystem + File.separator +
+              Installation.TMPL_INSTANCE_RELATIVE_PATH +
+              File.separator + Installation.CONFIG_PATH_RELATIVE +
+              File.separator + Installation.UPGRADE_PATH);
+
+      File concatenatedSchema = new File(upgradeDir,
+              "schema.ldif." + REVISION_NUMBER);
+      if (!concatenatedSchema.exists()) {
+        File tmplConcatenatedSchema = new File(tmplUpgradeDir,
+                "schema.ldif." + REVISION_NUMBER);
+        copyFile(tmplConcatenatedSchema, concatenatedSchema);
+      } else {
+        LOG.log(Level.INFO, concatenatedSchema.getAbsolutePath() +
+                "already exists");
+      }
+
+      File initialConfig = new File(upgradeDir,
+              "config.ldif." + REVISION_NUMBER);
+      if (!initialConfig.exists()) {
+        File tmplInitialConfig = new File(tmplUpgradeDir,
+                "config.ldif." + REVISION_NUMBER);
+        copyFile(tmplInitialConfig, initialConfig);
+      } else {
+        LOG.log(Level.INFO, initialConfig.getAbsolutePath() + "already exists");
+      }
+    } catch (Exception e) {
+      LOG.log(Level.SEVERE, "error initializing config/upgrade files", e);
+    }
+
     System.exit(SUCCESS);
 
   }

@@ -2548,4 +2548,5 @@
     </concat>
   </target>
 
+  <import file="build-pkg.xml"/>
 </project>
