@@ -2693,7 +2693,7 @@ public final class StaticUtils
         // Expected, ignore.
         }
         if (clientSocket.isConnected()) {
-          isInUse = true;
+          return true;
         }
       }
       serverSocket = new ServerSocket();
