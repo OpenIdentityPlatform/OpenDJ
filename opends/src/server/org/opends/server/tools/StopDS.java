@@ -517,6 +517,15 @@ public class StopDS
           err.println(wrapText(message, MAX_LINE_WIDTH));
           return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
         }
+        // Check that the provided date is not previous to the current date.
+        Date currentDate = new Date(System.currentTimeMillis());
+        if (currentDate.after(stopTime))
+        {
+          Message message = ERR_STOPDS_DATETIME_ALREADY_PASSED.get(
+              timeStr);
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        }
       }
     }
 
