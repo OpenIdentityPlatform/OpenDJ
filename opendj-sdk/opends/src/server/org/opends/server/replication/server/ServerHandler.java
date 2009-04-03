@@ -2075,10 +2075,10 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     }
     catch (Exception e)
     {
-      // TODO: improve the log
-      // We failed retrieving the remote monitor data.
-      attributes.add(Attributes.create("error",
-          stackTraceToSingleLineString(e)));
+      Message message =
+        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
+      // We failed retrieving the monitor data.
+      attributes.add(Attributes.create("error", message.toString()));
     }
 
     attributes.add(

@@ -105,11 +105,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, (short) domain1ServerId, servers, 100, 1000, rcvQueue1);
+          testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
-          testService, (short) domain2ServerId, servers, 100, 1000, rcvQueue2);
+          testService, domain2ServerId, servers, 100, 1000, rcvQueue2);
 
       /*
        * Publish a message from domain1,
