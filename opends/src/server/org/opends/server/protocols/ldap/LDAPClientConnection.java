@@ -236,9 +236,10 @@ public class LDAPClientConnection extends ClientConnection implements
    * @param clientChannel
    *          The socket channel that may be used to communicate with
    *          the client.
+   * @param  protocol String representing the protocol (LDAP or LDAP+SSL).
    */
   public LDAPClientConnection(LDAPConnectionHandler connectionHandler,
-      SocketChannel clientChannel)
+      SocketChannel clientChannel, String protocol)
   {
     super();
 
@@ -261,7 +262,7 @@ public class LDAPClientConnection extends ClientConnection implements
     operationsPerformed = 0;
     operationsPerformedLock = new Object();
     keepStats = connectionHandler.keepStats();
-    protocol = "LDAP";
+    this.protocol = protocol;
     writeSelector = new AtomicReference<Selector>();
     clientAddress =
         clientChannel.socket().getInetAddress().getHostAddress();
