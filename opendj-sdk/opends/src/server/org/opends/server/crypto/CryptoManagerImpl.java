@@ -489,11 +489,13 @@ public class CryptoManagerImpl
    * from the ADS backed keystore). If the certificate entry does not
    * yet exist in the truststore backend, the truststore is signaled
    * to initialized that entry, and the newly generated certificate
-   * is then retrieved and returned.
+   * is then retrieved and returned. The certificate returned can never
+   * be null.
+   *
    * @return This instance's instance-key public-key certificate from
    * the local truststore backend.
    * @throws CryptoManagerException If the certificate cannot be
-   * retrieved.
+   * retrieved, or, was not able to be initialized by the trust-store.
    */
   static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
@@ -571,6 +573,13 @@ public class CryptoManagerImpl
       throw new CryptoManagerException(
             ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_INSTANCE_CERTIFICATE.get(
                     entryDN.toString(), getExceptionMessage(ex)), ex);
+    }
+    //The certificate can never be null. The Message digest code that will
+    //use it later throws a NPE if the certificate is null.
+    if(certificate == null) {
+      Message msg =
+        ERR_CRYPTOMGR_FAILED_INSTANCE_CERTIFICATE_NULL.get(entryDN.toString());
+        throw new CryptoManagerException(msg);
     }
     return(certificate);
   }
