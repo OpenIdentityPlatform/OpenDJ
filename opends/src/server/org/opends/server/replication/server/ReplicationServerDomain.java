@@ -2746,6 +2746,24 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     builder.add(baseDn.toString() + " " + generationId);
     attributes.add(builder.toAttribute());
 
+    try
+    {
+      MonitorData md = computeMonitorData();
+
+      // Missing changes
+      long missingChanges =
+        md.getMissingChangesRS(replicationServer.getServerId());
+      attributes.add(Attributes.create("missing-changes", String.valueOf(
+        missingChanges)));
+    }
+    catch (Exception e)
+    {
+      Message message =
+        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
+      // We failed retrieving the monitor data.
+      attributes.add(Attributes.create("error", message.toString()));
+    }
+
     return attributes;
   }
 }
