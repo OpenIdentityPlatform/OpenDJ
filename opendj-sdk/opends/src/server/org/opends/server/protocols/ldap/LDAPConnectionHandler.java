@@ -1183,8 +1183,8 @@ public final class LDAPConnectionHandler extends
           configSSL(currentConfig);
           sslConfig=false;
       }
-      LDAPClientConnection c =
-                                 new LDAPClientConnection(this, socketChannel);
+      LDAPClientConnection c = new LDAPClientConnection(this, socketChannel,
+                                                        getProtocol());
       if(currentConfig.isUseSSL()) {
           TLSByteChannel tlsByteChannel =  getTLSByteChannel(c, socketChannel);
           c.enableSSL(tlsByteChannel);
@@ -1214,7 +1214,10 @@ public final class LDAPConnectionHandler extends
       ResultCode resCode = DirectoryServer.getServerErrorResultCode();
       try {
           String alias = config.getSSLCertNickname();
-          protocol += "+SSL";
+          if(config.isUseSSL())
+              protocol += "+SSL";
+          else if(config.isAllowStartTLS())
+              protocol += "+TLS";
           DN keyMgrDN = config.getKeyManagerProviderDN();
           DN trustMgrDN = config.getTrustManagerProviderDN();
           KeyManagerProvider<?> keyManagerProvider =
