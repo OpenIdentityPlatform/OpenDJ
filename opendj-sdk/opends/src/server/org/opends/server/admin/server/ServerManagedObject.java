@@ -1235,6 +1235,12 @@ public final class ServerManagedObject<S extends Configuration> implements
           }
         }
       }
+      else
+      {
+        // The relation entry does not exist so check for and deregister
+        // delayed add listener.
+        deregisterDelayedAddListener(baseDN, listener);
+      }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
       if (debugEnabled()) {
@@ -1260,6 +1266,12 @@ public final class ServerManagedObject<S extends Configuration> implements
             }
           }
         }
+      }
+      else
+      {
+        // The relation entry does not exist so check for and deregister
+        // delayed add listener.
+        deregisterDelayedAddListener(baseDN, listener);
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
@@ -1293,6 +1305,12 @@ public final class ServerManagedObject<S extends Configuration> implements
           }
         }
       }
+      else
+      {
+        // The relation entry does not exist so check for and deregister
+        // delayed add listener.
+        deregisterDelayedDeleteListener(baseDN, listener);
+      }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
       if (debugEnabled()) {
@@ -1318,6 +1336,12 @@ public final class ServerManagedObject<S extends Configuration> implements
             }
           }
         }
+      }
+      else
+      {
+        // The relation entry does not exist so check for and deregister
+        // delayed add listener.
+        deregisterDelayedDeleteListener(baseDN, listener);
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
@@ -1392,6 +1416,257 @@ public final class ServerManagedObject<S extends Configuration> implements
     throw new ConfigException(message);
   }
 
+  // Deregister a delayed listener with the nearest existing parent
+  // entry to the provided base DN.
+  private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
+      ConfigurationAddListener<M> listener) throws ConfigException {
+    DN parentDN = baseDN.getParent();
+    int delayWrappers = 0;
+    while (parentDN != null) {
+      ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
+      if (relationEntry == null) {
+        parentDN = parentDN.getParent();
+        delayWrappers++;
+      } else {
+        for (ConfigAddListener l : relationEntry.getAddListeners()) {
+          if(l instanceof DelayedConfigAddListener)
+          {
+            DelayedConfigAddListener delayListener =
+                (DelayedConfigAddListener) l;
+            ConfigAddListener wrappedListener;
+
+            int i = delayWrappers;
+            for(; i > 0; i--)
+            {
+              wrappedListener = delayListener.getDelayedAddListener();
+              if(wrappedListener != null &&
+                  wrappedListener instanceof DelayedConfigAddListener)
+              {
+                delayListener = (DelayedConfigAddListener) l;
+              }
+              else
+              {
+                break;
+              }
+            }
+
+            if(i > 0)
+            {
+              // There are not enough level of wrapping so this can't be
+              // the listener we are looking for.
+              continue;
+            }
+
+            ConfigAddListener delayedListener =
+                delayListener.getDelayedAddListener();
+
+            if (delayedListener != null &&
+                 delayedListener instanceof ConfigAddListenerAdaptor) {
+              ConfigAddListenerAdaptor<?> adaptor =
+                  (ConfigAddListenerAdaptor<?>) delayedListener;
+              ServerManagedObjectAddListener<?> l2 = adaptor
+                  .getServerManagedObjectAddListener();
+              if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
+                ServerManagedObjectAddListenerAdaptor<?> adaptor2 =
+                    (ServerManagedObjectAddListenerAdaptor<?>) l2;
+                if (adaptor2.getConfigurationAddListener() == listener) {
+                  relationEntry.deregisterAddListener(l);
+                }
+              }
+            }
+          }
+        }
+        return;
+      }
+    }
+  }
+
+
+  // Deregister a delayed listener with the nearest existing parent
+  // entry to the provided base DN.
+  private <M extends Configuration> void deregisterDelayedDeleteListener(
+      DN baseDN, ConfigurationDeleteListener<M> listener)
+      throws ConfigException {
+    DN parentDN = baseDN.getParent();
+    int delayWrappers = 0;
+    while (parentDN != null) {
+      ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
+      if (relationEntry == null) {
+        parentDN = parentDN.getParent();
+        delayWrappers++;
+      } else {
+        for (ConfigAddListener l : relationEntry.getAddListeners()) {
+          if(l instanceof DelayedConfigAddListener)
+          {
+            DelayedConfigAddListener delayListener =
+                (DelayedConfigAddListener) l;
+            ConfigAddListener wrappedListener;
+
+            int i = delayWrappers;
+            for(; i > 0; i--)
+            {
+              wrappedListener = delayListener.getDelayedAddListener();
+              if(wrappedListener != null &&
+                  wrappedListener instanceof DelayedConfigAddListener)
+              {
+                delayListener = (DelayedConfigAddListener) l;
+              }
+              else
+              {
+                break;
+              }
+            }
+
+            if(i > 0)
+            {
+              // There are not enough level of wrapping so this can't be
+              // the listener we are looking for.
+              continue;
+            }
+
+            ConfigDeleteListener delayedListener =
+                delayListener.getDelayedDeleteListener();
+
+            if (delayedListener != null &&
+                delayedListener instanceof ConfigDeleteListenerAdaptor) {
+              ConfigDeleteListenerAdaptor<?> adaptor =
+                  (ConfigDeleteListenerAdaptor<?>) delayedListener;
+              ServerManagedObjectDeleteListener<?> l2 = adaptor
+                  .getServerManagedObjectDeleteListener();
+              if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
+                ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 =
+                    (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
+                if (adaptor2.getConfigurationDeleteListener() == listener) {
+                  relationEntry.deregisterAddListener(l);
+                }
+              }
+            }
+          }
+        }
+        return;
+      }
+    }
+  }
+
+  // Deregister a delayed listener with the nearest existing parent
+  // entry to the provided base DN.
+  private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
+      ServerManagedObjectAddListener<M> listener) throws ConfigException {
+    DN parentDN = baseDN.getParent();
+    int delayWrappers = 0;
+    while (parentDN != null) {
+      ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
+      if (relationEntry == null) {
+        parentDN = parentDN.getParent();
+        delayWrappers++;
+      } else {
+        for (ConfigAddListener l : relationEntry.getAddListeners()) {
+          if(l instanceof DelayedConfigAddListener)
+          {
+            DelayedConfigAddListener delayListener =
+                (DelayedConfigAddListener) l;
+            ConfigAddListener wrappedListener;
+
+            int i = delayWrappers;
+            for(; i > 0; i--)
+            {
+              wrappedListener = delayListener.getDelayedAddListener();
+              if(wrappedListener != null &&
+                  wrappedListener instanceof DelayedConfigAddListener)
+              {
+                delayListener = (DelayedConfigAddListener) l;
+              }
+              else
+              {
+                break;
+              }
+            }
+
+            if(i > 0)
+            {
+              // There are not enough level of wrapping so this can't be
+              // the listener we are looking for.
+              continue;
+            }
+
+            ConfigAddListener delayedListener =
+                delayListener.getDelayedAddListener();
+
+            if (delayedListener != null &&
+                 delayedListener instanceof ConfigAddListenerAdaptor) {
+              ConfigAddListenerAdaptor<?> adaptor =
+                  (ConfigAddListenerAdaptor<?>) delayedListener;
+              if (adaptor.getServerManagedObjectAddListener() == listener) {
+                relationEntry.deregisterAddListener(l);
+              }
+            }
+          }
+        }
+        return;
+      }
+    }
+  }
+
+
+  // Deregister a delayed listener with the nearest existing parent
+  // entry to the provided base DN.
+  private <M extends Configuration> void deregisterDelayedDeleteListener(
+      DN baseDN, ServerManagedObjectDeleteListener<M> listener)
+      throws ConfigException {
+    DN parentDN = baseDN.getParent();
+    int delayWrappers = 0;
+    while (parentDN != null) {
+      ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
+      if (relationEntry == null) {
+        parentDN = parentDN.getParent();
+        delayWrappers++;
+      } else {
+        for (ConfigAddListener l : relationEntry.getAddListeners()) {
+          if(l instanceof DelayedConfigAddListener)
+          {
+            DelayedConfigAddListener delayListener =
+                (DelayedConfigAddListener) l;
+            ConfigAddListener wrappedListener;
+
+            int i = delayWrappers;
+            for(; i > 0; i--)
+            {
+              wrappedListener = delayListener.getDelayedAddListener();
+              if(wrappedListener != null &&
+                  wrappedListener instanceof DelayedConfigAddListener)
+              {
+                delayListener = (DelayedConfigAddListener) l;
+              }
+              else
+              {
+                break;
+              }
+            }
+
+            if(i > 0)
+            {
+              // There are not enough level of wrapping so this can't be
+              // the listener we are looking for.
+              continue;
+            }
+
+            ConfigDeleteListener delayedListener =
+                delayListener.getDelayedDeleteListener();
+
+            if (delayedListener != null &&
+                 delayedListener instanceof ConfigDeleteListenerAdaptor) {
+              ConfigDeleteListenerAdaptor<?> adaptor =
+                  (ConfigDeleteListenerAdaptor<?>) delayedListener;
+              if (adaptor.getServerManagedObjectDeleteListener() == listener) {
+                relationEntry.deregisterAddListener(l);
+              }
+            }
+          }
+        }
+        return;
+      }
+    }
+  }
 
 
   // Register an instantiable or optional relation delete listener.
