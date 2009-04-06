@@ -1486,7 +1486,7 @@ public class AssuredReplicationServerTest
   @DataProvider(name = "testSafeDataLevelHighProvider")
   private Object[][] testSafeDataLevelHighProvider()
   {
-    // Constrcut all possible combinations of parameters
+    // Construct all possible combinations of parameters
     List<List<Object>> objectArrayList = new ArrayList<List<Object>>();
 
     // Safe Data Level

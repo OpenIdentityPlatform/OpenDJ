@@ -550,7 +550,7 @@ public class DbHandler implements Runnable
       ArrayList<Attribute> attributes = new ArrayList<Attribute>();
       attributes.add(Attributes.create("replicationServer-database",
           String.valueOf(serverId)));
-      attributes.add(Attributes.create("base-dn", baseDn.toString()));
+      attributes.add(Attributes.create("domain-name", baseDn.toString()));
       if (firstChange != null)
       {
         Date firstTime = new Date(firstChange.getTime());

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -533,7 +533,7 @@ public class MonitorTest extends ReplicationTestCase
       "-w", "password",
       "-b", "cn=monitor",
       "-s", "sub",
-      "(base-dn=*)"
+      "(domain-name=*)"
     };
 
     oStream.reset();
