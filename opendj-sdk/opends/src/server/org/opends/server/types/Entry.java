@@ -3708,13 +3708,6 @@ public class Entry
     Map<ObjectClass,String> objectClasses;
     if (config.compressObjectClassSets())
     {
-      if(ver < 0x03)
-      {
-        // Next is the length of the object classes. It may be a
-        // single byte or multiple bytes.
-        entryBuffer.getBERLength();
-      }
-
       objectClasses = config.getCompressedSchema().
           decodeObjectClasses(entryBuffer);
     }

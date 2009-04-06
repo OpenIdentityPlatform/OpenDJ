@@ -310,11 +310,8 @@ public class TestJebFormat extends JebTestCase {
     // Encode the object classes in the appropriate manner.
     if (config.compressObjectClassSets())
     {
-      ByteStringBuilder bsb = new ByteStringBuilder();
-      config.getCompressedSchema().encodeObjectClasses(bsb,
+      config.getCompressedSchema().encodeObjectClasses(buffer,
           entry.getObjectClasses());
-      buffer.appendBERLength(bsb.length());
-      buffer.append(bsb);
     }
     else
     {
