@@ -66,7 +66,7 @@ public class ServerState implements Iterable<Short>
    */
   public void clear()
   {
-    synchronized (this)
+    synchronized (list)
     {
       list.clear();
     }
@@ -155,7 +155,7 @@ public class ServerState implements Iterable<Short>
 
     saved = false;
 
-    synchronized(this)
+    synchronized(list)
     {
       Short id =  changeNumber.getServerId();
       ChangeNumber oldCN = list.get(id);
@@ -185,11 +185,14 @@ public class ServerState implements Iterable<Short>
 
     boolean result = false;
 
-    clear();
-    for (Short id : serverState) {
-      ChangeNumber maxChangeNumber = getMaxChangeNumber(id);
-      if (update(maxChangeNumber)) {
-        result = true;
+    synchronized (list)
+    {
+      clear();
+      for (Short id : serverState) {
+        ChangeNumber maxChangeNumber = serverState.getMaxChangeNumber(id);
+        if (this.update(maxChangeNumber)) {
+          result = true;
+        }
       }
     }
 
@@ -211,7 +214,7 @@ public class ServerState implements Iterable<Short>
   {
     HashSet<String> set = new HashSet<String>();
 
-    synchronized (this)
+    synchronized (list)
     {
       for (Short key  : list.keySet())
       {
@@ -234,7 +237,7 @@ public class ServerState implements Iterable<Short>
   {
     ArrayList<ByteString> values = new ArrayList<ByteString>(0);
 
-    synchronized (this)
+    synchronized (list)
     {
       for (Short id : list.keySet())
       {
@@ -253,7 +256,7 @@ public class ServerState implements Iterable<Short>
   {
     StringBuilder buffer = new StringBuilder();
 
-    synchronized (this)
+    synchronized (list)
     {
       for (Short key  : list.keySet())
       {
@@ -298,7 +301,7 @@ public class ServerState implements Iterable<Short>
    */
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    synchronized (this)
+    synchronized (list)
     {
       int length = 0;
       List<String> idList = new ArrayList<String>(list.size());
@@ -375,7 +378,7 @@ public class ServerState implements Iterable<Short>
   public ServerState duplicate()
   {
     ServerState newState = new ServerState();
-    synchronized (this)
+    synchronized (list)
     {
       for (Short key  : list.keySet())
       {

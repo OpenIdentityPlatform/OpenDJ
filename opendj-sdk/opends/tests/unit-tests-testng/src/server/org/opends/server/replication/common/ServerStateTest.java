@@ -107,7 +107,32 @@ public class ServerStateTest extends ReplicationTestCase
     // Check getBytes
     byte[] b = serverState.getBytes();
     ServerState generatedServerState = new ServerState(b,0,b.length -1) ;
+
+
+
     assertEquals(b, generatedServerState.getBytes()) ;
+
+  }
+
+  /**
+   * Create a new ServerState object
+   */
+  @Test(dataProvider = "changeNumberData")
+  public void serverStateReloadTest(ChangeNumber cn)
+  throws Exception
+  {
+    ChangeNumber cn1, cn3;
+    cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
+    cn3 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum(),(short)(cn1.getServerId()+1));
+
+    ServerState state1 = new ServerState();
+    state1.update(cn1);
+    state1.update(cn3);
+
+    ServerState state2 = new ServerState();
+    state2.reload(state1);
+
+    assertEquals(state1.toString(), state2.toString()) ;
 
   }
 
