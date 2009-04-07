@@ -41,6 +41,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.messages.ToolMessages.*;
 
 public class ChangeNumberControlPluginTestCase
     extends ReplicationTestCase {
@@ -156,7 +157,8 @@ public class ChangeNumberControlPluginTestCase
     String line = null;
     boolean found = false;
     while ((line = br.readLine()) != null) {
-      if (line.contains("operation change number is")) {
+      if (line.contains(INFO_CHANGE_NUMBER_CONTROL_RESULT.get("%s","%s")
+                            .toString().split("%s")[1])) {
         found = true;
       }
     }
