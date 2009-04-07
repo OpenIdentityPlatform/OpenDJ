@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -281,7 +281,8 @@ public final class Attributes
 
   /**
    * Creates a new attribute containing all the values from the two
-   * provided attributes.
+   * provided attributes. The returned attribute will use the name and
+   * options taken from the first attribute.
    * <p>
    * This method is logically equivalent to:
    *
@@ -306,7 +307,8 @@ public final class Attributes
   /**
    * Creates a new attribute containing all the values from the two
    * provided attributes and put any duplicate values into the
-   * provided collection.
+   * provided collection. The returned attribute will use the name
+   * and options taken from the first attribute.
    *
    * @param a1
    *          The first attribute.
@@ -337,7 +339,9 @@ public final class Attributes
 
   /**
    * Creates a new attribute containing the values from the first
-   * attribute which are not in the second attribute.
+   * attribute which are not in the second attribute. The returned
+   * attribute will use the name and options taken from the first
+   * attribute.
    * <p>
    * This method is logically equivalent to:
    *
@@ -364,6 +368,8 @@ public final class Attributes
    * attribute which are not in the second attribute. Any values which
    * were present in the second attribute but which were not present
    * in the first attribute will be put into the provided collection.
+   * The returned attribute will use the name and options taken from
+   * the first attribute.
    *
    * @param a1
    *          The first attribute.
