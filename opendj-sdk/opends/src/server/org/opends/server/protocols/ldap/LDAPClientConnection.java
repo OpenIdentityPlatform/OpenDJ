@@ -88,6 +88,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -1151,11 +1152,18 @@ public class LDAPClientConnection extends ClientConnection implements
     {
       return false;
     }
-    else
+
+    if (operation.getOperationType() == OperationType.ABANDON)
     {
-      lastCompletionTime.set(TimeThread.getTime());
-      return true;
+      if (keepStats
+          && (operation.getResultCode() == ResultCode.CANCELED))
+      {
+        statTracker.updateAbandonedOperation();
+      }
     }
+
+    lastCompletionTime.set(TimeThread.getTime());
+    return true;
   }
 
 
@@ -1669,6 +1677,16 @@ public class LDAPClientConnection extends ClientConnection implements
   private boolean processAbandonRequest(LDAPMessage message,
       List<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null)
+        && (!controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      return false;
+    }
+
+    // Create the abandon operation and add it into the work queue.
     AbandonRequestProtocolOp protocolOp =
         message.getAbandonRequestProtocolOp();
     AbandonOperationBasis abandonOp =
@@ -1676,10 +1694,19 @@ public class LDAPClientConnection extends ClientConnection implements
             .getAndIncrement(), message.getMessageID(), controls,
             protocolOp.getIDToAbandon());
 
-    abandonOp.run();
-    if (keepStats && (abandonOp.getResultCode() == ResultCode.CANCELED))
+    try
     {
-      statTracker.updateAbandonedOperation();
+      addOperationInProgress(abandonOp);
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      // Don't send an error response since abandon operations
+      // don't have a response.
     }
 
     return connectionValid;
