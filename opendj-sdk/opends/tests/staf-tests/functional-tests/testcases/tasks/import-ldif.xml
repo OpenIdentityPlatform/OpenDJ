@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="import-ldif"/>
@@ -214,34 +214,18 @@
               'startTask'           : '20061212000000',
               'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
             </call>
-            <call function="'Sleep'">
-              { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  40000 }
-            </call>
-            
-            <!--  Check data are imported -->
-            <call function="'checkImport'">
-              { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
-              'uid=tmorris, dc=example,dc=com'],
-              'startDS'     : 'False'              
-              }
-            </call>
-            
-            <!-- Delete entries -->
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'uid=scarter,dc=example,dc=com' }
-            </call>
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'        : 'uid=tmorris,dc=example,dc=com' }
-            </call>          
+
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
+                'returnString'	 : returnString ,
+                'knownIssue'     : '3909' ,
+                'expectedRC'     : '1' }
+              </call>
+
             
             <call function="'testCase_Postamble'"/>
           </sequence>
@@ -274,6 +258,13 @@
 
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+             { 'noOfLoops'		: 10 ,
+               'noOfMilliSeconds' : 2000
+             }
             </call>
 
             <call function="'ImportLdifWithScript'">

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="restart_db"/>
@@ -70,16 +70,12 @@
               'dsBindDN'    : DIRECTORY_INSTANCE_DN,
               'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
               'dsRestart'   : ' ',
-              'dsStopTime'  : '20061212000000' }
+              'dsStopTime'  : '20061212000000',
+              'knownIssue'  : '3909' ,
+              'expectedRC'  : '89'
+              }
             </call>
-            
-            <!--- Check that DS started -->
-            <call function="'isAlive'">
-             { 'noOfLoops'		: 10 ,
-               'noOfMilliSeconds' : 2000
-             }
-            </call>
-            
+                                   
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -107,9 +103,12 @@
               'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsBindDN'    : DIRECTORY_INSTANCE_DN,
               'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD,
-              'dsStopTime'  : '20061212000000' }
+              'dsStopTime'  : '20061212000000',
+              'knownIssue'  : '3909' ,
+              'expectedRC'  : '89'
+              }
             </call>
-            
+         
             <call function="'SearchObject'">
               { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,

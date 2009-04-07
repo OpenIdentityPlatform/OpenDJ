@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="backup_db"/>
@@ -333,22 +333,16 @@
               'backEnd'             : DIRECTORY_INSTANCE_BE}
             </call>
             
-            
-            <message>'--- Check log files backup_schedule_asynchronous ---'</message>
-            <call function="'listFolder'">
-              { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-              'foldername' : '%s/tasks' % remote.data,
-              'filename'   : 'backup_schedule_asynchronous'
-              }
-            </call>     
-            
-            <!-- check  the export ldif file has been created-->
-            <if expr="len(cmdResult) == 0">
-              <call function="'testFailed'"/>
-              <else>
-                <call function="'testPassed'"/>          
-              </else>
-            </if>   
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
+                'returnString'	 : returnString ,
+                'knownIssue'     : '3909' ,
+                'expectedRC'     : '1' }
+              </call>
             
             
             <call function="'testCase_Postamble'"/>
@@ -383,6 +377,13 @@
 
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+             { 'noOfLoops'		: 10 ,
+               'noOfMilliSeconds' : 2000
+             }
             </call>
 
             <!-- manage-tasks -->
