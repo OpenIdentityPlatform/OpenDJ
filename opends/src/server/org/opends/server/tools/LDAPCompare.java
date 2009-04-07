@@ -659,6 +659,15 @@ public class LDAPCompare
       return 1;
     }
 
+    // If trailing DNs were provided and the filename argument was also
+    // provided, exit with an error.
+    if (!dnStrings.isEmpty() && filename.isPresent())
+    {
+      err.println(wrapText(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get(),
+          MAX_LINE_WIDTH));
+      return 1;
+    }
+
     // parse the attribute string
     int idx = attributeString.indexOf(":");
     if(idx == -1)
