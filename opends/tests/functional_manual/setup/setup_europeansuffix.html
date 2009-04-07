@@ -1,4 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
 <!--
  ! CDDL HEADER START
  !
@@ -22,10 +24,8 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
-<html>
-<head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
   <title>setup_europeansuffix</title>
@@ -38,13 +38,19 @@
     <tr>
       <td style="vertical-align: top;">Test ID</td>
       <td style="vertical-align: top;">setup_europeansuffix<br>
-      </td>
+      <span style="font-weight: bold;">!! IMPORTANT NOTE </span><br>
+Before you start the test, set your
+locale to any UTF-8 locale, for example: <br>
+$ export LC_ALL=en_US.UTF-8<br>
+$ export LANG=en_US.UTF-8<br>
+Set the encoding in your browser to UTF-8
+(View-&gt; Character Encoding -&gt; Unicode (UTF-8) </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small> </small></big></big>
-OpenDS Graphical QuickSetUp -&gt; Directory Data Panel<br>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+Graphical QuickSetUp -&gt; Directory Data Panel<br>
       <small>Directory Base DN: o=<br>
 Import Data from LDIF File celine.ldif</small><br>
       </td>
@@ -62,10 +68,8 @@ file<br>
       <td style="vertical-align: top;">Specific checks</td>
       <td style="vertical-align: top;">verify the suffix is created
 correctly and the&nbsp; characters are ok <br>
-      <span style="text-decoration: underline;">Note</span> : Set you
-locale to any UTF-8 locale. Set the encoding in your browser to UTF-8
-(View-&gt; Character Encoding -&gt; Unicode (UTF-8)<br>
-      <span style="text-decoration: underline;">Note</span> :
+      <span style="text-decoration: underline;"></span><span
+ style="text-decoration: underline;">Note</span> :
 attributes with multibyte characters (dn, postalAdress, street, sn, cn,
 description)<br>
       <span style="text-decoration: underline;">Note</span> :
@@ -76,7 +80,3 @@ userPassword: password </td>
 <br>
 <br>
 <br>
-<pre>celine.ldif<br>#<br># PROPRIETARY/CONFIDENTIAL. Use of this product is subject to<br># license terms. Copyright (c) 2001 Sun Microsystems, Inc.<br># Some preexisting portions Copyright (c) 2001 Netscape Communications Corp.<br># All rights reserved.<br>#<br>dn: o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>o: &Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: organization<br>objectClass: top<br><br>dn: ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: top<br>objectClass: organizationalunit<br>ou: People<br><br>dn: uid=brynders,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: BR<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 685 622 6202<br>mail: brynders@maildomain.net<br>employeeNumber: 0<br>givenName: Babette<br>sn: Rynd&eacute;rs<br>cn: Babette Rynd&eacute;rs<br>uid: brynders<br>userPassword: password<br>description: user Babette Rynd&eacute;rs<br><br>dn: uid=mdecoursin,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: MD<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 685 622 8883<br>mail: mdecoursin@maildomain.net<br>employeeNumber: 1<br>givenName: M&yuml;rty<br>sn: DeCo&ugrave;rsin<br>cn: M&yuml;rty DeCo&ugrave;rsin<br>uid: mdecoursin<br>userPassword: password<br>description: user M&yuml;rty DeCo&ugrave;rsin<br><br>dn: uid=roconner,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: RO<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 685 622 8784<br>mail: roconner@maildomain.net<br>employeeNumber: 2<br>givenName: R&ocirc;w<br>sn: O'Conn&eacute;r<br>cn: R&ocirc;w O'Conn&eacute;r<br>uid: roconner<br>userPassword: password<br>description: user R&ocirc;w O'Conn&eacute;r<br><br>dn: uid=kfunderburg,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: KF<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 685 622 6202<br>mail: kfunderburg@maildomain.net<br>employeeNumber: 3<br>givenName: K&eacute;&ntilde;non<br>sn: F&ugrave;nd&eacute;rb&ugrave;rg<br>cn: K&eacute;&ntilde;non F&ugrave;nd&eacute;rb&ugrave;rg<br>uid: kfunderburg<br>userPassword: password<br>description: user K&eacute;&ntilde;non F&ugrave;nd&eacute;rb&ugrave;rg<br><br>dn: uid=teberle,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: TE<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 714 817-4739<br>mail: teberle@maildomain.net<br>employeeNumber: 4<br>givenName: Theadora<br>sn: Eb&eacute;rle<br>cn: Theadora Eb&eacute;rle<br>uid: teberle<br>userPassword: password<br>description: user Theadora Eb&eacute;rle<br><br>dn: uid=dcozart,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: DC<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 303 741-9413<br>mail: dcozart@maildomain.net<br>employeeNumber: 5<br>givenName: D&agrave;sya<br>sn: Coz&agrave;rt<br>cn: D&agrave;sya Coz&agrave;rt<br>uid: dcozart<br>userPassword: password<br>description: user D&agrave;sya Coz&agrave;rt<br><br>dn: uid=mcallanan,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: MC<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 510 577-5852<br>mail: mcallanan@maildomain.net<br>employeeNumber: 6<br>givenName: M&yuml;rv<br>sn: Call&acirc;n&acirc;n<br>cn: M&yuml;rv Call&acirc;n&acirc;n<br>uid: mcallanan<br>userPassword: password<br>description: user M&yuml;rv Call&acirc;n&acirc;n<br><br>dn: uid=novans,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: NO<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 206 376-1666<br>mail: novans@maildomain.net<br>employeeNumber: 7<br>givenName: &Ntilde;&auml;than<br>sn: Ov&acirc;ns<br>cn: &Ntilde;&auml;than Ov&acirc;ns<br>uid: novans<br>userPassword: password<br>description: user &Ntilde;&auml;than Ov&acirc;ns<br><br>dn: uid=tproblems,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: TP<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 213 155-3374<br>mail: tproblems@maildomain.net<br>employeeNumber: 8<br>givenName: Takehiko<br>sn: Pr&ouml;blems<br>cn: Takehiko Pr&ouml;blems<br>uid: tproblems<br>userPassword: password<br>description: user Takehiko Pr&ouml;blems<br><br>dn: uid=bali,ou=People,o=&Ccedil;&eacute;lin&eacute; &Auml;ndr&egrave;<br>objectClass: inetorgperson<br>objectClass: person<br>objectClass: top<br>objectClass: organizationalperson<br>postalAddress: 43 rue Fr&eacute;ville, B&acirc;timent Saint Exup&eacute;ry, 75016 Paris, France<br>initials: BA<br>street: 43 rue Fr&eacute;ville<br>postalCode: 75016<br>telephoneNumber: +1 213 213-4553<br>mail: bali@maildomain.net<br>employeeNumber: 9<br>givenName: Bam<br>sn: &Aring;l&iuml;<br>cn: Bam &Aring;l&iuml;<br>uid: bali<br>userPassword: password<br>description: user Bam &Aring;l&iuml;<br></pre>
-<br>
-</body>
-</html>

@@ -1,4 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
 <!--
  ! CDDL HEADER START
  !
@@ -22,10 +24,8 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
-<html>
-<head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
   <title>setup_chinesesuffix</title>
@@ -38,13 +38,20 @@
     <tr>
       <td style="vertical-align: top;">Test ID</td>
       <td style="vertical-align: top;">setup_chinesesuffix<br>
+      <span style="font-weight: bold;">!! IMPORTANT NOTE</span> <br>
+Before you start the test, set you
+locale to any UTF-8 locale, for example: <br>
+$ export LC_ALL=en_US.UTF-8<br>
+$ export LANG=en_US.UTF-8<br>
+Set the encoding in your browser to UTF-8
+(View-&gt; Character Encoding -&gt; Unicode (UTF-8)<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small> </small></big></big>
-OpenDS Graphical QuickSetUp -&gt; Directory Data Panel<br>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+Graphical QuickSetUp -&gt; Directory Data Panel<br>
       <small>Directory Base DN: o=&#21271;&#20140;&#22823;&#23398;<br>
 Import Data from LDIF File beijing.ldif<br>
       </small><br>
@@ -63,10 +70,8 @@ chinese suffix o=&#21271;&#20140;&#22823;&#23398; (Beijing University) using the
       <td style="vertical-align: top;">Specific checks</td>
       <td style="vertical-align: top;">verify the suffix is created
 correctly and the&nbsp; characters are ok <br>
-      <span style="text-decoration: underline;">Note</span> : Set you
-locale to any UTF-8 locale. Set the encoding in your browser to UTF-8
-(View-&gt; Character Encoding -&gt; Unicode (UTF-8)<br>
-      <span style="text-decoration: underline;">Note</span> :
+      <span style="text-decoration: underline;"></span><span
+ style="text-decoration: underline;">Note</span> :
 attributes with multibyte characters (dn, postalAdress, street, sn, cn,
 description)<br>
       <span style="text-decoration: underline;">Note</span> :
