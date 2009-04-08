@@ -33,6 +33,7 @@ import com.mysql.cluster.ndbj.NdbIndexScanOperation;
 import com.mysql.cluster.ndbj.NdbOperation;
 import com.mysql.cluster.ndbj.NdbOperation.AbortOption;
 import com.mysql.cluster.ndbj.NdbResultSet;
+import com.mysql.cluster.ndbj.NdbScanOperation;
 import com.mysql.cluster.ndbj.NdbTransaction;
 import com.mysql.cluster.ndbj.NdbTransaction.ExecType;
 import java.util.ArrayList;
@@ -1561,9 +1562,12 @@ public class OperationContainer extends DatabaseContainer
 
     NdbTransaction ndbTxn = txn.getNdbTransaction();
 
+    // Set batch size and parallel scans to
+    // their minimum values to reduce churn.
     op = ndbTxn.getSelectIndexScanOperation(
       PRIMARY_INDEX_NAME, name,
-      NdbOperation.LockMode.LM_CommittedRead);
+      NdbOperation.LockMode.LM_CommittedRead,
+      NdbScanOperation.ScanFlag.NO_FLAG, 1, 1);
 
     int numComponents = dn.getNumComponents();
     int componentIndex = numComponents - 1;
