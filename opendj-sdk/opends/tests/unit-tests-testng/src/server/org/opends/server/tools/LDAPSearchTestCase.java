@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -75,12 +75,12 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-    
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--set", "server-fqdn:" + "127.0.0.1");
-    
+
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
     FileWriter fileWriter = new FileWriter(pwFile);
@@ -99,7 +99,7 @@ public class LDAPSearchTestCase
 
   @AfterClass
   public void tearDown() throws Exception {
-   
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -1642,7 +1642,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 1);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 1);
 
     args = new String[]
     {
@@ -1658,7 +1658,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 2);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 2);
 
     args = new String[]
     {
@@ -1674,7 +1674,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 2);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 2);
   }
 
 
@@ -1761,7 +1761,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 5);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 5);
   }
 
 
@@ -1900,8 +1900,9 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(pagedArgs, false, null, System.err),
-                 LDAPSearch.mainSearch(unpagedArgs, false, null, System.err));
+    assertEquals(
+        LDAPSearch.mainSearch(pagedArgs, false, true, null, System.err),
+        LDAPSearch.mainSearch(unpagedArgs, false, true, null, System.err));
   }
 
 

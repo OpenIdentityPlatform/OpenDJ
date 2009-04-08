@@ -553,7 +553,7 @@ public class LDAPSearch
 
   public static void main(String[] args)
   {
-    int retCode = mainSearch(args, true, System.out, System.err);
+    int retCode = mainSearch(args, true, false, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -572,7 +572,7 @@ public class LDAPSearch
 
   public static int mainSearch(String[] args)
   {
-    return mainSearch(args, true, System.out, System.err);
+    return mainSearch(args, true, true, System.out, System.err);
   }
 
   /**
@@ -591,9 +591,35 @@ public class LDAPSearch
    *
    * @return The error code.
    */
-
   public static int mainSearch(String[] args, boolean initializeServer,
                                OutputStream outStream, OutputStream errStream)
+  {
+    return mainSearch(args, initializeServer, true, outStream, errStream);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the ldapsearch tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  returnMatchingEntries whether when the option --countEntries is
+   *                           specified, the number of matching entries should
+   *                           be returned or not.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   *
+   * @return The error code.
+   */
+
+  public static int mainSearch(String[] args, boolean initializeServer,
+      boolean returnMatchingEntries, OutputStream outStream,
+      OutputStream errStream)
   {
     PrintStream out;
     if (outStream == null)
@@ -1759,7 +1785,7 @@ public class LDAPSearch
                                                    searchOptions, wrapColumn);
       }
 
-      if (countEntries.isPresent())
+      if (countEntries.isPresent() && returnMatchingEntries)
       {
         return matchingEntries;
       }
