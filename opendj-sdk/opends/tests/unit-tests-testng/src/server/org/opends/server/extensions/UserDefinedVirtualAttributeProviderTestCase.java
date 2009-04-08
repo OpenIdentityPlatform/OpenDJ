@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -113,37 +113,47 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.decode(ruleDN),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
 
-    for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+    try
     {
-      if (rule.getAttributeType().equals(descriptionType))
+      InternalSearchOperation searchOperation =
+          new InternalSearchOperation(conn, InternalClientConnection
+              .nextOperationID(), InternalClientConnection
+              .nextMessageID(), null, DN.decode(ruleDN),
+              SearchScope.BASE_OBJECT,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              SearchFilter.createFilterFromString("(objectClass=*)"),
+              null, null);
+
+      for (VirtualAttributeRule rule : DirectoryServer
+          .getVirtualAttributes())
       {
-        // Due to a bug in JDK versions prior to 1.5.0_08, we have to
-        // rewrite the following code.
-        // UserDefinedVirtualAttributeProvider provider =
-        //     (UserDefinedVirtualAttributeProvider)
-        Object providerAsObject = rule.getProvider();
-        UserDefinedVirtualAttributeProvider provider =
-             (UserDefinedVirtualAttributeProvider)providerAsObject;
+        if (rule.getAttributeType().equals(descriptionType))
+        {
+          // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+          // rewrite the following code.
+          // UserDefinedVirtualAttributeProvider provider =
+          // (UserDefinedVirtualAttributeProvider)
+          Object providerAsObject = rule.getProvider();
+          UserDefinedVirtualAttributeProvider provider =
+              (UserDefinedVirtualAttributeProvider) providerAsObject;
 
-        assertFalse(provider.isMultiValued());
-        assertFalse(provider.isSearchable(rule, searchOperation));
+          assertFalse(provider.isMultiValued());
+          assertFalse(provider.isSearchable(rule, searchOperation));
 
-        provider.processSearch(rule, searchOperation);
-        assertEquals(searchOperation.getResultCode(),
-                     ResultCode.UNWILLING_TO_PERFORM);
+          provider.processSearch(rule, searchOperation);
+          assertEquals(searchOperation.getResultCode(),
+              ResultCode.UNWILLING_TO_PERFORM);
+        }
       }
-    }
 
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -175,37 +185,46 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), null, DN.decode(ruleDN),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
 
-    for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+    try
     {
-      if (rule.getAttributeType().equals(descriptionType))
+      InternalSearchOperation searchOperation =
+          new InternalSearchOperation(conn, InternalClientConnection
+              .nextOperationID(), InternalClientConnection
+              .nextMessageID(), null, DN.decode(ruleDN),
+              SearchScope.BASE_OBJECT,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              SearchFilter.createFilterFromString("(objectClass=*)"),
+              null, null);
+
+      for (VirtualAttributeRule rule : DirectoryServer
+          .getVirtualAttributes())
       {
-        // Due to a bug in JDK versions prior to 1.5.0_08, we have to
-        // rewrite the following code.
-        // UserDefinedVirtualAttributeProvider provider =
-        //     (UserDefinedVirtualAttributeProvider)
-        Object providerAsObject = rule.getProvider();
-        UserDefinedVirtualAttributeProvider provider =
-             (UserDefinedVirtualAttributeProvider)providerAsObject;
+        if (rule.getAttributeType().equals(descriptionType))
+        {
+          // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+          // rewrite the following code.
+          // UserDefinedVirtualAttributeProvider provider =
+          // (UserDefinedVirtualAttributeProvider)
+          Object providerAsObject = rule.getProvider();
+          UserDefinedVirtualAttributeProvider provider =
+              (UserDefinedVirtualAttributeProvider) providerAsObject;
 
-        assertTrue(provider.isMultiValued());
-        assertFalse(provider.isSearchable(rule, searchOperation));
+          assertTrue(provider.isMultiValued());
+          assertFalse(provider.isSearchable(rule, searchOperation));
 
-        provider.processSearch(rule, searchOperation);
-        assertEquals(searchOperation.getResultCode(),
-                     ResultCode.UNWILLING_TO_PERFORM);
+          provider.processSearch(rule, searchOperation);
+          assertEquals(searchOperation.getResultCode(),
+              ResultCode.UNWILLING_TO_PERFORM);
+        }
       }
     }
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -252,22 +271,31 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode(userDN), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
 
-    List<Attribute> attrList =
-         searchOperation.getSearchEntries().get(0).getAttribute(
+    try
+    {
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT, SearchFilter
+                  .createFilterFromString("(objectClass=*)"));
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
               descriptionType);
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 1);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
 
-    Attribute attr = attrList.get(0);
-    assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(AttributeValues.create(descriptionType, value)));
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      Attribute attr = attrList.get(0);
+      assertEquals(attr.size(), 1);
+      assertTrue(attr.contains(AttributeValues.create(descriptionType,
+          value)));
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -316,23 +344,33 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode(userDN), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
 
-    List<Attribute> attrList =
-         searchOperation.getSearchEntries().get(0).getAttribute(
+    try
+    {
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT, SearchFilter
+                  .createFilterFromString("(objectClass=*)"));
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
               descriptionType);
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 1);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
 
-    Attribute attr = attrList.get(0);
-    assertEquals(attr.size(), 2);
-    assertTrue(attr.contains(AttributeValues.create(descriptionType, value1)));
-    assertTrue(attr.contains(AttributeValues.create(descriptionType, value2)));
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      Attribute attr = attrList.get(0);
+      assertEquals(attr.size(), 2);
+      assertTrue(attr.contains(AttributeValues.create(descriptionType,
+          value1)));
+      assertTrue(attr.contains(AttributeValues.create(descriptionType,
+          value2)));
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -381,22 +419,31 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode(userDN), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
 
-    List<Attribute> attrList =
-         searchOperation.getSearchEntries().get(0).getAttribute(
+    try
+    {
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT, SearchFilter
+                  .createFilterFromString("(objectClass=*)"));
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
               descriptionType);
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 1);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
 
-    Attribute attr = attrList.get(0);
-    assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(AttributeValues.create(descriptionType, realValue)));
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      Attribute attr = attrList.get(0);
+      assertEquals(attr.size(), 1);
+      assertTrue(attr.contains(AttributeValues.create(descriptionType,
+          realValue)));
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -445,23 +492,31 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode(userDN), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
 
-    List<Attribute> attrList =
-         searchOperation.getSearchEntries().get(0).getAttribute(
+    try
+    {
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT, SearchFilter
+                  .createFilterFromString("(objectClass=*)"));
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
               descriptionType);
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 1);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
 
-    Attribute attr = attrList.get(0);
-    assertEquals(attr.size(), 1);
-    assertTrue(attr.contains(AttributeValues.create(descriptionType,
-                                                virtualValue)));
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      Attribute attr = attrList.get(0);
+      assertEquals(attr.size(), 1);
+      assertTrue(attr.contains(AttributeValues.create(descriptionType,
+          virtualValue)));
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -510,32 +565,120 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode(userDN), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
 
-    List<Attribute> attrList =
-         searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
-    assertNotNull(attrList);
-    assertEquals(attrList.size(), 2);
-
-    LinkedHashSet<AttributeValue> allValues =
-         new LinkedHashSet<AttributeValue>();
-    for (Attribute a : attrList)
+    try
     {
-      for (AttributeValue av : a) {
-        allValues.add(av);
-      }
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT, SearchFilter
+                  .createFilterFromString("(objectClass=*)"));
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
+              descriptionType);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
+
+      Attribute a = attrList.get(0);
+      assertEquals(a.size(), 2);
+
+      assertTrue(a.contains(AttributeValues.create(
+          descriptionType, realValue)));
+      assertTrue(a.contains(AttributeValues.create(
+          descriptionType, virtualValue)));
+
     }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+  }
 
-    assertTrue(allValues.contains(AttributeValues.create(descriptionType,
-                                                     realValue)));
-    assertTrue(allValues.contains(AttributeValues.create(descriptionType,
-                                                     virtualValue)));
 
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+
+  /**
+   * Tests the creation of a description virtual attribute when real and
+   * virtual values should be merged and the entry has a real value.
+   * <p>
+   * Returning a subset of attributes is handled differently to all
+   * attributes. This tests fix for issue 3779.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSingleDescriptionMergeRealAndVirtualWithAttrList()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String ruleDN = "cn=User-Defined Test,cn=Virtual Attributes,cn=config";
+    String userDN = "uid=test.user,o=test";
+    String virtualValue = "This is the virtual value";
+    String realValue    = "This is the real value";
+
+    TestCaseUtils.addEntries(
+      "dn: " + ruleDN,
+      "objectClass: top",
+      "objectClass: ds-cfg-virtual-attribute",
+      "objectClass: ds-cfg-user-defined-virtual-attribute",
+      "cn: User-Defined Test",
+      "ds-cfg-java-class: org.opends.server.extensions." +
+           "UserDefinedVirtualAttributeProvider",
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: merge-real-and-virtual",
+      "ds-cfg-value: " + virtualValue,
+      "",
+      "dn: " + userDN,
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: test",
+      "description: " + realValue);
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    try
+    {
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+      attributes.add("description");
+
+      InternalSearchOperation searchOperation =
+          conn.processSearch(DN.decode(userDN),
+              SearchScope.BASE_OBJECT,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              SearchFilter.createFilterFromString("(objectClass=*)"),
+              attributes);
+
+      List<Attribute> attrList =
+          searchOperation.getSearchEntries().get(0).getAttribute(
+              descriptionType);
+      assertNotNull(attrList);
+      assertEquals(attrList.size(), 1);
+
+      Attribute a = attrList.get(0);
+      assertEquals(a.size(), 2);
+
+      assertTrue(a.contains(AttributeValues.create(
+          descriptionType, realValue)));
+      assertTrue(a.contains(AttributeValues.create(
+          descriptionType, virtualValue)));
+    }
+    finally
+    {
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -610,53 +753,47 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "cn: Test User",
       "userPassword: test");
 
-
-    String path1 = TestCaseUtils.createTempFile(
-      "dn: " + userDN,
-      "changetype: modify",
-      "replace: userPassword",
-      "userPassword: short");
-
-    String[] args1 =
+    try
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path1
-    };
+      String path1 =
+          TestCaseUtils.createTempFile("dn: " + userDN,
+              "changetype: modify", "replace: userPassword",
+              "userPassword: short");
 
-    assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
+      String[] args1 =
+          { "-h", "127.0.0.1", "-p",
+              String.valueOf(TestCaseUtils.getServerLdapPort()), "-D",
+              "cn=Directory Manager", "-w", "password", "-f", path1 };
 
+      assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
 
-    String path2 = TestCaseUtils.createTempFile(
-      "dn: " + ruleDN,
-      "changetype: modify",
-      "replace: ds-cfg-enabled",
-      "ds-cfg-enabled: false");
+      String path2 =
+          TestCaseUtils.createTempFile("dn: " + ruleDN,
+              "changetype: modify", "replace: ds-cfg-enabled",
+              "ds-cfg-enabled: false");
 
-    String[] args2 = new String[]
+      String[] args2 =
+          new String[] { "-h", "127.0.0.1", "-p",
+              String.valueOf(TestCaseUtils.getServerAdminPort()), "-Z",
+              "-X", "-D", "cn=Directory Manager", "-w", "password",
+              "-f", path2 };
+
+      assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
+      assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
+
+    }
+    finally
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
-      "-Z", "-X",
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path2
-    };
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
 
-    assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
-    assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN.decode(policyDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      deleteOperation = conn.processDelete(DN.decode(policyDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 
 
@@ -703,49 +840,44 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "userPassword: password");
 
 
-    String path1 = TestCaseUtils.createTempFile(
-      "dn: o=test",
-      "changetype: modify",
-      "replace: description",
-      "description: foo");
-
-    String[] args1 =
+    try
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", userDN,
-      "-w", "password",
-      "-f", path1
-    };
+      String path1 =
+          TestCaseUtils.createTempFile("dn: o=test",
+              "changetype: modify", "replace: description",
+              "description: foo");
 
-    assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
+      String[] args1 =
+          { "-h", "127.0.0.1", "-p",
+              String.valueOf(TestCaseUtils.getServerLdapPort()), "-D",
+              userDN, "-w", "password", "-f", path1 };
 
+      assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
 
-    String path2 = TestCaseUtils.createTempFile(
-      "dn: " + ruleDN,
-      "changetype: modify",
-      "replace: ds-cfg-enabled",
-      "ds-cfg-enabled: true");
+      String path2 =
+          TestCaseUtils.createTempFile("dn: " + ruleDN,
+              "changetype: modify", "replace: ds-cfg-enabled",
+              "ds-cfg-enabled: true");
 
-    String[] args2 = new String[]
+      String[] args2 =
+          new String[] { "-h", "127.0.0.1", "-p",
+              String.valueOf(TestCaseUtils.getServerAdminPort()), "-Z",
+              "-X", "-D", "cn=Directory Manager", "-w", "password",
+              "-f", path2 };
+
+      assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
+      assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
+
+    }
+    finally
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
-      "-Z", "-X",
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-f", path2
-    };
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
 
-    assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
-    assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
-
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation = conn.processDelete(DN.decode(ruleDN));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      DeleteOperation deleteOperation =
+          conn.processDelete(DN.decode(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 }
 
