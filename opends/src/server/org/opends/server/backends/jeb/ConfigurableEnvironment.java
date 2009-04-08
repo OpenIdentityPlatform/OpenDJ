@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.dbi.MemoryBudget;
 
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import org.opends.messages.Message;
+import static org.opends.messages.JebMessages.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -426,6 +428,21 @@ public class ConfigurableEnvironment
   public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg)
        throws ConfigException
   {
+    // See if the db cache size setting is valid.
+    if(cfg.getDBCacheSize() != 0)
+    {
+      if (MemoryBudget.getRuntimeMaxMemory() < cfg.getDBCacheSize()) {
+        throw new ConfigException(
+            ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+                cfg.getDBCacheSize(), MemoryBudget.getRuntimeMaxMemory()));
+      }
+      if (cfg.getDBCacheSize() < MemoryBudget.MIN_MAX_MEMORY_SIZE) {
+        throw new ConfigException(
+            ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
+                cfg.getDBCacheSize(), MemoryBudget.MIN_MAX_MEMORY_SIZE));
+      }
+    }
+
     EnvironmentConfig envConfig = defaultConfig();
 
     // Handle the attributes that do not have a JE property.
@@ -445,13 +462,7 @@ public class ConfigurableEnvironment
     // See if there are any native JE properties specified in the config
     // and if so try to parse, evaluate and set them.
     SortedSet<String> jeProperties = cfg.getJEProperty();
-    try {
-      envConfig = setJEProperties(envConfig, jeProperties, attrMap);
-    } catch (ConfigException e) {
-      throw e;
-    }
-
-    return envConfig;
+    return setJEProperties(envConfig, jeProperties, attrMap);
   }
 
 
