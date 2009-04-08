@@ -2865,13 +2865,13 @@ public class Entry
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
     deepCopy(userAttributes, userAttrsCopy, false, false, false,
-        true);
+        true, false);
 
     HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false,
-        false, false, true);
+        false, false, true, false);
 
     for (AttributeType t : suppressedAttributes.keySet())
     {
@@ -2917,17 +2917,22 @@ public class Entry
    *          Indicates whether to exclude real attributes.
    * @param omitVirtual
    *          Indicates whether to exclude virtual attributes.
+   * @param mergeDuplicates
+   *          Indicates whether duplicate attributes should be merged.
    */
   private void deepCopy(Map<AttributeType,List<Attribute>> source,
                         Map<AttributeType,List<Attribute>> target,
                         boolean omitValues,
                         boolean omitEmpty,
                         boolean omitReal,
-                        boolean omitVirtual)
+                        boolean omitVirtual,
+                        boolean mergeDuplicates)
   {
-    for (AttributeType t : source.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> mapEntry :
+      source.entrySet())
     {
-      List<Attribute> sourceList = source.get(t);
+      AttributeType t = mapEntry.getKey();
+      List<Attribute> sourceList = mapEntry.getValue();
       ArrayList<Attribute> targetList =
            new ArrayList<Attribute>(sourceList.size());
 
@@ -2945,9 +2950,32 @@ public class Entry
         {
           continue;
         }
-        else if (omitValues)
+
+        if (omitValues)
         {
-          targetList.add(Attributes.empty(a));
+          a = Attributes.empty(a);
+        }
+
+        if (!targetList.isEmpty() && mergeDuplicates)
+        {
+          // Ensure that there is only one attribute with the same
+          // type and options. This is not very efficient but will
+          // occur very rarely.
+          boolean found = false;
+          for (int i = 0; i < targetList.size(); i++)
+          {
+            Attribute otherAttribute = targetList.get(i);
+            if (otherAttribute.optionsEqual(a.getOptions()))
+            {
+              targetList.set(i, Attributes.merge(a, otherAttribute));
+              found = true;
+            }
+          }
+
+          if (!found)
+          {
+            targetList.add(a);
+          }
         }
         else
         {
@@ -3266,30 +3294,10 @@ public class Entry
    */
   public void processVirtualAttributes()
   {
-    processVirtualAttributes(true);
-  }
-
-
-
-  /**
-   * Performs any necessary virtual attribute processing for this
-   * entry.  This should only be called at the time the entry is
-   * decoded or created within the backend.
-   *
-   * @param  includeOperational  Indicates whether to include
-   *                             operational attributes.
-   */
-  public void processVirtualAttributes(boolean includeOperational)
-  {
     for (VirtualAttributeRule rule :
          DirectoryServer.getVirtualAttributes(this))
     {
       AttributeType attributeType = rule.getAttributeType();
-      if (attributeType.isOperational() && (! includeOperational))
-      {
-        continue;
-      }
-
       List<Attribute> attrList = userAttributes.get(attributeType);
       if ((attrList == null) || attrList.isEmpty())
       {
@@ -4949,7 +4957,7 @@ public class Entry
 
       // Copy all user attributes.
       deepCopy(userAttributes, userAttrsCopy, omitValues, true,
-          omitReal, omitVirtual);
+          omitReal, omitVirtual, true);
     }
     else
     {
@@ -5008,7 +5016,7 @@ public class Entry
 
           // Copy all user attributes.
           deepCopy(userAttributes, userAttrsCopy, omitValues, true,
-              omitReal, omitVirtual);
+              omitReal, omitVirtual, true);
 
           continue;
         }
@@ -5017,7 +5025,7 @@ public class Entry
           // This is a special placeholder indicating that all
           // operational attributes should be returned.
           deepCopy(operationalAttributes, operationalAttrsCopy,
-              omitValues, true, omitReal, omitVirtual);
+              omitValues, true, omitReal, omitVirtual, true);
 
           continue;
         }
@@ -5264,19 +5272,32 @@ public class Entry
         }
         else
         {
-          // The attribute may have already been put in the list
-          // - lets replace it assuming that the previous version
-          // was added using a wildcard and that this version has
-          // a user provided name and/or options.
+          // The attribute may have already been put in the list.
+          //
+          // This may occur in two cases:
+          //
+          // 1) The attribute is identified by more than one attribute
+          //    type description in the attribute list (e.g. in a
+          //    wildcard).
+          //
+          // 2) The attribute has both a real and virtual component.
+          //
           boolean found = false;
           for (int i = 0; i < attrList.size(); i++)
           {
-            if (attrList.get(i).optionsEqual(attribute.getOptions()))
+            Attribute otherAttribute = attrList.get(i);
+            if (otherAttribute.optionsEqual(attribute.getOptions()))
             {
-              attrList.set(i, attribute);
+              // Assume that wildcards appear first in an attribute
+              // list with more specific attribute names afterwards:
+              // let the attribute name and options from the later
+              // attribute take preference.
+              attrList.set(i, Attributes.merge(attribute,
+                  otherAttribute));
               found = true;
             }
           }
+
           if (!found)
           {
             attrList.add(attribute);
