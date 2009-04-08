@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 
@@ -35,7 +35,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
@@ -73,7 +72,7 @@ public class MakeLDIFInputStream
   private LDIFWriter ldifWriter;
 
   // The queue used to hold generated entries until they can be read.
-  private LinkedBlockingQueue<Entry> entryQueue;
+  private LinkedBlockingQueue<TemplateEntry> entryQueue;
 
   // The background thread being used to actually generate the entries.
   private MakeLDIFInputStreamThread generatorThread;
@@ -95,7 +94,7 @@ public class MakeLDIFInputStream
 
     allGenerated = false;
     closed       = false;
-    entryQueue   = new LinkedBlockingQueue<Entry>(10);
+    entryQueue   = new LinkedBlockingQueue<TemplateEntry>(10);
     ioException  = null;
     entryBytes   = null;
 
@@ -210,7 +209,7 @@ public class MakeLDIFInputStream
   /**
    * {@inheritDoc}
    */
-  public boolean writeEntry(Entry entry)
+  public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException
   {
     while (! closed)
@@ -261,7 +260,7 @@ public class MakeLDIFInputStream
    */
   private boolean getNextEntry()
   {
-    Entry entry = entryQueue.poll();
+    TemplateEntry entry = entryQueue.poll();
     while (entry == null)
     {
       if (closed)
@@ -288,7 +287,7 @@ public class MakeLDIFInputStream
     try
     {
       entryOutputStream.reset();
-      ldifWriter.writeEntry(entry);
+      ldifWriter.writeTemplateEntry(entry);
       ldifWriter.flush();
       entryBytes = ByteBuffer.wrap(entryOutputStream.toByteArray());
     }

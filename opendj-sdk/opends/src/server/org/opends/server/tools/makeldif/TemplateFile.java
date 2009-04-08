@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -1358,9 +1358,25 @@ public class TemplateFile
                                           true);
 
 
-    // First, find the position of the first non-blank character in the line.
+    // First, check whether the value is an URL value: <attrName>:< <url>
     int length = line.length();
     int pos    = colonPos + 1;
+    boolean valueIsURL = false;
+    boolean valueIsBase64 = false;
+    if (pos < length)
+    {
+      if (lowerLine.charAt(pos) == '<')
+      {
+        valueIsURL = true;
+        pos ++;
+      }
+      else if (lowerLine.charAt(pos) == ':')
+      {
+        valueIsBase64 = true;
+        pos ++;
+      }
+    }
+    //  Then, find the position of the first non-blank character in the line.
     while ((pos < length) && (lowerLine.charAt(pos) == ' '))
     {
       pos++;
@@ -1395,6 +1411,7 @@ public class TemplateFile
 
     ArrayList<Tag> tagList = new ArrayList<Tag>();
     StringBuilder buffer = new StringBuilder();
+
     for ( ; pos < length; pos++)
     {
       char c = line.charAt(pos);
@@ -1409,7 +1426,7 @@ public class TemplateFile
                 StaticTextTag t = new StaticTextTag();
                 String[] args = new String[] { buffer.toString() };
                 t.initializeForBranch(this, branch, args, lineNumber,
-                                      warnings);
+                    warnings);
                 tagList.add(t);
                 buffer = new StringBuilder();
               }
@@ -1488,7 +1505,8 @@ public class TemplateFile
 
     Tag[] tagArray = new Tag[tagList.size()];
     tagList.toArray(tagArray);
-    return new TemplateLine(attributeType, lineNumber, tagArray);
+    return new TemplateLine(attributeType, lineNumber, tagArray, valueIsURL,
+        valueIsBase64);
   }
 
 
