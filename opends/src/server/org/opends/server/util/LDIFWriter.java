@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -37,6 +37,7 @@ import java.util.Collection;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -248,6 +249,30 @@ public boolean writeEntries(Collection <Entry> entries)
   }
 
 
+  /**
+   * Writes the provided template entry to LDIF.
+   *
+   * @param  templateEntry  The template entry to be written.  It must not be
+   * <CODE>null</CODE>.
+   *
+   * @return  <CODE>true</CODE> if the entry was actually written, or
+   *          <CODE>false</CODE> if it was not because of the export
+   *          configuration.
+   *
+   * @throws  IOException  If a problem occurs while writing the template entry
+   *                       to LDIF.
+   *
+   * @throws  LDIFException  If a problem occurs while trying to determine
+   *                         whether to include the temlate entry in the export.
+   */
+  public boolean writeTemplateEntry(TemplateEntry templateEntry)
+  throws IOException, LDIFException
+  {
+    ensureNotNull(templateEntry);
+
+    //  Delegate to TemplateEntry.toLDIF(...)
+    return templateEntry.toLDIF(exportConfig);
+  }
 
   /**
    * Writes a change record entry for the provided change record.
@@ -770,19 +795,58 @@ public boolean writeEntries(Collection <Entry> entries)
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
                                                  ByteSequence valueBytes)
   {
+    appendLDIFSeparatorAndValue(buffer, valueBytes, false, false);
+  }
+
+  /**
+   * Appends an LDIF separator and properly-encoded form of the given
+   * value to the provided buffer.  If the value is safe to include
+   * as-is, then a single colon, a single space, space, and the
+   * provided value will be appended.  Otherwise, two colons, a single
+   * space, and a base64-encoded form of the value will be appended.
+   * @param  buffer      The buffer to which the information should be
+   *                     appended.  It must not be <CODE>null</CODE>.
+   * @param  valueBytes  The value to append to the buffer.  It must not be
+   *                     <CODE>null</CODE>.
+   * @param isURL        Whether the provided value is an URL value or not.
+   * @param isBase64     Whether the provided value is a base 64 value or not.
+   */
+  public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
+      ByteSequence valueBytes, boolean isURL, boolean isBase64)
+  {
     ensureNotNull(buffer, valueBytes);
 
 
-    // If the value is empty, then just append a single colon and a single
-    // space.
+    // If the value is empty, then just append a single colon (the URL '<' if
+    // required) and a single space.
     if ((valueBytes == null) || (valueBytes.length() == 0))
     {
-      buffer.append(": ");
+      if (isURL)
+      {
+        buffer.append(":< ");
+      }
+      else if (isBase64)
+      {
+        buffer.append(":: ");
+      }
+      else
+      {
+        buffer.append(": ");
+      }
       return;
     }
 
-
-    if (needsBase64Encoding(valueBytes))
+    if (isURL)
+    {
+      buffer.append(":< ");
+      buffer.append(valueBytes.toString());
+    }
+    else if (isBase64)
+    {
+      buffer.append(":: ");
+      buffer.append(valueBytes.toString());
+    }
+    else if (needsBase64Encoding(valueBytes))
     {
       buffer.append(":: ");
       buffer.append(Base64.encode(valueBytes));

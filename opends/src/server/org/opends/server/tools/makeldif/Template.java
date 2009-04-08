@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -35,7 +35,6 @@ import java.util.Map;
 
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -362,8 +361,7 @@ public class Template
         }
       }
 
-      Entry entry = templateEntry.toEntry();
-      if (! entryWriter.writeEntry(entry))
+      if (! entryWriter.writeEntry(templateEntry))
       {
         return TagResult.STOP_PROCESSING;
       }
@@ -371,8 +369,8 @@ public class Template
       for (int j=0; j < subordinateTemplates.length; j++)
       {
         TagResult r =
-             subordinateTemplates[j].writeEntries(entryWriter, entry.getDN(),
-                                                  numEntriesPerTemplate[j]);
+             subordinateTemplates[j].writeEntries(entryWriter,
+                 templateEntry.getDN(), numEntriesPerTemplate[j]);
         if (! (r.keepProcessingParent() && r.keepProcessingTemplateFile()))
         {
           if (r.keepProcessingTemplateFile())

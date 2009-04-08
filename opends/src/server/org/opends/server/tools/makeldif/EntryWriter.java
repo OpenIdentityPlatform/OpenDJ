@@ -22,15 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 
 
 
 import java.io.IOException;
-
-import org.opends.server.types.Entry;
 
 
 
@@ -54,7 +52,7 @@ public interface EntryWriter
    *
    * @throws  MakeLDIFException  If some other problem occurs.
    */
-  public boolean writeEntry(Entry entry)
+  public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException;
 
 

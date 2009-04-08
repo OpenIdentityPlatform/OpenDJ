@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
@@ -430,12 +429,12 @@ public class MakeLDIF
    *
    * @throws  MakeLDIFException  If some other problem occurs.
    */
-  public boolean writeEntry(Entry entry)
+  public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException
   {
     try
     {
-      ldifWriter.writeEntry(entry);
+      ldifWriter.writeTemplateEntry(entry);
 
       if ((++entriesWritten % 1000) == 0)
       {

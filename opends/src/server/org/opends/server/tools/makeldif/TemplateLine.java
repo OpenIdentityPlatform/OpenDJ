@@ -22,17 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 
 
 
 import org.opends.server.types.AttributeType;
-
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a line that may appear in a template or branch.  It may
@@ -49,23 +45,11 @@ public class TemplateLine
   // The set of tags for this template line.
   private Tag[] tags;
 
+  // Whether this line corresponds to an URL value or not.
+  private boolean isURL;
 
-
-  /**
-   * Creates a new template line with the provided information.
-   *
-   * @param  attributeType  The attribute type for this template line.
-   * @param  lineNumber     The line number on which this template line appears
-   *                        in the template file.
-   * @param  tags           The set of tags for this template line.
-   */
-  public TemplateLine(AttributeType attributeType, int lineNumber, Tag[] tags)
-  {
-    this.attributeType = attributeType;
-    this.lineNumber    = lineNumber;
-    this.tags          = tags;
-  }
-
+  // Whether this line corresponds to a base64 encoded value or not.
+  private boolean isBase64;
 
 
   /**
@@ -95,15 +79,64 @@ public class TemplateLine
 
 
   /**
-   * Retrieves the set of tags for this template line.
+   * Returns whether the value of this template line corresponds to an URL
+   * or not.
    *
-   * @return  The set of tags for this template line.
+   * @return <CODE>true</CODE> if the value of this template line corresponds
+   * to an URL and <CODE>false</CODE> otherwise.
    */
-  public Tag[] getTags()
+  public boolean isURL()
   {
-    return tags;
+    return isURL;
   }
 
+  /**
+   * Returns whether the value of this template line corresponds to a Base64
+   * encoded value or not.
+   *
+   * @return <CODE>true</CODE> if the value of this template line corresponds
+   * to a Base64 encoded value and <CODE>false</CODE> otherwise.
+   */
+  public boolean isBase64()
+  {
+    return isBase64;
+  }
+
+
+  /**
+   * Creates a new template line with the provided information.
+   *
+   * @param  attributeType  The attribute type for this template line.
+   * @param  lineNumber     The line number on which this template line appears
+   *                        in the template file.
+   * @param  tags           The set of tags for this template line.
+   */
+  public TemplateLine(AttributeType attributeType, int lineNumber, Tag[] tags)
+  {
+    this(attributeType, lineNumber, tags, false, false);
+  }
+
+
+  /**
+   * Creates a new template line with the provided information.
+   *
+   * @param  attributeType  The attribute type for this template line.
+   * @param  lineNumber     The line number on which this template line appears
+   *                        in the template file.
+   * @param  tags           The set of tags for this template line.
+   * @param  isURL          Whether this template line's value is an URL or not.
+   * @param  isBase64       Whether this template line's value is Base64 encoded
+   *                        or not.
+   */
+  public TemplateLine(AttributeType attributeType, int lineNumber, Tag[] tags,
+      boolean isURL, boolean isBase64)
+  {
+    this.attributeType = attributeType;
+    this.lineNumber    = lineNumber;
+    this.tags          = tags;
+    this.isURL         = isURL;
+    this.isBase64      = isBase64;
+  }
 
 
   /**
