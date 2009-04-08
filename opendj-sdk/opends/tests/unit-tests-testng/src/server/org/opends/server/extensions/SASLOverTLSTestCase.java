@@ -176,26 +176,31 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
   */
   private void
   sslTest(int size, String qop) throws NamingException, IOException {
-    Hashtable<String, String> env = new Hashtable<String, String>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
-    String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
-    env.put(Context.PROVIDER_URL, url);
-    env.put(Context.SECURITY_AUTHENTICATION,  digest);
-    env.put(Context.SECURITY_PRINCIPAL, digestDN);
-    env.put(Context.SECURITY_CREDENTIALS, "password");
-    env.put("java.naming.ldap.attributes.binary", "jpegPhoto");
-    env.put("javax.security.sasl.qop", qop);
-    LdapContext ctx = new InitialLdapContext(env, null);
-    byte[] jpegBytes = getRandomBytes(size);
-    ModificationItem[] mods = new ModificationItem[1];
-    Attribute jpegPhoto = new BasicAttribute("jpegPhoto", jpegBytes);
-    mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, jpegPhoto);
-    ctx.modifyAttributes(testUserDN, mods);
-    Attributes testAttributes = ctx.getAttributes(testUserDN);
-    Attribute jpegPhoto1 = testAttributes.get("jpegPhoto");
-    byte[] jpegBytes1 = (byte[]) jpegPhoto1.get();
-    Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
-    ctx.close();
+    LdapContext ctx = null;
+    try {
+      Hashtable<String, String> env = new Hashtable<String, String>();
+      env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
+      String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
+      env.put(Context.PROVIDER_URL, url);
+      env.put(Context.SECURITY_AUTHENTICATION,  digest);
+      env.put(Context.SECURITY_PRINCIPAL, digestDN);
+      env.put(Context.SECURITY_CREDENTIALS, "password");
+      env.put("java.naming.ldap.attributes.binary", "jpegPhoto");
+      env.put("javax.security.sasl.qop", qop);
+      ctx = new InitialLdapContext(env, null);
+      byte[] jpegBytes = getRandomBytes(size);
+      ModificationItem[] mods = new ModificationItem[1];
+      Attribute jpegPhoto = new BasicAttribute("jpegPhoto", jpegBytes);
+      mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, jpegPhoto);
+      ctx.modifyAttributes(testUserDN, mods);
+      Attributes testAttributes = ctx.getAttributes(testUserDN);
+      Attribute jpegPhoto1 = testAttributes.get("jpegPhoto");
+      byte[] jpegBytes1 = (byte[]) jpegPhoto1.get();
+      Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
+    } finally {
+      if(ctx != null)
+        ctx.close();
+    }
   }
 
   /**
@@ -208,29 +213,34 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
    */
   @Test(dataProvider = "kiloBytes")
   public void StartTLS(int size) throws NamingException, IOException {
-    Hashtable<String, String> env = new Hashtable<String, String>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
-    String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort();
-    env.put(Context.PROVIDER_URL, url);
-    env.put("java.naming.ldap.attributes.binary", "jpegPhoto");
-    LdapContext ctx = new InitialLdapContext(env, null);
-    StartTlsResponse tls =
-      (StartTlsResponse) ctx.extendedOperation(new StartTlsRequest());
-    tls.setHostnameVerifier(new SampleVerifier());
-    tls.negotiate();
-    ctx.addToEnvironment(Context.SECURITY_AUTHENTICATION,  simple);
-    ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, testUserDN);
-    ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, "password");
-    byte[] jpegBytes = getRandomBytes(size);
-    ModificationItem[] mods = new ModificationItem[1];
-    Attribute jpegPhoto = new BasicAttribute("jpegPhoto", jpegBytes);
-    mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, jpegPhoto);
-    ctx.modifyAttributes(testUserDN, mods);
-    Attributes testAttributes = ctx.getAttributes(testUserDN);
-    Attribute jpegPhoto1 = testAttributes.get("jpegPhoto");
-    byte[] jpegBytes1 = (byte[]) jpegPhoto1.get();
-    Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
-    ctx.close();
+    LdapContext ctx = null;
+    try {
+      Hashtable<String, String> env = new Hashtable<String, String>();
+      env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
+      String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort();
+      env.put(Context.PROVIDER_URL, url);
+      env.put("java.naming.ldap.attributes.binary", "jpegPhoto");
+      ctx = new InitialLdapContext(env, null);
+      StartTlsResponse tls =
+        (StartTlsResponse) ctx.extendedOperation(new StartTlsRequest());
+      tls.setHostnameVerifier(new SampleVerifier());
+      tls.negotiate();
+      ctx.addToEnvironment(Context.SECURITY_AUTHENTICATION,  simple);
+      ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, testUserDN);
+      ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, "password");
+      byte[] jpegBytes = getRandomBytes(size);
+      ModificationItem[] mods = new ModificationItem[1];
+      Attribute jpegPhoto = new BasicAttribute("jpegPhoto", jpegBytes);
+      mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, jpegPhoto);
+      ctx.modifyAttributes(testUserDN, mods);
+      Attributes testAttributes = ctx.getAttributes(testUserDN);
+      Attribute jpegPhoto1 = testAttributes.get("jpegPhoto");
+      byte[] jpegBytes1 = (byte[]) jpegPhoto1.get();
+      Assert.assertTrue(Arrays.equals(jpegBytes, jpegBytes1));
+    } finally {
+      if(ctx != null)
+        ctx.close();
+    }
   }
 
   /**
@@ -240,35 +250,40 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
    * @throws NamingException If the entry cannot be added.
    */
   private void addTestEntry() throws NamingException {
-    Attribute objectClass = new BasicAttribute("objectclass");
-    objectClass.add("top");
-    objectClass.add("person");
-    objectClass.add("organizationalPerson");
-    objectClass.add("inetOrgPerson");
-    Attribute pwdPolicy =
-                  new BasicAttribute("ds-pwp-password-policy-dn",pwdPolicyDN);
-    Attribute cn = new BasicAttribute("cn", "test");
-    cn.add("test.User");
-    Attribute sn = new BasicAttribute("sn","User");
-    Attributes entryAttrs = new BasicAttributes();
-    entryAttrs.put(objectClass);
-    entryAttrs.put(cn);
-    entryAttrs.put(sn);
-    entryAttrs.put(pwdPolicy);
-    Hashtable<String, String> env = new Hashtable<String, String>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
-    String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
-    env.put(Context.PROVIDER_URL, url);
-    env.put(Context.SECURITY_PRINCIPAL, dirMgr);
-    env.put(Context.SECURITY_CREDENTIALS, "password");
-    env.put(Context.SECURITY_AUTHENTICATION, simple);
-    DirContext ctx = new InitialDirContext(env);
-    ctx.createSubcontext(testUserDN, entryAttrs);
-    ModificationItem[] mods = new ModificationItem[1];
-    Attribute pwd = new BasicAttribute("userPassword", "password");
-    mods[0] = new ModificationItem(DirContext.ADD_ATTRIBUTE, pwd);
-    ctx.modifyAttributes(testUserDN, mods);
-    ctx.close();
+    DirContext ctx = null;
+    try {
+      Attribute objectClass = new BasicAttribute("objectclass");
+      objectClass.add("top");
+      objectClass.add("person");
+      objectClass.add("organizationalPerson");
+      objectClass.add("inetOrgPerson");
+      Attribute pwdPolicy =
+        new BasicAttribute("ds-pwp-password-policy-dn",pwdPolicyDN);
+      Attribute cn = new BasicAttribute("cn", "test");
+      cn.add("test.User");
+      Attribute sn = new BasicAttribute("sn","User");
+      Attributes entryAttrs = new BasicAttributes();
+      entryAttrs.put(objectClass);
+      entryAttrs.put(cn);
+      entryAttrs.put(sn);
+      entryAttrs.put(pwdPolicy);
+      Hashtable<String, String> env = new Hashtable<String, String>();
+      env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
+      String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
+      env.put(Context.PROVIDER_URL, url);
+      env.put(Context.SECURITY_PRINCIPAL, dirMgr);
+      env.put(Context.SECURITY_CREDENTIALS, "password");
+      env.put(Context.SECURITY_AUTHENTICATION, simple);
+      ctx = new InitialDirContext(env);
+      ctx.createSubcontext(testUserDN, entryAttrs);
+      ModificationItem[] mods = new ModificationItem[1];
+      Attribute pwd = new BasicAttribute("userPassword", "password");
+      mods[0] = new ModificationItem(DirContext.ADD_ATTRIBUTE, pwd);
+      ctx.modifyAttributes(testUserDN, mods);
+    } finally {
+      if (ctx != null)
+        ctx.close();
+    }
   }
 
   /**
@@ -286,22 +301,27 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
     return randomBytes;
   }
 
-/**
- * Delete the test entry.
- *
- * @throws NamingException If the entry cannot be deleted.
- */
+  /**
+   * Delete the test entry.
+   *
+   * @throws NamingException If the entry cannot be deleted.
+   */
   private void deleteTestEntry() throws NamingException {
-    Hashtable<String, String> env = new Hashtable<String, String>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
-    String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
-    env.put(Context.PROVIDER_URL, url);
-    env.put(Context.SECURITY_PRINCIPAL, dirMgr);
-    env.put(Context.SECURITY_CREDENTIALS, "password");
-    env.put(Context.SECURITY_AUTHENTICATION, "simple");
-    DirContext ctx = new InitialDirContext(env);
-    ctx.destroySubcontext(testUserDN);
-    ctx.close();
+    DirContext ctx = null;
+    try {
+      Hashtable<String, String> env = new Hashtable<String, String>();
+      env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
+      String url = "ldaps://localhost:" + TestCaseUtils.getServerLdapsPort();
+      env.put(Context.PROVIDER_URL, url);
+      env.put(Context.SECURITY_PRINCIPAL, dirMgr);
+      env.put(Context.SECURITY_CREDENTIALS, "password");
+      env.put(Context.SECURITY_AUTHENTICATION, "simple");
+      ctx = new InitialDirContext(env);
+      ctx.destroySubcontext(testUserDN);
+    } finally {
+      if(ctx != null)
+        ctx.close();
+    }
   }
 
   /**
