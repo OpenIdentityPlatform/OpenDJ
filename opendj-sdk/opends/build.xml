@@ -308,7 +308,7 @@
     </genmsg>
 
     <antcall target="generatendbmessages" />
-    
+
   </target>
 
   <!-- Generate NDB Backend messages if needed -->
@@ -629,7 +629,7 @@
 
     <!-- Copy NDB Backend dependencies if necessary -->
     <antcall target="copyndbdeps" />
-    
+
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
          destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
          source="1.5" target="1.5" deprecation="true" fork="true"
@@ -859,7 +859,7 @@
         <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
-    <javac srcdir="${src.dir}" destdir="${quicksetup.classes.dir}"
+    <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}" destdir="${quicksetup.classes.dir}"
                        debug="on" debuglevel="${build.debuglevel}" source="1.5"
                        target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
                        memoryMaximumSize="${MEM}">
@@ -897,7 +897,7 @@
     <copy todir="${pdir}/lib">
       <fileset file="${build.lib.dir}/*.jar" />
     </copy>
-    
+
     <!-- Regenerate example plugin. -->
     <antcall target="example-plugin" />
   </target>
@@ -1019,7 +1019,7 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.exe" />
     </copy>
-    
+
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/instance.loc" />
     </copy>
@@ -1058,7 +1058,7 @@
     <copy todir="${pdir}/config/schema">
       <fileset dir="${resource.dir}/schema" />
     </copy>
-    
+
     <copy todir="${pdir}/config/servicetag">
       <fileset dir="${resource.dir}/servicetag" />
     </copy>
