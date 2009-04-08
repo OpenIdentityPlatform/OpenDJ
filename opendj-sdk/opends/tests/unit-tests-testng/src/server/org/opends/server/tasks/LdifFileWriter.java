@@ -22,15 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tasks;
 
 import org.opends.server.tools.makeldif.EntryWriter;
 import org.opends.server.tools.makeldif.MakeLDIFException;
+import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.tools.makeldif.TemplateFile;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.ExistingFileBehavior;
@@ -130,12 +130,12 @@ public class LdifFileWriter implements EntryWriter
   /**
    * {@inheritDoc}
    */
-  public boolean writeEntry(Entry entry)
+  public boolean writeEntry(TemplateEntry entry)
        throws IOException, MakeLDIFException
   {
     try
     {
-      return ldifWriter.writeEntry(entry);
+      return ldifWriter.writeTemplateEntry(entry);
     } catch (LDIFException e)
     {
       e.printStackTrace();
