@@ -219,6 +219,38 @@ public class EntryContainer
   }
 
   /**
+   * Determine the number of subordinate entries for a given entry.
+   *
+   * @param  entryDN The distinguished name of the entry.
+   * @param  subtree <code>true</code> will include all the entries
+   *         under the given entries. <code>false</code> will only
+   *         return the number of entries immediately under the
+   *         given entry.
+   * @return The number of subordinate entries for the given entry
+   *         or -1 if the entry does not exist.
+   * @throws com.mysql.cluster.ndbj.NdbApiException If an error
+   *         occurs in the database.
+   */
+  public long getNumSubordinates(DN entryDN, boolean subtree)
+      throws NdbApiException
+  {
+    if (baseDN.equals(entryDN)) {
+      // Shortcut to avoid scan.
+      return getEntryCount() - 1;
+    }
+
+    AbstractTransaction txn = new AbstractTransaction(rootContainer);
+
+    try {
+      return dn2id.numSubordinates(txn, entryDN, subtree);
+    } finally {
+      if (txn != null) {
+        txn.close();
+      }
+    }
+  }
+
+  /**
    * Processes the specified search in this entryContainer.
    * Matching entries should be provided back to the core server using the
    * <CODE>SearchOperation.returnEntry</CODE> method.

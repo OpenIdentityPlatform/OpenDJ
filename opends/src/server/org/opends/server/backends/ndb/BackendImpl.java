@@ -1116,11 +1116,11 @@ public class BackendImpl
          throws DirectoryException
   {
     long ret = numSubordinates(entryDN, false);
-    if(ret < 0)
+    if (ret < 0)
     {
       return ConditionResult.UNDEFINED;
     }
-    else if(ret == 0)
+    else if (ret == 0)
     {
       return ConditionResult.FALSE;
     }
@@ -1139,8 +1139,42 @@ public class BackendImpl
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
-    // NYI.
-    return -1;
+    EntryContainer ec;
+    if (rootContainer != null)
+    {
+      ec = rootContainer.getEntryContainer(entryDN);
+    }
+    else
+    {
+      Message message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+
+    if (ec == null)
+    {
+      return -1;
+    }
+
+    readerBegin();
+    ec.sharedLock.lock();
+    try
+    {
+      return ec.getNumSubordinates(entryDN, subtree);
+    }
+    catch (NdbApiException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw createDirectoryException(e);
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+      readerEnd();
+    }
   }
 
 
