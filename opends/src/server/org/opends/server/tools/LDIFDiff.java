@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -54,6 +54,7 @@ import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -153,6 +154,7 @@ public class LDIFDiff
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;
     BooleanArgument singleValueChanges;
+    BooleanArgument doCheckSchema;
     StringArgument  configClass;
     StringArgument  configFile;
     StringArgument  outputLDIF;
@@ -210,6 +212,12 @@ public class LDIFDiff
                    INFO_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES.get());
       argParser.addArgument(singleValueChanges);
 
+      doCheckSchema =
+        new BooleanArgument(
+                "checkschema", null, "checkSchema",
+                INFO_LDIFDIFF_DESCRIPTION_CHECK_SCHEMA.get());
+      argParser.addArgument(doCheckSchema);
+
       configFile = new StringArgument("configfile", 'c', "configFile", false,
                                       false, true,
                                       INFO_CONFIGFILE_PLACEHOLDER.get(), null,
@@ -264,8 +272,19 @@ public class LDIFDiff
       return 0;
     }
 
+    if (doCheckSchema.isPresent() && !configFile.isPresent())
+    {
+      String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+      if (scriptName == null)
+      {
+        scriptName = "ldif-diff";
+      }
+      Message message = WARN_LDIFDIFF_NO_CONFIG_FILE.get(scriptName);
+      err.println(message);
+    }
 
-    boolean checkSchema = configFile.isPresent();
+
+    boolean checkSchema = configFile.isPresent() && doCheckSchema.isPresent();
     if (! serverInitialized)
     {
       // Bootstrap the Directory Server configuration for use as a client.
