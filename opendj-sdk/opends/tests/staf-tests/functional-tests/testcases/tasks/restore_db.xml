@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="restore_db"/>
@@ -145,9 +145,9 @@
             
             <script>
               mydate=strftime("%Y%m%d%H%M%S",localtime())
-            </script>                      
-            
-            
+            </script>
+
+
             
             <call function="'restore'">
               { 'location'          : STAF_REMOTE_HOSTNAME ,
@@ -155,7 +155,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'startTask'           : '%s' % mydate,	                
+              'startTask'           : '%s' % mydate,
               'backupDir'           : '%s/tasks/backup_schedule_asynchronous' % remote.data
               }
             </call>
@@ -193,6 +193,13 @@
 
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+             { 'noOfLoops'		: 10 ,
+               'noOfMilliSeconds' : 2000
+             }
             </call>
 
             <call function="'restore'">
