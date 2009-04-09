@@ -1556,7 +1556,6 @@ public class OperationContainer extends DatabaseContainer
   public boolean hasSubordinates(AbstractTransaction txn, DN dn)
     throws NdbApiException
   {
-    // NdbInterpretedOperation op;
     NdbIndexScanOperation op;
     NdbResultSet rs;
 
@@ -1586,10 +1585,8 @@ public class OperationContainer extends DatabaseContainer
         NdbIndexScanOperation.BoundType.BoundLT, "");
     }
 
-    // FIXME: This is extremely inefficient, need NDB/J API
-    // like interpretExitLastRow to count result rows node-
-    // side without returning them here for check/count.
-    // op.interpretExitLastRow();
+    // FIXME: Need NDB/J API like native interpretExitLastRow
+    // to do this more efficiently without additional hops.
     op.getValue(BackendImpl.EID);
 
     rs = op.resultData();
@@ -1600,6 +1597,84 @@ public class OperationContainer extends DatabaseContainer
     }
 
     return false;
+  }
+
+  /**
+   * Count the number of subordinates for the requested entry DN.
+   * @param  txn Abstract transaction to be used for the operation.
+   * @param  dn The entry DN.
+   * @param  subtree <code>true</code> will include all the entries
+   *         under the given entries. <code>false</code> will only
+   *         return the number of entries immediately under the
+   *         given entry.
+   * @return The number of subordinate entries for the requested
+   *         entry or -1 if the entry does not exist.
+   * @throws com.mysql.cluster.ndbj.NdbApiException If an error
+   * occurs in the database.
+   */
+  public long numSubordinates(AbstractTransaction txn, DN dn,
+    boolean subtree) throws NdbApiException
+  {
+    long numSubordinates = 0;
+    NdbIndexScanOperation op;
+    NdbResultSet rs;
+
+    NdbTransaction ndbTxn = txn.getNdbTransaction();
+
+    op = ndbTxn.getSelectIndexScanOperation(
+      PRIMARY_INDEX_NAME, name,
+      NdbOperation.LockMode.LM_CommittedRead);
+
+    int numComponents = dn.getNumComponents();
+    int componentIndex = numComponents - 1;
+    for (int i=0; i < numComponents; i++) {
+      op.setBoundString(BackendImpl.DN2ID_DN +
+        Integer.toString(i),
+        NdbIndexScanOperation.BoundType.BoundEQ,
+        dn.getRDN(componentIndex).toNormalizedString());
+      componentIndex--;
+    }
+
+    // FIXME: Need multi range bound here to optimize in
+    // NOT subtree case which would prevent subtree walk
+    // when it is not needed. need NDB/J API to do that.
+    // native API: NdbIndexScanOperation::end_of_bound()
+    if (dn.getNumComponents() < BackendImpl.DN2ID_DN_NC) {
+      String nextRDNColumn =
+        BackendImpl.DN2ID_DN + Integer.toString(numComponents);
+      op.setBoundString(nextRDNColumn,
+        NdbIndexScanOperation.BoundType.BoundLT, "");
+    }
+
+    // FIXME: Need NDB/J API like native interpretExitLastRow
+    // to do this more efficiently without additional hops.
+    op.getValue(BackendImpl.EID);
+
+    String subtreeColumn = BackendImpl.DN2ID_DN +
+      Integer.toString(dn.getNumComponents() + 1);
+    if (!subtree &&
+        (dn.getNumComponents() < BackendImpl.DN2ID_DN_NC))
+    {
+      op.getValue(subtreeColumn);
+    }
+
+    rs = op.resultData();
+    ndbTxn.execute(ExecType.NoCommit, AbortOption.AO_IgnoreError, true);
+
+    while (rs.next()) {
+      if (!subtree &&
+          (dn.getNumComponents() < BackendImpl.DN2ID_DN_NC))
+      {
+        String columnValue = rs.getString(subtreeColumn);
+        if ((columnValue != null) && (columnValue.length() > 0))
+        {
+          continue;
+        }
+      }
+      numSubordinates++;
+    }
+
+    return numSubordinates;
   }
 
   /**
