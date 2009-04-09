@@ -41,6 +41,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -904,7 +905,15 @@ public final class LDAPConnectionHandler extends
               SelectionKey key = iterator.next();
               iterator.remove();
               if (key.isAcceptable()) {
-                acceptConnection(key);
+                // Accept the new client connection.
+                ServerSocketChannel serverChannel = (ServerSocketChannel) key
+                    .channel();
+                SocketChannel clientChannel = serverChannel
+                    .accept();
+                if(clientChannel != null)
+                {
+                  acceptConnection(clientChannel);
+                }
               }
 
               if(selectorState == 0 && enabled && (!shutdownRequested) &&
@@ -994,18 +1003,29 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-  private void acceptConnection(SelectionKey key)
-      throws IOException, DirectoryException
+  private void acceptConnection(SocketChannel clientChannel)
+      throws DirectoryException
   {
-    // Accept the new client connection.
-    ServerSocketChannel serverChannel = (ServerSocketChannel) key
-        .channel();
-    SocketChannel clientChannel = serverChannel
-        .accept();
-
-    if(clientChannel == null)
+    try
     {
-      // There wasn't a connection pending.
+      clientChannel.socket().setKeepAlive(
+          currentConfig.isUseTCPKeepAlive());
+      clientChannel.socket().setTcpNoDelay(
+          currentConfig.isUseTCPNoDelay());
+    }
+    catch(SocketException se)
+    {
+      // TCP error occured because conneciton reset/closed? In any case,
+      // just close it and ignore.
+      // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6378870
+      try
+      {
+        clientChannel.close();
+      }
+      catch(Exception e)
+      {
+        // Ignore any exceptions while closing the channel.
+      }
       return;
     }
 
@@ -1050,10 +1070,6 @@ public final class LDAPConnectionHandler extends
               clientConnection.getServerHostPort()));
       return;
     }
-    clientChannel.socket().setKeepAlive(
-        currentConfig.isUseTCPKeepAlive());
-    clientChannel.socket().setTcpNoDelay(
-        currentConfig.isUseTCPNoDelay());
 
     // If we've gotten here, then we'll take the
     // connection so invoke the post-connect plugins and
