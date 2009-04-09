@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 
 
 # This script may be used to compare the contents of two LDIF files.
@@ -34,4 +34,4 @@ SCRIPT_NAME="ldif-diff"
 export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
-"${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"
+"${SCRIPT_DIR}/../lib/_server-script.sh" "${@}"

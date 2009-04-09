@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -148,7 +148,20 @@ class UserPasswordExactEqualityMatchingRule
     if (UserPasswordSyntax.isEncoded(value))
     {
       StringBuilder builder = new StringBuilder(value.length());
-      StaticUtils.toLowerCase(value, builder, false);
+      int closingBracePos = -1;
+      for (int i=1; i < value.length(); i++)
+      {
+        if (value.byteAt(i) == '}')
+        {
+          closingBracePos = i;
+          break;
+        }
+      }
+      ByteSequence seq1 = value.subSequence(0, closingBracePos + 1);
+      ByteSequence seq2 =
+        value.subSequence(closingBracePos + 1, value.length());
+      StaticUtils.toLowerCase(seq1, builder, false);
+      builder.append(seq2);
       return ByteString.valueOf(builder.toString());
     }
     else
