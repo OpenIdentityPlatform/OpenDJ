@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -39,6 +39,7 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -125,6 +126,8 @@ public class WaitForFileDelete
     StringArgument  logFilePath    = null;
     StringArgument  targetFilePath = null;
     StringArgument  outputFilePath = null;
+    BooleanArgument useLastKnownGoodConfig = null;
+    BooleanArgument quietMode              = null;
 
     Message toolDescription = INFO_WAIT4DEL_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
@@ -160,6 +163,20 @@ public class WaitForFileDelete
                                     0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
 
+
+      // Not used in this class, but required by the start-ds script
+      // (see issue #3814)
+      useLastKnownGoodConfig =
+           new BooleanArgument("lastknowngoodconfig", 'L',
+                               "useLastKnownGoodConfig",
+                               INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get());
+      argParser.addArgument(useLastKnownGoodConfig);
+
+      // Not used in this class, but required by the start-ds script
+      // (see issue #3814)
+      quietMode = new BooleanArgument("quiet", 'Q', "quiet",
+                                      INFO_DESCRIPTION_QUIET.get());
+      argParser.addArgument(quietMode);
 
       showUsage = new BooleanArgument("help", 'H', "help",
                                       INFO_WAIT4DEL_DESCRIPTION_HELP.get());

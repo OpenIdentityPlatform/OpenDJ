@@ -227,6 +227,7 @@ import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
@@ -9127,6 +9128,7 @@ public class DirectoryServer
     // Define the arguments that may be provided to the server.
     BooleanArgument checkStartability      = null;
     BooleanArgument quietMode              = null;
+    IntegerArgument timeout                = null;
     BooleanArgument windowsNetStart        = null;
     BooleanArgument displayUsage           = null;
     BooleanArgument fullVersion            = null;
@@ -9209,6 +9211,14 @@ public class DirectoryServer
                                       INFO_DESCRIPTION_QUIET.get());
       argParser.addArgument(quietMode);
 
+
+      // Not used in this class, but required by the start-ds script
+      // (see issue #3814)
+      timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(), 60,
+                                    null, true, 0, false,
+                                    0, INFO_DSCORE_DESCRIPTION_TIMEOUT.get());
+      argParser.addArgument(timeout);
 
       displayUsage = new BooleanArgument("help", 'H', "help",
                                          INFO_DSCORE_DESCRIPTION_USAGE.get());
@@ -9302,6 +9312,12 @@ public class DirectoryServer
     {
       RuntimeInformation.printInfo();
       return;
+    }
+    else if (noDetach.isPresent() && timeout.isPresent()) {
+      Message message = ERR_DSCORE_ERROR_NODETACH_TIMEOUT.get();
+      System.err.println(message);
+      System.err.println(argParser.getUsage());
+      System.exit(1);
     }
 
 
