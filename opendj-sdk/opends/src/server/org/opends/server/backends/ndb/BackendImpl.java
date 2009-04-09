@@ -846,6 +846,8 @@ public class BackendImpl
       {
         DirectoryServer.registerBaseDN(dn, this, false);
         WorkflowImpl workflowImpl = createWorkflow(dn);
+        registerWorkflowWithInternalNetworkGroup(workflowImpl);
+        registerWorkflowWithAdminNetworkGroup(workflowImpl);
         registerWorkflowWithDefaultNetworkGroup(workflowImpl);
       }
       catch (Exception e)
@@ -891,7 +893,9 @@ public class BackendImpl
       try
       {
         DirectoryServer.deregisterBaseDN(dn);
+        deregisterWorkflowWithAdminNetworkGroup(dn);
         deregisterWorkflowWithDefaultNetworkGroup(dn);
+        deregisterWorkflowWithInternalNetworkGroup(dn);
       }
       catch (Exception e)
       {
@@ -2107,10 +2111,41 @@ public class BackendImpl
   }
 
   /**
-   * Deregisters a workflow with the default network group and
-   * deregisters the workflow with the server. This method is
-   * intended to be called when workflow configuration mode is
-   * auto.
+   * Registers a workflow with the admin network group.
+   *
+   * @param workflowImpl  The workflow to register with the
+   *                      admin network group
+   *
+   * @throws  DirectoryException  If the workflow is already registered with
+   *                              the admin network group
+   */
+  private void registerWorkflowWithAdminNetworkGroup(
+      WorkflowImpl workflowImpl
+      ) throws DirectoryException
+  {
+    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
+    adminNetworkGroup.registerWorkflow(workflowImpl);
+  }
+
+  /**
+   * Registers a workflow with the internal network group.
+   *
+   * @param workflowImpl  The workflow to register with the
+   *                      internal network group
+   *
+   * @throws  DirectoryException  If the workflow is already registered with
+   *                              the internal network group
+   */
+  private void registerWorkflowWithInternalNetworkGroup(
+      WorkflowImpl workflowImpl
+      ) throws DirectoryException
+  {
+    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
+    internalNetworkGroup.registerWorkflow(workflowImpl);
+  }
+
+  /**
+   * Deregisters a workflow with the default network group.
    *
    * @param baseDN  the DN of the workflow to deregister
    */
@@ -2125,6 +2160,66 @@ public class BackendImpl
     // backend base DN).
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
     Workflow workflow = defaultNetworkGroup.deregisterWorkflow(baseDN);
+    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+
+    // The workflow ID is "backendID + baseDN".
+    // We cannot use backendID as workflow identifier because a backend
+    // may handle several base DNs. We cannot use baseDN either because
+    // we might want to configure several workflows handling the same
+    // baseDN through different network groups. So a mix of both
+    // backendID and baseDN should be ok.
+    String workflowID = backendID + "#" + baseDN.toString();
+
+    NDBWorkflowElement.remove(backendID);
+    workflowImpl.deregister(workflowID);
+  }
+
+  /**
+   * Deregisters a workflow with the admin network group.
+   *
+   * @param baseDN  the DN of the workflow to deregister
+   */
+  private void deregisterWorkflowWithAdminNetworkGroup(
+      DN baseDN
+      )
+  {
+    String backendID = this.getBackendID();
+
+    // Get the admin network group and deregister all the workflows
+    // being configured for the backend (there is one worklfow per
+    // backend base DN).
+    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
+    Workflow workflow = adminNetworkGroup.deregisterWorkflow(baseDN);
+    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+
+    // The workflow ID is "backendID + baseDN".
+    // We cannot use backendID as workflow identifier because a backend
+    // may handle several base DNs. We cannot use baseDN either because
+    // we might want to configure several workflows handling the same
+    // baseDN through different network groups. So a mix of both
+    // backendID and baseDN should be ok.
+    String workflowID = backendID + "#" + baseDN.toString();
+
+    NDBWorkflowElement.remove(backendID);
+    workflowImpl.deregister(workflowID);
+  }
+
+  /**
+   * Deregisters a workflow with the internal network group.
+   *
+   * @param baseDN  the DN of the workflow to deregister
+   */
+  private void deregisterWorkflowWithInternalNetworkGroup(
+      DN baseDN
+      )
+  {
+    String backendID = this.getBackendID();
+
+    // Get the internal network group and deregister all the workflows
+    // being configured for the backend (there is one workflow per
+    // backend base DN).
+    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
+    Workflow workflow = internalNetworkGroup.deregisterWorkflow(baseDN);
     WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
 
     // The workflow ID is "backendID + baseDN".
