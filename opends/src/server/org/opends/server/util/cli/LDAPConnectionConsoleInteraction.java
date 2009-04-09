@@ -35,7 +35,6 @@ import static org.opends.messages.ToolMessages.*;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.config.ConfigException;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionFactory;
@@ -61,13 +60,6 @@ import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AdministrationConnectorCfg;
-import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.opends.server.core.DirectoryServer;
 
 /**
  * Supports interacting with a user through the command line to
@@ -127,8 +119,6 @@ public class LDAPConnectionConsoleInteraction {
 
   // The command builder that we can return with the connection information.
   private CommandBuilder commandBuilder;
-
-  private boolean configurationInitialized = false;
 
 
   /**
@@ -513,18 +503,7 @@ public class LDAPConnectionConsoleInteraction {
       }
       else
       {
-        if (secureArgsList.alwaysSSL()) {
-          portNumber =
-            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-          // Try to get the port from the config file
-          try {
-            portNumber = getAdminPortFromConfig();
-          } catch (ConfigException ex) {
-            // nothing to do
-            }
-        } else {
-          portNumber = 636;
-        }
+        portNumber = secureArgsList.getPortFromConfig();
       }
     }
     final int tmpPortNumber = portNumber;
@@ -1992,86 +1971,33 @@ public class LDAPConnectionConsoleInteraction {
   *
   *  @return true if the local trustore has been added.
   */
-  private boolean addLocalTrustStore() {
-    TrustManagerProviderCfg trustManagerCfg = null;
-    AdministrationConnectorCfg administrationConnectorCfg = null;
+  private boolean addLocalTrustStore()
+  {
     try {
       // If remote host, return
       if (!InetAddress.getLocalHost().getHostName().equals(hostName)) {
         return false;
       }
-      // Initialization for admin framework
-      if (!configurationInitialized) {
-        initializeConfiguration();
-      }
-      // Get the Directory Server configuration handler and use it.
-      RootCfg root =
-        ServerManagementContext.getInstance().getRootConfiguration();
-      administrationConnectorCfg =
-        root.getAdministrationConnector();
       // check if we are in a local instance. Already checked the host,
       // now check the port
-
-      if (administrationConnectorCfg.getListenPort() != portNumber) {
+      if (secureArgsList.getAdminPortFromConfig() != portNumber) {
         return false;
       }
-      String trustManagerStr = administrationConnectorCfg.
-        getTrustManagerProvider();
-      trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
+
+      String truststoreFileAbsolute =
+        secureArgsList.getTruststoreFileFromConfig();
+      if (truststoreFileAbsolute != null)
+      {
+        secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     } catch (Exception ex) {
       // do nothing
       return false;
     }
-    if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
-      FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
-        (FileBasedTrustManagerProviderCfg) trustManagerCfg;
-      String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
-      // Check the file
-      String truststoreFileAbsolute = null;
-      if (truststoreFile.startsWith(File.separator)) {
-        truststoreFileAbsolute = truststoreFile;
-      } else {
-        truststoreFileAbsolute =
-          DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
-      }
-      File f = new File(truststoreFileAbsolute);
-      if (f.exists() && f.canRead() && !f.isDirectory()) {
-        secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
-  private int getAdminPortFromConfig() throws ConfigException {
-    // Initialization for admin framework
-    if (!configurationInitialized) {
-      initializeConfiguration();
-    }
-    RootCfg root =
-      ServerManagementContext.getInstance().getRootConfiguration();
-    return root.getAdministrationConnector().getListenPort();
-  }
-
-  private boolean initializeConfiguration() {
-    // check if the initialization is required
-    try {
-      ServerManagementContext.getInstance().getRootConfiguration().
-        getAdministrationConnector();
-    } catch (java.lang.Throwable th) {
-      try {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
-        DirectoryServer.getInstance().initializeConfiguration();
-      } catch (Exception ex) {
-        // do nothing
-        return false;
-      }
-    }
-    configurationInitialized = true;
-    return true;
   }
 }

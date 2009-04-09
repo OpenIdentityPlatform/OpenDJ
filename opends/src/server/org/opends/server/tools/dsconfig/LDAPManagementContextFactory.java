@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -42,6 +42,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.Argument;
@@ -340,6 +341,14 @@ public final class LDAPManagementContextFactory implements
       parser.addGlobalArgument(arg);
     }
 
+    try
+    {
+      secureArgsList.initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
   }
 
 

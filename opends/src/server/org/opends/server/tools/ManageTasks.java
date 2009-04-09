@@ -30,6 +30,7 @@ package org.opends.server.tools;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.ErrorLogger.removeErrorLogPublisher;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -231,6 +232,15 @@ public class ManageTasks extends ConsoleApplication {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return 1;
+    }
+
+    try
+    {
+      argParser.getArguments().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
     }
 
     // Parse the command-line arguments provided to this program.

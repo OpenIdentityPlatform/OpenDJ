@@ -59,6 +59,13 @@ import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.Constants;
 import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.AdministrationConnectorCfg;
+import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -172,6 +179,8 @@ public final class SecureConnectionCliArgs
   // the trust manager.
   private ApplicationTrustManager trustManager;
 
+  private boolean configurationInitialized = false;
+
   /**
    * The tracer object for the debug logger.
    */
@@ -199,9 +208,9 @@ public final class SecureConnectionCliArgs
    */
   public SecureConnectionCliArgs(boolean alwaysSSL)
   {
-      if (alwaysSSL) {
-        this.alwaysSSL = true;
-      }
+    if (alwaysSSL) {
+      this.alwaysSSL = true;
+    }
   }
 
   /**
@@ -324,37 +333,38 @@ public final class SecureConnectionCliArgs
       return bindPasswordValue;
     }
     else
-    if (fileArg.isPresent())
-    {
-      return fileArg.getValue();
-    }
-    else
-    {
-      // read the password from the stdin.
-      try
+      if (fileArg.isPresent())
       {
-        out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-        out.flush();
-        char[] pwChars = PasswordReader.readPassword();
-        return new String(pwChars);
+        return fileArg.getValue();
       }
-      catch (Exception ex)
+      else
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
+        // read the password from the stdin.
         try
         {
-          err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-          err.write(EOL.getBytes());
+          out.write(
+              INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
+          out.flush();
+          char[] pwChars = PasswordReader.readPassword();
+          return new String(pwChars);
         }
-        catch (IOException e)
+        catch (Exception ex)
         {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+          try
+          {
+            err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
+            err.write(EOL.getBytes());
+          }
+          catch (IOException e)
+          {
+          }
+          return null;
         }
-        return null;
       }
-    }
 
   }
 
@@ -397,14 +407,14 @@ public final class SecureConnectionCliArgs
       pwd = clearArg.getValue();
     }
     else
-    if (fileArg.isPresent())
-    {
-      pwd = fileArg.getValue();
-    }
-    else
-    {
-      pwd = null;
-    }
+      if (fileArg.isPresent())
+      {
+        pwd = fileArg.getValue();
+      }
+      else
+      {
+        pwd = null;
+      }
     return pwd;
   }
 
@@ -434,7 +444,7 @@ public final class SecureConnectionCliArgs
     argList = new LinkedHashSet<Argument>();
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-      OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
+        OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
     useSSLArg.setPropertyName(OPTION_LONG_USE_SSL);
     if (!alwaysSSL) {
       argList.add(useSSLArg);
@@ -444,8 +454,8 @@ public final class SecureConnectionCliArgs
     }
 
     useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
-      OPTION_LONG_START_TLS,
-      INFO_DESCRIPTION_START_TLS.get());
+        OPTION_LONG_START_TLS,
+        INFO_DESCRIPTION_START_TLS.get());
     useStartTLSArg.setPropertyName(OPTION_LONG_START_TLS);
     if (!alwaysSSL) {
       argList.add(useStartTLSArg);
@@ -455,7 +465,7 @@ public final class SecureConnectionCliArgs
     try {
       defaultHostName = InetAddress.getLocalHost().getHostName();
     } catch (Exception e) {
-       defaultHostName="Unknown (" + e + ")";
+      defaultHostName="Unknown (" + e + ")";
     }
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
@@ -508,11 +518,11 @@ public final class SecureConnectionCliArgs
     argList.add(bindPasswordFileArg);
 
     saslOptionArg = new StringArgument(
-            "sasloption", OPTION_SHORT_SASLOPTION,
-            OPTION_LONG_SASLOPTION, false,
-            true, true,
-            INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
-            INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
+        "sasloption", OPTION_SHORT_SASLOPTION,
+        OPTION_LONG_SASLOPTION, false,
+        true, true,
+        INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
+        INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
     saslOptionArg.setPropertyName(OPTION_LONG_SASLOPTION);
     argList.add(saslOptionArg);
 
@@ -622,8 +632,8 @@ public final class SecureConnectionCliArgs
     // Couldn't have at the same time bindPassword and bindPasswordFile
     if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              bindPasswordArg.getLongIdentifier(),
-              bindPasswordFileArg.getLongIdentifier());
+          bindPasswordArg.getLongIdentifier(),
+          bindPasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
@@ -631,30 +641,30 @@ public final class SecureConnectionCliArgs
     // trustStore related arg
     if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              trustAllArg.getLongIdentifier(),
-              trustStorePathArg.getLongIdentifier());
+          trustAllArg.getLongIdentifier(),
+          trustStorePathArg.getLongIdentifier());
       errors.add(message);
     }
     if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              trustAllArg.getLongIdentifier(),
-              trustStorePasswordArg.getLongIdentifier());
+          trustAllArg.getLongIdentifier(),
+          trustStorePasswordArg.getLongIdentifier());
       errors.add(message);
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              trustAllArg.getLongIdentifier(),
-              trustStorePasswordFileArg.getLongIdentifier());
+          trustAllArg.getLongIdentifier(),
+          trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
     // Couldn't have at the same time trustStorePasswordArg and
     // trustStorePasswordFileArg
     if (trustStorePasswordArg.isPresent()
-            && trustStorePasswordFileArg.isPresent()) {
+        && trustStorePasswordFileArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              trustStorePasswordArg.getLongIdentifier(),
-              trustStorePasswordFileArg.getLongIdentifier());
+          trustStorePasswordArg.getLongIdentifier(),
+          trustStorePasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
@@ -682,15 +692,15 @@ public final class SecureConnectionCliArgs
       }
     }
 
-      // Couldn't have at the same time startTLSArg and
-      // useSSLArg
+    // Couldn't have at the same time startTLSArg and
+    // useSSLArg
     if (useStartTLSArg.isPresent()
-            && useSSLArg.isPresent()) {
-        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-              useStartTLSArg
-                      .getLongIdentifier(), useSSLArg.getLongIdentifier());
-        errors.add(message);
-      }
+        && useSSLArg.isPresent()) {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          useStartTLSArg
+          .getLongIdentifier(), useSSLArg.getLongIdentifier());
+      errors.add(message);
+    }
     if (errors.size() > 0)
     {
       for (Message error : errors)
@@ -963,5 +973,143 @@ public final class SecureConnectionCliArgs
       canRead = false;
     }
     return canRead;
+  }
+
+  /**
+   *  Returns the absolute path of the trust store file that appears on the
+   *  config.  Returns <CODE>null</CODE> if the trust store is not defined or
+   *  it does not exist.
+   *
+   *  @return the absolute path of the trust store file that appears on the
+   *  config.
+   *  @throws ConfigException if there is an error reading the configuration.
+   */
+  public String getTruststoreFileFromConfig() throws ConfigException
+  {
+    String truststoreFileAbsolute = null;
+    TrustManagerProviderCfg trustManagerCfg = null;
+    AdministrationConnectorCfg administrationConnectorCfg = null;
+
+    // Initialization for admin framework
+    if (!configurationInitialized) {
+      initializeConfiguration();
+    }
+    // Get the Directory Server configuration handler and use it.
+    RootCfg root =
+      ServerManagementContext.getInstance().getRootConfiguration();
+    administrationConnectorCfg = root.getAdministrationConnector();
+
+    String trustManagerStr =
+      administrationConnectorCfg.getTrustManagerProvider();
+    trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
+    if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
+      FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
+        (FileBasedTrustManagerProviderCfg) trustManagerCfg;
+      String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
+      // Check the file
+      if (truststoreFile.startsWith(File.separator)) {
+        truststoreFileAbsolute = truststoreFile;
+      } else {
+        truststoreFileAbsolute =
+          DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
+      }
+      File f = new File(truststoreFileAbsolute);
+      if (!f.exists() || !f.canRead() || f.isDirectory())
+      {
+        truststoreFileAbsolute = null;
+      }
+      else
+      {
+        // Try to get the canonical path.
+        try
+        {
+          truststoreFileAbsolute = f.getCanonicalPath();
+        }
+        catch (Throwable t)
+        {
+          // We can ignore this error.
+        }
+      }
+    }
+    return truststoreFileAbsolute;
+  }
+
+  /**
+   * Returns the admin port from the configuration.
+   * @return the admin port from the configuration.
+   * @throws ConfigException if an error occurs reading the configuration.
+   */
+  public int getAdminPortFromConfig() throws ConfigException
+  {
+    // Initialization for admin framework
+    if (!configurationInitialized) {
+      initializeConfiguration();
+    }
+    RootCfg root =
+      ServerManagementContext.getInstance().getRootConfiguration();
+    int port = root.getAdministrationConnector().getListenPort();
+    return port;
+  }
+
+  private boolean initializeConfiguration() {
+    // check if the initialization is required
+    try {
+      ServerManagementContext.getInstance().getRootConfiguration().
+      getAdministrationConnector();
+    } catch (java.lang.Throwable th) {
+      try {
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
+        DirectoryServer.getInstance().initializeConfiguration();
+      } catch (Exception ex) {
+        // do nothing
+        return false;
+      }
+    }
+    configurationInitialized = true;
+    return true;
+  }
+
+  /**
+   * Returns the port to be used according to the configuration and the
+   * arguments provided by the user.
+   * This method should be called after the arguments have been parsed.
+   * @return the port to be used according to the configuration and the
+   * arguments provided by the user.
+   */
+  public int getPortFromConfig()
+  {
+    int portNumber;
+    if (alwaysSSL()) {
+      portNumber =
+        AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+      // Try to get the port from the config file
+      try
+      {
+        portNumber = getAdminPortFromConfig();
+      } catch (ConfigException ex) {
+        // nothing to do
+      }
+    } else {
+      portNumber = 636;
+    }
+    return portNumber;
+  }
+
+  /**
+   * Updates the default values of the port and the trust store with what is
+   * read in the configuration.
+   * @throws ConfigException if there is an error reading the configuration.
+   */
+  public void initArgumentsWithConfiguration() throws ConfigException
+  {
+    int portNumber = getPortFromConfig();
+    portArg.setDefaultValue(String.valueOf(portNumber));
+
+    String truststoreFileAbsolute = getTruststoreFileFromConfig();
+    if (truststoreFileAbsolute != null)
+    {
+      trustStorePathArg.setDefaultValue(truststoreFileAbsolute);
+    }
   }
 }
