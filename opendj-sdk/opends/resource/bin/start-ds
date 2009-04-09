@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 
 
 # Capture the current working directory so that we can change to it later.
@@ -109,10 +109,10 @@ then
   if test ${EC} -eq 99
   then
     "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
-         --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
+         --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
   else
     "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
-         --targetFile "${STARTING_FILE}"
+         --targetFile "${STARTING_FILE}" "${@}"
   fi
   EC=${?}
   if test ${EC} -eq 0
@@ -130,7 +130,7 @@ then
       exit 1
     fi
   fi
-  exit ${?}
+  exit ${EC}
 else
   if test ${EC} -eq 100
   then
