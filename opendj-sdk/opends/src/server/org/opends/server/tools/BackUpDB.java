@@ -285,6 +285,15 @@ public class BackUpDB extends TaskTool
       return 1;
     }
 
+    // Init the default values so that they can appear also on the usage.
+    try
+    {
+      argParser.getArguments().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
+    }
 
     // Parse the command-line arguments provided to this program.
     try

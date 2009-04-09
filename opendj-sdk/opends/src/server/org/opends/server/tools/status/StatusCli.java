@@ -62,6 +62,7 @@ import static org.opends.quicksetup.util.Utils.*;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.messages.Message;
@@ -287,6 +288,15 @@ class StatusCli extends ConsoleApplication
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
+    }
+
+    try
+    {
+      argParser.getSecureArgsList().initArgumentsWithConfiguration();
+    }
+    catch (ConfigException ce)
+    {
+      // Ignore.
     }
 
     // Validate user provided data

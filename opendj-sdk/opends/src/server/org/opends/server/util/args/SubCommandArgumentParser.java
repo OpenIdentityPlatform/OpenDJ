@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -1558,6 +1558,14 @@ public class SubCommandArgumentParser extends ArgumentParser
           buffer.append(EOL);
         }
       }
+      if (a.needsValue() && (a.getDefaultValue() != null) &&
+          (a.getDefaultValue().length() > 0))
+       {
+         buffer.append(INDENT);
+         buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(
+             a.getDefaultValue()).toString());
+         buffer.append(EOL);
+       }
     }
   }
 
@@ -1885,6 +1893,14 @@ public class SubCommandArgumentParser extends ArgumentParser
 
     buffer.append(EOL);
     indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
+
+    if (a.needsValue() && (a.getDefaultValue() != null) &&
+        (a.getDefaultValue().length() > 0))
+     {
+       indentAndWrap(Message.raw(INDENT),
+           INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()),
+           buffer);
+     }
   }
 
 

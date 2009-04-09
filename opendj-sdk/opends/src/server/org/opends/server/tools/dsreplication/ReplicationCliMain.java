@@ -111,6 +111,7 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
@@ -347,6 +348,15 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (returnValue == SUCCESSFUL_NOP)
     {
+      try
+      {
+        argParser.getSecureArgsList().initArgumentsWithConfiguration();
+      }
+      catch (ConfigException ce)
+      {
+        // Ignore.
+      }
+
       //  Parse the command-line arguments provided to this program.
       try
       {

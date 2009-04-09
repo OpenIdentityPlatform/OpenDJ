@@ -67,6 +67,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand preExternalInitializationSubCmd;
   private SubCommand statusReplicationSubCmd;
 
+  int defaultAdminPort = 4444;
+
   /**
    * No-prompt argument.
    */
@@ -293,6 +295,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       throws ArgumentException
   {
     initializeGlobalArguments(outStream);
+    try
+    {
+      defaultAdminPort = secureArgsList.getAdminPortFromConfig();
+    }
+    catch (Throwable t)
+    {
+      // Ignore
+    }
     createEnableReplicationSubCommand();
     createDisableReplicationSubCommand();
     createInitializeReplicationSubCommand();
@@ -529,7 +539,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
 
     port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        defaultAdminPort, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
 
     bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
@@ -562,7 +573,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
 
     port2Arg = new IntegerArgument("port2", null, "port2",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
 
     bindDn2Arg = new StringArgument("bindDN2", null,
@@ -659,8 +670,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
 
     portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
-        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444,
-        null,
+        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        defaultAdminPort, null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
     hostNameDestinationArg = new StringArgument("hostDestination", 'O',
@@ -670,7 +681,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     portDestinationArg = new IntegerArgument("portDestination", null,
         "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        4444,
+        defaultAdminPort,
         null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
