@@ -471,7 +471,7 @@ public final class VersionCompatibilityIssue {
 
   static {
     register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1,
-            new BuildVersion(1,0,0,5134));
+            new BuildVersion(1,2,0,5134));
     register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0, 3873));
     register(Cause.BACKEND_CONFIGURATION_CHANGE_1,
         new BuildVersion(1, 0, 0, 3708));
