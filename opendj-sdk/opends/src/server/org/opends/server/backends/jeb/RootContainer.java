@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -891,8 +891,13 @@ public class RootContainer
                   getAttributeForProperty(param.getName());
               if (configAttr != null)
               {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(
-                        configAttr));
+                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART
+                    .get(configAttr));
+              }
+              else
+              {
+                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART
+                    .get(param.getName()));
               }
               if(debugEnabled())
               {
