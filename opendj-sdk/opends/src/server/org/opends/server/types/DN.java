@@ -2220,6 +2220,17 @@ public class DN
       return bs;
     }
 
+    else if(b == '+' || b == ',')
+    {
+      //We don't allow an empty attribute value. So do not allow the
+      // first character to be a '+' or ',' since it is not escaped
+      // by the user.
+      Message message =
+             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
+                      dnBytes.toString(),dnBytes.position());
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                                       message);
+    }
 
     // Otherwise, use general parsing to find the end of the value.
     else
@@ -2447,6 +2458,17 @@ public class DN
 
       attributeValue.append(valueString.toString());
       return pos;
+    }
+    else if(c == '+' || c == ',')
+    {
+      //We don't allow an empty attribute value. So do not allow the
+      // first character to be a '+' or ',' since it is not escaped
+      // by the user.
+      Message message =
+             ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(
+                      dnString,pos);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                                       message);
     }
 
 
