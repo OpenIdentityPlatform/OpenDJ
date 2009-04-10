@@ -125,7 +125,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     super();
 
     /* Do some initialization required to use the administration framework
-     * classes.  Note that this is not done in the installer code because
+     * classes.  Note that this is not done in the uninstaller code because
      * when the basic configuration of the server is performed (using
      * ConfigureDS) this initialization is done.
      */
@@ -133,7 +133,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     //  Bootstrap definition classes.
     try
     {
-      ClassLoaderProvider.getInstance().enable();
+      if (!ClassLoaderProvider.getInstance().isEnabled())
+      {
+        ClassLoaderProvider.getInstance().enable();
+      }
     }
     catch (Throwable t)
     {
