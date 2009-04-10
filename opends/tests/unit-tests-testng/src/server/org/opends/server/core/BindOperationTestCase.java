@@ -1864,10 +1864,10 @@ public class BindOperationTestCase
   public void testSimpleBindReferral()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntry(
-         "dn: ou=people,o=test",
+         "dn: ou=people,dc=example,dc=com",
          "objectClass: top",
          "objectClass: referral",
          "objectClass: extensibleObject",
@@ -1878,14 +1878,14 @@ public class BindOperationTestCase
          InternalClientConnection.getRootConnection();
 
     BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("uid=test,ou=people,o=test"),
+         conn.processSimpleBind(ByteString.valueOf("uid=test,ou=people,dc=example,dc=com"),
                                 ByteString.valueOf("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.REFERRAL);
 
     List<String> referralURLs = bindOperation.getReferralURLs();
     assertNotNull(referralURLs);
     assertEquals(referralURLs.size(), 1);
-    assertEquals(referralURLs.get(0), "ldap://example.com:1389/ou=people,o=test");
+    assertEquals(referralURLs.get(0), "ldap://example.com:1389/uid=test,ou=people,o=test");
   }
 
 
