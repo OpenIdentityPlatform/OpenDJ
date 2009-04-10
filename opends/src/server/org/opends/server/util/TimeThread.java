@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -41,6 +41,7 @@ import org.opends.server.api.DirectoryThread;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -96,9 +97,6 @@ public final class TimeThread
   // The current time in nanoseconds.
   private static volatile long nanoTime;
 
-  // The date formatter that will be used to obtain the generalized time.
-  private static SimpleDateFormat generalizedTimeFormatter;
-
   // The date formatter that will be used to obtain the local timestamp.
   private static SimpleDateFormat localTimestampFormatter;
 
@@ -130,10 +128,6 @@ public final class TimeThread
 
     TimeZone utcTimeZone = TimeZone.getTimeZone(TIME_ZONE_UTC);
 
-    generalizedTimeFormatter =
-         new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
-    generalizedTimeFormatter.setTimeZone(utcTimeZone);
-
     gmtTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     gmtTimestampFormatter.setTimeZone(utcTimeZone);
 
@@ -143,7 +137,7 @@ public final class TimeThread
     date            = calendar.getTime();
     time            = date.getTime();
     nanoTime        = System.nanoTime();
-    generalizedTime = generalizedTimeFormatter.format(date);
+    generalizedTime = GeneralizedTimeSyntax.format(date);
     localTimestamp  = localTimestampFormatter.format(date);
     gmtTimestamp    = gmtTimestampFormatter.format(date);
     hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +
@@ -158,6 +152,7 @@ public final class TimeThread
    * Operates in a loop, getting the current time and then sleeping briefly
    * before checking again.
    */
+  @Override
   public void run()
   {
     while (true)
@@ -168,7 +163,7 @@ public final class TimeThread
         date            = calendar.getTime();
         time            = date.getTime();
         nanoTime        = System.nanoTime();
-        generalizedTime = generalizedTimeFormatter.format(date);
+        generalizedTime = GeneralizedTimeSyntax.format(date);
         localTimestamp  = localTimestampFormatter.format(date);
         gmtTimestamp    = gmtTimestampFormatter.format(date);
         hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +

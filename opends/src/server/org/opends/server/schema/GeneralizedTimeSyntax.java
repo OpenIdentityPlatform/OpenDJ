@@ -22,13 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2009 D. J. Hagberg, Millibits Consulting, Inc.
  */
 package org.opends.server.schema;
 
 
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -70,19 +70,9 @@ public class GeneralizedTimeSyntax
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /**
-   * The lock that will be used to provide threadsafe access to the date
-   * formatter.
-   */
-  private static Object dateFormatLock;
-
-
-
-  /**
-   * The date formatter that will be used to convert dates into generalized time
-   * values.  Note that all interaction with it must be synchronized.
-   */
-  private static SimpleDateFormat dateFormat;
+  // UTC TimeZone is assumed to never change over JVM lifetime
+  private static final TimeZone TIME_ZONE_UTC_OBJ =
+      TimeZone.getTimeZone(TIME_ZONE_UTC);
 
 
 
@@ -94,21 +84,6 @@ public class GeneralizedTimeSyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
-
-
-
-  /*
-   * Create the date formatter that will be used to construct and parse
-   * normalized generalized time values.
-   */
-  static
-  {
-    dateFormat = new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
-    dateFormat.setLenient(false);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-    dateFormatLock = new Object();
-  }
 
 
 
@@ -128,6 +103,7 @@ public class GeneralizedTimeSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -163,6 +139,7 @@ public class GeneralizedTimeSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_GENERALIZED_TIME_NAME;
@@ -175,6 +152,7 @@ public class GeneralizedTimeSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_GENERALIZED_TIME_OID;
@@ -187,6 +165,7 @@ public class GeneralizedTimeSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_GENERALIZED_TIME_DESCRIPTION;
@@ -202,6 +181,7 @@ public class GeneralizedTimeSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -217,6 +197,7 @@ public class GeneralizedTimeSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -232,6 +213,7 @@ public class GeneralizedTimeSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -247,6 +229,7 @@ public class GeneralizedTimeSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // Approximate matching will not be allowed by default.
@@ -267,6 +250,7 @@ public class GeneralizedTimeSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
@@ -293,10 +277,7 @@ public class GeneralizedTimeSyntax
    */
   public static String format(Date d)
   {
-    synchronized (dateFormatLock)
-    {
-      return dateFormat.format(d);
-    }
+    return d == null ? null : format(d.getTime());
   }
 
 
@@ -310,12 +291,95 @@ public class GeneralizedTimeSyntax
    */
   public static String format(long t)
   {
-    synchronized (dateFormatLock)
-    {
-      return dateFormat.format(new Date(t));
-    }
-  }
+    // Generalized time has the format yyyyMMddHHmmss.SSS'Z'
 
+    // Do this in a thread-safe non-synchronized fashion.
+    // (Simple)DateFormat is neither fast nor thread-safe.
+
+    StringBuilder sb = new StringBuilder(19);
+
+    GregorianCalendar calendar = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
+    calendar.setLenient(false);
+    calendar.setTimeInMillis(t);
+
+    // Format the year yyyy.
+    int n = calendar.get(Calendar.YEAR);
+    if (n < 0)
+    {
+      throw new IllegalArgumentException("Year cannot be < 0:" + n);
+    }
+    else if (n < 10)
+    {
+      sb.append("000");
+    }
+    else if (n < 100)
+    {
+      sb.append("00");
+    }
+    else if (n < 1000)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the month MM.
+    n = calendar.get(Calendar.MONTH) + 1;
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the day dd.
+    n = calendar.get(Calendar.DAY_OF_MONTH);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the hour HH.
+    n = calendar.get(Calendar.HOUR_OF_DAY);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the minute mm.
+    n = calendar.get(Calendar.MINUTE);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the seconds ss.
+    n = calendar.get(Calendar.SECOND);
+    if (n < 10)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the milli-seconds.
+    sb.append('.');
+    n = calendar.get(Calendar.MILLISECOND);
+    if (n < 10)
+    {
+      sb.append("00");
+    }
+    else if (n < 100)
+    {
+      sb.append("0");
+    }
+    sb.append(n);
+
+    // Format the timezone (always Z).
+    sb.append('Z');
+
+    return sb.toString();
+  }
 
 
 
@@ -329,13 +393,7 @@ public class GeneralizedTimeSyntax
    */
   public static AttributeValue createGeneralizedTimeValue(long time)
   {
-    String valueString;
-
-    synchronized (dateFormatLock)
-    {
-      valueString = dateFormat.format(new Date(time));
-    }
-
+    String valueString = format(time);
     return AttributeValues.create(ByteString.valueOf(valueString),
         ByteString.valueOf(valueString));
   }
@@ -946,7 +1004,7 @@ public class GeneralizedTimeSyntax
           {
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setLenient(false);
-            calendar.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
+            calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, 0);
             return calendar.getTimeInMillis();
@@ -1133,7 +1191,7 @@ public class GeneralizedTimeSyntax
           {
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setLenient(false);
-            calendar.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
+            calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, 0);
             return calendar.getTimeInMillis();
@@ -1231,7 +1289,7 @@ public class GeneralizedTimeSyntax
           {
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setLenient(false);
-            calendar.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
+            calendar.setTimeZone(TIME_ZONE_UTC_OBJ);
             calendar.set(year, month, day, hour, minute, second);
             calendar.set(Calendar.MILLISECOND, 0);
             return calendar.getTimeInMillis();
@@ -1375,7 +1433,7 @@ outerLoop:
                                          message);
           }
 
-          timeZone = TimeZone.getTimeZone(TIME_ZONE_UTC);
+          timeZone = TIME_ZONE_UTC_OBJ;
           break outerLoop;
 
         case '+':
@@ -1590,6 +1648,7 @@ outerLoop:
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBinary()
   {
     return false;
