@@ -147,7 +147,9 @@ public class TestDN extends TypesTestCase {
         { "\u03c0=pi" },  { "v1.0=buggy" }, { "1.=buggy" }, { ".1=buggy" },
         { "oid.1." }, { "1.3.6.1.4.1.1466..0=#04024869" },
         { "cn=#a" }, { "cn=#ag" }, { "cn=#ga" }, { "cn=#abcdefgh" },
-        { "cn=a\\b" }, { "cn=a\\bg" }, { "cn=\"hello" } };
+        { "cn=a\\b" }, { "cn=a\\bg" }, { "cn=\"hello" },
+        {"cn=+mail=,dc=example,dc=com"},{"cn=xyz+sn=,dc=example,dc=com"},
+        {"cn=,dc=example,dc=com"}};
   }
 
 
