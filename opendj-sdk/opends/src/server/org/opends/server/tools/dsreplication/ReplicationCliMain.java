@@ -396,7 +396,10 @@ public class ReplicationCliMain extends ConsoleApplication
         // Bootstrap definition classes.
         try
         {
-          ClassLoaderProvider.getInstance().enable();
+          if (!ClassLoaderProvider.getInstance().isEnabled())
+          {
+            ClassLoaderProvider.getInstance().enable();
+          }
           // Switch off class name validation in client.
           ClassPropertyDefinition.setAllowClassValidation(false);
 
