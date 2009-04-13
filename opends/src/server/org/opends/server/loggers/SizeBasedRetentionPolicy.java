@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -55,8 +55,10 @@ public class SizeBasedRetentionPolicy implements
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+  private static final File[] EMPTY_FILE_LIST = new File[0];
 
   private long size = 0;
+  private FileComparator comparator;
   private SizeLimitLogRetentionPolicyCfg config;
 
   /**
@@ -66,6 +68,7 @@ public class SizeBasedRetentionPolicy implements
       SizeLimitLogRetentionPolicyCfg config)
   {
     this.size = config.getDiskSpaceUsed();
+    this.comparator = new FileComparator();
     this.config = config;
 
     config.addSizeLimitChangeListener(this);
@@ -115,8 +118,6 @@ public class SizeBasedRetentionPolicy implements
                                    message);
     }
 
-    ArrayList<File> filesToDelete = new ArrayList<File>();
-
     long totalLength = 0;
     for (File file : files)
     {
@@ -130,26 +131,28 @@ public class SizeBasedRetentionPolicy implements
 
     if (totalLength <= size)
     {
-      return new File[0];
+      return EMPTY_FILE_LIST;
     }
 
     long freeSpaceNeeded = totalLength - size;
 
     // Sort files based on last modified time.
-    Arrays.sort(files, new FileComparator());
+    Arrays.sort(files, comparator);
 
     long freedSpace = 0;
-    for (int j = files.length - 1; j < 1; j--)
+    int j;
+    for (j = files.length - 1; j >= 0; j--)
     {
       freedSpace += files[j].length();
-      filesToDelete.add(files[j]);
       if (freedSpace >= freeSpaceNeeded)
       {
         break;
       }
     }
 
-    return filesToDelete.toArray(new File[0]);
+    File[] filesToDelete = new File[files.length - j];
+    System.arraycopy(files, j, filesToDelete, 0, filesToDelete.length);
+    return filesToDelete;
   }
 
   /**

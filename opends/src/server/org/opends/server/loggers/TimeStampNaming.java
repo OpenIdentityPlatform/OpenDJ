@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -43,7 +43,8 @@ public class TimeStampNaming implements FileNamingPolicy
    */
   private static final DebugTracer TRACER = getTracer();
 
-  File file;
+  private File file;
+  private TimeStampNamingFilter filter;
 
   /**
    * The FilenameFilter implementation for this naming policy to filter
@@ -66,8 +67,45 @@ public class TimeStampNaming implements FileNamingPolicy
       {
         return false;
       }
-      name = name.toLowerCase();
-      return name.startsWith(file.getName().toLowerCase());
+
+      String initialFileName = file.getName();
+
+      // Make sure it is the expected length.
+      if(name.length() != initialFileName.length() + 16)
+      {
+        return false;
+      }
+
+      int pos;
+      // Make sure we got the expected name prefix.
+      for(pos = 0; pos < initialFileName.length(); pos++)
+      {
+        if(name.charAt(pos) != initialFileName.charAt(pos))
+        {
+          return false;
+        }
+      }
+
+      // Make sure there is a period between the prefix and timestamp.
+      if(name.charAt(pos) != '.')
+      {
+        return false;
+      }
+
+      char c;
+      // Make sure there are 14 numbers for the timestamp.
+      for(pos++; pos < name.length() - 1; pos++)
+      {
+        c = name.charAt(pos);
+        if(c < 48 || c > 57)
+        {
+          return false;
+        }
+      }
+
+      // And ends with an Z.
+      return name.charAt(pos) == 'Z';
+
     }
   }
 
@@ -80,6 +118,7 @@ public class TimeStampNaming implements FileNamingPolicy
   public TimeStampNaming(File file)
   {
     this.file = file;
+    this.filter = new TimeStampNamingFilter();
   }
 
   /**
@@ -103,7 +142,7 @@ public class TimeStampNaming implements FileNamingPolicy
    */
   public FilenameFilter getFilenameFilter()
   {
-    return new TimeStampNamingFilter();
+    return filter;
   }
 
   /**
@@ -112,7 +151,7 @@ public class TimeStampNaming implements FileNamingPolicy
   public File[] listFiles()
   {
     File directory = file.getParentFile();
-    File[] files =  directory.listFiles(getFilenameFilter());
+    File[] files =  directory.listFiles(filter);
 
     if(files == null)
     {
