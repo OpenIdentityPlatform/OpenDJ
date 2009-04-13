@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -494,7 +494,7 @@ public class TextErrorLogPublisher
 
       if(currentWriter instanceof MultifileTextWriter)
       {
-        MultifileTextWriter mfWriter = (MultifileTextWriter)writer;
+        MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
 
         mfWriter.setNamingPolicy(fnPolicy);
         mfWriter.setFilePermissions(perm);
