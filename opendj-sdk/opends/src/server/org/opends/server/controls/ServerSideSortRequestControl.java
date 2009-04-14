@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -115,8 +115,11 @@ public class ServerSideSortRequestControl
               DirectoryServer.getAttributeType(attrName, false);
           if (attrType == null)
           {
-            Message message = INFO_SORTREQ_CONTROL_UNDEFINED_ATTR.get(attrName);
-            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+            //This attribute is not defined in the schema. There is no point
+            //iterating over the next attribute and return a partially sorted
+            //result.
+            return new ServerSideSortRequestControl(isCritical,
+            new SortOrder(sortKeys.toArray(new SortKey[0])));
           }
 
           OrderingMatchingRule orderingRule = null;
@@ -351,6 +354,23 @@ public class ServerSideSortRequestControl
   }
 
   /**
+   * Indicates whether the sort control contains Sort keys.
+   *
+   * <P> A Sort control may not contain sort keys if the attribute type
+   * is not recognized by the server </P>
+   *
+   * @return  <CODE>true</CODE> if the control contains sort keys
+   *          or <CODE>false</CODE> if it does not.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to make the
+   *                              determination.
+   */
+  public boolean  containsSortKeys() throws DirectoryException
+  {
+    return getSortOrder().getSortKeys().length!=0;
+  }
+
+  /**
    * Writes this control's value to an ASN.1 writer. The value (if any) must
    * be written as an ASN1OctetString.
    *
@@ -438,9 +458,10 @@ public class ServerSideSortRequestControl
           DirectoryServer.getAttributeType(decodedKey[0].toLowerCase(), false);
       if (attrType == null)
       {
-        Message message =
-            INFO_SORTREQ_CONTROL_UNDEFINED_ATTR.get(decodedKey[0]);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        //This attribute is not defined in the schema. There is no point
+        //iterating over the next attribute and return a partially sorted
+        //result.
+        return new SortOrder(sortKeys.toArray(new SortKey[0]));
       }
 
       OrderingMatchingRule orderingRule = null;

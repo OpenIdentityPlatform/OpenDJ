@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -718,13 +718,13 @@ public class ServerSideSortControlTestCase
 
 
   /**
-   * Tests performing an internal search using the server-side sort control with
+   * Tests performing an internal search using the CRITICAL server-side sort control with
    * an undefined attribute type.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test()
-  public void testInternalSearchUndefinedAttribute()
+  public void testCriticalSortWithUndefinedAttribute()
          throws Exception
   {
     populateDB();
@@ -744,7 +744,7 @@ public class ServerSideSortControlTestCase
                   null, null);
 
     internalSearch.run();
-    assertFalse(internalSearch.getResultCode() == ResultCode.SUCCESS);
+    assertEquals(internalSearch.getResultCode(), ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
   }
 
 
@@ -778,6 +778,54 @@ public class ServerSideSortControlTestCase
 
     internalSearch.run();
     assertFalse(internalSearch.getResultCode() == ResultCode.SUCCESS);
+  }
+  
+  
+  /**
+   * Tests performing an internal search using the non-critical server-side
+   * sort control to sort the entries
+   *
+   * @throws  Exception  If an unexpected problem occurred.
+   */
+  @Test()
+  public void testNonCriticalSortWithUndefinedAttribute()
+         throws Exception
+  {
+    populateDB();
+    InternalClientConnection conn =
+    InternalClientConnection.getRootConnection();
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(new ServerSideSortRequestControl(false,
+                                 "bad_sort:caseExactOrderingMatch"));
+
+    InternalSearchOperation internalSearch =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                  conn.nextMessageID(), requestControls,
+                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=person)"),
+                  null, null);
+
+    internalSearch.run();
+    assertEquals(internalSearch.getResultCode(),
+            ResultCode.SUCCESS);
+    List<Control> responseControls = internalSearch.getResponseControls();
+    assertNotNull(responseControls);
+    assertEquals(responseControls.size(), 1);
+
+    ServerSideSortResponseControl responseControl;
+    Control c = responseControls.get(0);
+    if(c instanceof ServerSideSortResponseControl)
+    {
+      responseControl = (ServerSideSortResponseControl)c;
+    }
+    else
+    {
+      responseControl = ServerSideSortResponseControl.DECODER.decode(
+              c.isCritical(), ((LDAPControl)c).getValue());
+    }
+    assertEquals(responseControl.getResultCode(), 16);
   }
 }
 
