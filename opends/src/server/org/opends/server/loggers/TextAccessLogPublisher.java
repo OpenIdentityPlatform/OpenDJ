@@ -231,6 +231,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     writer.shutdown();
@@ -246,6 +247,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     if (currentConfig != null)
@@ -263,6 +265,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeAccessLogPublisher(
       FileBasedAccessLogPublisherCfg config)
       throws ConfigException, InitializationException
@@ -337,6 +340,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAcceptable(
       AccessLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
@@ -383,6 +387,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logAbandonIntermediateMessage(AbandonOperation abandonOperation,
       String category, Map<String, String> content)
   {
@@ -399,6 +404,7 @@ public class TextAccessLogPublisher extends
    *          The abandon operation containing the information to use
    *          to log the abandon request.
    */
+  @Override
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
     if (!isLoggable(abandonOperation))
@@ -426,6 +432,7 @@ public class TextAccessLogPublisher extends
    *          The abandon operation containing the information to use
    *          to log the abandon request.
    */
+  @Override
   public void logAbandonResult(AbandonOperation abandonOperation)
   {
     if (!isLoggable(abandonOperation))
@@ -464,6 +471,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logAddIntermediateMessage(AddOperation addOperation,
       String category, Map<String, String> content)
   {
@@ -480,6 +488,7 @@ public class TextAccessLogPublisher extends
    *          The add operation containing the information to use to
    *          log the add request.
    */
+  @Override
   public void logAddRequest(AddOperation addOperation)
   {
     if (!isLoggable(addOperation))
@@ -508,6 +517,7 @@ public class TextAccessLogPublisher extends
    *          The add operation containing the information to use to
    *          log the add response.
    */
+  @Override
   public void logAddResponse(AddOperation addOperation)
   {
     if (!isLoggable(addOperation))
@@ -545,7 +555,12 @@ public class TextAccessLogPublisher extends
     }
 
     buffer.append(" etime=");
-    buffer.append(addOperation.getProcessingTime());
+    long etime = addOperation.getProcessingNanoTime();
+    if (etime <= -1)
+    {
+      etime = addOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -555,6 +570,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logBindIntermediateMessage(BindOperation bindOperation,
       String category, Map<String, String> content)
   {
@@ -571,6 +587,7 @@ public class TextAccessLogPublisher extends
    *          The bind operation with the information to use to log
    *          the bind request.
    */
+  @Override
   public void logBindRequest(BindOperation bindOperation)
   {
     if (!isLoggable(bindOperation))
@@ -615,6 +632,7 @@ public class TextAccessLogPublisher extends
    *          The bind operation containing the information to use to
    *          log the bind response.
    */
+  @Override
   public void logBindResponse(BindOperation bindOperation)
   {
     if (!isLoggable(bindOperation))
@@ -699,6 +717,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logCompareIntermediateMessage(CompareOperation compareOperation,
       String category, Map<String, String> content)
   {
@@ -715,6 +734,7 @@ public class TextAccessLogPublisher extends
    *          The compare operation containing the information to use
    *          to log the compare request.
    */
+  @Override
   public void logCompareRequest(CompareOperation compareOperation)
   {
     if (!isLoggable(compareOperation))
@@ -744,6 +764,7 @@ public class TextAccessLogPublisher extends
    *          The compare operation containing the information to use
    *          to log the compare response.
    */
+  @Override
   public void logCompareResponse(CompareOperation compareOperation)
   {
     if (!isLoggable(compareOperation))
@@ -801,6 +822,7 @@ public class TextAccessLogPublisher extends
    * @param clientConnection
    *          The client connection that has been established.
    */
+  @Override
   public void logConnect(ClientConnection clientConnection)
   {
     long connectionID = clientConnection.getConnectionID();
@@ -831,6 +853,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logDeleteIntermediateMessage(DeleteOperation deleteOperation,
       String category, Map<String, String> content)
   {
@@ -847,6 +870,7 @@ public class TextAccessLogPublisher extends
    *          The delete operation with the information to use to log
    *          the delete request.
    */
+  @Override
   public void logDeleteRequest(DeleteOperation deleteOperation)
   {
     if (!isLoggable(deleteOperation))
@@ -875,6 +899,7 @@ public class TextAccessLogPublisher extends
    *          The delete operation containing the information to use
    *          to log the delete response.
    */
+  @Override
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     if (!isLoggable(deleteOperation))
@@ -937,6 +962,7 @@ public class TextAccessLogPublisher extends
    *          A human-readable message that can provide additional
    *          information about the disconnect.
    */
+  @Override
   public void logDisconnect(ClientConnection clientConnection,
       DisconnectReason disconnectReason, Message message)
   {
@@ -970,6 +996,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logExtendedIntermediateMessage(
       ExtendedOperation extendedOperation, String category,
       Map<String, String> content)
@@ -987,6 +1014,7 @@ public class TextAccessLogPublisher extends
    *          The extended operation containing the information to use
    *          to log the extended request.
    */
+  @Override
   public void logExtendedRequest(ExtendedOperation extendedOperation)
   {
     if (!isLoggable(extendedOperation))
@@ -1016,6 +1044,7 @@ public class TextAccessLogPublisher extends
    *          The extended operation containing the info to use to log
    *          the extended response.
    */
+  @Override
   public void logExtendedResponse(ExtendedOperation extendedOperation)
   {
     if (!isLoggable(extendedOperation))
@@ -1069,6 +1098,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logModifyDNIntermediateMessage(
       ModifyDNOperation modifyDNOperation, String category,
       Map<String, String> content)
@@ -1087,6 +1117,7 @@ public class TextAccessLogPublisher extends
    *          The modify DN operation containing the info to use to
    *          log the modify DN request.
    */
+  @Override
   public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
     if (!isLoggable(modifyDNOperation))
@@ -1126,6 +1157,7 @@ public class TextAccessLogPublisher extends
    *          The modify DN operation containing the information to
    *          use to log the modify DN response.
    */
+  @Override
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     if (!isLoggable(modifyDNOperation))
@@ -1178,6 +1210,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logModifyIntermediateMessage(ModifyOperation modifyOperation,
       String category, Map<String, String> content)
   {
@@ -1194,6 +1227,7 @@ public class TextAccessLogPublisher extends
    *          The modify operation containing the information to use
    *          to log the modify request.
    */
+  @Override
   public void logModifyRequest(ModifyOperation modifyOperation)
   {
     if (!isLoggable(modifyOperation))
@@ -1222,6 +1256,7 @@ public class TextAccessLogPublisher extends
    *          The modify operation containing the information to use
    *          to log the modify response.
    */
+  @Override
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     if (!isLoggable(modifyOperation))
@@ -1274,6 +1309,7 @@ public class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void logSearchIntermediateMessage(SearchOperation searchOperation,
       String category, Map<String, String> content)
   {
@@ -1290,6 +1326,7 @@ public class TextAccessLogPublisher extends
    *          The search operation containing the info to use to log
    *          the search request.
    */
+  @Override
   public void logSearchRequest(SearchOperation searchOperation)
   {
     if (!isLoggable(searchOperation))
@@ -1341,6 +1378,7 @@ public class TextAccessLogPublisher extends
    *          The search operation containing the information to use
    *          to log the search result done message.
    */
+  @Override
   public void logSearchResultDone(SearchOperation searchOperation)
   {
     if (!isLoggable(searchOperation))
@@ -1401,6 +1439,7 @@ public class TextAccessLogPublisher extends
    *          The unbind operation containing the info to use to log
    *          the unbind request.
    */
+  @Override
   public void logUnbind(UnbindOperation unbindOperation)
   {
     if (!isLoggable(unbindOperation))
