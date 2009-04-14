@@ -376,8 +376,8 @@ public class BackendImpl
   private int getAttributeBound(AttributeType attrType) {
     // HACK: This should be done by Directory Server
     // Schema parser and available in AttributeSyntax.
-    String attrDefinition = attrType.getDefinition();
     try {
+      String attrDefinition = attrType.getDefinition();
       int boundOpenIndex = attrDefinition.indexOf("{");
       if (boundOpenIndex == -1) {
         return 0;
@@ -719,7 +719,13 @@ public class BackendImpl
       attrsBuffer.append(attrName);
       attrsBuffer.append("`");
       attrsBuffer.append(" VARCHAR(");
-      attrsBuffer.append(ATTRLEN_STRING);
+      int attrBound = getAttributeBound(
+        DirectoryServer.getAttributeType(attrName.toLowerCase()));
+      if ((attrBound > 0) && (attrBound < NDB_MAXROWSIZE)) {
+        attrsBuffer.append(Integer.toString(attrBound));
+      } else {
+        attrsBuffer.append(ATTRLEN_STRING);
+      }
       attrsBuffer.append(")");
       nColumns++;
     }
