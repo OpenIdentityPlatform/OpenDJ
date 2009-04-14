@@ -1834,8 +1834,16 @@ public class LDAPClientConnection extends ClientConnection implements
       versionString = "3";
       break;
     default:
-      versionString = String.valueOf(ldapVersion);
-      break;
+      // Unsupported protocol version. RFC4511 states that we MUST send
+      // a protocol error back to the client.
+      BindResponseProtocolOp responseOp =
+          new BindResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+              ERR_LDAP_UNSUPPORTED_PROTOCOL_VERSION.get(ldapVersion));
+      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
+          responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+          ERR_LDAP_UNSUPPORTED_PROTOCOL_VERSION.get(ldapVersion));
+      return false;
     }
 
     ByteString bindDN = protocolOp.getDN();
