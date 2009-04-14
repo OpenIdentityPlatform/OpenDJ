@@ -545,8 +545,20 @@ bindProcessing:
         }
 
         userEntry = null;
-        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     de.getMessageObject());
+
+        if (de.getResultCode() == ResultCode.REFERRAL)
+        {
+          // Re-throw referral exceptions - these should be passed back
+          // to the client.
+          throw de;
+        }
+        else
+        {
+          // Replace other exceptions in case they expose any sensitive
+          // information.
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+              de.getMessageObject());
+        }
       }
 
       if (userEntry == null)

@@ -1860,7 +1860,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled=false)
+  @Test()
   public void testSimpleBindReferral()
          throws Exception
   {
