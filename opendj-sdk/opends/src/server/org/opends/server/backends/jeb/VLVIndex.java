@@ -1700,18 +1700,18 @@ public class VLVIndex extends DatabaseContainer
     try
     {
       this.filter =
-          SearchFilter.createFilterFromString(config.getFilter());
+          SearchFilter.createFilterFromString(cfg.getFilter());
     }
     catch(Exception e)
     {
       Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-              config.getFilter(), name,
+              cfg.getFilter(), name,
               stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
       return false;
     }
 
-    String[] sortAttrs = config.getSortOrder().split(" ");
+    String[] sortAttrs = cfg.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
     OrderingMatchingRule[] orderingRules =
         new OrderingMatchingRule[sortAttrs.length];
@@ -1822,7 +1822,7 @@ public class VLVIndex extends DatabaseContainer
 
     // Update the sort order only if changed.
     if(!config.getSortOrder().equals(
-        cfg.getMaxBlockSize()))
+        cfg.getSortOrder()))
     {
       String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
