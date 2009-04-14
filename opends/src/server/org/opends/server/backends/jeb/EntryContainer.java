@@ -875,6 +875,22 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     .getRequestControl(PagedResultsControl.DECODER);
     ServerSideSortRequestControl sortRequest = searchOperation
     .getRequestControl(ServerSideSortRequestControl.DECODER);
+    if(sortRequest != null && !sortRequest.containsSortKeys()
+            && sortRequest.isCritical())
+    {
+      /**
+         If the control's criticality field is true then the server SHOULD do
+         the following: return unavailableCriticalExtension as a return code
+         in the searchResultDone message; include the sortKeyResponseControl in
+         the searchResultDone message, and not send back any search result
+         entries.
+       */
+      searchOperation.addResponseControl(
+            new ServerSideSortResponseControl(
+                LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+      searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+      return;
+    }
     VLVRequestControl vlvRequest = searchOperation
     .getRequestControl(VLVRequestControl.DECODER);
 
@@ -1043,28 +1059,47 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if (sortRequest != null)
       {
-        try
-        {
-          entryIDList = EntryIDSetSorter.sort(this, entryIDList,
-              searchOperation,
-              sortRequest.getSortOrder(),
-              vlvRequest);
-          searchOperation.addResponseControl(
-              new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
-        }
-        catch (DirectoryException de)
-        {
-          searchOperation.addResponseControl(
-              new ServerSideSortResponseControl(
-                  de.getResultCode().getIntValue(), null));
-
-          if (sortRequest.isCritical())
+          try
           {
-            throw de;
+            //If the sort key is not present, the sorting will generate the
+            //default ordering. VLV search request goes through as if
+            //this sort key was not found in the user entry.
+            entryIDList = EntryIDSetSorter.sort(this, entryIDList,
+                searchOperation,
+                sortRequest.getSortOrder(),
+                vlvRequest);
+            if(sortRequest.containsSortKeys())
+            {
+              searchOperation.addResponseControl(
+                new ServerSideSortResponseControl(
+                                              LDAPResultCode.SUCCESS, null));
+            }
+            else
+            {
+              /*
+                There is no sort key associated with the sort control. Since it
+                came here it means that the critificality is false so let the
+                server return all search results unsorted and include the
+                sortKeyResponseControl inthe searchResultDone message.
+              */
+              searchOperation.addResponseControl(
+                      new ServerSideSortResponseControl
+                                (LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+            }
+          }
+          catch (DirectoryException de)
+          {
+            searchOperation.addResponseControl(
+                new ServerSideSortResponseControl(
+                    de.getResultCode().getIntValue(), null));
+
+            if (sortRequest.isCritical())
+            {
+              throw de;
+            }
           }
         }
       }
-    }
 
     // If requested, construct and return a fictitious entry containing
     // debug information, and no other entries.

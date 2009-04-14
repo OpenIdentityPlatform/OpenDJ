@@ -2311,7 +2311,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
+   
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -2325,7 +2325,7 @@ public class LDAPSearchTestCase
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertTrue(LDAPSearch.mainSearch(args, false, null, null) == 0);
   }
 
 
