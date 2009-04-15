@@ -2906,6 +2906,28 @@ public final class ServerConstants
 
 
   /**
+   * The name of the JavaMail property that can be used to specify the socket
+   * connection timeout value in milliseconds.
+   */
+  public static final String SMTP_PROPERTY_CONNECTION_TIMEOUT =
+          "mail.smtp.connectiontimeout";
+
+
+  /**
+   * The name of the JavaMail property that can be used to specify the socket
+   * I/O timeout value in milliseconds.
+   */
+  public static final String SMTP_PROPERTY_IO_TIMEOUT = "mail.smtp.timeout";
+
+
+  /**
+   * The default timeout value for JavaMail timeout properties.
+   */
+  public static final String SMTP_DEFAULT_TIMEOUT_VALUE = "5000";
+
+
+
+  /**
    * The description for the alert type that will be used for the alert
    * notification generated if the multimaster replication detects
    * a conflict that cannot be solved automatically.

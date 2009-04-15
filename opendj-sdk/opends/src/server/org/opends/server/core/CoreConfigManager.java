@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -235,6 +235,10 @@ public class CoreConfigManager
           Properties properties = new Properties();
           properties.setProperty(SMTP_PROPERTY_HOST, smtpHost);
           properties.setProperty(SMTP_PROPERTY_PORT, smtpPort);
+          properties.setProperty(SMTP_PROPERTY_CONNECTION_TIMEOUT,
+                    SMTP_DEFAULT_TIMEOUT_VALUE);
+          properties.setProperty(SMTP_PROPERTY_IO_TIMEOUT,
+                  SMTP_DEFAULT_TIMEOUT_VALUE);
           mailServerProperties.add(properties);
         }
         else
