@@ -52,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -4444,6 +4445,58 @@ public final class StaticUtils
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
     return (char) byteValue;
+  }
+
+  /**
+   * Add all of the superior objectclasses to the specified objectclass
+   * map if they don't already exist. Used by add and import-ldif to
+   * add missing superior objectclasses to entries that don't have them.
+   *
+   * @param objectClasses A Map of objectclasses.
+   */
+  public static void addSuperiorObjectClasses(Map<ObjectClass,
+      String> objectClasses) {
+      HashSet<ObjectClass> additionalClasses = null;
+      for (ObjectClass oc : objectClasses.keySet())
+      {
+        ObjectClass superiorClass = oc.getSuperiorClass();
+        if ((superiorClass != null) &&
+            (! objectClasses.containsKey(superiorClass)))
+        {
+          if (additionalClasses == null)
+          {
+            additionalClasses = new HashSet<ObjectClass>();
+          }
+
+          additionalClasses.add(superiorClass);
+        }
+      }
+
+      if (additionalClasses != null)
+      {
+        for (ObjectClass oc : additionalClasses)
+        {
+          addObjectClassChain(oc, objectClasses);
+        }
+      }
+  }
+
+  private static void addObjectClassChain(ObjectClass objectClass,
+      Map<ObjectClass, String> objectClasses)
+  {
+    if (objectClasses != null){
+      if (! objectClasses.containsKey(objectClass))
+      {
+        objectClasses.put(objectClass, objectClass.getNameOrOID());
+      }
+
+      ObjectClass superiorClass = objectClass.getSuperiorClass();
+      if ((superiorClass != null) &&
+          (! objectClasses.containsKey(superiorClass)))
+      {
+        addObjectClassChain(superiorClass, objectClasses);
+      }
+    }
   }
 }
 

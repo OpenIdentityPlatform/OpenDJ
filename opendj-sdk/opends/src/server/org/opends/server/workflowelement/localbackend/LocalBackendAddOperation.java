@@ -442,33 +442,9 @@ addProcessing:
           break addProcessing;
         }
 
-
-        // Check to make sure that all objectclasses have their superior classes
-        // listed in the entry.  If not, then add them.
-        HashSet<ObjectClass> additionalClasses = null;
-        for (ObjectClass oc : objectClasses.keySet())
-        {
-          ObjectClass superiorClass = oc.getSuperiorClass();
-          if ((superiorClass != null) &&
-              (! objectClasses.containsKey(superiorClass)))
-          {
-            if (additionalClasses == null)
-            {
-              additionalClasses = new HashSet<ObjectClass>();
-            }
-
-            additionalClasses.add(superiorClass);
-          }
-        }
-
-        if (additionalClasses != null)
-        {
-          for (ObjectClass oc : additionalClasses)
-          {
-            addObjectClassChain(oc);
-          }
-        }
-
+        //Add any superior objectclass(s) missing in an entries
+        //objectclass map.
+        addSuperiorObjectClasses(objectClasses);
 
         // Create an entry object to encapsulate the set of attributes and
         // objectclasses.

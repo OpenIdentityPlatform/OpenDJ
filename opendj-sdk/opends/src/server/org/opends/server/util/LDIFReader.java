@@ -33,7 +33,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
 import java.io.BufferedReader;
@@ -323,6 +323,9 @@ public final class LDIFReader
           entriesRejected++;
           throw new LDIFException(message, lastEntryLineNumber, true);
         }
+        //Add any superior objectclass(s) missing in an entries
+        //objectclass map.
+        addSuperiorObjectClasses(entry.getObjectClasses());
       }
 
 
