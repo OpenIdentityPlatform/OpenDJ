@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -447,6 +447,7 @@ public class VirtualAttributeConfigManager
     {
       if (existingRule != null)
       {
+        rules.remove(configuration.dn());
         DirectoryServer.deregisterVirtualAttribute(existingRule);
         existingRule.getProvider().finalizeVirtualAttributeProvider();
       }
