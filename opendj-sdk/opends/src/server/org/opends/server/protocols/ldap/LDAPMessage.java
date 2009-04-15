@@ -546,12 +546,15 @@ public class LDAPMessage
     stream.writeInteger(messageID);
     protocolOp.write(stream);
 
-    stream.writeStartSequence(TYPE_CONTROL_SEQUENCE);
-    for(Control control : controls)
+    if(!controls.isEmpty())
     {
-      control.write(stream);
+      stream.writeStartSequence(TYPE_CONTROL_SEQUENCE);
+      for(Control control : controls)
+      {
+        control.write(stream);
+      }
+      stream.writeEndSequence();
     }
-    stream.writeEndSequence();
 
     stream.writeEndSequence();
   }
