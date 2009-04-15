@@ -894,8 +894,7 @@ public class ImportTask extends Task
         {
           existingBehavior = ExistingFileBehavior.APPEND;
         }
-
-        importConfig.writeRejectedEntries(skipFile, existingBehavior);
+        importConfig.writeSkippedEntries(skipFile, existingBehavior);
       }
       catch (Exception e)
       {
