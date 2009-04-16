@@ -1,6 +1,0 @@
-rtm-RC-build.sh will create 1.2.RCn
-in /promoted-builds/
-
-then run with same svn revision 
-rtm-build.sh will create 1.2.0
-in /promoted-builds

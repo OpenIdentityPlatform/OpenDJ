@@ -1,4 +1,0 @@
-2009/01/20 : this is a new version of the scripts used to build opends
-the goal is to share maximum between the branches instead of making a copy for each branch 
-
-if you want to add a new product , make a copy of a file ./product/branch12 in ./product/newbranch and update what needs to be updated. 
