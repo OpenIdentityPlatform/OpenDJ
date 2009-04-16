@@ -27,12 +27,11 @@
 package org.opends.server.snmp;
 
 import com.sun.management.snmp.agent.SnmpMib;
-import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.opends.server.core.DirectoryServer;
+import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -178,16 +177,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
      */
     @Override
     public String getDsServerDescription() {
-        String result = null;
-        try {
-            result = DirectoryServer.getServerRoot() +
-                    File.separatorChar;
-        } catch (Exception ex) {
-            if (DebugLogger.debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-            }
-        }
-        return result;
+        return Utilities.getServerRootDirectory().getAbsolutePath();
     }
 
     /**

@@ -154,7 +154,7 @@ set_classpath() {
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
-  if [ "${INSTANCE_ROOT}" != "${INSTANCE_ROOT}" ]
+  if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
     for JAR in ${INSTANCE_ROOT}/lib/*.jar
     do

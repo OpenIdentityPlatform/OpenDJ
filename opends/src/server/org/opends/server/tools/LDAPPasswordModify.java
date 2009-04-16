@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -59,6 +59,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 
 
 
@@ -416,7 +417,7 @@ public class LDAPPasswordModify
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -431,7 +432,7 @@ public class LDAPPasswordModify
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -450,7 +451,7 @@ public class LDAPPasswordModify
               bindPW.getLongIdentifier(),
               bindPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (newPW.isPresent() && newPWFile.isPresent())
@@ -459,7 +460,7 @@ public class LDAPPasswordModify
               newPW.getLongIdentifier(),
               newPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (currentPW.isPresent() && currentPWFile.isPresent())
@@ -468,7 +469,7 @@ public class LDAPPasswordModify
               currentPW.getLongIdentifier(),
               currentPWFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (useSSL.isPresent() && useStartTLS.isPresent())
@@ -477,7 +478,7 @@ public class LDAPPasswordModify
               useSSL.getLongIdentifier(),
               useStartTLS.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (sslKeyStorePIN.isPresent() && sslKeyStorePINFile.isPresent())
@@ -486,7 +487,7 @@ public class LDAPPasswordModify
               sslKeyStorePIN.getLongIdentifier(),
               sslKeyStorePINFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     if (sslTrustStorePIN.isPresent() && sslTrustStorePINFile.isPresent())
@@ -495,7 +496,7 @@ public class LDAPPasswordModify
               sslTrustStorePIN.getLongIdentifier(),
               sslTrustStorePINFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -511,7 +512,7 @@ public class LDAPPasswordModify
 
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
     else if (bindPW.isPresent() || bindPWFile.isPresent())
@@ -520,7 +521,7 @@ public class LDAPPasswordModify
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
     else
     {
@@ -532,7 +533,7 @@ public class LDAPPasswordModify
                         bindDN.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
 
       if (! (authzID.isPresent() &&
@@ -542,7 +543,7 @@ public class LDAPPasswordModify
                 ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
         err.println(argParser.getUsage());
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -558,7 +559,7 @@ public class LDAPPasswordModify
     {
       // This should never happen.
       err.println(e);
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -574,7 +575,7 @@ public class LDAPPasswordModify
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
         controls.add(ctrl);
       }
@@ -638,7 +639,7 @@ public class LDAPPasswordModify
         Message message =
                 ERR_LDAPPWMOD_ERROR_INITIALIZING_SSL.get(String.valueOf(e));
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
