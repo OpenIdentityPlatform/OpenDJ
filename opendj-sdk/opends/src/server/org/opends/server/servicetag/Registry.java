@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.servicetag;
 
@@ -96,26 +96,21 @@ public class Registry {
      * @param installedLocation identifying the installed product.
      * @return true if at least corresponding ServiceTag exists, otherwise
      * return false.
+     * @throws IOException if an error occurred in the stclient call.
      */
     public boolean existServiceTag(String productUrn,
-            String installedLocation) {
+            String installedLocation) throws IOException {
 
         boolean found = false;
         Set<ServiceTag> tags;
 
-        try {
-            tags = this.findServiceTags(productUrn);
-            for (ServiceTag svcTag : tags) {
-                if (svcTag.getProductDefinedInstanceID().equals
-                        (installedLocation)) {
-                    found = true;
-                    break;
-                }
-            }
-        } catch (IOException ex) {
-            if (debugEnabled()) {
-                TRACER.debugCaught(DebugLogLevel.WARNING, ex);
-            }
+        tags = this.findServiceTags(productUrn);
+        for (ServiceTag svcTag : tags) {
+          if (svcTag.getProductDefinedInstanceID().equals
+                (installedLocation)) {
+            found = true;
+            break;
+          }
         }
         return found;
     }

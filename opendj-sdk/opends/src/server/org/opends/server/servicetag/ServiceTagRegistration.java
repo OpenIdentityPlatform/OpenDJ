@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.servicetag;
 
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.loggers.debug.DebugTracer;
@@ -127,21 +128,24 @@ public class ServiceTagRegistration {
             throw new IllegalArgumentException(
                     WARN_PARAMETER_CANNOT_BE_NULL.get("svcTag").toString());
         }
-
-        // Add the ServiceTag if it does not exist
-        if (this.registry.existServiceTag(
-                svcTag.getProductURN(),
-                svcTag.getProductDefinedInstanceID())) {
-            throw new ServiceTagAlreadyExistsException
-                    (WARN_SERVICETAG_ALREADY_EXIST.get());
-        }
-
-        // Add the ServiceTag in the common registry
         try {
+            // Add the ServiceTag if it does not exist
+            if (this.registry.existServiceTag(
+                    svcTag.getProductURN(),
+                    svcTag.getProductDefinedInstanceID())) {
+                throw new ServiceTagAlreadyExistsException
+                        (WARN_SERVICETAG_ALREADY_EXIST.get());
+            }
+
+            // Add the ServiceTag in the common registry
             this.registry.addServiceTag(svcTag);
+
         } catch (IOException ex) {
             throw new ServiceTagException(
-                    WARN_SERVICETAG_CANNOT_BE_REGISTERED.get());
+                    WARN_SERVICETAG_CANNOT_BE_REGISTERED.get(
+                    svcTag.getProductName(),
+                    svcTag.getProductURN(),
+                    svcTag.getProductDefinedInstanceID()));
         }
     }
 
@@ -200,7 +204,14 @@ public class ServiceTagRegistration {
             try {
                 registerServiceTag(svcTag);
             } catch (Exception ex) {
-                errors.add(svcTag);
+                if (debugEnabled()) {
+                   Message message =
+                        WARN_SERVICETAG_CANNOT_BE_REGISTERED.get(
+                        svcTag.getProductName(),
+                        svcTag.getProductURN(),
+                        svcTag.getProductDefinedInstanceID());
+                   TRACER.debugWarning(message.toString());
+               }
             }
         }
         return errors;
@@ -230,15 +241,13 @@ public class ServiceTagRegistration {
             throw new IllegalArgumentException(
                     WARN_PARAMETER_CANNOT_BE_NULL.get("svcTag").toString());
         }
-
-        if (!this.registry.existServiceTag(
-                svcTag.getProductURN(),
-                svcTag.getProductDefinedInstanceID())) {
-            throw new ServiceTagDoesNotExistException(
-                    WARN_SERVICETAG_DOESNOT_EXIST.get());
-        }
-
         try {
+            if (!this.registry.existServiceTag(
+                    svcTag.getProductURN(),
+                    svcTag.getProductDefinedInstanceID())) {
+                throw new ServiceTagDoesNotExistException(
+                        WARN_SERVICETAG_DOESNOT_EXIST.get());
+            }
             this.registry.removeServiceTag(svcTag.getInstanceURN());
         } catch (IOException ex) {
             throw new ServiceTagException(

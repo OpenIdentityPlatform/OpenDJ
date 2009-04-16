@@ -600,7 +600,7 @@ public class LDAPCompare
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // Parse the command-line arguments provided to this program.
@@ -614,7 +614,7 @@ public class LDAPCompare
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // If we should just display usage or version information,
@@ -630,7 +630,7 @@ public class LDAPCompare
               bindPassword.getLongIdentifier(),
               bindPasswordFile.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     ArrayList<String> attrAndDNStrings = argParser.getTrailingArguments();
@@ -639,7 +639,7 @@ public class LDAPCompare
     {
       Message message = ERR_LDAPCOMPARE_NO_ATTR.get();
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // First element should be an attribute string.
@@ -656,7 +656,7 @@ public class LDAPCompare
     {
 
       err.println(wrapText(ERR_LDAPCOMPARE_NO_DNS.get(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // If trailing DNs were provided and the filename argument was also
@@ -665,7 +665,7 @@ public class LDAPCompare
     {
       err.println(wrapText(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get(),
           MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     // parse the attribute string
@@ -675,7 +675,7 @@ public class LDAPCompare
       Message message =
               ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
     attributeType = attributeString.substring(0, idx);
     String remainder = attributeString.substring(idx+1,
@@ -700,7 +700,7 @@ public class LDAPCompare
           err.println(wrapText(
                   INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get(),
                   MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       } else if(nextChar == '<')
       {
@@ -715,7 +715,7 @@ public class LDAPCompare
                   INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(
                           String.valueOf(e)),
                           MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       } else
       {
@@ -739,7 +739,7 @@ public class LDAPCompare
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     try
@@ -750,7 +750,7 @@ public class LDAPCompare
 
         err.println(wrapText(ERR_DESCRIPTION_INVALID_VERSION.get(
                 String.valueOf(versionNumber)), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       connectionOptions.setVersionNumber(versionNumber);
     } catch(ArgumentException ae)
@@ -760,7 +760,7 @@ public class LDAPCompare
         TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
       err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
-      return 1;
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
 
@@ -784,7 +784,7 @@ public class LDAPCompare
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     } else if(bindPasswordValue == null)
     {
@@ -830,7 +830,7 @@ public class LDAPCompare
           Message message = ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           err.println(wrapText(message, MAX_LINE_WIDTH));
           err.println(argParser.getUsage());
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
         compareOptions.getControls().add(ctrl);
       }
@@ -853,7 +853,7 @@ public class LDAPCompare
         Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(
                 le.getMessage());
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -870,14 +870,14 @@ public class LDAPCompare
           boolean val = connectionOptions.setSASLMechanism(saslOption);
           if(val == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         } else
         {
           boolean val = connectionOptions.addSASLProperty(saslOption);
           if(val == false)
           {
-            return 1;
+            return CLIENT_SIDE_PARAM_ERROR;
           }
         }
       }
@@ -891,13 +891,13 @@ public class LDAPCompare
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
       if(keyStorePathValue == null)
       {
         Message message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
         err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
+        return CLIENT_SIDE_PARAM_ERROR;
       }
     }
 
@@ -961,7 +961,7 @@ public class LDAPCompare
           }
           err.println(wrapText(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(
               fileNameValue, details), MAX_LINE_WIDTH));
-          return 1;
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
       if(rdr != null)
