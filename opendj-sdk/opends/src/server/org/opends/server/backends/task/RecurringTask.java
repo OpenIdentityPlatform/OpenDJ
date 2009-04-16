@@ -640,7 +640,9 @@ public class RecurringTask
           }
           day = getNextTimeSlice(daysArray,
             calendar.get(GregorianCalendar.DAY_OF_MONTH));
-          if (day == -1) {
+          if ((day == -1) || (day > calendar.getActualMaximum(
+                              GregorianCalendar.DAY_OF_MONTH)))
+          {
             calendar.set(GregorianCalendar.DAY_OF_MONTH, 1);
             calendar.add(GregorianCalendar.MONTH, 1);
           } else {

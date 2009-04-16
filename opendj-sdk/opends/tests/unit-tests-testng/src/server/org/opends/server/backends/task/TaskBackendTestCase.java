@@ -453,10 +453,10 @@ public class TaskBackendTestCase
         { "* 0 * * *",     true },
         { "* 0-23 * * *",  true },
         { "* 0,23 * * *",  true },
-        // { "* * 31 * *",    true }, *** FIXME: this should work ***
+        { "* * 31 * *",    true },
         { "* * 1 * *",     true },
         { "* * 1-31 * *",  true },
-        // { "* * 1,31 * *",  true }, *** FIXME: this should work ***
+        { "* * 1,31 * *",  true },
         { "* * * 12 *",    true },
         { "* * * 1 *",     true },
         { "* * * 1-12 *",  true },
@@ -464,7 +464,7 @@ public class TaskBackendTestCase
         { "* * * * 6",     true },
         { "* * * * 0",     true },
         { "* * * * 0-6",   true },
-        { "* * * * 0,6",   true },
+        { "* * * * 0,6",   true }
     };
   }
 
