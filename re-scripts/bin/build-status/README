@@ -1,5 +1,0 @@
-In a small piece of Java that generates a build status page in /daily-builds/status.html
-
-/java/jdk6/bin/java -classpath classes org.opends.tools.BuildStatus
-/java/jdk6/bin/javac -classpath src -d classes src/org/opends/tools/BuildStatus.java
-
