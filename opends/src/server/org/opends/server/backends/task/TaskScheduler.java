@@ -1011,12 +1011,31 @@ public class TaskScheduler
     LinkedList<String> dependencyIDs = task.getDependencyIDs();
     if (dependencyIDs != null)
     {
-      for (String dependencyID : task.getDependencyIDs())
+      for (String dependencyID : dependencyIDs)
       {
         Task t = tasks.get(dependencyID);
-        if ((t != null) && (! TaskState.isDone(t.getTaskState())))
+        if (t != null)
         {
-          return TaskState.WAITING_ON_DEPENDENCY;
+          TaskState tState = t.getTaskState();
+          if (!TaskState.isDone(tState))
+          {
+            return TaskState.WAITING_ON_DEPENDENCY;
+          }
+          if (!TaskState.isSuccessful(tState))
+          {
+            FailedDependencyAction action = task.getFailedDependencyAction();
+            switch (action)
+            {
+              case CANCEL:
+                cancelTask(task.getTaskID());
+                return task.getTaskState();
+              case DISABLE:
+                task.setTaskState(TaskState.DISABLED);
+                return task.getTaskState();
+              default:
+                break;
+            }
+          }
         }
       }
     }
