@@ -36,6 +36,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.TaskMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
 
@@ -69,7 +70,7 @@ public class TaskThread
 
   // The object that will be used for signaling the thread when there is new
   // work to perform.
-  private Object notifyLock;
+  private final Object notifyLock;
 
 
 
@@ -168,6 +169,7 @@ public class TaskThread
    * Operates in a loop, sleeping until there is no work to do, then
    * processing the task and returning to the scheduler for more work.
    */
+  @Override
   public void run()
   {
     while (! exitRequested)
@@ -196,8 +198,18 @@ public class TaskThread
       {
         if (!TaskState.isDone(getAssociatedTask().getTaskState()))
         {
-          TaskState returnState = getAssociatedTask().execute();
-          getAssociatedTask().setTaskState(returnState);
+          Task task = getAssociatedTask();
+
+          Message message = NOTE_TASK_STARTED.get(
+            task.getDisplayName(), task.getTaskID());
+          logError(message);
+
+          TaskState returnState = task.execute();
+          task.setTaskState(returnState);
+
+          message = NOTE_TASK_FINISHED.get(
+            task.getDisplayName(), task.getTaskID());
+          logError(message);
         }
       }
       catch (Exception e)
@@ -241,6 +253,7 @@ public class TaskThread
    *
    * @return debug information about this thread as a string.
    */
+  @Override
   public Map<String, String> getDebugProperties()
   {
     Map<String, String> properties = super.getDebugProperties();
