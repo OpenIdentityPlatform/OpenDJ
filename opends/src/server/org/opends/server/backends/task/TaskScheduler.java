@@ -304,6 +304,7 @@ public class TaskScheduler
         {
           cancelTask(t.getTaskID());
         }
+        removeCompletedTask(t.getTaskID());
       }
 
       return recurringTask;
