@@ -36,7 +36,6 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.TaskMessages.*;
 
 import static org.opends.server.util.StaticUtils.*;
 
