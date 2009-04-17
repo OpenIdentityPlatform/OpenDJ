@@ -2010,14 +2010,8 @@ public class TaskScheduler
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    String taskClassName = value.getValue().toString();
-    if (! DirectoryServer.getAllowedTasks().contains(taskClassName))
-    {
-      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
     // Try to load the specified class.
+    String taskClassName = value.getValue().toString();
     Class<?> taskClass;
     try
     {
@@ -2079,6 +2073,13 @@ public class TaskScheduler
           String.valueOf(taskClassName), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
+    }
+
+    if (!TaskState.isDone(task.getTaskState()) &&
+        !DirectoryServer.getAllowedTasks().contains(taskClassName))
+    {
+      Message message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     task.setOperation(operation);
