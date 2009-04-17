@@ -349,6 +349,17 @@ public class TaskScheduler
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
+      for (String dependencyID : task.getDependencyIDs())
+      {
+        Task t = tasks.get(dependencyID);
+        if (t == null)
+        {
+          Message message = ERR_TASKSCHED_DEPENDENCY_MISSING.get(
+            String.valueOf(id), dependencyID);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
+        }
+      }
+
       tasks.put(id, task);
 
       TaskState state = shouldStart(task);
