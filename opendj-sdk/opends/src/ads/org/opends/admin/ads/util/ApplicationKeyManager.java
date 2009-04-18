@@ -88,7 +88,7 @@ public class ApplicationKeyManager implements X509KeyManager
     if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
       userSpecifiedAlgo = "IbmX509";
     if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
-      userSpecifiedProvider = "IBMJSEE2";
+      userSpecifiedProvider = "IBMJSSE2";
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
