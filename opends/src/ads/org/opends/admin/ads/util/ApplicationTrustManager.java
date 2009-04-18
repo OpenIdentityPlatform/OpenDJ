@@ -116,7 +116,7 @@ public class ApplicationTrustManager implements X509TrustManager
     if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
       userSpecifiedAlgo = "IbmX509";
     if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
-      userSpecifiedProvider = "IBMJSEE2";
+      userSpecifiedProvider = "IBMJSSE2";
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
