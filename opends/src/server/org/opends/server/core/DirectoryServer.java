@@ -59,6 +59,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -1090,7 +1091,7 @@ public class DirectoryServer
 
 
   /**
-   * Performs a minimal set of JMX initialization.  This may be used by the core
+   * Performs a minimal set of JMX initialization. This may be used by the core
    * Directory Server or by command-line tools.
    *
    * @throws  InitializationException  If a problem occurs while attempting to
@@ -1101,12 +1102,25 @@ public class DirectoryServer
   {
     try
     {
-      // FIXME -- Should we use the plaform Mbean Server or
-      // should we use a private one ?
-      directoryServer.mBeanServer = MBeanServerFactory.newMBeanServer();
-      // directoryServer.mBeanServer =
-      //      ManagementFactory.getPlatformMBeanServer();
+      // It is recommended by ManagementFactory javadoc that the platform
+      // MBeanServer also be used to register other application managed
+      // beans besides the platform MXBeans. Try platform MBeanServer
+      // first. If it fails create a new, private, MBeanServer instance.
+      try
+      {
+        directoryServer.mBeanServer =
+          ManagementFactory.getPlatformMBeanServer();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        }
 
+        directoryServer.mBeanServer =
+          MBeanServerFactory.newMBeanServer();
+      }
       directoryServer.mBeans = new ConcurrentHashMap<DN,JMXMBean>();
       registerAlertGenerator(directoryServer);
     }
