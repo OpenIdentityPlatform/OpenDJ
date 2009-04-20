@@ -603,15 +603,7 @@ public class LDAPDelete
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
-    if ((!filename.isPresent() &&
-            (argParser.getTrailingArguments().size()==0)))
-    {
-      Message message = ERR_ERROR_PARSING_ARGS.get(filename.getValue());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println(argParser.getUsage());
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
+ 
     String hostNameValue = hostName.getValue();
     int portNumber = 389;
     try
