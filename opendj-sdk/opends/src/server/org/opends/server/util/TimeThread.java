@@ -28,154 +28,138 @@ package org.opends.server.util;
 
 
 
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.server.api.DirectoryThread;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.util.ServerConstants.*;
+
 
 
 /**
- * This class defines a thread that will wake up periodically, get the current
- * time, and store various representations of it.  Note that only limited
- * debugging will be performed in this class due to the frequency with which it
- * will be called.
+ * This class provides an application-wide timing service. It provides
+ * the ability to retrieve the current time in various different formats
+ * and resolutions.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=true)
+    stability = org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate = false,
+    mayExtend = false,
+    mayInvoke = true)
 public final class TimeThread
-       extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
 
   /**
-   * The singleton instance for this time thread.
+   * Timer job.
    */
-  private static final TimeThread threadInstance = new TimeThread();
-
-
-
-  // The calendar holding the current time.
-  private static GregorianCalendar calendar;
-
-  // A set of arbitrary formatters that should be maintained by this time
-  // thread.
-  private static CopyOnWriteArrayList<SimpleDateFormat> userDefinedFormatters;
-
-  // A set of abitrary formatted times, mapped from format string to the
-  // corresponding formatted time representation.
-  private static ConcurrentHashMap<String,String> userDefinedTimeStrings;
-
-  // The date for this time thread.
-  private static Date date;
-
-  // The current time in HHmm form as an integer.
-  private static int hourAndMinute;
-
-  // The current time in milliseconds since the epoch.
-  private static volatile long time;
-
-  // The current time in nanoseconds.
-  private static volatile long nanoTime;
-
-  // The date formatter that will be used to obtain the local timestamp.
-  private static SimpleDateFormat localTimestampFormatter;
-
-  // The date formatter that will be used to obtain the GMT timestamp.
-  private static SimpleDateFormat gmtTimestampFormatter;
-
-  // The timestamp for this time thread in the generalized time format.
-  private static String generalizedTime;
-
-  // The timestamp for this time thread in the local time zone.
-  private static String localTimestamp;
-
-  // The timestamp for this time thread in GMT.
-  private static String gmtTimestamp;
-
-
-
-  /**
-   * Creates a new instance of this time thread and starts it.
-   */
-  private TimeThread()
+  private static final class TimeInfo implements Runnable
   {
-    super("Time Thread");
 
-    setDaemon(true);
+    // The calendar holding the current time.
+    private GregorianCalendar calendar;
 
-    userDefinedFormatters  = new CopyOnWriteArrayList<SimpleDateFormat>();
-    userDefinedTimeStrings = new ConcurrentHashMap<String,String>();
+    // The date for this time thread.
+    private Date date;
 
-    TimeZone utcTimeZone = TimeZone.getTimeZone(TIME_ZONE_UTC);
+    // The timestamp for this time thread in the generalized time
+    // format.
+    private String generalizedTime;
 
-    gmtTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-    gmtTimestampFormatter.setTimeZone(utcTimeZone);
+    // The timestamp for this time thread in GMT.
+    private String gmtTimestamp;
 
-    localTimestampFormatter = new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
+    // The date formatter that will be used to obtain the GMT
+    // timestamp.
+    private final SimpleDateFormat gmtTimestampFormatter;
 
-    calendar        = new GregorianCalendar();
-    date            = calendar.getTime();
-    time            = date.getTime();
-    nanoTime        = System.nanoTime();
-    generalizedTime = GeneralizedTimeSyntax.format(date);
-    localTimestamp  = localTimestampFormatter.format(date);
-    gmtTimestamp    = gmtTimestampFormatter.format(date);
-    hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +
-                      calendar.get(Calendar.MINUTE);
+    // The current time in HHmm form as an integer.
+    private int hourAndMinute;
 
-    start();
-  }
+    // The timestamp for this time thread in the local time zone.
+    private String localTimestamp;
+
+    // The date formatter that will be used to obtain the local
+    // timestamp.
+    private final SimpleDateFormat localTimestampFormatter;
+
+    // The current time in nanoseconds.
+    private volatile long nanoTime;
+
+    // The current time in milliseconds since the epoch.
+    private volatile long time;
+
+    // A set of arbitrary formatters that should be maintained by this
+    // time thread.
+    private final List<SimpleDateFormat> userDefinedFormatters;
+
+    // A set of abitrary formatted times, mapped from format string to
+    // the corresponding formatted time representation.
+    private final Map<String, String> userDefinedTimeStrings;
 
 
 
-  /**
-   * Operates in a loop, getting the current time and then sleeping briefly
-   * before checking again.
-   */
-  @Override
-  public void run()
-  {
-    while (true)
+    /**
+     * Create a new job with the specified delay.
+     */
+    public TimeInfo()
+    {
+      userDefinedFormatters =
+          new CopyOnWriteArrayList<SimpleDateFormat>();
+      userDefinedTimeStrings = new ConcurrentHashMap<String, String>();
+
+      TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
+
+      gmtTimestampFormatter = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+      gmtTimestampFormatter.setTimeZone(utcTimeZone);
+
+      localTimestampFormatter =
+          new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z");
+
+      // Populate initial values.
+      run();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void run()
     {
       try
       {
-        calendar        = new GregorianCalendar();
-        date            = calendar.getTime();
-        time            = date.getTime();
-        nanoTime        = System.nanoTime();
+        calendar = new GregorianCalendar();
+        date = calendar.getTime();
+        time = date.getTime();
+        nanoTime = System.nanoTime();
         generalizedTime = GeneralizedTimeSyntax.format(date);
-        localTimestamp  = localTimestampFormatter.format(date);
-        gmtTimestamp    = gmtTimestampFormatter.format(date);
-        hourAndMinute   = (calendar.get(Calendar.HOUR_OF_DAY) * 100) +
-                          calendar.get(Calendar.MINUTE);
+        localTimestamp = localTimestampFormatter.format(date);
+        gmtTimestamp = gmtTimestampFormatter.format(date);
+        hourAndMinute =
+            calendar.get(Calendar.HOUR_OF_DAY) * 100
+                + calendar.get(Calendar.MINUTE);
 
         for (SimpleDateFormat format : userDefinedFormatters)
         {
-          userDefinedTimeStrings.put(format.toPattern(),
-                                     format.format(date));
+          userDefinedTimeStrings.put(format.toPattern(), format
+              .format(date));
         }
-
-        Thread.sleep(200);
       }
       catch (Exception e)
       {
@@ -187,136 +171,203 @@ public final class TimeThread
     }
   }
 
+  /**
+   * Thread factory used by the scheduled execution service.
+   */
+  private static final class TimeThreadFactory implements
+      ThreadFactory
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    public Thread newThread(Runnable r)
+    {
+      Thread t = new DirectoryThread(r, "Time Thread");
+      t.setDaemon(true);
+      return t;
+    }
+
+  }
+
+
+
+  // The singleton instance.
+  private static TimeThread INSTANCE = new TimeThread();
+
+  // The tracer object for the debug logger.
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
-   * Retrieves a <CODE>Calendar</CODE> containing the time at the last update.
+   * Retrieves a <CODE>Calendar</CODE> containing the time at the last
+   * update.
    *
-   * @return  A <CODE>Calendar</CODE> containing the time at the last update.
+   * @return A <CODE>Calendar</CODE> containing the time at the last
+   *         update.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
-  public static Calendar getCalendar()
+  public static Calendar getCalendar() throws IllegalStateException
   {
-    return calendar;
+    checkState();
+    return INSTANCE.timeInfo.calendar;
   }
 
 
 
   /**
-   * Retrieves a <CODE>Date</CODE> containing the time at the last update.
+   * Retrieves a <CODE>Date</CODE> containing the time at the last
+   * update.
    *
-   * @return  A <CODE>Date</CODE> containing the time at the last update.
+   * @return A <CODE>Date</CODE> containing the time at the last update.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
-  public static Date getDate()
+  public static Date getDate() throws IllegalStateException
   {
-    return date;
+    checkState();
+    return INSTANCE.timeInfo.date;
   }
 
 
 
   /**
-   * Retrieves the time in milliseconds since the epoch at the last update.
+   * Retrieves a string containing a normalized representation of the
+   * current time in a generalized time format. The timestamp will look
+   * like "20050101000000.000Z".
    *
-   * @return  The time in milliseconds since the epoch at the last update.
+   * @return A string containing a normalized representation of the
+   *         current time in a generalized time format.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
-  public static long getTime()
+  public static String getGeneralizedTime() throws IllegalStateException
   {
-    return time;
-  }
-
-  /**
-   * Retrieves the time in nanoseconds from the most precise available system
-   * timer. The value retured represents nanoseconds since some fixed but
-   * arbitrary time.
-   *
-   * @return The time in nanoseconds from some fixed but arbitrary time.
-   */
-  public static long getNanoTime()
-  {
-    return nanoTime;
+    checkState();
+    return INSTANCE.timeInfo.generalizedTime;
   }
 
 
 
   /**
-   * Retrieves a string containing a normalized representation of the current
-   * time in a generalized time format.  The timestamp will look like
-   * "20050101000000.000Z".
+   * Retrieves a string containing the current time in GMT. The
+   * timestamp will look like "20050101000000Z".
    *
-   * @return  A string containing a normalized representation of the current
-   *          time in a generalized time format.
+   * @return A string containing the current time in GMT.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
-  public static String getGeneralizedTime()
+  public static String getGMTTime() throws IllegalStateException
   {
-    return generalizedTime;
-  }
-
-
-
-  /**
-   * Retrieves a string containing the current time in the local time zone.  The
-   * timestamp format will look like "01/Jan/2005:00:00:00 -0600".
-   *
-   * @return  A string containing the current time in the local time zone.
-   */
-  public static String getLocalTime()
-  {
-    return localTimestamp;
-  }
-
-
-
-  /**
-   * Retrieves a string containing the current time in GMT.  The timestamp will
-   * look like "20050101000000Z".
-   *
-   * @return  A string containing the current time in GMT.
-   */
-  public static String getGMTTime()
-  {
-    return gmtTimestamp;
+    checkState();
+    return INSTANCE.timeInfo.gmtTimestamp;
   }
 
 
 
   /**
    * Retrieves an integer containing the time in HHmm format at the last
-   * update.  It will be calculated as "(hourOfDay*100) + minuteOfHour".
+   * update. It will be calculated as "(hourOfDay*100) + minuteOfHour".
    *
-   * @return  An integer containing the time in HHmm format at the last update.
+   * @return An integer containing the time in HHmm format at the last
+   *         update.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
-  public static int getHourAndMinute()
+  public static int getHourAndMinute() throws IllegalStateException
   {
-    return hourAndMinute;
+    checkState();
+    return INSTANCE.timeInfo.hourAndMinute;
   }
 
 
 
   /**
-   * Retrieves the current time formatted using the given format string.  The
-   * first time this method is used with a given format string, it will be used
-   * to create a formatter that will generate the time string.  That formatter
-   * will then be put into a list so that it will be maintained automatically
-   * for future use.
+   * Retrieves a string containing the current time in the local time
+   * zone. The timestamp format will look like
+   * "01/Jan/2005:00:00:00 -0600".
    *
-   * @param  formatString  The string that defines the format of the time string
-   *                       to retrieve.
+   * @return A string containing the current time in the local time
+   *         zone.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
+   */
+  public static String getLocalTime() throws IllegalStateException
+  {
+    checkState();
+    return INSTANCE.timeInfo.localTimestamp;
+  }
+
+
+
+  /**
+   * Retrieves the time in nanoseconds from the most precise available
+   * system timer. The value retured represents nanoseconds since some
+   * fixed but arbitrary time.
    *
-   * @return  The formatted time string.
+   * @return The time in nanoseconds from some fixed but arbitrary time.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
+   */
+  public static long getNanoTime() throws IllegalStateException
+  {
+    checkState();
+    return INSTANCE.timeInfo.nanoTime;
+  }
+
+
+
+  /**
+   * Retrieves the time in milliseconds since the epoch at the last
+   * update.
    *
-   * @throws  IllegalArgumentException  If the provided format string is
-   *                                    invalid.
+   * @return The time in milliseconds since the epoch at the last
+   *         update.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
+   */
+  public static long getTime() throws IllegalStateException
+  {
+    checkState();
+    return INSTANCE.timeInfo.time;
+  }
+
+
+
+  /**
+   * Retrieves the current time formatted using the given format string.
+   * <p>
+   * The first time this method is used with a given format string, it
+   * will be used to create a formatter that will generate the time
+   * string. That formatter will then be put into a list so that it will
+   * be maintained automatically for future use.
+   *
+   * @param formatString
+   *          The string that defines the format of the time string to
+   *          retrieve.
+   * @return The formatted time string.
+   * @throws IllegalArgumentException
+   *           If the provided format string is invalid.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
   public static String getUserDefinedTime(String formatString)
-         throws IllegalArgumentException
+      throws IllegalArgumentException, IllegalStateException
   {
-    String timeString = userDefinedTimeStrings.get(formatString);
+    checkState();
+
+    String timeString =
+        INSTANCE.timeInfo.userDefinedTimeStrings.get(formatString);
 
     if (timeString == null)
     {
       SimpleDateFormat formatter = new SimpleDateFormat(formatString);
-      timeString = formatter.format(date);
-      userDefinedTimeStrings.put(formatString, timeString);
-      userDefinedFormatters.add(formatter);
+      timeString = formatter.format(INSTANCE.timeInfo.date);
+      INSTANCE.timeInfo.userDefinedTimeStrings.put(formatString,
+          timeString);
+      INSTANCE.timeInfo.userDefinedFormatters.add(formatter);
     }
 
     return timeString;
@@ -325,16 +376,24 @@ public final class TimeThread
 
 
   /**
-   * Removes the user-defined time formatter from this time thread so that it
-   * will no longer be maintained.  This is a safe operation because if the
-   * same format string is used for multiple purposes then it will be added back
-   * the next time a time is requested with the given format.
+   * Removes the user-defined time formatter from this time thread so
+   * that it will no longer be maintained. This is a safe operation
+   * because if the same format string is used for multiple purposes
+   * then it will be added back the next time a time is requested with
+   * the given format.
    *
-   * @param  formatString  The format string for the date formatter to remove.
+   * @param formatString
+   *          The format string for the date formatter to remove.
+   * @throws IllegalStateException
+   *           If the time service has not been started.
    */
   public static void removeUserDefinedFormatter(String formatString)
+    throws IllegalStateException
   {
-    Iterator<SimpleDateFormat> iterator = userDefinedFormatters.iterator();
+    checkState();
+
+    Iterator<SimpleDateFormat> iterator =
+        INSTANCE.timeInfo.userDefinedFormatters.iterator();
     while (iterator.hasNext())
     {
       SimpleDateFormat format = iterator.next();
@@ -344,7 +403,64 @@ public final class TimeThread
       }
     }
 
-    userDefinedTimeStrings.remove(formatString);
+    INSTANCE.timeInfo.userDefinedTimeStrings.remove(formatString);
+  }
+
+
+
+  /**
+   * Starts the time service if it has not already been started.
+   */
+  public static void start()
+  {
+    if (INSTANCE == null)
+    {
+      INSTANCE = new TimeThread();
+    }
+  }
+
+
+
+  /**
+   * Stops the time service if it has not already been stopped.
+   */
+  public static void stop()
+  {
+    if (INSTANCE != null)
+    {
+      INSTANCE.scheduler.shutdown();
+      INSTANCE = null;
+    }
+  }
+
+
+
+  // Ensures that the time service has been started.
+  private static void checkState() throws IllegalStateException
+  {
+    if (INSTANCE == null)
+    {
+      throw new IllegalStateException("Time service not started");
+    }
+  }
+
+
+
+  // The scheduler.
+  private final ScheduledExecutorService scheduler =
+      Executors.newSingleThreadScheduledExecutor(new TimeThreadFactory());
+
+  // The current time information.
+  private final TimeInfo timeInfo = new TimeInfo();
+
+
+
+  /**
+   * Creates a new instance of this time service and starts it.
+   */
+  private TimeThread()
+  {
+    this.scheduler.scheduleWithFixedDelay(timeInfo, 0, 200,
+        TimeUnit.MILLISECONDS);
   }
 }
-

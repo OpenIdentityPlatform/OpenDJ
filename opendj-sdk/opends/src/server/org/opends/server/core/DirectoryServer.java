@@ -1327,6 +1327,10 @@ public class DirectoryServer
       }
 
 
+      // Ensure that the timer thread has started.
+      TimeThread.start();
+
+
       // Mark the current time as the start time.
       startUpTime  = System.currentTimeMillis();
       startTimeUTC = TimeThread.getGMTTime();
@@ -8412,6 +8416,9 @@ public class DirectoryServer
     removeAllAccessLogPublishers();
     removeAllErrorLogPublishers();
     removeAllDebugLogPublishers();
+
+    // Now that the loggers are disabled we can shutdown the timer.
+    TimeThread.stop();
 
     // Just in case there's something that isn't shut down properly, wait for
     // the monitor to give the OK to stop.
