@@ -603,7 +603,7 @@ public class LDAPDelete
       return CLIENT_SIDE_PARAM_ERROR;
     }
 
- 
+
     String hostNameValue = hostName.getValue();
     int portNumber = 389;
     try
