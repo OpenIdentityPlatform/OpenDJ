@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -53,6 +53,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 
 
@@ -505,6 +506,81 @@ public class ObjectClassSyntax
               valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
+        }
+        //RFC 2251: A specification may also assign one or more textual names
+        //for an attribute type.  These names MUST begin with a letter, and
+        //only contain ASCII letters, digit characters and hyphens.
+        boolean allowExceptions =
+                                DirectoryServer.allowAttributeNameExceptions();
+        //Iterate over all the names and throw an exception if it is invalid.
+        for(String name : names)
+        {
+          for(int index=0; index < name.length(); index++)
+          {
+            char ch = name.charAt(index);
+            switch(ch)
+            {
+              case '-':
+              //hyphen is allowed but not as the first byte.
+                if (index==0)
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DASH.
+                        get(value.toString());
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+              case '_':
+              // This will never be allowed as the first character.  It
+              // may be allowed for subsequent characters if the attribute
+              // name exceptions option is enabled.
+                if (index==0)
+                {
+                  Message msg =
+                          ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_UNDERSCORE.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                else if (!allowExceptions)
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_UNDERSCORE_CHAR.
+                        get(value.toString(),
+                            ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                               msg);
+                }
+                break;
+
+              default:
+              //Only digits and ascii letters are allowed but the first byte
+              //can not be a digit.
+                if(index ==0 && isDigit(ch) && !allowExceptions)
+                {
+                  Message message = ERR_OC_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.
+                    get(value.toString(), ch,
+                        ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                             message);
+                }
+                else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
+                        (ch>='a' && ch<='z')))
+                {
+                  Message msg = ERR_OC_SYNTAX_ATTR_ILLEGAL_CHAR.get(
+                            value.toString(), ch, index);
+                  throw new DirectoryException(
+                          ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       msg);
+                }
+                break;
+            }
+          }
+
         }
       }
       else if (lowerTokenName.equals("desc"))
