@@ -1161,6 +1161,8 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
+    boolean allowExceptions =
+                  DirectoryServer.allowAttributeNameExceptions();
     while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
@@ -1200,7 +1202,8 @@ public class ObjectClassSyntax
             lastWasPeriod = true;
           }
         }
-        else if (! isDigit(c))
+        else if (! (isDigit(c) ||
+                allowExceptions && (isAlpha(c) || (c=='-') || (c=='_'))))
         {
           // Technically, this must be an illegal character.  However, it is
           // possible that someone just got sloppy and did not include a space
