@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -33,7 +33,21 @@ import java.util.LinkedHashMap;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
-
+import static org.opends.server.loggers.debug.DebugLogger.
+    debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DN;
+import static org.opends.server.util.StaticUtils.stackTraceToString;
+import static org.opends.server.util.ServerConstants.
+    ALERT_TYPE_UNCAUGHT_EXCEPTION;
+import static org.opends.server.util.ServerConstants.
+    ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION;
+import org.opends.messages.Message;
+import static org.opends.messages.CoreMessages.
+    ERR_UNCAUGHT_THREAD_EXCEPTION;
 
 
 /**
@@ -62,6 +76,18 @@ import org.opends.server.core.DirectoryServer;
 public class DirectoryThread
        extends Thread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+  /**
+   * The directory thread group that all directory threads will be a
+   * member of.
+   */
+  public static final DirectoryThreadGroup DIRECTORY_THREAD_GROUP =
+      new DirectoryThreadGroup();
+
   // The stack trace taken at the time that this thread was created.
   private StackTraceElement[] creationStackTrace;
 
@@ -71,7 +97,73 @@ public class DirectoryThread
   // A reference to the thread that was used to create this thread.
   private Thread parentThread;
 
+  /**
+   * A thread group for all directory threads. This implements a
+   * custom unhandledException handler that logs the error.
+   */
+  private static class DirectoryThreadGroup extends ThreadGroup
+      implements AlertGenerator
+  {
+    private final LinkedHashMap<String,String> alerts;
 
+    /**
+     * Private constructor for DirectoryThreadGroup.
+     */
+    private DirectoryThreadGroup()
+    {
+      super("Directory Server Thread Group");
+      alerts = new LinkedHashMap<String,String>();
+      alerts.put(ALERT_TYPE_UNCAUGHT_EXCEPTION,
+          ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public DN getComponentEntryDN() {
+      return DN.NULL_DN;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getClassName() {
+      return "org.oepnds.server.api.DirectoryThread";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public LinkedHashMap<String, String> getAlerts() {
+      return alerts;
+    }
+
+    /**
+     * Provides a means of handling a case in which a thread is about
+     * to die because of an unhandled exception.  This method does
+     * nothing to try to prevent the death of that thread, but will
+     * at least log it so that it can be available for debugging
+     * purposes.
+     *
+     * @param  t  The thread that threw the exception.
+     * @param  e  The exception that was thrown but not properly
+     *            handled.
+     */
+    @Override
+    public void uncaughtException(Thread t, Throwable e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
+          t.getName(), stackTraceToString(e));
+      logError(message);
+      DirectoryServer.sendAlertNotification(this,
+          ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
+    }
+  }
 
   /**
    * Creates a new instance of this directory thread with the
@@ -83,7 +175,7 @@ public class DirectoryThread
    */
   public DirectoryThread(Runnable target, String threadName)
   {
-    super (DirectoryServer.getDirectoryThreadGroup(), target,
+    super (DIRECTORY_THREAD_GROUP, target,
            threadName);
 
 
@@ -99,26 +191,7 @@ public class DirectoryThread
    */
   protected DirectoryThread(String threadName)
   {
-    super(DirectoryServer.getDirectoryThreadGroup(), threadName);
-
-
-    init();
-  }
-
-
-  /**
-   * Creates a new instance of this directory thread with the
-   * specified name as a part of the given thread group.
-   *
-   * @param  threadGroup  The thread group in which this thread is to
-   *                      be placed.
-   * @param  threadName   The human-readable name to use for this
-   *                      thread for debugging purposes.
-   */
-  protected DirectoryThread(ThreadGroup threadGroup,
-                            String threadName)
-  {
-    super(threadGroup, threadName);
+    super(DIRECTORY_THREAD_GROUP, threadName);
 
 
     init();

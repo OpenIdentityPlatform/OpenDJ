@@ -242,7 +242,7 @@ import org.opends.server.workflowelement.
  * components.
  */
 public class DirectoryServer
-       implements Thread.UncaughtExceptionHandler, AlertGenerator
+       implements AlertGenerator
 {
   /**
    * The tracer object for the debug logger.
@@ -717,10 +717,6 @@ public class DirectoryServer
   private SynchronizationProviderConfigManager
                synchronizationProviderConfigManager;
 
-  // The thread group for all threads associated with the Directory Server.
-  private ThreadGroup directoryThreadGroup;
-
-
   // Registry for base DN and naming context information.
   private BaseDnRegistry baseDnRegistry;
 
@@ -1038,21 +1034,10 @@ public class DirectoryServer
     }
 
 
-    // Create the thread group that should be used for all Directory Server
-    // threads.
-    directoryThreadGroup = new ThreadGroup("Directory Server Thread Group");
-
-
     // Add a shutdown hook so that the server can be notified when the JVM
     // starts shutting down.
     shutdownHook = new DirectoryServerShutdownHook();
     Runtime.getRuntime().addShutdownHook(shutdownHook);
-
-
-    // Register this class as the default uncaught exception handler for the
-    // JVM.  The uncaughtException method will be called if a thread dies
-    // because it did not properly handle an exception.
-    Thread.setDefaultUncaughtExceptionHandler(this);
 
 
     // Create the MBean server that we will use for JMX interaction.
@@ -2907,20 +2892,6 @@ public class DirectoryServer
   public static OperatingSystem getOperatingSystem()
   {
     return directoryServer.operatingSystem;
-  }
-
-
-
-  /**
-   * Retrieves the thread group that should be used by all threads associated
-   * with the Directory Server.
-   *
-   * @return  The thread group that should be used by all threads associated
-   *          with the Directory Server.
-   */
-  public static ThreadGroup getDirectoryThreadGroup()
-  {
-    return directoryServer.directoryThreadGroup;
   }
 
 
@@ -9090,38 +9061,12 @@ public class DirectoryServer
 
     alerts.put(ALERT_TYPE_SERVER_STARTED, ALERT_DESCRIPTION_SERVER_STARTED);
     alerts.put(ALERT_TYPE_SERVER_SHUTDOWN, ALERT_DESCRIPTION_SERVER_SHUTDOWN);
-    alerts.put(ALERT_TYPE_UNCAUGHT_EXCEPTION,
-               ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
     alerts.put(ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
                ALERT_DESCRIPTION_ENTERING_LOCKDOWN_MODE);
     alerts.put(ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
                ALERT_DESCRIPTION_LEAVING_LOCKDOWN_MODE);
 
     return alerts;
-  }
-
-
-
-  /**
-   * Provides a means of handling a case in which a thread is about to die
-   * because of an unhandled exception.  This method does nothing to try to
-   * prevent the death of that thread, but will at least log it so that it can
-   * be available for debugging purposes.
-   *
-   * @param  thread     The thread that threw the exception.
-   * @param  exception  The exception that was thrown but not properly handled.
-   */
-  public void uncaughtException(Thread thread, Throwable exception)
-  {
-    if (debugEnabled())
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, exception);
-    }
-
-    Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
-        thread.getName(), stackTraceToString(exception));
-    logError(message);
-    sendAlertNotification(this, ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
   }
 
 
