@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 
@@ -83,15 +83,6 @@ public class DebugAspect
   }
 
   /**
-   * Pointcut for matching the getDirectoryThreadGroup method.
-   */
-  @Pointcut("execution(public static ThreadGroup org.opends.server." +
-      "core.DirectoryServer.getDirectoryThreadGroup(..))")
-  private void getThreadGroupMethod()
-  {
-  }
-
-  /**
    * Pointcut for matching all getDebugProperties() methods.
    * TODO: Make this less general. Find out if pointcut matches
    * subclass methods.
@@ -120,8 +111,7 @@ public class DebugAspect
    * debug logger.
    */
   @Pointcut("toStringMethod() || getMessageMethod() || " +
-      "getDebugPropertiesMethod() || debugRelatedClasses() || " +
-      "getThreadGroupMethod()")
+      "getDebugPropertiesMethod() || debugRelatedClasses()")
   private void excluded()
   {
   }

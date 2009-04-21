@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
 
 
+import org.opends.server.api.DirectoryThread;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -38,7 +39,7 @@ import java.util.LinkedList;
  * shutdown process and may help nudge it along if it appears to get hung.
  */
 public class ServerShutdownMonitor
-       extends Thread
+       extends DirectoryThread
 {
   // Indicates whether the monitor has completed and the shutdown may be
   // finalized with a call to System.exit;
@@ -56,7 +57,7 @@ public class ServerShutdownMonitor
    */
   public ServerShutdownMonitor()
   {
-    setName("Directory Server Shutdown Monitor");
+    super("Directory Server Shutdown Monitor");
     setDaemon(true);
 
 
@@ -71,7 +72,7 @@ public class ServerShutdownMonitor
     // we'll make sure to allocate enough room for double the threads that we
     // think are currently running.
     threadList = new LinkedList<Thread>();
-    ThreadGroup threadGroup = DirectoryServer.getDirectoryThreadGroup();
+    ThreadGroup threadGroup = DirectoryThread.DIRECTORY_THREAD_GROUP;
     Thread[] threadArray = new Thread[threadGroup.activeCount() * 2];
     int numThreads = threadGroup.enumerate(threadArray, true);
     for (int i=0; i < numThreads; i++)

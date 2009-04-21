@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -128,7 +129,8 @@ public class SoftReferenceEntryCache
       )
       throws ConfigException, InitializationException
   {
-    cleanerThread = new Thread(this, "Soft Reference Entry Cache Cleaner");
+    cleanerThread = new DirectoryThread(this,
+        "Soft Reference Entry Cache Cleaner");
     cleanerThread.setDaemon(true);
     cleanerThread.start();
 

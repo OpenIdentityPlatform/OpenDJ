@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.api.DirectoryThread;
 
 
 
@@ -49,7 +50,7 @@ import org.opends.server.core.DirectoryServer;
  * exit before we get a chance to restart it if all non-daemon threads go away.
  */
 public class RestartTaskThread
-       extends Thread
+       extends DirectoryThread
 {
   /**
    * The fully-qualified name of this class.
