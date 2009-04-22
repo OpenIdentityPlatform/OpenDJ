@@ -35,6 +35,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.controls.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
@@ -144,6 +145,9 @@ public class LDAPSearch
          throws IOException, LDAPException
   {
     int matchingEntries = 0;
+
+    boolean hasDebugSearchIndex =
+      attributes.contains(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
 
     for (LDAPFilter filter: filters)
     {
@@ -281,7 +285,15 @@ public class LDAPSearch
                 StringBuilder sb = new StringBuilder();
                 toLDIF(searchEntryOp, sb, wrapColumn, typesOnly);
                 out.print(sb.toString());
-                matchingEntries++;
+                if (!hasDebugSearchIndex)
+                {
+                  matchingEntries++;
+                }
+                else
+                {
+                  matchingEntries +=
+                    getDebugSearchIndexEntries(searchEntryOp);
+                }
                 break;
 
               case OP_TYPE_SEARCH_RESULT_REFERENCE:
@@ -1848,6 +1860,58 @@ public class LDAPSearch
         }
       }
     }
+  }
+
+  /**
+   * Parses the contents of the provided entry and returning the number of
+   * entries found.  The method assumed that the entry is the generated entry
+   * sent by the server because the user asked to retrieve the attribute
+   * debugsearchindex.
+   * @param searchEntryOp the entry returned by the server.
+   * @return the number of total entries that matched the provided filter.
+   * @see org.opends.server.backends.jeb.EntryIDSet.toString(StringBuffer )
+   */
+  private int getDebugSearchIndexEntries(
+      SearchResultEntryProtocolOp searchEntryOp)
+  {
+    int matchingEntries = 0;
+    String attrValue = null;
+    LinkedList<LDAPAttribute> attributes = searchEntryOp.getAttributes();
+    // Add the attributes to the buffer.
+    for (LDAPAttribute a : attributes)
+    {
+      if (EntryContainer.ATTR_DEBUG_SEARCH_INDEX.equalsIgnoreCase(
+          a.getAttributeType()))
+      {
+        ArrayList<ByteString> values = a.getValues();
+        if (values != null && !values.isEmpty())
+        {
+          attrValue = values.get(0).toString();
+        }
+        break;
+      }
+    }
+
+    if (attrValue != null)
+    {
+      // If the user asked for the debug search index attribute, the resulting
+      // entry has an attribute of type:
+      // debugsearchindex: filter=(uid=*)[NOT-INDEXED]
+      // scope=wholeSubtree[COUNT:11] final=[COUNT:11]
+      // Which is generated in org.opends.server.backends.jeb.EntryIDSet
+      String sCount = "[COUNT:";
+      int index1 = attrValue.lastIndexOf(sCount);
+      if (index1 != -1)
+      {
+        int index2 = attrValue.lastIndexOf("]");
+        if (index2 != -1)
+        {
+          String s = attrValue.substring(index1 + sCount.length(), index2);
+          matchingEntries += Integer.parseInt(s);
+        }
+      }
+    }
+    return matchingEntries;
   }
 }
 
