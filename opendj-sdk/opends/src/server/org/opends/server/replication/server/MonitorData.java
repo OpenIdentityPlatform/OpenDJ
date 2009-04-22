@@ -62,8 +62,6 @@ public class MonitorData
    *   date of the first missing change.
    */
 
-  /* The date of the last time they have been elaborated */
-  private long buildDate = 0;
 
   // For each LDAP server, its server state
   private ConcurrentHashMap<Short, ServerState> LDAPStates =
@@ -103,7 +101,7 @@ public class MonitorData
   {
     Long afmd = fmd.get(serverId);
     if ((afmd != null) && (afmd>0))
-      return ((this.getBuildDate() - afmd)/1000);
+      return (TimeThread.getTime() - afmd)/1000;
     else
       return 0;
   }
@@ -243,7 +241,6 @@ public class MonitorData
         TRACER.debugInfo(
           "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
     }
-    this.setBuildDate(TimeThread.getTime());
     }
 
   /**
@@ -255,7 +252,6 @@ public class MonitorData
   {
     String mds = "Monitor data=\n";
 
-    mds+= "Build date=" + this.getBuildDate();
     // RS data
     Iterator<Short> rsite = fmRSDate.keySet().iterator();
     while (rsite.hasNext())
@@ -281,10 +277,9 @@ public class MonitorData
       ServerState ss = LDAPStates.get(sid);
       mds += "\nLSData(" + sid + ")=\t" + "state=[" + ss.toString()
       + "] afmd=" + this.getApproxFirstMissingDate(sid);
-      if (getBuildDate()>0)
-      {
-        mds += " missingDelay=" + this.getApproxDelay(sid);
-      }
+
+      mds += " missingDelay=" + this.getApproxDelay(sid);
+
       mds +=" missingCount=" + missingChanges.get(sid);
     }
 
@@ -301,24 +296,6 @@ public class MonitorData
     //
     mds += "\n--";
     return mds;
-  }
-
-  /**
-   * Sets the build date of the data.
-   * @param buildDate The date.
-   */
-  public void setBuildDate(long buildDate)
-  {
-    this.buildDate = buildDate;
-  }
-
-  /**
-   * Returns the build date of the data.
-   * @return The date.
-   */
-  public long getBuildDate()
-  {
-    return buildDate;
   }
 
   /**

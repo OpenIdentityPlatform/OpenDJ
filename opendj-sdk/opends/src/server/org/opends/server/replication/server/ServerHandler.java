@@ -2064,6 +2064,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         long delay = md.getApproxDelay(serverId);
         attributes.add(Attributes.create("approximate-delay", String
             .valueOf(delay)));
+
+        /* get the Server State */
+        AttributeBuilder builder = new AttributeBuilder("server-state");
+        ServerState state = md.getLDAPServerState(serverId);
+        if (state != null)
+        {
+          for (String str : state.toStringSet())
+          {
+            builder.add(str);
+          }
+          attributes.add(builder.toAttribute());
+        }
       }
       else
       {
@@ -2071,6 +2083,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         long missingChanges = md.getMissingChangesRS(serverId);
         attributes.add(Attributes.create("missing-changes", String
             .valueOf(missingChanges)));
+
+        /* get the Server State */
+        AttributeBuilder builder = new AttributeBuilder("server-state");
+        ServerState state = md.getRSStates(serverId);
+        if (state != null)
+        {
+          for (String str : state.toStringSet())
+          {
+            builder.add(str);
+          }
+          attributes.add(builder.toAttribute());
+        }
       }
     }
     catch (Exception e)
@@ -2130,14 +2154,6 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         .valueOf(maxRcvWindow)));
     attributes.add(Attributes.create("current-rcv-window", String
         .valueOf(rcvWindow)));
-
-    /* get the Server State */
-    AttributeBuilder builder = new AttributeBuilder("server-state");
-    for (String str : serverState.toStringSet())
-    {
-      builder.add(str);
-    }
-    attributes.add(builder.toAttribute());
 
     // Encryption
     attributes.add(Attributes.create("ssl-encryption", String
