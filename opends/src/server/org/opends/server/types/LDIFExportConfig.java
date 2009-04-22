@@ -22,12 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-
-
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -41,9 +41,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.UtilityMessages.*;
 
 
 
@@ -225,26 +224,65 @@ public final class LDIFExportConfig extends OperationConfig
     {
       if (ldifOutputStream == null)
       {
+        File f = new File(ldifFile);
+        boolean mustSetPermissions = false;
+
         switch (existingFileBehavior)
         {
-          case APPEND:
-            ldifOutputStream = new FileOutputStream(ldifFile, true);
-            break;
-          case OVERWRITE:
-            ldifOutputStream = new FileOutputStream(ldifFile, false);
-            break;
-          case FAIL:
-            File f = new File(ldifFile);
-            if (f.exists())
-            {
-              Message message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
-              throw new IOException(message.toString());
-            }
-            else
-            {
-              ldifOutputStream = new FileOutputStream(ldifFile);
-            }
-            break;
+        case APPEND:
+          // Create new file if it doesn't exist ensuring that we can
+          // set its permissions.
+          if (!f.exists())
+          {
+            f.createNewFile();
+            mustSetPermissions = true;
+          }
+          ldifOutputStream = new FileOutputStream(ldifFile, true);
+          break;
+        case OVERWRITE:
+          // Create new file if it doesn't exist ensuring that we can
+          // set its permissions.
+          if (!f.exists())
+          {
+            f.createNewFile();
+            mustSetPermissions = true;
+          }
+          ldifOutputStream = new FileOutputStream(ldifFile, false);
+          break;
+        case FAIL:
+          if (f.exists())
+          {
+            Message message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
+            throw new IOException(message.toString());
+          }
+          else
+          {
+            // Create new file ensuring that we can set its
+            // permissions.
+            f.createNewFile();
+            mustSetPermissions = true;
+            ldifOutputStream = new FileOutputStream(ldifFile);
+          }
+          break;
+        }
+
+        if (mustSetPermissions)
+        {
+          try
+          {
+            // Ignore
+            FilePermission.setPermissions(f,
+                new FilePermission(0600));
+          }
+          catch (Exception e)
+          {
+            // The file could not be created with the correct
+            // permissions.
+            Message message =
+              WARN_EXPORT_LDIF_SET_PERMISSION_FAILED.get(f.toString(),
+                    stackTraceToSingleLineString(e));
+            throw new IOException(message.toString());
+          }
         }
       }
 
