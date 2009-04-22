@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.*;
@@ -89,9 +89,17 @@ public class ReplicationDbEnv
     envConfig.setAllowCreate(true);
     envConfig.setTransactional(true);
     envConfig.setConfigParam("je.cleaner.expunge", "true");
-    // TODO : the DB cache size should be configurable
-    // For now set 5M is OK for being efficient in 64M total for the JVM
+
+    // Tests have shown that since the parsing of the Replication log is always
+    // done sequentially, it is not necessary to use a large DB cache.
+    // Use 5M so that the replication can be used with 64M total for the JVM.
     envConfig.setConfigParam("je.maxMemory", "5000000");
+
+    // Since records are always added at the end of the Replication log and
+    // deleted at the beginning of the Replication log, this should never
+    // cause any deadlock. It is therefore safe to increase the TXN timeout
+    // to 10 seconds.
+    envConfig.setTxnTimeout(10000000);
     dbEnvironment = new Environment(new File(path), envConfig);
 
     /*
