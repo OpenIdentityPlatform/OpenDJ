@@ -170,13 +170,13 @@ public enum Category {
    * The category that will be used for messages associated with
    * third-party (including user-defined) modules.
    */
-  THIRD_PARTY(0x80000000),
+  THIRD_PARTY(0x40000000),
 
   /**
    * The category that will be used for messages associated with
    * user-defined modules.
    */
-  USER_DEFINED(0xFFF00000);
+  USER_DEFINED(0x7FF00000);
 
   static private Map<Integer,Category> MASK_VALUE_MAP;
 
