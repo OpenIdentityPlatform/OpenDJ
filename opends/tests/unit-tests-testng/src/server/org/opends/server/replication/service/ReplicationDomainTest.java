@@ -175,7 +175,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       ServerState state2 = states1.get(domain2ServerId);
       assertNotNull(state2, "getReplicaStates is not showing DS2");
 
-      Map<Short, ServerState> states2 = domain1.getReplicaStates();
+      Map<Short, ServerState> states2 = domain2.getReplicaStates();
       ServerState state1 = states2.get(domain1ServerId);
       assertNotNull(state1, "getReplicaStates is not showing DS1");
 
