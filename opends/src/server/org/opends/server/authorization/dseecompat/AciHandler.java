@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -774,7 +774,7 @@ public class AciHandler
         boolean ret=true;
         //If the resource entry has a dn equal to "cn=debugsearch" and it
         //contains the special attribute type "debugsearchindex", then the
-        //resource entry is a psudo entry created for debug purposes. Return
+        //resource entry is a pseudo entry created for debug purposes. Return
         //true if that is the case.
         if(debugSearchIndexDN.equals(container.getResourceDN()) &&
            container.getResourceEntry().hasAttribute(debugSearchIndex))
