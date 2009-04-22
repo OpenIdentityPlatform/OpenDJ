@@ -36,7 +36,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.BindOperation;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -1771,7 +1770,7 @@ public class BindOperationTestCase
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.empty());
     assertEquals(bindOperation.getResultCode(),
-                           ResultCode.INAPPROPRIATE_AUTHENTICATION);
+                           ResultCode.UNWILLING_TO_PERFORM);
   }
 
 

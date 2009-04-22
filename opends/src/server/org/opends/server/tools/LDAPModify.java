@@ -982,6 +982,17 @@ public class LDAPModify
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
         char[] pwChars = PasswordReader.readPassword();
         bindPasswordValue = new String(pwChars);
+        //As per rfc 4513(section-5.1.2) a client should avoid sending
+        //an empty password to the server.
+        while(pwChars.length==0)
+        {
+          err.println(wrapText(
+                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+                  MAX_LINE_WIDTH));
+          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
+          pwChars = PasswordReader.readPassword();
+        }
+        bindPasswordValue = new String(pwChars);
       } catch(Exception ex)
       {
         if (debugEnabled())
