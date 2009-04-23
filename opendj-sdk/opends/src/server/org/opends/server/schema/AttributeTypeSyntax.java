@@ -538,8 +538,11 @@ public class AttributeTypeSyntax
         //RFC 2251: A specification may also assign one or more textual names
         //for an attribute type.  These names MUST begin with a letter, and
         //only contain ASCII letters, digit characters and hyphens.
-        boolean allowExceptions =
-                                DirectoryServer.allowAttributeNameExceptions();
+
+        //The global config hasn't been read so far. Allow the name exceptions
+        //during startup.
+        boolean allowExceptions = DirectoryServer.isRunning()?
+                           DirectoryServer.allowAttributeNameExceptions():true;
         //Iterate over all the names and throw an exception if it is invalid.
         for(String name : typeNames)
         {

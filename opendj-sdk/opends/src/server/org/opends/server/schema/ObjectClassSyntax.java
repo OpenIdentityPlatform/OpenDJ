@@ -261,8 +261,8 @@ public class ObjectClassSyntax
     // and with all lowercase characters.
     String valueStr = value.toString();
     String lowerStr = toLowerCase(valueStr);
-
-
+    boolean allowExceptions = DirectoryServer.isRunning()?
+                        DirectoryServer.allowAttributeNameExceptions():true;
     // We'll do this a character at a time.  First, skip over any leading
     // whitespace.
     int pos    = 0;
@@ -360,7 +360,7 @@ public class ObjectClassSyntax
       while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+            ((c == '_') && allowExceptions))
         {
           // This is fine.  It is an acceptable character.
         }
@@ -510,8 +510,6 @@ public class ObjectClassSyntax
         //RFC 2251: A specification may also assign one or more textual names
         //for an attribute type.  These names MUST begin with a letter, and
         //only contain ASCII letters, digit characters and hyphens.
-        boolean allowExceptions =
-                                DirectoryServer.allowAttributeNameExceptions();
         //Iterate over all the names and throw an exception if it is invalid.
         for(String name : names)
         {
@@ -1161,8 +1159,8 @@ public class ObjectClassSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    boolean allowExceptions =
-                  DirectoryServer.allowAttributeNameExceptions();
+    boolean allowExceptions = DirectoryServer.isRunning()?
+                        DirectoryServer.allowAttributeNameExceptions():true;
     while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
@@ -1237,7 +1235,7 @@ public class ObjectClassSyntax
       while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+            ((c == '_') && allowExceptions))
         {
           woidBuffer.append(c);
         }
