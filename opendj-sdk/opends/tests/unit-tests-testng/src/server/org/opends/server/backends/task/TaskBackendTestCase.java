@@ -479,20 +479,25 @@ public class TaskBackendTestCase
   @Test
   public void testRecurringTask() throws Exception
   {
-    String taskID = "testRecurringTask";
-    String taskDN =
-        "ds-recurring-task-id=" + taskID
-            + ",cn=Recurring Tasks,cn=tasks";
-    String taskSchedule = "00 * * * *";
-
     GregorianCalendar calendar = new GregorianCalendar();
     calendar.setFirstDayOfWeek(GregorianCalendar.SUNDAY);
     calendar.setLenient(false);
+    calendar.add(GregorianCalendar.MONTH, 1);
     calendar.add(GregorianCalendar.HOUR_OF_DAY, 1);
     calendar.set(GregorianCalendar.MINUTE, 0);
     calendar.set(GregorianCalendar.SECOND, 0);
 
     Date scheduledDate = calendar.getTime();
+    int scheduledMonth =
+      calendar.get(GregorianCalendar.MONTH) + 1;
+
+    String taskID = "testRecurringTask";
+    String taskDN =
+        "ds-recurring-task-id=" + taskID
+            + ",cn=Recurring Tasks,cn=tasks";
+    String taskSchedule = "00 * * " +
+      Integer.toString(scheduledMonth) + " *";
+
     String scheduledTaskID = taskID + " - " + scheduledDate.toString();
     String scheduledTaskDN =
         "ds-task-id=" + scheduledTaskID
@@ -519,8 +524,9 @@ public class TaskBackendTestCase
     assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
 
-    // Make sure scheduled task iteration got canceled and removed.
-    assertFalse(DirectoryServer.entryExists(DN.decode(scheduledTaskDN)));
+    // Make sure recurring task iteration got canceled.
+    scheduledTask = TasksTestCase.getTask(DN.decode(scheduledTaskDN));
+    assertTrue(TaskState.isCancelled(scheduledTask.getTaskState()));
   }
 
 
