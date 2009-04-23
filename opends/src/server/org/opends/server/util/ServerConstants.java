@@ -1288,29 +1288,6 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
-   * notification generated if a recurring task cannot be found to schedule the
-   * next iteration after the previous iteration has completed.
-   */
-  public static final String ALERT_DESCRIPTION_CANNOT_FIND_RECURRING_TASK =
-      "This alert type will be used to notify administrators if the " +
-      "Directory Server is unable to locate a recurring task definition in " +
-      "order to schedule the next iteration once the previous iteration has " +
-      "completed.";
-
-
-
-  /**
-   * The alert type string that will be used for the alert notification
-   * generated if a recurring task cannot be found to schedule the next
-   * iteration after the previous iteration has completed.
-   */
-  public static final String ALERT_TYPE_CANNOT_FIND_RECURRING_TASK =
-       "org.opends.server.CannotFindRecurringTask";
-
-
-
-  /**
-   * The description for the alert type that will be used for the alert
    * notification generated if an error occurs while attempting to rename the
    * current tasks backing file.
    */

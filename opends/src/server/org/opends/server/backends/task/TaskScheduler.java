@@ -44,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -294,19 +295,18 @@ public class TaskScheduler
     try
     {
       RecurringTask recurringTask = recurringTasks.remove(recurringTaskID);
-      writeState();
 
       for (Task t : tasks.values())
       {
         if ((t.getRecurringTaskID() != null) &&
             (t.getRecurringTaskID().equals(recurringTaskID)) &&
-            (!TaskState.isDone(t.getTaskState())))
+            !TaskState.isDone(t.getTaskState()))
         {
           cancelTask(t.getTaskID());
         }
-        removeCompletedTask(t.getTaskID());
       }
 
+      writeState();
       return recurringTask;
     }
     finally
@@ -617,25 +617,13 @@ public class TaskScheduler
         return false;
       }
 
-
       // See if the task is part of a recurring task.  If so, then schedule the
       // next iteration.
       String recurringTaskID = completedTask.getRecurringTaskID();
       if (recurringTaskID != null)
       {
         RecurringTask recurringTask = recurringTasks.get(recurringTaskID);
-        if (recurringTask == null)
-        {
-          // This shouldn't happen, but handle it anyway.
-          Message message = ERR_TASKSCHED_CANNOT_FIND_RECURRING_TASK.get(
-              String.valueOf(taskID), String.valueOf(recurringTaskID));
-          logError(message);
-
-          DirectoryServer.sendAlertNotification(this,
-                               ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,
-                  message);
-        }
-        else
+        if (recurringTask != null)
         {
           Task newIteration = null;
           try {
@@ -645,8 +633,6 @@ public class TaskScheduler
           }
           if (newIteration != null)
           {
-            // FIXME -- What to do if new iteration is null?
-
             try
             {
               scheduleTask(newIteration, false);
@@ -671,9 +657,7 @@ public class TaskScheduler
         }
       }
 
-
       writeState();
-
 
       if (isRunning)
       {
@@ -929,8 +913,10 @@ public class TaskScheduler
 
 
           // Clean up any completed tasks that have been around long enough.
+          long retentionTimeMillis =
+            TimeUnit.SECONDS.toMillis(taskBackend.getRetentionTime());
           long oldestRetainedCompletionTime =
-                    TimeThread.getTime() - taskBackend.getRetentionTime();
+                    TimeThread.getTime() - retentionTimeMillis;
           iterator = completedTasks.iterator();
           while (iterator.hasNext())
           {
@@ -938,18 +924,10 @@ public class TaskScheduler
             if (t.getCompletionTime() < oldestRetainedCompletionTime)
             {
               iterator.remove();
+              tasks.remove(t.getTaskID());
               writeState = true;
             }
-
-            // FIXME -- If the completed tasks list is sorted, can we break out
-            //          of the iterator as soon as we hit one that's not old
-            //          enough to be expired?
           }
-
-
-          // FIXME -- Should we check to see if any of the running jobs have
-          //          logged any messages?
-
 
           // If anything changed, then make sure that the on-disk state gets
           // updated.
@@ -970,9 +948,7 @@ public class TaskScheduler
           {
             Thread.sleep(sleepTime);
           }
-        } catch (InterruptedException ie){}
-
-        // Clean up any completed tasks that have been around long enough.
+        } catch (InterruptedException ie) {}
       }
     }
     finally
@@ -2156,8 +2132,6 @@ public class TaskScheduler
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
 
-    alerts.put(ALERT_TYPE_CANNOT_FIND_RECURRING_TASK,
-               ALERT_DESCRIPTION_CANNOT_FIND_RECURRING_TASK);
     alerts.put(ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
                ALERT_DESCRIPTION_CANNOT_SCHEDULE_RECURRING_ITERATION);
     alerts.put(ALERT_TYPE_CANNOT_RENAME_CURRENT_TASK_FILE,
