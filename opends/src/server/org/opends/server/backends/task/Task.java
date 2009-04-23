@@ -817,7 +817,7 @@ public abstract class Task
    *
    * @param  completionTime  The completion time to use for this task.
    */
-  private void setCompletionTime(long completionTime)
+  protected void setCompletionTime(long completionTime)
   {
     // We only need to grab the entry-level lock if we don't already hold the
     // broader scheduler lock.

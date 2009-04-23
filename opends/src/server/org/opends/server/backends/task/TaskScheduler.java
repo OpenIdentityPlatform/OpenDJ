@@ -694,6 +694,14 @@ public class TaskScheduler
     {
       completedTasks.add(completedTask);
       runningTasks.remove(completedTask);
+
+      // If the task never ran set its completion
+      // time here explicitly so that it can be
+      // correctly evaluated for retention later.
+      if (completedTask.getCompletionTime() == -1)
+      {
+        completedTask.setCompletionTime(TimeThread.getTime());
+      }
     }
     finally
     {
