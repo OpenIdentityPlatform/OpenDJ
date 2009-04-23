@@ -264,7 +264,7 @@
                                         'dsFilter'         : 'objectclass=*'  ,
                                         'dsAttributes'     : 'dn'             ,
                                         'dsCountEntries'   : 'True'           ,
-                                        'expectedRC'       : 255 }
+                                        'expectedRC'       : 0 }
               }
             </call>
 
