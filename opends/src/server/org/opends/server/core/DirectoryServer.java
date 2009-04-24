@@ -1325,11 +1325,6 @@ public class DirectoryServer
         }
       }
 
-
-      // Ensure that the timer thread has started.
-      TimeThread.start();
-
-
       // Mark the current time as the start time.
       startUpTime  = System.currentTimeMillis();
       startTimeUTC = TimeThread.getGMTTime();
@@ -8561,6 +8556,9 @@ public class DirectoryServer
   public static DirectoryServer reinitialize(DirectoryEnvironmentConfig config)
          throws InitializationException
   {
+    // Ensure that the timer thread has started.
+    TimeThread.start();
+
     getNewInstance(config);
     LockManager.reinitializeLockTable();
     directoryServer.bootstrapServer();
