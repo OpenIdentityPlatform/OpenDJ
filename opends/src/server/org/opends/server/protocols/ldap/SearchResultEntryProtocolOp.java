@@ -45,6 +45,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -67,7 +68,13 @@ public class SearchResultEntryProtocolOp
   private LinkedList<LDAPAttribute> attributes;
 
   // The DN for this search entry.
-  private DN dn;
+  private final DN dn;
+
+  // The underlying search result entry.
+  private SearchResultEntry entry;
+
+  // The LDAP version (determines how attribute options are handled).
+  private final int ldapVersion;
 
 
 
@@ -79,8 +86,7 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(DN dn)
   {
-    this.dn         = dn;
-    this.attributes = new LinkedList<LDAPAttribute>();
+    this(dn, null, null, 3);
   }
 
 
@@ -95,16 +101,7 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntryProtocolOp(DN dn,
                                      LinkedList<LDAPAttribute> attributes)
   {
-    this.dn = dn;
-
-    if (attributes == null)
-    {
-      this.attributes = new LinkedList<LDAPAttribute>();
-    }
-    else
-    {
-      this.attributes = attributes;
-    }
+    this(dn, attributes, null, 3);
   }
 
 
@@ -118,7 +115,7 @@ public class SearchResultEntryProtocolOp
    */
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry)
   {
-    this(searchEntry,3);
+    this(searchEntry.getDN(), null, searchEntry, 3);
   }
 
 
@@ -134,90 +131,20 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntryProtocolOp(SearchResultEntry searchEntry,
           int ldapVersion)
   {
-    this.dn = searchEntry.getDN();
+    this(searchEntry.getDN(), null, searchEntry, ldapVersion);
+  }
 
-    attributes = new LinkedList<LDAPAttribute>();
 
-    if (ldapVersion == 2)
-    {
-      // Merge attributes having the same type into a single
-      // attribute.
-      boolean needsMerge;
-      Map<AttributeType, List<Attribute>> attrs = searchEntry
-          .getUserAttributes();
-      for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
-          .entrySet())
-      {
-        needsMerge = true;
 
-        if(attrList!=null && attrList.getValue().size()==1)
-        {
-          Attribute a = attrList.getValue().get(0);
-          if(!a.hasOptions())
-          {
-            needsMerge = false;
-            attributes.add(new LDAPAttribute(a));
-          }
-        }
-
-        if(needsMerge)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
-          for (Attribute a : attrList.getValue())
-          {
-            builder.addAll(a);
-          }
-          attributes.add(new LDAPAttribute(builder.toAttribute()));
-        }
-      }
-
-      attrs = searchEntry.getOperationalAttributes();
-      for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
-          .entrySet())
-      {
-        needsMerge = true;
-
-        if(attrList!=null && attrList.getValue().size()==1)
-        {
-          Attribute a = attrList.getValue().get(0);
-          if(!a.hasOptions())
-          {
-            needsMerge = false;
-            attributes.add(new LDAPAttribute(a));
-          }
-        }
-
-        if(needsMerge)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
-          for (Attribute a : attrList.getValue())
-          {
-            builder.addAll(a);
-          }
-          attributes.add(new LDAPAttribute(builder.toAttribute()));
-        }
-      }
-    }
-    else
-    {
-      // LDAPv3
-      for (List<Attribute> attrList : searchEntry.getUserAttributes().values())
-      {
-        for (Attribute a : attrList)
-        {
-          attributes.add(new LDAPAttribute(a));
-        }
-      }
-
-      for (List<Attribute> attrList : searchEntry.getOperationalAttributes()
-          .values())
-      {
-        for (Attribute a : attrList)
-        {
-          attributes.add(new LDAPAttribute(a));
-        }
-      }
-    }
+  // Generic constructor.
+  private SearchResultEntryProtocolOp(DN dn,
+      LinkedList<LDAPAttribute> attributes, SearchResultEntry searchEntry,
+      int ldapVersion)
+  {
+    this.dn = dn;
+    this.attributes = attributes;
+    this.entry = searchEntry;
+    this.ldapVersion = ldapVersion;
   }
 
 
@@ -241,6 +168,102 @@ public class SearchResultEntryProtocolOp
    */
   public LinkedList<LDAPAttribute> getAttributes()
   {
+    LinkedList<LDAPAttribute> tmp = attributes;
+    if (tmp == null)
+    {
+      tmp = new LinkedList<LDAPAttribute>();
+      if (entry != null)
+      {
+        if (ldapVersion == 2)
+        {
+          // Merge attributes having the same type into a single
+          // attribute.
+          boolean needsMerge;
+          Map<AttributeType, List<Attribute>> attrs =
+              entry.getUserAttributes();
+          for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
+              .entrySet())
+          {
+            needsMerge = true;
+
+            if (attrList != null && attrList.getValue().size() == 1)
+            {
+              Attribute a = attrList.getValue().get(0);
+              if (!a.hasOptions())
+              {
+                needsMerge = false;
+                tmp.add(new LDAPAttribute(a));
+              }
+            }
+
+            if (needsMerge)
+            {
+              AttributeBuilder builder =
+                  new AttributeBuilder(attrList.getKey());
+              for (Attribute a : attrList.getValue())
+              {
+                builder.addAll(a);
+              }
+              tmp.add(new LDAPAttribute(builder.toAttribute()));
+            }
+          }
+
+          attrs = entry.getOperationalAttributes();
+          for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
+              .entrySet())
+          {
+            needsMerge = true;
+
+            if (attrList != null && attrList.getValue().size() == 1)
+            {
+              Attribute a = attrList.getValue().get(0);
+              if (!a.hasOptions())
+              {
+                needsMerge = false;
+                tmp.add(new LDAPAttribute(a));
+              }
+            }
+
+            if (needsMerge)
+            {
+              AttributeBuilder builder =
+                  new AttributeBuilder(attrList.getKey());
+              for (Attribute a : attrList.getValue())
+              {
+                builder.addAll(a);
+              }
+              tmp.add(new LDAPAttribute(builder.toAttribute()));
+            }
+          }
+        }
+        else
+        {
+          // LDAPv3
+          for (List<Attribute> attrList : entry.getUserAttributes()
+              .values())
+          {
+            for (Attribute a : attrList)
+            {
+              tmp.add(new LDAPAttribute(a));
+            }
+          }
+
+          for (List<Attribute> attrList : entry
+              .getOperationalAttributes().values())
+          {
+            for (Attribute a : attrList)
+            {
+              tmp.add(new LDAPAttribute(a));
+            }
+          }
+        }
+      }
+
+      attributes = tmp;
+
+      // Since the attributes are mutable, null out the entry for consistency.
+      entry = null;
+    }
     return attributes;
   }
 
@@ -285,9 +308,33 @@ public class SearchResultEntryProtocolOp
     stream.writeOctetString(dn.toString());
 
     stream.writeStartSequence();
-    for(LDAPAttribute attr : attributes)
+    SearchResultEntry tmp = entry;
+    if (ldapVersion == 3 && tmp != null)
     {
-      attr.write(stream);
+      for (List<Attribute> attrList : tmp.getUserAttributes()
+          .values())
+      {
+        for (Attribute a : attrList)
+        {
+          writeAttribute(stream, a);
+        }
+      }
+
+      for (List<Attribute> attrList : tmp.getOperationalAttributes()
+          .values())
+      {
+        for (Attribute a : attrList)
+        {
+          writeAttribute(stream, a);
+        }
+      }
+    }
+    else
+    {
+      for (LDAPAttribute attr : getAttributes())
+      {
+        attr.write(stream);
+      }
     }
     stream.writeEndSequence();
 
@@ -309,9 +356,10 @@ public class SearchResultEntryProtocolOp
     dn.toString(buffer);
     buffer.append(", attrs={");
 
-    if (! attributes.isEmpty())
+    LinkedList<LDAPAttribute> tmp = getAttributes();
+    if (! tmp.isEmpty())
     {
-      Iterator<LDAPAttribute> iterator = attributes.iterator();
+      Iterator<LDAPAttribute> iterator = tmp.iterator();
       iterator.next().toString(buffer);
 
       while (iterator.hasNext())
@@ -355,7 +403,7 @@ public class SearchResultEntryProtocolOp
     buffer.append("  Attributes:");
     buffer.append(EOL);
 
-    for (LDAPAttribute attribute : attributes)
+    for (LDAPAttribute attribute : getAttributes())
     {
       attribute.toString(buffer, indent+4);
     }
@@ -419,7 +467,7 @@ public class SearchResultEntryProtocolOp
 
 
     // Add the attributes to the buffer.
-    for (LDAPAttribute a : attributes)
+    for (LDAPAttribute a : getAttributes())
     {
       String name       = a.getAttributeType();
       int    nameLength = name.length();
@@ -495,6 +543,11 @@ public class SearchResultEntryProtocolOp
   public SearchResultEntry toSearchResultEntry()
          throws LDAPException
   {
+    if (entry != null)
+    {
+      return entry;
+    }
+
     HashMap<ObjectClass,String> objectClasses =
          new HashMap<ObjectClass,String>();
     HashMap<AttributeType,List<Attribute>> userAttributes =
@@ -503,7 +556,7 @@ public class SearchResultEntryProtocolOp
          new HashMap<AttributeType,List<Attribute>>();
 
 
-    for (LDAPAttribute a : attributes)
+    for (LDAPAttribute a : getAttributes())
     {
       Attribute     attr     = a.toAttribute();
       AttributeType attrType = attr.getAttributeType();
@@ -570,10 +623,26 @@ public class SearchResultEntryProtocolOp
       }
     }
 
-
     Entry entry = new Entry(dn, objectClasses, userAttributes,
                             operationalAttributes);
     return new SearchResultEntry(entry);
+  }
+
+
+
+  // Write an attribute without converting to an LDAPAttribute.
+  private void writeAttribute(ASN1Writer stream, Attribute a)
+      throws IOException
+  {
+    stream.writeStartSequence();
+    stream.writeOctetString(a.getNameWithOptions());
+    stream.writeStartSet();
+    for (AttributeValue value : a)
+    {
+      stream.writeOctetString(value.getValue());
+    }
+    stream.writeEndSequence();
+    stream.writeEndSequence();
   }
 }
 
