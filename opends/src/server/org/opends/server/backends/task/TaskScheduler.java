@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -260,7 +261,14 @@ public class TaskScheduler
         Task task = recurringTask.scheduleNextIteration();
         if (task != null)
         {
-          // FIXME -- What to do if task is null?
+          // If there is an existing task with the same id
+          // and it is in completed state, take its place.
+          Task t = tasks.get(task.getTaskID());
+          if ((t != null) && TaskState.isDone(t.getTaskState()))
+          {
+            removeCompletedTask(t.getTaskID());
+          }
+
           scheduleTask(task, false);
         }
       }
@@ -295,14 +303,28 @@ public class TaskScheduler
     try
     {
       RecurringTask recurringTask = recurringTasks.remove(recurringTaskID);
+      HashMap<String,Task> iterationsMap = new HashMap<String,Task>();
 
       for (Task t : tasks.values())
       {
+        // Find any existing task iterations and try to cancel them.
         if ((t.getRecurringTaskID() != null) &&
-            (t.getRecurringTaskID().equals(recurringTaskID)) &&
-            !TaskState.isDone(t.getTaskState()))
+            (t.getRecurringTaskID().equals(recurringTaskID)))
         {
-          cancelTask(t.getTaskID());
+          if (!TaskState.isDone(t.getTaskState()))
+          {
+            cancelTask(t.getTaskID());
+          }
+          iterationsMap.put(t.getTaskID(), t);
+        }
+      }
+
+      // Remove any completed task iterations.
+      for (Map.Entry<String,Task> iterationEntry : iterationsMap.entrySet())
+      {
+        if (TaskState.isDone(iterationEntry.getValue().getTaskState()))
+        {
+          removeCompletedTask(iterationEntry.getKey());
         }
       }
 
@@ -635,6 +657,14 @@ public class TaskScheduler
           {
             try
             {
+              // If there is an existing task with the same id
+              // and it is in completed state, take its place.
+              Task t = tasks.get(newIteration.getTaskID());
+              if ((t != null) && TaskState.isDone(t.getTaskState()))
+              {
+                removeCompletedTask(t.getTaskID());
+              }
+
               scheduleTask(newIteration, false);
             }
             catch (DirectoryException de)
