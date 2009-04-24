@@ -129,9 +129,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendAddOperation addOperation);
+      LocalBackendAddOperation addOperation)
+    throws DirectoryException;
 
 
 
@@ -148,9 +154,17 @@ public abstract class AccessControlHandler
    *          The control for which to make the determination.
    * @return {@code true} if the control should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
-  public abstract boolean isAllowed(DN dn, Operation op,
-                                    Control control);
+  public abstract boolean isAllowed(
+      DN dn,
+      Operation op,
+      Control control)
+    throws DirectoryException;
 
 
 
@@ -163,9 +177,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendBindOperation bindOperation);
+      LocalBackendBindOperation bindOperation)
+    throws DirectoryException;
 
 
 
@@ -178,9 +198,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendCompareOperation compareOperation);
+      LocalBackendCompareOperation compareOperation)
+    throws DirectoryException;
 
 
 
@@ -193,9 +219,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendDeleteOperation deleteOperation);
+      LocalBackendDeleteOperation deleteOperation)
+    throws DirectoryException;
 
 
 
@@ -208,9 +240,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      ExtendedOperation extendedOperation);
+      ExtendedOperation extendedOperation)
+    throws DirectoryException;
 
 
 
@@ -223,9 +261,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendModifyOperation modifyOperation);
+      LocalBackendModifyOperation modifyOperation)
+    throws DirectoryException;
 
 
 
@@ -238,9 +282,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendModifyDNOperation modifyDNOperation);
+      LocalBackendModifyDNOperation modifyDNOperation)
+    throws DirectoryException;
 
 
 
@@ -256,9 +306,15 @@ public abstract class AccessControlHandler
    *          The operation for which to make the determination.
    * @return {@code true} if the operation should be allowed by the
    *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
   public abstract boolean isAllowed(
-      LocalBackendSearchOperation searchOperation);
+      LocalBackendSearchOperation searchOperation)
+    throws DirectoryException;
 
 
 

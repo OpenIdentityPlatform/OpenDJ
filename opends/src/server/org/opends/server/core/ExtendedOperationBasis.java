@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -47,6 +47,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -362,6 +363,7 @@ public class ExtendedOperationBasis
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -417,15 +419,25 @@ public class ExtendedOperationBasis
       {
         for (Control c : requestControls)
         {
-          if (!AccessControlConfigManager.getInstance().
-                  getAccessControlHandler().
-                  isAllowed(this.getAuthorizationDN(), this, c)) {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-            appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(
-                    c.getOID()));
+          try
+          {
+            if (!AccessControlConfigManager.getInstance()
+                .getAccessControlHandler().isAllowed(
+                    this.getAuthorizationDN(), this, c))
+            {
+              setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS
+                  .get(c.getOID()));
+              return;
+            }
+          }
+          catch (DirectoryException e)
+          {
+            setResultCode(e.getResultCode());
+            appendErrorMessage(e.getMessageObject());
             return;
           }
+
           if (! c.isCritical())
           {
             // The control isn't critical, so we don't care if it's supported
@@ -451,13 +463,21 @@ public class ExtendedOperationBasis
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes proxy authorization
       // and any other controls specified.
-      if (AccessControlConfigManager.getInstance()
-          .getAccessControlHandler().isAllowed(this) == false) {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-        appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                String.valueOf(requestOID)));
-
+      try
+      {
+        if (AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this) == false)
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(requestOID)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
         return;
       }
 

@@ -77,6 +77,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -89,7 +90,7 @@ import org.opends.server.workflowelement.localbackend.*;
  * The AciHandler class performs the main processing for the dseecompat
  * package.
  */
-public class AciHandler extends
+public final class AciHandler extends
     AccessControlHandler<DseeCompatAccessControlHandlerCfg>
 {
   /**
@@ -318,6 +319,7 @@ public class AciHandler extends
    */
   @Override
   public boolean isAllowed(DN entryDN, Operation op, Control control)
+      throws DirectoryException
   {
     boolean ret;
     if (!(ret = skipAccessCheck(op)))
@@ -335,31 +337,20 @@ public class AciHandler extends
     }
     else if (control.getOID().equals(OID_GET_EFFECTIVE_RIGHTS))
     {
-      try
+      GetEffectiveRightsRequestControl getEffectiveRightsControl;
+      if (control instanceof LDAPControl)
       {
-        GetEffectiveRightsRequestControl getEffectiveRightsControl;
-        if (control instanceof LDAPControl)
-        {
-          getEffectiveRightsControl =
-              GetEffectiveRightsRequestControl.DECODER.decode(control
-                  .isCritical(), ((LDAPControl) control).getValue());
-        }
-        else
-        {
-          getEffectiveRightsControl =
-              (GetEffectiveRightsRequestControl) control;
-        }
-        op.setAttachment(OID_GET_EFFECTIVE_RIGHTS,
-            getEffectiveRightsControl);
+        getEffectiveRightsControl =
+            GetEffectiveRightsRequestControl.DECODER.decode(control
+                .isCritical(), ((LDAPControl) control).getValue());
       }
-      catch (DirectoryException de)
+      else
       {
-        Message message =
-            WARN_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL.get(de
-                .getMessage());
-        logError(message);
-        ret = false;
+        getEffectiveRightsControl =
+            (GetEffectiveRightsRequestControl) control;
       }
+      op.setAttachment(OID_GET_EFFECTIVE_RIGHTS,
+          getEffectiveRightsControl);
     }
     return ret;
   }
@@ -388,14 +379,11 @@ public class AciHandler extends
 
 
   /**
-   * Check access on add operations.
-   *
-   * @param operation
-   *          The add operation to check access on.
-   * @return True if access is allowed.
+   * {@inheritDoc}
    */
   @Override
   public boolean isAllowed(LocalBackendAddOperation operation)
+      throws DirectoryException
   {
     AciLDAPOperationContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_ADD);
@@ -543,15 +531,11 @@ public class AciHandler extends
 
 
   /**
-   * Check access on modify operations.
-   *
-   * @param operation
-   *          The modify operation to check access on.
-   * @return True if access is allowed.
+   * {@inheritDoc}
    */
-
   @Override
   public boolean isAllowed(LocalBackendModifyOperation operation)
+      throws DirectoryException
   {
     AciLDAPOperationContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_NULL);
@@ -910,9 +894,12 @@ public class AciHandler extends
    * @param skipAccessCheck
    *          True if access checking should be skipped.
    * @return True if access is allowed.
+   * @throws DirectoryException
+   *           If a modified ACI could not be decoded.
    */
   private boolean aciCheckMods(AciLDAPOperationContainer container,
       LocalBackendModifyOperation operation, boolean skipAccessCheck)
+      throws DirectoryException
   {
     Entry resourceEntry = container.getResourceEntry();
     DN dn = resourceEntry.getDN();
@@ -1044,8 +1031,8 @@ public class AciHandler extends
               Message message =
                   WARN_ACI_MODIFY_FAILED_DECODE.get(String.valueOf(dn),
                       ex.getMessage());
-              logError(message);
-              return false;
+              throw new DirectoryException(
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
             }
           }
         }
@@ -1598,9 +1585,11 @@ public class AciHandler extends
    *          The authorization DN.
    * @return True if the entry has no ACI attributes or if all of the
    *         "aci" attributes values pass ACI syntax checking.
+   * @throws DirectoryException
+   *           If a modified ACI could not be decoded.
    */
   private boolean verifySyntax(Entry entry, Operation operation,
-      DN clientDN)
+      DN clientDN) throws DirectoryException
   {
     if (entry.hasOperationalAttribute(aciType))
     {
@@ -1633,8 +1622,8 @@ public class AciHandler extends
             Message message =
                 WARN_ACI_ADD_FAILED_DECODE.get(String.valueOf(entry
                     .getDN()), ex.getMessage());
-            logError(message);
-            return false;
+            throw new DirectoryException(
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }
         }
       }

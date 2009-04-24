@@ -233,12 +233,21 @@ bindProcessing:
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes any controls
       // specified.
-      if (! AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this))
+      try
       {
-        setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(bindDN)));
+        if (!AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INVALID_CREDENTIALS);
+          setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(bindDN)));
+          break bindProcessing;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        setAuthFailureReason(e.getMessageObject());
         break bindProcessing;
       }
 
