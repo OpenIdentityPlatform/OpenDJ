@@ -76,9 +76,6 @@ public class ExtendedOperationBasis
   // The value for the response associated with this extended operation.
   private ByteString responseValue;
 
-  // Indicates whether a response has yet been sent for this operation.
-  private boolean responseSent;
-
   // The set of response controls for this extended operation.
   private List<Control> responseControls;
 
@@ -119,7 +116,6 @@ public class ExtendedOperationBasis
     responseValue    = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
-    responseSent     = false;
 
     if (requestOID.equals(OID_CANCEL_REQUEST))
     {
@@ -524,17 +520,18 @@ public class ExtendedOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Send the response to the client, if it has not already been sent.
-      if (! responseSent)
+      // Send the response to the client.
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
       {
-        responseSent = true;
-        if(cancelRequest == null || cancelResult == null ||
-            cancelResult.getResultCode() != ResultCode.CANCELED ||
-            cancelRequest.notifyOriginalRequestor() ||
-            DirectoryServer.notifyAbandonedOperations())
-        {
-          clientConnection.sendResponse(this);
-        }
+        clientConnection.sendResponse(this);
+      }
+
+      if(requestOID.equals(OID_START_TLS_REQUEST))
+      {
+        clientConnection.finishBindOrStartTLS();
       }
 
       // Log the extended response.
@@ -549,37 +546,6 @@ public class ExtendedOperationBasis
         cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
       }
     }
-  }
-
-
-
-  /**
-   * Sends an extended response to the client if none has already been sent.
-   * Note that extended operation handlers are strongly discouraged from using
-   * this method when it is not necessary because its use will prevent the
-   * response from being sent after post-operation plugin processing, which may
-   * impact the result that should be included.  Nevertheless, it may be needed
-   * in some special cases in which the response must be sent before the
-   * extended operation handler completes its processing (e.g., the StartTLS
-   * operation in which the response must be sent in the clear before actually
-   * enabling TLS protection).
-   */
-  public final void sendExtendedResponse()
-  {
-    if (! responseSent)
-    {
-      responseSent = true;
-      clientConnection.sendResponse(this);
-    }
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final void setResponseSent()
-  {
-    this.responseSent = true;
   }
 
   /**

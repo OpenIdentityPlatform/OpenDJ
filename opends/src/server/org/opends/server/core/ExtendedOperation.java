@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -94,13 +94,5 @@ public interface ExtendedOperation
    *                        the client.
    */
   public void setResponseValue(ByteString responseValue);
-
-  /**
-   * Indicates that the response for this extended operation has been sent from
-   * somewhere outside of this class.  This should only be used by the StartTLS
-   * extended operation for the case in which it needs to send a response in the
-   * clear after TLS negotiation has already started on the connection.
-   */
-  public void setResponseSent();
 }
 

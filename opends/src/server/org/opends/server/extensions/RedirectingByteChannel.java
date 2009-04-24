@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.extensions;
@@ -38,7 +38,7 @@ import java.nio.channels.ByteChannel;
  */
 public class RedirectingByteChannel implements ByteChannel {
     private final ByteChannel child;
-    private ByteChannel redirect = null;
+    private volatile ByteChannel redirect = null;
 
     private RedirectingByteChannel(ByteChannel child) {
         this.child = child;

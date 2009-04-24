@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Message;
 import org.opends.server.api.plugin.PluginResult;
@@ -92,10 +93,19 @@ public abstract class ClientConnection
   // The set of authentication information for this client connection.
   private AuthenticationInfo authenticationInfo;
 
-  // Indicates whether a bind is currently in progress on this client
-  // connection.  If so, then no other operations should be allowed
-  // until the bind completes.
-  private boolean bindInProgress;
+  /**
+   * Indicates whether a multistage SASL bind is currently in progress
+   * on this client connection.  If so, then no other operations
+   * should be allowed until the bind completes.
+   */
+  protected AtomicBoolean saslBindInProgress;
+
+  /**
+   * Indicates if a bind or start TLS request is currently in progress
+   * on this client connection. If so, then no further socket reads
+   * will occur until the request completes.
+   */
+  protected AtomicBoolean bindOrStartTLSInProgress;
 
   // Indicates whether any necessary finalization work has been done
   // for this client connection.
@@ -148,7 +158,8 @@ public abstract class ClientConnection
     connectTimeString  = TimeThread.getGMTTime();
     authenticationInfo = new AuthenticationInfo();
     saslAuthState      = null;
-    bindInProgress     = false;
+    saslBindInProgress = new AtomicBoolean(false);
+    bindOrStartTLSInProgress = new AtomicBoolean(false);
     persistentSearches = new CopyOnWriteArrayList<PersistentSearch>();
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
@@ -691,36 +702,6 @@ public abstract class ClientConnection
   public abstract void disconnect(DisconnectReason disconnectReason,
                                   boolean sendNotification,
                                   Message message);
-
-
-
-  /**
-   * Indicates whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @return  {@code true} if a bind operation is in progress on this
-   *          connection, or {@code false} if not.
-   */
-  public boolean bindInProgress()
-  {
-    return bindInProgress;
-  }
-
-
-
-  /**
-   * Specifies whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @param  bindInProgress  Specifies whether a bind operation is in
-   *                         progress on this client connection.
-   */
-  public void setBindInProgress(boolean bindInProgress)
-  {
-    this.bindInProgress = bindInProgress;
-  }
 
 
 
@@ -1850,5 +1831,25 @@ public abstract class ClientConnection
    * @return An integer representing the SSF value of a connection.
    */
   public abstract int getSSF();
+
+  /**
+   * Indicates a bind or start TLS request processing is finished
+   * and the client connection may start processing data read from
+   * the socket again. This must be called after processing each
+   * bind request in a multistage SASL bind.
+   */
+  public void finishBindOrStartTLS()
+  {
+    bindOrStartTLSInProgress.set(false);
+  }
+
+  /**
+   * Indicates a multistage SASL bind operation is finished and the
+   * client connection may accept additional LDAP messages.
+   */
+  public void finishSaslBind()
+  {
+    saslBindInProgress.set(false);
+  }
 }
 

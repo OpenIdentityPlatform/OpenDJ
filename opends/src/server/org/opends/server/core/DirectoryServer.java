@@ -211,7 +211,6 @@ import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
@@ -7248,17 +7247,7 @@ public class DirectoryServer
   public static void enqueueRequest(AbstractOperation operation)
          throws DirectoryException
   {
-    // See if a bind is already in progress on the associated connection.  If so
-    // then reject the operation.
     ClientConnection clientConnection = operation.getClientConnection();
-    if (clientConnection.bindInProgress() &&
-        (operation.getOperationType() != OperationType.BIND))
-    {
-      Message message = ERR_ENQUEUE_BIND_IN_PROGRESS.get();
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-
     //Reject or accept the unauthenticated requests based on the configuration
     // settings.
     if ((directoryServer.rejectUnauthenticatedRequests ||

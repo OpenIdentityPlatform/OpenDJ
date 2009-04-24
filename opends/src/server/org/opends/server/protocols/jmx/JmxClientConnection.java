@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 import org.opends.messages.Message;
@@ -1021,38 +1021,6 @@ public class JmxClientConnection
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
-  }
-
-
-
-  /**
-   * Indicates whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed until the bind
-   * has completed.
-   *
-   * @return  <CODE>true</CODE> if a bind operation is in progress on this
-   *          connection, or <CODE>false</CODE> if not.
-   */
-  public boolean bindInProgress()
-  {
-    // For Jmx operations, we don't care if there are any binds in
-    // progress.
-    return false;
-  }
-
-
-
-  /**
-   * Specifies whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed until the bind
-   * has completed.
-   *
-   * @param  bindInProgress  Specifies whether a bind operation is in progress
-   *                         on this client connection.
-   */
-  public void setBindInProgress(boolean bindInProgress)
-  {
-    // No implementation is required.
   }
 
 
