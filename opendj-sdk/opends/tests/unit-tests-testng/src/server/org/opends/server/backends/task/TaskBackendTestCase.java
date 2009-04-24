@@ -524,9 +524,8 @@ public class TaskBackendTestCase
     assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
 
-    // Make sure recurring task iteration got canceled.
-    scheduledTask = TasksTestCase.getTask(DN.decode(scheduledTaskDN));
-    assertTrue(TaskState.isCancelled(scheduledTask.getTaskState()));
+    // Make sure recurring task iteration got canceled and removed.
+    assertFalse(DirectoryServer.entryExists(DN.decode(scheduledTaskDN)));
   }
 
 
