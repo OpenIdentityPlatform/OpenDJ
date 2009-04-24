@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import static org.opends.messages.CoreMessages.ERR_ENQUEUE_BIND_IN_PROGRESS;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.AbandonOperationBasis;
@@ -76,24 +77,9 @@ import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
-
+import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
 
 
 /**
@@ -200,9 +186,9 @@ public class LDAPClientConnection extends ClientConnection implements
 
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
-  private ConnectionSecurityProvider activeProvider = null;
-  private ConnectionSecurityProvider tlsPendingProvider = null;
-  private ConnectionSecurityProvider saslPendingProvider = null;
+  private volatile ConnectionSecurityProvider activeProvider = null;
+  private volatile ConnectionSecurityProvider tlsPendingProvider = null;
+  private volatile ConnectionSecurityProvider saslPendingProvider = null;
 
   // Statistics for the processed operations
   private OperationMonitor addMonitor;
@@ -1419,12 +1405,15 @@ public class LDAPClientConnection extends ClientConnection implements
    */
   public boolean processDataRead()
   {
-    if (this.saslPendingProvider != null)
-    {
-      enableSASL();
-    }
     while (true)
     {
+      if(bindOrStartTLSInProgress.get())
+      {
+        // We should wait for the bind or startTLS to finish before
+        // reading any more data off the socket.
+        return true;
+      }
+
       try
       {
         int result = asn1Reader.processChannelData();
@@ -1541,6 +1530,14 @@ public class LDAPClientConnection extends ClientConnection implements
     // terminated.
     try
     {
+      if(bindOrStartTLSInProgress.get() ||
+          (saslBindInProgress.get() &&
+              message.getProtocolOpType() != OP_TYPE_BIND_REQUEST))
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_ENQUEUE_BIND_IN_PROGRESS.get());
+      }
+
       boolean result;
       switch (message.getProtocolOpType())
       {
@@ -1564,7 +1561,22 @@ public class LDAPClientConnection extends ClientConnection implements
         return result;
       case OP_TYPE_BIND_REQUEST:
         if (keepStats) this.bindMonitor.start();
+        bindOrStartTLSInProgress.set(true);
+        if(message.getBindRequestProtocolOp().
+            getAuthenticationType() == AuthenticationType.SASL)
+        {
+          saslBindInProgress.set(true);
+        }
         result = processBindRequest(message, opControls);
+        if(!result)
+        {
+          bindOrStartTLSInProgress.set(false);
+          if(message.getBindRequestProtocolOp().
+              getAuthenticationType() == AuthenticationType.SASL)
+          {
+            saslBindInProgress.set(false);
+          }
+        }
         if (keepStats)
         {
           this.bindMonitor.stop();
@@ -1591,7 +1603,18 @@ public class LDAPClientConnection extends ClientConnection implements
         return result;
       case OP_TYPE_EXTENDED_REQUEST:
         if (keepStats) this.extendedMonitor.start();
+        if(message.getExtendedRequestProtocolOp().getOID().equals(
+            OID_START_TLS_REQUEST))
+        {
+          bindOrStartTLSInProgress.set(true);
+        }
         result = processExtendedRequest(message, opControls);
+        if(!result &&
+            message.getExtendedRequestProtocolOp().getOID().equals(
+                OID_START_TLS_REQUEST))
+        {
+          bindOrStartTLSInProgress.set(false);
+        }
         if (keepStats)
         {
           this.extendedMonitor.stop();
@@ -2447,26 +2470,6 @@ public class LDAPClientConnection extends ClientConnection implements
 
 
   /**
-   * Sends a response to the client in the clear rather than through the
-   * encrypted channel. This should only be used when processing the
-   * StartTLS extended operation to send the response in the clear after
-   * the TLS negotiation has already been initiated.
-   *
-   * @param operation
-   *          The operation for which to send the response in the clear.
-   * @throws DirectoryException
-   *           If a problem occurs while sending the response in the
-   *           clear.
-   */
-  public void sendClearResponse(Operation operation)
-      throws DirectoryException
-  {
-    sendLDAPMessage(operationToResponseLDAPMessage(operation));
-  }
-
-
-
-  /**
    * Retrieves the length of time in milliseconds that this client
    * connection has been idle. <BR>
    * <BR>
@@ -2648,5 +2651,24 @@ public class LDAPClientConnection extends ClientConnection implements
     this.modMonitor = OperationMonitor.getOperationMonitor(MODIFY);
     this.moddnMonitor = OperationMonitor.getOperationMonitor(MODIFY_DN);
     this.unbindMonitor = OperationMonitor.getOperationMonitor(UNBIND);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void finishBindOrStartTLS()
+  {
+    if(this.tlsPendingProvider != null)
+    {
+      enableTLS();
+    }
+
+    if (this.saslPendingProvider != null)
+    {
+      enableSASL();
+    }
+
+    super.finishBindOrStartTLS();
   }
 }

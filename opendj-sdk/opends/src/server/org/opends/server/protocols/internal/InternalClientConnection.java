@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -2741,45 +2741,6 @@ public final class InternalClientConnection
     // wait to have the garbage collector call
     // finalizeConnectionInternal whenever this internal connection is
     // garbage collected.
-  }
-
-
-
-  /**
-   * Indicates whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @return  <CODE>true</CODE> if a bind operation is in progress on
-   *          this connection, or <CODE>false</CODE> if not.
-   */
-  @Override()
-  public boolean bindInProgress()
-  {
-    // For internal operations, we don't care if there are any binds
-    // in progress.
-    return false;
-  }
-
-
-
-  /**
-   * Specifies whether a bind operation is in progress on this client
-   * connection.  If so, then no new operations should be allowed
-   * until the bind has completed.
-   *
-   * @param  bindInProgress  Specifies whether a bind operation is in
-   *                         progress on this client connection.
-   */
-  @org.opends.server.types.PublicAPI(
-       stability=org.opends.server.types.StabilityLevel.PRIVATE,
-       mayInstantiate=false,
-       mayExtend=false,
-       mayInvoke=false)
-  @Override()
-  public void setBindInProgress(boolean bindInProgress)
-  {
-    // No implementation is required.
   }
 
 

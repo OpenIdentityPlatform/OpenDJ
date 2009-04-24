@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -1009,59 +1009,6 @@ public class InternalClientConnectionTestCase
   }
 
 
-
-  /**
-   * Tests the <CODE>bindInProgress</CODE> method.
-   */
-  @Test()
-  public void testBindInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertFalse(conn.bindInProgress());
-  }
-
-
-
-  /**
-   * Tests the <CODE>setBindInProgress</CODE> method.
-   */
-  @Test()
-  public void testSetBindInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.setBindInProgress(true);
-    assertFalse(conn.bindInProgress());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getOperationsInProgress</CODE> method.
-   */
-  @Test()
-  public void testGetOperationsInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    Collection<Operation> opList = conn.getOperationsInProgress();
-    assertNotNull(opList);
-    assertTrue(opList.isEmpty());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getOperationInProgress</CODE> method.
-   */
-  @Test()
-  public void testGetOperationInProgress()
-  {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertNull(conn.getOperationInProgress(0));
-  }
 
 
 

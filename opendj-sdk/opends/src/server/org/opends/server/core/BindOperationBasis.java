@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -728,11 +728,6 @@ public class BindOperationBasis
 
     ClientConnection clientConnection = getClientConnection();
 
-    // Set a flag to indicate that a bind operation is in progress.  This should
-    // ensure that no new operations will be accepted for this client until the
-    // bind is complete.
-    clientConnection.setBindInProgress(true);
-
     // Wipe out any existing authentication for the client connection and create
     // a placeholder that will be used if the bind is successful.
     clientConnection.setUnauthenticated();
@@ -838,18 +833,20 @@ public class BindOperationBasis
     }
     finally
     {
-      // If the bind processing is finished, then unset the "bind in progress"
-      // flag to allow other operations to be processed on the connection.
-      if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
-      {
-        clientConnection.setBindInProgress(false);
-      }
-
       // Stop the processing timer.
       setProcessingStopTime();
 
       // Send the bind response to the client.
       clientConnection.sendResponse(this);
+
+      // If the bind processing is finished, then unset the "bind in progress"
+      // flag to allow other operations to be processed on the connection.
+      if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
+      {
+        clientConnection.finishSaslBind();
+      }
+
+      clientConnection.finishBindOrStartTLS();
 
       // Log the bind response.
       logBindResponse(this);

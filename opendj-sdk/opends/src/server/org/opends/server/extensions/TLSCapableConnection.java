@@ -22,14 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.MessageBuilder;
-
-
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Operation;
 
 
 
@@ -56,36 +52,5 @@ public interface TLSCapableConnection
    *          connection, or <CODE>false</CODE> if it is not.
    */
   public boolean isTLSAvailable(MessageBuilder unavailableReason);
-
-
-
-  /**
-   * Installs the TLS connection security provider on this client connection.
-   * If an error occurs in the process, then the underlying client connection
-   * must be terminated and an exception must be thrown to indicate the
-   * underlying cause.
-   *
-   * @throws  DirectoryException  If the TLS connection security provider could
-   *                              not be enabled and the underlying connection
-   *                              has been closed.
-   */
-  public void enableTLS()
-         throws DirectoryException;
-
-
-  /**
-   * Sends a response to the client in the clear rather than through the
-   * encrypted channel.  This should only be used when processing the StartTLS
-   * extended operation to send the response in the clear after the SSL
-   * negotiation has already been initiated.
-   *
-   * @param  operation  The operation for which to send the response in the
-   *                    clear.
-   *
-   * @throws  DirectoryException  If a problem occurs while sending the response
-   *                              in the clear.
-   */
-  public void sendClearResponse(Operation operation)
-         throws DirectoryException;
 }
 
