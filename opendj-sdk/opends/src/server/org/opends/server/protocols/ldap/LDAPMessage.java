@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -56,7 +56,7 @@ public class LDAPMessage
   private final int messageID;
 
   // The protocol op for this LDAP message.
-  private ProtocolOp protocolOp;
+  private final ProtocolOp protocolOp;
 
 
 
@@ -69,10 +69,7 @@ public class LDAPMessage
    */
   public LDAPMessage(int messageID, ProtocolOp protocolOp)
   {
-    this.messageID  = messageID;
-    this.protocolOp = protocolOp;
-
-    controls = new ArrayList<Control>(0);
+    this(messageID, protocolOp, null);
   }
 
 
@@ -90,15 +87,7 @@ public class LDAPMessage
   {
     this.messageID  = messageID;
     this.protocolOp = protocolOp;
-
-    if (controls == null)
-    {
-      this.controls = new ArrayList<Control>(0);
-    }
-    else
-    {
-      this.controls = controls;
-    }
+    this.controls = controls;
   }
 
 
@@ -512,18 +501,6 @@ public class LDAPMessage
 
 
   /**
-   * Specifies the protocol op for this LDAP message.
-   *
-   * @param  protocolOp  The protocol op for this LDAP message.
-   */
-  public void setProtocolOp(ProtocolOp protocolOp)
-  {
-    this.protocolOp = protocolOp;
-  }
-
-
-
-  /**
    * Retrieves the set of controls for this LDAP message.  It may be modified by
    * the caller.
    *
@@ -531,6 +508,11 @@ public class LDAPMessage
    */
   public List<Control> getControls()
   {
+    // This method is not thread-safe.
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
     return controls;
   }
 
@@ -546,7 +528,7 @@ public class LDAPMessage
     stream.writeInteger(messageID);
     protocolOp.write(stream);
 
-    if(!controls.isEmpty())
+    if(controls != null && !controls.isEmpty())
     {
       stream.writeStartSequence(TYPE_CONTROL_SEQUENCE);
       for(Control control : controls)
@@ -658,7 +640,7 @@ public class LDAPMessage
     buffer.append(EOL);
     protocolOp.toString(buffer, indent+4);
 
-    if (! controls.isEmpty())
+    if (controls != null && !controls.isEmpty())
     {
       buffer.append(indentBuf);
       buffer.append("  Controls:");
