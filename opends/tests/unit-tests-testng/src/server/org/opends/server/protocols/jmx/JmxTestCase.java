@@ -100,7 +100,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       enableJmx();
       synchronized (this)
       {
-        this.wait(500);
+        this.wait(1000);
       }
       for (ConnectionHandler handler : handlers)
       {
@@ -111,7 +111,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
         }
       }
     }
-
+    assertNotNull(jmxConnectionHandler);
     return jmxConnectionHandler;
   }
 
