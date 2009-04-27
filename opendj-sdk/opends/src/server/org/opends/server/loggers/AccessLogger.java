@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -73,11 +73,11 @@ public class AccessLogger implements
 
   // The set of access loggers that have been registered with the server.  It
   // will initially be empty.
-  static CopyOnWriteArrayList<AccessLogPublisher<?>> accessPublishers =
+  private static CopyOnWriteArrayList<AccessLogPublisher<?>> accessPublishers =
       new CopyOnWriteArrayList<AccessLogPublisher<?>>();
 
   // The singleton instance of this class for configuration purposes.
-  static final AccessLogger instance = new AccessLogger();
+  private static final AccessLogger instance = new AccessLogger();
 
 
 
@@ -448,6 +448,32 @@ public class AccessLogger implements
 
 
   /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided client connection.
+   *
+   * @param clientConnection
+   *          The client connection that has been established.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises of
+   *          one or more key/value pairs which form the content of the
+   *          intermediate message.
+   */
+  public static void logConnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logConnectIntermediateMessage(clientConnection,
+          category, content);
+    }
+  }
+
+
+
+  /**
    * Writes a message to the access logger with information about the
    * termination of an existing client connection.
    *
@@ -466,6 +492,33 @@ public class AccessLogger implements
       publisher.logDisconnect(clientConnection, disconnectReason, message);
     }
   }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided client disconnection.
+   *
+   * @param clientConnection
+   *          The client connection that has been terminated.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises of
+   *          one or more key/value pairs which form the content of the
+   *          intermediate message.
+   */
+  public static void logDisconnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    for (AccessLogPublisher<?> publisher : accessPublishers)
+    {
+      publisher.logDisconnectIntermediateMessage(clientConnection,
+          category, content);
+    }
+  }
+
 
 
   /**

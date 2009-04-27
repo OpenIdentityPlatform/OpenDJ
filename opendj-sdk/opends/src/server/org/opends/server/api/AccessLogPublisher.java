@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
@@ -133,6 +133,30 @@ public abstract class AccessLogPublisher
 
 
   /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided client connection.
+   * <p>
+   * The default implementation is to not log anything.
+   *
+   * @param clientConnection
+   *          The client connection that has been established.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public void logConnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    // Do nothing
+  }
+
+
+
+  /**
    * Writes a message to the access logger with information about the
    * termination of an existing client connection.
    * <p>
@@ -149,6 +173,30 @@ public abstract class AccessLogPublisher
    */
   public void logDisconnect(ClientConnection clientConnection,
       DisconnectReason disconnectReason, Message message)
+  {
+    // Do nothing
+  }
+
+
+
+  /**
+   * Writes a message to the access logger containing additional
+   * information associated with the provided client disconnection.
+   * <p>
+   * The default implementation is to not log anything.
+   *
+   * @param clientConnection
+   *          The client connection that has been terminated.
+   * @param category
+   *          The category of the intermediate message.
+   * @param content
+   *          The content of the intermediate message. This comprises
+   *          of one or more key/value pairs which form the content of
+   *          the intermediate message.
+   */
+  public void logDisconnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
   {
     // Do nothing
   }

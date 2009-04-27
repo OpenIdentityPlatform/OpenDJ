@@ -854,6 +854,20 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
+  public void logConnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    logIntermediateMessage(clientConnection, "CONNECT", category,
+        content);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void logDeleteIntermediateMessage(DeleteOperation deleteOperation,
       String category, Map<String, String> content)
   {
@@ -989,6 +1003,20 @@ public class TextAccessLogPublisher extends
     buffer.append("\"");
 
     writer.writeRecord(buffer.toString());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logDisconnectIntermediateMessage(
+      ClientConnection clientConnection, String category,
+      Map<String, String> content)
+  {
+    logIntermediateMessage(clientConnection, "DISCONNECT", category,
+        content);
   }
 
 
@@ -1461,11 +1489,11 @@ public class TextAccessLogPublisher extends
   private void appendHeader(Operation operation, String opType,
       String category, StringBuilder buffer)
   {
-    buffer.append("[");
+    buffer.append('[');
     buffer.append(TimeThread.getLocalTime());
     buffer.append("] ");
     buffer.append(opType);
-    buffer.append(" ");
+    buffer.append(' ');
     buffer.append(category);
     buffer.append(" conn=");
     buffer.append(operation.getConnectionID());
@@ -1515,6 +1543,42 @@ public class TextAccessLogPublisher extends
 
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(operation, opType, category, buffer);
+
+    for (Map.Entry<String, String> entry : content.entrySet())
+    {
+      buffer.append(' ');
+      buffer.append(entry.getKey());
+      buffer.append('=');
+      buffer.append(entry.getValue());
+    }
+
+    writer.writeRecord(buffer.toString());
+  }
+
+
+
+  //Writes an intermediate message to the log.
+  private void logIntermediateMessage(
+      ClientConnection clientConnection, String type, String category,
+      Map<String, String> content)
+  {
+    long connectionID = clientConnection.getConnectionID();
+
+    if (connectionID < 0 && suppressInternalOperations)
+    {
+      return;
+    }
+
+    StringBuilder buffer = new StringBuilder(100);
+
+    buffer.append('[');
+    buffer.append(TimeThread.getLocalTime());
+    buffer.append("] ");
+    buffer.append(type);
+    buffer.append(' ');
+    buffer.append(category);
+    buffer.append(" conn=");
+    buffer.append(connectionID);
 
     for (Map.Entry<String, String> entry : content.entrySet())
     {
