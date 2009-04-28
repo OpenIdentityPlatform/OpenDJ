@@ -66,6 +66,13 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
       monitoringLabels.add(Utilities.createDefaultLabel());
     }
   }
+  private ArrayList<JLabel> labels = new ArrayList<JLabel>();
+  {
+    for (int i=0; i<ngOperations.size(); i++)
+    {
+      labels.add(Utilities.createPrimaryLabel(getLabel(ngOperations.get(i))));
+    }
+  }
 
   /**
    * Default constructor.
@@ -108,13 +115,12 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
     gbc.gridwidth = 1;
     for (int i=0; i<ngOperations.size(); i++)
     {
-      JLabel l = Utilities.createPrimaryLabel(getLabel(ngOperations.get(i)));
       gbc.gridy ++;
       gbc.insets.left = 0;
       gbc.gridx = 0;
       gbc.weightx = 0.0;
       gbc.gridwidth = 1;
-      add(l, gbc);
+      add(labels.get(i), gbc);
       gbc.insets.left = 10;
       gbc.gridx = 1;
       gbc.gridwidth = 2;
@@ -151,6 +157,19 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
     if (csr != null)
     {
       updateMonitoringInfo(ngOperations, monitoringLabels, csr);
+      int index = 0;
+      for (MonitoringAttributes attr : ngOperations)
+      {
+        if (Utilities.getFirstMonitoringValue(csr, attr.getAttributeName())
+            == null)
+        {
+          monitoringLabels.get(index).setVisible(false);
+          labels.get(index).setVisible(false);
+        }
+        index ++;
+      }
+      revalidate();
+      repaint();
     }
     else
     {
