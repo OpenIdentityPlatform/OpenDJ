@@ -263,13 +263,18 @@ public class PasswordModifyExtendedOperation
               newPassword = reader.readOctetString();
               break;
             default:
-              operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+              // Its ok if we encounter unrecognized trailing tags
+              reader.skipElement();
+              if(reader.hasNextElement())
+              {
+                operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
 
-              operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
-                              byteToHex(reader.peekType())));
-              return;
+                operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
+                        byteToHex(reader.peekType())));
+                return;
+              }
           }
         }
         reader.readEndSequence();
