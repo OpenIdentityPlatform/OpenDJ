@@ -290,8 +290,16 @@ public class ImportTask extends Task
       File f = new File (s);
       if (!f.isAbsolute())
       {
-        ldifFiles.add(new File(DirectoryServer.getInstanceRoot(), s)
-            .getAbsolutePath());
+        f = new File(DirectoryServer.getInstanceRoot(), s);
+        try
+        {
+          s = f.getCanonicalPath();
+        }
+        catch (Exception ex)
+        {
+          s = f.getAbsolutePath();
+        }
+        ldifFiles.add(s);
       }
       else
       {

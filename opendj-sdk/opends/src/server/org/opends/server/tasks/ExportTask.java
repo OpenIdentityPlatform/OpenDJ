@@ -230,8 +230,15 @@ public class ExportTask extends Task
     File f = new File (ldifFile);
     if (! f.isAbsolute())
     {
-      ldifFile = new File(DirectoryServer.getInstanceRoot(), ldifFile)
-          .getAbsolutePath();
+      f = new File(DirectoryServer.getInstanceRoot(), ldifFile);
+      try
+      {
+        ldifFile = f.getCanonicalPath();
+      }
+      catch (Exception ex)
+      {
+        ldifFile = f.getAbsolutePath();
+      }
     }
 
     attrList = taskEntry.getAttribute(typeBackendID);

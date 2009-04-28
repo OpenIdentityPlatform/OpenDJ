@@ -249,9 +249,10 @@ public class Utils
   }
 
   /**
-   * Returns the absolute path for the given parentPath and relativePath.
+   * Returns the absolute path for the given file.  It tries to get the
+   * canonical file path.  If it fails it returns the string representation.
    * @param f File to get the path
-   * @return the absolute path for the given parentPath and relativePath.
+   * @return the absolute path for the given file.
    */
   public static String getPath(File f)
   {

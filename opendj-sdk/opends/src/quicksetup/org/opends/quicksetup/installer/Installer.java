@@ -2069,7 +2069,8 @@ public abstract class Installer extends GuiApplication {
             getFormattedSuccess(
                     INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
                             formatter.getFormattedText(
-                                    Message.raw(getInstancePath())),
+                                    Message.raw(
+                                        getPath(new File(getInstancePath())))),
                             INFO_GENERAL_SERVER_STOPPED.get(),
                             cmd)));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
@@ -2103,7 +2104,8 @@ public abstract class Installer extends GuiApplication {
             getFormattedSuccess(
                     INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
                             formatter.getFormattedText(
-                                    Message.raw(getInstancePath())),
+                                    Message.raw(
+                                        getPath(new File(getInstancePath())))),
                             status,
                             cmd)));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
