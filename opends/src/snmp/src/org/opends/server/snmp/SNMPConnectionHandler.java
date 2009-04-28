@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.snmp;
 
@@ -126,7 +126,9 @@ public final class SNMPConnectionHandler
         }
 
         if (!fullpathFile.exists()) {
-            Message message = ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES.get();
+            Message message =
+              ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_DOES_NOT_EXIST.get(
+                  fullpathFile.getAbsolutePath());
             logError(message);
             return;
         }
@@ -137,7 +139,9 @@ public final class SNMPConnectionHandler
                 this.currentConfig.getListenPort()));
 
         if (!this.isOperational(fullpathFile)) {
-            Message message = ERR_SNMP_CONNHANDLER_NO_OPENDMK_JARFILES.get();
+            Message message =
+              ERR_SNMP_CONNHANDLER_OPENDMK_JARFILES_NOT_OPERATIONAL.get(
+                  fullpathFile.getAbsolutePath());
             logError(message);
             return;
         }
