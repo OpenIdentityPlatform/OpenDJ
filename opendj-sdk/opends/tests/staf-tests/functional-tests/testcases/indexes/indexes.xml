@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_indexes" />
@@ -643,11 +643,12 @@
         class indexTest:
           "Describes an index test with indexed attribute, filter to test with \
            and expected behaviour"
-          def __init__(self, attribute,testName,filter,expectedValue,isIndexed):
+          def __init__(self, attribute,testName,filter,expectedValue,countEntries,isIndexed):
             self.attribute = attribute
             self.name = testName
             self.filter = filter
             self.rc = expectedValue
+            self.count = countEntries
             self.isIndexed=re.compile(r'[\r\n]').sub('',isIndexed)
             self.status='fail'
           
@@ -662,6 +663,9 @@
           
           def getRC(self):
             return self.rc
+
+          def getCount(self):
+            return self.count
             
           def getSearchString(self):
             if self.isIndexed.startswith('NOT'):
@@ -680,6 +684,7 @@
             description += 'test:: attribute=[%s]\n' % self.attribute
             description += 'test:: filter=[%s]\n' % self.filter
             description += 'test:: rc=[%s]\n' % self.rc
+            description += 'test:: count=[%s]\n' % self.count
             description += 'test:: indexed=[%s]\n' % self.isIndexed
             return description
             
@@ -692,7 +697,7 @@
           else: 
             testLine = line.split(' ')
             indexTests.append(indexTest(testLine[0], testLine[1], testLine[2], 
-                              testLine[3], testLine[4]))
+                              testLine[3], testLine[4], testLine[5]))
         f.close()
           
         indexTestNumber=0
@@ -726,6 +731,7 @@
                   'dsBaseDN'         : 'ou=People,dc=example,%s' \
                                         % DIRECTORY_INSTANCE_SFX ,
                   'dsFilter'         : '%s' % test.getFilter(),
+                  'extraParams'      : '--countEntries' ,
                   'attributes'       : 'debugsearchindex',
                   'expectedRC'       : 'noCheck'
                 }
@@ -749,6 +755,15 @@
                  % (test.desc(), searchReturnCode, searchResultString, srt, 
                     test.getSearchString())
               </message>
+
+              <call function="'searchString'">
+                {
+                'expectedString' : '# Total number of matching entries: %s' % test.getCount() ,
+                'returnString'	 : searchResultString ,
+                'expectedRC'     : 0
+                }
+              </call>
+
               <tcstatus result="test.getStatus()" />
               <call function="'testCase_Postamble'" />
               <script>

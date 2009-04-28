@@ -21,16 +21,16 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 #
-uid subString uid=j* 0 INDEXED
-uid subString (uid=j*) 0 INDEXED
-l presence l=* 0 INDEXED
-l presence (l=*) 0 INDEXED
-l equality l=Cupertino 0 INDEXED
-l equality (l=Cupertino) 0 INDEXED
-l approximate (l~=ertino) 0 NOT-INDEXED
-l substring (l=Cup*) 0 INDEXED
-l substring l=Cup* 0 INDEXED
-l substring l=*tino 0 NOT-INDEXED
-l substring (l=*tino) 0 NOT-INDEXED
+uid subString uid=j* 0 2 INDEXED
+uid subString (uid=j*) 0 2 INDEXED
+l presence l=* 0 10 INDEXED
+l presence (l=*) 0 10 INDEXED
+l equality l=Cupertino 0 3 INDEXED
+l equality (l=Cupertino) 0 3 INDEXED
+l approximate (l~=ertino) 0 11 NOT-INDEXED
+l substring (l=Cup*) 0 3 INDEXED
+l substring l=Cup* 0 3 INDEXED
+l substring l=*tino 0 11 NOT-INDEXED
+l substring (l=*tino) 0 11 NOT-INDEXED

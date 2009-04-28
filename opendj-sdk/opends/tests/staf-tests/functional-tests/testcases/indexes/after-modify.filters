@@ -21,9 +21,9 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 #
-uid subString uid=j* 0 INDEXED
-uid subString (uid=j*) 0 INDEXED
-uid subString uid=*allace 0 INDEXED
-uid subString (uid=*allace) 0 INDEXED
+uid subString uid=j* 0 2 INDEXED
+uid subString (uid=j*) 0 2 INDEXED
+uid subString uid=*allace 0 1 INDEXED
+uid subString (uid=*allace) 0 1 INDEXED

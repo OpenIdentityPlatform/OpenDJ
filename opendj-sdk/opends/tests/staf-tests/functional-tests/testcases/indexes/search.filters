@@ -21,187 +21,187 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 #
-uid presence uid=* 0 NOT-INDEXED
-uid presence UID=* 0 NOT-INDEXED
-uid presence uId=* 0 NOT-INDEXED
-uid presence UiD=* 0 NOT-INDEXED
-uid equality uid=jwallace 0 INDEXED
-uid equality (uid=jwallace) 0 INDEXED
-uid equality (&(uid=jwallace)) 0 INDEXED
-uid equality (|(uid=jwallace)) 0 INDEXED
-uid equality (&(&(uid=jwallace))) 0 INDEXED
-uid equality (&(|(uid=jwallace))) 0 INDEXED
-uid equality (|(&(uid=jwallace))) 0 INDEXED
-uid equality (|(|(uid=jwallace))) 0 INDEXED
-uid equality (|(|(uid=jwallace))) 0 INDEXED
-uid substring uid=j* 0 INDEXED
-uid substring (uid=j*) 0 INDEXED
-uid substring uid=*allace 0 NOT-INDEXED
-uid substring (uid=*allace) 0 NOT-INDEXED
-uid substring (&(uid=*allace)) 0 NOT-INDEXED
-uid substring (|(uid=*allace)) 0 NOT-INDEXED
-uid substring (&(&(uid=*allace))) 0 NOT-INDEXED
-uid substring (&(|(uid=*allace))) 0 NOT-INDEXED
-uid substring (|(&(uid=*allace))) 0 NOT-INDEXED
-uid substring (|(|(uid=*allace))) 0 NOT-INDEXED
-uid substring uid=jw*ce 0 INDEXED
-uid substring (uid=jw*ce) 0 INDEXED
-uid approximate uid~=wallace 0 NOT-INDEXED
-uid approximate uid~=jwalace 0 NOT-INDEXED
-uid negate !(uid=jwallace) 0 NOT-INDEXED
-uid negate (!(uid=jwallace)) 0 NOT-INDEXED
-uid negate (!(&(uid=jwallace))) 0 NOT-INDEXED
-uid negate (!(|(uid=jwallace))) 0 NOT-INDEXED
-uid complexAnd (uid=j*&l=sunnyvale) 0 INDEXED
-uid complexAnd &(uid=j*)(l=sunnyvale) 0 NOT-INDEXED
-uid complexAnd (&(uid=j*)(l=~sunyvale)) 0 NOT-INDEXED
-uid complexAnd (&(&(uid=j*)(l=~sunyvale))) 0 NOT-INDEXED
-uid complexAnd (uid=j*&!l=cupertino) 0 INDEXED
-uid complexAnd (uid=j*&l=sun*) 0 INDEXED
-uid complexAnd (&(uid=j*)(l=sun*)) 0 INDEXED
-uid complexOr (uid=jwallace|uid=jwalker) 0 INDEXED
-uid complexOr (uid=jwallace|l=Sun*) 0 INDEXED
-uid complexOr (uid=jwallace|l=~unnyvale) 0 INDEXED
-uid complexOr (uid=jwallace|!l=Cupertino) 0 INDEXED
-uid complexOr (uid=jwallace|!l=Cuper*) 0 INDEXED
-uid complexOr (uid=j*|l=sunnyvale) 0 INDEXED
-uid complexOr (uid=j*|!l=Cupertino) 0 INDEXED
-uid complexOr (uid=j*|!l=Cuper*) 0 INDEXED
-uid complexOr (uid=j*|!l~=Cuperino) 0 INDEXED
-uid complexOr (uid=j*|l~=sunyvale) 0 INDEXED
-uid complexOr (|(uid=j*)(l=sunnyvale)) 0 INDEXED
-uid complexOr (|(&(uid=j*)(uid=*lace))) 0 INDEXED
-sn presence sn=* 0 NOT-INDEXED
-sn presence SN=* 0 NOT-INDEXED
-sn presence sN=* 0 NOT-INDEXED
-sn presence Sn=* 0 NOT-INDEXED
-sn equality sn=Bergin 0 INDEXED
-sn equality (sn=Bergin) 0 INDEXED
-sn substring sn=Ber* 0 INDEXED
-sn substring (sn=Ber*) 0 INDEXED
-sn substring sn=*ergin 0 INDEXED
-sn substring (sn=*ergin) 0 INDEXED
-sn substring sn=*ergi* 0 INDEXED
-sn substring (sn=*ergi*) 0 INDEXED
-sn approximate sn~=begin 0 NOT-INDEXED
-sn approximate (sn~=begin) 0 NOT-INDEXED
-mail presence mail=* 0 NOT-INDEXED
-mail presence Mail=* 0 NOT-INDEXED
-mail presence MAIL=* 0 NOT-INDEXED
-mail presence mAiL=* 0 NOT-INDEXED
-mail equality mail=kvaughan@example.com 0 INDEXED
-mail equality (mail=kvaughan@example.com) 0 INDEXED
-mail substring mail=kvaughan* 0 INDEXED
-mail substring (mail=kvaughan*) 0 INDEXED
-mail substring mail=*aughan@example.com 0 INDEXED
-mail substring (mail=*aughan@example.com) 0 INDEXED
-mail substring mail=*aughan@example.* 0 INDEXED
-mail substring (mail=*aughan@example.*) 0 INDEXED
-givenName presence givenName=* 0 NOT-INDEXED
-givenName presence (givenName=*) 0 NOT-INDEXED
-givenName presence givenname=* 0 NOT-INDEXED
-givenName presence (givenname=*) 0 NOT-INDEXED
-givenName presence GIVENNAME=* 0 NOT-INDEXED
-givenName presence (GIVENNAME=*) 0 NOT-INDEXED
-givenName presence GivenName=* 0 NOT-INDEXED
-givenName presence (GivenName=*) 0 NOT-INDEXED
-givenName presence GiVeNnaMe=* 0 NOT-INDEXED
-givenName presence (GiVeNnaMe=*) 0 NOT-INDEXED
-givenName presence gIvEnNaMe=* 0 NOT-INDEXED
-givenName presence (gIvEnNaMe=*) 0 NOT-INDEXED
-givenName equality givenName=kirsten 0 INDEXED
-givenName equality (givenName=kirsten) 0 INDEXED
-givenName equality givenName=Kirsten 0 INDEXED
-givenName equality (givenName=Kirsten) 0 INDEXED
-givenName equality givenname=kirsten 0 INDEXED
-givenName equality (givenname=kirsten) 0 INDEXED
-givenName equality givenname=KIRSTEN 0 INDEXED
-givenName equality (givenname=KIRSTEN) 0 INDEXED
-givenName equality GIVENNAME=kirsten 0 INDEXED
-givenName equality (GIVENNAME=kirsten) 0 INDEXED
-givenName equality GIVENNAME=KIRSTEN 0 INDEXED
-givenName equality (GIVENNAME=KIRSTEN) 0 INDEXED
-givenName equality gIvEnNaMe=kIrStEn 0 INDEXED
-givenName equality (gIvEnNaMe=kIrStEn) 0 INDEXED
-givenName substring givenName=kirst* 0 INDEXED
-givenName substring (givenName=kirst*) 0 INDEXED
-givenName substring GivenName=kirst* 0 INDEXED
-givenName substring (GivenName=kirst*) 0 INDEXED
-givenName substring givenname=kirst* 0 INDEXED
-givenName substring (givenname=kirst*) 0 INDEXED
-givenName substring GIVENNAME=kirst* 0 INDEXED
-givenName substring (GIVENNAME=kirst*) 0 INDEXED
-givenName substring givenName=*rsten 0 INDEXED
-givenName substring (givenName=*rsten) 0 INDEXED
-givenName substring GivenName=*rsten 0 INDEXED
-givenName substring (GivenName=*rsten) 0 INDEXED
-givenName substring givenname=*rsten 0 INDEXED
-givenName substring (givenname=*rsten) 0 INDEXED
-givenName substring givenName=*rste* 0 INDEXED
-givenName substring (givenName=*rste*) 0 INDEXED
-givenName substring GivenName=*rste* 0 INDEXED
-givenName substring (GivenName=*rste*) 0 INDEXED
-givenName substring GIVENNAME=*rste* 0 INDEXED
-givenName substring (GIVENNAME=*rste*) 0 INDEXED
-cn presence cn=* 0 NOT-INDEXED
-cn presence (cn=*) 0 NOT-INDEXED
-cn presence CN=* 0 NOT-INDEXED
-cn presence (CN=*) 0 NOT-INDEXED
-cn presence Cn=* 0 NOT-INDEXED
-cn presence (Cn=*) 0 NOT-INDEXED
-cn substring cn=Andy* 0 INDEXED
-cn substring (cn=Andy*) 0 INDEXED
-cn substring cn=andy* 0 INDEXED
-cn substring (cn=andy*) 0 INDEXED
-cn substring CN=aNDY* 0 INDEXED
-cn substring (CN=aNDY*) 0 INDEXED
-cn substring cN=andy* 0 INDEXED
-cn substring (cN=andy*) 0 INDEXED
-cn substring cn=andy* 0 INDEXED
-cn substring cn=*ergin 0 INDEXED
-cn substring (cn=*ergin) 0 INDEXED
-cn substring cn=*Bergin 0 INDEXED
-cn substring (cn=*Bergin) 0 INDEXED
-cn substring cN=*Bergin 0 INDEXED
-cn substring (cN=*Bergin) 0 INDEXED
-cn substring cn=*bERGIN 0 INDEXED
-cn substring (cn=*bERGIN) 0 INDEXED
-cn substring CN=*bERGIN 0 INDEXED
-cn substring (CN=*bERGIN) 0 INDEXED
-cn substring (CN=*bERGIN) 0 INDEXED
-cn substring (cn=and*rgin) 0 INDEXED
-cn substring (cn=aN*bErGiN) 0 INDEXED
-telephoneNumber presence telephoneNumber=* 0 NOT-INDEXED
-telephoneNumber presence (telephoneNumber=*) 0 NOT-INDEXED
-telephoneNumber presence telephonenumber=* 0 NOT-INDEXED
-telephoneNumber presence (telephonenumber=*) 0 NOT-INDEXED
-telephoneNumber presence TelephoneNumber=* 0 NOT-INDEXED
-telephoneNumber presence (TelephoneNumber=*) 0 NOT-INDEXED
-telephoneNumber presence TELEPHONENUMBER=* 0 NOT-INDEXED
-telephoneNumber presence (TELEPHONENUMBER=*) 0 NOT-INDEXED
-telephoneNumber presence (&(TELEPHONENUMBER=*)) 0 NOT-INDEXED
-telephoneNumber presence (|(TELEPHONENUMBER=*)) 0 NOT-INDEXED
-telephoneNumber presence (&(&(TELEPHONENUMBER=*))) 0 NOT-INDEXED
-telephoneNumber presence (|(|(TELEPHONENUMBER=*))) 0 NOT-INDEXED
-telephoneNumber presence (&(|(TELEPHONENUMBER=*))) 0 NOT-INDEXED
-telephoneNumber presence (|(&(TELEPHONENUMBER=*))) 0 NOT-INDEXED
-telephoneNumber substring telephoneNumber=*8585 0 INDEXED
-telephoneNumber substring (telephoneNumber=*8585) 0 INDEXED
-telephoneNumber substring telephoneNumber=+1* 0 INDEXED
-telephoneNumber substring (telephoneNumber=+1*) 0 INDEXED
-telephoneNumber substring telephoneNumber=*408* 0 INDEXED
-telephoneNumber substring (telephoneNumber=*408*) 0 INDEXED
-telephoneNumber substring telephoneNumber=+1*8585 0 INDEXED
-telephoneNumber substring (telephoneNumber=+1*8585) 0 INDEXED
-telephoneNumber substring telephoneNumber=+1*08*8585 0 INDEXED
-telephoneNumber substring (telephoneNumber=+1*08*8585) 0 INDEXED
-telephoneNumber substring (&(telephoneNumber=+1*08*8585)) 0 INDEXED
-telephoneNumber substring (|(telephoneNumber=+1*08*8585)) 0 INDEXED
-telephoneNumber substring (&(&(telephoneNumber=+1*08*8585))) 0 INDEXED
-telephoneNumber substring (&(|(telephoneNumber=+1*08*8585))) 0 INDEXED
-telephoneNumber substring (|(&(telephoneNumber=+1*08*8585))) 0 INDEXED
-telephoneNumber substring (|(|(|(|(|(|(|(telephoneNumber=+1*08*8585)))))))) 0 INDEXED
-telephoneNumber substring (&(&(&(&(&(&(&(&(&(&(&(&(&(&(&(telephoneNumber=+1*08*8585)))))))))))))))) 0 INDEXED
-telephoneNumber substring (&(|(&(|(&(|(&(|(&(|(&(|(&(|(&(|(telephoneNumber=+1*08*8585))))))))))))))))) 0 INDEXED
+uid presence uid=* 0 1 NOT-INDEXED
+uid presence UID=* 0 11 NOT-INDEXED
+uid presence uId=* 0 11 NOT-INDEXED
+uid presence UiD=* 0 11 NOT-INDEXED
+uid equality uid=jwallace 0 1 INDEXED
+uid equality (uid=jwallace) 0 1 INDEXED
+uid equality (&(uid=jwallace)) 0 1 INDEXED
+uid equality (|(uid=jwallace)) 0 1 INDEXED
+uid equality (&(&(uid=jwallace))) 0 1 INDEXED
+uid equality (&(|(uid=jwallace))) 0 1 INDEXED
+uid equality (|(&(uid=jwallace))) 0 1 INDEXED
+uid equality (|(|(uid=jwallace))) 0 1 INDEXED
+uid equality (|(|(uid=jwallace))) 0 1 INDEXED
+uid substring uid=j* 0 2 INDEXED
+uid substring (uid=j*) 0 2 INDEXED
+uid substring uid=*allace 0 11 NOT-INDEXED
+uid substring (uid=*allace) 0 11 NOT-INDEXED
+uid substring (&(uid=*allace)) 0 11 NOT-INDEXED
+uid substring (|(uid=*allace)) 0 11 NOT-INDEXED
+uid substring (&(&(uid=*allace))) 0 11 NOT-INDEXED
+uid substring (&(|(uid=*allace))) 0 11 NOT-INDEXED
+uid substring (|(&(uid=*allace))) 0 11 NOT-INDEXED
+uid substring (|(|(uid=*allace))) 0 11 NOT-INDEXED
+uid substring uid=jw*ce 0 2 INDEXED
+uid substring (uid=jw*ce) 0 2 INDEXED
+uid approximate uid~=wallace 0 11 NOT-INDEXED
+uid approximate uid~=jwalace 0 11 NOT-INDEXED
+uid negate !(uid=jwallace) 0 11 NOT-INDEXED
+uid negate (!(uid=jwallace)) 0 11 NOT-INDEXED
+uid negate (!(&(uid=jwallace))) 0 11 NOT-INDEXED
+uid negate (!(|(uid=jwallace))) 0 11 NOT-INDEXED
+uid complexAnd (uid=j*&l=sunnyvale) 0 2 INDEXED
+uid complexAnd &(uid=j*)(l=sunnyvale) 0 2 NOT-INDEXED
+uid complexAnd (&(uid=j*)(l=~sunyvale)) 0 2 NOT-INDEXED
+uid complexAnd (&(&(uid=j*)(l=~sunyvale))) 0 2 NOT-INDEXED
+uid complexAnd (uid=j*&!l=cupertino) 0 2 INDEXED
+uid complexAnd (uid=j*&l=sun*) 0 2 INDEXED
+uid complexAnd (&(uid=j*)(l=sun*)) 0 2 INDEXED
+uid complexOr (uid=jwallace|uid=jwalker) 0 0 INDEXED
+uid complexOr (uid=jwallace|l=Sun*) 0 0 INDEXED
+uid complexOr (uid=jwallace|l=~unnyvale) 0 0 INDEXED
+uid complexOr (uid=jwallace|!l=Cupertino) 0 0 INDEXED
+uid complexOr (uid=jwallace|!l=Cuper*) 0 0 INDEXED
+uid complexOr (uid=j*|l=sunnyvale) 0 2 INDEXED
+uid complexOr (uid=j*|!l=Cupertino) 0 2 INDEXED
+uid complexOr (uid=j*|!l=Cuper*) 0 2 INDEXED
+uid complexOr (uid=j*|!l~=Cuperino) 0 2 INDEXED
+uid complexOr (uid=j*|l~=sunyvale) 0 2 INDEXED
+uid complexOr (|(uid=j*)(l=sunnyvale)) 0 11 INDEXED
+uid complexOr (|(&(uid=j*)(uid=*lace))) 0 2 INDEXED
+sn presence sn=* 0 11 NOT-INDEXED
+sn presence SN=* 0 11 NOT-INDEXED
+sn presence sN=* 0 11 NOT-INDEXED
+sn presence Sn=* 0 11 NOT-INDEXED
+sn equality sn=Bergin 0 1 INDEXED
+sn equality (sn=Bergin) 0 1 INDEXED
+sn substring sn=Ber* 0 1 INDEXED
+sn substring (sn=Ber*) 0 1 INDEXED
+sn substring sn=*ergin 0 1 INDEXED
+sn substring (sn=*ergin) 0 1 INDEXED
+sn substring sn=*ergi* 0 1 INDEXED
+sn substring (sn=*ergi*) 0 1 INDEXED
+sn approximate sn~=begin 0 11 NOT-INDEXED
+sn approximate (sn~=begin) 0 11 NOT-INDEXED
+mail presence mail=* 0 11 NOT-INDEXED
+mail presence Mail=* 0 11 NOT-INDEXED
+mail presence MAIL=* 0 11 NOT-INDEXED
+mail presence mAiL=* 0 11 NOT-INDEXED
+mail equality mail=kvaughan@example.com 0 1 INDEXED
+mail equality (mail=kvaughan@example.com) 0 1 INDEXED
+mail substring mail=kvaughan* 0 1 INDEXED
+mail substring (mail=kvaughan*) 0 1 INDEXED
+mail substring mail=*aughan@example.com 0 10 INDEXED
+mail substring (mail=*aughan@example.com) 0 10 INDEXED
+mail substring mail=*aughan@example.* 0 10 INDEXED
+mail substring (mail=*aughan@example.*) 0 10 INDEXED
+givenName presence givenName=* 0 11 NOT-INDEXED
+givenName presence (givenName=*) 0 11 NOT-INDEXED
+givenName presence givenname=* 0 11 NOT-INDEXED
+givenName presence (givenname=*) 0 11 NOT-INDEXED
+givenName presence GIVENNAME=* 0 11 NOT-INDEXED
+givenName presence (GIVENNAME=*) 0 11 NOT-INDEXED
+givenName presence GivenName=* 0 11 NOT-INDEXED
+givenName presence (GivenName=*) 0 11 NOT-INDEXED
+givenName presence GiVeNnaMe=* 0 11 NOT-INDEXED
+givenName presence (GiVeNnaMe=*) 0 11 NOT-INDEXED
+givenName presence gIvEnNaMe=* 0 11 NOT-INDEXED
+givenName presence (gIvEnNaMe=*) 0 11 NOT-INDEXED
+givenName equality givenName=kirsten 0 1 INDEXED
+givenName equality (givenName=kirsten) 0 1 INDEXED
+givenName equality givenName=Kirsten 0 1 INDEXED
+givenName equality (givenName=Kirsten) 0 1 INDEXED
+givenName equality givenname=kirsten 0 1 INDEXED
+givenName equality (givenname=kirsten) 0 1 INDEXED
+givenName equality givenname=KIRSTEN 0 1 INDEXED
+givenName equality (givenname=KIRSTEN) 0 1 INDEXED
+givenName equality GIVENNAME=kirsten 0 1 INDEXED
+givenName equality (GIVENNAME=kirsten) 0 1 INDEXED
+givenName equality GIVENNAME=KIRSTEN 0 1 INDEXED
+givenName equality (GIVENNAME=KIRSTEN) 0 1 INDEXED
+givenName equality gIvEnNaMe=kIrStEn 0 1 INDEXED
+givenName equality (gIvEnNaMe=kIrStEn) 0 1 INDEXED
+givenName substring givenName=kirst* 0 1 INDEXED
+givenName substring (givenName=kirst*) 0 1 INDEXED
+givenName substring GivenName=kirst* 0 1 INDEXED
+givenName substring (GivenName=kirst*) 0 1 INDEXED
+givenName substring givenname=kirst* 0 1 INDEXED
+givenName substring (givenname=kirst*) 0 1 INDEXED
+givenName substring GIVENNAME=kirst* 0 1 INDEXED
+givenName substring (GIVENNAME=kirst*) 0 1 INDEXED
+givenName substring givenName=*rsten 0 1 INDEXED
+givenName substring (givenName=*rsten) 0 1 INDEXED
+givenName substring GivenName=*rsten 0 1 INDEXED
+givenName substring (GivenName=*rsten) 0 1 INDEXED
+givenName substring givenname=*rsten 0 1 INDEXED
+givenName substring (givenname=*rsten) 0 1 INDEXED
+givenName substring givenName=*rste* 0 1 INDEXED
+givenName substring (givenName=*rste*) 0 1 INDEXED
+givenName substring GivenName=*rste* 0 1 INDEXED
+givenName substring (GivenName=*rste*) 0 1 INDEXED
+givenName substring GIVENNAME=*rste* 0 1 INDEXED
+givenName substring (GIVENNAME=*rste*) 0 1 INDEXED
+cn presence cn=* 0 11 NOT-INDEXED
+cn presence (cn=*) 0 11 NOT-INDEXED
+cn presence CN=* 0 11 NOT-INDEXED
+cn presence (CN=*) 0 11 NOT-INDEXED
+cn presence Cn=* 0 11 NOT-INDEXED
+cn presence (Cn=*) 0 11 NOT-INDEXED
+cn substring cn=Andy* 0 1 INDEXED
+cn substring (cn=Andy*) 0 1 INDEXED
+cn substring cn=andy* 0 1 INDEXED
+cn substring (cn=andy*) 0 1 INDEXED
+cn substring CN=aNDY* 0 1 INDEXED
+cn substring (CN=aNDY*) 0 1 INDEXED
+cn substring cN=andy* 0 1 INDEXED
+cn substring (cN=andy*) 0 1 INDEXED
+cn substring cn=andy* 0 1 INDEXED
+cn substring cn=*ergin 0 1 INDEXED
+cn substring (cn=*ergin) 0 1 INDEXED
+cn substring cn=*Bergin 0 1 INDEXED
+cn substring (cn=*Bergin) 0 1 INDEXED
+cn substring cN=*Bergin 0 1 INDEXED
+cn substring (cN=*Bergin) 0 1 INDEXED
+cn substring cn=*bERGIN 0 1 INDEXED
+cn substring (cn=*bERGIN) 0 1 INDEXED
+cn substring CN=*bERGIN 0 1 INDEXED
+cn substring (CN=*bERGIN) 0 1 INDEXED
+cn substring (CN=*bERGIN) 0 1 INDEXED
+cn substring (cn=and*rgin) 0 1 INDEXED
+cn substring (cn=aN*bErGiN) 0 1 INDEXED
+telephoneNumber presence telephoneNumber=* 0 11 NOT-INDEXED
+telephoneNumber presence (telephoneNumber=*) 0 11 NOT-INDEXED
+telephoneNumber presence telephonenumber=* 0 11 NOT-INDEXED
+telephoneNumber presence (telephonenumber=*) 0 11 NOT-INDEXED
+telephoneNumber presence TelephoneNumber=* 0 11 NOT-INDEXED
+telephoneNumber presence (TelephoneNumber=*) 0 11 NOT-INDEXED
+telephoneNumber presence TELEPHONENUMBER=* 0 11 NOT-INDEXED
+telephoneNumber presence (TELEPHONENUMBER=*) 0 11 NOT-INDEXED
+telephoneNumber presence (&(TELEPHONENUMBER=*)) 0 11 NOT-INDEXED
+telephoneNumber presence (|(TELEPHONENUMBER=*)) 0 11 NOT-INDEXED
+telephoneNumber presence (&(&(TELEPHONENUMBER=*))) 0 11 NOT-INDEXED
+telephoneNumber presence (|(|(TELEPHONENUMBER=*))) 0 11 NOT-INDEXED
+telephoneNumber presence (&(|(TELEPHONENUMBER=*))) 0 11 NOT-INDEXED
+telephoneNumber presence (|(&(TELEPHONENUMBER=*))) 0 11 NOT-INDEXED
+telephoneNumber substring telephoneNumber=*8585 0 1 INDEXED
+telephoneNumber substring (telephoneNumber=*8585) 0 1 INDEXED
+telephoneNumber substring telephoneNumber=+1* 0 10 INDEXED
+telephoneNumber substring (telephoneNumber=+1*) 0 10 INDEXED
+telephoneNumber substring telephoneNumber=*408* 0 10 INDEXED
+telephoneNumber substring (telephoneNumber=*408*) 0 10 INDEXED
+telephoneNumber substring telephoneNumber=+1*8585 0 10 INDEXED
+telephoneNumber substring (telephoneNumber=+1*8585) 0 10 INDEXED
+telephoneNumber substring telephoneNumber=+1*08*8585 0 10 INDEXED
+telephoneNumber substring (telephoneNumber=+1*08*8585) 0 10 INDEXED
+telephoneNumber substring (&(telephoneNumber=+1*08*8585)) 0 10 INDEXED
+telephoneNumber substring (|(telephoneNumber=+1*08*8585)) 0 10 INDEXED
+telephoneNumber substring (&(&(telephoneNumber=+1*08*8585))) 0 10 INDEXED
+telephoneNumber substring (&(|(telephoneNumber=+1*08*8585))) 0 10 INDEXED
+telephoneNumber substring (|(&(telephoneNumber=+1*08*8585))) 0 10 INDEXED
+telephoneNumber substring (|(|(|(|(|(|(|(telephoneNumber=+1*08*8585)))))))) 0 10 INDEXED
+telephoneNumber substring (&(&(&(&(&(&(&(&(&(&(&(&(&(&(&(telephoneNumber=+1*08*8585)))))))))))))))) 0 10 INDEXED
+telephoneNumber substring (&(|(&(|(&(|(&(|(&(|(&(|(&(|(&(|(telephoneNumber=+1*08*8585))))))))))))))))) 0 10 INDEXED
