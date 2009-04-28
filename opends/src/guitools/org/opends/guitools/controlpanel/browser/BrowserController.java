@@ -1045,9 +1045,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     else  {
       BasicNode parent = (BasicNode)node.getParent();
-      if (parent != null) {
+      if ((parent != null) && (parent != rootNode))
+      {
         result = findConnectionForDisplayedEntry(parent, isConfigurationNode);
-      } else {
+      }
+      else
+      {
         if (isConfigurationNode)
         {
           result = ctxConfiguration;
