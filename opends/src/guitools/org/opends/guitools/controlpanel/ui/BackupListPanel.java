@@ -522,9 +522,10 @@ public abstract class BackupListPanel extends StatusGenericPanel
     if (!backupDirectoryInitialized &&
         (parentDirectory.getText().length() == 0))
     {
-      final String path = new File(desc.getInstancePath(),
-          org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE).
-          getAbsolutePath();
+      final String path =
+        org.opends.quicksetup.util.Utils.getPath(
+            new File(desc.getInstancePath(),
+                org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE));
       SwingUtilities.invokeLater(new Runnable()
       {
         public void run()

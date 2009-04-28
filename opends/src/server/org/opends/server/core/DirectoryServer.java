@@ -1213,8 +1213,16 @@ public class DirectoryServer
     // Perform the handler-specific initialization.
     try
     {
-      configHandler.initializeConfigHandler(configFile.getAbsolutePath(),
-                                            false);
+      String path;
+      try
+      {
+        path = configFile.getCanonicalPath();
+      }
+      catch (Exception ex)
+      {
+        path = configFile.getAbsolutePath();
+      }
+      configHandler.initializeConfigHandler(path, false);
     }
     catch (InitializationException ie)
     {
