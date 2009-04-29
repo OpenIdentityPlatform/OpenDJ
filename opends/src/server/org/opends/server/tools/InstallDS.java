@@ -441,6 +441,7 @@ public class InstallDS extends ConsoleApplication
             else
             if (response.toLowerCase().equals(yes.toLowerCase()))
             {
+              LicenseFile.setApproval(true);
               break ;
             }
             else

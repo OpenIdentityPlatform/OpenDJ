@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import java.security.KeyStoreException;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
@@ -101,6 +102,11 @@ public class OfflineInstaller extends Installer
       configureServer();
 
       checkAbort();
+
+      // create license accepted file
+      LicenseFile.createFileLicenseApproved();
+
+      checkAbort() ;
 
       createData();
 
