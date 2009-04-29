@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -172,13 +172,20 @@ public class LDAPAttribute
       this.attributeType = attribute.getName();
     }
 
-    if (attribute.isEmpty())
+    if (attribute.isVirtual())
+    {
+      values = new ArrayList<ByteString>();
+    }
+    else if (attribute.isEmpty())
     {
       values = new ArrayList<ByteString>(0);
       return;
     }
+    else
+    {
+      values = new ArrayList<ByteString>(attribute.size());
+    }
 
-    values = new ArrayList<ByteString>(attribute.size());
     for (AttributeValue v : attribute)
     {
       values.add(v.getValue());
@@ -289,6 +296,7 @@ public class LDAPAttribute
    *
    * @return  A string representation of this attribute.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
