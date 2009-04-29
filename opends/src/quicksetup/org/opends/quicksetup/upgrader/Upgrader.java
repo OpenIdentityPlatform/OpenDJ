@@ -821,7 +821,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // Check license
       if (!LicenseFile.isAlreadyApproved())
       {
+        // Opends 1.2 upgrade: INSTALL_ROOT is set as a java CLI property.
         String installRootFromSystem = System.getProperty("INSTALL_ROOT");
+
+        if (installRootFromSystem == null)
+        {
+          // Opends 1.0 upgrade: INSTALL_ROOT is not set.
+          installRootFromSystem = System.getenv("INSTANCE_ROOT");
+        }
         System.setProperty("INSTALL_ROOT", installRootFromSystem
             + File.separator + "tmp" + File.separator + "upgrade");
         if (LicenseFile.exists())
