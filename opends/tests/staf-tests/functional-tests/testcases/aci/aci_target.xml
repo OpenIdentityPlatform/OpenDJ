@@ -1080,7 +1080,7 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) ,
-                    'expectedRC'       : 50
+                    'expectedRC'       : 21
                 }
                 </call>
     
@@ -1118,7 +1118,7 @@
                 #@TestMarker                ACI Target Tests
                 #@TestName                  Target set to a dn below the entry
                 #@TestIssue                 434
-                #@TestPurpose               Test if the target can contain a DN above the
+                #@TestPurpose               Test if the target can contain a DN below the
                                             level of the entry
                 #@TestPreamble              none
                 #@TestStep                  Client adds an aci to its entry
