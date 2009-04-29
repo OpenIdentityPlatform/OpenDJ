@@ -1846,14 +1846,19 @@ public class SchemaBackend
 
     // Make sure that the attribute type isn't used as a required or optional
     // attribute type in any name form.
-    for (NameForm nf : schema.getNameFormsByObjectClass().values())
+    for (List<NameForm> mappedForms :
+                      schema.getNameFormsByObjectClass().values())
     {
-      if (nf.getRequiredAttributes().contains(removeType) ||
-          nf.getOptionalAttributes().contains(removeType))
+      for(NameForm nf : mappedForms)
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
-            removeType.getNameOrOID(), nf.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+        if (nf.getRequiredAttributes().contains(removeType) ||
+            nf.getOptionalAttributes().contains(removeType))
+        {
+          Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
+              removeType.getNameOrOID(), nf.getNameOrOID());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  message);
+        }
       }
     }
 
@@ -2158,11 +2163,17 @@ public class SchemaBackend
 
     // Make sure that the objectclass isn't used as the structural class for
     // any name form.
-    NameForm nf = schema.getNameForm(removeClass);
-    if (nf != null)
+    List<NameForm> mappedForms = schema.getNameForm(removeClass);
+    if (mappedForms != null)
     {
+      StringBuilder buffer = new StringBuilder();
+      for(NameForm nf : mappedForms)
+      {
+        buffer.append(nf.getNameOrOID());
+        buffer.append("\t");
+      }
       Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
-          removeClass.getNameOrOID(), nf.getNameOrOID());
+          removeClass.getNameOrOID(), buffer.toString());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -2264,15 +2275,6 @@ public class SchemaBackend
     {
       Message message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
           nameForm.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    NameForm existingNFForClass = schema.getNameForm(structuralClass);
-    if ((existingNFForClass != null) && (existingNFForClass != existingNF))
-    {
-      Message message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_NF.
-          get(nameForm.getNameOrOID(), structuralClass.getNameOrOID(),
-              existingNFForClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -3345,12 +3347,15 @@ public class SchemaBackend
     // is no hierarchical relationship between name forms, we don't need to
     // worry about ordering.
     values = new LinkedHashSet<AttributeValue>();
-    for (NameForm nf : schema.getNameFormsByObjectClass().values())
+    for (List<NameForm> forms : schema.getNameFormsByObjectClass().values())
     {
-      if (schemaFile.equals(nf.getSchemaFile()))
+      for(NameForm nf : forms)
       {
-        values.add(AttributeValues.create(
-            nameFormsType, nf.getDefinition()));
+        if (schemaFile.equals(nf.getSchemaFile()))
+        {
+          values.add(AttributeValues.create(
+              nameFormsType, nf.getDefinition()));
+        }
       }
     }
 

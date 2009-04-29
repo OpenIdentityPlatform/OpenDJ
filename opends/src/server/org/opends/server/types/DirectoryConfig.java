@@ -22,9 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
+import java.util.List;
 import org.opends.messages.Message;
 
 
@@ -658,12 +659,12 @@ public final class DirectoryConfig
   /**
    * Retrieves the set of name forms defined in the Directory Server.
    * The mapping will be between the structural objectclass and its
-   * corresponding name form.  The returned map must not be altered by
-   * the caller.
+   * corresponding name forms.  The returned map must not be altered
+   * by the caller.
    *
    * @return  The set of name forms defined in the Directory Server.
    */
-  public static Map<ObjectClass,NameForm> getNameForms()
+  public static Map<ObjectClass,List<NameForm>> getNameForms()
   {
     return DirectoryServer.getNameForms();
   }
@@ -671,16 +672,16 @@ public final class DirectoryConfig
 
 
   /**
-   * Retrieves the name form associated with the specified structural
-   * objectclass.
+   * Retrieves the list of name forms associated with the specified
+   * structural objectclass.
    *
    * @param  objectClass  The structural objectclass for which to
    *                      retrieve the  associated name form.
    *
-   * @return  The requested name form, or <CODE>null</CODE> if no such
-   *          name form is defined in the schema.
+   * @return  The list of requested name forms, or <CODE>null</CODE>
+   *           if no such name form is defined in the schema.
    */
-  public static NameForm getNameForm(ObjectClass objectClass)
+  public static List<NameForm> getNameForm(ObjectClass objectClass)
   {
     return DirectoryServer.getNameForm(objectClass);
   }

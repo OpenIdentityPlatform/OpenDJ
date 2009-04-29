@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -180,9 +181,10 @@ public final class Schema
                ditStructureRulesByNameForm;
 
   // The set of name forms for this schema, mapped between the
-  // structural objectclass for the definition and the name form
-  // itself.
-  private ConcurrentHashMap<ObjectClass,NameForm> nameFormsByOC;
+  // structural objectclass for the definition and the list of name
+  // forms
+  private ConcurrentHashMap<ObjectClass,List<NameForm>>
+          nameFormsByOC;
 
   // The set of name forms for this schema, mapped between the
   // names/OID and the name form itself.
@@ -258,7 +260,8 @@ public final class Schema
          new ConcurrentHashMap<Integer,DITStructureRule>();
     ditStructureRulesByNameForm =
          new ConcurrentHashMap<NameForm,DITStructureRule>();
-    nameFormsByOC = new ConcurrentHashMap<ObjectClass,NameForm>();
+    nameFormsByOC =
+            new ConcurrentHashMap<ObjectClass,List<NameForm>>();
     nameFormsByName = new ConcurrentHashMap<String,NameForm>();
     subordinateTypes =
          new ConcurrentHashMap<AttributeType,List<AttributeType>>();
@@ -2590,14 +2593,12 @@ public final class Schema
 
   /**
    * Retrieves the name form definitions for this schema, as a mapping
-   * between the objectclass for the name form and the name form
-   * itself.  Each name form should only be present once, since its
-   * only key is its objectclass.  The contents of the returned
-   * mapping must not be altered.
+   * between the objectclass for the name forms and the name forms
+   * themselves.
    *
    * @return  The name form definitions for this schema.
    */
-  public ConcurrentHashMap<ObjectClass,NameForm>
+  public ConcurrentHashMap<ObjectClass,List<NameForm>>
               getNameFormsByObjectClass()
   {
     return nameFormsByOC;
@@ -2657,15 +2658,17 @@ public final class Schema
 
 
   /**
-   * Retrieves the name form definition for the specified objectclass.
+   * Retrieves the name forms definition for the specified
+   * objectclass.
    *
    * @param  objectClass  The objectclass for the name form to
    *                      retrieve.
    *
-   * @return  The requested name form, or <CODE>null</CODE> if no name
-   *          form is registered with the provided objectClass.
+   * @return  The requested name forms, or <CODE>null</CODE> if no
+   *           name forms are registered with the provided
+   *           objectClass.
    */
-  public NameForm getNameForm(ObjectClass objectClass)
+  public List<NameForm> getNameForm(ObjectClass objectClass)
   {
     return nameFormsByOC.get(objectClass);
   }
@@ -2708,19 +2711,25 @@ public final class Schema
     synchronized (nameFormsByOC)
     {
       ObjectClass objectClass = nameForm.getStructuralClass();
-
+      List<NameForm> mappedForms = nameFormsByOC.get(objectClass);
       if (! overwriteExisting)
       {
-        if (nameFormsByOC.containsKey(objectClass))
+        if(mappedForms !=null)
         {
-          NameForm conflictingNameForm =
-               nameFormsByOC.get(objectClass);
-
-          Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
-              get(nameForm.getNameOrOID(), objectClass.getNameOrOID(),
-                  conflictingNameForm.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
+          //Iterate over the forms to make sure we aren't adding a
+          //duplicate.
+          for(NameForm nf : mappedForms)
+          {
+            if(nf.equals(nameForm))
+            {
+              Message message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
+                get(nameForm.getNameOrOID(),
+                    objectClass.getNameOrOID(),
+                    nf.getNameOrOID());
+              throw new DirectoryException(
+                           ResultCode.CONSTRAINT_VIOLATION, message);
+            }
+          }
         }
 
         String oid = toLowerCase(nameForm.getOID());
@@ -2750,7 +2759,13 @@ public final class Schema
         }
       }
 
-      nameFormsByOC.put(objectClass, nameForm);
+      if(mappedForms == null)
+      {
+        mappedForms = new ArrayList<NameForm>();
+      }
+
+      mappedForms.add(nameForm);
+      nameFormsByOC.put(objectClass, mappedForms);
       nameFormsByName.put(toLowerCase(nameForm.getOID()), nameForm);
 
       for (String name : nameForm.getNames().keySet())
@@ -2781,6 +2796,16 @@ public final class Schema
   {
     synchronized (nameFormsByOC)
     {
+      List<NameForm> mappedForms = nameFormsByOC.get(
+              nameForm.getStructuralClass());
+      if(mappedForms != null)
+      {
+        mappedForms.remove(nameForm);
+        if(mappedForms.size() == 0)
+        {
+          nameFormsByOC.remove(nameForm.getStructuralClass());
+        }
+      }
       nameFormsByOC.remove(nameForm.getStructuralClass(), nameForm);
       nameFormsByName.remove(toLowerCase(nameForm.getOID()),
                              nameForm);
@@ -3006,15 +3031,18 @@ public final class Schema
         }
       }
 
-      for (NameForm nf : nameFormsByOC.values())
+      for (List<NameForm> mappedForms : nameFormsByOC.values())
       {
-        if (nf.getRequiredAttributes().contains(t) ||
-            nf.getOptionalAttributes().contains(t))
+        for(NameForm nf : mappedForms)
         {
-          NameForm newNF = nf.recreateFromDefinition();
-          deregisterNameForm(nf);
-          registerNameForm(newNF, true);
-          rebuildDependentElements(nf, depth+1);
+          if (nf.getRequiredAttributes().contains(t) ||
+              nf.getOptionalAttributes().contains(t))
+          {
+            NameForm newNF = nf.recreateFromDefinition();
+            deregisterNameForm(nf);
+            registerNameForm(newNF, true);
+            rebuildDependentElements(nf, depth+1);
+          }
         }
       }
 
@@ -3058,13 +3086,19 @@ public final class Schema
         }
       }
 
-      NameForm nf = nameFormsByOC.get(c);
-      if (nf != null)
+      List<NameForm> mappedForms = nameFormsByOC.get(c);
+      if(mappedForms != null)
       {
-        NameForm newNF = nf.recreateFromDefinition();
-        deregisterNameForm(nf);
-        registerNameForm(newNF, true);
-        rebuildDependentElements(nf, depth+1);
+        for(NameForm nf : mappedForms)
+        {
+          if (nf != null)
+          {
+            NameForm newNF = nf.recreateFromDefinition();
+            deregisterNameForm(nf);
+            registerNameForm(newNF, true);
+            rebuildDependentElements(nf, depth+1);
+          }
+        }
       }
 
       for (DITContentRule dcr : ditContentRules.values())

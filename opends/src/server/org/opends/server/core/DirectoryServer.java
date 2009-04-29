@@ -4435,7 +4435,7 @@ public class DirectoryServer
    *
    * @return  The set of name forms defined in the Directory Server.
    */
-  public static ConcurrentHashMap<ObjectClass,NameForm> getNameForms()
+  public static ConcurrentHashMap<ObjectClass,List<NameForm>> getNameForms()
   {
     return directoryServer.schema.getNameFormsByObjectClass();
   }
@@ -4457,15 +4457,15 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the name form associated with the specified objectclass.
+   * Retrieves the name forms associated with the specified objectclass.
    *
    * @param  objectClass  The objectclass for which to retrieve the associated
    *                      name form.
    *
-   * @return  The requested name form, or <CODE>null</CODE> if no such name form
-   *          is defined in the schema.
+   * @return  The requested name forms, or <CODE>null</CODE> if no such name
+   *           form is defined in the schema.
    */
-  public static NameForm getNameForm(ObjectClass objectClass)
+  public static List<NameForm> getNameForm(ObjectClass objectClass)
   {
     return directoryServer.schema.getNameForm(objectClass);
   }

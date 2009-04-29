@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -2923,8 +2923,8 @@ public class SchemaBackendTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
 
@@ -5405,7 +5405,7 @@ public class SchemaBackendTestCase
   {
     File tempFile = File.createTempFile("schema", "testImportLDIF");
     tempFile.deleteOnExit();
-    
+
     LDIFExportConfig exportConfig =
       new LDIFExportConfig(tempFile.getAbsolutePath(),
                            ExistingFileBehavior.OVERWRITE);
@@ -5414,7 +5414,7 @@ public class SchemaBackendTestCase
 
     LDIFImportConfig importConfig =
          new LDIFImportConfig(tempFile.getAbsolutePath());
-    
+
     schemaBackend.importLDIF(importConfig);
   }
 

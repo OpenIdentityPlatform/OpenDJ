@@ -2052,13 +2052,59 @@ public class Entry
         ditContentRule = null;
       }
 
+
+      if (! checkAttributesAndObjectClasses(ditContentRule,
+                 structuralPolicy, invalidReason))
+      {
+        return false;
+      }
+
       if (validateNameForms)
       {
-        nameForm = DirectoryServer.getNameForm(structuralClass);
-        if ((nameForm != null) && nameForm.isObsolete())
+        /**
+         * There may be multiple nameforms registered with this
+         * structural objectclass.However, we need to select only one
+         * of the nameforms and its corresponding DITstructure rule.
+         * We will iterate over all the nameforms and see if atleast
+         * one is acceptable before rejecting the entry.
+         * DITStructureRules corresponding to other non-acceptable
+         * nameforms are not applied.
+         */
+        List<NameForm> listForms =
+                DirectoryServer.getNameForm(structuralClass);
+        if(listForms != null)
         {
-          nameForm = null;
+          boolean matchFound = false;
+          boolean obsolete = true;
+          for(int index=0; index <listForms.size(); index++)
+          {
+            NameForm nf = listForms.get(index);
+            if(!nf.isObsolete())
+            {
+              obsolete = false;
+              matchFound = checkNameForm(nf,
+                      structuralPolicy, invalidReason);
+
+              if(matchFound)
+              {
+                nameForm = nf;
+                break;
+              }
+
+              if(index != listForms.size()-1)
+              {
+                invalidReason.append(",");
+              }
+            }
+          }
+          if(! obsolete && !matchFound)
+          {
+            //We couldn't match this entry against any of the
+            // nameforms.
+            return false;
+          }
         }
+
 
         if (validateStructureRules && (nameForm != null))
         {
@@ -2070,24 +2116,6 @@ public class Entry
             ditStructureRule = null;
           }
         }
-      }
-    }
-
-
-    if (! checkAttributesAndObjectClasses(ditContentRule,
-               structuralPolicy, invalidReason))
-    {
-      return false;
-    }
-
-
-    // If there is a name form for this entry, then make sure that the
-    // RDN for the entry is in compliance with it.
-    if (nameForm != null)
-    {
-      if (! checkNameForm(nameForm, structuralPolicy, invalidReason))
-      {
-        return false;
       }
     }
 
@@ -2304,54 +2332,54 @@ public class Entry
     RDN rdn = dn.getRDN();
     if (rdn != null)
     {
-      // Make sure that all the required attributes are present.
-      for (AttributeType t : nameForm.getRequiredAttributes())
-      {
-        if (! rdn.hasAttributeType(t))
+        // Make sure that all the required attributes are present.
+        for (AttributeType t : nameForm.getRequiredAttributes())
         {
-          Message message =
-                  ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID(),
-                    nameForm.getNameOrOID());
+          if (! rdn.hasAttributeType(t))
+          {
+            Message message =
+                    ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
+                      String.valueOf(dn),
+                      t.getNameOrOID(),
+                      nameForm.getNameOrOID());
 
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            invalidReason.append(message);
-            return false;
+            if (structuralPolicy == AcceptRejectWarn.REJECT)
+            {
+                invalidReason.append(message);
+              return false;
+            }
+            else if (structuralPolicy == AcceptRejectWarn.WARN)
+            {
+                logError(message);
+              }
+            }
           }
-          else if (structuralPolicy == AcceptRejectWarn.WARN)
-          {
-            logError(message);
-          }
-        }
-      }
 
-      // Make sure that all attributes in the RDN are allowed.
-      int numAVAs = rdn.getNumValues();
-      for (int i = 0; i < numAVAs; i++)
-      {
-        AttributeType t = rdn.getAttributeType(i);
-        if (! nameForm.isRequiredOrOptional(t))
-        {
-          Message message =
-                  ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
-                    String.valueOf(dn),
-                    t.getNameOrOID(),
-                    nameForm.getNameOrOID());
+          // Make sure that all attributes in the RDN are allowed.
+          int numAVAs = rdn.getNumValues();
+          for (int i = 0; i < numAVAs; i++)
+          {
+            AttributeType t = rdn.getAttributeType(i);
+            if (! nameForm.isRequiredOrOptional(t))
+            {
+              Message message =
+                      ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
+                        String.valueOf(dn),
+                        t.getNameOrOID(),
+                        nameForm.getNameOrOID());
 
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            invalidReason.append(message);
-            return false;
+              if (structuralPolicy == AcceptRejectWarn.REJECT)
+              {
+                  invalidReason.append(message);
+                return false;
+              }
+              else if (structuralPolicy == AcceptRejectWarn.WARN)
+              {
+                  logError(message);
+                }
+              }
+            }
           }
-          else if (structuralPolicy == AcceptRejectWarn.WARN)
-          {
-            logError(message);
-          }
-        }
-      }
-    }
 
     // If we've gotten here, then things are OK.
     return true;
@@ -2707,27 +2735,33 @@ public class Entry
         }
         else
         {
-          NameForm parentNF =
+          List<NameForm> allNFs =
                DirectoryServer.getNameForm(parentStructuralClass);
-          if ((parentNF != null) && (! parentNF.isObsolete()))
+          if(allNFs != null)
           {
-            DITStructureRule parentDSR =
-                 DirectoryServer.getDITStructureRule(parentNF);
-            if ((parentDSR != null) && (! parentDSR.isObsolete()))
+            for(NameForm parentNF : allNFs)
             {
-              Message message =
-                   ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
-                           String.valueOf(dn),
-                           String.valueOf(parentEntry.getDN()));
+              if ((parentNF != null) && (! parentNF.isObsolete()))
+              {
+                DITStructureRule parentDSR =
+                     DirectoryServer.getDITStructureRule(parentNF);
+                if ((parentDSR != null) && (! parentDSR.isObsolete()))
+                {
+                  Message message =
+                       ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
+                               String.valueOf(dn),
+                               String.valueOf(parentEntry.getDN()));
 
-              if (structuralPolicy == AcceptRejectWarn.REJECT)
-              {
-                invalidReason.append(message);
-                return false;
-              }
-              else if (structuralPolicy == AcceptRejectWarn.WARN)
-              {
-                logError(message);
+                  if (structuralPolicy == AcceptRejectWarn.REJECT)
+                  {
+                    invalidReason.append(message);
+                    return false;
+                  }
+                  else if (structuralPolicy == AcceptRejectWarn.WARN)
+                  {
+                    logError(message);
+                  }
+                }
               }
             }
           }
