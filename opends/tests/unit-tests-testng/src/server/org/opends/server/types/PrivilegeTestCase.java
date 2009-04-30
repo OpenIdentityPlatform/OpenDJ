@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -113,12 +113,12 @@ public class PrivilegeTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-    
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--set", "server-fqdn:" + "127.0.0.1");
-    
+
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(
       "dn: cn=Unprivileged Root,cn=Root DNs,cn=config",
@@ -311,7 +311,7 @@ public class PrivilegeTestCase
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--remove", "server-fqdn:" + "127.0.0.1");
-   
+
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -989,7 +989,7 @@ public class PrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled = false, dataProvider = "testdata", groups = { "slow" },
+  @Test(dataProvider = "testdata", groups = { "slow" },
         dependsOnMethods = { "testBackupBackend" })
   public void testRestoreBackend(InternalClientConnection conn,
                                  boolean hasPrivilege)
