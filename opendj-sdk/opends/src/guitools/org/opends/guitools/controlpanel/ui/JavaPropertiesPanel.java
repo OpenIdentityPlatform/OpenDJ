@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -713,30 +714,30 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   {
     editor.stopCellEditing();
 
-    ArrayList<Message> errors = new ArrayList<Message>();
+    final ArrayList<Message> javaHomeErrors = new ArrayList<Message>();
     String f = javaHome.getText().trim();
     if (f.length() > 0)
     {
       File file = new File(f);
       if (!file.exists())
       {
-        errors.add(ERR_CTRL_PANEL_JAVA_PATH_DOES_NOT_EXIST.get(f));
+        javaHomeErrors.add(ERR_CTRL_PANEL_JAVA_PATH_DOES_NOT_EXIST.get(f));
       }
       else if (!file.isDirectory())
       {
-        errors.add(ERR_CTRL_PANEL_JAVA_PATH_NOT_A_DIRECTORY.get(f));
+        javaHomeErrors.add(ERR_CTRL_PANEL_JAVA_PATH_NOT_A_DIRECTORY.get(f));
       }
       else
       {
         File javaFile = getJavaFile(file);
         if (!javaFile.exists())
         {
-          errors.add(ERR_CTRL_PANEL_JAVA_BINARY_NOT_FOUND.get(
+          javaHomeErrors.add(ERR_CTRL_PANEL_JAVA_BINARY_NOT_FOUND.get(
               javaFile.toString()));
         }
       }
     }
-    if (errors.size() == 0)
+    if (javaHomeErrors.size() == 0)
     {
       final Set<String> providedArguments = new HashSet<String>();
       for (JavaArgumentsDescriptor cmd : getCurrentJavaArguments())
@@ -747,103 +748,175 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           providedArguments.add(args);
         }
       }
-      if (!providedArguments.isEmpty())
+
+      disableComponents();
+      lInitContents.setText(
+          INFO_CTRL_PANEL_CHECKING_JAVA_OPTIONS_SUMMARY.get().toString());
+      BackgroundTask<List<Message>> worker =
+        new BackgroundTask<List<Message>>()
       {
-        disableComponents();
-        lInitContents.setText(
-            INFO_CTRL_PANEL_CHECKING_JAVA_ARGUMENTS_SUMMARY.get().toString());
-        BackgroundTask<Set<String>> worker =
-          new BackgroundTask<Set<String>>()
+        private boolean isConfirmation = false;
+        @Override
+        public List<Message> processBackgroundTask() throws Throwable
         {
-          private String jvm;
-          @Override
-          public Set<String> processBackgroundTask() throws Throwable
+          String[] jvms;
+          String userJVM = javaHome.getText();
+          ArrayList<Message> errorMessages = new ArrayList<Message>();
+          ArrayList<Message> confirmationMessages = new ArrayList<Message>();
+          String defaultJVM = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+          if (defaultJVM == null)
+          {
+            defaultJVM = System.getProperty("java.home");
+          }
+          if (useSpecifiedJavaHome.isSelected())
+          {
+            jvms = new String[]{userJVM};
+          }
+          else if ((userJVM != null) && (userJVM.trim().length() > 0))
+          {
+            jvms = new String[]{defaultJVM, userJVM};
+          }
+          else
+          {
+            jvms = new String[]{defaultJVM};
+          }
+          for (String jvm : jvms)
           {
             Set<String> notWorkingArgs = new HashSet<String>();
-            jvm = javaHome.getText();
-            if (jvm.trim().length() == 0)
-            {
-              jvm = System.getProperty("java.home");
-              if ((jvm == null) || (jvm.length() == 0))
-              {
-                jvm = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
-              }
-            }
 
             String installPath = getInfo().getServerDescriptor().
             getInstallPath().getAbsolutePath();
-            for (String arg : providedArguments)
+            if (!Utils.supportsOption("", jvm, installPath))
             {
-              if (!Utils.supportsOption(arg, jvm, installPath))
+              if (jvm == userJVM && !useSpecifiedJavaHome.isSelected())
               {
-                notWorkingArgs.add(arg);
+                errorMessages.add(
+                    ERR_CTRL_PANEL_NOT_WORKING_FALLBACK_JVM_DETAILS.get(jvm));
               }
-            }
-
-            return notWorkingArgs;
-          }
-          /**
-           * {@inheritDoc}
-           */
-          @Override
-          public void backgroundTaskCompleted(Set<String> returnValue,
-              Throwable t)
-          {
-            if (t == null)
-            {
-              boolean confirm = true;
-              if (!returnValue.isEmpty())
+              else
               {
-                File javaFile = getJavaFile(new File(jvm));
-                Message confirmationMessage =
-                  INFO_CTRL_PANEL_CONFIRM_NOT_WORKING_ARGUMENTS_DETAILS.get(
-                      javaFile.toString(),
-                      Utilities.getStringFromCollection(returnValue, "<br>-"));
-                confirm = displayConfirmationDialog(
-                    INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-                    confirmationMessage);
-              }
-              if (confirm)
-              {
-                launchTask();
+                errorMessages.add(
+                    ERR_CTRL_PANEL_NOT_WORKING_JVM_DETAILS.get(jvm));
               }
             }
             else
             {
-              String arg;
-              if (t instanceof OpenDsException)
+              for (String arg : providedArguments)
               {
-                arg = ((OpenDsException)t).getMessageObject().toString();
+                if (!Utils.supportsOption(arg, jvm, installPath))
+                {
+                  notWorkingArgs.add(arg);
+                }
+              }
+            }
+            if (notWorkingArgs.size() > 0)
+            {
+              File javaFile = getJavaFile(new File(jvm));
+              Message confirmationMessage;
+              if (useSpecifiedJavaArgs.isSelected())
+              {
+                confirmationMessage =
+                  INFO_CTRL_PANEL_CONFIRM_NOT_WORKING_ARGUMENTS_DETAILS.get(
+                    javaFile.toString(),
+                    Utilities.getStringFromCollection(notWorkingArgs, "<br>-"));
               }
               else
               {
-                arg = t.toString();
+                confirmationMessage =
+             INFO_CTRL_PANEL_CONFIRM_NOT_WORKING_FALLBACK_ARGUMENTS_DETAILS.get(
+                    javaFile.toString(),
+                    Utilities.getStringFromCollection(notWorkingArgs, "<br>-"));
               }
-              Message title =
-                ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_SUMMARY.get();
-              Message details =
-                ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_DETAILS.get(arg);
-              updateErrorPane(errorPane, title,
-                  ColorAndFontConstants.errorTitleFont, details,
-                  errorPane.getFont());
-              packParentDialog();
-              errorPane.setVisible(true);
+              confirmationMessages.add(confirmationMessage);
             }
-            enableComponents();
-            lInitContents.setText(READING_JAVA_SETTINGS.toString());
           }
-        };
-        worker.startBackgroundTask();
-        return;
-      }
-    }
-    if (errors.size() == 0)
-    {
-      launchTask();
+          isConfirmation = errorMessages.isEmpty();
+          if (!errorMessages.isEmpty())
+          {
+            return errorMessages;
+          }
+          else
+          {
+            return confirmationMessages;
+          }
+        }
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void backgroundTaskCompleted(List<Message> returnValue,
+            Throwable t)
+        {
+          if (t == null)
+          {
+            boolean confirm = false;
+            if (isConfirmation && !returnValue.isEmpty())
+            {
+              confirm = displayConfirmationDialog(
+                  INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+                  returnValue.iterator().next());
+            }
+            else if (!isConfirmation && !returnValue.isEmpty())
+            {
+              displayErrorDialog(returnValue);
+            }
+            else
+            {
+              confirm = true;
+            }
+
+            if (confirm)
+            {
+              launchTask();
+            }
+          }
+          else
+          {
+            String arg;
+            if (t instanceof OpenDsException)
+            {
+              arg = ((OpenDsException)t).getMessageObject().toString();
+            }
+            else
+            {
+              arg = t.toString();
+            }
+            Message title =
+              ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_SUMMARY.get();
+            Message details =
+              ERR_CTRL_PANEL_ERROR_CHECKING_JAVA_SETTINGS_DETAILS.get(arg);
+            updateErrorPane(errorPane, title,
+                ColorAndFontConstants.errorTitleFont, details,
+                errorPane.getFont());
+            packParentDialog();
+            errorPane.setVisible(true);
+          }
+          enableComponents();
+          lInitContents.setText(READING_JAVA_SETTINGS.toString());
+        }
+      };
+      worker.startBackgroundTask();
+      return;
     }
     else
     {
-      displayErrorDialog(errors);
+      if (useSpecifiedJavaHome.isSelected())
+      {
+        displayErrorDialog(javaHomeErrors);
+      }
+      else
+      {
+        ArrayList<String> s = new ArrayList<String>();
+        for (Message msg : javaHomeErrors)
+        {
+          s.add(msg.toString());
+        }
+        ArrayList<Message> msgs = new ArrayList<Message>();
+        Message msg = ERR_CTRL_PANEL_GENERIC_ERROR_FALLBACK_JAVAHOME.get(
+            f, Utilities.getStringFromCollection(s, "<br>-"));
+        msgs.add(msg);
+        displayErrorDialog(msgs);
+      }
     }
   }
 

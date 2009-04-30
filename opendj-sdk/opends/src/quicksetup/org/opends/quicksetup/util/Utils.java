@@ -172,7 +172,7 @@ public class Utils
         env.put("DO_NOT_PAUSE", "true");
       }
       Process process = pb.start();
-      LOG.log(Level.INFO, "launching "+args);
+      LOG.log(Level.INFO, "launching "+args+ " with env: "+env);
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
