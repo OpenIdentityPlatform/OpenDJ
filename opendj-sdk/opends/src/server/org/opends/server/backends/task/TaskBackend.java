@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -521,38 +521,47 @@ public class TaskBackend
       return null;
     }
 
-    if (entryDN.equals(taskRootDN))
-    {
-      return taskScheduler.getTaskRootEntry();
-    }
-    else if (entryDN.equals(scheduledTaskParentDN))
-    {
-      return taskScheduler.getScheduledTaskParentEntry();
-    }
-    else if (entryDN.equals(recurringTaskParentDN))
-    {
-      return taskScheduler.getRecurringTaskParentEntry();
-    }
+    Lock lock = taskScheduler.readLockEntry(entryDN);
 
-    DN parentDN = entryDN.getParentDNInSuffix();
-    if (parentDN == null)
+    try
     {
-      return null;
-    }
+      if (entryDN.equals(taskRootDN))
+      {
+        return taskScheduler.getTaskRootEntry();
+      }
+      else if (entryDN.equals(scheduledTaskParentDN))
+      {
+        return taskScheduler.getScheduledTaskParentEntry();
+      }
+      else if (entryDN.equals(recurringTaskParentDN))
+      {
+        return taskScheduler.getRecurringTaskParentEntry();
+      }
 
-    if (parentDN.equals(scheduledTaskParentDN))
-    {
-      return taskScheduler.getScheduledTaskEntry(entryDN);
+      DN parentDN = entryDN.getParentDNInSuffix();
+      if (parentDN == null)
+      {
+        return null;
+      }
+
+      if (parentDN.equals(scheduledTaskParentDN))
+      {
+        return taskScheduler.getScheduledTaskEntry(entryDN);
+      }
+      else if (parentDN.equals(recurringTaskParentDN))
+      {
+        return taskScheduler.getRecurringTaskEntry(entryDN);
+      }
+      else
+      {
+        // If we've gotten here then this is not an entry
+        // that should exist in the task backend.
+        return null;
+      }
     }
-    else if (parentDN.equals(recurringTaskParentDN))
+    finally
     {
-      return taskScheduler.getRecurringTaskEntry(entryDN);
-    }
-    else
-    {
-      // If we've gotten here then this is not an entry that should exist in the
-      // task backend.
-      return null;
+      taskScheduler.unlockEntry(entryDN, lock);
     }
   }
 

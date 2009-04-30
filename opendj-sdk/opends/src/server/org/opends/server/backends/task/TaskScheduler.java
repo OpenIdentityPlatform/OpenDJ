@@ -139,7 +139,7 @@ public class TaskScheduler
   private LinkedList<TaskThread> idleThreads;
 
   // The lock used to provide threadsafe access to the scheduler.
-  private ReentrantLock schedulerLock;
+  private final ReentrantLock schedulerLock;
 
   // The task backend with which this scheduler is associated.
   private TaskBackend taskBackend;
