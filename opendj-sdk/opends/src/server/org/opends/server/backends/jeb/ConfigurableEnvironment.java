@@ -411,6 +411,21 @@ public class ConfigurableEnvironment
     // they are instead renamed from .jdb to .del.
     envConfig.setConfigParam("je.cleaner.expunge", "true");
 
+    // If the JVM is reasonably large then we can safely default to
+    // bigger read buffers. This will result in more scalable checkpointer
+    // and cleaner performance.
+    if (Runtime.getRuntime().maxMemory() > 256 * 1024 * 1024)
+    {
+      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.iteratorReadSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.faultReadSize", String
+          .valueOf(4 * 1024));
+    }
+
     return envConfig;
   }
 
