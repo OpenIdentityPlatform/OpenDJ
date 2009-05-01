@@ -765,14 +765,26 @@ final class ASN1InputStreamReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    // If not everything was read, throw error
+    // Ignore all unused trailing components.
     SizeLimitInputStream subSq = (SizeLimitInputStream)in;
     if(subSq.getSizeLimit() - subSq.getBytesRead() > 0)
     {
-      Message message =
-          ERR_ASN1_SEQUENCE_READ_NOT_ENDED.get(subSq.getSizeLimit() -
-              subSq.getBytesRead(), subSq.getSizeLimit());
-      throw new ASN1Exception(message);
+      if(debugEnabled())
+      {
+        TRACER.debugWarning("Ignoring %d unused trailing bytes in " +
+            "ASN.1 SEQUENCE", subSq.getSizeLimit() - subSq.getBytesRead());
+      }
+
+      try
+      {
+        subSq.skip(subSq.getSizeLimit() - subSq.getBytesRead());
+      }
+      catch(IOException ioe)
+      {
+        Message message =
+            ERR_ASN1_READ_ERROR.get(ioe.toString());
+        throw new ASN1Exception(message, ioe);
+      }
     }
 
     in = streamStack.removeFirst();

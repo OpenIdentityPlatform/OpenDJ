@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -103,32 +103,31 @@ public class AccountUsableResponseControl
             int     secondsBeforeUnlock = 0;
 
             reader.readStartSequence();
-            while(reader.hasNextElement())
+            if(reader.hasNextElement() &&
+                reader.peekType() == TYPE_INACTIVE)
             {
-              switch (reader.peekType())
-              {
-                case TYPE_INACTIVE:
-                  isInactive = reader.readBoolean();
-                  break;
-                case TYPE_RESET:
-                  isReset = reader.readBoolean();
-                  break;
-                case TYPE_EXPIRED:
-                  isExpired = reader.readBoolean();
-                  break;
-                case TYPE_REMAINING_GRACE_LOGINS:
-                  remainingGraceLogins = (int)reader.readInteger();
-                  break;
-                case TYPE_SECONDS_BEFORE_UNLOCK:
-                  isLocked = true;
-                  secondsBeforeUnlock = (int)reader.readInteger();
-                  break;
-                default:
-                  Message message = ERR_ACCTUSABLERES_UNKNOWN_UNAVAILABLE_TYPE.
-                      get(byteToHex(reader.peekType()));
-                  throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                      message);
-              }
+              isInactive = reader.readBoolean();
+            }
+            if(reader.hasNextElement() &&
+                reader.peekType() == TYPE_RESET)
+            {
+              isReset = reader.readBoolean();
+            }
+            if(reader.hasNextElement() &&
+                reader.peekType() == TYPE_EXPIRED)
+            {
+              isExpired = reader.readBoolean();
+            }
+            if(reader.hasNextElement() &&
+                reader.peekType() == TYPE_REMAINING_GRACE_LOGINS)
+            {
+              remainingGraceLogins = (int)reader.readInteger();
+            }
+            if(reader.hasNextElement() &&
+                reader.peekType() == TYPE_SECONDS_BEFORE_UNLOCK)
+            {
+              isLocked = true;
+              secondsBeforeUnlock = (int)reader.readInteger();
             }
             reader.readEndSequence();
 

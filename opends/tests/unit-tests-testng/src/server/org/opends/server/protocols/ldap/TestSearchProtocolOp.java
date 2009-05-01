@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 
@@ -137,7 +137,11 @@ public class TestSearchProtocolOp extends LdapTestCase
     LDAPReader.readProtocolOp(reader);
   }
 
-  @Test (expectedExceptions = LDAPException.class)
+  /**
+   * This should succeed since we are ignoring trailing SEQUENCE
+   * components.
+   */
+  @Test
   public void testInvalidSearchRequestTooManyElements() throws Exception
   {
     ByteStringBuilder builder = new ByteStringBuilder();
@@ -162,7 +166,27 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeEndSequence();
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
-    LDAPReader.readProtocolOp(reader);
+
+    ProtocolOp decodedProtocolOp = LDAPReader.readProtocolOp(reader);
+
+    // Make sure the protocol op is the correct type.
+    assertTrue(decodedProtocolOp instanceof SearchRequestProtocolOp);
+    SearchRequestProtocolOp searchOp =
+         (SearchRequestProtocolOp)decodedProtocolOp;
+
+    // Check that the fields have not been changed during encode and decode.
+    assertTrue(baseDN.equals(searchOp.getBaseDN()));
+    assertTrue(scope.equals(searchOp.getScope()));
+    assertTrue(dereferencePolicy.
+         equals(searchOp.getDereferencePolicy()));
+    assertTrue(sizeLimit == searchOp.getSizeLimit());
+    assertTrue(timeLimit == searchOp.getTimeLimit());
+    assertTrue(filter.toString().equals(
+         searchOp.getFilter().toString()));
+    // Check that the attributes are in the correct order (comparing the sets
+    // directly does not guarantee this).
+    assertTrue(Arrays.equals(attributes.toArray(),
+                             searchOp.getAttributes().toArray()));
   }
 
   @Test (expectedExceptions = LDAPException.class)

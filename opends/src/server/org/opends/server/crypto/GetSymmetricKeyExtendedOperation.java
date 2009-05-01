@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.crypto;
@@ -168,24 +168,15 @@ public class GetSymmetricKeyExtendedOperation
     {
       ASN1Reader reader = ASN1.getReader(requestValue);
       reader.readStartSequence();
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_SYMMETRIC_KEY_ELEMENT)
       {
-        switch (reader.peekType())
-        {
-          case TYPE_SYMMETRIC_KEY_ELEMENT:
-            requestSymmetricKey = reader.readOctetStringAsString();
-            break;
-
-          case TYPE_INSTANCE_KEY_ID_ELEMENT:
-            instanceKeyID = reader.readOctetStringAsString();
-            break;
-
-          default:
-            Message message = ERR_GET_SYMMETRIC_KEY_INVALID_TYPE.get(
-                 StaticUtils.byteToHex(reader.peekType()));
-            operation.appendErrorMessage(message);
-            return;
-        }
+        requestSymmetricKey = reader.readOctetStringAsString();
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_INSTANCE_KEY_ID_ELEMENT)
+      {
+        instanceKeyID = reader.readOctetStringAsString();
       }
       reader.readEndSequence();
     }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -39,7 +39,6 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.byteToHex;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -629,9 +628,9 @@ public class LDAPReader
       throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
-    ByteString    simplePassword  = null;
-    String             saslMechanism = null;
-    ByteString    saslCredentials = null;
+    ByteString simplePassword  = null;
+    String     saslMechanism   = null;
+    ByteString saslCredentials = null;
     switch (type)
     {
       case TYPE_AUTHENTICATION_SIMPLE:
@@ -797,59 +796,53 @@ public class LDAPReader
 
     try
     {
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_REFERRAL_SEQUENCE)
       {
-        switch(reader.peekType())
+        try
         {
-          case TYPE_REFERRAL_SEQUENCE:
-            try
-            {
-              reader.readStartSequence();
-              referralURLs = new ArrayList<String>();
+          reader.readStartSequence();
+          referralURLs = new ArrayList<String>();
 
-              while(reader.hasNextElement())
-              {
-                referralURLs.add(reader.readOctetStringAsString());
-              }
-              reader.readEndSequence();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+          // Should have at least 1.
+          do
+          {
+            referralURLs.add(reader.readOctetStringAsString());
+          }
+          while(reader.hasNextElement());
+          reader.readEndSequence();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-              Message message =
-                  ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
+          Message message =
+              ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
+        }
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS)
+      {
+        try
+        {
+          serverSASLCredentials =
+              reader.readOctetString();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-            break;
-          case TYPE_SERVER_SASL_CREDENTIALS:
-            try
-            {
-              serverSASLCredentials =
-                  reader.readOctetString();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message =
-                  ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
-                      get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
-
-            break;
-          default:
-            Message message =
-                ERR_LDAP_BIND_RESULT_DECODE_INVALID_TYPE.get(reader.peekType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
+          Message message =
+              ERR_LDAP_BIND_RESULT_DECODE_SERVER_SASL_CREDENTIALS.
+                  get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
       }
     }
@@ -1519,74 +1512,68 @@ public class LDAPReader
 
     try
     {
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_REFERRAL_SEQUENCE)
       {
-        switch(reader.peekType())
+        try
         {
-          case TYPE_REFERRAL_SEQUENCE:
-            try
-            {
-              reader.readStartSequence();
-              referralURLs = new ArrayList<String>();
+          reader.readStartSequence();
+          referralURLs = new ArrayList<String>();
 
-              while(reader.hasNextElement())
-              {
-                referralURLs.add(reader.readOctetStringAsString());
-              }
-              reader.readEndSequence();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+          while(reader.hasNextElement())
+          {
+            referralURLs.add(reader.readOctetStringAsString());
+          }
+          reader.readEndSequence();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-              Message message =
-                  ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
-            break;
-          case TYPE_EXTENDED_RESPONSE_OID:
-            try
-            {
-              oid = reader.readOctetStringAsString();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+          Message message =
+              ERR_LDAP_RESULT_DECODE_REFERRALS.get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
+        }
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_EXTENDED_RESPONSE_OID)
+      {
+        try
+        {
+          oid = reader.readOctetStringAsString();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-              Message message =
-                  ERR_LDAP_EXTENDED_RESULT_DECODE_OID.get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
+          Message message =
+              ERR_LDAP_EXTENDED_RESULT_DECODE_OID.get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
+        }
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_EXTENDED_RESPONSE_VALUE)
+      {
+        try
+        {
+          value = reader.readOctetString();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-            break;
-          case TYPE_EXTENDED_RESPONSE_VALUE:
-            try
-            {
-              value = reader.readOctetString();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              Message message =
-                  ERR_LDAP_EXTENDED_RESULT_DECODE_VALUE.get(String.valueOf(e));
-              throw new LDAPException(PROTOCOL_ERROR, message, e);
-            }
-
-            break;
-          default:
-            Message message = ERR_LDAP_EXTENDED_RESULT_DECODE_INVALID_TYPE.get(
-                reader.peekType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
+          Message message =
+              ERR_LDAP_EXTENDED_RESULT_DECODE_VALUE.get(String.valueOf(e));
+          throw new LDAPException(PROTOCOL_ERROR, message, e);
         }
       }
     }
@@ -1654,54 +1641,47 @@ public class LDAPReader
 
     try
     {
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_OID)
       {
-        switch(reader.peekType())
+        try
         {
-          case TYPE_INTERMEDIATE_RESPONSE_OID:
-            try
-            {
-              if(reader.hasNextElement())
-              {
-                oid = reader.readOctetStringAsString();
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+          if(reader.hasNextElement())
+          {
+            oid = reader.readOctetStringAsString();
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-              Message message =
-                  ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.get(
-                      e.getMessage());
-              throw new LDAPException(PROTOCOL_ERROR, message);
-            }
-            break;
-          case TYPE_INTERMEDIATE_RESPONSE_VALUE:
-            try
-            {
-              value = reader.readOctetString();
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
+          Message message =
+              ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_OID.get(
+                  e.getMessage());
+          throw new LDAPException(PROTOCOL_ERROR, message);
+        }
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_INTERMEDIATE_RESPONSE_VALUE)
+      {
+        try
+        {
+          value = reader.readOctetString();
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-              Message message =
-                  ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE.
-                      get(e.getMessage());
-              throw new LDAPException(PROTOCOL_ERROR, message);
-            }
-            break;
-          default:
-            Message message =
-                ERR_LDAP_INTERMEDIATE_RESPONSE_INVALID_ELEMENT_TYPE.get(
-                    byteToHex(reader.peekType()));
-            throw new LDAPException(PROTOCOL_ERROR, message);
+          Message message =
+              ERR_LDAP_INTERMEDIATE_RESPONSE_CANNOT_DECODE_VALUE.
+                  get(e.getMessage());
+          throw new LDAPException(PROTOCOL_ERROR, message);
         }
       }
     }
@@ -2754,10 +2734,12 @@ public class LDAPReader
     ArrayList<String> referralURLs = new ArrayList<String>();
     try
     {
-      while(reader.hasNextElement())
+      // Should have atleast 1 URL.
+      do
       {
         referralURLs.add(reader.readOctetStringAsString());
       }
+      while(reader.hasNextElement());
     }
     catch (Exception e)
     {
@@ -2904,48 +2886,42 @@ public class LDAPReader
     ByteString value = null;
     try
     {
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == UNIVERSAL_BOOLEAN_TYPE)
       {
-        switch(reader.peekType())
+        try
         {
-          case UNIVERSAL_BOOLEAN_TYPE:
-            try
-            {
-              isCritical = reader.readBoolean();
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
+          isCritical = reader.readBoolean();
+        }
+        catch (Exception e2)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+          }
 
-              Message message =
-                  ERR_LDAP_CONTROL_DECODE_CRITICALITY.get(String.valueOf(e2));
-              throw new LDAPException(PROTOCOL_ERROR, message, e2);
-            }
-            break;
-          case UNIVERSAL_OCTET_STRING_TYPE:
-            try
-            {
-              value = reader.readOctetString();
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
+          Message message =
+              ERR_LDAP_CONTROL_DECODE_CRITICALITY.get(String.valueOf(e2));
+          throw new LDAPException(PROTOCOL_ERROR, message, e2);
+        }
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)
+      {
+        try
+        {
+          value = reader.readOctetString();
+        }
+        catch (Exception e2)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+          }
 
-              Message message =
-                  ERR_LDAP_CONTROL_DECODE_VALUE.get(String.valueOf(e2));
-              throw new LDAPException(PROTOCOL_ERROR, message, e2);
-            }
-            break;
-          default:
-            Message message =
-                ERR_LDAP_CONTROL_DECODE_INVALID_TYPE.get(reader.peekType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
+          Message message =
+              ERR_LDAP_CONTROL_DECODE_VALUE.get(String.valueOf(e2));
+          throw new LDAPException(PROTOCOL_ERROR, message, e2);
         }
       }
     }

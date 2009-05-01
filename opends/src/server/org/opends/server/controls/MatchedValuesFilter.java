@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -786,50 +786,25 @@ public class MatchedValuesFilter
           ByteString subInitial        = null;
           ArrayList<ByteString> subAny = null;
           ByteString subFinal          = null;
-          while(reader.hasNextElement())
+
+          if(reader.hasNextElement() &&
+              reader.peekType() == TYPE_SUBINITIAL)
           {
-            switch(reader.peekType())
+            subInitial = reader.readOctetString();
+          }
+          while(reader.hasNextElement() &&
+              reader.peekType() == TYPE_SUBANY)
+          {
+            if(subAny == null)
             {
-             case TYPE_SUBINITIAL:
-                if (subInitial == null)
-                {
-                  subInitial = reader.readOctetString();
-                }
-                else
-                {
-                  Message message = ERR_MVFILTER_MULTIPLE_SUBINITIALS.get();
-                  throw new LDAPException(
-                          LDAPResultCode.PROTOCOL_ERROR, message);
-                }
-                break;
-
-              case TYPE_SUBANY:
-                if (subAny == null)
-                {
-                  subAny = new ArrayList<ByteString>();
-                }
-
-                subAny.add(reader.readOctetString());
-                break;
-
-              case TYPE_SUBFINAL:
-                if (subFinal == null)
-                {
-                  subFinal = reader.readOctetString();
-                }
-                else
-                {
-                  Message message = ERR_MVFILTER_MULTIPLE_SUBFINALS.get();
-                  throw new LDAPException(
-                          LDAPResultCode.PROTOCOL_ERROR, message);
-                }
-                break;
-
-              default:
-                Message message = ERR_MVFILTER_INVALID_SUBSTRING_ELEMENT_TYPE.
-                    get(byteToHex(reader.peekType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+              subAny = new ArrayList<ByteString>();
             }
+            subAny.add(reader.readOctetString());
+          }
+          if(reader.hasNextElement() &&
+              reader.peekType() == TYPE_SUBFINAL)
+          {
+            subFinal = reader.readOctetString();
           }
           reader.readEndSequence();
 
@@ -888,69 +863,25 @@ public class MatchedValuesFilter
         {
           reader.readStartSequence();
 
-          String          rawAttributeType  = null;
-          String          matchingRuleID    = null;
-          ByteString rawAssertionValue = null;
-          while(reader.hasNextElement())
+          String     rawAttributeType  = null;
+          String     matchingRuleID    = null;
+          ByteString rawAssertionValue;
+
+          if(reader.peekType() == TYPE_MATCHING_RULE_ID)
           {
-            switch (reader.peekType())
-            {
-              case TYPE_MATCHING_RULE_ID:
-                if (matchingRuleID == null)
-                {
-                  matchingRuleID = reader.readOctetStringAsString();
-                }
-                else
-                {
-                  Message message =
-                      ERR_MVFILTER_MULTIPLE_MATCHING_RULE_IDS.get();
-                  throw new LDAPException(
-                          LDAPResultCode.PROTOCOL_ERROR, message);
-                }
-                break;
-
-              case TYPE_MATCHING_RULE_TYPE:
-                if (rawAttributeType == null)
-                {
-                  rawAttributeType = reader.readOctetStringAsString();
-                }
-                else
-                {
-                  Message message = ERR_MVFILTER_MULTIPLE_ATTRIBUTE_TYPES.get();
-                  throw new LDAPException(
-                          LDAPResultCode.PROTOCOL_ERROR, message);
-                }
-                break;
-
-              case TYPE_MATCHING_RULE_VALUE:
-                if (rawAssertionValue == null)
-                {
-                  rawAssertionValue = reader.readOctetString();
-                }
-                else
-                {
-                  Message message =
-                      ERR_MVFILTER_MULTIPLE_ASSERTION_VALUES.get();
-                  throw new LDAPException(
-                          LDAPResultCode.PROTOCOL_ERROR, message);
-                }
-                break;
-
-              default:
-                Message message = ERR_MVFILTER_INVALID_EXTENSIBLE_ELEMENT_TYPE.
-                    get(byteToHex(reader.peekType()));
-                throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
-            }
+            matchingRuleID = reader.readOctetStringAsString();
           }
+          if(matchingRuleID == null ||
+              reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+          {
+             rawAttributeType = reader.readOctetStringAsString();
+          }
+          rawAssertionValue = reader.readOctetString();
           reader.readEndSequence();
 
           return new MatchedValuesFilter(type, rawAttributeType,
                                          rawAssertionValue, null, null, null,
                                          matchingRuleID);
-        }
-        catch (LDAPException le)
-        {
-          throw le;
         }
         catch (Exception e)
         {

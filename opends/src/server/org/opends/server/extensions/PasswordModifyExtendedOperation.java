@@ -249,33 +249,20 @@ public class PasswordModifyExtendedOperation
       {
         ASN1Reader reader = ASN1.getReader(requestValue);
         reader.readStartSequence();
-        while(reader.hasNextElement())
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_USER_ID)
         {
-          switch (reader.peekType())
-          {
-            case TYPE_PASSWORD_MODIFY_USER_ID:
-              userIdentity = reader.readOctetString();
-              break;
-            case TYPE_PASSWORD_MODIFY_OLD_PASSWORD:
-              oldPassword = reader.readOctetString();
-              break;
-            case TYPE_PASSWORD_MODIFY_NEW_PASSWORD:
-              newPassword = reader.readOctetString();
-              break;
-            default:
-              // Its ok if we encounter unrecognized trailing tags
-              reader.skipElement();
-              if(reader.hasNextElement())
-              {
-                operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-
-
-                operation.appendErrorMessage(
-                    ERR_EXTOP_PASSMOD_ILLEGAL_REQUEST_ELEMENT_TYPE.get(
-                        byteToHex(reader.peekType())));
-                return;
-              }
-          }
+          userIdentity = reader.readOctetString();
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD)
+        {
+          oldPassword = reader.readOctetString();
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD)
+        {
+          newPassword = reader.readOctetString();
         }
         reader.readEndSequence();
       }

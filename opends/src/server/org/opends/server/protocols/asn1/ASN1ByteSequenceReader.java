@@ -36,12 +36,17 @@ import org.opends.messages.Message;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 /**
  * An ASN.1 reader that reads from a {@link ByteSequenceReader}.
  */
 final class ASN1ByteSequenceReader implements ASN1Reader
 {
+  private static final DebugTracer TRACER = getTracer();
+
   private int state = ELEMENT_READ_STATE_NEED_TYPE;
   private byte peekType = 0;
   private int peekLength = -1;
@@ -473,11 +478,10 @@ final class ASN1ByteSequenceReader implements ASN1Reader
       throw new ASN1Exception(message);
     }
 
-    if(reader.remaining() > 0)
+    if(reader.remaining() > 0 && debugEnabled())
     {
-      Message message =
-          ERR_ASN1_SEQUENCE_READ_NOT_ENDED.get(reader.remaining(), peekLength);
-      throw new ASN1Exception(message);
+      TRACER.debugWarning("Ignoring %d unused trailing bytes in " +
+          "ASN.1 SEQUENCE", reader.remaining());
     }
 
     reader = readerStack.removeFirst();
