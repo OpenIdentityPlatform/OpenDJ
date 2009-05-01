@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
@@ -242,7 +242,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { DirectoryException.class })
+  @Test
   public void testDecodeControlValueMultiElementSequence()
          throws Exception
   {
@@ -255,7 +255,9 @@ public class ProxiedAuthV1ControlTestCase
     LDAPControl c =
         new LDAPControl(OID_PROXIED_AUTH_V1, true, bsb.toByteString());
 
-    ProxiedAuthV1Control.DECODER.decode(c.isCritical(), c.getValue());
+    assertEquals(ByteString.valueOf("uid=element1,o=test"),
+        ProxiedAuthV1Control.DECODER.decode(c.isCritical(),
+            c.getValue()).getRawAuthorizationDN());
   }
 
 

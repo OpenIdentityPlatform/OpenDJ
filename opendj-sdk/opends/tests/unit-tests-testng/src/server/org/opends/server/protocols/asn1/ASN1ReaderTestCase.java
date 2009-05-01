@@ -752,21 +752,20 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Tests to make sure not reading all elements in a sub sequence can be
-   * detected.
+   * Tests to make sure trailing components are ignored if not used.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ASN1Exception.class })
+  @Test
   public void testDecodeSequenceIncompleteRead()
       throws Exception
   {
     // An ASN.1 sequence of booleans missing one boolean element at the end
-    byte[] b = new byte[] { 0x30, 0x06, 0x01, 0x01, 0x00, 0x01, 0x01, 0x00 };
+    byte[] b = new byte[] { 0x30, 0x06, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00 };
     ASN1Reader reader = getReader(b, 0);
     reader.readStartSequence();
-    reader.readBoolean();
     reader.readEndSequence();
+    assertFalse(reader.readBoolean());
   }
 
   /**

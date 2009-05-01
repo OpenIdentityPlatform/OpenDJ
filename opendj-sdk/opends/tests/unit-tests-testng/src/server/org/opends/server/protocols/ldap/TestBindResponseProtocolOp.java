@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -96,19 +96,32 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       LDAPReader.readProtocolOp(reader);
     }
 
-    @Test (expectedExceptions = LDAPException.class)
-    public void testBindResponseTooMany() throws Exception {      
+  /**
+   * Test to ensure trailing unrecognized components are ignored.
+   */
+    @Test
+    public void testBindResponseTooMany() throws Exception {
+      DN responseDn = DN.decode(dn);
+
       ByteStringBuilder bsb = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(bsb);
       writer.writeStartSequence(OP_TYPE_BIND_RESPONSE);
       writer.writeInteger(okCode.getIntValue());
-      writer.writeOctetString((String)null);
-      writer.writeOctetString((String)null);
+      writer.writeOctetString(responseDn.toString());
+      writer.writeOctetString(message.toString());
       writer.writeBoolean(true);
       writer.writeEndSequence();
 
       ASN1Reader reader = ASN1.getReader(bsb.toByteString());
-      LDAPReader.readProtocolOp(reader);
+      ProtocolOp protocolOp = LDAPReader.readProtocolOp(reader);
+
+      assertTrue(protocolOp instanceof BindResponseProtocolOp);
+      BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
+      assertTrue(bindResponse.getResultCode() == okCode.getIntValue());
+      assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
+      assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
+      assertNull(bindResponse.getReferralURLs());
+      assertNull(bindResponse.getServerSASLCredentials());
     }
 
     @Test (expectedExceptions = LDAPException.class)
@@ -125,7 +138,11 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       LDAPReader.readProtocolOp(reader);
     }
 
-    @Test (expectedExceptions = LDAPException.class)
+  /**
+   * Test to ensure trailing unrecognized components are ignored
+   * without generating an error.
+   */
+    @Test
     public void testBindResponseBadReferral() throws Exception {
       DN responseDn = DN.decode(dn);
       ByteString serverSASLCredentials =
@@ -143,7 +160,15 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       writer.writeEndSequence();
 
       ASN1Reader reader = ASN1.getReader(bsb.toByteString());
-      LDAPReader.readProtocolOp(reader);
+      ProtocolOp protocolOp = LDAPReader.readProtocolOp(reader);
+
+      assertTrue(protocolOp instanceof BindResponseProtocolOp);
+      BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
+      assertTrue(bindResponse.getResultCode() == okCode.getIntValue());
+      assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
+      assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
+      assertNull(bindResponse.getReferralURLs());
+      assertNull(bindResponse.getServerSASLCredentials());
     }
 
     @Test

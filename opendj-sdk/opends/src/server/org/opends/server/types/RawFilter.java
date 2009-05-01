@@ -636,10 +636,12 @@ public abstract class RawFilter
     try
     {
       reader.readStartSequence();
-      while(reader.hasNextElement())
+      // Should have atleast 1 filter.
+      do
       {
         filterComponents.add(LDAPFilter.decode(reader));
       }
+      while(reader.hasNextElement());
       reader.readEndSequence();
     }
     catch (LDAPException le)
@@ -915,35 +917,25 @@ public abstract class RawFilter
     ArrayList<ByteString> subAnyElements = null;
     try
     {
-      while(reader.hasNextElement())
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_SUBINITIAL)
       {
-        switch (reader.peekType())
-        {
-          case TYPE_SUBINITIAL:
-            subInitialElement = reader.readOctetString();
-            break;
-          case TYPE_SUBFINAL:
-            subFinalElement = reader.readOctetString();
-            break;
-          case TYPE_SUBANY:
-            if (subAnyElements == null)
-            {
-              subAnyElements = new ArrayList<ByteString>();
-            }
-
-            subAnyElements.add(reader.readOctetString());
-            break;
-          default:
-            Message message =
-                ERR_LDAP_FILTER_DECODE_SUBSTRING_INVALID_SUBTYPE.
-                  get(reader.peekType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
-        }
+        subInitialElement = reader.readOctetString();
       }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
+      while(reader.hasNextElement() &&
+          reader.peekType() == TYPE_SUBANY)
+      {
+        if(subAnyElements == null)
+        {
+          subAnyElements = new ArrayList<ByteString>();
+        }
+        subAnyElements.add(reader.readOctetString());
+      }
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_SUBFINAL)
+      {
+        subFinalElement = reader.readOctetString();
+      }
     }
     catch (Exception e)
     {
@@ -1066,39 +1058,27 @@ public abstract class RawFilter
     }
 
 
-    ByteString assertionValue = null;
+    ByteString assertionValue;
     boolean    dnAttributes   = false;
     String     attributeType  = null;
     String     matchingRuleID = null;
     try
     {
-      while(reader.hasNextElement())
+      if(reader.peekType() == TYPE_MATCHING_RULE_ID)
       {
-        switch (reader.peekType())
-        {
-          case TYPE_MATCHING_RULE_ID:
-            matchingRuleID = reader.readOctetStringAsString();
-            break;
-          case TYPE_MATCHING_RULE_TYPE:
-            attributeType = reader.readOctetStringAsString();
-            break;
-          case TYPE_MATCHING_RULE_VALUE:
-            assertionValue = reader.readOctetString();
-            break;
-          case TYPE_MATCHING_RULE_DN_ATTRIBUTES:
-            dnAttributes = reader.readBoolean();
-            break;
-          default:
-            Message message =
-                ERR_LDAP_FILTER_DECODE_EXTENSIBLE_INVALID_TYPE.
-                  get(reader.peekType());
-            throw new LDAPException(PROTOCOL_ERROR, message);
-        }
+        matchingRuleID = reader.readOctetStringAsString();
       }
-    }
-    catch (LDAPException le)
-    {
-      throw le;
+      if(matchingRuleID == null ||
+          reader.peekType() == TYPE_MATCHING_RULE_TYPE)
+      {
+        attributeType = reader.readOctetStringAsString();
+      }
+      assertionValue = reader.readOctetString();
+      if(reader.hasNextElement() &&
+          reader.peekType() == TYPE_MATCHING_RULE_DN_ATTRIBUTES)
+      {
+        dnAttributes = reader.readBoolean();
+      }
     }
     catch (Exception e)
     {

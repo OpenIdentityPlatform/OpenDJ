@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -81,43 +81,35 @@ public class PasswordPolicyResponseControl
 
         reader.readStartSequence();
 
-        while(reader.hasNextElement())
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_WARNING_ELEMENT)
         {
-          switch (reader.peekType())
+          // Its a CHOICE element. Read as sequence to retrieve
+          // nested element.
+          reader.readStartSequence();
+          warningType =
+              PasswordPolicyWarningType.valueOf(reader.peekType());
+          warningValue = (int)reader.readInteger();
+          if (warningType == null)
           {
-            case TYPE_WARNING_ELEMENT:
-              // Its a CHOICE element. Read as sequence to retrieve
-              // nested element.
-              reader.readStartSequence();
-              warningType =
-                  PasswordPolicyWarningType.valueOf(reader.peekType());
-              warningValue = (int)reader.readInteger();
-              if (warningType == null)
-              {
-                Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
-                    byteToHex(reader.peekType()));
-                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                    message);
-              }
-              reader.readEndSequence();
-              break;
-
-            case TYPE_ERROR_ELEMENT:
-              int errorValue = (int)reader.readInteger();
-              errorType = PasswordPolicyErrorType.valueOf(errorValue);
-              if (errorType == null)
-              {
-                Message message =
-                    ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
-                throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                    message);
-              }
-              break;
-
-            default:
-              Message message = ERR_PWPOLICYRES_INVALID_ELEMENT_TYPE.get(
-                  byteToHex(reader.peekType()));
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+            Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE.get(
+                byteToHex(reader.peekType()));
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                message);
+          }
+          reader.readEndSequence();
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == TYPE_ERROR_ELEMENT)
+        {
+          int errorValue = (int)reader.readInteger();
+          errorType = PasswordPolicyErrorType.valueOf(errorValue);
+          if (errorType == null)
+          {
+            Message message =
+                ERR_PWPOLICYRES_INVALID_ERROR_TYPE.get(errorValue);
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                message);
           }
         }
 

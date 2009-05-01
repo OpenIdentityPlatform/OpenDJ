@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -33,6 +33,8 @@ import java.io.IOException;
 import org.opends.server.protocols.asn1.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.
     UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.
+    UNIVERSAL_INTEGER_TYPE;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -81,28 +83,23 @@ public class EntryChangeNotificationControl
         int changeTypeValue = (int)reader.readInteger();
         changeType = PersistentSearchChangeType.valueOf(changeTypeValue);
 
-        while(reader.hasNextElement()) {
-          switch(reader.peekType()) {
-            case ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE :
-              if (changeType != PersistentSearchChangeType.MODIFY_DN)
-              {
-                Message message =
-                    ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
-                throw new DirectoryException(
-                    ResultCode.PROTOCOL_ERROR, message);
-              }
-
-              previousDN = DN.decode(reader.readOctetStringAsString());
-              break;
-            case ASN1Constants.UNIVERSAL_INTEGER_TYPE :
-              changeNumber = reader.readInteger();
-              break;
-            default :
-              Message message =
-                  ERR_ECN_INVALID_ELEMENT_TYPE.get(
-                      byteToHex(reader.peekType()));
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        if(reader.hasNextElement() &&
+            reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)
+        {
+          if (changeType != PersistentSearchChangeType.MODIFY_DN)
+          {
+            Message message =
+                ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String.valueOf(changeType));
+            throw new DirectoryException(
+                ResultCode.PROTOCOL_ERROR, message);
           }
+
+          previousDN = DN.decode(reader.readOctetStringAsString());
+        }
+        if(reader.hasNextElement() &&
+            reader.peekType() == UNIVERSAL_INTEGER_TYPE)
+        {
+          changeNumber = reader.readInteger();
         }
       }
       catch (DirectoryException de)
