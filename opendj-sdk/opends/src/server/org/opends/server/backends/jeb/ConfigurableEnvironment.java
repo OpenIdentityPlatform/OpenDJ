@@ -411,6 +411,13 @@ public class ConfigurableEnvironment
     // they are instead renamed from .jdb to .del.
     envConfig.setConfigParam("je.cleaner.expunge", "true");
 
+    // Under heavy write load the check point can fall behind causing
+    // uncontrolled DB growth over time. This parameter makes the out of
+    // the box configuration more robust at the cost of a slight
+    // reduction in maximum write throughput. Experiments have shown
+    // that response time predictability is not impacted negatively.
+    envConfig.setConfigParam("je.checkpointer.highPriority", "true");
+
     // If the JVM is reasonably large then we can safely default to
     // bigger read buffers. This will result in more scalable checkpointer
     // and cleaner performance.
