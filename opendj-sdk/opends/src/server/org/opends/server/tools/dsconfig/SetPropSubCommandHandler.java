@@ -312,7 +312,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
           app.printVerboseMessage(msg);
 
-          for (PropertyEditorModification mod : editor.getModifications())
+          for (PropertyEditorModification<?> mod : editor.getModifications())
           {
             try
             {
@@ -476,8 +476,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                             OPTION_DSCFG_LONG_SET, false, true, true,
                             INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
                             INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-                        arg.addValue(cvc.getPropertyDefinition().getName()+':'+
-                            getArgumentValue(cvc.getValue()));
+                        PropertyDefinition<?> propertyDefinition =
+                          cvc.getPropertyDefinition();
+                        arg.addValue(propertyDefinition.getName()+':'+
+                            castAndGetArgumentValue(propertyDefinition,
+                                cvc.getValue()));
                         builder.addArgument(arg);
                       }
                       catch (Throwable t)
@@ -989,15 +992,17 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * command-line) that is equivalent to the modification proposed by the user
    * in the provided PropertyEditorModification object.
    * @param mod the object describing the modification made.
+   * @param <T> the type of the property to be retrieved.
    * @return the argument representing the modification.
    * @throws ArgumentException if there is a problem creating the argument.
    */
-  private static Argument createArgument(PropertyEditorModification mod)
+  private static <T> Argument createArgument(PropertyEditorModification<T> mod)
   throws ArgumentException
   {
     StringArgument arg;
 
-    String propName = mod.getPropertyDefinition().getName();
+    PropertyDefinition<T> propertyDefinition = mod.getPropertyDefinition();
+    String propName = propertyDefinition.getName();
 
     switch (mod.getType())
     {
@@ -1013,9 +1018,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           OPTION_DSCFG_SHORT_REMOVE, OPTION_DSCFG_LONG_REMOVE, false, true,
           true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       break;
     case ADD:
@@ -1023,9 +1028,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           OPTION_DSCFG_SHORT_ADD, OPTION_DSCFG_LONG_ADD, false, true, true,
           INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       break;
     case SET:
@@ -1033,9 +1038,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
           INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       break;
     default:

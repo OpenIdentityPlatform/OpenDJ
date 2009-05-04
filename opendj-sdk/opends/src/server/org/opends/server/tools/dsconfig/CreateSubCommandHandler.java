@@ -772,7 +772,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         app.printVerboseMessage(msg);
 
         if (handler != null) {
-          for (PropertyEditorModification mod : editor.getModifications()) {
+          for (PropertyEditorModification<?> mod : editor.getModifications()) {
             try {
               Argument arg = createArgument(mod);
               handler.getCommandBuilder().addArgument(arg);
@@ -1492,12 +1492,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    * @return the argument representing the modification.
    * @throws ArgumentException if there is a problem creating the argument.
    */
-  private static Argument createArgument(PropertyEditorModification mod)
+  private static <T> Argument createArgument(PropertyEditorModification<T> mod)
   throws ArgumentException
   {
     StringArgument arg;
 
-    String propName = mod.getPropertyDefinition().getName();
+    PropertyDefinition<T> propertyDefinition = mod.getPropertyDefinition();
+    String propName = propertyDefinition.getName();
 
     switch (mod.getType())
     {
@@ -1506,9 +1507,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
           INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       break;
     case SET:
@@ -1516,9 +1517,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
           INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       break;
     case RESET:
@@ -1533,9 +1534,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           null, OPTION_DSCFG_LONG_REMOVE, false, true,
           true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
-      for (Object value : mod.getModificationValues())
+      for (T value : mod.getModificationValues())
       {
-        arg.addValue(propName+':'+getArgumentValue(value));
+        arg.addValue(propName+':'+getArgumentValue(propertyDefinition, value));
       }
       arg = null;
       break;
