@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserInteraction;
 
 import org.opends.server.util.VersionCompatibilityIssue;
@@ -148,9 +149,25 @@ public abstract class VersionIssueNotifier {
 
     // Get the list of possible version incompatibility events (aka flag days)
     List<VersionCompatibilityIssue> compatibilityIssues;
-    Set<Integer> excludeIds = current.getIncompatibilityEventIds();
+    Set<Integer> excludeIds ;
+    boolean isUpgrade = neu.compareTo(current) >= 0;
+    if (isUpgrade)
+    {
+      excludeIds = current.getIncompatibilityEventIds();
+    }
+    else
+    {
+      excludeIds = neu.getIncompatibilityEventIds();
+    }
     if (excludeIds != null) {
-      compatibilityIssues = getEvents(excludeIds, current, neu);
+      if (isUpgrade)
+      {
+        compatibilityIssues = getEvents(excludeIds, current, neu);
+      }
+      else
+      {
+        compatibilityIssues = getEvents(excludeIds, neu, current);
+      }
     } else {
       // This method is only used as a fallback for pre 1.0.0 servers which
       // do not advertise incompatible version events.
@@ -300,7 +317,7 @@ public abstract class VersionIssueNotifier {
    */
   protected List<Message> getExportImportInstructions() {
     List<Message> instructions = new ArrayList<Message>();
-    if (ui.isCLI())
+    if ((ui == null) || (ui.isCLI()))
     {
       instructions.add(INFO_ORACLE_EI_ACTION_STEP1_CLI.get());
     }
@@ -353,6 +370,24 @@ public abstract class VersionIssueNotifier {
       }
     }
     return Collections.unmodifiableList(directives);
+  }
+
+  /**
+   * Creates a list appropriate for the presentation implementation.
+   *
+   * @param list to format
+   * @return String representing the list
+   */
+  protected String createUnorderedList(List list) {
+    StringBuilder sb = new StringBuilder();
+    if (list != null) {
+      for (Object o : list) {
+        sb.append(/*bullet=*/"* ");
+        sb.append(o.toString());
+        sb.append(Constants.LINE_SEPARATOR);
+      }
+    }
+    return sb.toString();
   }
 
 }

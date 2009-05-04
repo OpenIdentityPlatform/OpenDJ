@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -178,12 +178,19 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
-      String lineBreak = ui.isCLI() ?
-          Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
-      msg = new MessageBuilder(msg)
-              .append(lineBreak)
-              .append(ui.createUnorderedList(getExportImportInstructions()))
-              .toMessage();
+      if (ui != null)
+      {
+        String lineBreak = ui.isCLI() ? Constants.LINE_SEPARATOR
+            : Constants.HTML_LINE_BREAK;
+        msg = new MessageBuilder(msg).append(lineBreak).append(
+            ui.createUnorderedList(getExportImportInstructions())).toMessage();
+      }
+      else
+      {
+        String lineBreak = Constants.LINE_SEPARATOR;
+        msg = new MessageBuilder(msg).append(lineBreak).append(
+            createUnorderedList(getExportImportInstructions())).toMessage();
+      }
     }
     return msg;
   }
