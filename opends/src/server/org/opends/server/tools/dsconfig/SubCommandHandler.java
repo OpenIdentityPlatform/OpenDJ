@@ -72,7 +72,6 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
-import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -1399,24 +1398,36 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     }
   }
 
+  /**
+   * Returns the string value for a given object as it will be displayed
+   * in the equivalent command-line.  The code will cast the provided object
+   * using the property definition.
+   * @param propertyDefinition the property definition.
+   * @param o the value.
+   * @param <T> the type of the property to be retrieved.
+   * @return the String value to be displayed in the equivalent command-line.
+   */
+  protected static <T> String castAndGetArgumentValue(
+      PropertyDefinition<T> propertyDefinition, Object o)
+  {
+    String value = propertyDefinition.encodeValue(
+        propertyDefinition.castValue(o));
+    return value;
+  }
 
   /**
    * Returns the string value for a given object as it will be displayed
    * in the equivalent command-line.
+   * @param propertyDefinition the property definition.
    * @param o the value.
+   * @param <T> the type of the property to be retrieved.
    * @return the String value to be displayed in the equivalent command-line.
    */
-  protected static String getArgumentValue(Object o)
+  protected static <T> String getArgumentValue(
+      PropertyDefinition<T> propertyDefinition, T o)
   {
     String value;
-    if (o instanceof CommonSchemaElements)
-    {
-      value = ((CommonSchemaElements)o).getNameOrOID();
-    }
-    else
-    {
-      value = String.valueOf(o);
-    }
+    value = propertyDefinition.encodeValue(o);
     return value;
   }
 
