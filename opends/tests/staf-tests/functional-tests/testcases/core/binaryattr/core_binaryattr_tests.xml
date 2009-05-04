@@ -307,8 +307,7 @@
                'functionMessage'   : 'Check usercertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
                'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
-                                       'returnString'   : _functionResult ,
-                                       'case'           : 'ignorecase' }
+                                       'returnString'   : _functionResult }
              }
             </call>
           </sequence>  

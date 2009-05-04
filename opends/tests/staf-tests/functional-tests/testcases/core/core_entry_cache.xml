@@ -73,7 +73,8 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=version,cn=monitor',
                   'dsFilter'       : '|' ,
-                  'extraParams'    : ''
+                  'expectedRC'     : 2 ,
+                  'knownIssue'     : '3966'
                 }
               </call>
               <call function="'testCase_Postamble'" />
