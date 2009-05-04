@@ -136,7 +136,7 @@
                addproperty="email.server.host.input"/>
         <input message="   Enter email server port:"
                defaultvalue="${email.server.port}"
-               addproperty="eemail.server.port.input"/>
+               addproperty="email.server.port.input"/>
       </then>
       <else>
         <property name="email.to.input" value="${email.to}"/>
