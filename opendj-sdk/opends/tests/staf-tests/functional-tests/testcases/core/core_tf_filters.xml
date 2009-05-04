@@ -54,12 +54,9 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : '&amp;'
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+                  'dsFilter'       : '&amp;',
+                  'expectedRC'     : 2 ,
+                  'knownIssue'     : '3966'
                 }
               </call>
               <call function="'testCase_Postamble'" />
@@ -79,12 +76,9 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : '|'
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+                  'dsFilter'       : '|',
+                  'expectedRC'     : 2 ,
+                  'knownIssue'     : '3966'
                 }
               </call>
               <call function="'testCase_Postamble'" />
@@ -105,7 +99,8 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=bad,cn=monitor',
                   'dsFilter'       : '&amp;',
-                  'expectedRC'     : 32
+                  'expectedRC'     : 2,
+                  'knownIssue'     : '3966'
                 }
               </call>
               <call function="'testCase_Postamble'" />
@@ -126,7 +121,8 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=bad,cn=monitor',
                   'dsFilter'       : '|',
-                  'expectedRC'     : 32
+                  'expectedRC'     : 2,
+                  'knownIssue'     : '3966'
                 }
               </call>
               <call function="'testCase_Postamble'" />
