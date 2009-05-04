@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2008 Sun Microsystems, Inc.
+rem      Copyright 2008-2009 Sun Microsystems, Inc.
 
 setlocal
 
@@ -48,6 +48,6 @@ if not "%*" == "" echo   your parameters=%*
 echo Now running ant ...
 set OPENDS_LIB=%FT_HOME%\..\..\lib
 set ANT_LIB="%OPENDS_LIB%\mail.jar;%OPENDS_LIB%\activation.jar"
-"%ANT_HOME%\bin\ant" -lib "%ANT_LIB%" -f shared\ant\staf-installer.xml %*
+"%ANT_HOME%\bin\ant" -lib "%ANT_LIB%" -f shared\ant\build.xml %*
 
 :end

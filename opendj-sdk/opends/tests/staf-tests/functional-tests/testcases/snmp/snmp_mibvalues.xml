@@ -259,11 +259,9 @@
 
               <script>
                 dsServerDescription = DEFAULT_VALUES['dsServerDescription.1']
+                dsPath = '%s/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                 if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                  dsPath = '%s/%s/bat' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                   dsPath = dsPath.replace('/', '\\')
-                else:
-                  dsPath = '%s/%s/bin' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
               </script>
 
               <if expr="dsServerDescription == dsPath">
@@ -290,10 +288,6 @@
                       '%s' % msg
                     </message>
                     <tcstatus result="'fail'"></tcstatus>
-                    
-                    <call function="'setKnownIssue'">
-                      { 'issueId' : '3690' }
-                    </call>
                   </sequence>
                 </else>
               </if>

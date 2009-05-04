@@ -563,7 +563,7 @@
         testwareElementList=[]
         testwareElementList.append(['hostname',STAF_REMOTE_HOSTNAME])
         testwareElementList.append(['version',remotestaf.version])
-        testwareElementList.append(['version',remotestaf.root])
+        testwareElementList.append(['rootdir',remotestaf.root])
         
         write_text_elements(remote,testwareElementList)
         
@@ -866,7 +866,7 @@
       </script>
       <message>_message</message>
 
-      <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
+      <if expr="SEND_MAIL_AFTER_TEST_RUN == 'true'">
         <sequence>
           <message>
             'Sending Email Test Report to %s.' % SEND_MAIL_TO
@@ -926,6 +926,67 @@
           </if>
         </sequence>
       </if>
+
+      <!-- Saving Staf/Stax logs -->
+      <message>'Saving staf logs'</message>
+
+      <call function="'ResolveVar'" >
+        {
+        'location' : STAF_LOCAL_HOSTNAME ,
+        'type'     : 'STRING',
+        'name'     : 'STAF/Config/STAFRoot'
+        }
+      </call>
+      <if expr="RC != 0">
+        <script>
+          STAFResult = '{}'
+        </script>
+        <else>
+          <script>
+            STAFRoot = STAFResult
+          </script>
+        </else>
+      </if>
+
+      <script>
+        listOfChildren2 = listOfChildren
+        listOfChildren2.append(STAXJobID)
+        listOfChildren2.append(STAXSubJobID)
+      </script>
+      <iterate var="thisChild" in="listOfChildren2">
+        <sequence>
+          <script>
+            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            destFile = '%s/staf-logs/STAX_Job_%s.log' \
+                       % (LOGS_ROOT,thisChild)
+          </script>
+          <process name="'Saving job logs.....'">
+            <location>STAF_LOCAL_HOSTNAME</location>
+            <command mode="'shell'">'%s/bin/fmtlog' % STAFRoot</command>
+            <parms>'FORMAT LOGFILE %s NEWFILE %s' % (srcFile,destFile)</parms>
+            <envs>'%s/lib' % STAFRoot</envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+
+          <script>
+            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s_User.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            destFile = '%s/staf-logs/STAX_Job_%s_User.log' \
+                       % (LOGS_ROOT,thisChild)
+          </script>
+          <process name="'Saving job user logs.....'">
+            <location>STAF_LOCAL_HOSTNAME</location>
+            <command mode="'shell'">'%s/bin/fmtlog' % STAFRoot</command>
+            <parms>'FORMAT LOGFILE %s NEWFILE %s' % (srcFile,destFile)</parms>
+            <envs>'%s/lib' % STAFRoot</envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+        </sequence>
+      </iterate>
+
     </sequence>
 
   </function>

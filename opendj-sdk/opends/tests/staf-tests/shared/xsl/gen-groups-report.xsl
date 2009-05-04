@@ -24,7 +24,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -79,7 +79,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   
   <xsl:element name="head">
 
-  <link rel="SHORTCUT ICON" href="https://opends.dev.java.net/public/images/opends_favicon.gif" />
   <style type="text/css">
 /* <![CDATA[ */
  @import "/branding/css/tigris.css";
@@ -87,7 +86,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  /* ]]> */
   </style>
   <link rel="stylesheet" type="text/css" href="/branding/css/print.css" media="print" />
-  <link rel="stylesheet" href="https://opends.dev.java.net/public/css/opends.css" type="text/css" />
+  <link rel="stylesheet" href="./opends.css" type="text/css" />
 
     <xsl:element name="title">
       <xsl:value-of select="concat('Test Groups Report for OpenDS ',$version)"/>
@@ -107,7 +106,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <tbody>
       <tr>
         <td><div class="collectionheader"><xsl:value-of select="concat('Test Groups Report for OpenDS ',$version)"/></div></td>
-        <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
+        <td width="10%"><a href="https://opends.dev.java.net/"><img src="./opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
   </table>

@@ -122,7 +122,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '0,2,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -206,7 +207,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : newTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'       : '3435'
                         }
                       </call>
                     </sequence>
@@ -300,8 +302,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
               
@@ -372,7 +373,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -465,8 +467,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
 
@@ -748,7 +749,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : defTrapsCommunityProp ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile2
+                        'outputFile'        : outputFile2 ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -862,8 +864,7 @@
                 {
                 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'knownIssue'       : '3435'
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
 

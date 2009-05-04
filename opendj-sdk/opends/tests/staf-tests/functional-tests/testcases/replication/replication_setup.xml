@@ -33,7 +33,7 @@
     <function-map-args>
       <function-arg-def name="topologyFile" 
                         type="optional" 
-                        default="'%s/basic_topology.txt' % TESTS_TOPOLOGY_DIR">
+                        default="'%s/basic_topology.txt' % REPLICATION_CONFIG_DIR">
         <function-arg-description>
           Pathname to file describing the topology.
         </function-arg-description>
@@ -87,14 +87,6 @@
           <message>
              'Create DS topology as described in %s' % topologyFile
           </message>
-
-          <script>
-            try:
-              if REPLICATION_CONFIG_FILE:
-                topologyFile=REPLICATION_CONFIG_FILE
-            except NameError:
-              topologyFile=topologyFile
-          </script>
                  
           <call function="'createTopology'">
             { 'topologyDescFile' : topologyFile,

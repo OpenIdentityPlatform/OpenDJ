@@ -24,7 +24,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -84,15 +84,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   
   <xsl:element name="head">
 
-    <xsl:element name="link">
-      <xsl:attribute name="rel">
-        <xsl:value-of select="'SHORTCUT ICON'"/>
-      </xsl:attribute>
-      <xsl:attribute name="href">
-        <xsl:value-of select="'https://opends.dev.java.net/public/images/opends_favicon.gif'"/>
-      </xsl:attribute>
-    </xsl:element>
-
   <style type="text/css">
 /* <![CDATA[ */
  @import "/branding/css/tigris.css";
@@ -113,17 +104,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <xsl:value-of select="'print'"/>
     </xsl:attribute>
   </xsl:element>
-  <xsl:element name="link">
-    <xsl:attribute name="rel">
-      <xsl:value-of select="'stylesheet'"/>
-    </xsl:attribute>
-    <xsl:attribute name="type">
-      <xsl:value-of select="'text/css'"/>
-    </xsl:attribute>
-    <xsl:attribute name="href">
-      <xsl:value-of select="'https://opends.dev.java.net/public/css/opends.css'"/>
-    </xsl:attribute>
-  </xsl:element>
+  <link rel="stylesheet" href="../../reports/opends.css" type="text/css" />
 
     <xsl:element name="title">
       <xsl:value-of select="concat('Test Case Report for OpenDS ',$version)"/>
@@ -143,7 +124,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <tbody>
       <tr>
         <td><div class="collectionheader"><xsl:value-of select="concat('Test Case Report for OpenDS ',$version)"/></div></td>
-        <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
+        <td width="10%"><a href="https://opends.dev.java.net/"><img src="../../reports/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
   </table>

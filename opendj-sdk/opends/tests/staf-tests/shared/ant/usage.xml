@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 
 <project name="usage">
@@ -39,15 +39,19 @@
       usage                   : print this message
       properties              : print ant properties
 
+      --user--
+      user-configure          : configure user settings
+      user-unconfigure        : unconfigure user settings
+
       --dependencies--
       dependencies-download   : download the archives necessary to install staf
       dependencies-remove     : remove the archives previously downloaded
 
       --staf--
       staf-install            : install the staf
-      staf-start              : start staf without services
-      staf-controler-start    : start staf without services
-      staf-remote-start       : start staf with all the services
+      staf-start              : start staf with all the services
+      staf-controller-start   : start staf with all the services
+      staf-slave-start        : start staf without services
       staf-stop               : stop staf
       staf-uninstall          : uninstall
       staf-status             : report if staf is installed and running

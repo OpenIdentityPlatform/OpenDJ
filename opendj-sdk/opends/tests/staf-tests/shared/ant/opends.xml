@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <project name="opends">
 
@@ -35,7 +35,7 @@
     <if>
       <and>
        <equals arg1="${opends.dir}" arg2="${default.opends.dir}"/>
-       <equals arg1="${opends.zip}" arg2="${default.opends.zip}"/>
+       <equals arg1="${opends.name}" arg2="${default.opends.name}"/>
       </and>
       <then>
         <loadproperties srcFile="${project.home}/build.properties">
@@ -48,7 +48,7 @@
 
         <if>
           <not>
-            <available file="${opends.dir}/${opends.zip}"/>
+            <available file="${opends.dir}/${opends.name}.zip"/>
           </not>
           <then>
             <if>
@@ -59,7 +59,7 @@
                 <available file="${snmp.opendmk.lib.dir}"/>
               </and>
               <then>
-                <echo>Build ${opends.zip} with SNMP</echo>
+                <echo>Build ${opends.name} with SNMP</echo>
                 <replace file="${project.home}/build.properties"
                          value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
                   <replacefilter token="opendmk.lib.dir="/>
@@ -67,7 +67,7 @@
                 <property name="package.rebuild" value="true"/>
               </then>
               <else>
-                <echo>Build ${opends.zip} without SNMP</echo>
+                <echo>Build ${opends.name} without SNMP</echo>
                 <property name="package.rebuild" value="true"/>
               </else>
             </if>
@@ -82,7 +82,7 @@
                 <equals arg1="${opendmk.lib.dir}" arg2=""/>
               </and>
               <then>
-                <echo>Rebuild ${opends.zip} with SNMP</echo>
+                <echo>Rebuild ${opends.name} with SNMP</echo>
                 <replace file="${project.home}/build.properties"
                          value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
                   <replacefilter token="opendmk.lib.dir="/>

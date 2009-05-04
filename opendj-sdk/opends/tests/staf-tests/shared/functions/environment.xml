@@ -125,8 +125,8 @@
 
   <function name="initialiseGlobalVariables">
     <function-prolog>
-    This function initialises a set of global variables.
-  </function-prolog>
+      This function initialises a set of global variables.
+    </function-prolog>
     
     <sequence>
 
@@ -170,10 +170,13 @@
           
         # Replication configuration default names
         MultimasterSync = 'Multimaster Synchronization'
-        MultimasterType = 'multimaster' 
+        MultimasterType = 'multimaster'
+
+        # Create staf objects
+        LOCAL_STAF_ROOT  = test_env.staf(STAF_LOCAL_HOSTNAME).root
+        REMOTE_STAF_ROOT = test_env.staf(STAF_REMOTE_HOSTNAME).root
       </script>
-          
-      
+
   </sequence>     
   </function>
 
@@ -382,7 +385,7 @@
     <function-prolog>
       This function loads the environment (libraries, functions, variables)
       needed by the global test job farmer.
-  </function-prolog>
+    </function-prolog>
     
     <sequence>
 
@@ -413,7 +416,6 @@
       <!-- Set variables to build unique path to store data -->
       <script>
         # Private
-        logsDate= '%s' % TESTS_RUN_TIME
         logsArch=\
           DSInfo.getServerArch(DSInfo.ServerDict['system os'])
         logsOSName=\
@@ -425,7 +427,7 @@
 
       <call function="'SetFolders'">
         { 'sourceDir'  : '%s' % TESTS_ROOT,
-          'localDir'  : '%s/%s/%s-jvm%s' % (LOGS_ROOT,logsDate,logsOS,logsJvm),
+          'localDir'  : '%s/%s-jvm%s' % (LOGS_ROOT,logsOS,logsJvm),
           'remoteDir' : DIRECTORY_INSTANCE_DIR }
       </call>
             
@@ -437,7 +439,21 @@
 
       <!-- Create the local folders to store data -->      
       <call function="'CreateFolders'"/>
-          
+
+      <!-- Create folders -->
+      <message>'Copy OpenDS css and png files under %s' % logs.reports</message>
+      <call function="'copyFile'">
+        {
+        'srcfile'    : '%s/opends.css' % TESTS_RESOURCE_DIR,
+        'destfile'   : '%s/opends.css' % logs.reports
+        }
+      </call>
+      <call function="'copyFile'">
+        {
+        'srcfile'    : '%s/opends_logo_sm.png' % TESTS_RESOURCE_DIR,
+        'destfile'   : '%s/opends_logo_sm.png' % logs.reports
+        }
+      </call>
     </sequence>  
     
   </function>  

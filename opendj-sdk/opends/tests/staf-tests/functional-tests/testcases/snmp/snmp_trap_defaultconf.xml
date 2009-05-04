@@ -94,7 +94,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '1,0,0,0,0,0' ,
-                        'outputFile'        : outputFile
+                        'outputFile'        : outputFile ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -149,8 +150,7 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC ,
-                'issue'         : '3435'
+                'timerRC'       : timerRC
                 }
               </call>
               
@@ -304,7 +304,8 @@
                         'snmpTrapPort'      : SNMP_TRAP_PORT ,
                         'snmpTrapCommunity' : trapsCommunity ,
                         'snmpTrapNumber'    : '2,0,0,0,0,0' ,
-                        'outputFile'        : outputFile
+                        'outputFile'        : outputFile ,
+                        'knownIssue'        : '3435'
                         }
                       </call>
                     </sequence>
@@ -369,8 +370,7 @@
                 'location'      : STAF_REMOTE_HOSTNAME ,
                 'outputFile'    : outputFile ,
                 'timerDuration' : timerDuration ,
-                'timerRC'       : timerRC ,
-                'issue'         : '3435'
+                'timerRC'       : timerRC
                 }
               </call>
               

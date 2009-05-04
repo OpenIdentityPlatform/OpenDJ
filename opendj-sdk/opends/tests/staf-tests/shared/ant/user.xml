@@ -22,8 +22,9 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
+
 <project name="user">
 
   <description>
@@ -31,35 +32,82 @@
   </description>
 
   <target name="configure">
-    <echo>* Framework configuration</echo>
-    <input message="   Enter path to OpenDS archive:"
-           defaultvalue="${opends.dir}"
-           addproperty="opends.dir.input"/>
-    <input message="   Enter OpenDS archive name:"
-           defaultvalue="${opends.zip}"
-           addproperty="opends.zip.input"/>
-    <input message="   Enter path to logs directory:"
-           defaultvalue="${logs.dir}"
-           addproperty="logs.dir.input"/>
+    <echo>* STAF configuration</echo>
     <input message="   Enter path to repository directory:"
            defaultvalue="${repository.dir}"
            addproperty="repository.dir.input"/>
+
+    <input message="   Use default STAF/services version and configuration?"
+           defaultvalue="${staf.default}"
+           validargs="true,false"
+           addproperty="staf.default.input"/>
+    <if>
+      <equals arg1="${staf.default.input}" arg2="false"/>
+      <then>
+        <input message="   Enter STAF version:"
+               defaultvalue="${staf.version}"
+               addproperty="staf.version.input"/>
+
+        <input message="   Enter STAF port:"
+               defaultvalue="${staf.port}"
+               addproperty="staf.port.input"/>
+
+        <input message="   Enter STAX version:"
+               defaultvalue="${stax.version}"
+               addproperty="stax.version.input"/>
+
+        <input message="   Enter Email service version:"
+               defaultvalue="${email.version}"
+               addproperty="email.version.input"/>
+
+        <input message="   Enter Event service version:"
+               defaultvalue="${event.version}"
+               addproperty="event.version.input"/>
+
+        <input message="   Enter EventManager service version:"
+               defaultvalue="${eventmanager.version}"
+               addproperty="eventmanager.version.input"/>
+
+        <input message="   Enter HTTP service version:"
+               defaultvalue="${http.version}"
+               addproperty="http.version.input"/>
+
+        <input message="   Enter Tomcat service version:"
+               defaultvalue="${tomcat.version}"
+               addproperty="tomcat.version.input"/>
+      </then>
+      <else>
+        <property name="staf.version.input" value="${staf.version}"/>
+        <property name="staf.port.input" value="${staf.port}"/>
+        <property name="stax.version.input" value="${stax.version}"/>
+        <property name="email.version.input" value="${email.version}"/>
+        <property name="event.version.input" value="${event.version}"/>
+        <property name="eventmanager.version.input" value="${eventmanager.version}"/>
+        <property name="http.version.input" value="${http.version}"/>
+        <property name="tomcat.version.input" value="${tomcat.version}"/>
+      </else>
+    </if>
+
+    <echo>* Proxy configuration</echo>
     <input message="   Use proxy?"
            defaultvalue="${proxy.enabled}"
-           validargs="y,n"
+           validargs="true,false"
            addproperty="proxy.enabled.input"/>
     <if>
-      <equals arg1="${proxy.enabled.input}" arg2="y"/>
+      <equals arg1="${proxy.enabled.input}" arg2="true"/>
       <then>
         <input message="   Enter proxy host:"
                defaultvalue="${proxy.host}"
                addproperty="proxy.host.input"/>
+
         <input message="   Enter proxy port:"
                defaultvalue="${proxy.port}"
                addproperty="proxy.port.input"/>
+
         <input message="   Enter proxy user:"
                defaultvalue="${proxy.user}"
                addproperty="proxy.user.input"/>
+               
         <input message="   Enter proxy password:"
                defaultvalue="${proxy.pass}"
                addproperty="proxy.pass.input"/>
@@ -72,113 +120,53 @@
       </else>
     </if>
 
-    <echo>* STAF configuration</echo>
-    <input message="   Enter STAF version:"
-           defaultvalue="${staf.version}"
-           addproperty="staf.version.input"/>
-    <input message="   Enter STAX version:"
-           defaultvalue="${stax.version}"
-           addproperty="stax.version.input"/>
-    <input message="   Enter Email service version:"
-           defaultvalue="${email.version}"
-           addproperty="email.version.input"/>
-    <input message="   Enter Event service version:"
-           defaultvalue="${event.version}"
-           addproperty="event.version.input"/>
-    <input message="   Enter EventManager service version:"
-           defaultvalue="${eventmanager.version}"
-           addproperty="eventmanager.version.input"/>
-    <input message="   Enter HTTP service version:"
-           defaultvalue="${http.version}"
-           addproperty="http.version.input"/>
-    <input message="   Enter Tomcat service version:"
-           defaultvalue="${tomcat.version}"
-           addproperty="tomcat.version.input"/>
-    <input message="   Enter hostname:"
-           defaultvalue="${host.name}"
-           addproperty="host.name.input"/>
-    <input message="   Enter STAF port:"
-           defaultvalue="${staf.port}"
-           addproperty="staf.port.input"/>
-
-    <echo>* Tests configuration</echo>
-    <input message="   Enter Java home path:"
-           defaultvalue="${java.path}"
-           addproperty="java.path.input"/>
-    <input message="   Enter OpenDS ldap port:"
-           defaultvalue="${opends.port.ldap}"
-           addproperty="opends.port.ldap.input"/>
-    <input message="   Enter OpenDS secure ldap port:"
-           defaultvalue="${opends.port.ldaps}"
-           addproperty="opends.port.ldaps.input"/>
-    <input message="   Enter OpenDS jmx port:"
-           defaultvalue="${opends.port.jmx}"
-           addproperty="opends.port.jmx.input"/>
-    <input message="   Enter OpenDS admin DN (also called root DN):"
-           defaultvalue="${opends.admin.dn}"
-           addproperty="opends.admin.dn.input"/>
-    <input message="   Enter OpenDS admin password:"
-           defaultvalue="${opends.admin.pwd}"
-           addproperty="opends.admin.pwd.input"/>
-    <input message="   Enter OpenDMK lib directory:"
-           defaultvalue="${snmp.opendmk.lib.dir}"
-           addproperty="snmp.opendmk.lib.dir.input"/>
+    <echo>* Email configuration</echo>
     <input message="   Send report email?"
            defaultvalue="${email.enabled}"
-           validargs="y,n"
+           validargs="true,false"
            addproperty="email.enabled.input"/>
     <if>
-      <equals arg1="${email.enabled.input}" arg2="y"/>
+      <equals arg1="${email.enabled.input}" arg2="true"/>
       <then>
-        <input message="   Email will appear to be from:"
-               defaultvalue="${email.from}"
-               addproperty="email.from.input"/>
         <input message="   Send email to:"
                defaultvalue="${email.to}"
                addproperty="email.to.input"/>
-        <input message="   Enter SMTP server host:"
+        <input message="   Enter email server host:"
                defaultvalue="${email.server.host}"
                addproperty="email.server.host.input"/>
-        <input message="   Enter SMTP server port:"
+        <input message="   Enter email server port:"
                defaultvalue="${email.server.port}"
-               addproperty="email.server.port.input"/>
-        <input message="   Enter SMTP server user:"
-               defaultvalue="${email.server.user}"
-               addproperty="email.server.user.input"/>
-        <input message="   Enter SMTP server password:"
-               defaultvalue="${email.server.pwd}"
-               addproperty="email.server.pwd.input"/>
+               addproperty="eemail.server.port.input"/>
       </then>
       <else>
-        <property name="email.from.input" value="${email.from}"/>
         <property name="email.to.input" value="${email.to}"/>
         <property name="email.server.host.input" value="${email.server.host}"/>
         <property name="email.server.port.input" value="${email.server.port}"/>
-        <property name="email.server.user.input" value="${email.server.user}"/>
-        <property name="email.server.pwd.input" value="${email.server.pwd}"/>
       </else>
     </if>
-
-    <propertyselector property="input.list"
-                      delimiter=","
-                      match="(.*)\.input"
-                      select="\1"
-                      casesensitive="false"/>
 
     <echo>Saving ...</echo>
     <echo file="${basedir}/user.properties"># User-defined values
 # This file is generated by "build user-configure" command
-    </echo>
-    <for list="${input.list}" param="item">
-      <sequential>
-        <var name="val" value="${@{item}.input}"/>
-        <echo file="${basedir}/user.properties" append="true">
-@{item}=${val}</echo>
-      </sequential>
-    </for>
+repository.dir=${repository.dir.input}
+staf.default=${staf.default.input}
+staf.port=${staf.port.input}
+staf.version=${staf.version.input}
+stax.version=${stax.version.input}
+email.version=${email.version.input}
+event.version=${event.version.input}
+eventmanager.version=${eventmanager.version.input}
+http.version=${http.version.input}
+tomcat.version=${tomcat.version.input}
+proxy.enabled=${proxy.enabled.input}
+proxy.host=${proxy.host.input}
+proxy.port=${proxy.port.input}
+proxy.user=${proxy.user.input}
+proxy.pass=${proxy.pass.input}
+email.enabled=${email.enabled.input}
+email.to=${email.to.input}
+email.server.host=${email.server.host.input}
+email.server.port=${email.server.port.input}</echo>
   </target>
 
-  <target name="unconfigure">
-    <delete file="${basedir}/user.properties"/>
-  </target>
 </project>

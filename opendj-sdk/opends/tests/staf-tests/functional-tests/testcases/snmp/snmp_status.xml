@@ -64,7 +64,7 @@
             #@TestMarker          SNMP Connection Handler status
             #@TestName            status: check status when the server is
                                   stopped/started
-            #@TestIssue           3865
+            #@TestIssue           none
             #@TestPurpose         Check status when the server is
                                   stopped/started.
             #@TestPreamble        none
@@ -119,8 +119,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -160,8 +159,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -190,7 +188,7 @@
             #@TestMarker          SNMP Connection Handler status
             #@TestName            status: check status when the connection
                                   handler is disabled/enabled
-            #@TestIssue           3865
+            #@TestIssue           none
             #@TestPurpose         Check status when the SNMP connection handler
                                   is disabled/enabled.
             #@TestPreamble        none
@@ -244,8 +242,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Disabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -300,8 +297,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -331,7 +327,7 @@
             #@TestName            status: check error message and status when
                                   the opendmk-jarfile property is set to a
                                   wrong value
-            #@TestIssue           3865
+            #@TestIssue           none
             #@TestPurpose         Check error message and status when
                                   the opendmk-jarfile property is set to a
                                   wrong value.
@@ -396,12 +392,17 @@
               </call>
 
               <script>
-                msg1 = 'You do not have the appropriated OpenDMK jar files to'
-                msg2 = 'enable the SNMP Connection Handler. Please go under'
-                msg3 = 'http:\/\/opendmk.dev.java.net and set the'
-                msg4 = 'ds-cfg-opendmk-jarfile configuration parameter to set'
-                msg5 = 'the full path of the required jdmkrt.jar file.'
-                msg6 = 'The SNMP connection Handler didn\'t started'
+                opendmkJarFile = '%s/%s/wrong_file' \
+                                 % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
+                if is_windows_platform(DIRECTORY_INSTANCE_HOST):
+                  opendmkJarFile = opendmkJarFile.replace('/', '\\')
+
+                msg1 = 'The specified OpenDMK jar file'
+                msg2 = '\'%s\' could not be found.' % opendmkJarFile
+                msg3 = 'Verify that the value set in the opendmk-jarfile'
+                msg4 = 'configuration parameter of the SNMP connection handler'
+                msg5 = 'is the valid path to the jdmkrt.jar file and that the'
+                msg6 = 'file is accessible'
                 msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
               </script>
 
@@ -433,8 +434,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -493,7 +493,7 @@
             #@TestName            status: check error message and status when
                                   the security-agent-file property is set to a
                                   wrong value
-            #@TestIssue           3865
+            #@TestIssue           none
             #@TestPurpose         Check error message and status when
                                   the security-agent-file property is set to a
                                   wrong value.
@@ -611,8 +611,7 @@
                 'expectedString' : '0.0.0.0:%s : SNMP     : Enabled' \
                                    % SNMP_PORT ,
                 'returnString'	 : returnString ,
-                'knownIssue'     : '3865' ,
-                'expectedRC'     : expectedRC
+                'expectedRC'     : 0
                 }
               </call>
 
@@ -671,7 +670,7 @@
             #@TestName            status: check error message and status when
                                   the listen-port property is set to a wrong
                                   value
-            #@TestIssue           3865
+            #@TestIssue           none
             #@TestPurpose         Check error message and status when
                                   the listen-port property is set to a wrong
                                   value.
@@ -780,8 +779,7 @@
                     'expectedString' : '0.0.0.0:%s  : SNMP     : Enabled' \
                                        % DEFAULT_PROPERTIES['listen-port'] ,
                     'returnString'	 : returnString ,
-                    'knownIssue'     : '3865' ,
-                    'expectedRC'     : expectedRC
+                    'expectedRC'     : 0
                     }
                   </call>
 

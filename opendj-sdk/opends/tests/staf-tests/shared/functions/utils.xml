@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="checkRC">
@@ -1750,7 +1750,7 @@
           Which machine should the command be executed on
         </function-arg-description>
       </function-arg-def>
-      <function-arg-def name="name" 
+      <function-arg-def name="name"
                         default="'Running %s' % command" 
                         type="optional">
         <function-arg-description>
@@ -1826,7 +1826,7 @@
         for item in envCmd:
           env.append('%s' % item)
         if is_windows_platform(location):
-          env.append('PATH=C:\Windows;C:\Windows\system32;%s' % path)
+          env.append('PATH=%s\\bin;C:\\Windows;C:\\Windows\\system32;%s' % (REMOTE_STAF_ROOT,path))
           env.append('JAVA_HOME=%s' % JAVA_HOME)
         else:
           env.append('PATH=/bin:/usr/bin:%s' % path)
@@ -1971,7 +1971,7 @@
           _cmd = 'tskill'
           _args = STAXResult
         else:
-          _cmd = 'kill'
+          _cmd = '/bin/kill'
           pid = STAXResult[:-1]
           _args = '-9 %s' % pid
       </script>
