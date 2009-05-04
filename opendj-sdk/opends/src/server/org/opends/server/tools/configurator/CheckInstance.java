@@ -277,19 +277,32 @@ public class CheckInstance {
       System.exit(USER_ERROR);
     }
 
+    // Initialize buildinfo in not already done (ZIP delivery)
+    BuildInformation installBi =
+            BuildInformation.fromBuildString(MAJOR_VERSION +
+            "." + MINOR_VERSION +
+            "." + POINT_VERSION +
+            "." + REVISION_NUMBER);
+    File bif = new File(confDir, Installation.BUILDINFO_RELATIVE_PATH);
+    if (!bif.exists()) {
+      FileWriter fwriter = null;
+      try {
+        fwriter = new FileWriter(bif, true);
+        fwriter.append(installBi.getBuildString());
+      } catch (Exception e) {
+      } finally {
+        try {
+          fwriter.close();
+        } catch (Exception e) {
+        }
+      }
+    }
 
     // Check version
     if (checkVersionArg.isPresent()) {
-        BuildInformation installBi =
-                  BuildInformation.fromBuildString(MAJOR_VERSION +
-                                                   "." + MINOR_VERSION +
-                                                   "." + POINT_VERSION +
-                                                   "." + REVISION_NUMBER);
       BuildInformation instanceBi = installBi;
 
       try {
-        File bif = new File(confDir, Installation.BUILDINFO_RELATIVE_PATH);
-
         if (bif.exists()) {
           BufferedReader breader = new BufferedReader(new FileReader(bif));
 

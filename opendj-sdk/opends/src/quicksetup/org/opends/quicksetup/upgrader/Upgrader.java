@@ -1869,11 +1869,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       BuildInformation fromVersion = getCurrentInstanceBuildInformation();
       BuildInformation toVersion = getStagedBuildInformation();
-      if (fromVersion.equals(toVersion))
-      {
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
-            INFO_UPGRADE_ORACLE_SAME_VERSION.get(
-                toVersion.toString()), null);
+      if (fromVersion.equals(toVersion)) {
+        // Only possible if product differs
+        String fromProductName = getCurrentBuildInformation().getName();
+        String toProductName = toVersion.getName();
+        LOG.log(Level.FINEST, "fromProductName=" + fromProductName);
+        LOG.log(Level.FINEST, "toProductName=" + toProductName);
+        if ((fromProductName != null) &&
+                (toProductName != null) &&
+                fromProductName.equals(toProductName)) {
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                  INFO_UPGRADE_ORACLE_SAME_VERSION.get(
+                  toVersion.toString()), null);
+        }
       }
       if (getInstallation().getStatus().isServerRunning()) {
         new ServerController(getInstallation()).stopServer(true);
