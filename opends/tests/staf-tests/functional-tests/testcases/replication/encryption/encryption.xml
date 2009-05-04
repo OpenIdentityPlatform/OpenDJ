@@ -62,7 +62,7 @@
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
             { 'topologyFile'     : '%s/3server_topology.txt' \
-                                    % TESTS_TOPOLOGY_DIR,
+                                    % REPLICATION_CONFIG_DIR,
               'secureReplication': True,
               'dataFile'         : 'Example.ldif'
             }

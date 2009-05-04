@@ -22,9 +22,10 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <project name="tests">
+
   <description>
     Execute the tests.
   </description>
@@ -34,30 +35,42 @@
       <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
     </tstamp>
 
-      <!-- clean up some -->
-    <delete dir="${tests.tmp.dir}"/>
+    <!-- clean up tmp dir -->
+    <if>
+      <equals arg1="${tests.mode}" arg2="local"/>
+      <then>
+        <delete dir="${tests.tmp.dir}"/>
+        <mkdir dir="${tests.tmp.dir}"/>
+      </then>
+    </if>
 
-      <!-- make all the necessary directories for this test run -->
-    <mkdir dir="${tests.tmp.dir}"/>
+    <!-- make all the necessary directories for this test run -->
     <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
     <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
-    <mkdir dir="${tests.run.dir}/${tests.run.time}/report"/>
-      <!-- these will serve for after-the-fact archiving the logs -->
+    <!-- these will serve for after-the-fact archiving the logs -->
     <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
-    <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
     <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
 
-    <!--<delete file="${test.plan.default}"/>
-    <for list="${test.plan.list}" param="item">
-      <sequential>
-      <echo file="${test.plan.default}" append="true">@{item}
-</echo>
-      </sequential>
-    </for>-->
+    <if>
+      <equals arg1="${test.plan.custom}" arg2=""/>
+      <then>
+        <var name="test.plan.custom" value="${test.plan.default}"/>
+      </then>
+    </if>
 
-    <!-- generate the timestamped config file that will be used for this run -->
+    <!-- generate the config file that will be used for this run -->
     <copy file="${tests.config.stubs}"
           tofile="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+
+    <!-- generate the topology files that will be used for this run -->
+    <copy todir="${tests.run.dir}/${tests.run.time}/config">
+      <fileset dir="${tests.topology.dir}">
+        <include name="**/*.txt"/>
+      </fileset>
       <filterchain>
         <expandproperties/>
       </filterchain>
@@ -85,142 +98,234 @@
     </exec>
 
     <symlink link="${tests.run.dir}/latest" resource="${tests.run.time}" overwrite="true"/>
-    <if>
-      <available file="${tests.tmp.dir}/${product.name}/logs"/>
-      <then>
-        <echo>Saving server logs</echo>
-        <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
-          <fileset dir="${tests.tmp.dir}/${product.name}/logs"/>
-        </copy>
-      </then>
-    </if>
-    <echo>Saving Staf/Stax logs</echo>
-    <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
-      <fileset dir="${staf.install.dir}/logs"/>
-    </copy>
-    <delete dir="${staf.install.dir}/logs"/>
-    <echo>Saving report</echo>
-    <copy todir="${tests.run.dir}/${tests.run.time}/report">
-      <fileset dir="${tests.tmp.dir}/${tests.run.time}">
-        <include name="**"/>
-      </fileset>
-    </copy>
-    <delete file="${tests.tmp.dir}/percentage.properties"/>
+    <echo>Report is available at</echo>
+    <echo>${tests.run.dir}/latest</echo>
   </target>
 
   <target name="configure">
-    <condition property="already.customized" value="true" else="false">
-      <available file="${test.plan.custom}" />
-    </condition>
+    <echo>* Tests configuration</echo>
+
+    <input message="   Run the tests on the local machine or on a remote machine?"
+           defaultvalue="local"
+           validargs="local,remote"
+           addproperty="tests.mode.input"/>
+
+    <input message="   Enter local hostname:"
+               defaultvalue="${local.hostname}"
+               addproperty="local.hostname.input"/>
+
     <if>
-      <equals arg1="${already.customized}" arg2="true" />
+      <equals arg1="${tests.mode.input}" arg2="remote"/>
       <then>
-        <input message="A previously customized test plan was detected. Do you want to change the list of suites to run?" validargs="y,n" defaultvalue="n" addproperty="prompt.do" />
+        <input message="   Enter remote hostname:"
+               defaultvalue=""
+               addproperty="remote.hostname.input"/>
+
+        <!-- Tests-defined values -->
+        <if>
+          <available file="${basedir}/tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+          <then>
+            <var file="${basedir}/tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+          </then>
+        </if>
       </then>
       <else>
-        <echo>No previous customized test plan found.</echo>
-        <property name="prompt.do" value="y" />
+        <property name="remote.hostname.input" value="${local.hostname.input}"/>
+
+        <!-- Tests-defined values -->
+        <if>
+          <available file="${basedir}/tests-${local.hostname.input}.properties"/>
+          <then>
+            <var file="${basedir}/tests-${local.hostname.input}.properties"/>
+          </then>
+        </if>
+      </else>
+    </if>
+
+    <input message="   Enter path to logs directory:"
+           defaultvalue="${logs.dir}"
+           addproperty="logs.dir.input"/>
+
+    <input message="   Enter path to OpenDS archive:"
+           defaultvalue="${opends.dir}"
+           addproperty="opends.dir.input"/>
+           
+    <input message="   Enter OpenDS name:"
+           defaultvalue="${opends.name}"
+           addproperty="opends.name.input"/>
+
+    <input message="   Enter java home (on local machine):"
+           defaultvalue="${local.javahome}"
+           addproperty="local.javahome.input"/>
+
+    <if>
+      <equals arg1="${tests.mode.input}" arg2="remote" />
+      <then>
+        <input message="   Enter java home (on remote machine):"
+               defaultvalue="${remote.javahome}"
+               addproperty="remote.javahome.input"/>
+      </then>
+      <else>
+        <property name="remote.javahome.input" value="${local.javahome.input}"/>
+      </else>
+    </if>
+
+    <if>
+      <equals arg1="${tests.mode.input}" arg2="remote" />
+      <then>
+        <input message="   Enter directory instance directory (on remote machine):"
+           defaultvalue="${tests.tmp.dir}"
+           addproperty="tests.tmp.dir.input"/>
+      </then>
+      <else>
+        <input message="   Enter directory instance directory (on local machine):"
+           defaultvalue="${tests.tmp.dir}"
+           addproperty="tests.tmp.dir.input"/>
+      </else>
+    </if>
+
+    <input message="   Use default directory instance?"
+           defaultvalue="${tests.default}"
+           validargs="true,false"
+           addproperty="tests.default.input"/>
+    <if>
+      <equals arg1="${tests.default.input}" arg2="false"/>
+      <then>
+        <input message="   Enter OpenDS ldap port:"
+               defaultvalue="${opends.port.ldap}"
+               addproperty="opends.port.ldap.input"/>
+        <input message="   Enter OpenDS admin port:"
+               defaultvalue="${opends.port.admin}"
+               addproperty="opends.port.admin.input"/>
+        <input message="   Enter OpenDS secure ldap port:"
+               defaultvalue="${opends.port.ldaps}"
+               addproperty="opends.port.ldaps.input"/>
+        <input message="   Enter OpenDS admin DN (also called root DN):"
+               defaultvalue="${opends.admin.dn}"
+               addproperty="opends.admin.dn.input"/>
+        <input message="   Enter OpenDS admin password:"
+               defaultvalue="${opends.admin.pwd}"
+               addproperty="opends.admin.pwd.input"/>
+        <input message="   Enter OpenDMK lib directory:"
+               defaultvalue="${snmp.opendmk.lib.dir}"
+               addproperty="snmp.opendmk.lib.dir.input"/>
+      </then>
+      <else>
+        <property name="opends.port.ldap.input" value="${opends.port.ldap}"/>
+        <property name="opends.port.admin.input" value="${opends.port.admin}"/>
+        <property name="opends.port.ldaps.input" value="${opends.port.ldaps}"/>
+        <property name="opends.admin.dn.input" value="${opends.admin.dn}"/>
+        <property name="opends.admin.pwd.input" value="${opends.admin.pwd}"/>
+        <property name="snmp.opendmk.lib.dir.input" value="${snmp.opendmk.lib.dir}"/>
+      </else>
+    </if>
+
+    <input message="   Run tests using verbose mode?"
+           defaultvalue="${verbose.mode}"
+           validargs="true,false"
+           addproperty="verbose.mode.input"/>
+
+    <echo>* Test plan configuration</echo>
+    <if>
+      <equals arg1="${test.plan.custom}" arg2=""/>
+      <then>
+        <echo>   No previous customized test plan found.</echo>
+        <property name="prompt" value="y"/>
+      </then>
+      <else>
+        <echo>   A previously customized test plan was detected:</echo>
+        <echo>   ${test.plan.custom}</echo>
+        <echo></echo>
+        <input message="   Do you want to change the list of suites to run?"
+               validargs="y,n"
+               defaultvalue="n"
+               addproperty="prompt"/>
       </else>
     </if>
     <if>
-      <equals arg1="${prompt.do}" arg2="y" />
+      <equals arg1="${prompt}" arg2="y" />
       <then>
-        <delete file="${test.plan.custom}" />
+        <var name="test.plan.custom" value=""/>
+        <input message="   Do you want to execute all the tests?"
+               validargs="y,n"
+               defaultvalue="y"
+               addproperty="answer"/>
+        <if>
+          <equals arg1="${answer}" arg2="y" />
+          <then>
+            <var name="test.plan.custom" value="${test.plan.default}"/>
+          </then>
+          <else>
+            <for param="item">
+              <dirset dir="${tests.dir}/testcases"
+                      includes="*"
+                      excludes="quickstart,sample">
+                <type type="dir"/>
+              </dirset>
 
-        <for param="item">
-          <dirset dir="${tests.dir}/testcases"
-                  includes="*">
-            <type type="dir"/>
-          </dirset>
-          <sequential>
-            <var name="test" unset="true"/>
-            <var name="answer" unset="true"/>
+              <sequential>
+                <var name="test" unset="true"/>
+                <var name="answer" unset="true"/>
 
-            <basename property="test" file="@{item}"/>
-            <input message="Do you want to execute ${test}?" validargs="y,n" defaultvalue="y" addproperty="answer"/>
-            <if>
-              <equals arg1="${answer}" arg2="y" />
-              <then>
-                <echo file="${test.plan.custom}" append="true">${test}
-</echo>
-              </then>
-            </if>
-          </sequential>
-        </for>
+                <basename property="test" file="@{item}"/>
+                <input message="   Do you want to execute ${test}?"
+                       validargs="y,n"
+                       defaultvalue="y"
+                       addproperty="answer"/>
+                <if>
+                  <equals arg1="${answer}" arg2="y" />
+                  <then>
+                    <if>
+                      <equals arg1="${test.plan.custom}" arg2=""/>
+                      <then>
+                        <var name="test.plan.custom" value="${test}"/>
+                      </then>
+                      <else>
+                        <var name="test.plan.custom" value="${test.plan.custom},${test}"/>
+                      </else>
+                    </if>
+                  </then>
+                </if>
+              </sequential>
+            </for>
+          </else>
+        </if>
       </then>
     </if>
+
+    <echo>Saving ...</echo>
+    <if>
+      <equals arg1="${tests.mode.input}" arg2="remote"/>
+      <then>
+        <property name="property.file" value="tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+      </then>
+      <else>
+        <property name="property.file" value="tests-${local.hostname.input}.properties"/>
+      </else>
+    </if>
+    <echo file="${basedir}/${property.file}"># Tests-defined values
+# This file is generated by "build tests-configure" command
+tests.mode=${tests.mode.input}
+local.hostname=${local.hostname.input}
+local.javahome=${local.javahome.input}
+remote.hostname=${remote.hostname.input}
+remote.javahome=${remote.javahome.input}
+logs.dir=${logs.dir.input}
+opends.dir=${opends.dir.input}
+opends.name=${opends.name.input}
+tests.tmp.dir=${tests.tmp.dir.input}
+tests.default=${tests.default.input}
+opends.port.ldap=${opends.port.ldap.input}
+opends.port.admin=${opends.port.admin.input}
+opends.port.ldaps=${opends.port.ldaps.input}
+opends.admin.dn=${opends.admin.dn.input}
+opends.admin.pwd=${opends.admin.pwd.input}
+snmp.opendmk.lib.dir=${snmp.opendmk.lib.dir.input}
+verbose.mode=${verbose.mode.input}
+test.plan.custom=${test.plan.custom}</echo>
   </target>
 
-  <target name="send-mail-prepare">
-    <condition property="test.successful">
-      <available file="${tests.tmp.dir}/my-report.html"/>
-    </condition>
-    <condition property="email.send">
-      <equals arg1="${email.enabled}" arg2="y"
-              casesensitive="false" trim="true"/>
-    </condition>
-  </target>
-  <target name="send-mail-get-percentage" depends="send-mail-prepare" if="test.successful">
-    <echo>test report found.Proceeding...</echo>
-    <delete file="${tests.tmp.dir}/percentage.properties"/>
-    <copy file="${tests.tmp.dir}/my-report.html" tofile="${tests.tmp.dir}/percentage.properties">
-      <filterchain>
-        <linecontains>
-          <contains value='font size="+2'/>
-        </linecontains>
-        <tokenfilter>
-          <replaceregex pattern=".*font size=.+2..(.*\d+)%./font.*" replace="test.percentage=\1"/>
-        </tokenfilter>
-      </filterchain>
-    </copy>
-    <property file="${tests.tmp.dir}/percentage.properties"/>
-    <echo>Test Success Rate: ${test.percentage}%</echo>
-  </target>
-  <target name="send-mail" if="email.send" depends="send-mail-get-percentage">
-    <condition property="email.send.noauth">
-      <or>
-        <not>
-          <isset property="email.server.user"/>
-        </not>
-        <not>
-          <length string="${email.server.user}" when="greater"
-                  trim="true" length="0"/>
-        </not>
-      </or>
-    </condition>
-    <condition property="email.file"
-               value="${tests.tmp.dir}/my-report.html"
-               else="staf-installer/failure.html">
-      <available file="${tests.tmp.dir}/my-report.html"/>
-    </condition>
-    <condition property="email.subject"
-               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch} - ${test.percentage}%"
-               else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
-      <available file="${tests.tmp.dir}/my-report.html"/>
-    </condition>
-    <antcall target="send-mail-noauth"/>
-    <antcall target="send-mail-withauth"/>
-  </target>
-  <target name="send-mail-noauth" if="email.send.noauth">
-    <mail from="${email.from}"
-          tolist="${email.to}"
-          subject="${email.subject}"
-          mailhost="${email.server.host}"
-          mailport="${email.server.port}"
-          messagefile="${email.file}"
-          messagemimetype="text/html" />
-  </target>
-  <target name="send-mail-withauth" unless="email.send.noauth">
-    <mail from="${email.from}"
-          tolist="${email.to}"
-          subject="${email.subject}"
-          mailhost="${email.server.host}"
-          mailport="${email.server.port}"
-          user="${email.server.user}"
-          password="${email.server.pwd}"
-          messagefile="${email.file}"
-          messagemimetype="text/html" />
-  </target>
+
   <target name="coverage-init">
     <path id="emma.lib">
       <pathelement location="${project.home}/ext/emma/lib/emma.jar"     />
@@ -252,14 +357,14 @@
     <move file="${product.package}" tofile="${product.package}.nocov"/>
 
     <!-- intrument the OpenDS java archive to gather coverage -->
-    <java classpath="${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}emma.jar"
+    <java classpath="${tests.tmp.dir}/coverage-instr/${product.name}/lib$/emma.jar"
           classname="emma" fork="true">
-      <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}coverage.em" />
+      <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/${product.name}/coverage.em" />
       <arg value="instr" />
       <arg value="-m" />
       <arg value="overwrite" />
       <arg value="-ip" />
-      <arg value="${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar:${tests.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}extensions${file.separator}snmp-mib2605.jar" />
+      <arg value="${tests.tmp.dir}/coverage-instr/${product.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/${product.name}/lib/extensions/snmp-mib2605.jar" />
     </java>
     <echo>Writing properties file</echo>
     <echo file="${tests.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${tests.tmp.dir}/emma.coverage
@@ -296,6 +401,5 @@
     <move file="${product.package}.nocov" tofile="${product.package}"/>
   </target>
   <target name="testwithcoverage" depends="coverage-on,coverage-instrument,restore-pkg,coverage-report"/>
-<!-- Run tests section - bottom -->
 
 </project>

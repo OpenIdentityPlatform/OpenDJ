@@ -99,7 +99,7 @@
               </script>
               
               <message>
-                'result: %s' % result
+                '%s' % result
               </message>              
               
               <call function="'checktestStringNotPresent'">

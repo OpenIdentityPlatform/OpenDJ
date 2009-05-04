@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <project name="opends-staf-tests" basedir="../.." default="usage">
 
@@ -72,26 +72,21 @@
       </classpath>
     </taskdef>
 
+    <!-- User environment -->
+    <property environment="env"/>
+
     <!-- Check if the current platform is supported -->
     <switch value="${os.name}">
       <case value="SunOS">
         <!-- Solaris system -->
         <switch value="${os.arch}">
           <case value="sparc">
-            <!-- Solaris sparc -->
-            <exec executable="isainfo" outputproperty="os.bits">
-              <arg value="-b"/>
-            </exec>
-            <switch value="${os.bits}">
-              <case value="32">
-                <!-- Solaris sparc 32 bit -->
-                <property name="os.myname" value="solaris-sparc"/>
-              </case>
-              <case value="64">
-                <!-- Solaris sparc 64 bit -->
-                <property name="os.myname" value="solaris-sparc64"/>
-              </case>
-            </switch>
+            <!-- Solaris sparc 32 bit -->
+            <property name="os.myname" value="solaris-sparc"/>
+          </case>
+          <case value="sparcv9">
+            <!-- Solaris sparc 64 bit -->
+            <property name="os.myname" value="solaris-sparc64"/>
           </case>
           <case value="x86">
             <!-- Solaris x86 -->
@@ -131,6 +126,7 @@
         <property name="var.path" value="PATH"/>
       </case>
       <default>
+        <osfamily property="os.family"/>
         <if>
           <equals arg1="${os.family}" arg2="windows"/>
           <then>
@@ -155,7 +151,7 @@
         <isset property="staf.type"/>
       </not>
       <then>
-        <property name="staf.type" value="controler"/>
+        <property name="staf.type" value="controller"/>
       </then>
     </if>
 
@@ -169,11 +165,43 @@
       </then>
     </if>
 
-    <!-- User-defined values -->
-    <property file="${basedir}/user.properties"/>
-
     <!-- Default values for build environment -->
     <property file="${antfile.dir}/build.properties"/>
+
+    <!-- User-defined values -->
+    <if>
+      <available file="${basedir}/user.properties"/>
+      <then>
+        <var file="${basedir}/user.properties"/>
+      </then>
+    </if>
+
+    <!-- Tests-defined values -->
+    <if>
+      <available file="${env.CONFIG_FILE}"/>
+      <then>
+        <var file="${env.CONFIG_FILE}"/>
+      </then>
+      <else>
+        <if>
+          <available file="${basedir}/tests-${local.hostname}.properties"/>
+          <then>
+            <var file="${basedir}/tests-${local.hostname}.properties"/>
+          </then>
+        </if>
+      </else>
+    </if>
+
+    <!-- Set value for tests.config.file variable -->
+    <if>
+      <equals arg1="${tests.mode}" arg2="remote"/>
+      <then>
+        <property name="tests.config.file" value="config-${local.hostname}-${remote.hostname}.py"/>
+      </then>
+      <else>
+        <property name="tests.config.file" value="config-${local.hostname}.py"/>
+      </else>
+    </if>
 
     <!-- Set value for staf.archive and staf.lib.dir variables -->
     <if>
@@ -213,13 +241,6 @@
           depends="global-init">
     <ant antfile="${antfile.dir}/user.xml" target="configure"/>
   </target>
-
-  <!-- Unconfigure user variables -->
-  <target name="user-unconfigure"
-          depends="global-init">
-    <ant antfile="${antfile.dir}/user.xml" target="unconfigure"/>
-  </target>
-
 
   <!-- ######### -->
   <!-- # PROXY # -->
@@ -271,6 +292,14 @@
   <!-- # STAF # -->
   <!-- ######## -->
 
+  <target name="set-controller-type">
+    <property name="staf.type" value="controller"/>
+  </target>
+
+  <target name="set-slave-type">
+    <property name="staf.type" value="slave"/>
+  </target>
+
   <!-- Install STAF and STAF services -->
   <target name="staf-install"
           depends="global-init,dependencies-download">
@@ -284,19 +313,20 @@
   </target>
 
   <!-- Start STAF -->
-  <target name="staf-start"
-          depends="global-init,staf-install">
+  <target name="staf-start">
+    <antcall target="staf-controller-start"/>
+  </target>
+
+  <target name="staf-controller-start"
+          depends="set-controller-type,global-init,staf-install">
+    <var name="staf.type" value="controller"/>
     <ant antfile="${antfile.dir}/staf.xml" target="start"/>
   </target>
 
-  <target name="staf-start-slave">
-    <property name="staf.type" value="slave"/>
-    <antcall target="staf-start"/>
-  </target>
-
-  <target name="staf-start-controler">
-    <property name="tests.type" value="controler"/>
-    <antcall target="staf-start"/>
+  <target name="staf-slave-start"
+          depends="set-slave-type,global-init,staf-install">
+    <var name="staf.type" value="slave"/>
+    <ant antfile="${antfile.dir}/staf.xml" target="start"/>
   </target>
 
   <!-- Stop STAF -->
@@ -328,40 +358,46 @@
   <!-- # TESTS # -->
   <!-- ######### -->
 
+  <target name="set-func-type">
+    <property name="tests.type" value="functional-tests"/>
+  </target>
+
+   <target name="set-stress-type">
+    <property name="tests.type" value="stress-tests"/>
+  </target>
+
   <!-- Configure tests to run -->
-  <target name="tests-configure"
-          depends="global-init">
-    <ant antfile="${antfile.dir}/tests.xml" target="configure"/>
+  <target name="tests-configure">
+    <antcall target="tests-func-configure"/>
   </target>
 
   <!-- Configure functional tests to run -->
-  <target name="tests-func-configure">
-    <property name="tests.type" value="functional-tests"/>
-    <antcall target="tests-configure"/>
+  <target name="tests-func-configure"
+          depends="set-func-type,global-init">
+    <ant antfile="${antfile.dir}/tests.xml" target="configure"/>
   </target>
 
   <!-- Configure stress tests to run -->
-  <target name="tests-stress-configure">
-    <property name="tests.type" value="stress-tests"/>
-    <antcall target="tests-configure"/>
+  <target name="tests-stress-configure"
+          depends="set-stress-type,global-init">
+    <ant antfile="${antfile.dir}/tests.xml" target="configure"/>
   </target>
 
   <!-- Run tests -->
-  <target name="tests-run"
-          depends="global-init,opends-build,staf-start">
-    <ant antfile="${antfile.dir}/tests.xml" target="run"/>
+  <target name="tests-run">
+    <antcall target="tests-func-run"/>
   </target>
 
   <!-- Run functional tests -->
-  <target name="tests-func-run">
-    <property name="tests.type" value="functional-tests"/>
-    <antcall target="tests-run"/>
+  <target name="tests-func-run"
+          depends="set-func-type,global-init,opends-build,staf-start">
+    <ant antfile="${antfile.dir}/tests.xml" target="run"/>
   </target>
 
   <!-- Run stress tests -->
-  <target name="tests-stress-run">
-    <property name="tests.type" value="stress-tests"/>
-    <antcall target="tests-run"/>
+  <target name="tests-stress-run"
+          depends="set-stress-type,global-init,opends-build,staf-start">
+    <ant antfile="${antfile.dir}/tests.xml" target="run"/>
   </target>
 
 

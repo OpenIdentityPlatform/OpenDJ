@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <project name="staf">
 
@@ -32,6 +32,7 @@
 
   <!-- Install STAF and services -->
   <target name="install">
+    <echo>Installing staf, please wait...</echo>
     <if>
       <not>
         <available file="${staf.install.dir}/bin/STAF.cfg"/>
@@ -73,8 +74,8 @@
            dest="${staf.install.dir}/services"/>
 
         <!-- Add DSML service extension -->
-        <mkdir dir="${staf.install.dir}/services/dsml"/>
-        <copy todir="${staf.install.dir}/services/dsml">
+        <mkdir dir="${staf.install.dir}/services/DSML"/>
+        <copy todir="${staf.install.dir}/services/DSML">
           <fileset dir="${basedir}/../staf-tests/shared/dsml"
                includes="dsmlService.jar"/>
         </copy>
@@ -87,14 +88,6 @@
         <echo>Staf is already installed in [${staf.install.dir}]</echo>
       </else>
     </if>
-
-    <!-- Copy functional-tests.cfg -->
-    <mkdir dir="${staf.config.dir}"/>
-    <copy file="${staf.config.stubs}" tofile="${staf.config.file}">
-      <filterchain>
-        <expandproperties/>
-      </filterchain>
-    </copy>
   </target>
 
   <!-- Uninstall STAF and services -->
@@ -114,11 +107,21 @@
 
   <!-- Start STAF -->
   <target name="start">
+    <!-- Copy staf.cfg -->
+    <mkdir dir="${staf.config.dir}"/>
+    <copy file="${staf.config.stubs}" tofile="${staf.config.file}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+
     <if>
       <not>
         <socket port="${staf.port}" server="${host.name}"/>
       </not>
       <then>
+        <delete dir="${staf.install.dir}/logs"/>
+        
         <echo>Starting staf, please wait...</echo>
         <exec dir="${staf.bin.dir}"
               executable="${staf.daemon}"
@@ -128,6 +131,8 @@
           <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
           <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:${project.home}/ext/svnkit/svnkit.jar:."/>
           <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+          <env key="LANG" value="en_US.ISO8859-1"/>
+          <env key="LC_ALL" value="en_US.ISO8859-1"/>
           <env key="STAFCODEPAGE" value="LATIN_1"/>
           <env key="STAF_INSTANCE_NAME" value="STAF"/>
         </exec>
@@ -161,7 +166,6 @@
           <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
           <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
           <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
-          <env key="STAFCODEPAGE" value="LATIN_1"/>
         </exec>
 
         <echo>Waiting for service to shutdown gracefully...</echo>
@@ -225,7 +229,6 @@
       <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
       <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
       <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
-      <env key="STAFCODEPAGE" value="LATIN_1"/>
       <arg value="-classpath"/>
       <arg value="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar"/>
       <arg value="com.ibm.staf.service.stax.STAXMonitor"/>
@@ -241,7 +244,6 @@
       <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
       <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:."/>
       <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
-      <env key="STAFCODEPAGE" value="LATIN_1"/>
       <arg value="-classpath"/>
       <arg value="${staf.lib.dir}${path.separator}${staf.lib.dir}/JSTAF.jar"/>
       <arg value="com.ibm.staf.STAFJVMLogViewer"/>

@@ -52,20 +52,9 @@
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
 
-        groupsFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
-
-        if not os.path.exists(groupsFileName):
-          groupsFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
-
-        f = open(groupsFileName, 'r')
         groupsToRun = []
-        for line in f.readlines():
-
-          if line.startswith('#'):
-            continue
-          else:
-            groupsToRun.append(groupToRun(line.rstrip()))
-        f.close()
+        for line in TEST_PLAN_CUSTOM.split(","):
+          groupsToRun.append(groupToRun(line.rstrip()))
       </script>
 
       <!-- TODO: If no groupsToRun then iterate will throw exception -->

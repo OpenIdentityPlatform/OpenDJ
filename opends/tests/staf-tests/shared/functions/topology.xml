@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="createTopology">
@@ -335,16 +335,16 @@
             'extension'  : 'java' 
             }
           </call>          
-          
-          <!-- Check if 'SNMP_OPENDMK_LIBDIR' exists -->
+
+          <!-- Check if 'SNMP_OPENDMK_JARFILE' exists -->
           <call function="'GetEntry'">
             {
             'location'  : STAXServiceMachine,
-            'entry'     : SNMP_OPENDMK_LIBDIR,
+            'entry'     : SNMP_OPENDMK_JARFILE,
             'attribute' : 'TYPE'
             }
           </call>
-          <!-- 'SNMP_OPENDMK_LIBDIR' exists so we can continue with SNMP -->
+          <!-- 'SNMP_OPENDMK_JARFILE' exists so we can continue with SNMP -->
           <if expr="RC != 48">
             <sequence>          
               <!---   Check if snmp java files are already compiled -->
@@ -381,19 +381,12 @@
                     'unzipdir' : TMPDIR
                     }
                   </call>
-                  
-                  <call function="'ResolveVar'" >
-                    { 
-                    'location' : STAXServiceMachine,
-                    'type'     : 'STRING',
-                    'name'     : 'STAF/Config/STAFRoot'
-                    }
-                  </call>                                                       
+                                                                     
                   <script>
                     if is_windows_platform(STAXServiceMachine):
-                      jstaf_jarfile='%s\\bin\\JSTAF.jar' % STAFResult
+                      jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
                     else:
-                      jstaf_jarfile='%s/lib/JSTAF.jar' % STAFResult
+                      jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
                   </script>
 
                   <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->

@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <project name="dependencies">
   <description>
@@ -57,6 +57,7 @@
                                select="\1"
                                casesensitive="false"/>
 
+                <echo>Checking @{archive} archive...</echo>
                 <switch value="${ext}">
                   <case value="gz">
                     <!-- gz files -->

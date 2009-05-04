@@ -62,7 +62,7 @@
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
             { 'topologyFile'       : '%s/basic_topology.txt' \
-                                      % TESTS_TOPOLOGY_DIR,
+                                      % REPLICATION_CONFIG_DIR,
               'dataFile'           : 'Short_Example.ldif',
               'isolateLdapServers' : True,
               'enableDebugLogs'    : False

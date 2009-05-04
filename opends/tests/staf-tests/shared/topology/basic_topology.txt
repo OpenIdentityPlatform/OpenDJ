@@ -21,10 +21,10 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 #
-Hostname: localhost
-Directory: /var/tmp/opends-synchro-tests/server1
+Hostname: ${remote.hostname}
+Directory: ${tests.tmp.dir}/opends-synchro-tests/server1
 Port: 11389
 Adminport: 11444
 Sslport: 11636
@@ -34,11 +34,11 @@ RootPwd: secret12
 BaseDn: o=example
 Changelogport: 11111
 SynchronizedSuffix: o=example
-ChangelogServer: localhost:11111
-ChangelogServer: localhost:22222
+ChangelogServer: ${remote.hostname}:11111
+ChangelogServer: ${remote.hostname}:22222
 
-Hostname: localhost
-Directory: /var/tmp/opends-synchro-tests/server2
+Hostname: ${remote.hostname}
+Directory: ${tests.tmp.dir}/opends-synchro-tests/server2
 Port: 22389
 Adminport: 22444
 Sslport: 22636
@@ -48,5 +48,5 @@ RootPwd: secret12
 BaseDn: o=example
 Changelogport: 22222
 SynchronizedSuffix: o=example
-ChangelogServer: localhost:11111
-ChangelogServer: localhost:22222
+ChangelogServer: ${remote.hostname}:11111
+ChangelogServer: ${remote.hostname}:22222

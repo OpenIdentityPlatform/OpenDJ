@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   
@@ -101,19 +101,12 @@
         </process>
 
         <!-- generate SSL certificate -->
-        <stafcmd>
-          <location>STAXServiceMachine</location>
-          <service>'var'</service>
-          <request>'resolve string {STAF/Config/STAFRoot}'</request>
-        </stafcmd>
-        
-        <script>stafRoot=STAFResult</script>
         
         <!-- Check if 'tomcatCertificate' file exists -->
         <call function="'GetEntry'">
           {
           'location'  : STAXServiceMachine,
-          'entry'     : '%s/services/DSML/tomcatCertificate' % stafRoot,
+          'entry'     : '%s/services/DSML/tomcatCertificate' % LOCAL_STAF_ROOT,
           'attribute' : 'TYPE'
           }
         </call>
@@ -127,7 +120,7 @@
                              -dname "cn=tomcat,O=Sun Microsystems,C=US" \
                              -keystore "%s/services/DSML/tomcatCertificate" \
                              -storepass "changeit" -keypass "changeit" \
-                             -storetype JKS ' % (stafRoot),
+                             -storetype JKS ' % (LOCAL_STAF_ROOT),
               'path'      : '%s/bin' % (LOCAL_JAVA_HOME),
               'expectedRC': 0
             }
@@ -136,7 +129,7 @@
 
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
-            'srcfile'    : '%s/services/DSML/tomcatCertificate' % (stafRoot),
+            'srcfile'    : '%s/services/DSML/tomcatCertificate' % (LOCAL_STAF_ROOT),
             'destfile'   : '%s/%s-%s/conf/tomcatCertificate' % (wcPath, WC_TYPE, WC_VERSION),
             'remotehost' : mylocation
           }

@@ -59,7 +59,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            {  'topologyFile' : '%s/3server_topology.txt' % TESTS_TOPOLOGY_DIR }
+            {  'topologyFile' : '%s/3server_topology.txt' % REPLICATION_CONFIG_DIR }
           </call>
                                     
           <script>
