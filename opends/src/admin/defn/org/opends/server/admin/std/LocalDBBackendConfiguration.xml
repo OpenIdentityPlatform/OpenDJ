@@ -445,7 +445,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>75</adm:value>
+        <adm:value>50</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -559,7 +559,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>50mb</adm:value>
+        <adm:value>10mb</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
