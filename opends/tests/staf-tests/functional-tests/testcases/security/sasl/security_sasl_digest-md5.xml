@@ -3206,9 +3206,12 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf'
+                'protection'       : 'auth-conf',
+                'knownIssue'       : '3967'
               }
             </call>
+            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
+                 with java 1.5 -->
                         
             <call function="'testCase_Postamble'"/>
             
@@ -3553,9 +3556,12 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf'
+                'protection'       : 'auth-conf',
+                'knownIssue'       : '3967'
               }
             </call>
+            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
+                 with java 1.5-->
 
             <script> 
               returnString = STAXResult[0][1]
@@ -4228,9 +4234,12 @@
                 'authenticationId' : 'dn:%s' % test_user,
                 'strength'         : 'low',
                 'password'         : 'newleg',
-                'protection'       : 'auth-conf'
+                'protection'       : 'auth-conf',
+                'knownIssue'       : '3967'
               }
             </call>
+            <!-- Issue 3967: SASL encryption: cipher strength low not supported 
+                 with java 1.5-->
 
             <script> 
               returnString = STAXResult[0][1]
