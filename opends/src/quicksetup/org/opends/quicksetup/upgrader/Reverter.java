@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -1108,8 +1108,13 @@ public class Reverter extends Application implements CliApplication {
     }
 
     if (currentVersion != null && newVersion != null) {
+      UserInteraction ui = userInteraction() ;
+      if (ui == null)
+      {
+        ui = new CliUserInteraction();
+      }
       ReversionIssueNotifier uo = new ReversionIssueNotifier(
-              userInteraction(), currentVersion, newVersion);
+              ui,currentVersion,newVersion);
       uo.notifyUser();
       if (uo.noServerStartFollowingOperation()) {
         // Some issue dictates that we don't try and restart the server

@@ -218,6 +218,17 @@ public final class VersionCompatibilityIssue {
    */
   public enum Cause {
     /**
+     * We not support the revert to the previous version.
+     */
+    REVERT_NOT_SUPPORTED_1(
+        9, // Unique ID.  See javadoc for more information.
+        INFO_5278_REVERSION.get(),
+        INFO_5278_REVERSION.get(),
+        Effect.REVERSION_NOT_POSSIBLE,
+        Effect.UPGRADE_SHOW_INFO_MESSAGE),
+
+
+    /**
      * Incompatible changes in attribute value normalization. This causes
      * indexes to be invalidated.
      */
@@ -470,6 +481,7 @@ public final class VersionCompatibilityIssue {
   //***************************************************
 
   static {
+    register (Cause.REVERT_NOT_SUPPORTED_1, new BuildVersion(2,0,0,5278));
     register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1,
             new BuildVersion(1,2,0,5134));
     register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0, 3873));
