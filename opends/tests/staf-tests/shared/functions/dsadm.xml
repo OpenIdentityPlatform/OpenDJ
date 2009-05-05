@@ -1959,12 +1959,11 @@
        if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
 
-       if schedulePattern:
-          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
-
        if backupID:
           STAFCmdParamsList.append('-I %s' % backupID)
 
+       if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
 
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
@@ -2321,12 +2320,12 @@
         if startTask:
           STAFCmdParamsList.append('-t %s' % startTask)
 
+        if backupID:
+          STAFCmdParamsList.append('-I %s' % backupID)
+
         if schedulePattern:
           STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
 
-        if backupID:
-          STAFCmdParamsList.append('-I %s' % backupID)
-                                                         
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>

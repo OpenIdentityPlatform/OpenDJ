@@ -308,7 +308,7 @@
               'dsBaseDN'          : 'cn=System Info,cn=monitor',
               'dsFilter'          : 'objectclass=*',
               'expectedRC'        :  0 ,
-              'knownIssue'        : '2619' }
+              'knownIssue'        : '2873' }
             </call>  	    
             
             <message>'-- Disable the System Info monitor provider --'</message>   

@@ -75,6 +75,12 @@
               { 'location'  : STAF_REMOTE_HOSTNAME }
             </call>
 
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              { 'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000 }
+            </call>
+
             <call function="'backup'">
               { 'location'          : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
@@ -487,11 +493,22 @@
               { 'location'  : STAF_REMOTE_HOSTNAME }
             </call>
 
-            <call function="'checktestStringNotPresent'">
-               {'testString'     : 'because another task already exists with the same ID' ,
-               'returnString' : returnString,
-               'issue'             : '3773'}
-             </call>
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+              }
+            </call>
+
+            <call function="'grep'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'filename'  : '%s/%s/logs/server.out' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME) ,
+              'testString': 'because another task already exists with the same ID' ,
+              'expectedRC': 1 , 
+              }
+            </call>
 
             <call function="'testCase_Postamble'"/>
           </sequence>

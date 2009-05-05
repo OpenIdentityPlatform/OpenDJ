@@ -144,10 +144,16 @@
             <call function="'testCase_Preamble'"/>              
             
             <script>
-              mydate=strftime("%Y%m%d%H%M%S",localtime())
+              import java.util.Calendar
+              import java.text.SimpleDateFormat
+
+              cal = java.util.Calendar.getInstance()
+              cal.add(java.util.Calendar.SECOND,10)
+
+              dateFormat = java.text.SimpleDateFormat("yyyyMMddHHmmss")
+
+              mydate = dateFormat.format(cal.getTime())
             </script>
-
-
             
             <call function="'restore'">
               { 'location'          : STAF_REMOTE_HOSTNAME ,
