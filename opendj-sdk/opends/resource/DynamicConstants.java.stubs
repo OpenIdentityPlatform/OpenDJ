@@ -41,120 +41,219 @@ public final class DynamicConstants
   /**
    * The official full product name for the Directory Server.
    */
-  public static final String PRODUCT_NAME = "${PRODUCT_NAME}";
+  public static String PRODUCT_NAME = "${PRODUCT_NAME}";
 
   /**
    * The short product name for the Directory Server.
    */
-  public static final String SHORT_NAME = "${SHORT_NAME}";
+  public static String SHORT_NAME = "${SHORT_NAME}";
 
   /**
    * The major version number for the Directory Server.
    */
-  public static final int MAJOR_VERSION = ${MAJOR_VERSION};
+  public static int MAJOR_VERSION = ${MAJOR_VERSION};
 
   /**
    * The minor version number for the Directory Server.
    */
-  public static final int MINOR_VERSION = ${MINOR_VERSION};
+  public static int MINOR_VERSION = ${MINOR_VERSION};
 
   /**
    * The point version number for the Directory Server.
    */
-  public static final int POINT_VERSION = ${POINT_VERSION};
+  public static int POINT_VERSION = ${POINT_VERSION};
 
   /**
    * The official build number for the Directory Server.
    */
-  public static final int BUILD_NUMBER = ${BUILD_NUMBER};
+  public static int BUILD_NUMBER = ${BUILD_NUMBER};
 
   /**
    * The version qualifier string for the Directory Server.
    */
-  public static final String VERSION_QUALIFIER = "${VERSION_QUALIFIER}";
+  public static String VERSION_QUALIFIER = "${VERSION_QUALIFIER}";
 
   /**
    * The set of bug IDs for fixes included in this build of the Directory
    * Server.
    */
-  public static final String FIX_IDS = "${FIX_IDS}";
+  public static String FIX_IDS = "${FIX_IDS}";
 
   /**
    * The build ID for the generated build of the Directory Server.
    */
-  public static final String BUILD_ID = "${timestamp}";
+  public static String BUILD_ID = "${timestamp}";
 
   /**
    * The username of the user that created this build.
    */
-  public static final String BUILD_USER = "${user.name}";
+  public static String BUILD_USER = "${user.name}";
 
   /**
    * The Java version used to generate this build.
    */
-  public static final String BUILD_JAVA_VERSION = "${java.version}";
+  public static String BUILD_JAVA_VERSION = "${java.version}";
 
   /**
    * The vendor for the Java version used to generate this build.
    */
-  public static final String BUILD_JAVA_VENDOR = "${java.vendor}";
+  public static String BUILD_JAVA_VENDOR = "${java.vendor}";
 
   /**
    * The JVM version used to generate this build.
    */
-  public static final String BUILD_JVM_VERSION = "${java.vm.version}";
+  public static String BUILD_JVM_VERSION = "${java.vm.version}";
 
   /**
    * The vendor for the JVM used to generate this build.
    */
-  public static final String BUILD_JVM_VENDOR = "${JVM_VENDOR}";
+  public static String BUILD_JVM_VENDOR = "${JVM_VENDOR}";
 
   /**
    * The operating system on which this build was generated.
    */
-  public static final String BUILD_OS = "${os.name} ${os.version} ${os.arch}";
+  public static String BUILD_OS = "${os.name} ${os.version} ${os.arch}";
 
   /**
    * Indicates whether this is a debug build of the Directory Server that may
    * include additional debugging facilities not available in standard release
    * versions.
    */
-  public static final boolean DEBUG_BUILD = ${DEBUG_BUILD};
+  public static boolean DEBUG_BUILD = ${DEBUG_BUILD};
 
   /**
    * The Subversion revision number on which this build is based.
    */
-  public static final long REVISION_NUMBER = ${REVISION_NUMBER};
+  public static long REVISION_NUMBER = ${REVISION_NUMBER};
 
   /**
    * The Subversion url repository location on which this build is based.
    */
-  public static final String URL_REPOSITORY =
+  public static String URL_REPOSITORY =
       "${URL_REPOSITORY}";
 
   /**
    * Indicates wheater this build includes AspectJ weaving for the debug logging
    * framework.
    */
-  public static final boolean WEAVE_ENABLED = ${WEAVE_ENABLED};
+  public static boolean WEAVE_ENABLED = ${WEAVE_ENABLED};
 
   /**
    * A string representation of the version number.
    */
-  public static final String VERSION_NUMBER_STRING =
+  public static String VERSION_NUMBER_STRING =
        "${VERSION_NUMBER_STRING}";
 
+
+
   /**
+   * Test if a specific class is provided to overwrite the BUILD definitions
+   * By the release definitions provided by
+   * org.opends.server.util.ReleaseDefinition
+   */
+
+  static {
+
+      try {
+
+        Class c = Class.forName("org.opends.server.util.ReleaseDefinition");
+        Object obj = c.newInstance();
+
+        try {
+         PRODUCT_NAME = (String)c.getField("PRODUCT_NAME").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         SHORT_NAME = (String)c.getField("SHORT_NAME").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         MAJOR_VERSION = (Integer)c.getField("MAJOR_VERSION").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         MINOR_VERSION = (Integer)c.getField("MINOR_VERSION").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         POINT_VERSION = (Integer)c.getField("POINT_VERSION").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         BUILD_NUMBER = (Integer)c.getField("BUILD_NUMBER").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         VERSION_QUALIFIER = (String)c.getField("VERSION_QUALIFIER").get(obj);
+        }
+        catch (Exception ex) {}
+        try {
+         FIX_IDS = (String)c.getField("FIX_IDS").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_ID = (String)c.getField("BUILD_ID").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_USER = (String)c.getField("BUILD_USER").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         REVISION_NUMBER = (Long)c.getField("REVISION_NUMBER").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_JAVA_VERSION = (String)c.getField("BUILD_JAVA_VERSION").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_JAVA_VENDOR = (String)c.getField("BUILD_JAVA_VENDOR").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_JVM_VERSION = (String)c.getField("BUILD_JVM_VERSION").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_JVM_VENDOR = (String)c.getField("BUILD_JVM_VENDOR").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         BUILD_OS = (String)c.getField("BUILD_OS").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         DEBUG_BUILD = (Boolean)c.getField("DEBUG_BUILD").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         URL_REPOSITORY = (String)c.getField("URL_REPOSITORY").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         WEAVE_ENABLED = (Boolean)c.getField("WEAVE_ENABLED").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         VERSION_NUMBER_STRING =
+                 (String)c.getField("VERSION_NUMBER_STRING").get(obj);
+        }
+        catch (Exception ex) {}
+      } catch (Exception ex) {
+      }
+  }
+   /**
    * A compact version string for this product, suitable for use in path
    * names and similar cases.
    */
-  public static final String COMPACT_VERSION_STRING =
+  public static String COMPACT_VERSION_STRING =
        SHORT_NAME + "-" + VERSION_NUMBER_STRING;
 
   /**
    * A full version string for this product.
    */
-  public static final String FULL_VERSION_STRING =
+  public static String FULL_VERSION_STRING =
        PRODUCT_NAME + " " + VERSION_NUMBER_STRING +
        (((FIX_IDS != null) && (FIX_IDS.length() > 0))
         ? "+" + FIX_IDS
@@ -166,4 +265,5 @@ public final class DynamicConstants
   public static final String PRINTABLE_VERSION_STRING =
        FULL_VERSION_STRING + System.getProperty("line.separator") +
        "Build " + BUILD_ID + System.getProperty("line.separator");
+
 }
