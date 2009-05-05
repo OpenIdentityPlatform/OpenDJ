@@ -269,9 +269,9 @@
           <call function="'checktestString'">
              { 'returnString'       : returnString ,
                'expectedString'     : 'Account Expiration Time:' }
-           </call>
+          </call>
            
-           <message>
+          <message>
              'Security: Account Expiration: verify manage-account %s' % msg3
           </message>
 
@@ -287,11 +287,32 @@
              returnString = STAXResult[0][1]
           </script>
             
-          <call function="'checktestString'">
-             { 'returnString'       : returnString ,
-               'expectedString'     : '%s  8926' % msg5 }
-           </call>
-           
+          <script>
+            expirationTime = returnString.split(':')[1].strip()
+
+            if len(expirationTime) == 9 &amp; expirationTime.startswith('86'):
+              myRC = 0
+            else:
+              myRC = 1
+          </script>
+
+          <if expr="myRC== 0">
+            <sequence>
+              <message log="1">
+                'SUCCESS: Expiration (%s) time contains 9 digit and starts with 86' % expirationTime
+              </message>
+              <tcstatus result="'pass'"/>
+            </sequence>
+            <else>
+              <sequence>
+                <message log="1" level="'Error'">
+                  'ERROR : Expiration time (%s) didn\'t match the expected expression' % expirationTime
+                </message>
+                <tcstatus result="'fail'"/>
+              </sequence>
+            </else>
+          </if>
+
            <message>
              'Security: Account Expiration: verify manage-account %s' % msg4
           </message>

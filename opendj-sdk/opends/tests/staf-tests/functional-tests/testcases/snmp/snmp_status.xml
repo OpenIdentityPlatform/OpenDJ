@@ -403,7 +403,7 @@
                 msg4 = 'configuration parameter of the SNMP connection handler'
                 msg5 = 'is the valid path to the jdmkrt.jar file and that the'
                 msg6 = 'file is accessible'
-                msg = '%s %s %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
+                msg = '%s %s  %s %s %s %s' % (msg1, msg2, msg3, msg4, msg5, msg6)
               </script>
 
               <call function="'grep'">

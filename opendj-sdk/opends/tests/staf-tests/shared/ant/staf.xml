@@ -32,7 +32,6 @@
 
   <!-- Install STAF and services -->
   <target name="install">
-    <echo>Installing staf, please wait...</echo>
     <if>
       <not>
         <available file="${staf.install.dir}/bin/STAF.cfg"/>

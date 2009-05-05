@@ -449,7 +449,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -478,7 +478,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -622,7 +622,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -651,7 +651,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -801,7 +801,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -830,7 +830,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -980,7 +980,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
@@ -1009,7 +1009,7 @@
              { 'functionName'      : 'checktestString'                        ,
                'functionMessage'   : 'Check userCertificate attribute is returned.' ,
                'functionException' : 'Utils.CheckStringException'             ,
-               'functionArguments' : { 'expectedString' : 'userCertificate;binary'  ,
+               'functionArguments' : { 'expectedString' : 'usercertificate;binary'  ,
                                        'returnString'   : _functionResult }
              }
             </call>
