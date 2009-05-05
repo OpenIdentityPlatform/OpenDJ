@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -474,7 +474,7 @@ public class ProgressDialog extends GenericDialog
       details.setSelected(showDetails);
       if (showDetails)
       {
-        Window dialog = Utilities.getParentDialog(this);
+        final Window dialog = Utilities.getParentDialog(this);
         if (dialog != null)
         {
           lastCollapsedHeight = dialog.getSize().height;
@@ -488,11 +488,20 @@ public class ProgressDialog extends GenericDialog
             dialog.setSize(new Dimension(dialog.getSize().width,
                 lastExpandedHeight));
           }
+          SwingUtilities.invokeLater(new Runnable()
+          {
+            public void run()
+            {
+              invalidate();
+              dialog.invalidate();
+              dialog.repaint();
+            }
+          });
         }
       }
       else
       {
-        Window dialog = Utilities.getParentDialog(this);
+        final Window dialog = Utilities.getParentDialog(this);
         if (dialog != null)
         {
           lastExpandedHeight = dialog.getSize().height;
@@ -504,6 +513,15 @@ public class ProgressDialog extends GenericDialog
           {
             dialog.setSize(new Dimension(dialog.getSize().width,
                 lastCollapsedHeight));
+            SwingUtilities.invokeLater(new Runnable()
+            {
+              public void run()
+              {
+                invalidate();
+                dialog.invalidate();
+                dialog.repaint();
+              }
+            });
           }
         }
       }
