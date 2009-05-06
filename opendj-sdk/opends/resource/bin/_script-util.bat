@@ -106,9 +106,16 @@ set OPENDS_JAVA_BIN=%JAVA_BIN%
 goto endJavaHomeAndArgs
 
 :checkJavaHome
-if "%JAVA_HOME%" == "" goto noJavaFound
+if "%JAVA_HOME%" == "" goto checkJavaPath
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaFound
 set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
+goto endJavaHomeAndArgs
+
+:checkJavaPath
+java.exe -version > NUL 2>&1
+set RESULT_CODE=%errorlevel%
+if not %errorlevel% == 0 goto noJavaFound
+set OPENDS_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
 
 :noJavaFound
