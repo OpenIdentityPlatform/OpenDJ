@@ -418,7 +418,8 @@ public class ApplicationTrustManager implements X509TrustManager
           new LdapName(chain[0].getSubjectX500Principal().getName());
         Rdn rdn = dn.getRdn(dn.getRdns().size() - 1);
         String value = rdn.getValue().toString();
-        matches = host.equalsIgnoreCase(value);
+        host.equalsIgnoreCase(value);
+        matches = hostMatch(value, host);
         if (!matches)
         {
           LOG.log(Level.WARNING, "Subject DN RDN value is: "+value+
@@ -426,7 +427,7 @@ public class ApplicationTrustManager implements X509TrustManager
           // Try with the accepted hosts names
           for (int i =0; i<acceptedHosts.size() && !matches; i++)
           {
-            if (host.equalsIgnoreCase(acceptedHosts.get(i)))
+            if (hostMatch(acceptedHosts.get(i), host))
             {
               X509Certificate[] current = acceptedChains.get(i);
               matches = current.length == chain.length;
@@ -479,5 +480,37 @@ public class ApplicationTrustManager implements X509TrustManager
   public X509Certificate[] getLastRefusedChain()
   {
     return lastRefusedChain;
+  }
+
+  /**
+   * Checks whether two host names match.  It accepts the use of wildcard in the
+   * host name.
+   * @param host1 the first host name.
+   * @param host2 the second host name.
+   * @return <CODE>true</CODE> if the host match and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean hostMatch(String host1, String host2)
+  {
+    if (host1 == null)
+    {
+      throw new IllegalArgumentException("The host1 parameter cannot be null");
+    }
+    if (host2 == null)
+    {
+      throw new IllegalArgumentException("The host2 parameter cannot be null");
+    }
+    String[] h1 = host1.split("\\.");
+    String[] h2 = host2.split("\\.");
+
+    boolean hostMatch = h1.length == h2.length;
+    for (int i=0; i<h1.length && hostMatch; i++)
+    {
+      if (!h1[i].equals("*") && !h2.equals("*"))
+      {
+        hostMatch = h1[i].equalsIgnoreCase(h2[i]);
+      }
+    }
+    return hostMatch;
   }
 }
