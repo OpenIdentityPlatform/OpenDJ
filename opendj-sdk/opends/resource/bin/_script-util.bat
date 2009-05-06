@@ -113,7 +113,6 @@ goto endJavaHomeAndArgs
 
 :checkJavaPath
 java.exe -version > NUL 2>&1
-set RESULT_CODE=%errorlevel%
 if not %errorlevel% == 0 goto noJavaFound
 set OPENDS_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
