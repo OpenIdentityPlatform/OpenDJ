@@ -418,7 +418,6 @@ public class ApplicationTrustManager implements X509TrustManager
           new LdapName(chain[0].getSubjectX500Principal().getName());
         Rdn rdn = dn.getRdn(dn.getRdns().size() - 1);
         String value = rdn.getValue().toString();
-        host.equalsIgnoreCase(value);
         matches = hostMatch(value, host);
         if (!matches)
         {
