@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
 
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -65,6 +67,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationAddOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -118,6 +123,12 @@ public class UniqueAttributePlugin
 
 
 
+  // The data structure to store the mapping between the attribute value
+  // and the corresponding dn.
+  private ConcurrentHashMap<AttributeValue,DN> uniqueAttrValue2Dn;
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -137,6 +148,9 @@ public class UniqueAttributePlugin
         case PRE_OPERATION_ADD:
         case PRE_OPERATION_MODIFY:
         case PRE_OPERATION_MODIFY_DN:
+        case POST_OPERATION_ADD:
+        case POST_OPERATION_MODIFY:
+        case POST_OPERATION_MODIFY_DN:
         case POST_SYNCHRONIZATION_ADD:
         case POST_SYNCHRONIZATION_MODIFY:
         case POST_SYNCHRONIZATION_MODIFY_DN:
@@ -171,6 +185,8 @@ public class UniqueAttributePlugin
         }
       }
     }
+
+    uniqueAttrValue2Dn  = new ConcurrentHashMap<AttributeValue,DN>();
   }
 
 
@@ -215,8 +231,16 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
-                                                    config, v);
+              DN conflictDN = null;
+              //Raise an exception if a conflicting concurrent operation is in
+              //progress. Otherwise, store this attribute value with its
+              //corresponding DN and proceed.
+              if((conflictDN=
+                      uniqueAttrValue2Dn.putIfAbsent(v, entry.getDN()))==null)
+              {
+                conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
+                                                   config, v);
+              }
               if (conflictDN != null)
               {
                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
@@ -285,8 +309,16 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
-                                                    v);
+              DN conflictDN = null;
+              //Raise an exception if a conflicting concurrent operation is in
+              //progress. Otherwise, store this attribute value with its
+              //corresponding DN and proceed.
+              if((conflictDN=
+                      uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
+              {
+               conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
+                                                   v);
+              }
               if (conflictDN != null)
               {
                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
@@ -332,8 +364,16 @@ public class UniqueAttributePlugin
               {
                 try
                 {
-                  DN conflictDN = getConflictingEntryDN(baseDNs, entryDN,
+                  DN conflictDN = null;
+                  //Raise an exception if a conflicting concurrent operation is
+                  //in progress. Otherwise, store this attribute value with its
+                  //corresponding DN and proceed.
+                  if((conflictDN=
+                      uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
+                  {
+                    conflictDN = getConflictingEntryDN(baseDNs, entryDN,
                                                         config, v);
+                  }
                   if (conflictDN != null)
                   {
                     Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
@@ -404,8 +444,16 @@ public class UniqueAttributePlugin
       try
       {
         AttributeValue v = newRDN.getAttributeValue(i);
-        DN conflictDN = getConflictingEntryDN(baseDNs,
+        DN conflictDN = null;
+        //Raise an exception if a conflicting concurrent operation is in
+        //progress. Otherwise, store this attribute value with its
+        //corresponding DN and proceed.
+        if((conflictDN=uniqueAttrValue2Dn.putIfAbsent(
+                              v, modifyDNOperation.getEntryDN()))==null)
+        {
+          conflictDN = getConflictingEntryDN(baseDNs,
             modifyDNOperation.getEntryDN(), config, v);
+        }
         if (conflictDN != null)
         {
           Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
@@ -464,8 +512,12 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
+              DN conflictDN = null;
+              if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+              {
+                conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
                                                     config, v);
+              }
               if (conflictDN != null)
               {
                 Message m = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
@@ -538,8 +590,12 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
+              DN conflictDN = null;
+              if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+              {
+               conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
                                                     v);
+              }
               if (conflictDN != null)
               {
                 Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
@@ -592,8 +648,12 @@ public class UniqueAttributePlugin
               {
                 try
                 {
-                  DN conflictDN = getConflictingEntryDN(baseDNs, entryDN,
+                  DN conflictDN = null;
+                  if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+                  {
+                   conflictDN = getConflictingEntryDN(baseDNs, entryDN,
                                                         config, v);
+                  }
                   if (conflictDN != null)
                   {
                     Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
@@ -671,8 +731,12 @@ public class UniqueAttributePlugin
       try
       {
         AttributeValue v = newRDN.getAttributeValue(i);
-        DN conflictDN = getConflictingEntryDN(baseDNs,
+        DN conflictDN = null;
+        if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+        {
+         conflictDN = getConflictingEntryDN(baseDNs,
                              modifyDNOperation.getEntryDN(), config, v);
+        }
         if (conflictDN != null)
         {
           Message m =
@@ -848,6 +912,9 @@ public class UniqueAttributePlugin
         case PREOPERATIONADD:
         case PREOPERATIONMODIFY:
         case PREOPERATIONMODIFYDN:
+        case POSTOPERATIONADD:
+        case POSTOPERATIONMODIFY:
+        case POSTOPERATIONMODIFYDN:
         case POSTSYNCHRONIZATIONADD:
         case POSTSYNCHRONIZATIONMODIFY:
         case POSTSYNCHRONIZATIONMODIFYDN:
@@ -933,6 +1000,150 @@ public class UniqueAttributePlugin
                ALERT_DESCRIPTION_UNIQUE_ATTR_SYNC_ERROR);
 
     return alerts;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final PluginResult.PostOperation
+       doPostOperation(PostOperationAddOperation addOperation)
+  {
+    UniqueAttributePluginCfg config = currentConfiguration;
+    Entry entry = addOperation.getEntryToAdd();
+
+    Set<DN> baseDNs = getBaseDNs(config, entry.getDN());
+    if (baseDNs == null)
+    {
+      // The entry is outside the scope of this plugin.
+      return PluginResult.PostOperation.continueOperationProcessing();
+    }
+
+    //Remove the attribute value from the map.
+    for (AttributeType t : config.getType())
+    {
+      List<Attribute> attrList = entry.getAttribute(t);
+      if (attrList != null)
+      {
+        for (Attribute a : attrList)
+        {
+          for (AttributeValue v : a)
+          {
+            uniqueAttrValue2Dn.remove(v);
+          }
+        }
+      }
+    }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final PluginResult.PostOperation
+       doPostOperation(PostOperationModifyOperation modifyOperation)
+  {
+    UniqueAttributePluginCfg config = currentConfiguration;
+    DN entryDN = modifyOperation.getEntryDN();
+
+    Set<DN> baseDNs = getBaseDNs(config, entryDN);
+    if (baseDNs == null)
+    {
+      // The entry is outside the scope of this plugin.
+      return PluginResult.PostOperation.continueOperationProcessing();
+    }
+
+    for (Modification m : modifyOperation.getModifications())
+    {
+      Attribute a = m.getAttribute();
+      AttributeType t = a.getAttributeType();
+      if (! config.getType().contains(t))
+      {
+        // This modification isn't for a unique attribute.
+        continue;
+      }
+
+      switch (m.getModificationType())
+      {
+        case ADD:
+        case REPLACE:
+          for (AttributeValue v : a)
+          {
+            uniqueAttrValue2Dn.remove(v);
+          }
+          break;
+
+        case INCREMENT:
+          // We could calculate the new value, but we'll just take it from the
+          // updated entry.
+          List<Attribute> attrList =
+               modifyOperation.getModifiedEntry().getAttribute(t,
+                                                           a.getOptions());
+          if (attrList != null)
+          {
+            for (Attribute updatedAttr : attrList)
+            {
+              if (! updatedAttr.optionsEqual(a.getOptions()))
+              {
+                continue;
+              }
+
+              for (AttributeValue v : updatedAttr)
+              {
+                uniqueAttrValue2Dn.remove(v);
+              }
+            }
+          }
+          break;
+
+        default:
+          // We don't need to look at this modification because it's not a
+          // modification type of interest.
+          continue;
+      }
+    }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final PluginResult.PostOperation
+       doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
+  {
+    UniqueAttributePluginCfg config = currentConfiguration;
+    Set<DN> baseDNs = getBaseDNs(config,
+                                 modifyDNOperation.getUpdatedEntry().getDN());
+    if (baseDNs == null)
+    {
+      // The entry is outside the scope of this plugin.
+      return PostOperation.continueOperationProcessing();
+    }
+
+    RDN newRDN = modifyDNOperation.getNewRDN();
+    for (int i=0; i < newRDN.getNumValues(); i++)
+    {
+      AttributeType t = newRDN.getAttributeType(i);
+      if (! config.getType().contains(t))
+      {
+        // We aren't interested in this attribute type.
+        continue;
+      }
+      AttributeValue v = newRDN.getAttributeValue(i);
+      uniqueAttrValue2Dn.remove(v);
+    }
+    return PostOperation.continueOperationProcessing();
   }
 }
 

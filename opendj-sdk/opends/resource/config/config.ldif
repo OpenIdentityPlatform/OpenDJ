@@ -1783,6 +1783,9 @@ ds-cfg-enabled: false
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDN
 ds-cfg-plugin-type: postSynchronizationAdd
 ds-cfg-plugin-type: postSynchronizationModify
 ds-cfg-plugin-type: postSynchronizationModifyDN
