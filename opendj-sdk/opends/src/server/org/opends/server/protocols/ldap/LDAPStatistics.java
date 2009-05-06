@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,11 +36,9 @@ import java.util.ArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -122,9 +120,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   // The instance name for this monitor provider instance.
   private final String instanceName;
 
-  // Connection Handler to which the statistics belong to.
-  private final ConnectionHandler handler;
-
   // Monitor Objects : for Operations.
   private final OperationMonitor addRequestsMonitor =
       OperationMonitor.getOperationMonitor(ADD);
@@ -152,16 +147,12 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   /**
    * Creates a new instance of this class with no parent.
    *
-   * @param handler
-   *          to which the stats belong to.
    * @param instanceName
    *          The name for this monitor provider instance.
    */
-  public LDAPStatistics(ConnectionHandler handler, String instanceName)
+  public LDAPStatistics(String instanceName)
   {
-    this(handler, instanceName, null);
-
-    DirectoryServer.registerMonitorProvider(this);
+    this(instanceName, null);
   }
 
 
@@ -169,8 +160,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   /**
    * Creates a new instance of this class with the specified parent.
    *
-   * @param handler
-   *          the handler to which the stats belong to.
    * @param instanceName
    *          The name for this monitor provider instance.
    * @param parent
@@ -178,14 +167,12 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *          this class is updated. It may be null if there should not
    *          be a parent.
    */
-  public LDAPStatistics(ConnectionHandler handler, String instanceName,
-      LDAPStatistics parent)
+  public LDAPStatistics(String instanceName, LDAPStatistics parent)
   {
     super("LDAP Statistics Monitor Provider");
 
     this.instanceName = instanceName;
     this.parent = parent;
-    this.handler = handler;
 
     abandonLock = new Object();
     connectLock = new Object();
@@ -222,11 +209,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     searchResultReferences = 0;
     searchResultsDone = 0;
     unbindRequests = 0;
-
-    ClientConnectionMonitorProvider connections =
-        new ClientConnectionMonitorProvider(this.handler);
-
-    DirectoryServer.registerMonitorProvider(connections);
   }
 
 

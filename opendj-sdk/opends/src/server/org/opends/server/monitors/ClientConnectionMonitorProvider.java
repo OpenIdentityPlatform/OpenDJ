@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -32,27 +32,36 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TreeMap;
 
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.InitializationException;
+
 
 
 /**
- * This class defines a Directory Server monitor provider that can be used to
- * obtain information about the client connections established to the server.
- * Note that the information reported is obtained with little or no locking, so
- * it may not be entirely consistent, especially for active connections.
+ * This class defines a Directory Server monitor provider that can be
+ * used to obtain information about the client connections established
+ * to the server. Note that the information reported is obtained with
+ * little or no locking, so it may not be entirely consistent,
+ * especially for active connections.
  */
-public class ClientConnectionMonitorProvider
-       extends MonitorProvider<ClientConnectionMonitorProviderCfg>
+public class ClientConnectionMonitorProvider extends
+    MonitorProvider<ClientConnectionMonitorProviderCfg>
 {
 
-  private ConnectionHandler<?> handler;
+  // The connection handler associated with this monitor, or null if all
+  // connection handlers should be monitored.
+  private final ConnectionHandler<?> handler;
+
+
 
   /**
    * Creates an instance of this monitor provider.
@@ -60,18 +69,24 @@ public class ClientConnectionMonitorProvider
   public ClientConnectionMonitorProvider()
   {
     super("Client Connection Monitor Provider");
-    // No initialization should be performed here.
+
+    // This will monitor all connection handlers.
+    this.handler = null;
   }
+
+
 
   /**
    * Creates an instance of this monitor provider.
-   * @param handler to which the monitor provider is associated.
+   *
+   * @param handler
+   *          to which the monitor provider is associated.
    */
   public ClientConnectionMonitorProvider(ConnectionHandler handler)
   {
     super("Client Connection Monitor Provider");
-    this.handler=handler;
-    // No initialization should be performed here.
+
+    this.handler = handler;
   }
 
 
@@ -79,9 +94,10 @@ public class ClientConnectionMonitorProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeMonitorProvider(
-                   ClientConnectionMonitorProviderCfg configuration)
-         throws ConfigException, InitializationException
+      ClientConnectionMonitorProviderCfg configuration)
+      throws ConfigException, InitializationException
   {
     // No initialization is required.
   }
@@ -89,34 +105,41 @@ public class ClientConnectionMonitorProvider
 
 
   /**
-   * Retrieves the name of this monitor provider.  It should be unique among all
-   * monitor providers, including all instances of the same monitor provider.
+   * Retrieves the name of this monitor provider. It should be unique
+   * among all monitor providers, including all instances of the same
+   * monitor provider.
    *
-   * @return  The name of this monitor provider.
+   * @return The name of this monitor provider.
    */
+  @Override
   public String getMonitorInstanceName()
   {
-    if (this.handler==null) {
-       return "Client Connections";
+    if (handler == null)
+    {
+      return "Client Connections";
     }
-    else {
-       // Client connections of a connection handler
-       return "Client Connections"+",cn="+
-               this.handler.getConnectionHandlerName();
+    else
+    {
+      // Client connections of a connection handler
+      return "Client Connections" + ",cn="
+          + handler.getConnectionHandlerName();
     }
   }
 
 
 
   /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
+   * Retrieves the length of time in milliseconds that should elapse
+   * between calls to the <CODE>updateMonitorData()</CODE> method. A
+   * negative or zero return value indicates that the
+   * <CODE>updateMonitorData()</CODE> method should not be periodically
+   * invoked.
    *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
+   * @return The length of time in milliseconds that should elapse
+   *         between calls to the <CODE>updateMonitorData()</CODE>
+   *         method.
    */
+  @Override
   public long getUpdateInterval()
   {
     // This monitor does not need to run periodically.
@@ -126,12 +149,13 @@ public class ClientConnectionMonitorProvider
 
 
   /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
+   * Performs any processing periodic processing that may be desired to
+   * update the information associated with this monitor. Note that
+   * best-effort attempts will be made to ensure that calls to this
+   * method come <CODE>getUpdateInterval()</CODE> milliseconds apart,
+   * but no guarantees will be made.
    */
+  @Override
   public void updateMonitorData()
   {
     // This monitor does not need to run periodically.
@@ -141,58 +165,56 @@ public class ClientConnectionMonitorProvider
 
 
   /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
+   * Retrieves a set of attributes containing monitor data that should
+   * be returned to the client if the corresponding monitor entry is
+   * requested.
    *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
+   * @return A set of attributes containing monitor data that should be
+   *         returned to the client if the corresponding monitor entry
+   *         is requested.
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     // Re-order the connections by connection ID.
-    TreeMap<Long,ClientConnection> connMap =
-             new TreeMap<Long,ClientConnection>();
+    TreeMap<Long, ClientConnection> connMap =
+        new TreeMap<Long, ClientConnection>();
 
-    if (this.handler==null) {
-        // Get information about all the available connections.
-        ArrayList<Collection<ClientConnection>> connCollections =
-             new ArrayList<Collection<ClientConnection>>();
-        for (ConnectionHandler<?> hdl : DirectoryServer.getConnectionHandlers())
+    if (handler == null)
+    {
+      // Get information about all the available connections.
+      for (ConnectionHandler<?> hdl : DirectoryServer
+          .getConnectionHandlers())
+      {
+        // FIXME: connections from different handlers could have the
+        // same ID.
+        for (ClientConnection conn : hdl.getClientConnections())
         {
-          ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
-               (ConnectionHandler<? extends ConnectionHandlerCfg>) hdl;
-          connCollections.add(connHandler.getClientConnections());
+          connMap.put(conn.getConnectionID(), conn);
         }
-        for (Collection<ClientConnection> collection : connCollections)
-        {
-          for (ClientConnection conn : collection)
-          {
-            connMap.put(conn.getConnectionID(), conn);
-          }
-        }
-
+      }
     }
-    else {
-       Collection<ClientConnection> collection =
-               this.handler.getClientConnections();
-       for (ClientConnection conn : collection) {
-            connMap.put(conn.getConnectionID(), conn);
-       }
+    else
+    {
+      Collection<ClientConnection> collection =
+          handler.getClientConnections();
+      for (ClientConnection conn : collection)
+      {
+        connMap.put(conn.getConnectionID(), conn);
+      }
     }
 
-
-    AttributeType attrType = DirectoryServer
-        .getDefaultAttributeType("connection");
+    AttributeType attrType =
+        DirectoryServer.getDefaultAttributeType("connection");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     for (ClientConnection conn : connMap.values())
     {
-      builder.add(AttributeValues.create(attrType, conn.getMonitorSummary()));
+      builder.add(AttributeValues.create(attrType, conn
+          .getMonitorSummary()));
     }
 
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(2);
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>(1);
     attrs.add(builder.toAttribute());
     return attrs;
   }
 }
-

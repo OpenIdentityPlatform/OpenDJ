@@ -33,6 +33,8 @@ import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.monitors.ClientConnectionMonitorProvider;
+
 import static org.opends.messages.ProtocolMessages.*;
 
 import static org.opends.server.util.ServerConstants.*;
@@ -187,6 +189,10 @@ public final class LDAPConnectionHandler extends
   // The set of statistics collected for this connection handler.
   private LDAPStatistics statTracker;
 
+  // The client connection monitor provider associated with this
+  // connection handler.
+  private ClientConnectionMonitorProvider connMonitor;
+
   // The selector that will be used to multiplex connection acceptance
   // across multiple sockets by a single thread.
   private Selector selector;
@@ -301,15 +307,10 @@ public final class LDAPConnectionHandler extends
     // * tcp reuse address
     // * num request handler
 
-    // Start/clear the stat tracker if LDAPv2 is being enabled.
+    // Clear the stat tracker if LDAPv2 is being enabled.
     if (currentConfig.isAllowLDAPV2() != config.isAllowLDAPV2()) {
       if (config.isAllowLDAPV2()) {
-        if (statTracker == null) {
-          statTracker = new LDAPStatistics(this,handlerName
-              + " Statistics");
-        } else {
-          statTracker.clearStatistics();
-        }
+        statTracker.clearStatistics();
       }
     }
 
@@ -358,10 +359,24 @@ public final class LDAPConnectionHandler extends
    *          associated with the connection handler should also be
    *          closed.
    */
+  @Override
   public void finalizeConnectionHandler(Message finalizeReason,
       boolean closeConnections) {
     shutdownRequested = true;
     currentConfig.removeLDAPChangeListener(this);
+
+    if (connMonitor != null)
+    {
+      String lowerName =
+          toLowerCase(connMonitor.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(lowerName);
+    }
+
+    if (statTracker != null) {
+      String lowerName =
+        toLowerCase(statTracker.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(lowerName);
+    }
 
     DirectoryServer.deregisterSupportedLDAPVersion(2, this);
     DirectoryServer.deregisterSupportedLDAPVersion(3, this);
@@ -433,6 +448,7 @@ public final class LDAPConnectionHandler extends
    * @return The set of active client connections that have been
    *         established through this connection handler.
    */
+  @Override
   public Collection<ClientConnection> getClientConnections() {
     LinkedList<ClientConnection> connectionList =
       new LinkedList<ClientConnection>();
@@ -452,6 +468,7 @@ public final class LDAPConnectionHandler extends
    * @return The DN of the configuration entry with which this alert
    *         generator is associated.
    */
+  @Override
   public DN getComponentEntryDN() {
     return currentConfig.dn();
   }
@@ -461,6 +478,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getConnectionHandlerName() {
     return handlerName;
   }
@@ -498,6 +516,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<HostPort> getListeners() {
     return listeners;
   }
@@ -547,6 +566,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getProtocol() {
     return protocol;
   }
@@ -595,6 +615,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
@@ -648,9 +669,6 @@ public final class LDAPConnectionHandler extends
     nameBuffer.append(listenPort);
     handlerName = nameBuffer.toString();
 
-    // Perform any additional initialization that might be required.
-    statTracker = new LDAPStatistics(this, handlerName + " Statistics");
-
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
     for (InetAddress a : listenAddresses) {
@@ -692,6 +710,13 @@ public final class LDAPConnectionHandler extends
     {
       DirectoryServer.registerSupportedLDAPVersion(2, this);
     }
+
+    // Create and register monitors.
+    statTracker = new LDAPStatistics(handlerName + " Statistics");
+    DirectoryServer.registerMonitorProvider(statTracker);
+
+    connMonitor = new ClientConnectionMonitorProvider(this);
+    DirectoryServer.registerMonitorProvider(connMonitor);
 
     // Register this as a change listener.
     config.addLDAPChangeListener(this);
@@ -812,6 +837,7 @@ public final class LDAPConnectionHandler extends
    * Operates in a loop, accepting new connections and ensuring that
    * requests on those connections are handled properly.
    */
+  @Override
   public void run() {
     setName(handlerName);
     boolean listening = false;
@@ -1124,6 +1150,7 @@ public final class LDAPConnectionHandler extends
    * @param buffer
    *          The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer) {
     buffer.append(handlerName);
   }
