@@ -261,9 +261,7 @@ public class LDAPClientConnection extends ClientConnection implements
     String instanceName =
         parentTracker.getMonitorInstanceName() + " for " + toString();
     this.initializeOperationMonitors();
-    statTracker =
-        new LDAPStatistics(connectionHandler, instanceName,
-            parentTracker);
+    statTracker = new LDAPStatistics(instanceName, parentTracker);
 
     if (keepStats)
     {
@@ -2657,6 +2655,7 @@ public class LDAPClientConnection extends ClientConnection implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finishBindOrStartTLS()
   {
     if(this.tlsPendingProvider != null)
