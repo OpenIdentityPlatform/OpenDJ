@@ -146,8 +146,8 @@ public class TaskBackendTestCase
   public void testDeleteRunningTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start immediately that will simply sleep for 5
+    // minutes.
     String taskID = "testDeleteRunningTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -158,7 +158,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 30000");
+      "ds-task-dummy-sleep-time: 300000");
     assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
 
 
@@ -168,7 +168,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 30000L))
+      if (System.currentTimeMillis() > (startTime + 300000L))
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -278,11 +278,10 @@ public class TaskBackendTestCase
       "ds-task-state: " + TaskState.CANCELED_BEFORE_STARTING.toString());
     assertEquals(resultCode, 0);
 
-    // Delete the task.
+    // Delete the task unless it is already deleted by the task scheduler.
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
   }
 
@@ -298,8 +297,8 @@ public class TaskBackendTestCase
   public void testModifyRunningTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start immediately that will simply sleep for 5
+    // minutes.
     String taskID = "testModifyRunningTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
@@ -310,7 +309,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 30000");
+      "ds-task-dummy-sleep-time: 300000");
     assertTrue(DirectoryServer.entryExists(DN.decode(taskDN)));
 
 
@@ -320,7 +319,7 @@ public class TaskBackendTestCase
     while (TaskState.isPending(task.getTaskState()))
     {
       Thread.sleep(10);
-      if (System.currentTimeMillis() > (startTime + 30000L))
+      if (System.currentTimeMillis() > (startTime + 300000L))
       {
         throw new AssertionError("Waited too long for the task to start");
       }
@@ -350,15 +349,15 @@ public class TaskBackendTestCase
     // We may have to wait for the task to register as done, but it should
     // definitely be done before it would have stopped normally.
     task = TasksTestCase.getCompletedTask(DN.decode(taskDN));
-    assertTrue((System.currentTimeMillis() - startTime) < 30000L);
+    assertTrue((System.currentTimeMillis() - startTime) < 300000L);
     assertTrue(TaskState.isDone(task.getTaskState()));
 
 
-    // Perform a modification to delete that task.
+    // Perform a modification to delete that task unless
+    // it is already deleted by the task scheduler.
     resultCode = TestCaseUtils.applyModifications(true,
       "dn: " + taskDN,
       "changetype: delete");
-    assertEquals(resultCode, 0);
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
   }
 
@@ -373,8 +372,7 @@ public class TaskBackendTestCase
   public void testModifyCompletedTask()
          throws Exception
   {
-    // Schedule a task to start immediately that will simply sleep for 30
-    // seconds.
+    // Schedule a task to start and complete immediately.
     String taskID = "testModifyCompltedTask";
     String taskDN = "ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=tasks";
 
