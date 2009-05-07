@@ -59,7 +59,7 @@ public class TaskThread
 
 
   // Indicates whether a request has been made for this thread to exit.
-  private boolean exitRequested;
+  private volatile boolean exitRequested;
 
   // The thread ID for this task thread.
   private int threadID;
