@@ -433,12 +433,21 @@ addProcessing:
         // FIXME: earlier checks to see if the entry already exists or
         // if the parent entry does not exist may have already exposed
         // sensitive information to the client.
-        if (AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this) == false)
+        try
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(entryDN)));
+          if (AccessControlConfigManager.getInstance()
+              .getAccessControlHandler().isAllowed(this) == false)
+          {
+            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+                .get(String.valueOf(entryDN)));
+            break addProcessing;
+          }
+        }
+        catch (DirectoryException e)
+        {
+          setResultCode(e.getResultCode());
+          appendErrorMessage(e.getMessageObject());
           break addProcessing;
         }
 
