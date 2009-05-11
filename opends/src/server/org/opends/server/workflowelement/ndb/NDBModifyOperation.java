@@ -291,12 +291,21 @@ modifyProcessing:
 
         // FIXME: earlier checks to see if the entry already exists may have
         // already exposed sensitive information to the client.
-        if (! AccessControlConfigManager.getInstance().
-                   getAccessControlHandler().isAllowed(this))
+        try
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(entryDN)));
+          if (!AccessControlConfigManager.getInstance()
+              .getAccessControlHandler().isAllowed(this))
+          {
+            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+                .get(String.valueOf(entryDN)));
+            break modifyProcessing;
+          }
+        }
+        catch (DirectoryException e)
+        {
+          setResultCode(e.getResultCode());
+          appendErrorMessage(e.getMessageObject());
           break modifyProcessing;
         }
 

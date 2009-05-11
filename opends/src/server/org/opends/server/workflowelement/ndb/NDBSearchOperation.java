@@ -158,12 +158,21 @@ searchProcessing:
       // FIXME: for now assume that this will check all permission
       // pertinent to the operation. This includes proxy authorization
       // and any other controls specified.
-      if (! AccessControlConfigManager.getInstance().getAccessControlHandler().
-                 isAllowed(this))
+      try
       {
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                String.valueOf(baseDN)));
+        if (!AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(baseDN)));
+          break searchProcessing;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
         break searchProcessing;
       }
 
