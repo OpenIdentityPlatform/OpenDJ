@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -103,6 +103,13 @@ public final class InternalManagementContextFactory implements
   public CommandBuilder getContextCommandBuilder() {
     // No implementation required.
     return new CommandBuilder(null, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setRawArguments(String[] args) {
+    // No implementation required.
   }
 
 }

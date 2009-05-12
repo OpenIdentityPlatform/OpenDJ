@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -85,6 +85,14 @@ public interface ManagementContextFactory {
   void registerGlobalArguments(SubCommandArgumentParser parser)
       throws ArgumentException;
 
+
+
+  /**
+   * Set the raw arguments (used for default value setting).
+   *
+   * @param args raw arguments.
+   */
+  public void setRawArguments(String[] args);
 
 
   /**
