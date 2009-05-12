@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="core_all_filters_noindex" />
+  <function name="core_all_filters_noindex">
+    <sequence>
+      <block name="'all_filters_noindex'">
+        <sequence>
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='core'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          <call function="'testSuite_Preamble'" />
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
+
+          <!--- Test Suite information
+          #@TestSuiteName       core: All Filters No Index
+          #@TestSuitePurpose    Test this feature
+          #@TestSuiteGroup      core: All Filters No Index
+          #@TestScript          core_all_filters_noindex.xml
+          -->
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: AND Filter
+          #@TestIssue           none
+          #@TestPurpose         search with AND Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 16 entries
+          -->
+          
+          <testcase name="getTestCaseName('AND Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI1: Check the response of OpenDS with an AND filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(&amp;(l=Sunnyvale)(ou=Human Resources))'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 16',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: OR Filter
+          #@TestIssue           none
+          #@TestPurpose         search with OR Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 123 entries
+          -->
+
+          <testcase name="getTestCaseName('OR Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI2: Check the response of OpenDS with an OR filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(|(l=Sunnyvale)(l=Santa Clara))'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 123',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: NOT Filter
+          #@TestIssue           none
+          #@TestPurpose         search with NOT Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 14 entries
+          -->
+          
+          <testcase name="getTestCaseName('NOT Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI3: Check the response of OpenDS with a NOT filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(!(objectclass=person))'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 14',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: EQUALITY Filter
+          #@TestIssue           none
+          #@TestPurpose         search with EQUALITY Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 1 entries
+          -->
+
+          <testcase name="getTestCaseName('EQUALITY Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI4: Check the response of OpenDS with an \
+                EQUALITY filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(uid=ahall)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 1',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: SUBSTRING Filter
+          #@TestIssue           none
+          #@TestPurpose         search with SUBSTRING Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 4 entries
+          -->
+
+          <testcase name="getTestCaseName('SUBSTRING Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI5: Check the response of OpenDS with a \
+                SUBSTRING filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(cn=*Managers*)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 4',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: GREATER THAN OR EQUAL TO Filter
+          #@TestIssue           none
+          #@TestPurpose         search with GREATER THAN OR EQUAL TO Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 104 entries
+          -->
+
+          <testcase name="getTestCaseName('GREATER THAN OR EQUAL TO Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI6: Check the response of OpenDS with a \
+                GREATER THAN OR EQUAL TO filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(givenname>=FZZ)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 104',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: LESS THAN OR EQUAL TO Filter
+          #@TestIssue           none
+          #@TestPurpose         search with LESS THAN OR EQUAL TO Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 9 entries
+          -->
+
+          <testcase name="getTestCaseName('LESS THAN OR EQUAL TO Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI7: Check the response of OpenDS with a \
+                LESS THAN OR EQUAL TO filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(roomnumber&lt;=0200)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 9',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: PRESENCE SEARCH Filter
+          #@TestIssue           none
+          #@TestPurpose         search with PRESENCE SEARCH Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 160 entries
+          -->
+
+          <testcase name="getTestCaseName('PRESENCE SEARCH Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI8: Check the response of OpenDS with a \
+                PRESENCE SEARCH filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(roomnumber=*)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 160',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: APPROXIMATE SEARCH Filter
+          #@TestIssue           none
+          #@TestPurpose         search with APPROXIMATE SEARCH Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 6 entries
+          -->
+
+          <testcase name="getTestCaseName('APPROXIMATE SEARCH Filter')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI8: Check the response of OpenDS with a \
+                APPROXIMATE SEARCH filter'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(givenName~=John)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 6',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: EXTENSIBLE MATCH Filter
+          #@TestIssue           none
+          #@TestPurpose         search with EXTENSIBLE MATCH Filter
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 1 entries
+          -->
+
+          <testcase name="getTestCaseName('EXTENSIBLE MATCH Filter with
+          different syntax')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI10: Check the response of OpenDS with an \
+                EXTENSIBLE MATCH filter :en:'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(uid:en:=ahall)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 1',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+               <message>
+                'Core AFNI11: Check the response of OpenDS with an \
+                EXTENSIBLE MATCH filter :en.3:'
+              </message>
+               <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(uid:en.3:=ahall)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 1',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+                <message>
+                'Core AFNI12: Check the response of OpenDS with an \
+                EXTENSIBLE MATCH filter :en.eq:'
+              </message>
+               <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(uid:en.eq:=ahall)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 1',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+                <message>
+                'Core AFNI13: Check the response of OpenDS with an \
+                EXTENSIBLE MATCH filter :dn:en.eq:'
+              </message>
+               <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(uid:dn:en.eq:=ahall)'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 1',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          core: All Filters No Index
+          #@TestName            core: MIX of FILTERS
+          #@TestIssue           none
+          #@TestPurpose         search with MIX of FILTERS
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 7 entries
+          -->
+
+          <testcase name="getTestCaseName('MIX of FILTERS')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Core AFNI14: Check the response of OpenDS with a MIX of FILTERS'
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsBaseDN'       : 'dc=example,dc=com',
+                  'extraParams'    : '--countEntries',
+                  'dsFilter'       : '(&amp;(|(l=Sunnyvale)(l=Santa Clara))(roomnumber&lt;=0200))'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'searchString'">
+                  { 'expectedString' : 'Total number of matching entries: 7',
+                    'returnString'	 : returnString ,
+                    'expectedRC'     : expectedRC ,
+                  }
+                </call>
+
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+
+
+
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          <call function="'testSuite_Postamble'" />
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+</stax>
