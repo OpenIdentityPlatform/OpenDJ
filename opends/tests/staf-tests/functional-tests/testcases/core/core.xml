@@ -42,12 +42,19 @@
         <script>
           CurrentTestPath['group']='core'
         </script>
+
+        <!--- Test Group information
+        #@TestGroupName       Core Test
+        #@TestGroupPurpose    Verify that core is working correctly
+        -->
+
         <call function="'testGroup_Preamble'" />
         <script>
           testList = []
           testList.append(['.','core_entry_cache'])
           testList.append(['.','core_search_sizelimit'])
-          testList.append(['.','core_tf_filters'])
+          testList.append(['filters','core_tf_filters'])
+          testList.append(['filters','core_all_filters_noindex'])
           testList.append(['.','core_version_report'])
           testList.append(['controls','core_ctrls_password_policy'])
           testList.append(['controls','core_ctrls_authorization_id'])
