@@ -327,7 +327,7 @@
             #@TestName            status: check error message and status when
                                   the opendmk-jarfile property is set to a
                                   wrong value
-            #@TestIssue           none
+            #@TestIssue           3943
             #@TestPurpose         Check error message and status when
                                   the opendmk-jarfile property is set to a
                                   wrong value.
@@ -414,6 +414,10 @@
                 }
               </call>
 
+              <call function="'setKnownIssue'">
+                { 'issueId' : '3943' }
+              </call>
+              
               <message>
                 'status: status when the server is started'
               </message>
