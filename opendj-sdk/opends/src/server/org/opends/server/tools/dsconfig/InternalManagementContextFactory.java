@@ -105,11 +105,4 @@ public final class InternalManagementContextFactory implements
     return new CommandBuilder(null, null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void setRawArguments(String[] args) {
-    // No implementation required.
-  }
-
 }
