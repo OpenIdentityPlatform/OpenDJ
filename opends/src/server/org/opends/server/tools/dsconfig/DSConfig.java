@@ -544,8 +544,7 @@ public final class DSConfig extends ConsoleApplication {
    * @throws ArgumentException
    *           If a global argument could not be registered.
    */
-  private void initializeGlobalArguments(String[] args)
-    throws ArgumentException {
+  private void initializeGlobalArguments() throws ArgumentException {
     if (globalArgumentsInitialized == false) {
       verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
           INFO_DESCRIPTION_VERBOSE.get());
@@ -620,7 +619,6 @@ public final class DSConfig extends ConsoleApplication {
 
       // Register any global arguments required by the management
       // context factory.
-      factory.setRawArguments(args);
       factory.registerGlobalArguments(parser);
 
       globalArgumentsInitialized = true;
@@ -708,7 +706,7 @@ public final class DSConfig extends ConsoleApplication {
   private int run(String[] args) {
     // Register global arguments and sub-commands.
     try {
-      initializeGlobalArguments(args);
+      initializeGlobalArguments();
       initializeSubCommands();
     } catch (ArgumentException e) {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());

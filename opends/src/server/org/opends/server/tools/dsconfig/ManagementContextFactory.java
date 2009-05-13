@@ -88,14 +88,6 @@ public interface ManagementContextFactory {
 
 
   /**
-   * Set the raw arguments (used for default value setting).
-   *
-   * @param args raw arguments.
-   */
-  public void setRawArguments(String[] args);
-
-
-  /**
    * Validates any global arguments passed to the application.
    * Implementations of this method should check that the values
    * passed to their global arguments are valid and are not

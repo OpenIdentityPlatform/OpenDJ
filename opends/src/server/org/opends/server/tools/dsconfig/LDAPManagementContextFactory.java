@@ -59,7 +59,6 @@ import javax.net.ssl.TrustManager;
 import java.util.LinkedHashSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import org.opends.server.tools.ToolConstants;
 
 
 /**
@@ -79,9 +78,6 @@ public final class LDAPManagementContextFactory implements
 
   // This CLI is always using the administration connector with SSL
   private boolean alwaysSSL = false;
-
-  // Raw arguments
-  private String[] rawArgs = null;
 
   /**
    * Creates a new LDAP management context factory.
@@ -327,13 +323,7 @@ public final class LDAPManagementContextFactory implements
     return context;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void setRawArguments(String[] args) {
-    this.rawArgs = args;
 
-  }
 
   /**
    * {@inheritDoc}
@@ -353,16 +343,7 @@ public final class LDAPManagementContextFactory implements
 
     try
     {
-      if (rawArgs != null) {
-        for (String rawArg : rawArgs) {
-          if (rawArg.contains(ToolConstants.OPTION_LONG_HELP) ||
-            (rawArg.charAt(1) == ToolConstants.OPTION_SHORT_HELP) || (rawArg.
-            charAt(1) == '?')) {
-            // used for usage default values only
-            secureArgsList.initArgumentsWithConfiguration();
-          }
-        }
-      }
+      secureArgsList.initArgumentsWithConfiguration();
     }
     catch (ConfigException ce)
     {
