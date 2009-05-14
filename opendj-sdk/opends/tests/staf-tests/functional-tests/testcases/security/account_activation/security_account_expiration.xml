@@ -290,7 +290,7 @@
           <script>
             expirationTime = returnString.split(':')[1].strip()
 
-            if len(expirationTime) == 9 and expirationTime.startswith('86'):
+            if len(expirationTime) == 9 &amp; expirationTime.startswith('86'):
               myRC = 0
             else:
               myRC = 1
