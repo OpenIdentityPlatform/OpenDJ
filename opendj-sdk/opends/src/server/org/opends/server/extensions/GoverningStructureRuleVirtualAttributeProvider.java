@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
+import org.opends.server.admin.std.server.
+        GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -45,17 +46,17 @@ import static org.opends.messages.ExtensionMessages.*;
 
 
 /**
- * This class implements a virtual attribute provider that is meant to serve the
- * subschemaSubentry operational attribute as described in RFC 4512.
+ * This class implements a virtual attribute provider that is meant to serve
+ * the governingStructuralRule operational attribute as described in RFC 4512.
  */
-public class SubschemaSubentryVirtualAttributeProvider
-       extends VirtualAttributeProvider<SubschemaSubentryVirtualAttributeCfg>
+public class GoverningStructureRuleVirtualAttributeProvider  extends
+         VirtualAttributeProvider<GoverningStructureRuleVirtualAttributeCfg>
 {
   /**
-   * Creates a new instance of this subschemaSubentry virtual attribute
+   * Creates a new instance of this governingStructureRule virtual attribute
    * provider.
    */
-  public SubschemaSubentryVirtualAttributeProvider()
+  public GoverningStructureRuleVirtualAttributeProvider()
   {
     super();
 
@@ -70,7 +71,7 @@ public class SubschemaSubentryVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            SubschemaSubentryVirtualAttributeCfg configuration)
+                      GoverningStructureRuleVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.
@@ -96,10 +97,27 @@ public class SubschemaSubentryVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    AttributeValue value =
-        AttributeValues.create(rule.getAttributeType(), DirectoryServer
-            .getSchemaDN().toString());
-    return Collections.singleton(value);
+    DITStructureRule ditRule = getDITStructureRule(entry);
+
+    if(ditRule !=null)
+    {
+      return Collections.singleton(AttributeValues.create(
+                  rule.getAttributeType(),
+                  String.valueOf(ditRule.getRuleID())));
+    }
+
+    return Collections.<AttributeValue>emptySet();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule)
+  {
+    return getDITStructureRule(entry)!=null;
   }
 
 
@@ -114,7 +132,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                                           List<ByteString> subAny,
                                           ByteString subFinal)
   {
-    // DNs cannot be used in substring matching.
+    // DITStructureRule cannot be used in substring matching.
     return ConditionResult.UNDEFINED;
   }
 
@@ -128,7 +146,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in ordering matching.
+    // DITStructureRule cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
   }
 
@@ -142,7 +160,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in ordering matching.
+    // DITStructureRule cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
   }
 
@@ -156,7 +174,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in approximate matching.
+    // DITStructureRule cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
   }
 
@@ -178,8 +196,7 @@ public class SubschemaSubentryVirtualAttributeProvider
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation)
   {
-    // This attribute is not searchable, since it will have the same value in
-    // tons of entries.
+    //Non-searchable for unindexed searches.
     return false;
   }
 
@@ -197,6 +214,85 @@ public class SubschemaSubentryVirtualAttributeProvider
     Message message = ERR_VATTR_NOT_SEARCHABLE.get(
             rule.getAttributeType().getNameOrOID());
     searchOperation.appendErrorMessage(message);
+  }
+
+
+
+  //Checks if the entry matches the nameform.
+  private boolean matchesNameForm(NameForm nameForm,
+                       AcceptRejectWarn structuralPolicy,
+                       Entry entry)
+  {
+    RDN rdn = entry.getDN().getRDN();
+    if (rdn != null)
+    {
+      // Make sure that all the required attributes are present.
+      for (AttributeType t : nameForm.getRequiredAttributes())
+      {
+        if (! rdn.hasAttributeType(t))
+        {
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            return false;
+          }
+        }
+      }
+
+      // Make sure that all attributes in the RDN are allowed.
+      int numAVAs = rdn.getNumValues();
+      for (int i = 0; i < numAVAs; i++)
+      {
+        AttributeType t = rdn.getAttributeType(i);
+        if (! nameForm.isRequiredOrOptional(t))
+        {
+          if (structuralPolicy == AcceptRejectWarn.REJECT)
+          {
+            return false;
+          }
+        }
+       }
+     }
+    return true;
+  }
+
+
+
+  //Finds the appropriate DIT structure rule for an entry.
+  private DITStructureRule getDITStructureRule(Entry entry)
+  {
+    ObjectClass oc = entry.getStructuralObjectClass();
+    List<NameForm> listForms = DirectoryServer.getNameForm(oc);
+    NameForm nameForm = null;
+    DITStructureRule ditRule = null;
+    //We iterate over all the nameforms while creating the entry and
+    //select the first one that matches. Since the entry exists, the same
+    //algorithm should work fine to retrieve the nameform which was
+    //applied while creating the entry.
+    if(listForms != null)
+    {
+      boolean obsolete = true;
+      AcceptRejectWarn structuralPolicy =
+         DirectoryServer.getSingleStructuralObjectClassPolicy();
+      for(NameForm nf : listForms)
+      {
+        if(!nf.isObsolete())
+        {
+          obsolete = false;
+          if(matchesNameForm(nf,
+                  structuralPolicy, entry))
+          {
+           nameForm = nf;
+           break;
+          }
+        }
+      }
+      if( nameForm != null && !obsolete)
+      {
+        ditRule =
+                DirectoryServer.getDITStructureRule(nameForm);
+      }
+    }
+    return ditRule;
   }
 }
 

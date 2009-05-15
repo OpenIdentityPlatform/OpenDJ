@@ -2394,6 +2394,26 @@ ds-cfg-enabled: true
 ds-cfg-attribute-type: subschemaSubentry
 ds-cfg-conflict-behavior: virtual-overrides-real
 
+dn: cn=structuralObjectClass,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-structural-object-class-virtual-attribute
+cn: structuralObjectClass
+ds-cfg-java-class: org.opends.server.extensions.StructuralObjectClassVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: structuralObjectClass
+ds-cfg-conflict-behavior: virtual-overrides-real
+
+dn: cn=governingStructureRule,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-governing-structure-rule-virtual-attribute
+cn: governingStructureRule
+ds-cfg-java-class: org.opends.server.extensions.GoverningStructureRuleVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: governingStructureRule
+ds-cfg-conflict-behavior: virtual-overrides-real
+
 dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
