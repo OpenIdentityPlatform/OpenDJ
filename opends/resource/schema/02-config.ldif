@@ -4039,4 +4039,14 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.200
   SUP ds-cfg-backend
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.201
+  NAME 'ds-cfg-structural-object-class-virtual-attribute'
+  SUP ds-cfg-virtual-attribute
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.202
+  NAME 'ds-cfg-governing-structure-rule-virtual-attribute'
+  SUP ds-cfg-virtual-attribute
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 

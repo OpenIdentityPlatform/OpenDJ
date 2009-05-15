@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -33,10 +33,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
+import org.opends.server.admin.std.server.
+        StructuralObjectClassVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 
@@ -45,17 +45,17 @@ import static org.opends.messages.ExtensionMessages.*;
 
 
 /**
- * This class implements a virtual attribute provider that is meant to serve the
- * subschemaSubentry operational attribute as described in RFC 4512.
+ * This class implements a virtual attribute provider that is meant to serve
+ * the structuralObjectClass operational attribute as described in RFC 4512.
  */
-public class SubschemaSubentryVirtualAttributeProvider
-       extends VirtualAttributeProvider<SubschemaSubentryVirtualAttributeCfg>
+public class StructuralObjectClassVirtualAttributeProvider
+     extends VirtualAttributeProvider<StructuralObjectClassVirtualAttributeCfg>
 {
   /**
-   * Creates a new instance of this subschemaSubentry virtual attribute
+   * Creates a new instance of this structuralObjectClass virtual attribute
    * provider.
    */
-  public SubschemaSubentryVirtualAttributeProvider()
+  public StructuralObjectClassVirtualAttributeProvider()
   {
     super();
 
@@ -70,7 +70,7 @@ public class SubschemaSubentryVirtualAttributeProvider
    */
   @Override()
   public void initializeVirtualAttributeProvider(
-                            SubschemaSubentryVirtualAttributeCfg configuration)
+                    StructuralObjectClassVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.
@@ -97,9 +97,21 @@ public class SubschemaSubentryVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     AttributeValue value =
-        AttributeValues.create(rule.getAttributeType(), DirectoryServer
-            .getSchemaDN().toString());
+        AttributeValues.create(rule.getAttributeType(),
+        entry.getStructuralObjectClass().getNameOrOID());
     return Collections.singleton(value);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule)
+  {
+    //A structural object class is always present in an entry.
+    return true;
   }
 
 
@@ -114,7 +126,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                                           List<ByteString> subAny,
                                           ByteString subFinal)
   {
-    // DNs cannot be used in substring matching.
+    //Substring matching is not supported.
     return ConditionResult.UNDEFINED;
   }
 
@@ -128,7 +140,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in ordering matching.
+    // An object class can not be used for ordering.
     return ConditionResult.UNDEFINED;
   }
 
@@ -142,7 +154,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in ordering matching.
+    // An object class can not be used for ordering.
     return ConditionResult.UNDEFINED;
   }
 
@@ -156,7 +168,7 @@ public class SubschemaSubentryVirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    // DNs cannot be used in approximate matching.
+    // An object class can not be used in approximate matching.
     return ConditionResult.UNDEFINED;
   }
 
