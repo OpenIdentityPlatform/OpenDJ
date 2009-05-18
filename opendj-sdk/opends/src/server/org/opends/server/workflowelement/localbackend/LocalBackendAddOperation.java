@@ -1464,14 +1464,26 @@ addProcessing:
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
+          // RFC 4528 mandates support for Add operation basically
+          // suggesting an asertion on self. As daft as it may be
+          // we gonna have to support this for RFC compliance.
           LDAPAssertionRequestControl assertControl =
             getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter filter = assertControl.getSearchFilter();
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, entry, filter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+            }
+
             if (! filter.matchesEntry(entry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
@@ -1620,12 +1632,13 @@ addProcessing:
       }
     }
 
-    // FIXME -- Check access controls on the entry to see if it should
-    //          be returned or if any attributes need to be stripped
-    //          out..
-    SearchResultEntry searchEntry = new SearchResultEntry(addedEntry);
+    // Check access controls on the entry and strip out
+    // any not allowed attributes.
+    SearchResultEntry searchEntry =
+      AccessControlConfigManager.getInstance().
+      getAccessControlHandler().filterEntry(this, addedEntry);
     LDAPPostReadResponseControl responseControl =
-         new LDAPPostReadResponseControl(searchEntry);
+      new LDAPPostReadResponseControl(searchEntry);
     addResponseControl(responseControl);
   }
 }

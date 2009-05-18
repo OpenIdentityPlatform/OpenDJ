@@ -319,6 +319,30 @@ public abstract class AccessControlHandler
 
 
   /**
+   * Indicates whether the provided operation search filter is allowed
+   * based on the access control configuration. This method should not
+   * alter the provided operation in any way.
+   *
+   * @param operation
+   *          The operation for which to make the determination.
+   * @param entry
+   *          The entry for which to make the determination.
+   * @param filter
+   *          The filter to check access on.
+   * @return {@code true} if the operation should be allowed by the
+   *         access control configuration, or {@code false} if not.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access
+   *           control check. For example, if an attribute could not
+   *           be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
+   */
+  public abstract boolean isAllowed(Operation operation, Entry entry,
+    SearchFilter filter) throws DirectoryException;
+
+
+
+  /**
    * Indicates whether the provided search result entry may be sent to
    * the client. Implementations <b>must not under any
    * circumstances</b> modify the search entry in any way.
@@ -353,6 +377,24 @@ public abstract class AccessControlHandler
    */
   public abstract SearchResultEntry filterEntry(
       SearchOperation searchOperation, SearchResultEntry searchEntry);
+
+
+
+  /**
+   * Filter the contents of the provided entry such that it no longer
+   * contains any attributes or values that the client is not
+   * permitted to access.
+   *
+   * @param operation
+   *          The operation with which the provided entry is
+   *          associated.
+   * @param entry
+   *          The entry to be filtered.
+   * @return Returns the entry with filtered attributes and values
+   *         removed.
+   */
+  public abstract SearchResultEntry filterEntry(
+      Operation operation, Entry entry);
 
 
 
