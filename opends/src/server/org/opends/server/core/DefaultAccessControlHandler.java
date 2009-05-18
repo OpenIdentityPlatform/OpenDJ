@@ -192,6 +192,18 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
+  public boolean isAllowed(Operation operation, Entry entry,
+    SearchFilter filter) throws DirectoryException
+  {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean maySend(SearchOperation searchOperation,
                          SearchResultEntry searchEntry)
   {
@@ -208,6 +220,18 @@ class DefaultAccessControlHandler
   {
     // No implementation required.
     return searchEntry;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SearchResultEntry filterEntry(Operation operation, Entry entry)
+  {
+    // No implementation required.
+    return new SearchResultEntry(entry);
   }
 
 

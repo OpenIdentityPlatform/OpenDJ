@@ -782,9 +782,18 @@ modifyProcessing:
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter filter = assertControl.getSearchFilter();
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, currentEntry, filter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+            }
+
             if (! filter.matchesEntry(currentEntry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
@@ -2115,9 +2124,11 @@ modifyProcessing:
         }
       }
 
-      // FIXME -- Check access controls on the entry to see if it should be
-      //          returned or if any attributes need to be stripped out..
-      SearchResultEntry searchEntry = new SearchResultEntry(entry);
+      // Check access controls on the entry and strip out
+      // any not allowed attributes.
+      SearchResultEntry searchEntry =
+        AccessControlConfigManager.getInstance().
+        getAccessControlHandler().filterEntry(this, entry);
       LDAPPreReadResponseControl responseControl =
            new LDAPPreReadResponseControl(preReadRequest.isCritical(),
                                           searchEntry);
@@ -2163,9 +2174,11 @@ modifyProcessing:
         }
       }
 
-      // FIXME -- Check access controls on the entry to see if it should be
-      //          returned or if any attributes need to be stripped out..
-      SearchResultEntry searchEntry = new SearchResultEntry(entry);
+      // Check access controls on the entry and strip out
+      // any not allowed attributes.
+      SearchResultEntry searchEntry =
+        AccessControlConfigManager.getInstance().
+        getAccessControlHandler().filterEntry(this, entry);
       LDAPPostReadResponseControl responseControl =
            new LDAPPostReadResponseControl(searchEntry);
 

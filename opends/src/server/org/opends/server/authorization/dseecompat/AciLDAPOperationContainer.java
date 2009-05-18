@@ -51,6 +51,20 @@ public class AciLDAPOperationContainer extends AciContainer  {
     private List<Modification>  modifications;
 
     /**
+     * Constructor interface for all currently supported LDAP operations.
+     * @param operation The compare operation to evaluate.
+     * @param rights The rights of a compare operation.
+     * @param entry The entry for evaluation.
+     */
+    public AciLDAPOperationContainer(Operation operation,
+      int rights, Entry entry)
+    {
+      super(operation, rights, entry);
+      this.searchEntry = new SearchResultEntry(entry);
+    }
+
+
+    /**
      * Constructor interface for the compare operation.
      * @param operation The compare operation to evaluate.
      * @param rights  The rights of a compare operation.
@@ -58,7 +72,7 @@ public class AciLDAPOperationContainer extends AciContainer  {
     public AciLDAPOperationContainer(LocalBackendCompareOperation operation,
         int rights)
     {
-        super(operation, rights, operation.getEntryToCompare());
+      super(operation, rights, operation.getEntryToCompare());
     }
 
 
