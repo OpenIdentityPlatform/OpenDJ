@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -117,6 +117,17 @@ public class ToolConstants
    * The value for the long option configClass.
    */
   public static final String OPTION_LONG_CONFIG_CLASS = "configClass";
+
+  /**
+   * The value for the short option batchFilePath.
+   */
+  public static final char OPTION_SHORT_BATCH_FILE_PATH = 'F';
+
+  /**
+   * The value for the long option batchFilePath .
+   */
+  public static final String OPTION_LONG_BATCH_FILE_PATH =
+    "batchFilePath";
 
   /**
    * The value for the short option hostname.

@@ -1756,7 +1756,8 @@ public class ArgumentParser
               OPTION_LONG_DONT_WRAP.equals(longId) ||
               OPTION_LONG_ENCODING.equals(longId) ||
               OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT.equals(longId) ||
-              OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH.equals(longId);
+              OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH.equals(longId) ||
+              OPTION_LONG_BATCH_FILE_PATH.equals(longId);
     }
     return io;
   }
