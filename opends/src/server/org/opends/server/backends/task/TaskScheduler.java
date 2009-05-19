@@ -620,17 +620,20 @@ public class TaskScheduler
    * @param  taskThread     The thread that has completed processing on its
    *                        previously-assigned task.
    * @param  completedTask  The task for which processing has been completed.
+   * @param  taskState      The task state for this completed task.
    *
    * @return  <CODE>true</CODE> if the thread should continue running and
    *          wait for the next task to process, or <CODE>false</CODE> if it
    *          should exit immediately.
    */
-  public boolean threadDone(TaskThread taskThread, Task completedTask)
+  public boolean threadDone(TaskThread taskThread, Task completedTask,
+    TaskState taskState)
   {
     schedulerLock.lock();
 
     try
     {
+      completedTask.setTaskState(taskState);
       addCompletedTask(completedTask);
 
       String taskID = completedTask.getTaskID();
