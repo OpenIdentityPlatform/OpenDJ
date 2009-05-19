@@ -193,9 +193,10 @@ public class TaskThread
         continue;
       }
 
+      TaskState taskState = getAssociatedTask().getTaskState();
       try
       {
-        if (!TaskState.isDone(getAssociatedTask().getTaskState()))
+        if (!TaskState.isDone(taskState))
         {
           Task task = getAssociatedTask();
 
@@ -203,8 +204,7 @@ public class TaskThread
             task.getDisplayName(), task.getTaskID());
           logError(message);
 
-          TaskState returnState = task.execute();
-          task.setTaskState(returnState);
+          taskState = task.execute();
 
           message = NOTE_TASK_FINISHED.get(
             task.getDisplayName(), task.getTaskID());
@@ -229,7 +229,7 @@ public class TaskThread
 
       Task completedTask = getAssociatedTask();
       setAssociatedTask(null);
-      if (! taskScheduler.threadDone(this, completedTask))
+      if (! taskScheduler.threadDone(this, completedTask, taskState))
       {
         exitRequested = true;
         break;
@@ -239,8 +239,8 @@ public class TaskThread
     if (getAssociatedTask() != null)
     {
       Task task = getAssociatedTask();
-      task.setTaskState(TaskState.STOPPED_BY_SHUTDOWN);
-      taskScheduler.threadDone(this, task);
+      TaskState taskState = TaskState.STOPPED_BY_SHUTDOWN;
+      taskScheduler.threadDone(this, task, taskState);
     }
   }
 
