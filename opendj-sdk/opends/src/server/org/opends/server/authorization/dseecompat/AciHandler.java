@@ -230,8 +230,24 @@ public final class AciHandler extends
 
 
 
+  /*
+   * TODO Rename this method. Needs to be changed in SearchOperation. I
+   * find the name of the filterEntry method to be misleading because it
+   * works on a search operation but has nothing to do with the search
+   * filter. Something like "removeDisallowedAttributes" would be
+   * clearer.
+   */
+
   /**
-   * {@inheritDoc}
+   * Checks access on each attribute in an entry. It removes those
+   * attributes that fail access check.
+   *
+   * @param operation
+   *          The search operation class containing information to check
+   *          access on.
+   * @param entry
+   *          The entry containing the attributes.
+   * @return The entry to return minus filtered attributes.
    */
   @Override
   public SearchResultEntry filterEntry(SearchOperation operation,
@@ -261,19 +277,6 @@ public final class AciHandler extends
               skipCheck);
     }
     return returnEntry;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SearchResultEntry filterEntry(Operation operation, Entry entry)
-  {
-    AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_READ), entry);
-    return accessAllowedAttrs(operationContainer);
   }
 
 
@@ -550,20 +553,6 @@ public final class AciHandler extends
   {
     // Not planned to be implemented.
     return true;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isAllowed(Operation operation, Entry entry,
-    SearchFilter filter) throws DirectoryException
-  {
-    AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_READ), entry);
-    return testFilter(operationContainer, filter);
   }
 
 
