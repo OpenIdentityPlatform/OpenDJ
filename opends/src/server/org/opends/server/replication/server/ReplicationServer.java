@@ -1082,7 +1082,9 @@ public class ReplicationServer
   }
 
   /**
-   * {@inheritDoc}
+   * Retrieves a printable name for this Replication Server Instance.
+   *
+   * @return A printable name for this Replication Server Instance.
    */
   public String getMonitorInstanceName()
   {
