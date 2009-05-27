@@ -1252,7 +1252,7 @@ public abstract class ReplicationDomain
    *
    * @param target   The server-id of the server that should be initialized.
    *                 The target can be discovered using the
-   *                 {@link #getDsList()} method.
+   *                 {@link #getReplicasList()} method.
    * @param initTask The task that triggers this initialization and that should
    *                 be updated with its progress.
    *
@@ -1583,7 +1583,7 @@ public abstract class ReplicationDomain
    *
    * @param source   The server-id of the source from which to initialize.
    *                 The source can be discovered using the
-   *                 {@link #getDsList()} method.
+   *                 {@link #getReplicasList()} method.
    *
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
@@ -1606,7 +1606,7 @@ public abstract class ReplicationDomain
    *
    * @param target   The server-id of the server that should be initialized.
    *                 The target can be discovered using the
-   *                 {@link #getDsList()} method.
+   *                 {@link #getReplicasList()} method.
    *
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
@@ -1631,7 +1631,7 @@ public abstract class ReplicationDomain
    *
    * @param source   The server-id of the source from which to initialize.
    *                 The source can be discovered using the
-   *                 {@link #getDsList()} method.
+   *                 {@link #getReplicasList()} method.
    * @param initTask The task that launched the initialization
    *                 and should be updated of its progress.
    *
