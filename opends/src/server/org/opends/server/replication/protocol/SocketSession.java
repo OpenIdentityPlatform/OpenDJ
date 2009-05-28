@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -67,6 +67,8 @@ public class SocketSession implements ProtocolSession
    */
   private long lastReceiveTime = 0;
 
+  private boolean closeInitiated = false;
+
 
   /**
    * Creates a new SocketSession based on the provided socket.
@@ -90,6 +92,8 @@ public class SocketSession implements ProtocolSession
    */
   public void close() throws IOException
   {
+    closeInitiated = true;
+
     if (debugEnabled())
     {
       TRACER.debugInfo("Closing SocketSession."
@@ -230,5 +234,13 @@ public class SocketSession implements ProtocolSession
   public void setSoTimeout(int timeout) throws SocketException
   {
     socket.setSoTimeout(timeout);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean closeInitiated()
+  {
+    return closeInitiated;
   }
 }

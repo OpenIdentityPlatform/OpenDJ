@@ -1392,14 +1392,17 @@ public class ReplicationBroker
       {
         if (shutdown == false)
         {
-          Message message =
-            NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer,
-            Short.toString(rsServerId), baseDn.toString(),
-            Short.toString(serverId));
-          logError(message);
-
-          debugInfo("ReplicationBroker.receive() " + baseDn +
-            " Exception raised: " + e.getLocalizedMessage());
+          if (!session.closeInitiated())
+          {
+            /*
+             * If we did not initiate the close on our side, log a message.
+             */
+            Message message =
+              NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer,
+                  Short.toString(rsServerId), baseDn.toString(),
+                  Short.toString(serverId));
+            logError(message);
+          }
           this.reStart(failingSession);
         }
       }
@@ -1613,7 +1616,7 @@ public class ReplicationBroker
 
   private boolean debugEnabled()
   {
-    return true;
+    return false;
   }
 
   private static final void debugInfo(String s)
