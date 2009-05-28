@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -147,4 +147,13 @@ public interface ProtocolSession
    * @return The timestamp in milliseconds of the last message received.
    */
   public abstract long getLastReceiveTime();
+
+  /**
+   * This methods allows to determine if the session close was initiated
+   * on this ProtocolSession.
+   *
+   * @return A boolean allowing to determine if the session close was initiated
+   * on this ProtocolSession.
+   */
+  public abstract boolean closeInitiated();
 }
