@@ -2005,6 +2005,21 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Check if the domain has a connection error.
+   * A Connection error happens when the broker could not be created
+   * or when the broker could not find any ReplicationServer to connect to.
+   *
+   * @return true if the domain has a connection error.
+   */
+  public boolean hasConnectionError()
+  {
+    if (broker != null)
+      return broker.hasConnectionError();
+    else
+      return true;
+  }
+
+  /**
    * Get the name of the replicationServer to which this domain is currently
    * connected.
    *

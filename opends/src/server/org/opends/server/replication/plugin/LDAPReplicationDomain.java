@@ -642,8 +642,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
     if (isolationpolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
     {
       // this isolation policy specifies that the updates are denied
-      // when the broker is not connected.
-      return isConnected();
+      // when the broker had problems during the connection phase
+      // Updates are still accepted if the broker is currently connecting..
+      return !hasConnectionError();
     }
     // we should never get there as the only possible policies are
     // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
