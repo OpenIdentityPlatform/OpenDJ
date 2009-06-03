@@ -369,7 +369,6 @@ public class ReplicationBroker
 
       if (rsInfos.size() > 0)
       {
-
         // At least one server answered, find the best one.
         String bestServer = computeBestReplicationServer(state, rsInfos,
           serverId, baseDn, groupId);
@@ -1837,5 +1836,16 @@ public class ReplicationBroker
         rsList = topoMsg.getRsList();
       }
     }
+  }
+
+  /**
+   * Check if the broker could not find any Replication Server and therefore
+   * connection attempt failed.
+   *
+   * @return true if the server could not connect to any Replication Server.
+   */
+  public boolean hasConnectionError()
+  {
+    return connectionError;
   }
 }
