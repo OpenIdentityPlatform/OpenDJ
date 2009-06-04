@@ -1391,7 +1391,8 @@ public class ReplicationBroker
       {
         if (shutdown == false)
         {
-          if (!session.closeInitiated())
+          if ((session == null) || (!session.closeInitiated()))
+
           {
             /*
              * If we did not initiate the close on our side, log a message.
