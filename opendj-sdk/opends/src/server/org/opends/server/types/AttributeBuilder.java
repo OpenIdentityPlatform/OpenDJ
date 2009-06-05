@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -1705,6 +1705,52 @@ public final class AttributeBuilder
     }
 
     return isModified;
+  }
+
+
+
+  /**
+   * Indicates whether this attribute builder has exactly the
+   * specified set of options.
+   *
+   * This implementation returns {@link SmallSet#isEmpty()}
+   * if the provided set of options is <code>null</code>.
+   * Otherwise it checks that the size of the provided
+   * set of options is equal to the size of this attribute
+   * builder options, returns <code>false</code> if the
+   * sizes differ. If the sizes are the same then each
+   * option in the provided set is checked and if all the
+   * provided options are present <code>true</code> is
+   * returned.
+   *
+   * @param  options
+   *         The set of options for which to make the
+   *         determination (may be <code>null</code>).
+   * @return <code>true</code> if this attribute
+   *         builder has exactly the specified
+   *         set of options.
+   */
+  public boolean optionsEqual(Set<String> options)
+  {
+    if (options == null)
+    {
+      return this.options.isEmpty();
+    }
+
+    if (this.options.size() != options.size())
+    {
+      return false;
+    }
+
+    for (String option : options)
+    {
+      if (!this.options.contains(option))
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 
 

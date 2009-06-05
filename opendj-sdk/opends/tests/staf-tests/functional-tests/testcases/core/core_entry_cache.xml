@@ -23,292 +23,315 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_entry_cache" />
   <function name="core_entry_cache">
     <sequence>
       <block name="'entry-cache'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'" />
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
-          <call function="'core_setup'" />
+        <try>
+          <sequence>
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='core'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            <call function="'testSuite_Preamble'" />
+
+            <call function="'common_setup'">
+              {
+                'quickStart'  : False,
+                'startServer' : True,
+                'stopServer'  : False,
+                'loadData'    : True,
+                'ldifFile'    : '%s/core/ldifs/core_test_1K.ldif' % remote.data
+              }
+            </call>
           
-          <!--- Test Suite information
-          #@TestSuiteName       core: entry cache Group Tests
-          #@TestSuitePurpose    Test this feature
-          #@TestSuiteGroup      core: entry cache Group Tests
-          #@TestScript          core_entry_cache.xml
-          -->
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: Default Search
-          #@TestIssue           none
-          #@TestPurpose         search single pipe character
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if ldapsearch returns 0
-          -->
-          <testcase name="getTestCaseName('Default Search')">
+            <!--- Test Suite information
+            #@TestSuiteName       core: entry cache Group Tests
+            #@TestSuitePurpose    Test this feature
+            #@TestSuiteGroup      core: entry cache Group Tests
+            #@TestScript          core_entry_cache.xml
+            -->
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: Default Search
+            #@TestIssue           none
+            #@TestPurpose         search single pipe character
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 0
+            -->
+            <testcase name="getTestCaseName('Default Search')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Check the response of OpenDS when an ldap search request is \
+                  conducted with a single pipe character ("|") \
+                  for an existing entry'
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : 'cn=version,cn=monitor',
+                    'dsFilter'       : '|' ,
+                    'expectedRC'     : 2 ,
+                    'knownIssue'     : '3966'
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: Enable Default SoftReference
+            #@TestIssue           none
+            #@TestPurpose         Enable Default Soft Reference entry cache
+            #@TestPreamble        none
+            #@TestSteps           use dsconfig to enable the entry cache
+            #@TestSteps           use dsconfig to check entry cache is enabled
+            #@TestPostamble       none
+            #@TestResult          Success if returns error code 0
+            -->
+            <testcase name="getTestCaseName('Enable Default Soft Reference')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Enable the default Soft Reference entry cache'
+                </message>
+                <script>
+                  arg1 = '--cache-name "Soft Reference"'
+                  arg2 = '--set enabled:true'
+                  options = '%s %s' % (arg1,arg2)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'set-entry-cache-prop',
+                    'optionsString'  : options
+                  }
+                </call>
+                <script>
+                  arg1 = '--cache-name "Soft Reference"'
+                  arg2 = '--property enabled'
+                  options = '%s %s' % (arg1,arg2)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'get-entry-cache-prop',
+                    'optionsString'  : options
+                  }
+                </call>
+                <call function="'CheckMatches'">
+                  { 'string2find' : 'true' ,
+                  'mainString'    : STAXResult[0][1] ,
+                  'nbExpected'    : 1
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: Add Attributes
+            #@TestIssue           none
+            #@TestPurpose         Add Attributes for Soft Reference entry cache
+            #@TestPreamble        none
+            #@TestSteps           use dsconfig to add attributes
+            #@TestPostamble       none
+            #@TestResult          Success if returns error code 0
+            -->
+            <testcase name="getTestCaseName
+                            ('Add Attributes for Soft Reference')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Add three attributes to Soft Reference default entry cache'
+                </message>
+                <script>
+                  arg1 = '--cache-name "Soft Reference"'
+                  arg2 = '--set lock-timeout:60s'
+                  arg3 = '--set exclude-filter:telephonenumber=*'
+                  arg4 = '--set include-filter:roomNumber=*'
+                  options = '%s %s %s %s' % (arg1,arg2,arg3,arg4)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'set-entry-cache-prop',
+                    'optionsString'  : options
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: Attribute not allowed
+            #@TestIssue           none
+            #@TestPurpose         add not allowed attribute for 
+                                  default Soft Reference
+            #@TestPreamble        none
+            #@TestSteps           use dsconfig to add attribute
+            #@TestPostamble       none
+            #@TestResult          Success if returns error code 0
+            -->
+            <testcase name="getTestCaseName
+            ('Attribute not allowed for default Soft Reference')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Add one attribute that is not allowed \
+                 for default Soft Reference'
+                </message>
+                <script>
+                  arg1 = '--cache-name "Soft Reference"'
+                  arg2 = '--add max-entries:100000'
+                  options = '%s %s' % (arg1,arg2)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'set-entry-cache-prop',
+                    'optionsString'  : options,
+                    'expectedRC'     : 1  
+                  }
+                </call>
+                <call function="'CheckMatches'">
+                  { 'string2find' : 'is not a recognized property' ,
+                  'mainString'    : STAXResult[0][1] ,
+                  'nbExpected'    : 1
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: create custom entry cache
+            #@TestIssue           none
+            #@TestPurpose         create a custom FIFO entry cache
+            #@TestPreamble        none
+            #@TestSteps           use dsconfig to create the entry cache
+            #@TestSteps           use dsconfig to check entry cache is created
+            #@TestPostamble       none
+            #@TestResult          Success if returns error code 0
+            -->
+            <!--- Test Case : Entry Cache: add a FIFO Cache-->
+            <testcase name="getTestCaseName('Add a FIFO Cache')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Add a new FIFO entry cache'
+                </message>
+                <script>
+                  arg1 = '--cache-name myFIFO'
+                  arg2 = '--type fifo'
+                  arg3 = '--set cache-level:50 --set enabled:false'
+                  options = '%s %s %s' % (arg1,arg2,arg3)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'create-entry-cache',
+                    'optionsString'  : options
+                  }
+                </call>
+                <script>
+                  arg1 = '--cache-name myFIFO'
+                  arg2 = '--property cache-level'
+                  options = '%s %s' % (arg1,arg2)
+                </script>
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'subcommand'     : 'get-entry-cache-prop',
+                    'optionsString'  : options
+                  }
+                </call>
+                <call function="'CheckMatches'">
+                  { 'string2find' : '50' ,
+                  'mainString'    : STAXResult[0][1] ,
+                  'nbExpected'    : 1
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: entry cache Group Tests
+            #@TestName            core: entry cache: ldapsearch
+            #@TestIssue           none
+            #@TestPurpose         do a ldapsearch to check server is responding
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if returns error code 0
+            -->
+            <!--- Test Case : Entry Cache: Search -->
+            <testcase name="getTestCaseName('Cache Search')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                 'Check the response of OpenDS when an ldap search request \
+                 is conducted'
+                </message>
+                <script>
+                  dn = 'uid=mschneid,ou=People,o=core tests,dc=example,dc=com'
+                </script>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : dn,
+                    'dsFilter'       : 'objectclass=*',
+                    'extraParams'    : ''
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+          </sequence>
+          <finally>
             <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Check the response of OpenDS when an ldap search request is \
-                conducted with a single pipe character ("|") \
-                for an existing entry'
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : '|' ,
-                  'expectedRC'     : 2 ,
-                  'knownIssue'     : '3966'
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global ACI Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: Enable Default SoftReference
-          #@TestIssue           none
-          #@TestPurpose         Enable Default Soft Reference entry cache
-          #@TestPreamble        none
-          #@TestSteps           use dsconfig to enable the entry cache
-          #@TestSteps           use dsconfig to check entry cache is enabled
-          #@TestPostamble       none
-          #@TestResult          Success if returns error code 0
-          -->
-          <testcase name="getTestCaseName('Enable Default Soft Reference')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Enable the default Soft Reference entry cache'
-              </message>
-              <script>
-                arg1 = '--cache-name "Soft Reference"'
-                arg2 = '--set enabled:true'
-                options = '%s %s' % (arg1,arg2)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : options
-                }
-              </call>
-              <script>
-                arg1 = '--cache-name "Soft Reference"'
-                arg2 = '--property enabled'
-                options = '%s %s' % (arg1,arg2)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'get-entry-cache-prop',
-                  'optionsString'  : options
-                }
-              </call>
-              <call function="'CheckMatches'">
-                { 'string2find' : 'true' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: Add Attributes
-          #@TestIssue           none
-          #@TestPurpose         Add Attributes for Soft Reference entry cache
-          #@TestPreamble        none
-          #@TestSteps           use dsconfig to add attributes
-          #@TestPostamble       none
-          #@TestResult          Success if returns error code 0
-          -->
-          <testcase name="getTestCaseName
-                          ('Add Attributes for Soft Reference')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Add three attributes to Soft Reference default entry cache'
-              </message>
-              <script>
-                arg1 = '--cache-name "Soft Reference"'
-                arg2 = '--set lock-timeout:60s'
-                arg3 = '--set exclude-filter:telephonenumber=*'
-                arg4 = '--set include-filter:roomNumber=*'
-                options = '%s %s %s %s' % (arg1,arg2,arg3,arg4)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : options
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: Attribute not allowed
-          #@TestIssue           none
-          #@TestPurpose         add not allowed attribute for 
-                                default Soft Reference
-          #@TestPreamble        none
-          #@TestSteps           use dsconfig to add attribute
-          #@TestPostamble       none
-          #@TestResult          Success if returns error code 0
-          -->
-          <testcase name="getTestCaseName
-          ('Attribute not allowed for default Soft Reference')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Add one attribute that is not allowed \
-               for default Soft Reference'
-              </message>
-              <script>
-                arg1 = '--cache-name "Soft Reference"'
-                arg2 = '--add max-entries:100000'
-                options = '%s %s' % (arg1,arg2)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : options,
-                  'expectedRC'     : 1  
-                }
-              </call>
-              <call function="'CheckMatches'">
-                { 'string2find' : 'is not a recognized property' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: create custom entry cache
-          #@TestIssue           none
-          #@TestPurpose         create a custom FIFO entry cache
-          #@TestPreamble        none
-          #@TestSteps           use dsconfig to create the entry cache
-          #@TestSteps           use dsconfig to check entry cache is created
-          #@TestPostamble       none
-          #@TestResult          Success if returns error code 0
-          -->
-          <!--- Test Case : Entry Cache: add a FIFO Cache-->
-          <testcase name="getTestCaseName('Add a FIFO Cache')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Add a new FIFO entry cache'
-              </message>
-              <script>
-                arg1 = '--cache-name myFIFO'
-                arg2 = '--type fifo'
-                arg3 = '--set cache-level:50 --set enabled:false'
-                options = '%s %s %s' % (arg1,arg2,arg3)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'create-entry-cache',
-                  'optionsString'  : options
-                }
-              </call>
-              <script>
-                arg1 = '--cache-name myFIFO'
-                arg2 = '--property cache-level'
-                options = '%s %s' % (arg1,arg2)
-              </script>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'get-entry-cache-prop',
-                  'optionsString'  : options
-                }
-              </call>
-              <call function="'CheckMatches'">
-                { 'string2find' : '50' ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: entry cache Group Tests
-          #@TestName            core: entry cache: ldapsearch
-          #@TestIssue           none
-          #@TestPurpose         do a ldapsearch to check server is responding
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if returns error code 0
-          -->
-          <!--- Test Case : Entry Cache: Search -->
-          <testcase name="getTestCaseName('Cache Search')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Check the response of OpenDS when an ldap search request \
-               is conducted'
-              </message>
-              <script>
-                dn = 'uid=mschneid,ou=People,o=core tests,dc=example,dc=com'
-              </script>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : dn,
-                  'dsFilter'       : 'objectclass=*',
-                  'extraParams'    : ''
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'core_cleanup'" />
-          <call function="'testSuite_Postamble'" />
-        </sequence>
+          </finally>
+ 
+        </try>
       </block>
     </sequence>
   </function>

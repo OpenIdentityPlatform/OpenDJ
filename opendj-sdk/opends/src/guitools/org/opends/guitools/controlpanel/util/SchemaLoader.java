@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -36,11 +36,14 @@ import java.util.Arrays;
 
 import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
@@ -52,6 +55,23 @@ import org.opends.server.types.Schema;
 public class SchemaLoader
 {
   private Schema schema;
+  private final String[] attrsToKeep = {
+      ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
+      ConfigConstants.ATTR_OBJECTCLASSES_LC,
+      ConfigConstants.ATTR_NAME_FORMS_LC,
+      ConfigConstants.ATTR_DIT_CONTENT_RULES_LC,
+      ConfigConstants.ATTR_DIT_STRUCTURE_RULES_LC,
+      ConfigConstants.ATTR_MATCHING_RULE_USE_LC};
+  private final String[] ocsToKeep = {"top"};
+
+  private final ArrayList<ObjectClass> objectclassesToKeep =
+    new ArrayList<ObjectClass>();
+  private final ArrayList<AttributeType> attributesToKeep =
+    new ArrayList<AttributeType>();
+  private final ArrayList<MatchingRule> matchingRulesToKeep =
+    new ArrayList<MatchingRule>();
+  private final ArrayList<AttributeSyntax> syntaxesToKeep =
+    new ArrayList<AttributeSyntax>();
 
   /**
    * Constructor.
@@ -59,7 +79,31 @@ public class SchemaLoader
    */
   public SchemaLoader()
   {
-    schema = DirectoryServer.getSchema().duplicate();
+    Schema sc = DirectoryServer.getSchema();
+    for (String name : ocsToKeep)
+    {
+      ObjectClass oc = sc.getObjectClass(name.toLowerCase());
+      if (oc != null)
+      {
+        objectclassesToKeep.add(oc);
+      }
+    }
+    for (String name : attrsToKeep)
+    {
+      AttributeType attr = sc.getAttributeType(name.toLowerCase());
+      if (attr != null)
+      {
+        attributesToKeep.add(attr);
+      }
+    }
+    for (MatchingRule mr : sc.getMatchingRules().values())
+    {
+      matchingRulesToKeep.add(mr);
+    }
+    for (AttributeSyntax syntax : sc.getSyntaxes().values())
+    {
+      syntaxesToKeep.add(syntax);
+    }
   }
 
   private static String getSchemaDirectoryPath(boolean userSchema)
@@ -78,51 +122,30 @@ public class SchemaLoader
    * @throws ConfigException if an error occurs reading the schema.
    * @throws InitializationException if an error occurs trying to find out
    * the schema files.
+   * @throws DirectoryException if there is an error registering the minimal
+   * objectclasses.
    */
-  public void readSchema() throws ConfigException, InitializationException
+  public void readSchema() throws DirectoryException,
+  ConfigException, InitializationException
   {
-    String[] attrsToKeep = {
-        ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
-        ConfigConstants.ATTR_OBJECTCLASSES_LC,
-        ConfigConstants.ATTR_NAME_FORMS_LC,
-        ConfigConstants.ATTR_DIT_CONTENT_RULES_LC,
-        ConfigConstants.ATTR_DIT_STRUCTURE_RULES_LC,
-        ConfigConstants.ATTR_MATCHING_RULE_USE_LC};
-    String[] ocsToKeep = {"top"};
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    schema = new Schema();
+    for (MatchingRule mr : matchingRulesToKeep)
     {
-      String name = oc.getNameOrOID().toLowerCase();
-      boolean found = false;
-      for (int i=0; i<ocsToKeep.length; i++)
-      {
-        if (ocsToKeep[i].equals(name))
-        {
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        schema.deregisterObjectClass(oc);
-      }
+      schema.registerMatchingRule(mr, true);
     }
-    for (AttributeType attr : schema.getAttributeTypes().values())
+    for (AttributeSyntax syntax : syntaxesToKeep)
     {
-      String name = attr.getNameOrOID().toLowerCase();
-      boolean found = false;
-      for (int i=0; i<attrsToKeep.length; i++)
-      {
-        if (attrsToKeep[i].equals(name))
-        {
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        schema.deregisterAttributeType(attr);
-      }
+      schema.registerSyntax(syntax, true);
     }
+    for (AttributeType attr : attributesToKeep)
+    {
+      schema.registerAttributeType(attr, true);
+    }
+    for (ObjectClass oc : objectclassesToKeep)
+    {
+      schema.registerObjectClass(oc, true);
+    }
+
     String[] fileNames = null;
     try
     {

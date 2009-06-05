@@ -23,26 +23,14 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="dsml_setup" />
   <function name="dsml_setup">
-    <block name="'setup'">
+    <block name="'dsml_setup'">
       <sequence>
-      <!--- Test Suite information
-        #@TestSuiteName       setup
-        #@TestSuitePurpose    setup for the dsml test suite.
-        #@TestSuiteGroup      dsml setup
-        #@TestScript          dsml_setup.xml
-      -->
-      <script>
-        if not CurrentTestPath.has_key('group'):
-          CurrentTestPath['group'] = 'dsml'
-        CurrentTestPath['suite'] = STAXCurrentBlock
-      </script>
-      <call function="'testSuite_Preamble'"/>
-        <sequence>
+
           <!--- Test Case information
               #@TestMarker          setup
               #@TestName            setup: prepare DSML directory server
@@ -207,8 +195,6 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-        </sequence>
-        <sequence>
 
           <!--- Test Case information
               #@TestMarker          setup
@@ -371,8 +357,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-        </sequence>
-      <call function="'testSuite_Postamble'"/>
+
       </sequence>
     </block>
   </function>

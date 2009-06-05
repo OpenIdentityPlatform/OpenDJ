@@ -48,7 +48,7 @@ import org.opends.server.util.StaticUtils;
  * This class defines the caseExactOrderingMatch matching rule defined in X.520
  * and referenced in RFC 4519.
  */
-class CaseExactOrderingMatchingRule
+public class CaseExactOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

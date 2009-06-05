@@ -31,12 +31,10 @@ package org.opends.server.protocols.internal;
 import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import org.opends.server.TestCaseUtils;
@@ -291,19 +289,6 @@ public class InternalClientConnectionTestCase
     conn.setConnectionSecurityProvider(securityProvider);
   }
 */
-
-
-  /**
-   * Tests the <CODE>processDataRead</CODE> method.
-   *
-   * @param  conn  The internal client connection to use for the test.
-   */
-  @Test(dataProvider = "internalConns")
-  public void testProcessDataRead(InternalClientConnection conn)
-  {
-    assertFalse(conn.processDataRead(null));
-  }
-
 
 
   /**

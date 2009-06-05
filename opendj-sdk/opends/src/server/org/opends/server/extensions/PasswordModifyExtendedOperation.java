@@ -181,6 +181,7 @@ public class PasswordModifyExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
     currentConfig.removePasswordModifyChangeListener(this);
@@ -1495,6 +1496,17 @@ public class PasswordModifyExtendedOperation
     currentConfig = config;
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Password Modify";
   }
 }
 

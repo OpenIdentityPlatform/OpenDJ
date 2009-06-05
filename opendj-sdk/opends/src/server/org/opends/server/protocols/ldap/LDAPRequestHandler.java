@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -40,7 +40,8 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
@@ -88,7 +89,11 @@ public class LDAPRequestHandler
 
   // The queue that will be used to hold the set of pending connections that
   // need to be registered with the selector.
-  private final ConcurrentLinkedQueue<LDAPClientConnection> pendingConnections;
+  private List<LDAPClientConnection> pendingConnections =
+    new LinkedList<LDAPClientConnection>();
+
+  // Lock object for synchronizing access to the pending connections queue.
+  private final Object pendingConnectionsLock = new Object();
 
   // The selector that will be used to monitor the client connections.
   private final Selector selector;
@@ -120,7 +125,6 @@ public class LDAPRequestHandler
 
 
     handlerName        = getName();
-    pendingConnections = new ConcurrentLinkedQueue<LDAPClientConnection>();
 
     try
     {
@@ -169,6 +173,7 @@ public class LDAPRequestHandler
    * Operates in a loop, waiting for client requests to arrive and ensuring that
    * they are processed properly.
    */
+  @Override
   public void run()
   {
     // Operate in a loop until the server shuts down.  Each time through the
@@ -292,6 +297,12 @@ public class LDAPRequestHandler
           }
           finally
           {
+            if (!key.isValid())
+            {
+              // Help GC - release the connection.
+              key.attach(null);
+            }
+
             iterator.remove();
           }
         }
@@ -300,26 +311,37 @@ public class LDAPRequestHandler
 
       // Check to see if we have any pending connections that need to be
       // registered with the selector.
-      while (! pendingConnections.isEmpty())
+      List<LDAPClientConnection> tmp = null;
+      synchronized (pendingConnectionsLock)
       {
-        LDAPClientConnection c = pendingConnections.remove();
-
-        try
+        if (!pendingConnections.isEmpty())
         {
-          SocketChannel socketChannel = c.getSocketChannel();
-          socketChannel.configureBlocking(false);
-          socketChannel.register(selector, SelectionKey.OP_READ, c);
+          tmp = pendingConnections;
+          pendingConnections = new LinkedList<LDAPClientConnection>();
         }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+      }
 
-          c.disconnect(DisconnectReason.SERVER_ERROR, true,
-                       ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
-                       String.valueOf(e)));
+      if (tmp != null)
+      {
+        for (LDAPClientConnection c : tmp)
+        {
+          try
+          {
+            SocketChannel socketChannel = c.getSocketChannel();
+            socketChannel.configureBlocking(false);
+            socketChannel.register(selector, SelectionKey.OP_READ, c);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            c.disconnect(DisconnectReason.SERVER_ERROR, true,
+                ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
+                    String.valueOf(e)));
+          }
         }
       }
     }
@@ -369,19 +391,21 @@ public class LDAPRequestHandler
     }
 
     // Disconnect all pending connections.
-    while (!pendingConnections.isEmpty())
+    synchronized (pendingConnectionsLock)
     {
-      LDAPClientConnection c = pendingConnections.remove();
-      try
+      for (LDAPClientConnection c : pendingConnections)
       {
-        c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
-            ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get());
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          c.disconnect(DisconnectReason.SERVER_SHUTDOWN, true,
+              ERR_LDAP_REQHANDLER_DEREGISTER_DUE_TO_SHUTDOWN.get());
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -419,17 +443,13 @@ public class LDAPRequestHandler
     // Try to add the new connection to the queue.  If it succeeds, then wake
     // up the selector so it will be picked up right away.  Otherwise,
     // disconnect the client.
-    if (pendingConnections.offer(clientConnection))
+    synchronized (pendingConnectionsLock)
     {
-      selector.wakeup();
-      return true;
+      pendingConnections.add(clientConnection);
     }
-    else
-    {
-      clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-           ERR_LDAP_REQHANDLER_REJECT_DUE_TO_QUEUE_FULL.get(handlerName));
-      return false;
-    }
+
+    selector.wakeup();
+    return true;
   }
 
 
@@ -447,7 +467,13 @@ public class LDAPRequestHandler
       new ArrayList<LDAPClientConnection>(keys.length);
     for (SelectionKey key : keys)
     {
-      connList.add((LDAPClientConnection) key.attachment());
+      LDAPClientConnection c = (LDAPClientConnection) key.attachment();
+
+      // If the client has disconnected the attachment may be null.
+      if (c != null)
+      {
+        connList.add(c);
+      }
     }
 
     return connList;

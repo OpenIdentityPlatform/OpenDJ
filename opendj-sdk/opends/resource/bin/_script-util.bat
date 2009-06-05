@@ -37,7 +37,7 @@ if "%SCRIPT_UTIL_CMD%" == "set-java-home-and-args" goto setJavaHomeAndArgs
 if "%SCRIPT_UTIL_CMD%" == "set_environment_vars" goto setEnvironmentVars
 if "%SCRIPT_UTIL_CMD%" == "test-java" goto testJava
 if "%SCRIPT_UTIL_CMD%" == "set-classpath" goto setClassPath
-goto end
+goto prepareCheck
 
 :setInstanceRoot
 setlocal
@@ -56,7 +56,7 @@ goto scriptBegin
 
 
 :setClassPath
-if "%SET_CLASSPATH_DONE%" == "true" goto end
+if "%SET_CLASSPATH_DONE%" == "true" goto prepareCheck
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%"goto setClassPathDone
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
@@ -70,7 +70,7 @@ goto scriptBegin
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
 if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
 if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
-goto end
+goto prepareCheck
 
 :setFullEnvironmentAndTestJava
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
@@ -80,7 +80,7 @@ goto testJava
 
 
 :setJavaHomeAndArgs
-if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
+if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaArgs
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaArgs
@@ -134,7 +134,7 @@ pause
 exit /B 1
 
 :setEnvironmentVars
-if %SET_ENVIRONMENT_VARS_DONE% == "true" goto end
+if %SET_ENVIRONMENT_VARS_DONE% == "true" goto prepareCheck
 set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
@@ -145,7 +145,7 @@ goto scriptBegin
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
-goto end
+goto prepareCheck
 
 :noValidJavaHome
 if NOT "%OPENDS_JAVA_ARGS%" == "" goto noValidHomeWithArgs
@@ -190,6 +190,30 @@ echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
+exit /B 1
+
+:isVersionOrHelp
+if [%1] == [] goto check
+if [%1] == [--help] goto end
+if [%1] == [-H] goto end
+if [%1] == [--version] goto end
+if [%1] == [-V] goto end
+if [%1] == [--fullversion] goto end
+if [%1] == [-F] goto end
+shift
+goto isVersionOrHelp
+
+:prepareCheck
+rem Perform check unless it is specified not to do it
+if "%NO_CHECK%" == ""  set NO_CHECK=false
+goto isVersionOrHelp
+
+:check
+if "%NO_CHECK%" == "true" goto end
+if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
+"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
+set RESULT_CODE=%errorlevel%
+if "%RESULT_CODE%" == "0" goto end
 exit /B 1
 
 :end

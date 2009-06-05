@@ -30,7 +30,6 @@ package org.opends.server.core.networkgroups;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 
 import org.opends.messages.Message;
@@ -96,12 +95,13 @@ public final class MockClientConnection extends ClientConnection
       Entry simpleUser = DirectoryServer.getEntry(bindDN);
       ByteString password = ByteString.valueOf("password");
       this.authInfo =
-          new AuthenticationInfo(simpleUser, password, true);
+          new AuthenticationInfo(simpleUser, bindDN, password, true);
       break;
     default: // SASL
       Entry saslUser = DirectoryServer.getEntry(bindDN);
       this.authInfo =
-          new AuthenticationInfo(saslUser, "external", true);
+          new AuthenticationInfo(saslUser, "external",
+              ByteString.valueOf(bindDN.toNormalizedString()), true);
       break;
     }
   }
@@ -277,15 +277,6 @@ public final class MockClientConnection extends ClientConnection
   public boolean isSecure()
   {
     return isSecure;
-  }
-
-
-
-  @Override
-  public boolean processDataRead(ByteBuffer buffer)
-  {
-    // Stub.
-    return false;
   }
 
 

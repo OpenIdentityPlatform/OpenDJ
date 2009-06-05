@@ -47,7 +47,7 @@ import org.opends.server.util.StaticUtils;
  * X.520.  This will be the default ordering matching rule for the binary and
  * octet string syntaxes.
  */
-class OctetStringOrderingMatchingRule
+public class OctetStringOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

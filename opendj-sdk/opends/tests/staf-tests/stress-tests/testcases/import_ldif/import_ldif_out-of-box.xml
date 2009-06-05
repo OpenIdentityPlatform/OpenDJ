@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="out-of-box"/>
+  <defaultcall function="import_ldif_out-of-box"/>
 
-  <function name="out-of-box">
+  <function name="import_ldif_out-of-box">
 
     <sequence>
 
@@ -39,12 +39,12 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='out-of-box'                
+              CurrentTestPath['group']='import_ldif'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
           <call function="'testSuite_Preamble'"/>
-          
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_setup'" />
@@ -57,11 +57,11 @@
                 </message>
 
                 <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                { 'location'    : STAF_REMOTE_HOSTNAME,
+                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
                 </call>
 
                 <message>
@@ -74,16 +74,16 @@
                 
                 <call function="'MakeAMakeLdifTemplate'">
                   { 'numEntries'         : numberOfEntries ,
-                    'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) }
+                    'templateFile'       : '%s/import_Entries_150k.template' % (remote.temp) }
                 </call>
                 
                 <message>
                    'Import Ldif: Out-Of-Box: Preamble - Make the ldif file'
                 </message>
                 
-                <call function="'MakeLdif'">
-                  { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
-                    'ldifFile'       : '%s/quickstart/import_Entries.ldif' % (logsRemoteDataDir)  }
+                <call function="'MakeLdifWithScript'">
+                  { 'templateFile'   : '%s/import_Entries_150k.template' % (remote.temp)  ,
+                    'ldifFile'       : '%s/import_Entries_150k.ldif' % (remote.temp)  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -102,7 +102,7 @@
                 
                 <call function="'ImportLdifWithScript'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsLdifFile'  : '%s/quickstart/import_Entries.ldif' % logsRemoteDataDir,
+                  'dsLdifFile'  : '%s/import_Entries_150k.ldif' % remote.temp,
                   'dsBackEnd'   : 'userRoot'}
                 </call>
     
@@ -132,15 +132,10 @@
                 { 'location'  : STAF_REMOTE_HOSTNAME }
                 </call>
   
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-  
                 <!--- Check that DS started -->
                 <call function="'isAlive'">
-                  { 'noOfLoops'        : 120 ,
-                    'noOfMilliSeconds' : 600000 }
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 5000 }
                 </call>      
         
                 <call function="'testCase_Postamble'"/>
@@ -171,13 +166,13 @@
     
               </sequence>
           </testcase>
-          
-          
+
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'" />
-         
-              
+
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

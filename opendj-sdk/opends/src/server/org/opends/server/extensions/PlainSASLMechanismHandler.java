@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -541,6 +541,7 @@ public class PlainSASLMechanismHandler
 
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry, authZEntry, SASL_MECHANISM_PLAIN,
+                                bindOperation.getSASLCredentials(),
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;

@@ -116,7 +116,7 @@ final class ASN1ByteChannelWriter implements ASN1Writer
                                int writeBufferSize)
   {
     this.byteChannel = byteChannel;
-    this.byteBuffer = ByteBuffer.allocateDirect(writeBufferSize);
+    this.byteBuffer = ByteBuffer.allocate(writeBufferSize);
 
     ByteBufferOutputStream bufferStream = new ByteBufferOutputStream();
     this.writer = new ASN1OutputStreamWriter(bufferStream);

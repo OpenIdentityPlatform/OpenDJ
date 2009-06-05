@@ -123,9 +123,9 @@
 
         <!-- Tests-defined values -->
         <if>
-          <available file="${basedir}/tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+          <available file="${basedir}/${tests.type}-${local.hostname.input}-${remote.hostname.input}.properties"/>
           <then>
-            <var file="${basedir}/tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+            <var file="${basedir}/${tests.type}-${local.hostname.input}-${remote.hostname.input}.properties"/>
           </then>
         </if>
       </then>
@@ -134,12 +134,25 @@
 
         <!-- Tests-defined values -->
         <if>
-          <available file="${basedir}/tests-${local.hostname.input}.properties"/>
+          <available file="${basedir}/${tests.type}-${local.hostname.input}.properties"/>
           <then>
-            <var file="${basedir}/tests-${local.hostname.input}.properties"/>
+            <var file="${basedir}/${tests.type}-${local.hostname.input}.properties"/>
           </then>
         </if>
       </else>
+    </if>
+
+    <if>
+      <equals arg1="${tests.type}" arg2="stress-tests"/>
+      <then>
+        <input message="   Enter client hostname:"
+               defaultvalue="${client.hostname}"
+               addproperty="client.hostname.input"/>
+
+        <input message="   Enter ldclt path (on client machine):"
+               defaultvalue="${ldclt.dir}"
+               addproperty="ldclt.dir.input"/>
+      </then>
     </if>
 
     <input message="   Enter path to logs directory:"
@@ -154,7 +167,7 @@
            defaultvalue="${opends.name}"
            addproperty="opends.name.input"/>
 
-    <input message="   Enter java home (on local machine):"
+    <input message="   Enter java home:"
            defaultvalue="${local.javahome}"
            addproperty="local.javahome.input"/>
 
@@ -178,11 +191,15 @@
            addproperty="tests.tmp.dir.input"/>
       </then>
       <else>
-        <input message="   Enter directory instance directory (on local machine):"
+        <input message="   Enter directory instance directory:"
            defaultvalue="${tests.tmp.dir}"
            addproperty="tests.tmp.dir.input"/>
       </else>
     </if>
+
+    <input message="   Enter OpenDMK lib directory:"
+           defaultvalue="${snmp.opendmk.lib.dir}"
+           addproperty="snmp.opendmk.lib.dir.input"/>
 
     <input message="   Use default directory instance?"
            defaultvalue="${tests.default}"
@@ -206,9 +223,6 @@
         <input message="   Enter OpenDS admin password:"
                defaultvalue="${opends.admin.pwd}"
                addproperty="opends.admin.pwd.input"/>
-        <input message="   Enter OpenDMK lib directory:"
-               defaultvalue="${snmp.opendmk.lib.dir}"
-               addproperty="snmp.opendmk.lib.dir.input"/>
       </then>
       <else>
         <property name="opends.port.ldap.input" value="${opends.port.ldap}"/>
@@ -216,7 +230,6 @@
         <property name="opends.port.ldaps.input" value="${opends.port.ldaps}"/>
         <property name="opends.admin.dn.input" value="${opends.admin.dn}"/>
         <property name="opends.admin.pwd.input" value="${opends.admin.pwd}"/>
-        <property name="snmp.opendmk.lib.dir.input" value="${snmp.opendmk.lib.dir}"/>
       </else>
     </if>
 
@@ -253,7 +266,15 @@
         <if>
           <equals arg1="${answer}" arg2="y" />
           <then>
-            <var name="test.plan.custom" value="${test.plan.default}"/>
+            <if>
+              <equals arg1="${tests.type}" arg2="functional-tests"/>
+              <then>
+                <var name="test.plan.custom" value="${test.plan.functional.default}"/>
+              </then>
+              <else>
+                <var name="test.plan.custom" value="${test.plan.stress.default}"/>
+              </else>
+            </if>
           </then>
           <else>
             <for param="item">
@@ -297,10 +318,10 @@
     <if>
       <equals arg1="${tests.mode.input}" arg2="remote"/>
       <then>
-        <property name="property.file" value="tests-${local.hostname.input}-${remote.hostname.input}.properties"/>
+        <property name="property.file" value="${tests.type}-${local.hostname.input}-${remote.hostname.input}.properties"/>
       </then>
       <else>
-        <property name="property.file" value="tests-${local.hostname.input}.properties"/>
+        <property name="property.file" value="${tests.type}-${local.hostname.input}.properties"/>
       </else>
     </if>
     <echo file="${basedir}/${property.file}"># Tests-defined values
@@ -310,6 +331,7 @@ local.hostname=${local.hostname.input}
 local.javahome=${local.javahome.input}
 remote.hostname=${remote.hostname.input}
 remote.javahome=${remote.javahome.input}
+client.hostname=${client.hostname.input}
 logs.dir=${logs.dir.input}
 opends.dir=${opends.dir.input}
 opends.name=${opends.name.input}
@@ -321,6 +343,7 @@ opends.port.ldaps=${opends.port.ldaps.input}
 opends.admin.dn=${opends.admin.dn.input}
 opends.admin.pwd=${opends.admin.pwd.input}
 snmp.opendmk.lib.dir=${snmp.opendmk.lib.dir.input}
+ldclt.dir=${ldclt.dir.input}
 verbose.mode=${verbose.mode.input}
 test.plan.custom=${test.plan.custom}</echo>
   </target>

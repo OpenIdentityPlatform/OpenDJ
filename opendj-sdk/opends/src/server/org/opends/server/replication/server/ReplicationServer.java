@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -154,6 +155,8 @@ public class ReplicationServer
    */
   private static final DebugTracer TRACER = getTracer();
 
+  private static HashSet<Integer> localPorts = new HashSet<Integer>();
+
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
@@ -216,6 +219,8 @@ public class ReplicationServer
     DirectoryServer.registerRestoreTaskListener(this);
     DirectoryServer.registerExportTaskListener(this);
     DirectoryServer.registerImportTaskListener(this);
+
+    localPorts.add(replicationPort);
   }
 
 
@@ -525,6 +530,8 @@ public class ReplicationServer
    */
   public void shutdown()
   {
+    localPorts.remove(replicationPort);
+
     if (shutdown)
       return;
 
@@ -1210,5 +1217,42 @@ public class ReplicationServer
   public void responseReceivedAll()
   {
     remoteMonitorResponsesSemaphore.notifyAll();
+  }
+
+  /**
+   * This method allows to check if the Replication Server given
+   * as the parameter is running in the local JVM.
+   *
+   * @param server   The Replication Server that should be checked.
+   *
+   * @return         a boolean indicating if the Replication Server given
+   *                 as the parameter is running in the local JVM.
+   */
+  public static boolean isLocalReplicationServer(String server)
+  {
+    int separator = server.lastIndexOf(':');
+    if (separator == -1)
+      return false;
+    int port = Integer.parseInt(server.substring(separator + 1));
+    String hostname = server.substring(0, separator);
+    try
+    {
+      InetAddress localAddr = InetAddress.getLocalHost();
+
+      if (localPorts.contains(port)
+          && (InetAddress.getByName(hostname).isLoopbackAddress() ||
+              InetAddress.getByName(hostname).equals(localAddr)))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+
+    } catch (UnknownHostException e)
+    {
+      return false;
+    }
   }
 }

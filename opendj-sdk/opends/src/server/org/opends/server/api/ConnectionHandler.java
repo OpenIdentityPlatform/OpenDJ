@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -85,23 +85,15 @@ public abstract class ConnectionHandler
 
   /**
    * Closes this connection handler so that it will no longer accept
-   * new client connections. It may or may not disconnect existing
-   * client connections based on the provided flag. Note, however,
-   * that some connection handler implementations may not have any way
-   * to continue processing requests from existing connections, in
-   * which case they should always be closed regardless of the value
-   * of the {@code closeConnections} flag.
+   * new client connections. Implementations should disconnect any
+   * existing connections.
    *
    * @param finalizeReason
    *          The reason that this connection handler should be
    *          finalized.
-   * @param closeConnections
-   *          Indicates whether any established client connections
-   *          associated with the connection handler should also be
-   *          closed.
    */
   public abstract void finalizeConnectionHandler(
-      Message finalizeReason, boolean closeConnections);
+      Message finalizeReason);
 
 
 
@@ -219,6 +211,7 @@ public abstract class ConnectionHandler
    * Operates in a loop, accepting new connections and ensuring that
    * requests on those connections are handled properly.
    */
+  @Override
   public abstract void run();
 
 
@@ -274,6 +267,7 @@ public abstract class ConnectionHandler
    *
    * @return A string representation of this connection handler.
    */
+  @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);

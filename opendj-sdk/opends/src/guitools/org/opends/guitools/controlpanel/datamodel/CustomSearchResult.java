@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * exceptions that most of the methods in SearchResult throw.
  *
  */
-public class CustomSearchResult implements Comparable {
+public class CustomSearchResult implements Comparable<CustomSearchResult> {
   private Name name;
   private String dn;
   private Map<String, Set<Object>> attributes;
@@ -177,8 +177,17 @@ public class CustomSearchResult implements Comparable {
   /**
    * {@inheritDoc}
    */
-  public int compareTo(Object o) {
-    return this.getDN().compareTo(((CustomSearchResult)o).getDN());
+  public int compareTo(CustomSearchResult o) {
+    int compareTo;
+    if (this.equals(o))
+    {
+      compareTo = 0;
+    }
+    else
+    {
+      compareTo = toString().compareTo(o.toString());
+    }
+    return compareTo;
   }
 
   /**

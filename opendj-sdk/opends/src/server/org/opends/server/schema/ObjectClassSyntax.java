@@ -597,27 +597,97 @@ public class ObjectClassSyntax
       }
       else if (lowerTokenName.equals("sup"))
       {
-        // This specifies the name or OID of the superior objectclass from which
-        // this objectclass should inherit its properties.
-        StringBuilder woidBuffer = new StringBuilder();
-        pos = readWOID(lowerStr, woidBuffer, pos);
-        superiorClass = schema.getObjectClass(woidBuffer.toString());
-        if (superiorClass == null)
+        // This specifies the name or OID of the superior objectclass from
+        //  which this objectclass should inherit its properties. As per
+        //  RFC 4512 (4.1.1), expect an oidlist here. It may be a single name
+        //  or OID (not in quotes) , or it may be an open parenthesis followed
+        // by one or more names separated by spaces  and the dollar sign
+        //  character, followed by a closing parenthesis.
+        c = valueStr.charAt(pos++);
+
+        if(c == '(')
         {
-          if (allowUnknownElements)
+          LinkedList<ObjectClass> listSupOCs = new LinkedList<ObjectClass>();
+          while(true)
           {
-            superiorClass =
-                 DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+            StringBuilder woidBuffer = new StringBuilder();
+            pos = readWOID(lowerStr, woidBuffer, pos);
+            String oidStr = woidBuffer.toString();
+            ObjectClass supOC = schema.getObjectClass(oidStr);
+            if (supOC == null)
+            {
+              if (allowUnknownElements)
+              {
+                supOC =
+                  DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+              }
+              else
+              {
+                // This is bad because we don't know what the superior oc
+                // is so we can't base this objectclass on it.
+                Message message =
+                    WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
+                      get(String.valueOf(oid), String.valueOf(woidBuffer));
+                throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                             message);
+              }
+            }
+
+            //We don't currently support multiple inheritance of objectclasses.
+            //Check to see if we already have a value in the list and make a
+            //decision.
+            if(listSupOCs.size() > 0 )
+            {
+              Message message =
+                      ERR_ATTR_SYNTAX_OBJECTCLASS_MULTIPLE_SUPERIOR_CLASS.
+                      get(oidStr,oid,listSupOCs.get(0).getNameOrOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                      message);
+            }
+            else
+            {
+              listSupOCs.add(supOC);
+            }
+            // The next character must be either a dollar sign or a closing
+            // parenthesis.
+            c = valueStr.charAt(pos++);
+            if (c == ')')
+            {
+              // This denotes the end of the list.
+              break;
+            }
+            else if (c != '$')
+            {
+              Message message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_CHAR.get(
+                  valueStr, String.valueOf(c), (pos-1));
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                           message);
+            }
           }
-          else
+          superiorClass = listSupOCs.get(0);
+        }
+        else
+        {
+          StringBuilder woidBuffer = new StringBuilder();
+          pos = readWOID(lowerStr, woidBuffer, (pos-1));
+          superiorClass = schema.getObjectClass(woidBuffer.toString());
+          if (superiorClass == null)
           {
-            // This is bad because we don't know what the superior objectclass
-            // is so we can't base this objectclass on it.
-            Message message =
-                WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
-                  get(String.valueOf(oid), String.valueOf(woidBuffer));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            if (allowUnknownElements)
+            {
+              superiorClass =
+                DirectoryServer.getDefaultObjectClass(woidBuffer.toString());
+            }
+            else
+            {
+              // This is bad because we don't know what the superior oc
+              // is so we can't base this objectclass on it.
+              Message message =
+                  WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.
+                    get(String.valueOf(oid), String.valueOf(woidBuffer));
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
           }
         }
 
@@ -627,7 +697,15 @@ public class ObjectClassSyntax
         // problem if the components in the objectclass description are provided
         // out-of-order, but even if that happens then it doesn't really matter
         // since the objectclass type currently isn't used for anything anyway.
-        objectClassType = superiorClass.getObjectClassType();
+        //If the superior oc is top, set the type to STRUCTURAL.
+        if(superiorClass.hasName("top"))
+        {
+          objectClassType = ObjectClassType.STRUCTURAL;
+        }
+        else
+        {
+          objectClassType = superiorClass.getObjectClassType();
+        }
       }
       else if (lowerTokenName.equals("abstract"))
       {

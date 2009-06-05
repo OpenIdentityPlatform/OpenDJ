@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel;
@@ -237,8 +237,9 @@ public class ControlPanelLauncher
   private static void initLookAndFeel() throws Throwable
   {
 //  Setup MacOSX native menu bar before AWT is loaded.
-    Utils.setMacOSXMenuBar(
-        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get());
+    Message title = Utils.getCustomizedObject("INFO_CONTROL_PANEL_TITLE",
+        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(), Message.class);
+    Utils.setMacOSXMenuBar(title);
 
     if (SwingUtilities.isEventDispatchThread())
     {

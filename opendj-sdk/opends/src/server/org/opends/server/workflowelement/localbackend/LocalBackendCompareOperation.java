@@ -448,9 +448,18 @@ compareProcessing:
 
           try
           {
-            // FIXME -- We need to determine whether the current user has
-            //          permission to make this determination.
             SearchFilter filter = assertControl.getSearchFilter();
+
+            // Check if the current user has permission to make
+            // this determination.
+            if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, entry, filter))
+            {
+              throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+            }
+
             if (! filter.matchesEntry(entry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,

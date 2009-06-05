@@ -1875,7 +1875,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         {
           try
           {
-            while (msgQueue.isEmpty())
+            while (msgQueue.isEmpty() && (following == true))
             {
               msgQueue.wait(500);
               if (!activeWriter)
@@ -1885,15 +1885,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
           {
             return null;
           }
-          msg = msgQueue.removeFirst();
-          if (this.updateServerState(msg))
+          if (following == true)
           {
-            /*
-             * Only push the message if it has not yet been seen
-             * by the other server.
-             * Otherwise just loop to select the next message.
-             */
-            return msg;
+            msg = msgQueue.removeFirst();
+            if (this.updateServerState(msg))
+            {
+              /*
+               * Only push the message if it has not yet been seen
+               * by the other server.
+               * Otherwise just loop to select the next message.
+               */
+              return msg;
+            }
           }
         }
       }

@@ -23,27 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="dsml_cleanup" />
   <function name="dsml_cleanup">
-    <block name="'cleanup'">
+    <block name="'dsml_cleanup'">
       <sequence>
-        <!--- Test Suite information
-          #@TestSuiteName       cleanup
-          #@TestSuitePurpose    cleanup for the dsml test suite.
-          #@TestSuiteGroup      dsml cleanup
-          #@TestScript          dsml_cleanup.xml
-        -->
-        <script>
-          if not CurrentTestPath.has_key('group'):
-            CurrentTestPath['group'] = 'dsml'              
-          CurrentTestPath['suite'] = STAXCurrentBlock
-        </script>
-
-        <call function="'testSuite_Preamble'"/>
-        <sequence>
         <!--- Test Case information
             #@TestMarker          cleanup
             #@TestName            cleanup: stop directory server
@@ -160,8 +146,6 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-        </sequence>
-        <call function="'testSuite_Postamble'"/>
         
       </sequence>
     </block>

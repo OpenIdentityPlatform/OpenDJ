@@ -8113,9 +8113,8 @@ public class DirectoryServer
     {
       try
       {
-
         handler.finalizeConnectionHandler(
-                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get(), true);
+                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
       }
       catch (Exception e)
       {

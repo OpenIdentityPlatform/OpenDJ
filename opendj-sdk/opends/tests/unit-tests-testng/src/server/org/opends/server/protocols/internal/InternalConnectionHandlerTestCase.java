@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 
@@ -33,7 +33,6 @@ import java.util.Collection;
 import org.testng.annotations.Test;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
 
 import static org.testng.Assert.*;
 
@@ -72,7 +71,7 @@ public class InternalConnectionHandlerTestCase
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
     assertNotNull(handler);
 
-    handler.finalizeConnectionHandler(null, false);
+    handler.finalizeConnectionHandler(null);
   }
 
 

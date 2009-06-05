@@ -607,7 +607,8 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   public Message getFrameTitle() {
-    return INFO_FRAME_INSTALL_TITLE.get();
+    return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
+        INFO_FRAME_INSTALL_TITLE.get(), Message.class);
   }
 
   /** Indicates the current progress step. */
@@ -2065,14 +2066,16 @@ public abstract class Installer extends GuiApplication {
     Installation installation = getInstallation();
     String cmd = getPath(installation.getControlPanelCommandFile());
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+    Message successMessage = Utils.getCustomizedObject(
+        "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
+        INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
+            formatter.getFormattedText(
+                    Message.raw(
+                        getPath(new File(getInstancePath())))),
+            INFO_GENERAL_SERVER_STOPPED.get(),
+            cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
-            getFormattedSuccess(
-                    INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
-                            formatter.getFormattedText(
-                                    Message.raw(
-                                        getPath(new File(getInstancePath())))),
-                            INFO_GENERAL_SERVER_STOPPED.get(),
-                            cmd)));
+            getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
             getFormattedSuccess(INFO_SUMMARY_INSTALL_FINISHED_CANCELED.get()));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
@@ -2100,14 +2103,16 @@ public abstract class Installer extends GuiApplication {
    {
      status = INFO_GENERAL_SERVER_STOPPED.get();
    }
+   Message successMessage = Utils.getCustomizedObject(
+       "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
+       INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
+           formatter.getFormattedText(
+                   Message.raw(
+                       getPath(new File(getInstancePath())))),
+           status,
+           cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
-            getFormattedSuccess(
-                    INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
-                            formatter.getFormattedText(
-                                    Message.raw(
-                                        getPath(new File(getInstancePath())))),
-                            status,
-                            cmd)));
+            getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
             getFormattedError(INFO_SUMMARY_INSTALL_FINISHED_WITH_ERROR.get(
                     status,

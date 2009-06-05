@@ -184,9 +184,9 @@
       </then>
       <else>
         <if>
-          <available file="${basedir}/tests-${local.hostname}.properties"/>
+          <available file="${basedir}/${tests.type}-${local.hostname}.properties"/>
           <then>
-            <var file="${basedir}/tests-${local.hostname}.properties"/>
+            <var file="${basedir}/${tests.type}-${local.hostname}.properties"/>
           </then>
         </if>
       </else>
@@ -202,6 +202,30 @@
         <property name="tests.config.file" value="config-${local.hostname}.py"/>
       </else>
     </if>
+
+    <!-- Set value for tests.run.dir variable -->
+    <if>
+      <not>
+        <equals arg1="${logs.dir}" arg2="${basedir}/temp/logs"/>
+      </not>
+      <then>
+        <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
+      </then>
+    </if>
+
+    <!-- Set value for email.subject variable -->
+    <if>
+      <equals arg1="${tests.type}" arg2="functional-tests"/>
+      <then>
+        <property name="email.subject"
+        value="Functional tests: ${opends.name} ${remote.hostname} ${tests.os.string} ${tests.jvm.string}"/>
+      </then>
+      <else>
+        <property name="email.subject"
+        value="Stress tests: ${opends.name} ${remote.hostname} ${tests.os.string} ${tests.jvm.string}"/>
+      </else>
+    </if>
+
 
     <!-- Set value for staf.archive and staf.lib.dir variables -->
     <if>

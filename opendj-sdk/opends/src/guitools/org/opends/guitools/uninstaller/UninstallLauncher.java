@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -202,7 +202,9 @@ public class UninstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected Message getFrameTitle() {
-    return INFO_FRAME_UNINSTALL_TITLE.get();
+    Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+        INFO_FRAME_UNINSTALL_TITLE.get(), Message.class);
+    return title;
   }
 
   /**

@@ -29,7 +29,6 @@ package org.opends.server.protocols.internal;
 
 
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -464,6 +463,7 @@ public final class InternalClientConnection
    *
    * @return The port number for this connection on the client system.
    */
+  @Override
   public int getClientPort()
   {
     return -1;
@@ -494,6 +494,7 @@ public final class InternalClientConnection
    *         or -1 if there is no server port associated with this
    *         connection (e.g. internal client).
    */
+  @Override
   public int getServerPort()
   {
     return -1;
@@ -629,40 +630,6 @@ public final class InternalClientConnection
   public boolean isSecure()
   {
       return true;
-  }
-
-
-  /**
-   * Indicates that the data in the provided buffer has been read from
-   * the client and should be processed.  The contents of the provided
-   * buffer will be in clear-text (the data may have been passed
-   * through a connection security provider to obtain the clear-text
-   * version), and may contain part or all of one or more client
-   * requests.
-   *
-   * @param  buffer  The byte buffer containing the data available for
-   *                 reading.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer
-   *          was processed and the client connection can remain
-   *          established, or <CODE>false</CODE> if a decoding error
-   *          occurred and requests from this client should no longer
-   *          be processed.  Note that if this method does return
-   *          <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
-   */
-  @org.opends.server.types.PublicAPI(
-       stability=org.opends.server.types.StabilityLevel.PRIVATE,
-       mayInstantiate=false,
-       mayExtend=false,
-       mayInvoke=false)
-  @Override()
-  public boolean processDataRead(ByteBuffer buffer)
-  {
-    // This method will not do anything with the data because there is
-    // no actual "connection" from which information can be read, nor
-    // any protocol to use to read it.
-    return false;
   }
 
 
@@ -2960,6 +2927,7 @@ public final class InternalClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getSSF() {
       //Always return strongest value.
       return 256;

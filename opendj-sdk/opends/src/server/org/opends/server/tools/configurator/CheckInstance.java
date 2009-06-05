@@ -86,6 +86,7 @@ public class CheckInstance {
   private static BooleanArgument checkVersionArg;
   private static String currentUser;
   private static String instanceOwner;
+  private static boolean isWin;
   private static int SUCCESS = 0;
   private static int ARGS_ERROR = 1;
   private static int USER_ERROR = 2;
@@ -173,10 +174,12 @@ public class CheckInstance {
           .get(ERR_INSTANCE_ROOT_NOT_SPECIFIED.get()));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
+    isWin =  System.getProperty("file.separator").equals("\\");
 
     // Initialize all the command-line argument types and register them with the
     // parser.
     try {
+      if (!isWin) {
       currentUserArg = new StringArgument(CURRENT_USER_OPTION_LONG,
               CURRENT_USER_OPTION_SHORT,
               CURRENT_USER_OPTION_LONG,
@@ -184,6 +187,7 @@ public class CheckInstance {
               INFO_CURRENT_USER_PLACEHOLDER.get(),
               INFO_CHECK_DESCRIPTION_CURRENT_USER.get());
       argParser.addArgument(currentUserArg);
+      }
       checkVersionArg = new BooleanArgument(CHECK_VERSION_OPTION_LONG,
               CHECK_VERSION_OPTION_SHORT,
               CHECK_VERSION_OPTION_LONG,
@@ -203,9 +207,11 @@ public class CheckInstance {
       System.exit(ARGS_ERROR);
     }
 
+    File confDir = new File(instanceRootFromSystem,
+            Installation.CONFIG_PATH_RELATIVE);
+
+     if (!isWin) {
     // Check user
-    File confDir = new File (instanceRootFromSystem,
-      Installation.CONFIG_PATH_RELATIVE);
     File conf = new File (confDir, Installation.CURRENT_CONFIG_FILE_NAME);
     String cmd = null;
     Process proc = null;
@@ -275,6 +281,7 @@ public class CheckInstance {
     if ((currentUser != null) && !(currentUser.equals(instanceOwner))) {
       System.err.println(ERR_CHECK_USER_ERROR.get(instanceOwner));
       System.exit(USER_ERROR);
+    }
     }
 
     // Initialize buildinfo in not already done (ZIP delivery)

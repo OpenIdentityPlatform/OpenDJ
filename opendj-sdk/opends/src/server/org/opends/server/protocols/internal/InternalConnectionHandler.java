@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.internal;
 import org.opends.messages.Message;
@@ -123,6 +123,7 @@ public final class InternalConnectionHandler
    *                                   related to the server
    *                                   configuration.
    */
+  @Override
   public void initializeConnectionHandler(
                    ConnectionHandlerCfg configuration)
       throws ConfigException, InitializationException
@@ -133,24 +134,10 @@ public final class InternalConnectionHandler
 
 
   /**
-   * Closes this connection handler so that it will no longer accept
-   * new client connections.  It may or may not disconnect existing
-   * client connections based on the provided flag.  Note, however,
-   * that some connection handler implementations may not have any way
-   * to continue processing requests from existing connections, in
-   * which case they should always be closed regardless of the value
-   * of the <CODE>closeConnections</CODE> flag.
-   *
-   * @param  finalizeReason    The reason that this connection handler
-   *                           should be finalized.
-   * @param  closeConnections  Indicates whether any established
-   *                           client connections associated with the
-   *                           connection handler should also be
-   *                           closed.
+   * {@inheritDoc}
    */
   @Override()
-  public void finalizeConnectionHandler(Message finalizeReason,
-                                        boolean closeConnections)
+  public void finalizeConnectionHandler(Message finalizeReason)
   {
     // No implementation is required.
   }

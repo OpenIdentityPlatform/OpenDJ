@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
@@ -144,9 +145,12 @@ public class WelcomePanel extends QuickSetupStepPanel {
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    return INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS.get(
+    return Utils.getCustomizedObject(
+        "INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS",
+        INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS.get(
                     DynamicConstants.COMPACT_VERSION_STRING,
-                    DynamicConstants.BUILD_ID);
+                    DynamicConstants.BUILD_ID),
+        Message.class);
   }
 
   /**

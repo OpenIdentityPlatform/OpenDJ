@@ -46,6 +46,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
@@ -276,8 +277,11 @@ public abstract class ConfigReader
    * @throws ConfigException if an error occurs reading the schema.
    * @throws InitializationException if an error occurs trying to find out
    * the schema files.
+   * @throws DirectoryException if there is an error registering the minimal
+   * objectclasses.
    */
-  protected void readSchema() throws ConfigException, InitializationException
+  protected void readSchema() throws ConfigException, InitializationException,
+  DirectoryException
   {
     SchemaLoader loader = new SchemaLoader();
     loader.readSchema();

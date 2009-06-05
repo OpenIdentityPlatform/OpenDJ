@@ -958,7 +958,7 @@
           <script>
             srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s.log' \
                       % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
-            destFile = '%s/staf-logs/STAX_Job_%s.log' \
+            destFile = '%s/staf-logs/STAX_Job_%s.txt' \
                        % (LOGS_ROOT,thisChild)
           </script>
           <process name="'Saving job logs.....'">

@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Copyright 2006-2009 Sun Microsystems, Inc.
 
 rem This script is used to invoke various server-side processes.  It should not
 rem be invoked directly by end users.
@@ -53,7 +53,7 @@ set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
 set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTALL_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
@@ -86,7 +86,7 @@ set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
 set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTALL_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 

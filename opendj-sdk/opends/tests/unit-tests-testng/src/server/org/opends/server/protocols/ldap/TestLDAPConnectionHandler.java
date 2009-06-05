@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.protocols.ldap;
@@ -130,7 +130,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPHandlerEntry.addAttribute(useSSL1,null);
     LDAPHandlerEntry.addAttribute(startTls1,null);
     LDAPConnectionHandler LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);
-    LDAPSConnHandler.finalizeConnectionHandler(reasonMsg, true);
+    LDAPSConnHandler.finalizeConnectionHandler(reasonMsg);
     LDAPConnHandler.processServerShutdown(reasonMsg);
   }
 
@@ -320,7 +320,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     assertTrue(ret);
     //apply it
     LDAPConnHandler.applyConfigurationChange(config);
-    LDAPConnHandler.finalizeConnectionHandler(reasonMsg, true);
+    LDAPConnHandler.finalizeConnectionHandler(reasonMsg);
 
   }
 }

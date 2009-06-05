@@ -37,7 +37,6 @@ import static org.opends.server.types.OperationType.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
@@ -76,6 +75,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
@@ -93,6 +93,64 @@ public class LDAPClientConnection extends ClientConnection implements
     TLSCapableConnection
 {
   /**
+   * A runnable whose task is to close down all IO related channels
+   * associated with a client connection after a small delay.
+   */
+  private static final class ConnectionFinalizerJob implements Runnable
+  {
+    // The client connection ASN1 reader.
+    private final ASN1Reader asn1Reader;
+
+    // The client connection socket channel.
+    private final SocketChannel socketChannel;
+
+    // Creates a new connection finalizer job.
+    private ConnectionFinalizerJob(long connectionID,
+        ASN1Reader asn1Reader, SocketChannel socketChannel)
+    {
+      this.asn1Reader = asn1Reader;
+      this.socketChannel = socketChannel;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void run()
+    {
+      try
+      {
+        asn1Reader.close();
+      }
+      catch (Exception e)
+      {
+        // In general, we don't care about any exception that might be
+        // thrown here.
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+
+      try
+      {
+        socketChannel.close();
+      }
+      catch (Exception e)
+      {
+        // In general, we don't care about any exception that might be
+        // thrown here.
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
@@ -108,7 +166,7 @@ public class LDAPClientConnection extends ClientConnection implements
 
   // Indicates whether the Directory Server believes this connection to
   // be valid and available for communication.
-  private boolean connectionValid;
+  private volatile boolean connectionValid;
 
   // Indicates whether this connection is about to be closed. This will
   // be used to prevent accepting new requests while a disconnect is in
@@ -178,9 +236,9 @@ public class LDAPClientConnection extends ClientConnection implements
   // client has connected.
   private final String serverAddress;
 
-  private final ThreadLocal<WriterBuffer> cachedBuffers;
-
   private ASN1ByteChannelReader asn1Reader;
+
+  private ASN1Writer asn1Writer;
 
   private static int APPLICATION_BUFFER_SIZE = 4096;
 
@@ -201,17 +259,6 @@ public class LDAPClientConnection extends ClientConnection implements
   private OperationMonitor modMonitor;
   private OperationMonitor moddnMonitor;
   private OperationMonitor unbindMonitor;
-
-
-
-  /**
-   * This class wraps the byte string buffer and ASN1 writer.
-   */
-  private static class WriterBuffer
-  {
-    ASN1Writer writer;
-    ByteStringBuilder buffer;
-  }
 
 
 
@@ -268,7 +315,6 @@ public class LDAPClientConnection extends ClientConnection implements
       statTracker.updateConnect();
     }
 
-    cachedBuffers = new ThreadLocal<WriterBuffer>();
     tlsChannel =
         RedirectingByteChannel.getRedirectingByteChannel(clientChannel);
     saslChannel =
@@ -754,20 +800,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void sendLDAPMessage(LDAPMessage message)
   {
     // Get the buffer used by this thread.
-    WriterBuffer writerBuffer = cachedBuffers.get();
-    if (writerBuffer == null)
-    {
-      writerBuffer = new WriterBuffer();
-      if (isSecure())
-      {
-        int appBufSize = activeProvider.getAppBufSize();
-        writerBuffer.writer = ASN1.getWriter(saslChannel, appBufSize);
-      }
-      else
-        writerBuffer.writer =
-                          ASN1.getWriter(saslChannel, APPLICATION_BUFFER_SIZE);
-      cachedBuffers.set(writerBuffer);
-    }
     try
     {
       // Make sure that we can only send one message at a time. This
@@ -775,8 +807,22 @@ public class LDAPClientConnection extends ClientConnection implements
       // requests from the client.
       synchronized (transmitLock)
       {
-        message.write(writerBuffer.writer);
-        writerBuffer.writer.flush();
+        if (asn1Writer == null)
+        {
+          if (isSecure())
+          {
+            int appBufSize = activeProvider.getAppBufSize();
+            asn1Writer = ASN1.getWriter(saslChannel, appBufSize);
+          }
+          else
+          {
+            asn1Writer =
+                ASN1.getWriter(saslChannel, APPLICATION_BUFFER_SIZE);
+          }
+        }
+
+        message.write(asn1Writer);
+        asn1Writer.flush();
         if(debugEnabled())
         {
           TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
@@ -790,7 +836,6 @@ public class LDAPClientConnection extends ClientConnection implements
           statTracker.updateMessageWritten(message, 4096);
         }
       }
-      // writerBuffer.buffer.clear();
     }
     catch (Exception e)
     {
@@ -944,37 +989,10 @@ public class LDAPClientConnection extends ClientConnection implements
       }
     }
 
-    // Close the connection to the client.
-    try
-    {
-      asn1Reader.close();
-    }
-    catch (Exception e)
-    {
-      // In general, we don't care about any exception that might be
-      // thrown here.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-    try
-    {
-      clientChannel.close();
-    }
-    catch (Exception e)
-    {
-      // In general, we don't care about any exception that might be
-      // thrown here.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-    // Remove the thread local buffers.
-    cachedBuffers.remove();
+    // Enqueue the connection channels for closing by the finalizer.
+    Runnable r =
+      new ConnectionFinalizerJob(connectionID, asn1Reader, clientChannel);
+    connectionHandler.registerConnectionFinalizer(r);
 
     // NYI -- Deregister the client connection from any server components that
     // might know about it.
@@ -1434,7 +1452,11 @@ public class LDAPClientConnection extends ClientConnection implements
           // Decode all complete elements from the last read
           while (asn1Reader.elementAvailable())
           {
-            processLDAPMessage(LDAPReader.readMessage(asn1Reader));
+            if (!processLDAPMessage(LDAPReader.readMessage(asn1Reader)))
+            {
+              // Fatal connection error - client disconnected.
+              return false;
+            }
           }
         }
       }
@@ -1451,40 +1473,6 @@ public class LDAPClientConnection extends ClientConnection implements
         return false;
       }
     }
-  }
-
-
-
-  /**
-   * Process the information contained in the provided byte buffer as an
-   * ASN.1 element. It may take several calls to this method in order to
-   * get all the information necessary to decode a single ASN.1 element,
-   * but it may also be possible that there are multiple elements (or at
-   * least fragments of multiple elements) in a single buffer. This will
-   * fully process whatever the client provided and set up the
-   * appropriate state information to make it possible to pick up in the
-   * right place the next time around.
-   *
-   * @param buffer
-   *          The buffer containing the data to be processed. It must be
-   *          ready for reading (i.e., it should have been flipped by
-   *          the caller), and the data provided must be unencrypted
-   *          (e.g., if the client is communicating over SSL, then the
-   *          decryption should happen before calling this method).
-   * @return <CODE>true</CODE> if all the data in the provided buffer
-   *         was processed and the client connection can remain
-   *         established, or <CODE>false</CODE> if a decoding error
-   *         occurred and requests from this client should no longer be
-   *         processed. Note that if this method does return
-   *         <CODE>false</CODE>, then it must have already disconnected
-   *         the client, and upon returning the request handler should
-   *         remove it from the associated selector.
-   */
-  @Override
-  public boolean processDataRead(ByteBuffer buffer)
-  {
-    // this is no longer used.
-    return true;
   }
 
 
@@ -2506,7 +2494,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void setTLSPendingProvider(ConnectionSecurityProvider provider)
   {
     tlsPendingProvider = provider;
-
   }
 
 
@@ -2522,7 +2509,6 @@ public class LDAPClientConnection extends ClientConnection implements
   public void setSASLPendingProvider(ConnectionSecurityProvider provider)
   {
     saslPendingProvider = provider;
-
   }
 
 

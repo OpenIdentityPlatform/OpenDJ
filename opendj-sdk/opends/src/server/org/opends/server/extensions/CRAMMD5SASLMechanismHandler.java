@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -494,6 +494,7 @@ public class CRAMMD5SASLMechanismHandler
 
     AuthenticationInfo authInfo =
          new AuthenticationInfo(userEntry, SASL_MECHANISM_CRAM_MD5,
+                                clientCredentials,
                                 DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     return;

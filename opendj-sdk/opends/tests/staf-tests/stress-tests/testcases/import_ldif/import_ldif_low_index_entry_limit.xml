@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="low_index_entry_limit"/>
+  <defaultcall function="import_ldif_low_index_entry_limit"/>
 
-  <function name="low_index_entry_limit">
+  <function name="import_ldif_low_index_entry_limit">
 
     <sequence>
 
@@ -39,12 +39,12 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='low_index_entry_limit'                
+              CurrentTestPath['group']='import_ldif'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
           <call function="'testSuite_Preamble'"/>
-          
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_setup'" />
@@ -59,7 +59,6 @@
 
                 <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
                     'subcommand'           : 'set-backend-prop' ,    
@@ -74,16 +73,16 @@
                 </message>
 
                 <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                { 'location'    : STAF_REMOTE_HOSTNAME,
+                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
                 </call>
 
                 <script>
                     import os.path
-                    curr_filename=logsRemoteDataDir + r"/../../" + bin_attr_filename
+                    curr_filename=remote.temp + "/" + bin_attr_filename
                     curr_file_exists='0'
                     if os.path.exists(curr_filename):
                       curr_file_exists='1'
@@ -92,26 +91,26 @@
                 </script>
                 
                 <message>
-                      'Import Ldif Tasks: Low Index Entry Limit: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
+                      'Import Ldif: Low Index Entry Limit: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
                 </message>
                 
                 <if expr="curr_file_exists=='0'">
                   <sequence>
                     <message>
-                    'Import Ldif Tasks: Low Index Entry Limit: Preamble - Make an make-ldif template file'
+                    'Import Ldif: Low Index Entry Limit: Preamble - Make an make-ldif template file'
                     </message>
                     <call function="'MakeAMakeLdifTemplate'">
                     { 'numEntries'         : numberOfEntries ,
-                      'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) ,
-                      'extraLine'          : 'jpegPhoto;binary:: &lt;random:base64:38000&gt;'}
+                      'templateFile'       : '%s/import_Entries_100k.template' % (remote.temp) ,
+                      'extraLine'          : 'jpegPhoto:: &lt;random:base64:38000&gt;'}
                     </call>
                 
                     <message>
-                      'Import Ldif Tasks: Low Index Entry Limit: Preamble - Make the ldif file'
+                      'Import Ldif: Low Index Entry Limit: Preamble - Make the ldif file'
                     </message>
                 
-                    <call function="'MakeLdif'">
-                    { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
+                    <call function="'MakeLdifWithScript'">
+                    { 'templateFile'   : '%s/import_Entries_100k.template' % (remote.temp)  ,
                       'ldifFile'       : curr_filename  }
                     </call>
                   </sequence>
@@ -146,9 +145,10 @@
                       'expectedString'     : 'Processed 100002 entries' }
                 </call>
                 
-                <script>
-                  knownIssue(2535)
-                </script>
+                <!--<call function="'setKnownIssue'">
+                    { 'issueId' : '2535' }
+                </call>-->
+                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -166,15 +166,10 @@
                 { 'location'  : STAF_REMOTE_HOSTNAME }
                 </call>
   
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-  
                 <!--- Check that DS started -->
                 <call function="'isAlive'">
-                  { 'noOfLoops'        : 12 ,
-                    'noOfMilliSeconds' : 300000 }
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 5000 }
                 </call>      
         
                 <call function="'testCase_Postamble'"/>
@@ -206,20 +201,21 @@
                 }
                 </call>
               
-                <script>
-                  knownIssue(2535)
-                </script>
+                <!--<call function="'setKnownIssue'">
+                    { 'issueId' : '2535' }
+                </call>-->
+                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
           </testcase>
-          
-          
+
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'" />
-         
-              
+
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

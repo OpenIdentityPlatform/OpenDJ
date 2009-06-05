@@ -41,6 +41,8 @@ import org.opends.guitools.controlpanel.ui.ControlCenterMainPane;
 import org.opends.guitools.controlpanel.ui.MainMenuBar;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
+import org.opends.messages.Message;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * The class that is in charge of creating the main dialog of the ControlPanel
@@ -109,7 +111,11 @@ public class ControlPanel
       }
     });
     dlg.setJMenuBar(menuBar);
-    dlg.setTitle(AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get().toString());
+    String title = Utils.getCustomizedObject(
+        "INFO_CONTROL_PANEL_TITLE",
+        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(),
+        Message.class).toString();
+    dlg.setTitle(title);
     dlg.setContentPane(controlCenterPane);
 
     dlg.pack();

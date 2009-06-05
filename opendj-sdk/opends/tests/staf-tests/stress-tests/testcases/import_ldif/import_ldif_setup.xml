@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -36,104 +36,97 @@
           Optional start the Directory Server
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
-      </function-arg-def>  
-    <function-arg-def name="loadBackend" type="optional" default="False">
-      <function-arg-description>
-      Specifies whether the backend should be loaded with some data.
-    </function-arg-description>
-    <function-arg-property name="type" value="boolean"/>
-    </function-arg-def>            
-  </function-map-args>
+      </function-arg-def>
+      <function-arg-def name="loadBackend" type="optional" default="False">
+        <function-arg-description>
+          Specifies whether the backend should be loaded with some data.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+    </function-map-args>
 
     <sequence>
 
       <block name="'setup'">
       
         <sequence>
-              
-          
-      <block name="'Block Create DS Topology'">
-      <!-- Create the topology necessary to the test group/suite -->
-        <sequence>
+
+          <!-- Create the topology necessary to the test group/suite -->
+          <block name="'Block Create DS Topology'">
+            
+            <sequence>
                 
               <message>
-                 'Create DS topology as described in config.py'
+                'Create DS topology as described in config.py'
               </message>
           
-        <call function="'createTopology'">
-          { 'initialiseInstance' : False }
-        </call>
+              <call function="'createTopology'">
+                { 'initialiseInstance' : True }
+              </call>
                     
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-            </sequence>      
-          <!--- End Block Create DS Topology -->  
-          </block>                    
-
-
-          
-          <if expr="loadBackend == True">
-      <block name="'Block DS Load Data'">
-      <!-- Load the data needed by the test suite -->
-        <sequence>    
-            
-              <message>
-                'Import Ldif: Small Initial Import'
-              </message>
-              <call function="'importLdif'">
-                { 'ldifFile'    : '%s/import_ldif/import_ldif_start.ldif' % logsRemoteDataDir }
-              </call>
-    
               <call function="'checkRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
-              </call>  
-
-            </sequence>      
-          <!--- End Block DS Load Data -->                       
-      </block> 
-      </if>
+              </call>
       
-                  
-      <if expr="startDS == True">
-      <block name="'Block DS Process Active'">      
-          <!--- Start DS -->
-        <sequence>
-        
-              <message>
-                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-  
-              <!--- Start DS -->
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-  
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-  
-              <!--- Check that DS started -->
-              <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
-                  'noOfMilliSeconds' : 2000 }
-              </call>      
-        
             </sequence>
-          <!--- End Block DS Process Active -->
-          </block>              
-      </if>
+
+          </block>
+
+          <!-- Load the data needed by the test suite -->
+          <if expr="loadBackend == True">
+
+            <block name="'Block DS Load Data'">
+
+              <sequence>
             
-                    
+                <message>
+                  'Import Ldif: Small Initial Import'
+                </message>
+
+                <call function="'importLdif'">
+                  { 'ldifFile' : '%s/import_ldif/import_ldif_start.ldif' \
+                                 % remote.data }
+                </call>
+
+              </sequence>
               
-        </sequence>        
+            </block>
+
+          </if>
+
+          <!--- Start DS -->
+          <if expr="startDS == True">
+
+            <block name="'Block DS Start'">
+
+              <sequence>
+        
+                <message>
+                  'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+  
+                <call function="'StartDsWithScript'">
+                  { 'location' : STAF_REMOTE_HOSTNAME }
+                </call>
+  
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000 }
+                </call>
+        
+              </sequence>
+
+            </block>
+
+          </if>
+              
+        </sequence>
+        
       </block>
             
-     </sequence>
+    </sequence>
 
   </function>
 

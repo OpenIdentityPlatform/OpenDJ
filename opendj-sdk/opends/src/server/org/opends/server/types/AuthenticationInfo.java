@@ -22,16 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-
-
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import static org.opends.server.util.Validator.*;
 
@@ -73,10 +66,16 @@ public final class AuthenticationInfo
   private Entry authorizationEntry;
 
   // The type of authentication performed on this connection.
-  private Set<AuthenticationType> authenticationTypes;
+  private AuthenticationType authenticationType;
 
   // The SASL mechanism used to authenticate.
-  private Set<String> saslMechanisms;
+  private String saslMechanism;
+
+  // The bind DN used to authenticate using simple authentication.
+  private DN simpleBindDN;
+
+  // The SASL credentials used to authenticate.
+  private ByteString saslCredentials;
 
 
 
@@ -90,10 +89,12 @@ public final class AuthenticationInfo
     isRoot              = false;
     mustChangePassword  = false;
     simplePassword      = null;
-    authenticationTypes = new HashSet<AuthenticationType>(0);
+    authenticationType  = null;
     authenticationEntry = null;
     authorizationEntry  = null;
-    saslMechanisms      = new HashSet<String>(0);
+    simpleBindDN        = null;
+    saslCredentials     = null;
+    saslMechanism       = null;
   }
 
 
@@ -115,15 +116,14 @@ public final class AuthenticationInfo
 
     isAuthenticated     = (authenticationEntry != null);
     mustChangePassword  = false;
+    simpleBindDN        = authenticationEntry != null ?
+        authenticationEntry.getDN() : null;
     simplePassword      = null;
     authorizationEntry  = authenticationEntry;
-    saslMechanisms      = new HashSet<String>(0);
-    authenticationTypes = new HashSet<AuthenticationType>(1);
-
-    authenticationTypes.add(AuthenticationType.INTERNAL);
+    saslMechanism       = null;
+    saslCredentials     = null;
+    authenticationType  = AuthenticationType.INTERNAL;
   }
-
-
 
   /**
    * Creates a new set of authentication information to be used for
@@ -132,28 +132,30 @@ public final class AuthenticationInfo
    * @param  authenticationEntry  The entry of the user that has
    *                              authenticated.  It must not be
    *                              {@code null}.
-   * @param  simplePassword       The password that was used to
+   * @param  simpleBindDN         The bind DN that was used to
    *                              perform the simple authentication.
-   *                              It must not be {@code null}.
+   * @param  simplePassword       The password that was used to
+ *                                perform the simple authentication.
+ *                                It must not be {@code null}.
    * @param  isRoot               Indicates whether the authenticated
-   *                              user is a root user.
    */
   public AuthenticationInfo(Entry authenticationEntry,
+                            DN simpleBindDN,
                             ByteString simplePassword, boolean isRoot)
   {
     ensureNotNull(authenticationEntry, simplePassword);
 
     this.authenticationEntry = authenticationEntry;
+    this.simpleBindDN        = simpleBindDN;
     this.simplePassword      = simplePassword;
     this.isRoot              = isRoot;
 
-    isAuthenticated     = true;
-    mustChangePassword  = false;
-    authorizationEntry  = authenticationEntry;
-    saslMechanisms      = new HashSet<String>(0);
-    authenticationTypes = new HashSet<AuthenticationType>(1);
-
-    authenticationTypes.add(AuthenticationType.SIMPLE);
+    this.isAuthenticated     = true;
+    this.mustChangePassword  = false;
+    this.authorizationEntry  = authenticationEntry;
+    this.saslMechanism       = null;
+    this.saslCredentials     = null;
+    this.authenticationType  = AuthenticationType.SIMPLE;
   }
 
 
@@ -169,27 +171,33 @@ public final class AuthenticationInfo
    *                              authenticate.  This must be provided
    *                              in all-uppercase characters and must
    *                              not be {@code null}.
+   * @param  saslCredentials      The SASL credentials used to
+   *                              authenticate.
+   *                              It must not be {@code null}.
    * @param  isRoot               Indicates whether the authenticated
    *                              user is a root user.
    */
   public AuthenticationInfo(Entry authenticationEntry,
-                            String saslMechanism, boolean isRoot)
+                            String saslMechanism,
+                            ByteString saslCredentials,
+                            boolean isRoot)
   {
     ensureNotNull(authenticationEntry, saslMechanism);
 
     this.authenticationEntry = authenticationEntry;
     this.isRoot              = isRoot;
 
-    isAuthenticated    = true;
-    mustChangePassword = false;
-    authorizationEntry = authenticationEntry;
-    simplePassword     = null;
+    this.isAuthenticated    = true;
+    this.mustChangePassword = false;
+    this.authorizationEntry = authenticationEntry;
+    this.simpleBindDN       = null;
+    this.simplePassword     = null;
 
-    authenticationTypes = new HashSet<AuthenticationType>(1);
-    authenticationTypes.add(AuthenticationType.SASL);
+    this.authenticationType = AuthenticationType.SASL;
 
-    saslMechanisms = new HashSet<String>(1);
-    saslMechanisms.add(saslMechanism);
+    this.saslMechanism      = saslMechanism;
+    this.saslCredentials    = saslCredentials;
+
   }
 
 
@@ -211,12 +219,17 @@ public final class AuthenticationInfo
    *                              authenticate.  This must be provided
    *                              in all-uppercase characters and must
    *                              not be {@code null}.
+   * @param  saslCredentials      The SASL credentials used to
+   *                              authenticate.
+   *                              It must not be {@code null}.
    * @param  isRoot               Indicates whether the authenticated
    *                              user is a root user.
    */
   public AuthenticationInfo(Entry authenticationEntry,
                             Entry authorizationEntry,
-                            String saslMechanism, boolean isRoot)
+                            String saslMechanism,
+                            ByteString saslCredentials,
+                            boolean isRoot)
   {
     ensureNotNull(authenticationEntry, saslMechanism);
 
@@ -224,15 +237,15 @@ public final class AuthenticationInfo
     this.authorizationEntry  = authorizationEntry;
     this.isRoot              = isRoot;
 
-    isAuthenticated    = true;
-    mustChangePassword = false;
-    simplePassword     = null;
+    this.isAuthenticated    = true;
+    this.mustChangePassword = false;
+    this.simpleBindDN       = null;
+    this.simplePassword     = null;
 
-    authenticationTypes = new HashSet<AuthenticationType>(1);
-    authenticationTypes.add(AuthenticationType.SASL);
+    this.authenticationType = AuthenticationType.SASL;
 
-    saslMechanisms = new HashSet<String>(1);
-    saslMechanisms.add(saslMechanism);
+    this.saslMechanism      = saslMechanism;
+    this.saslCredentials    = saslCredentials;
   }
 
 
@@ -247,25 +260,6 @@ public final class AuthenticationInfo
   public boolean isAuthenticated()
   {
     return isAuthenticated;
-  }
-
-
-
-  /**
-   * Sets this authentication info structure to reflect that the
-   * client is not authenticated.
-   */
-  public void setUnauthenticated()
-  {
-    isAuthenticated     = false;
-    isRoot              = false;
-    mustChangePassword  = false;
-    simplePassword      = null;
-    authenticationEntry = null;
-    authorizationEntry  = null;
-
-    authenticationTypes.clear();
-    saslMechanisms.clear();
   }
 
 
@@ -327,64 +321,7 @@ public final class AuthenticationInfo
   public boolean hasAuthenticationType(AuthenticationType
                                             authenticationType)
   {
-    return authenticationTypes.contains(authenticationType);
-  }
-
-
-
-  /**
-   * Indicates whether this client has authenticated using any of the
-   * authentication types in the given collection.
-   *
-   * @param  types  The collection of authentication types for which
-   *                to make the determination.
-   *
-   * @return  {@code true} if the client has authenticated using any
-   *          of the specified authentication types, or {@code false}
-   *          if not.
-   */
-  public boolean hasAnyAuthenticationType(
-                      Collection<AuthenticationType> types)
-  {
-    for (AuthenticationType t : types)
-    {
-      if (authenticationTypes.contains(t))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * Retrieves the set of authentication types performed by the
-   * client.
-   *
-   * @return  The set of authentication types performed by the client.
-   */
-  public Set<AuthenticationType> getAuthenticationTypes()
-  {
-    return authenticationTypes;
-  }
-
-
-
-  /**
-   * Adds the provided authentication type to the set of
-   * authentication types completed by the client.  This should only
-   * be used in conjunction with multi-factor or step-up
-   * authentication mechanisms.
-   *
-   * @param  authenticationType  The authentication type to add for
-   *                             this client.
-   */
-  public void addAuthenticationType(AuthenticationType
-                                         authenticationType)
-  {
-    authenticationTypes.add(authenticationType);
+    return this.authenticationType == authenticationType;
   }
 
 
@@ -464,6 +401,21 @@ public final class AuthenticationInfo
 
 
   /**
+   * Retrieves the bind DN that the client used for simple
+   * authentication.
+   *
+   * @return  The bind DN that the client used for simple
+   *          authentication, or {@code null} if the client is not
+   *          authenticated using simple authentication.
+   */
+  public DN getSimpleBindDN()
+  {
+    return simpleBindDN;
+  }
+
+
+
+  /**
    * Retrieves the password that the client used for simple
    * authentication.
    *
@@ -491,65 +443,22 @@ public final class AuthenticationInfo
    */
   public boolean hasSASLMechanism(String saslMechanism)
   {
-    return saslMechanisms.contains(saslMechanism);
+    return this.saslMechanism.equals(saslMechanism);
   }
 
 
 
   /**
-   * Indicates whether this client has authenticated using any of the
-   * SASL mechanisms in the given collection.
-   *
-   * @param  mechanisms  The collection of SASL mechanisms for which
-   *                     to make the determination.
-   *
-   * @return  {@code true} if the client has authenticated using any
-   *          of the provided SASL mechanisms, or {@code false} if
-   *          not.
-   */
-  public boolean hasAnySASLMechanism(Collection<String> mechanisms)
-  {
-    for (String s : mechanisms)
-    {
-      if (saslMechanisms.contains(s))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * Retrieves the set of mechanisms that the client used for SASL
+   * Retrieves the SASL credentials that the client used for SASL
    * authentication.
    *
-   * @return  The set of mechanisms that the client used for SASL
-   *          authentication, or an empty set if SASL mechanism has
-   *          not been used.
+   * @return  The SASL credentials that the client used for SASL
+   *          authentication, or {@code null} if the client is not
+   *          authenticated using SASL authentication.
    */
-  public Set<String> getSASLMechanisms()
+  public ByteString getSASLCredentials()
   {
-    return saslMechanisms;
-  }
-
-
-
-  /**
-   * Adds the provided mechanism to the set of SASL mechanisms used by
-   * the client.  This should only be used in conjunction with
-   * multi-factor or step-up authentication mechanisms.
-   *
-   * @param  saslMechanism  The SASL mechanism to add to set of
-   *                        mechanisms for this client.  Note that
-   *                        this must be provided in all uppercase
-   *                        characters.
-   */
-  public void addSASLMechanism(String saslMechanism)
-  {
-    saslMechanisms.add(saslMechanism);
+    return saslCredentials;
   }
 
 
@@ -604,55 +513,16 @@ public final class AuthenticationInfo
       buffer.append("\"");
     }
 
-    if (! authenticationTypes.isEmpty())
+    if (authenticationType != null)
     {
-      Iterator<AuthenticationType> iterator =
-           authenticationTypes.iterator();
-      AuthenticationType authType = iterator.next();
-
-      if (iterator.hasNext())
-      {
-        buffer.append(",authTypes={");
-        buffer.append(authType);
-
-        while (iterator.hasNext())
-        {
-          buffer.append(",");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("}");
-      }
-      else
-      {
-        buffer.append(",authType=");
-        buffer.append(authType);
-      }
+      buffer.append(",authType=");
+      buffer.append(authenticationType);
     }
 
-    if (! saslMechanisms.isEmpty())
+    if (saslMechanism != null)
     {
-      Iterator<String> iterator = saslMechanisms.iterator();
-      String mech = iterator.next();
-
-      if (iterator.hasNext())
-      {
-        buffer.append(",saslMechanisms={");
-        buffer.append(mech);
-
-        while (iterator.hasNext())
-        {
-          buffer.append(",");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("}");
-      }
-      else
-      {
-        buffer.append(",saslMechanism=");
-        buffer.append(mech);
-      }
+      buffer.append(",saslMechanism=");
+      buffer.append(saslMechanism);
     }
 
     buffer.append(")");
@@ -687,8 +557,8 @@ public final class AuthenticationInfo
     authInfo.authenticationEntry = newAuthenticationEntry;
     authInfo.authorizationEntry  = newAuthorizationEntry;
 
-    authInfo.authenticationTypes.addAll(authenticationTypes);
-    authInfo.saslMechanisms.addAll(saslMechanisms);
+    authInfo.authenticationType  = authenticationType;
+    authInfo.saslMechanism       = saslMechanism;
 
     return authInfo;
   }

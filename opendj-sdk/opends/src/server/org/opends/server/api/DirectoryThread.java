@@ -30,6 +30,8 @@ package org.opends.server.api;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
@@ -76,6 +78,54 @@ import static org.opends.messages.CoreMessages.
 public class DirectoryThread
        extends Thread
 {
+  /**
+   * A factory which can be used by thread pool based services such as
+   * {@code Executor}s to dynamically create new
+   * {@code DirectoryThread} instances.
+   */
+  public static final class Factory implements ThreadFactory
+  {
+    // The name prefix used for all threads created using this
+    // factory.
+    private final String threadNamePrefix;
+
+    // The ID to use for the next thread created using this factory.
+    private final AtomicInteger nextID = new AtomicInteger();
+
+
+
+    /**
+     * Creates a new directory thread factory using the provided
+     * thread name prefix.
+     *
+     * @param threadNamePrefix
+     *          The name prefix used for all threads created using
+     *          this factory.
+     */
+    public Factory(String threadNamePrefix)
+    {
+      if (threadNamePrefix == null) {
+        throw new NullPointerException("Null thread name prefix");
+      }
+
+      this.threadNamePrefix = threadNamePrefix;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Thread newThread(Runnable r)
+    {
+      return new DirectoryThread(r, threadNamePrefix + " "
+          + nextID.getAndIncrement());
+    }
+
+  }
+
+
+
   /**
    * The tracer object for the debug logger.
    */
