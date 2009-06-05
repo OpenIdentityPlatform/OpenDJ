@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -84,7 +84,7 @@ public class StopServerTask extends StartStopTask
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont(
-              "<b>Server Stopped</b><br><br>",
+              "<b>"+INFO_CTRL_PANEL_SERVER_STOPPED.get()+"</b><br><br>",
               ColorAndFontConstants.progressFont));
         }
       });
