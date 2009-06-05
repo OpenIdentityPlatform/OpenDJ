@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -141,6 +141,28 @@ public class BaseDNDescriptor implements Comparable
     {
       BaseDNDescriptor desc = (BaseDNDescriptor)o;
       returnValue = desc.getDn().compareTo(getDn());
+      if (returnValue == 0)
+      {
+        returnValue = getType().compareTo(desc.getType());
+      }
+      if (returnValue == 0)
+      {
+        getBackend().getBackendID().compareTo(
+            desc.getBackend().getBackendID());
+      }
+      if (returnValue == 0)
+      {
+        returnValue = compare(getEntries(), desc.getEntries());
+      }
+      if (returnValue == 0)
+      {
+        returnValue = compare(getAgeOfOldestMissingChange(),
+            desc.getAgeOfOldestMissingChange());
+      }
+      if (returnValue == 0)
+      {
+        returnValue = compare(getMissingChanges(), desc.getMissingChanges());
+      }
     }
     return returnValue;
   }
@@ -280,5 +302,37 @@ public class BaseDNDescriptor implements Comparable
     hashCode = (getType().toString() + getAgeOfOldestMissingChange() +
           getDn() +
         getBackend().getBackendID() + getMissingChanges()).hashCode();
+  }
+
+  private int compare(int i1, int i2)
+  {
+    if (i1 == i2)
+    {
+      return 0;
+    }
+    else if (i1 > i2)
+    {
+      return 1;
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+  private int compare(long i1, long i2)
+  {
+    if (i1 == i2)
+    {
+      return 0;
+    }
+    else if (i1 > i2)
+    {
+      return 1;
+    }
+    else
+    {
+      return -1;
+    }
   }
 }
