@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader.ui;
@@ -114,9 +114,12 @@ public class WelcomePanel extends QuickSetupStepPanel {
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    return INFO_UPGRADE_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
-                    DynamicConstants.COMPACT_VERSION_STRING,
-                    DynamicConstants.BUILD_ID);
+    return Utils.getCustomizedObject(
+        "INFO_UPGRADE_WELCOME_PANEL_WEBSTART_INSTRUCTIONS",
+        INFO_UPGRADE_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
+            DynamicConstants.COMPACT_VERSION_STRING,
+            DynamicConstants.BUILD_ID),
+        Message.class);
   }
 
   /**

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -261,6 +261,22 @@ public abstract class
         DirectoryServer.deregisterSupportedFeature(oid);
       }
     }
+  }
+
+
+
+  /**
+   * Retrieves the name associated with this extended operation.
+   * Implementing classes should override this method with their
+   * own providing string representation of the operation name.
+   *
+   * @return  The name associated with this extended operation,
+   *          if any, or <CODE>null</CODE> if there is none.
+   */
+  public String getExtendedOperationName()
+  {
+    // Abstract, hence no name associated.
+    return null;
   }
 }
 

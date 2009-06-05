@@ -53,7 +53,7 @@ import org.opends.server.util.StaticUtils;
  * This implements defines the numericStringOrderingMatch matching rule defined
  * in X.520 and referenced in RFC 2252.
  */
-class NumericStringOrderingMatchingRule
+public class NumericStringOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

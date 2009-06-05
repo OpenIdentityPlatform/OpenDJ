@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -31,7 +31,6 @@ import org.opends.messages.Message;
 
 import java.util.List;
 
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.api.ClientConnection;
@@ -72,6 +71,7 @@ public class DisconnectClientTask
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return INFO_TASK_DISCONNECT_CLIENT_NAME.get();
   }
@@ -195,15 +195,14 @@ disconnectMessageLoop:
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     // Get the specified client connection.
     ClientConnection clientConnection = null;
     for (ConnectionHandler<?> handler : DirectoryServer.getConnectionHandlers())
     {
-      ConnectionHandler<? extends ConnectionHandlerCfg> connHandler =
-           (ConnectionHandler<? extends ConnectionHandlerCfg>) handler;
-      for (ClientConnection c : connHandler.getClientConnections())
+      for (ClientConnection c : handler.getClientConnections())
       {
         if (c.getConnectionID() == connectionID)
         {

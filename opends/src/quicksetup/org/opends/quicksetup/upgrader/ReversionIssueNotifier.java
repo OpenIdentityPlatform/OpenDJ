@@ -170,7 +170,7 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
   protected Message getLocalizedDetailMessage(
           VersionCompatibilityIssue.Cause cause)
   {
-    Message msg = cause.getLocalizedUpgradeMessage();
+    Message msg = cause.getLocalizedReversionMessage();
 
     // See if we need to supply a generic message
     Set<VersionCompatibilityIssue.Effect> effects = cause.getEffects();

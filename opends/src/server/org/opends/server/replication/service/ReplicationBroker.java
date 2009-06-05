@@ -59,6 +59,7 @@ import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.ReplicationServer;
 
 /**
  * The broker for Multi-master Replication.
@@ -995,17 +996,43 @@ public class ReplicationBroker
     {
 
       /*
-       * Some up to date servers, among them, choose the one that has the
-       * maximum number of changes to send us. This is the most up to date one
-       * regarding the whole topology. This server is the one which has the less
-       * difference with the topology server state. For comparison, we need to
-       * compute the difference for each server id with the topology server
-       * state.
+       * Some up to date servers, among them, choose either :
+       * - The local one
+       * - The one that has the maximum number of changes to send us.
+       *   This is the most up to date one regarding the whole topology.
+       *   This server is the one which has the less
+       *   difference with the topology server state.
+       *   For comparison, we need to compute the difference for each
+       *   server id with the topology server state.
        */
 
       Message message = NOTE_FOUND_CHANGELOGS_WITH_MY_CHANGES.get(
         upToDateServers.size(), baseDn, Short.toString(serverId));
       logError(message);
+
+      /*
+       * If there are local Replication Servers, remove all the other one
+       * from the list so that we are sure that we choose a local one.
+       */
+      boolean localRS = false;
+      for (String upServer : upToDateServers.keySet())
+      {
+        if (ReplicationServer.isLocalReplicationServer(upServer))
+        {
+          localRS = true;
+        }
+      }
+      if (localRS)
+      {
+        Iterator<String> it = upToDateServers.keySet().iterator();
+        while (it.hasNext())
+        {
+          if (!ReplicationServer.isLocalReplicationServer(it.next()))
+          {
+            it.remove();
+          }
+        }
+      }
 
       /*
        * First of all, compute the virtual server state for the whole topology,

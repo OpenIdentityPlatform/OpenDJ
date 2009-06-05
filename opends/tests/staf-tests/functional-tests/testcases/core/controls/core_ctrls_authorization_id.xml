@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -35,173 +35,193 @@
     <sequence>
       
       <block name="'ctrls_authorization_id'">
+
+        <try>
       
-        <sequence>
-          
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          
-          <call function="'testSuite_Preamble'"/>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
-          <call function="'core_setup'" />
-          
-          <!--- Test Suite information
-          #@TestSuiteName       Core Controls authorization id
-          #@TestSuitePurpose    Verify that the controls functionality is 
-                                working in the Directory Server.
-          #@TestSuiteGroup      core: Controls: authorization id
-          #@TestScript          core_ctrls_authorization_id.xml
-          -->
-          
-          <!-- Global variables -->
-          <script>
-            peopleDn = 'ou=North America,o=core tests,dc=example,dc=com'
-          </script>
-          
-          
-          <!--- Test Case information
-          #@TestMarker          Core Controls authorization id Tests
-          #@TestName            Search with directory manager user
-          #@TestPurpose         Check reportAuthzID option with dir manager
-          #@TestPreamble
-          #@TestSteps           Do a search and check the outputs
-          #@TestPostamble
-          #@TestResult
-          -->
-          <testcase name="getTestCaseName('Search with Directory Manager')">
+          <sequence>
+            
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='core'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            
+            <call function="'testSuite_Preamble'"/>
+            
+           <call function="'common_setup'">
+              {
+                'quickStart'  : False,
+                'startServer' : True,
+                'stopServer'  : False,
+                'loadData'    : True,
+                'ldifFile'    : '%s/core/ldifs/core_test_1K.ldif' % remote.data
+              }
+            </call>
+            
+            <!--- Test Suite information
+            #@TestSuiteName       Core Controls authorization id
+            #@TestSuitePurpose    Verify that the controls functionality is 
+                                  working in the Directory Server.
+            #@TestSuiteGroup      core: Controls: authorization id
+            #@TestScript          core_ctrls_authorization_id.xml
+            -->
+            
+            <!-- Global variables -->
+            <script>
+              peopleDn = 'ou=North America,o=core tests,dc=example,dc=com'
+            </script>
+            
+            
+            <!--- Test Case information
+            #@TestMarker          Core Controls authorization id Tests
+            #@TestName            Search with directory manager user
+            #@TestPurpose         Check reportAuthzID option with dir manager
+            #@TestPreamble
+            #@TestSteps           Do a search and check the outputs
+            #@TestPostamble
+            #@TestResult
+            -->
+            <testcase name="getTestCaseName('Search with Directory Manager')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                
+                <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'uid=user.1,%s' % peopleDn ,
+                  'dsFilter'         : 'objectclass=*' ,
+                  'extraParams'      : '--reportAuthzID'
+                }
+                </call>
+                <!-- ========== -->
+                <script>
+                  string1 = '# Bound with authorization ID dn:'
+                  string2 = 'cn=Directory Manager,cn=Root DNs,cn=config'
+                  string2find = '%s%s' % (string1, string2)
+                </script>
+                <call function="'CheckMatches'">
+                { 
+                  'string2find'   : string2find ,
+                  'mainString'    : STAXResult[0][1] ,
+                  'nbExpected'    : 1 ,
+                  'caseSensitive' : False
+                }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+            
+            
+            <!--- Test Case information
+            #@TestMarker          Core Controls authorization id Tests
+            #@TestName            Search with a user entry
+            #@TestPurpose         Check reportAuthzID option with a user
+            #@TestPreamble
+            #@TestSteps           Do a search and check the outputs
+            #@TestPostamble
+            #@TestResult
+            -->
+            <testcase name="getTestCaseName('Search with a user entry')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <script>
+                  userDn = 'uid=user.1,%s' % peopleDn
+                </script>
+                <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : userDn ,
+                  'dsInstancePswd'   : 'password' ,
+                  'dsBaseDN'         : userDn ,
+                  'dsFilter'         : 'objectclass=*' ,
+                  'extraParams'      : '--reportAuthzID'
+                }
+                </call>
+                <!-- ========== -->
+                <script>
+                  string1 = '# Bound with authorization ID dn:'
+                  string2 = '%s' % userDn
+                  string2find = '%s%s' % (string1, string2)
+                </script>
+                <call function="'CheckMatches'">
+                { 
+                  'string2find' : string2find ,
+                  'mainString'  : STAXResult[0][1] ,
+                  'nbExpected'  : 1
+                }
+                </call>
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+            
+            
+            <!--- Test Case information
+            #@TestMarker          Core Controls authorization id Tests
+            #@TestName            Search with a bad baseDn
+            #@TestPurpose         Check reportAuthzID option with bad baseDn
+            #@TestPreamble
+            #@TestSteps           Do a search and check the outputs
+            #@TestPostamble
+            #@TestResult
+            -->
+            <testcase name="getTestCaseName('Search with a bad baseDn')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <script>
+                  userDn = 'uid=user.1,%s' % peopleDn
+                </script>
+                <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : userDn ,
+                  'dsInstancePswd'   : 'password' ,
+                  'dsBaseDN'         : 'uid=hello,%s' % peopleDn,
+                  'dsFilter'         : 'objectclass=*' ,
+                  'extraParams'      : '--reportAuthzID' ,
+                  'expectedRC'       : 32
+                }
+                </call>
+                <!-- ========== -->
+                <script>
+                  string1 = '# Bound with authorization ID dn:'
+                  string2 = '%s' % userDn
+                  string2find = '%s%s' % (string1, string2)
+                </script>
+                <call function="'CheckMatches'">
+                { 
+                  'string2find' : string2find ,
+                  'mainString'  : STAXResult[0][1] ,
+                  'nbExpected'  : 1
+                }
+                </call>
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+            
+          </sequence>
+
+          <finally>
             <sequence>
-              <call function="'testCase_Preamble'"/>
-              
-              <call function="'ldapSearchWithScript'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'         : 'uid=user.1,%s' % peopleDn ,
-                'dsFilter'         : 'objectclass=*' ,
-                'extraParams'      : '--reportAuthzID'
-              }
-              </call>
-              <!-- ========== -->
-              <script>
-                string1 = '# Bound with authorization ID dn:'
-                string2 = 'cn=Directory Manager,cn=Root DNs,cn=config'
-                string2find = '%s%s' % (string1, string2)
-              </script>
-              <call function="'CheckMatches'">
-              { 
-                'string2find'   : string2find ,
-                'mainString'    : STAXResult[0][1] ,
-                'nbExpected'    : 1 ,
-                'caseSensitive' : False
-              }
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Controls Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-          </testcase>
-          
-          
-          <!--- Test Case information
-          #@TestMarker          Core Controls authorization id Tests
-          #@TestName            Search with a user entry
-          #@TestPurpose         Check reportAuthzID option with a user
-          #@TestPreamble
-          #@TestSteps           Do a search and check the outputs
-          #@TestPostamble
-          #@TestResult
-          -->
-          <testcase name="getTestCaseName('Search with a user entry')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <script>
-                userDn = 'uid=user.1,%s' % peopleDn
-              </script>
-              <call function="'ldapSearchWithScript'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : userDn ,
-                'dsInstancePswd'   : 'password' ,
-                'dsBaseDN'         : userDn ,
-                'dsFilter'         : 'objectclass=*' ,
-                'extraParams'      : '--reportAuthzID'
-              }
-              </call>
-              <!-- ========== -->
-              <script>
-                string1 = '# Bound with authorization ID dn:'
-                string2 = '%s' % userDn
-                string2find = '%s%s' % (string1, string2)
-              </script>
-              <call function="'CheckMatches'">
-              { 
-                'string2find' : string2find ,
-                'mainString'  : STAXResult[0][1] ,
-                'nbExpected'  : 1
-              }
-              </call>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase>
-          
-          
-          <!--- Test Case information
-          #@TestMarker          Core Controls authorization id Tests
-          #@TestName            Search with a bad baseDn
-          #@TestPurpose         Check reportAuthzID option with bad baseDn
-          #@TestPreamble
-          #@TestSteps           Do a search and check the outputs
-          #@TestPostamble
-          #@TestResult
-          -->
-          <testcase name="getTestCaseName('Search with a bad baseDn')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <script>
-                userDn = 'uid=user.1,%s' % peopleDn
-              </script>
-              <call function="'ldapSearchWithScript'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : userDn ,
-                'dsInstancePswd'   : 'password' ,
-                'dsBaseDN'         : 'uid=hello,%s' % peopleDn,
-                'dsFilter'         : 'objectclass=*' ,
-                'extraParams'      : '--reportAuthzID' ,
-                'expectedRC'       : 32
-              }
-              </call>
-              <!-- ========== -->
-              <script>
-                string1 = '# Bound with authorization ID dn:'
-                string2 = '%s' % userDn
-                string2find = '%s%s' % (string1, string2)
-              </script>
-              <call function="'CheckMatches'">
-              { 
-                'string2find' : string2find ,
-                'mainString'  : STAXResult[0][1] ,
-                'nbExpected'  : 1
-              }
-              </call>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </testcase>
-          
-          
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'core_cleanup'" />
-          
-          <call function="'testSuite_Postamble'"/>
-          
-        </sequence>
+          </finally>
+ 
+        </try>
         
       </block>
       

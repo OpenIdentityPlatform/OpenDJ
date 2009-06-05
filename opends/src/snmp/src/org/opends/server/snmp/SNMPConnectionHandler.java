@@ -160,16 +160,6 @@ public final class SNMPConnectionHandler
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override()
-    public void finalizeConnectionHandler(Message finalizeReason,
-            boolean closeConnections) {
-        if (this.provider!=null) {
-            this.provider.finalizeConnectionHandler();
-        }
-    }
 
     /**
      * {@inheritDoc}
@@ -315,6 +305,16 @@ public final class SNMPConnectionHandler
      */
     public boolean isOperational() {
         return this.isOperational;
+    }
+
+    /**
+     * {@inheritDoc}
+    */
+    @Override
+    public void finalizeConnectionHandler(Message finalizeReason) {
+        if (this.provider!=null) {
+            this.provider.finalizeConnectionHandler();
+        }
     }
 }
 

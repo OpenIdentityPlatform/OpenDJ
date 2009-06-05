@@ -685,6 +685,44 @@ public class SchemaBackendTestCase
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
+   * attribute type with a valid syntax (but using a textual OID rather than
+   * numeric) and that has no space before last parenthesis.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAttributeType()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+         "dn: cn=schema",
+         "changetype: modify",
+         "add: attributeTypes",
+         "attributeTypes: ( testaddattributetypenospacebeforepathenthesis-oid " +
+              "NAME 'testAddAttributeTypeNoSpaceBeforeParenthesis' " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
+              "SINGLE-VALUE)");
+
+    String attrName = "testaddattributetypenospacebeforeparenthesis";
+    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+  }
+
+
+
+  /**
+   * Tests the behavior of the schema backend when attempting to add a new
    * attribute type to a specific schema file.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -5261,6 +5299,56 @@ public class SchemaBackendTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
   }
+
+
+
+  /**
+   * Tests the behavior of schema backend when attribute type definitions
+   * are added without a space before closing parenthesis.
+   */
+  @Test()
+ public void   testAddAttributeTypeNoSpaceBeforeParenthesis() throws Exception
+  {
+
+   String path = TestCaseUtils.createTempFile(
+           "dn: cn=schema",
+           "changetype: modify",
+           "add: attributeTypes",
+           "attributeTypes: ( test-oid1)",
+           "attributeTypes: ( test-oid2 NAME 'test2')",
+           "attributeTypes: ( test-oid3 NAME ('test3'  'test4'))",
+           "attributeTypes: ( test-oid4 DESC 'test')",
+           "attributeTypes: ( test-oid5 OBSOLETE)",
+           "attributeTypes: ( test-oid6 SUP test-oid4)",
+           "attributeTypes: ( test-oid7 EQUALITY caseIgnoreMatch)",
+           "attributeTypes: ( test-oid8 SINGLE-VALUE)",
+           "attributeTypes: ( test-oid9 COLLECTIVE)",
+           "attributeTypes: ( test-oid10 NO-USER-MODIFICATION USAGE directoryOperation)",
+           "attributeTypes: ( test-oid11 USAGE userApplications)",
+           "attributeTypes: (test-oid12 EQUALITY caseIgnoreMatch" +
+             " SUBSTR caseIgnoreSubstringsMatch)",
+           "attributeTypes: (test-oid13 EQUALITY caseIgnoreMatch ORDERING " +
+              " caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch  " +
+              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 X-ORIGIN 'RFC 4519')");
+
+
+           String[] args =
+          {
+            "-h", "127.0.0.1",
+            "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+            "-D", "cn=Directory Manager",
+            "-w", "password",
+            "-f", path
+          };
+
+      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+
+    }
+
+
+
+
+
 
 
 

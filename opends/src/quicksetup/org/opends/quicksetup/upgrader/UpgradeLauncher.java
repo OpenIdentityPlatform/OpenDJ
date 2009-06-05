@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -117,7 +117,8 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected Message getFrameTitle() {
-    return INFO_FRAME_UPGRADE_TITLE.get();
+    return Utils.getCustomizedObject("INFO_FRAME_UPGRADE_TITLE",
+        INFO_FRAME_UPGRADE_TITLE.get(), Message.class);
   }
 
   /**

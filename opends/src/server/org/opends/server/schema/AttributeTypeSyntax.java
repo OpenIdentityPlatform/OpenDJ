@@ -346,7 +346,8 @@ public class AttributeTypeSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c = valueStr.charAt(pos)) != ')')
       {
         if (c == '.')
         {
@@ -376,18 +377,21 @@ public class AttributeTypeSyntax
         {
           lastWasPeriod = false;
         }
+        pos++;
       }
     }
     else
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c=valueStr.charAt(pos))!=')')
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
             ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
+          pos++;
         }
         else
         {
@@ -412,7 +416,7 @@ public class AttributeTypeSyntax
     }
     else
     {
-      oid = lowerStr.substring(oidStartPos, (pos-1));
+      oid = lowerStr.substring(oidStartPos, pos);
     }
 
 
@@ -760,8 +764,9 @@ public class AttributeTypeSyntax
             // closing curly brace.
             if (c == '}')
             {
-              // The next character must be a space.
-              if ((c = lowerStr.charAt(pos)) != ' ')
+              // The next character must be a space or a closing parenthesis.
+              if ((c = lowerStr.charAt(pos)) != ' '
+                      &&  (c = lowerStr.charAt(pos)) != ')')
               {
                 Message message =
                   ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
@@ -812,6 +817,12 @@ public class AttributeTypeSyntax
             else if (c == ' ')
             {
               // It's the end of the value.
+              break;
+            }
+            else if(c == ')')
+            {
+              // As per RFC 4512 (4.1.2) it is end of the value.
+              --pos;
               break;
             }
             else
@@ -885,6 +896,11 @@ public class AttributeTypeSyntax
           c = lowerStr.charAt(pos++);
           if (c == ' ')
           {
+            break;
+          }
+          else if(c == ')')
+          {
+            pos--;
             break;
           }
           else
@@ -1054,11 +1070,20 @@ public class AttributeTypeSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' ')
+            && (c = valueStr.charAt(startPos)) != ')')
     {
       tokenName.append(c);
+      startPos++;
     }
 
+    //We may be left with only ')' which is not part of the token yet.
+    //Let us see if it is the case.
+    if(tokenName.length()==0 && c == ')')
+    {
+      tokenName.append(c);
+      startPos++;
+    }
 
     // Skip over any trailing spaces after the value.
     while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -163,7 +163,7 @@ public class ConnectionHandlerConfigManager implements
     // Attempt to get the existing connection handler. This will only
     // succeed if it was enabled.
     DN dn = configuration.dn();
-    ConnectionHandler connectionHandler = connectionHandlers.get(dn);
+    ConnectionHandler<?> connectionHandler = connectionHandlers.get(dn);
 
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -185,9 +185,7 @@ public class ConnectionHandlerConfigManager implements
 
           // Register the connection handler with the Directory
           // Server.
-          DirectoryServer.registerConnectionHandler(
-               (ConnectionHandler<? extends ConnectionHandlerCfg>)
-               connectionHandler);
+          DirectoryServer.registerConnectionHandler(connectionHandler);
         } catch (ConfigException e) {
           if (debugEnabled())
           {
@@ -228,7 +226,7 @@ public class ConnectionHandlerConfigManager implements
 
 
         connectionHandler.finalizeConnectionHandler(
-                INFO_CONNHANDLER_CLOSED_BY_DISABLE.get(), false);
+                INFO_CONNHANDLER_CLOSED_BY_DISABLE.get());
       }
     }
 
@@ -259,8 +257,7 @@ public class ConnectionHandlerConfigManager implements
       connectionHandlers.remove(dn);
 
       connectionHandler.finalizeConnectionHandler(
-              INFO_CONNHANDLER_CLOSED_BY_DELETE.get(),
-              false);
+              INFO_CONNHANDLER_CLOSED_BY_DELETE.get());
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
@@ -421,7 +418,7 @@ public class ConnectionHandlerConfigManager implements
 
     // Load the class and cast it to a connection handler.
     Class<? extends ConnectionHandler> theClass;
-    ConnectionHandler connectionHandler;
+    ConnectionHandler<?> connectionHandler;
 
     try {
       theClass = pd.loadClass(className, ConnectionHandler.class);
@@ -461,8 +458,7 @@ public class ConnectionHandlerConfigManager implements
     }
 
     // The connection handler has been successfully initialized.
-    return (ConnectionHandler<? extends ConnectionHandlerCfg>)
-           connectionHandler;
+    return connectionHandler;
   }
 
 

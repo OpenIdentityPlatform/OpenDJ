@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
 
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.server.util.DynamicConstants;
 
 import java.awt.Component;
@@ -78,17 +79,23 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
     {
       String cmd = Utils.isWindows()? Installation.WINDOWS_SETUP_FILE_NAME:
           Installation.UNIX_SETUP_FILE_NAME;
-      message = INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
+      message = Utils.getCustomizedObject(
+          "INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS",
+          INFO_WELCOME_PANEL_WEBSTART_INSTRUCTIONS.get(
               UIFactory.applyFontToHtml(cmd,
                       UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
               DynamicConstants.COMPACT_VERSION_STRING,
-              DynamicConstants.BUILD_ID);
+              DynamicConstants.BUILD_ID),
+          Message.class);
     }
     else
     {
-      message = INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
+      message = Utils.getCustomizedObject(
+          "INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS",
+          INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
               DynamicConstants.COMPACT_VERSION_STRING,
-              DynamicConstants.BUILD_ID);
+              DynamicConstants.BUILD_ID),
+          Message.class);
     }
     return message;
   }

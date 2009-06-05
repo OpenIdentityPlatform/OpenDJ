@@ -51,7 +51,7 @@ import org.opends.server.util.StaticUtils;
  * This class defines the uuidOrderingMatch matching rule defined in RFC 4530.
  * This will be the default ordering matching rule for the UUID syntax.
  */
-class UUIDOrderingMatchingRule
+public class UUIDOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

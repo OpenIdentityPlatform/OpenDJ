@@ -286,7 +286,7 @@ public final class ASN1ByteChannelReader implements ASN1Reader
       int maxElementSize)
   {
     this.byteChannel = channel;
-    this.byteBuffer = ByteBuffer.allocateDirect(bufferSize);
+    this.byteBuffer = ByteBuffer.allocate(bufferSize);
     this.byteBuffer.flip();
     this.saveBuffer = new ByteStringBuilder();
     this.saveBufferReader = saveBuffer.asReader();

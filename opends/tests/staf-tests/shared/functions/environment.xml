@@ -148,6 +148,19 @@
           newLine='\n'
       </script>
       
+      <!-- Default LDAP Server Object -->
+      <script>
+        server=directory_server()
+        server.location   = STAF_REMOTE_HOSTNAME
+        server.host       = DIRECTORY_INSTANCE_HOST
+        server.port       = DIRECTORY_INSTANCE_PORT
+        server.adminport  = DIRECTORY_INSTANCE_ADMIN_PORT
+        server.dn         = DIRECTORY_INSTANCE_DN
+        server.password   = DIRECTORY_INSTANCE_PSWD
+        server.suffix     = DIRECTORY_INSTANCE_SFX
+        server.backend    = DIRECTORY_INSTANCE_BE
+      </script>
+
       <!-- Set the signal handlers -->
       <call function="'signals'"/>
       

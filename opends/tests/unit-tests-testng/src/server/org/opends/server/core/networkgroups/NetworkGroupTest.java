@@ -1017,13 +1017,14 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
             DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
     ByteString password = ByteString.valueOf("password");
     ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, password, true));
+          new AuthenticationInfo(userEntry, userEntry.getDN(), password, true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
     assertEquals(ng, networkGroup2);
 
     // Use SASL on this connection
     ClientConnection connection3 = new InternalClientConnection(
-            new AuthenticationInfo(userEntry, "external", true));
+            new AuthenticationInfo(userEntry, "external", ByteString.valueOf(
+                "cn=Directory Manager, cn=Root DNs, cn=config"), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection3);
     assertEquals(ng, networkGroup3);
 
@@ -1068,7 +1069,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
             DN.decode("cn=Directory Manager, cn=Root DNs, cn=config"));
     ByteString password = ByteString.valueOf("password");
     ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, password, true));
+          new AuthenticationInfo(userEntry, userEntry.getDN(), password, true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection2);
     if (match) {
       assertEquals(ng, networkGroup);
@@ -1078,7 +1079,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Use SASL on this connection
     ClientConnection connection3 = new InternalClientConnection(
-            new AuthenticationInfo(userEntry, "external", true));
+            new AuthenticationInfo(userEntry, "external", ByteString.valueOf(
+                "cn=Directory Manager, cn=Root DNs, cn=config"), true));
     ng = NetworkGroup.findMatchingNetworkGroup(connection3);
     if (match) {
       assertEquals(ng, networkGroup);

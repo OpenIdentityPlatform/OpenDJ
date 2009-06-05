@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 
 
 import java.net.*;
-import java.nio.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 import javax.management.Notification;
@@ -38,7 +37,6 @@ import javax.management.NotificationListener;
 import javax.management.remote.JMXConnectionNotification;
 import org.opends.server.api.*;
 import org.opends.server.core.*;
-import org.opends.server.extensions.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -246,6 +244,7 @@ public class JmxClientConnection
    *
    * @return  The unique identifier that has been assigned to this connection.
    */
+  @Override
   public long getConnectionID()
   {
     return connectionID;
@@ -256,7 +255,8 @@ public class JmxClientConnection
    *
    * @return  The connection handler that accepted this client connection.
    */
-  public ConnectionHandler getConnectionHandler()
+  @Override
+  public ConnectionHandler<?> getConnectionHandler()
   {
     return jmxConnectionHandler;
   }
@@ -268,6 +268,7 @@ public class JmxClientConnection
    * @return  The protocol that the client is using to communicate with the
    *          Directory Server.
    */
+  @Override
   public String getProtocol()
   {
     return "jmx";
@@ -280,6 +281,7 @@ public class JmxClientConnection
    *
    * @return  A string representation of the address of the client.
    */
+  @Override
   public String getClientAddress()
   {
     return "jmx";
@@ -292,6 +294,7 @@ public class JmxClientConnection
    *
    * @return  The port number for this connection on the client system.
    */
+  @Override
   public int getClientPort()
   {
     return -1;
@@ -306,6 +309,7 @@ public class JmxClientConnection
    * @return  A string representation of the address on the server to which the
    *          client connected.
    */
+  @Override
   public String getServerAddress()
   {
     return "jmx";
@@ -321,6 +325,7 @@ public class JmxClientConnection
    *         or -1 if there is no server port associated with this
    *         connection (e.g. internal client).
    */
+  @Override
   public int getServerPort()
   {
     return -1;
@@ -336,6 +341,7 @@ public class JmxClientConnection
    *          client system.  It may be <CODE>null</CODE> if the client is not
    *          connected over an IP-based connection.
    */
+  @Override
   public InetAddress getRemoteAddress()
   {
     return null;
@@ -352,6 +358,7 @@ public class JmxClientConnection
    *          be <CODE>null</CODE> if the client is not connected over an
    *          IP-based connection.
    */
+  @Override
   public InetAddress getLocalAddress()
   {
     return null;
@@ -370,6 +377,7 @@ public class JmxClientConnection
    *          secure mechanism to communicate with the server, or
    *          <CODE>false</CODE> if not.
    */
+  @Override
   public boolean isSecure()
   {
       return false;
@@ -392,37 +400,12 @@ public class JmxClientConnection
 
 
   /**
-   * Indicates that the data in the provided buffer has been read from the
-   * client and should be processed.  The contents of the provided buffer will
-   * be in clear-text (the data may have been passed through a connection
-   * security provider to obtain the clear-text version), and may contain part
-   * or all of one or more client requests.
-   *
-   * @param  buffer  The byte buffer containing the data available for reading.
-   *
-   * @return  <CODE>true</CODE> if all the data in the provided buffer was
-   *          processed and the client connection can remain established, or
-   *          <CODE>false</CODE> if a decoding error occurred and requests from
-   *          this client should no longer be processed.  Note that if this
-   *          method does return <CODE>false</CODE>, then it must have already
-   *          disconnected the client.
-   */
-  public boolean processDataRead(ByteBuffer buffer)
-  {
-    // This method will not do anything with the data because there is no
-    // actual "connection" from which information can be read, nor any protocol
-    // to use to read it.
-    return false;
-  }
-
-
-
-  /**
    * Sends a response to the client based on the information in the provided
    * operation.
    *
    * @param  operation  The operation for which to send the response.
    */
+  @Override
   public void sendResponse(Operation operation)
   {
     // There will not be any response sent by this method, since there is not an
@@ -902,6 +885,7 @@ public class JmxClientConnection
    *                              the entry to the client and the search should
    *                              be terminated.
    */
+  @Override
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
          throws DirectoryException
@@ -928,6 +912,7 @@ public class JmxClientConnection
    *                              the reference to the client and the search
    *                              should be terminated.
    */
+  @Override
   public boolean sendSearchReference(SearchOperation searchOperation,
                                      SearchResultReference searchReference)
          throws DirectoryException
@@ -948,6 +933,7 @@ public class JmxClientConnection
    * @return  <CODE>true</CODE> if processing on the associated operation should
    *          continue, or <CODE>false</CODE> if not.
    */
+  @Override
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
@@ -973,6 +959,7 @@ public class JmxClientConnection
    *                           <CODE>null</CODE> if no notification is to be
    *                           sent.
    */
+  @Override
   public void disconnect(DisconnectReason disconnectReason,
                          boolean sendNotification,
                          Message message)
@@ -991,7 +978,7 @@ public class JmxClientConnection
     try
     {
       UnbindOperationBasis unbindOp = new UnbindOperationBasis(
-          (ClientConnection) this,
+          this,
           this.nextOperationID(),
           this.nextMessageID(), null);
 
@@ -1031,6 +1018,7 @@ public class JmxClientConnection
    *
    * @return  The set of operations in progress for this client connection.
    */
+  @Override
   public Collection<Operation> getOperationsInProgress()
   {
     return operationList;
@@ -1046,6 +1034,7 @@ public class JmxClientConnection
    * @return  The operation in progress with the specified message ID, or
    *          <CODE>null</CODE> if no such operation could be found.
    */
+  @Override
   public AbstractOperation getOperationInProgress(int messageID)
   {
     // Jmx operations will not be tracked.
@@ -1065,6 +1054,7 @@ public class JmxClientConnection
    * @return  <CODE>true</CODE> if the operation was found and removed from the
    *          set of operations in progress, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean removeOperationInProgress(int messageID)
   {
     // No implementation is required, since Jmx operations will not be
@@ -1084,6 +1074,7 @@ public class JmxClientConnection
    * @return  A cancel result that either indicates that the cancel was
    *          successful or provides a reason that it was not.
    */
+  @Override
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
@@ -1101,6 +1092,7 @@ public class JmxClientConnection
    * @param  cancelRequest  An object providing additional information about how
    *                        the cancel should be processed.
    */
+  @Override
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
     // No implementation is required since Jmx operations cannot be
@@ -1118,6 +1110,7 @@ public class JmxClientConnection
    * @param  messageID      The message ID of the operation that should not be
    *                        canceled.
    */
+  @Override
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
@@ -1130,6 +1123,7 @@ public class JmxClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getMonitorSummary()
   {
     StringBuilder buffer = new StringBuilder();
@@ -1159,6 +1153,7 @@ public class JmxClientConnection
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("JmxClientConnection(connID=");
@@ -1173,9 +1168,9 @@ public class JmxClientConnection
    * Release the cursor in case the iterator was badly used and releaseCursor
    * was never called.
    */
+  @Override
   protected void finalize()
   {
-    super.finalize();
     disconnect(DisconnectReason.OTHER, false, null);
   }
 
@@ -1193,6 +1188,7 @@ public class JmxClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getSSF() {
       return 0;
   }

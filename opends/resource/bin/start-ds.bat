@@ -48,7 +48,7 @@ set SCRIPT_NAME=start-ds
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTALL_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 
 set ERROR_CODE=%errorlevel%
 if NOT %ERROR_CODE% == 0 goto exitErrorCode

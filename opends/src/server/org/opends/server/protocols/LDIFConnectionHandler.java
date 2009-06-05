@@ -180,8 +180,7 @@ public final class LDIFConnectionHandler
    * {@inheritDoc}
    */
   @Override()
-  public void finalizeConnectionHandler(Message finalizeReason,
-                                        boolean closeConnections)
+  public void finalizeConnectionHandler(Message finalizeReason)
   {
     stopRequested = true;
 
@@ -671,6 +670,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return currentConfig.dn();

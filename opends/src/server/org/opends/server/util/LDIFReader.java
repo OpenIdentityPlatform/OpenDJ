@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -227,16 +228,16 @@ public final class LDIFReader
       // Read the set of attributes from the entry.
       HashMap<ObjectClass,String> objectClasses =
            new HashMap<ObjectClass,String>();
-      HashMap<AttributeType,List<Attribute>> userAttributes =
-           new HashMap<AttributeType,List<Attribute>>();
-      HashMap<AttributeType,List<Attribute>> operationalAttributes =
-           new HashMap<AttributeType,List<Attribute>>();
+      HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders =
+           new HashMap<AttributeType,List<AttributeBuilder>>();
+      HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
+           new HashMap<AttributeType,List<AttributeBuilder>>();
       try
       {
         for (StringBuilder line : lines)
         {
-          readAttribute(lines, line, entryDN, objectClasses, userAttributes,
-                        operationalAttributes, checkSchema);
+          readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
+                        operationalAttrBuilders, checkSchema);
         }
       }
       catch (LDIFException e)
@@ -247,6 +248,38 @@ public final class LDIFReader
 
       // Create the entry and see if it is one that should be included in the
       // import.
+      HashMap<AttributeType,List<Attribute>> userAttributes =
+        new HashMap<AttributeType,List<Attribute>>(
+        userAttrBuilders.size());
+      HashMap<AttributeType,List<Attribute>> operationalAttributes =
+        new HashMap<AttributeType,List<Attribute>>(
+        operationalAttrBuilders.size());
+      for (Map.Entry<AttributeType, List<AttributeBuilder>>
+           attrTypeEntry : userAttrBuilders.entrySet())
+      {
+        AttributeType attrType = attrTypeEntry.getKey();
+        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
+        List<Attribute> attrList =
+          new ArrayList<Attribute>(attrBuilderList.size());
+        for (AttributeBuilder builder : attrBuilderList)
+        {
+          attrList.add(builder.toAttribute());
+        }
+        userAttributes.put(attrType, attrList);
+      }
+      for (Map.Entry<AttributeType, List<AttributeBuilder>>
+           attrTypeEntry : operationalAttrBuilders.entrySet())
+      {
+        AttributeType attrType = attrTypeEntry.getKey();
+        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
+        List<Attribute> attrList =
+          new ArrayList<Attribute>(attrBuilderList.size());
+        for (AttributeBuilder builder : attrBuilderList)
+        {
+          attrList.add(builder.toAttribute());
+        }
+        operationalAttributes.put(attrType, attrList);
+      }
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
@@ -832,8 +865,8 @@ public final class LDIFReader
   private void readAttribute(LinkedList<StringBuilder> lines,
        StringBuilder line, DN entryDN,
        HashMap<ObjectClass,String> objectClasses,
-       HashMap<AttributeType,List<Attribute>> userAttributes,
-       HashMap<AttributeType,List<Attribute>> operationalAttributes,
+       HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders,
+       HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders,
        boolean checkSchema)
           throws LDIFException
   {
@@ -938,39 +971,38 @@ public final class LDIFReader
 
       AttributeValue attributeValue =
           AttributeValues.create(attrType, value);
-      List<Attribute> attrList;
+      List<AttributeBuilder> attrList;
       if (attrType.isOperational())
       {
-        attrList = operationalAttributes.get(attrType);
+        attrList = operationalAttrBuilders.get(attrType);
         if (attrList == null)
         {
           AttributeBuilder builder = new AttributeBuilder(attribute, true);
           builder.add(attributeValue);
-          attrList = new ArrayList<Attribute>();
-          attrList.add(builder.toAttribute());
-          operationalAttributes.put(attrType, attrList);
+          attrList = new ArrayList<AttributeBuilder>();
+          attrList.add(builder);
+          operationalAttrBuilders.put(attrType, attrList);
           return;
         }
       }
       else
       {
-        attrList = userAttributes.get(attrType);
+        attrList = userAttrBuilders.get(attrType);
         if (attrList == null)
         {
           AttributeBuilder builder = new AttributeBuilder(attribute, true);
           builder.add(attributeValue);
-          attrList = new ArrayList<Attribute>();
-          attrList.add(builder.toAttribute());
-          userAttributes.put(attrType, attrList);
+          attrList = new ArrayList<AttributeBuilder>();
+          attrList.add(builder);
+          userAttrBuilders.put(attrType, attrList);
           return;
         }
       }
 
-
       // Check to see if any of the attributes in the list have the same set of
       // options.  If so, then try to add a value to that attribute.
       for (int i = 0; i < attrList.size(); i++) {
-        Attribute a = attrList.get(i);
+        AttributeBuilder a = attrList.get(i);
 
         if (a.optionsEqual(attribute.getOptions()))
         {
@@ -1018,19 +1050,16 @@ public final class LDIFReader
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
 
-          AttributeBuilder builder = new AttributeBuilder(a);
-          builder.add(attributeValue);
-          attrList.set(i, builder.toAttribute());
+          a.add(attributeValue);
           return;
         }
       }
-
 
       // No set of matching options was found, so create a new one and
       // add it to the list.
       AttributeBuilder builder = new AttributeBuilder(attribute, true);
       builder.add(attributeValue);
-      attrList.add(builder.toAttribute());
+      attrList.add(builder);
       return;
     }
   }
@@ -1552,12 +1581,12 @@ public final class LDIFReader
 
     HashMap<ObjectClass,String> objectClasses =
       new HashMap<ObjectClass,String>();
-    HashMap<AttributeType,List<Attribute>> attributes =
-      new HashMap<AttributeType, List<Attribute>>();
+    HashMap<AttributeType,List<AttributeBuilder>> attrBuilders =
+      new HashMap<AttributeType, List<AttributeBuilder>>();
     for(StringBuilder line : lines)
     {
       readAttribute(lines, line, entryDN, objectClasses,
-          attributes, attributes, importConfig.validateSchema());
+          attrBuilders, attrBuilders, importConfig.validateSchema());
     }
 
     // Reconstruct the object class attribute.
@@ -1569,7 +1598,23 @@ public final class LDIFReader
     }
     List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
     ocAttrList.add(builder.toAttribute());
+    HashMap<AttributeType,List<Attribute>> attributes =
+      new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
     attributes.put(ocType, ocAttrList);
+
+    for (Map.Entry<AttributeType, List<AttributeBuilder>>
+      attrTypeEntry : attrBuilders.entrySet())
+    {
+      AttributeType attrType = attrTypeEntry.getKey();
+      List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
+      List<Attribute> attrList =
+        new ArrayList<Attribute>(attrBuilderList.size());
+      for (AttributeBuilder attrBuilder : attrBuilderList)
+      {
+        attrList.add(attrBuilder.toAttribute());
+      }
+      attributes.put(attrType, attrList);
+    }
 
     return new AddChangeRecordEntry(entryDN, attributes);
   }

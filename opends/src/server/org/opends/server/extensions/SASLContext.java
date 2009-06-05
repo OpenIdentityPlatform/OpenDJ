@@ -781,7 +781,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
                bindOp.setSASLAuthUserEntry(authEntry);
                AuthenticationInfo authInfo =
                     new AuthenticationInfo(authEntry, authzEntry,
-                                    mechanism,
+                                    mechanism, clientCredentials,
                                    DirectoryServer.isRootDN(authEntry.getDN()));
                bindOp.setAuthenticationInfo(authInfo);
                //If confidentiality/integrity has been negotiated then
@@ -893,7 +893,7 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
            bindOp.setSASLAuthUserEntry(authEntry);
            AuthenticationInfo authInfo =
                 new AuthenticationInfo(authEntry, authzEntry,
-                                       mechanism,
+                                       mechanism, clientCredentials,
                                   DirectoryServer.isRootDN(authEntry.getDN()));
            bindOp.setAuthenticationInfo(authInfo);
            //If confidentiality/integrity has been negotiated, then create a

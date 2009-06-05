@@ -23,54 +23,76 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_version_report" />
   <function name="core_version_report">
     <sequence>
       <block name="'version-report'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'" />
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
-          <call function="'core_setup'" />
-          
-          <!--- Test Case : Version Report 1 -->
-          <testcase name="getTestCaseName('Search Version')">
+        <try>
+          <sequence>
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='core'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            <call function="'testSuite_Preamble'" />
+            <call function="'common_setup'">
+              {
+                'quickStart'  : False,
+                'startServer' : True,
+                'stopServer'  : False,
+                'loadData'    : True,
+                'ldifFile'    : '%s/core/ldifs/core_test_1K.ldif' % remote.data
+              }
+            </call>
+            
+            <!--- Test Case : Version Report 1 -->
+            <testcase name="getTestCaseName('Search Version')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                  'Core VR1:  Check the response of OpenDS when an ldap search request is conducted for the current version of OpenDS '
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : server.host,
+                    'dsInstancePort' : server.port,
+                    'dsInstanceDn'   : server.dn,
+                    'dsInstancePswd' : server.password,
+                    'dsBaseDN'       : 'cn=version,cn=monitor',
+                    'dsFilter'       : 'objectclass=*'
+                  }
+                </call>
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+          </sequence>
+          <finally>
             <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-                'Core VR1:  Check the response of OpenDS when an ldap search request is conducted for the current version of OpenDS '
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : 'objectclass=*'
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global ACI Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-          </testcase>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'core_cleanup'" />
-          <call function="'testSuite_Postamble'" />
-        </sequence>
+          </finally>
+ 
+        </try>
       </block>
     </sequence>
   </function>

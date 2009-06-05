@@ -28,8 +28,8 @@
 <stax>
   <defaultcall function="dsml_test" />
   <function name="dsml_test">
-    <block name="'test'">
-      <sequence>
+    <sequence>
+      <block name="'dsml_test'">
         <try>
           <sequence>
             <!--- Test Suite information
@@ -44,7 +44,11 @@
               CurrentTestPath['suite'] = STAXCurrentBlock
             </script>
             <call function="'testSuite_Preamble'"/>
-    
+
+            <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/%s/dsml_setup.xml' % (TESTS_DIR,_group)"/>
+            <call function="'dsml_setup'"/>
+                
             <message>'TESTS_DATA_DIR=%s ' % (local.data)</message>
             
             <!--- Test Case information
@@ -283,16 +287,31 @@
             </iterate>
 
           </sequence>
-          <catch exception="'...'" typevar="eType" var="eInfo">
-            <message log="1" level="'fatal'">
-              'Test suite (%s) failed. eType(%s),eInfo(%s)' % (CurrentTestPath['suite'],eType,eInfo)
-            </message>
-          </catch>
           <finally>
-            <call function="'testSuite_Postamble'"/>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global DSML Cleanup.'</message>
+              <try>
+                <sequence>                  
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/%s/dsml_cleanup.xml' % (TESTS_DIR,_group)"/>
+                  <call function="'dsml_cleanup'"/>
+                </sequence>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
           </finally>
+ 
         </try>
-      </sequence>
-    </block>
+
+      </block>
+    </sequence>
   </function>
 </stax>

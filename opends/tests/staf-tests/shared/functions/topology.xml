@@ -2222,4 +2222,328 @@
     </sequence>
   </function>    
     
+  <function name="common_setup" scope="local">
+    <function-prolog>
+      This function helps to perform a common setup and data load of directory server.  
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="directoryServer" type="optional" default="server">
+        <function-arg-description>
+          The directory server object instance
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+     <function-arg-def name="quickStart" type="optional" default="True">
+        <function-arg-description>
+          Perform a quick start of the server with preloaded data
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+      <function-arg-def name="loadData" type="optional" default="True">
+        <function-arg-description>
+          Load data into the server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+     <function-arg-def name="startServer" type="optional" default="True">
+        <function-arg-description>
+          Start the server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+     <function-arg-def name="stopServer" type="optional" default="True">
+        <function-arg-description>
+          Stop the server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+     <function-arg-def name="ldifFile" type="optional" default="''">
+        <function-arg-description>
+          Path and name of the ldif file to be used to add entries
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>    
+     <function-arg-def name="allowPreEncodePassword" type="optional" default="False">
+        <function-arg-description>
+          Allow pre-encoded passwords to be added
+        </function-arg-description>
+        <function-arg-property name="boolean" value="True|False"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+
+      <block name="'common-setup'">
+
+        <testcase name="getTestCaseName('Common Setup')">
+
+          <try>      
+        
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+              
+              <!-- Create the topology necessary to the test group/suite -->                
+              <call function="'runFunction'">
+                { 'functionName'      : 'createTopology'                  ,
+                  'functionMessage'   : 'Create DS topology'              ,
+                  'functionException' : 'Server.CreateTopologyException'  ,
+                  'functionArguments' : { 'initialiseInstance' : quickStart }
+                }
+              </call>
+
+              <if expr="startServer == True">
+                <sequence>
+                  <!-- Start the OpenDS Server -->                  
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'StartDsWithScript'                   ,
+                      'functionMessage'   : 'Start the Directory Server.'         ,
+                      'functionException' : 'Server.StartException'               ,
+                      'functionArguments' : { 'location' : directoryServer.location }
+                    }
+                  </call>
+      
+                  <!--- Check that DS started -->
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'isAlive'                       ,
+                      'functionMessage'   : 'Start the Directory Server.'   ,
+                      'functionException' : 'Server.StartException'         ,
+                      'functionArguments' : { 'noOfLoops'        : 100      ,
+                                              'noOfMilliSeconds' : 3000 }
+                    }
+                  </call>
+                </sequence>  
+              </if>
+
+              <if expr="loadData == True and ldifFile">
+                <sequence>                                                      
+
+                  <if expr="allowPreEncodePassword == True">
+                    <call function="'dsconfigSet'">
+                      { 
+                        'dsInstanceHost'         : directoryServer.host,
+                        'dsInstanceAdminPort'    : directoryServer.adminport,
+                        'dsInstanceDn'           : directoryServer.dn,
+                        'dsInstancePswd'         : directoryServer.password,
+                        'objectName'             : 'password-policy',
+                        'propertyType'           : 'policy',
+                        'propertyName'           : 'Default Password Policy',
+                        'attributeName'          : 'allow-pre-encoded-passwords',
+                        'attributeValue'         : 'true'
+                      }
+                    </call>
+                  </if>
+                  
+                  <!-- Load the data needed by the test suite -->
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'ldapModifyWithScript' ,
+                      'functionMessage'   : 'Adding Initial Entries' ,
+                      'functionException' : 'LDAP.ModifyException'  ,
+                      'functionArguments' : { 'dsAdd'            : 'TRUE' ,
+                                              'dsInstanceHost'   : directoryServer.host ,
+                                              'dsInstancePort'   : directoryServer.port ,
+                                              'dsInstanceDn'     : directoryServer.dn ,
+                                              'dsInstancePswd'   : directoryServer.password ,
+                                              'dsFilename'       : ldifFile }
+                    }  
+                  </call>
+                </sequence>
+              </if>                 
+
+              <if expr="stopServer == True">
+                <sequence>
+                  <!-- Stop the OpenDS Server -->                  
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'StopDsWithScript'                   ,
+                      'functionMessage'   : 'Start the Directory Server.'         ,
+                      'functionException' : 'Server.StopException'               ,
+                      'functionArguments' : { 'location' : directoryServer.location }
+                    }
+                  </call>
+                </sequence>
+              </if>
+              
+            </sequence>        
+
+            <catch exception="'STAXException.Server.CreateTopologyException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Create topology failed. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.SetupException'" />
+              </sequence>
+            </catch>
+  
+            <catch exception="'STAXException.Server.StartException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to start Directory Server. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.SetupException'" />
+              </sequence>
+            </catch>
+
+            <catch exception="'STAXException.Server.StopException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to stop Directory Server. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.SetupException'" />
+              </sequence>
+            </catch>
+  
+            <catch exception="'STAXException.LDAP.ModifyException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: LDAPModify failed. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.SetupException'" />
+              </sequence>
+            </catch>          
+  
+            <finally>
+              <!-- Test Group postamble -->
+              <sequence>
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </finally>
+  
+          </try>
+
+        </testcase>                     
+
+      </block>
+            
+     </sequence>
+
+  </function>
+
+  <function name="common_cleanup" scope="local">
+    <function-prolog>
+      This function helps to perform a common cleanup of directory server and its data.  
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="directoryServer" type="optional" default="server">
+        <function-arg-description>
+          The directory server object instance
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+     <function-arg-def name="deleteSuffix" type="optional" default="True">
+        <function-arg-description>
+          Delete the suffix that holds the directory data
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+     </function-arg-def>
+   </function-map-args>
+    <sequence>
+
+      <block name="'common-cleanup'">
+
+        <testcase name="getTestCaseName('Common Cleanup')">
+
+          <try>
+          
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'runFunction'">
+                { 'functionName'      : 'ldapSearchWithScript'                ,
+                  'functionMessage'   : 'Check Server is Alive.'              ,
+                  'functionArguments' : { 'dsInstanceHost' : directoryServer.host      ,
+                                          'dsInstancePort' : directoryServer.port      ,
+                                          'dsBaseDN'       : 'cn=config'      ,
+                                          'dsInstanceDn'   : directoryServer.dn        ,
+                                          'dsInstancePswd' : directoryServer.password  ,
+                                          'dsFilter'       : 'objectclass=*'  ,
+                                          'dsScope'        : 'base'           ,
+                                          'expectedRC'     : 'noCheck'
+                                      }
+                }
+              </call>
+  
+              <script>
+                _returncode=int(STAXResult[0])
+              </script>
+
+              <if expr="deleteSuffix == True">
+                <sequence>
+                  <!-- If directoryServer is not running we have to restart it -->
+                  <if expr="_returncode == 91">
+            
+                      <call function="'runFunction'">
+                        { 'functionName'      : 'StartDsWithScript'                   ,
+                          'functionMessage'   : 'Start the Directory Server.'         ,
+                          'functionArguments' : { 'expectedRC' : 'noCheck' }
+                        }
+                      </call>              
+                  </if>
+  
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'ldapDeleteWithScript'                          ,
+                      'functionMessage'   : 'Recursive delete of suffix.'                   ,
+                      'functionArguments' : { 'dsDeleteSubtree' : 'TRUE'                    ,
+                                              'dsInstanceHost'  : directoryServer.host      ,
+                                              'dsInstancePort'  : directoryServer.port      ,
+                                              'dsInstanceDn'    : directoryServer.dn        ,
+                                              'dsInstancePswd'  : directoryServer.password  ,
+                                              'dsDn'            : ['%s' % server.suffix]    ,
+                                              'expectedRC'      : 'noCheck' }
+                    }
+                  </call>
+                </sequence>
+              </if>
+
+              <call function="'runFunction'">
+                { 'functionName'      : 'StopDsWithScript'                          ,
+                  'functionMessage'   : 'Stop the Directory Server.'                ,
+                  'functionArguments' : { 'dsHost'      : directoryServer.host      ,
+                                          'dsAdminPort' : directoryServer.adminport ,
+                                          'dsBindDN'    : directoryServer.dn        ,
+                                          'dsBindPwd'   : directoryServer.password  ,
+                                          'expectedRC'  : 'noCheck' }
+                }
+              </call>
+
+              <call function="'runFunction'">
+                { 'functionName'      : 'removeTopology'      ,
+                  'functionMessage'   : 'Remove DS topology.' ,
+                }
+              </call>
+
+              <tcstatus result="'pass'"></tcstatus>                      
+
+            </sequence> 
+
+            <catch exception="'STAXException.LDAP.DeleteException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: LDAPDelete failed. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+  
+            <catch exception="'STAXException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to cleanup. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+            <finally>
+              <!-- Test Group postamble -->
+              <call function="'testCase_Postamble'"/>
+            </finally>
+  
+          </try>        
+
+        </testcase>
+
+      </block>
+
+     </sequence>
+
+  </function>
+     
 </stax>

@@ -51,15 +51,22 @@
             -->          
             <call function="'testSuite_Preamble'"/>
 
+           <call function="'common_setup'">
+              {
+                'quickStart'  : False,
+                'startServer' : True,
+                'stopServer'  : False,
+                'loadData'    : False,
+              }
+            </call>
+
             <try>
               <sequence> 
  
                 <!-- List of Import of Test Functions -->
                 <script>
                   importList=[]
-                  importList.append('core_setup')
                   importList.append('binaryattr/core_binaryattr_tests')
-                  importList.append('core_cleanup')
                 </script>
 
                 <!-- Import the files for this test suite -->
@@ -68,24 +75,8 @@
                     file="'%s/%s.xml' % (__groupdir,__import)"/>
                 </iterate>                                                                       
 
-                <!-- Test Suite Setup -->
-                <call function="'%s_setup' % __group">
-                  { 'initData' : False ,
-                    'loadData' : False }
-                </call>
-
                 <!-- Specific to binary attributes tests -->
                 <script>
-                  server=directory_server()
-                  server.location   = STAF_REMOTE_HOSTNAME
-                  server.host       = DIRECTORY_INSTANCE_HOST
-                  server.port       = DIRECTORY_INSTANCE_PORT
-                  server.adminport  = DIRECTORY_INSTANCE_ADMIN_PORT
-                  server.dn         = DIRECTORY_INSTANCE_DN
-                  server.password   = DIRECTORY_INSTANCE_PSWD
-                  server.suffix     = DIRECTORY_INSTANCE_SFX
-                  server.backend    = DIRECTORY_INSTANCE_BE
-                  
                   __baseDN='o=Binary attributes tests, dc=example,%s' % server.suffix
                 </script>
                                                     
@@ -128,13 +119,23 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Solaris Schema Cleanup.'</message>
-              <call function="'%s_cleanup' % __group"/>
-              <call function="'testSuite_Postamble'"/>
+              <message>'Finally: Controls Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
           </finally>
  
         </try>
+
       </block>
     </sequence>
   </function>

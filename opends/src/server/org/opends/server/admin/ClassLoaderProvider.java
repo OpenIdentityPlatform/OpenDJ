@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -481,7 +481,14 @@ public final class ClassLoaderProvider {
       // retrieve MANIFEST entry and display name, build number and revision
       // number
       try {
-        String[] information = getBuildInformation(new JarFile(extension));
+        JarFile jarFile = new JarFile(extension);
+        JarEntry entry = jarFile.getJarEntry("admin/" + EXTENSION_MANIFEST);
+        if (entry == null)
+        {
+          continue;
+        }
+
+        String[] information = getBuildInformation(jarFile);
 
         ps.append("Extension: ");
         boolean addBlank = false;

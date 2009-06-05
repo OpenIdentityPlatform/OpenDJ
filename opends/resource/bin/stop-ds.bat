@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Copyright 2006-2009 Sun Microsystems, Inc.
 
 setlocal
 
@@ -59,7 +59,7 @@ echo %SCRIPT%: invoked >> %LOG%
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
-call "%INSTALL_ROOT%\lib\_script-util.bat"
+call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%

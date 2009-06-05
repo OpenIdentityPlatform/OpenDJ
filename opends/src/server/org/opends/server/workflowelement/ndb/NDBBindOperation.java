@@ -178,8 +178,8 @@ public class NDBBindOperation
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
           ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
       }
-      setAuthenticationInfo(new AuthenticationInfo(userEntry,
-        simplePassword,
+      setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+          simplePassword,
         isRoot));
 
 

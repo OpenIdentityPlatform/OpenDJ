@@ -155,11 +155,43 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="startFrom" 
+                        type="optional"
+                        default="0">
+        <function-arg-description>
+          Start entries number
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="suffix" 
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_SFX">
+        <function-arg-description>
+          Suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="templateFile" type="required">
         <function-arg-description>
           Template file name
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="templateLocation"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Template file location
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="additionalAttributes" 
+                        type="optional"
+                        default="False">
+        <function-arg-description>
+          Add (or not) additional attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
       <function-arg-def name="extraLine" type="optional">
         <function-arg-description>
@@ -172,7 +204,7 @@
       <!-- Build the import task configuration object -->
       <script>
         ldifLines=[]
-        ldifLines.append('define suffix=%s' % DIRECTORY_INSTANCE_SFX)
+        ldifLines.append('define suffix=%s' % suffix)
         ldifLines.append('define maildomain=example.com')
         ldifLines.append('define numusers=%s' % numEntries )
         ldifLines.append('')
@@ -185,26 +217,42 @@
         ldifLines.append('')
         
         ldifLines.append('template: person')
-        ldifLines.append('rdnAttr: uid')    
+        ldifLines.append('rdnAttr: uid')
         ldifLines.append('objectClass: top')
         ldifLines.append('objectClass: person')
         ldifLines.append('objectClass: organizationalPerson')
         ldifLines.append('objectClass: inetOrgPerson')
         ldifLines.append('givenName: &lt;first&gt;')
         ldifLines.append('sn: &lt;last&gt;')
-        ldifLines.append('employeeNumber: &lt;sequential:0&gt;')
+        ldifLines.append('employeeNumber: &lt;sequential:%s&gt;' % startFrom)
         ldifLines.append('cn: {givenName} {sn} {employeeNumber}')
         ldifLines.append('uid: user.{employeeNumber}')
         ldifLines.append('mail: {uid}@[maildomain]')
         ldifLines.append('telephoneNumber: &lt;random:telephone&gt;')
         ldifLines.append('description: This is the description for user.{employeeNumber}.')
+
+        if additionalAttributes == True:
+          ldifLines.append('initials: {givenName:1}&lt;random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}')
+          ldifLines.append('homePhone: &lt;random:telephone>')
+          ldifLines.append('mobile: &lt;random:telephone>')
+          ldifLines.append('street: &lt;random:numeric:5> &lt;file:streets> Street')
+          ldifLines.append('l: &lt;file:cities>')
+          ldifLines.append('st: &lt;file:states>')
+          ldifLines.append('postalCode: &lt;random:numeric:5>')
+          ldifLines.append('postalAddress: {cn}${street}${l}, {st}  {postalCode}')
+          ldifLines.append('jpegPhoto:: &lt;random:base64:10000&gt;')
+
         if extraLine:
           ldifLines.append('%s' % extraLine)
       </script>
   
       <!-- Write out the make-ldif template file -->
       <script>
-        outfile = open(templateFile,"w")
+        RC=0
+      </script>
+      <script>
+        tmpTemplateFile = '%s/tempLdifTemplateFile' % local.temp
+        outfile = open(tmpTemplateFile,"w")
           
         for line in ldifLines:
           outfile.write("%s\n" % line)
@@ -226,8 +274,22 @@
       { 'returncode' : STAXCode ,
         'result'     : STAXReason }
       </call>
-    
-      <return>[STAXCode, STAXReason]</return>
+
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : tmpTemplateFile,
+          'destfile'   : templateFile,
+          'remotehost' : templateLocation }
+      </call>
+
+      <call function="'checktestRC'">
+        {
+        'returncode' : RC ,
+        'result'     : STAXResult
+        }
+      </call>
+
+      <return>[RC, STAXResult]</return>
      
     </sequence>
   </function> 

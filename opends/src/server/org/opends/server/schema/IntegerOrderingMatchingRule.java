@@ -50,7 +50,7 @@ import org.opends.server.types.ResultCode;
  * This class defines the integerOrderingMatch matching rule defined in X.520
  * and referenced in RFC 4519.
  */
-class IntegerOrderingMatchingRule
+public class IntegerOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

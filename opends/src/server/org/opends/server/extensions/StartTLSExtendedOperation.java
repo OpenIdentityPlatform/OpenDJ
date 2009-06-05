@@ -39,11 +39,9 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -106,6 +104,7 @@ public class StartTLSExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
     DirectoryServer.deregisterSupportedExtension(OID_START_TLS_REQUEST);
@@ -167,6 +166,17 @@ public class StartTLSExtendedOperation
     // TLS was successfully enabled on the client connection, but we need to
     // send the response in the clear.
     operation.setResultCode(ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "StartTLS";
   }
 }
 

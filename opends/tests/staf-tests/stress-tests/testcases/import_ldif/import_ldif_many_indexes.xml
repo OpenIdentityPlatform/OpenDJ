@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="many_indexes"/>
+  <defaultcall function="import_ldif_many_indexes"/>
 
-  <function name="many_indexes">
+  <function name="import_ldif_many_indexes">
 
     <sequence>
 
@@ -39,12 +39,12 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='many-indexes'                
+              CurrentTestPath['group']='import_ldif'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
           <call function="'testSuite_Preamble'"/>
-          
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_setup'" />
@@ -63,13 +63,12 @@
                 <iterate var="currIndex" in="indexes_five" indexvar="index">
                   <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'           : 'set-je-index-prop' ,    
+                    'subcommand'           : 'set-local-db-index-prop' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name %s --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' % currIndex ,
+                    'optionsString'        : '--index-name %s --add index-type:approximate --add index-type:equality --add index-type:ordering --add index-type:presence --add index-type:substring ' % currIndex ,
                     'expectedRC'           : 0 } 
                   </call>          
                 </iterate>
@@ -81,38 +80,35 @@
                 <iterate var="currIndex" in="indexes_three" indexvar="index">
                   <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'           : 'set-je-index-prop' ,    
+                    'subcommand'           : 'set-local-db-index-prop' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name %s --set index-type:equality --set index-type:presence --set index-type:substring ' % currIndex ,
+                    'optionsString'        : '--index-name %s --add index-type:equality --add index-type:presence --add index-type:substring ' % currIndex ,
                     'expectedRC'           : 0 } 
                   </call>          
                 </iterate>
             
                 <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'           : 'create-je-index' ,    
+                    'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name description --set index-type:approximate --set index-type:equality --set index-type:presence --set index-type:substring ' ,
+                    'optionsString'        : '--index-name description --add index-type:approximate --add index-type:equality --add index-type:presence --add index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
                 <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'           : 'create-je-index' ,    
+                    'subcommand'           : 'create-local-db-index' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
-                    'optionsString'        : '--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
+                    'optionsString'        : '--index-name employeeNumber --add index-type:approximate --add index-type:equality --add index-type:ordering --add index-type:presence --add index-type:substring ' ,
                     'expectedRC'           : 0 } 
                 </call> 
          
@@ -122,10 +118,9 @@
 
                 <call function="'dsconfig'">
                   { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'           : 'list-je-indexes' ,    
+                    'subcommand'           : 'list-local-db-indexes' ,
                     'objectType'           : 'backend-name' ,
                     'objectName'           : 'userRoot',
                     'expectedRC'           : 0 } 
@@ -136,11 +131,11 @@
                 </message>
 
                 <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                { 'location'    : STAF_REMOTE_HOSTNAME,
+                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
                 </call>
 
                 <message>
@@ -153,16 +148,16 @@
                 
                 <call function="'MakeAMakeLdifTemplate'">
                   { 'numEntries'         : numberOfEntries ,
-                    'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) }
+                    'templateFile'       : '%s/import_Entries_160.template' % (remote.temp) }
                 </call>
                 
                 <message>
                    'Import Ldif: Many Indexes: Preamble - Make the ldif file'
                 </message>
                 
-                <call function="'MakeLdif'">
-                  { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
-                    'ldifFile'       : '%s/quickstart/import_Entries.ldif' % (logsRemoteDataDir)  }
+                <call function="'MakeLdifWithScript'">
+                  { 'templateFile'   : '%s/import_Entries_160.template' % (remote.temp)  ,
+                    'ldifFile'       : '%s/import_Entries_160.ldif' % (remote.temp)  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -181,7 +176,7 @@
                 
                 <call function="'ImportLdifWithScript'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsLdifFile'  : '%s/quickstart/import_Entries.ldif' % logsRemoteDataDir,
+                  'dsLdifFile'  : '%s/import_Entries_160.ldif' % remote.temp,
                   'dsBackEnd'   : 'userRoot'}
                 </call>
     
@@ -211,15 +206,10 @@
                 { 'location'  : STAF_REMOTE_HOSTNAME }
                 </call>
   
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-  
                 <!--- Check that DS started -->
                 <call function="'isAlive'">
-                  { 'noOfLoops'        : 5 ,
-                    'noOfMilliSeconds' : 2000 }
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 5000 }
                 </call>      
         
                 <call function="'testCase_Postamble'"/>
@@ -248,12 +238,12 @@
               </sequence>
           </testcase>
           
-          
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'" />
-         
-              
+
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

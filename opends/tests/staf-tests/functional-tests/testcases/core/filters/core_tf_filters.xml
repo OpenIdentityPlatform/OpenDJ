@@ -30,160 +30,184 @@
   <function name="core_tf_filters">
     <sequence>
       <block name="'tf_filters'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'" />
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
-          <call function="'core_setup'" />
+        <try>
+          <sequence>
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='core'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            <call function="'testSuite_Preamble'" />
 
-          <!--- Test Suite information
-          #@TestSuiteName       core: True False Filters
-          #@TestSuitePurpose    Test this feature
-          #@TestSuiteGroup      core: True False Filters
-          #@TestScript          core_tf_filters.xml
-          -->
-          
-          <!--- Test Case information
-          #@TestMarker          core: True False Filters
-          #@TestName            core: AND Filter
-          #@TestIssue           none
-          #@TestPurpose         search with AND Filter
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if ldapsearch returns 2
-          -->
+            <call function="'common_setup'">
+              {
+                'quickStart'  : False,
+                'startServer' : True,
+                'stopServer'  : False,
+                'loadData'    : True,
+                'ldifFile'    : '%s/core/ldifs/core_test_1K.ldif' % remote.data
+              }
+            </call>
+  
+            <!--- Test Suite information
+            #@TestSuiteName       core: True False Filters
+            #@TestSuitePurpose    Test this feature
+            #@TestSuiteGroup      core: True False Filters
+            #@TestScript          core_tf_filters.xml
+            -->
+            
+            <!--- Test Case information
+            #@TestMarker          core: True False Filters
+            #@TestName            core: AND Filter
+            #@TestIssue           none
+            #@TestPurpose         search with AND Filter
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 2
+            -->
+  
+            <testcase name="getTestCaseName('And Filter')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                  'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : 'cn=version,cn=monitor',
+                    'dsFilter'       : '&amp;',
+                    'expectedRC'     : 2 ,
+                    'knownIssue'     : '3966'
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: True False Filters
+            #@TestName            core: OR Filter
+            #@TestIssue           none
+            #@TestPurpose         search with OR Filter
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 2
+            -->
+            
+            <testcase name="getTestCaseName('Or Filter')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                  'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : 'cn=version,cn=monitor',
+                    'dsFilter'       : '|',
+                    'expectedRC'     : 2 ,
+                    'knownIssue'     : '3966'
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: True False Filters
+            #@TestName            core: AND Filter Entry Not Exists
+            #@TestIssue           none
+            #@TestPurpose         search with AND filter on an
+            #@TestPurpose         Entry that doesn't exist
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 2
+            -->
+            
+            <testcase name="getTestCaseName('And Filter Entry Not Exists')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                  'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : 'cn=bad,cn=monitor',
+                    'dsFilter'       : '&amp;',
+                    'expectedRC'     : 2,
+                    'knownIssue'     : '3966'
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+            
+            <!--- Test Case information
+            #@TestMarker          core: True False Filters
+            #@TestName            core: OR Filter Entry Not Exists
+            #@TestIssue           none
+            #@TestPurpose         search with OR filter on an
+            #@TestPurpose         Entry that doesn't exist
+            #@TestPreamble        none
+            #@TestSteps           do a ldapsearch
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 2
+            -->
+  
+            <testcase name="getTestCaseName('Or Filter Entry Not Exists')">
+              <sequence>
+                <call function="'testCase_Preamble'" />
+                <message>
+                   'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
+                </message>
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'       : 'cn=bad,cn=monitor',
+                    'dsFilter'       : '|',
+                    'expectedRC'     : 2,
+                    'knownIssue'     : '3966'
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
 
-          <testcase name="getTestCaseName('And Filter')">
+          </sequence>
+          <finally>
             <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-                'Core TFF1: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character '
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : '&amp;',
-                  'expectedRC'     : 2 ,
-                  'knownIssue'     : '3966'
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'" />
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global ACI Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: True False Filters
-          #@TestName            core: OR Filter
-          #@TestIssue           none
-          #@TestPurpose         search with OR Filter
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if ldapsearch returns 2
-          -->
-          
-          <testcase name="getTestCaseName('Or Filter')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-                'Core TFF2: Check the response of OpenDS when an ldap search request is conducted with a single pipe character'
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=version,cn=monitor',
-                  'dsFilter'       : '|',
-                  'expectedRC'     : 2 ,
-                  'knownIssue'     : '3966'
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: True False Filters
-          #@TestName            core: AND Filter Entry Not Exists
-          #@TestIssue           none
-          #@TestPurpose         search with AND filter on an
-          #@TestPurpose         Entry that doesn't exist
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if ldapsearch returns 2
-          -->
-          
-          <testcase name="getTestCaseName('And Filter Entry Not Exists')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-                'Core TFF3: Check the response of OpenDS when an ldap search request is conducted with a single ampersand character for a non-existent entry'
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=bad,cn=monitor',
-                  'dsFilter'       : '&amp;',
-                  'expectedRC'     : 2,
-                  'knownIssue'     : '3966'
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case information
-          #@TestMarker          core: True False Filters
-          #@TestName            core: OR Filter Entry Not Exists
-          #@TestIssue           none
-          #@TestPurpose         search with OR filter on an
-          #@TestPurpose         Entry that doesn't exist
-          #@TestPreamble        none
-          #@TestSteps           do a ldapsearch
-          #@TestPostamble       none
-          #@TestResult          Success if ldapsearch returns 2
-          -->
-
-          <testcase name="getTestCaseName('Or Filter Entry Not Exists')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-                 'Core TFF4: Check the response of OpenDS when an ldap search request is conducted with a single pipe character for a non-existent entry'
-              </message>
-              <call function="'SearchObject'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'cn=bad,cn=monitor',
-                  'dsFilter'       : '|',
-                  'expectedRC'     : 2,
-                  'knownIssue'     : '3966'
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'core_cleanup'" />
-          <call function="'testSuite_Postamble'" />
-        </sequence>
+          </finally>
+ 
+        </try>
       </block>
     </sequence>
   </function>

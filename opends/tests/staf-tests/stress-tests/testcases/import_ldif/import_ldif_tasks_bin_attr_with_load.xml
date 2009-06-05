@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="tasks_bin_attr_with_load"/>
+  <defaultcall function="import_ldif_tasks_bin_attr_with_load"/>
 
-  <function name="tasks_bin_attr_with_load">
+  <function name="import_ldif_tasks_bin_attr_with_load">
 
     <sequence>
 
@@ -39,12 +39,12 @@
   
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='tasks_bin_attr_with_load'                
+              CurrentTestPath['group']='import_ldif'                
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
           <call function="'testSuite_Preamble'"/>
-          
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_setup'" />
@@ -62,16 +62,16 @@
                 
                 <call function="'MakeAMakeLdifTemplate'">
                   { 'numEntries'         : numberOfEntries ,
-                    'templateFile'       : '%s/quickstart/import_100Entries.template' % (logsRemoteDataDir) }
+                    'templateFile'       : '%s/import_Entries_100.template' % (remote.temp) }
                 </call>
                 
                 <message>
                    'Import Ldif Tasks: Binary Attribute With Load: Preamble - Make the ldif file'
                 </message>
                 
-                <call function="'MakeLdif'">
-                  { 'templateFile'   : '%s/quickstart/import_100Entries.template' % (logsRemoteDataDir)  ,
-                    'ldifFile'       : '%s/quickstart/import_100Entries.ldif' % (logsRemoteDataDir)  }
+                <call function="'MakeLdifWithScript'">
+                  { 'templateFile'   : '%s/import_Entries_100.template' % (remote.temp)  ,
+                    'ldifFile'       : '%s/import_Entries_100.ldif' % (remote.temp)  }
                 </call>
                 
                 <message>
@@ -84,7 +84,7 @@
                   'dsInstanceDn'                : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd'              : DIRECTORY_INSTANCE_PSWD,
                   'taskID'                      : STAXCurrentTestcase,
-                  'ldifFile'                    : '%s/quickstart/import_100Entries.ldif' % logsRemoteDataDir
+                  'ldifFile'                    : '%s/import_Entries_100.ldif' % remote.temp
                 }
                 </call>
                 <call function="'checktestRC'">
@@ -102,7 +102,7 @@
                <call function="'testCase_Preamble'"/>
                <script>
                     import os.path
-                    curr_filename=logsRemoteDataDir + r"/../../" + bin_attr_filename
+                    curr_filename=remote.temp + "/" + bin_attr_filename
                     curr_file_exists='0'
                     if os.path.exists(curr_filename):
                       curr_file_exists='1'
@@ -121,16 +121,16 @@
                     </message>
                     <call function="'MakeAMakeLdifTemplate'">
                     { 'numEntries'         : numberOfEntries ,
-                      'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) ,
-                      'extraLine'          : 'jpegPhoto;binary:: &lt;random:base64:38000&gt;'}
+                      'templateFile'       : '%s/import_Entries_100k.template' % (remote.temp) ,
+                      'extraLine'          : 'jpegPhoto:: &lt;random:base64:38000&gt;'}
                     </call>
                 
                     <message>
                       'Import Ldif Tasks: Binary Attribute: Preamble - Make the ldif file'
                     </message>
                 
-                    <call function="'MakeLdif'">
-                    { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
+                    <call function="'MakeLdifWithScript'">
+                    { 'templateFile'   : '%s/import_Entries_100k.template' % (remote.temp)  ,
                       'ldifFile'       : curr_filename  }
                     </call>
                   </sequence>
@@ -182,7 +182,7 @@
                   }
                   </call>
                   <iterate var="mlClient" in="clientList" indexvar="index">
-                    <terminate block="'main.import-ldif.tasks-bin-attr-with-load.ModifyLoad_%s' % mlClient"/>
+                    <terminate block="'main.import_ldif.tasks-bin-attr-with-load.ModifyLoad_%s' % mlClient"/>
                   </iterate>
                   <call function="'testCase_Postamble'"/>
     
@@ -198,7 +198,6 @@
                             'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                            'dsPath'                 : '%s/..' % DIRECTORY_INSTANCE_DIR ,
                             'partialDNToModify'      : 'ou=People,dc=com' ,
                             'attributeName'          : 'description' ,
                             'newAttributeValue'      : 'Modify load forever' ,
@@ -247,13 +246,13 @@
     
               </sequence>
           </testcase>
-          
-          
+
+
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'import_ldif_cleanup'" />
-         
-              
+
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

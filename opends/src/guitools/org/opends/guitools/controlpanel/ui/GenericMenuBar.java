@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -41,6 +41,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.WebBrowserErrorDialog;
+import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.WebBrowserException;
 import org.opends.quicksetup.util.WebBrowserLauncher;
 
@@ -52,6 +53,20 @@ import org.opends.quicksetup.util.WebBrowserLauncher;
 public abstract class GenericMenuBar extends JMenuBar
 {
   private ControlPanelInfo info;
+
+  /**
+   * The URL to the administration guide.
+   */
+  protected final String ADMINISTRATION_GUIDE_URL =
+    Utils.getCustomizedObject("ADMINISTRATION_GUIDE_URL",
+        "https://www.opends.org/wiki/page/AdministrationGuide", String.class);
+
+  /**
+   * The URL to the wiki main page.
+   */
+  protected final String WIKI_MAIN_PAGE_URL =
+    Utils.getCustomizedObject("WIKI_MAIN_PAGE_URL",
+        "https://www.opends.org/wiki/page/Main", String.class);
 
   /**
    * Constructor of the menu bar.
@@ -86,7 +101,7 @@ public abstract class GenericMenuBar extends JMenuBar
     {
       public void actionPerformed(ActionEvent ev)
       {
-        displayURL("https://www.opends.org/wiki/page/AdministrationGuide");
+        displayURL(ADMINISTRATION_GUIDE_URL);
       }
     });
     menu.add(menuItem);
@@ -96,7 +111,7 @@ public abstract class GenericMenuBar extends JMenuBar
     {
       public void actionPerformed(ActionEvent ev)
       {
-        displayURL("https://www.opends.org/wiki/page/Main");
+        displayURL(WIKI_MAIN_PAGE_URL);
       }
     });
     menu.add(menuItem);

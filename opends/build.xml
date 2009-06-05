@@ -867,6 +867,13 @@
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <include name="**/org/opends/messages/Message.java"/>
+      <include name="**/org/opends/messages/MessageBuilder.java"/>
+      <include name="**/org/opends/messages/MessageDescriptor.java"/>
+      <include name="**/org/opends/messages/Severity.java"/>
+      <include name="**/org/opends/messages/Category.java"/>
+      <include name="**/org/opends/messages/QuickSetupMessages.java"/>
+      <include name="**/org/opends/server/types/OpenDsException.java"/>
       <compilerarg value="-Xlint:all" />
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
@@ -878,9 +885,7 @@
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
-        <fileset dir="${pdir}/lib">
-          <include name="${SHORT_NAME}.jar" />
-        </fileset>
+        <pathelement path="${classes.dir}"/>
       </classpath>
     </javac>
 
@@ -1006,8 +1011,44 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir},
-         org/opends/server/snmp/**" compress="true" index="true" />
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+        compress="true" index="true" />
+
+   <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
+         basedir="${classes.dir}"
+         includes="**/*_fr.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ja.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ja.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_de.jar"
+         basedir="${classes.dir}"
+         includes="**/*_de.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_es.jar"
+         basedir="${classes.dir}"
+         includes="**/*_es.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_ko.jar"
+         basedir="${classes.dir}"
+         includes="**/*_ko.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_CN.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_CN.properties"
+         compress="true" index="true" />
+
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_TW.jar"
+         basedir="${classes.dir}"
+         includes="**/*_zh_TW.properties"
+         compress="true" index="true" />
+
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -1042,6 +1083,10 @@
 
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
+  	
+    <!-- Create buildinfo files -->
+      <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
+        file="${pdir}/config/buildinfo" />
 
     <taskdef name="concatschema"
              classname="org.opends.build.tools.ConcatSchema">
@@ -1305,6 +1350,13 @@
 
       <lib dir="${pdir}/lib">
         <include name="${SHORT_NAME}.jar" />
+        <include name="${SHORT_NAME}_fr.jar" />
+        <include name="${SHORT_NAME}_ja.jar" />
+        <include name="${SHORT_NAME}_ko.jar" />
+        <include name="${SHORT_NAME}_de.jar" />
+        <include name="${SHORT_NAME}_es.jar" />
+        <include name="${SHORT_NAME}_zh_TW.jar" />
+        <include name="${SHORT_NAME}_zh_CN.jar" />
       </lib>
     </war>
 

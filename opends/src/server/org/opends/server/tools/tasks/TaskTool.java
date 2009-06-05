@@ -85,32 +85,29 @@ public abstract class TaskTool implements TaskScheduleInformation {
   // this task's entry in the directory while it is polling for status
   private static final int SYNCHRONOUS_TASK_POLL_INTERVAL = 1000;
 
-  LDAPConnectionArgumentParser argParser;
+  private LDAPConnectionArgumentParser argParser;
 
   // Argument for describing the task's start time
-  StringArgument startArg;
+  private StringArgument startArg;
 
   // Argument to indicate a recurring task
-  StringArgument recurringArg;
+  private StringArgument recurringArg;
 
   // Argument for specifying completion notifications
-  StringArgument completionNotificationArg;
+  private StringArgument completionNotificationArg;
 
   // Argument for specifying error notifications
-  StringArgument errorNotificationArg;
+  private StringArgument errorNotificationArg;
 
   // Argument for specifying dependency
-  StringArgument dependencyArg;
+  private StringArgument dependencyArg;
 
   // Argument for specifying a failed dependency action
-  StringArgument failedDependencyActionArg;
-
-  // Client for interacting with the task backend
-  TaskClient taskClient;
+  private StringArgument failedDependencyActionArg;
 
   // Argument used to know whether we must test if we must run in offline
   // mode.
-  BooleanArgument testIfOfflineArg;
+  private BooleanArgument testIfOfflineArg;
 
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;

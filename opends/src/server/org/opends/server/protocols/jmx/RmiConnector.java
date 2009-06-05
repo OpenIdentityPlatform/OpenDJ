@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -100,12 +100,6 @@ public class RmiConnector
   private String jmxRmiConnectorNoClientCertificateName;
 
   /**
-   * The name of the JMX connector with SSL client
-   * authentication.
-   */
-  private String jmxRmiConnectorClientCertificateName;
-
-  /**
    * The reference to the JMX connector client with no SSL client
    * authentication.
    */
@@ -159,9 +153,6 @@ public class RmiConnector
 
     jmxRmiConnectorNoClientCertificateName = baseName + ","
         + "Type=jmxRmiConnectorNoClientCertificateName";
-
-    jmxRmiConnectorClientCertificateName = baseName + ","
-        + "Type=jmxRmiConnectorClientCertificateName";
   }
 
   // ===================================================================
@@ -430,38 +421,28 @@ public class RmiConnector
    * client connections. It may or may not disconnect existing client
    * connections based on the provided flag.
    *
-   * @param closeConnections
-   *            Indicates whether any established client connections
-   *            associated with the connection handler should also be
-   *            closed.
    * @param stopRegistry Indicates if the RMI registry should be stopped
    */
-  public void finalizeConnectionHandler(
-      boolean closeConnections, boolean stopRegistry)
+  public void finalizeConnectionHandler(boolean stopRegistry)
   {
-    if (closeConnections)
+    try
     {
-      try
+      if (jmxRmiConnectorNoClientCertificate != null)
       {
-        if (jmxRmiConnectorNoClientCertificate != null)
-        {
-          jmxRmiConnectorNoClientCertificate.stop();
-        }
-        if (jmxRmiConnectorClientCertificate != null)
-        {
-          jmxRmiConnectorClientCertificate.stop();
-        }
+        jmxRmiConnectorNoClientCertificate.stop();
       }
-      catch (Exception e)
+      if (jmxRmiConnectorClientCertificate != null)
       {
+        jmxRmiConnectorClientCertificate.stop();
       }
-      jmxRmiConnectorNoClientCertificate = null;
-      jmxRmiConnectorClientCertificate = null;
     }
-    else
+    catch (Exception e)
     {
-      rmiAuthenticator.setFinalizedPhase(true);
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
+
+    jmxRmiConnectorNoClientCertificate = null;
+    jmxRmiConnectorClientCertificate = null;
 
     //
     // Unregister connectors and stop them.

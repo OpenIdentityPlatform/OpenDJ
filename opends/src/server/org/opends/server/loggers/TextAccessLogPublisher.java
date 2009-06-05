@@ -46,6 +46,7 @@ import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbandonOperation;
 import org.opends.server.core.AddOperation;
@@ -1050,13 +1051,26 @@ public class TextAccessLogPublisher extends
       return;
     }
 
+    String name = null;
+    String oid = extendedOperation.getRequestOID();
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
+    ExtendedOperationHandler extOpHandler =
+      DirectoryServer.getExtendedOperationHandler(oid);
+    if (extOpHandler != null) {
+      name = extOpHandler.getExtendedOperationName();
+      if (name != null) {
+        buffer.append(" name=\"");
+        buffer.append(name);
+        buffer.append("\"");
+      }
+    }
     buffer.append(" oid=\"");
-    buffer.append(extendedOperation.getRequestOID());
+    buffer.append(oid);
     buffer.append("\"");
-    if (extendedOperation.isSynchronizationOperation())
+    if (extendedOperation.isSynchronizationOperation()) {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1083,9 +1097,20 @@ public class TextAccessLogPublisher extends
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_RESPONSE, buffer);
 
+    String name = null;
     String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
+      ExtendedOperationHandler extOpHandler =
+        DirectoryServer.getExtendedOperationHandler(oid);
+      if (extOpHandler != null) {
+        name = extOpHandler.getExtendedOperationName();
+        if (name != null) {
+          buffer.append(" name=\"");
+          buffer.append(name);
+          buffer.append("\"");
+        }
+      }
       buffer.append(" oid=\"");
       buffer.append(oid);
       buffer.append('\"');

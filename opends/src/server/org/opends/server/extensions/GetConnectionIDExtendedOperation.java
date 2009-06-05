@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -38,13 +38,15 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-
-import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.loggers.debug.DebugTracer;
 
+import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements the "Get Connection ID" extended operation that can be
@@ -54,6 +56,13 @@ public class GetConnectionIDExtendedOperation
        extends ExtendedOperationHandler<
                     GetConnectionIdExtendedOperationHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
+
   /**
    * Create an instance of this "Get Connection ID" extended operation.  All
    * initialization should be performed in the
@@ -86,6 +95,7 @@ public class GetConnectionIDExtendedOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
     DirectoryServer.deregisterSupportedExtension(OID_GET_CONNECTION_ID_EXTOP);
@@ -127,7 +137,10 @@ public class GetConnectionIDExtendedOperation
     }
     catch(Exception e)
     {
-      // TODO: DO something.
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
     }
 
     return builder.toByteString();
@@ -158,6 +171,17 @@ public class GetConnectionIDExtendedOperation
       // TODO: DO something
       return 0;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Get Connection ID";
   }
 }
 

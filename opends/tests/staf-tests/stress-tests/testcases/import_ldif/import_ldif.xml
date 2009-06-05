@@ -23,63 +23,71 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
+
   <defaultcall function="main_import_ldif"/>
+
   <function name="main_import_ldif">
+
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>   
+
     <sequence>
 
       <block name="'import-ldif'">
-      
+
         <sequence>
-          
+
+          <!--- Load the job environment for the test group execution -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+                file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR"/>
+          <call function="'loadJobEnvironment'">
+            { 'parent' : STAXParentID }
+          </call>
+
           <script>
-            CurrentTestPath['group']='import-ldif'
-            bin_attr_filename='import_entries_100k_bin_attr.ldif'
+            CurrentTestPath['group']='import_ldif'
           </script>
           
           <call function="'testGroup_Preamble'"/>
           
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_bin_attr.xml' % (TESTS_DIR)"/>
-          <call function="'bin_attr'" />
-          
-          <!-- Uncomment when Issue 2323 is fixed.
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_large_import_buffer.xml' % (TESTS_DIR)"/>
-          <call function="'large_import_buffer'" />
-          -->
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_many_thrds.xml' % (TESTS_DIR)"/>
-          <call function="'many_thrds'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_low_index_entry_limit.xml' % (TESTS_DIR)"/>
-          <call function="'low_index_entry_limit'" />
-          
-          <!-- Uncomment when Issues 2258 and 2262 are fixed.
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_out-of-box.xml' % (TESTS_DIR)"/>
-          <call function="'out-of-box'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_many_indexes.xml' % (TESTS_DIR)"/>
-          <call function="'many_indexes'" />
-          -->
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_tasks_bin_attr.xml' % (TESTS_DIR)"/>
-          <call function="'tasks_bin_attr'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/import_ldif/import_ldif_tasks_bin_attr_with_load.xml' % (TESTS_DIR)"/>
-          <call function="'tasks_bin_attr_with_load'" />
-          
+          <script>
+            testList = []
+            testList.append('import_ldif_bin_attr')
+            testList.append('import_ldif_bin_attr_1m')
+            testList.append('import_ldif_bin_attr_5m')
+            #testList.append('import_ldif_large_import_buffer')
+            #testList.append('import_ldif_many_thrds')
+            #testList.append('import_ldif_low_index_entry_limit')
+            #testList.append('import_ldif_out-of-box')
+            #testList.append('import_ldif_many_indexes')
+            #testList.append('import_ldif_tasks_bin_attr')
+            #testList.append('import_ldif_tasks_bin_attr_with_load')
+          </script>
+
+          <iterate var="__test" in="testList">
+            <sequence>
+
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/import_ldif/%s.xml' %
+                      (TESTS_DIR,__test)"/>
+
+              <call function="'%s' % __test" />
+
+            </sequence>
+          </iterate>
+
           <call function="'testGroup_Postamble'"/>
+
         </sequence>
+
       </block>
+
     </sequence>
+
   </function>
+
 </stax>

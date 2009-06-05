@@ -29,7 +29,6 @@ package org.opends.server.api;
 
 
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
@@ -551,27 +550,6 @@ public abstract class ClientConnection
   public void mustEvaluateNetworkGroup(boolean bool) {
       mustEvaluateNetworkGroup = bool;
   }
-
-  /**
-   * Indicates that the data in the provided buffer has been read from
-   * the client and should be processed.  The contents of the provided
-   * buffer will be in clear-text (the data may have been passed
-   * through a connection security provider to obtain the clear-text
-   * version), and may contain part or all of one or more client
-   * requests.
-   *
-   * @param  buffer  The byte buffer containing the data available for
-   *                 reading.
-   *
-   * @return  {@code true} if all the data in the provided buffer was
-   *          processed and the client connection can remain
-   *          established, or {@code false} if a decoding error
-   *          occurred and requests from this client should no longer
-   *          be processed.  Note that if this method does return
-   *          {@code false}, then it must have already disconnected
-   *          the client.
-   */
-  public abstract boolean processDataRead(ByteBuffer buffer);
 
 
 
@@ -1745,22 +1723,6 @@ public abstract class ClientConnection
    *                 appended.
    */
   public abstract void toString(StringBuilder buffer);
-
-
-
-  /**
-   * Performs any work that may be needed before the JVM invokes
-   * garbage collection for this object.  In this case, it makes sure
-   * to deregister with the Directory Server as a change notification
-   * listener.  If a subclass wishes to perform custom finalization
-   * processing, then it should override this method and make sure to
-   * invoke {@code super.finalize} as its first call.
-   */
-  @Override
-  protected void finalize()
-  {
-    finalizeConnectionInternal();
-  }
 
 
   /**

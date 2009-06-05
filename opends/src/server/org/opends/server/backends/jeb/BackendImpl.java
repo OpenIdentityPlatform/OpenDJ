@@ -1539,6 +1539,7 @@ subIndex:
             DirectoryServer.deregisterBaseDN(baseDN);
             EntryContainer ec =
                 rootContainer.unregisterEntryContainer(baseDN);
+            ec.close();
             ec.delete();
           }
         }

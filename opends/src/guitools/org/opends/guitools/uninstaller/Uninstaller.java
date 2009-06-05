@@ -156,7 +156,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public Message getFrameTitle() {
-    return INFO_FRAME_UNINSTALL_TITLE.get();
+    Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+        INFO_FRAME_UNINSTALL_TITLE.get(), Message.class);
+    return title;
   }
 
   /**

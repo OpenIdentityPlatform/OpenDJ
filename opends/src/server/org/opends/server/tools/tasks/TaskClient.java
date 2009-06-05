@@ -266,11 +266,10 @@ public class TaskClient {
 
     AddResponseProtocolOp addResponse =
          responseMessage.getAddResponseProtocolOp();
-    Message errorMessage = addResponse.getErrorMessage();
-    if (errorMessage != null) {
+    if (addResponse.getResultCode() != 0) {
       throw new LDAPException(
               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-              errorMessage);
+              addResponse.getErrorMessage());
     }
     return getTaskEntry(taskID);
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 import java.io.IOException;
@@ -161,7 +161,7 @@ public final class JmxConnectionHandler extends
       listeners.clear();
       listeners.add(new HostPort(config.getListenPort()));
 
-      rmiConnector.finalizeConnectionHandler(true, portChanged);
+      rmiConnector.finalizeConnectionHandler(portChanged);
       try
       {
         rmiConnector.initialize();
@@ -190,25 +190,15 @@ public final class JmxConnectionHandler extends
 
 
   /**
-   * Closes this connection handler so that it will no longer accept
-   * new client connections. It may or may not disconnect existing
-   * client connections based on the provided flag.
-   *
-   * @param finalizeReason
-   *          The reason that this connection handler should be
-   *          finalized.
-   * @param closeConnections
-   *          Indicates whether any established client connections
-   *          associated with the connection handler should also be
-   *          closed.
+   * {@inheritDoc}
    */
-  public void finalizeConnectionHandler(Message finalizeReason,
-      boolean closeConnections) {
+  @Override
+  public void finalizeConnectionHandler(Message finalizeReason) {
     // Make sure that we don't get notified of any more changes.
     currentConfig.removeJMXChangeListener(this);
 
     // We should also close the RMI registry.
-    rmiConnector.finalizeConnectionHandler(closeConnections, true);
+    rmiConnector.finalizeConnectionHandler(true);
   }
 
 
@@ -252,6 +242,7 @@ public final class JmxConnectionHandler extends
    * @return The set of active client connections that have been
    *         established through this connection handler.
    */
+  @Override
   public Collection<ClientConnection> getClientConnections() {
     return connectionList;
   }
@@ -265,6 +256,7 @@ public final class JmxConnectionHandler extends
    * @return The DN of the configuration entry with which this alert
    *         generator is associated.
    */
+  @Override
   public DN getComponentEntryDN() {
     return currentConfig.dn();
   }
@@ -335,6 +327,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
@@ -388,6 +381,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getConnectionHandlerName() {
     return connectionHandlerName;
   }
@@ -397,6 +391,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getProtocol() {
     return protocol;
   }
@@ -406,6 +401,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<HostPort> getListeners() {
     return listeners;
   }
@@ -477,7 +473,7 @@ public final class JmxConnectionHandler extends
    */
   public void processServerShutdown(Message reason) {
     // We should also close the RMI registry.
-    rmiConnector.finalizeConnectionHandler(true, true);
+    rmiConnector.finalizeConnectionHandler(true);
   }
 
 
@@ -497,6 +493,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void run() {
     try
     {
@@ -512,6 +509,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toString(StringBuilder buffer) {
     buffer.append(connectionHandlerName);
   }

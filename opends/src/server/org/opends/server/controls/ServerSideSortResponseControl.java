@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -222,7 +222,7 @@ public class ServerSideSortResponseControl
     writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
-    writer.writeInteger(resultCode);
+    writer.writeEnumerated(resultCode);
     if (attributeType != null)
     {
       writer.writeOctetString(TYPE_ATTRIBUTE_TYPE, attributeType);

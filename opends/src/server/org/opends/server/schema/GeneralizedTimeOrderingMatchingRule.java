@@ -50,7 +50,7 @@ import org.opends.server.types.DirectoryException;
  * This class defines the generalizedTimeOrderingMatch matching rule defined in
  * X.520 and referenced in RFC 2252.
  */
-class GeneralizedTimeOrderingMatchingRule
+public class GeneralizedTimeOrderingMatchingRule
        extends AbstractMatchingRule
        implements OrderingMatchingRule
 {

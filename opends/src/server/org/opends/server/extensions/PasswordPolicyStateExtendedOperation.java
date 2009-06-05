@@ -497,9 +497,12 @@ public class PasswordPolicyStateExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
-    DirectoryServer.deregisterSupportedExtension(OID_CANCEL_REQUEST);
+    DirectoryServer.deregisterSupportedExtension(
+      OID_PASSWORD_POLICY_STATE_EXTOP);
+    deregisterControlsAndFeatures();
   }
 
 
@@ -1774,6 +1777,17 @@ public class PasswordPolicyStateExtendedOperation
     }
 
     return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Password Policy State";
   }
 }
 

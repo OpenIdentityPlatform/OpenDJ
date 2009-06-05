@@ -564,14 +564,13 @@ public class RootContainer
     }
 
     compressedSchema.close();
+    config.removeLocalDBChangeListener(this);
 
     if (env != null)
     {
       env.close();
       env = null;
     }
-
-    config.removeLocalDBChangeListener(this);
   }
 
   /**

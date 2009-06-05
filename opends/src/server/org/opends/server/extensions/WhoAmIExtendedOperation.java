@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -203,6 +203,17 @@ public class WhoAmIExtendedOperation
     operation.appendAdditionalLogMessage(
             Message.raw("authzID=\"" + authzID + "\""));
     operation.setResultCode(ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Who Am I?";
   }
 }
 

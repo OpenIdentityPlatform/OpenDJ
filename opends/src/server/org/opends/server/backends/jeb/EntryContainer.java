@@ -3392,11 +3392,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
 
-    for(DatabaseContainer db : databases)
-    {
-      db.close();
-    }
-
     if(env.getConfig().getTransactional())
     {
       Transaction txn = beginTransaction();

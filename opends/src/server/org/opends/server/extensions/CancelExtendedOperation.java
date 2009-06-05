@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -113,6 +113,7 @@ public class CancelExtendedOperation
    * Performs any finalization that may be necessary for this extended
    * operation handler.  By default, no finalization is performed.
    */
+  @Override
   public void finalizeExtendedOperationHandler()
   {
     DirectoryServer.deregisterSupportedExtension(OID_CANCEL_REQUEST);
@@ -183,6 +184,17 @@ public class CancelExtendedOperation
     // Update the result of the extended operation and return.
     operation.setResultCode(cancelResult.getResultCode());
     operation.appendErrorMessage(cancelResult.getResponseMessage());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Cancel";
   }
 }
 
