@@ -359,42 +359,58 @@ searchProcessing:
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
 
+          SearchFilter assertionFilter;
+
           try
           {
-            SearchFilter assertionFilter = assertControl.getSearchFilter();
-            Entry entry;
-            try
+            assertionFilter = assertControl.getSearchFilter();
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
             {
-              entry = DirectoryServer.getEntry(baseDN);
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              throw new DirectoryException(de.getResultCode(),
-                             ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
-                                  de.getMessageObject()));
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            if (entry == null)
+            throw new DirectoryException(de.getResultCode(),
+                           ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                                de.getMessageObject()), de);
+          }
+
+          Entry entry;
+          try
+          {
+            entry = DirectoryServer.getEntry(baseDN);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
             {
-              throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                             ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            // Check if the current user has permission to make
-            // this determination.
-            if (!AccessControlConfigManager.getInstance().
-              getAccessControlHandler().isAllowed(this, entry, assertionFilter))
-            {
-              throw new DirectoryException(
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
-            }
+            throw new DirectoryException(de.getResultCode(),
+                           ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
+                                de.getMessageObject()));
+          }
 
+          if (entry == null)
+          {
+            throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                           ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+          }
+
+          // Check if the current user has permission to make
+          // this determination.
+          if (!AccessControlConfigManager.getInstance().
+            getAccessControlHandler().isAllowed(this, entry, assertionFilter))
+          {
+            throw new DirectoryException(
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          }
+
+          try {
             if (! assertionFilter.matchesEntry(entry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
@@ -413,7 +429,7 @@ searchProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+            throw new DirectoryException(de.getResultCode(),
                            ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 de.getMessageObject()), de);
           }
