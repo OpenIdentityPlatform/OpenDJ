@@ -141,7 +141,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
   private BackupTableCellRenderer renderer;
 
   private static final Logger LOG =
-    Logger.getLogger(RestorePanel.class.getName());
+    Logger.getLogger(BackupListPanel.class.getName());
 
   /**
    * Default constructor.
