@@ -1465,30 +1465,46 @@ addProcessing:
         if (oid.equals(OID_LDAP_ASSERTION))
         {
           // RFC 4528 mandates support for Add operation basically
-          // suggesting an asertion on self. As daft as it may be
+          // suggesting an assertion on self. As daft as it may be
           // we gonna have to support this for RFC compliance.
           LDAPAssertionRequestControl assertControl =
             getRequestControl(LDAPAssertionRequestControl.DECODER);
 
+          SearchFilter filter;
           try
           {
-            SearchFilter filter = assertControl.getSearchFilter();
-
-            // Check if the current user has permission to make
-            // this determination.
-            if (!AccessControlConfigManager.getInstance().
-              getAccessControlHandler().isAllowed(this, entry, filter))
+            filter = assertControl.getSearchFilter();
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
             {
-              throw new DirectoryException(
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            if (! filter.matchesEntry(entry))
+            throw new DirectoryException(de.getResultCode(),
+                ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    String.valueOf(entryDN),
+                    de.getMessageObject()));
+          }
+
+          // Check if the current user has permission to make
+          // this determination.
+          if (!AccessControlConfigManager.getInstance().
+              getAccessControlHandler().isAllowed(this, entry, filter))
+          {
+            throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+          }
+
+          try
+          {
+            if (!filter.matchesEntry(entry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
-                                           ERR_ADD_ASSERTION_FAILED.get(
-                                                String.valueOf(entryDN)));
+                  ERR_ADD_ASSERTION_FAILED.get(String
+                      .valueOf(entryDN)));
             }
           }
           catch (DirectoryException de)
@@ -1503,10 +1519,10 @@ addProcessing:
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                           ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+            throw new DirectoryException(de.getResultCode(),
+                ERR_ADD_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    String.valueOf(entryDN),
+                    de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
