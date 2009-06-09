@@ -48,6 +48,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -55,6 +56,7 @@ import javax.swing.event.DocumentListener;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
@@ -84,6 +86,9 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JTextField skipsFile;
   private JCheckBox overwriteRejectsFile;
   private JCheckBox overwriteSkipsFile;
+  private JButton bBrowse;
+  private JButton rejectsBrowse;
+  private JButton skipsBrowse;
 
   private JLabel lBackend;
   private JLabel lNoBackendsFound;
@@ -92,6 +97,9 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JLabel lSchemaValidation;
   private JLabel lRejectsFile;
   private JLabel lSkipsFile;
+  private JLabel lRemoteFileHelp;
+  private JLabel lRemoteRejectsHelp;
+  private JLabel lRemoteSkipsHelp;
 
   private DocumentListener documentListener;
 
@@ -204,7 +212,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(file, gbc);
-    JButton bBrowse = Utilities.createButton(
+    bBrowse = Utilities.createButton(
         INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     bBrowse.addActionListener(
         new BrowseActionListener(file,
@@ -214,6 +222,16 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 0.0;
     bBrowse.setOpaque(false);
     add(bBrowse, gbc);
+
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.gridwidth = 2;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    add(lRemoteFileHelp, gbc);
+
     gbc.gridx = 1;
     gbc.gridy ++;
     gbc.insets.left = 30;
@@ -310,7 +328,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(rejectsFile, gbc);
-    final JButton rejectsBrowse =
+    rejectsBrowse =
       Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     rejectsBrowse.addActionListener(
         new BrowseActionListener(rejectsFile,
@@ -321,6 +339,16 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 10;
     rejectsBrowse.setOpaque(false);
     add(rejectsBrowse, gbc);
+
+    lRemoteRejectsHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.gridwidth = 2;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    add(lRemoteRejectsHelp, gbc);
+
     gbc.gridx = 1;
     gbc.gridy ++;
     gbc.insets.left = 30;
@@ -370,7 +398,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(skipsFile, gbc);
-    final JButton skipsBrowse =
+    skipsBrowse =
       Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     skipsBrowse.addActionListener(
         new BrowseActionListener(skipsFile,
@@ -381,6 +409,15 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 10;
     skipsBrowse.setOpaque(false);
     add(skipsBrowse, gbc);
+
+    lRemoteSkipsHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.gridwidth = 2;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    add(lRemoteSkipsHelp, gbc);
 
     gbc.gridx = 1;
     gbc.gridy ++;
@@ -446,10 +483,23 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    updateSimpleBackendComboBoxModel(backends, lNoBackendsFound,
-        ev.getNewDescriptor());
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_IMPORT.get());
+    ServerDescriptor desc = ev.getNewDescriptor();
+    updateSimpleBackendComboBoxModel(backends, lNoBackendsFound, desc);
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+      isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_IMPORT.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        lRemoteFileHelp.setVisible(!isLocal());
+        bBrowse.setVisible(isLocal());
+        rejectsBrowse.setVisible(isLocal());
+        skipsBrowse.setVisible(isLocal());
+        lRemoteRejectsHelp.setVisible(!isLocal());
+        lRemoteSkipsHelp.setVisible(!isLocal());
+      }
+    });
   }
 
   /**
@@ -483,7 +533,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     {
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
-    } else if (!Utils.fileExists(ldifPath))
+    } else if (isLocal() && !Utils.fileExists(ldifPath))
     {
       errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
       setPrimaryInvalid(lFile);
@@ -622,7 +672,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.

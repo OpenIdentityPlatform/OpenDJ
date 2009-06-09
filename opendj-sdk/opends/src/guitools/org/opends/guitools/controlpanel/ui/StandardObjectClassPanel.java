@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -60,7 +59,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
-import org.opends.server.util.ServerConstants;
 
 /**
  * The panel that displays a standard object class definition.
@@ -269,17 +267,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   {
     MessageBuilder returnValue = new MessageBuilder();
     String fileName = element.getSchemaFile();
-    String xOrigin = null;
-    Iterable<String> it =
-      element.getExtraProperty(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
-    if (it != null)
-    {
-      Iterator<String> iterator = it.iterator();
-      if (iterator.hasNext())
-      {
-        xOrigin = iterator.next();
-      }
-    }
+    String xOrigin = Utilities.getOrigin(element);
     if (xOrigin != null)
     {
       returnValue.append(xOrigin);

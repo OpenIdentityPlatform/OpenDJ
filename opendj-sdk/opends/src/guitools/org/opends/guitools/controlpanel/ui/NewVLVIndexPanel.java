@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -91,7 +92,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
-  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get();
@@ -100,7 +100,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
-  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
@@ -111,10 +110,12 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    if (updateLayout(ev.getNewDescriptor()))
+    ServerDescriptor desc = ev.getNewDescriptor();
+    if (updateLayout(desc))
     {
-      updateErrorPaneAndOKButtonIfAuthRequired(ev.getNewDescriptor(),
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_VLV.get());
+      updateErrorPaneAndOKButtonIfAuthRequired(desc,
+         isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_VLV.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
   }
 
@@ -131,7 +132,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
-  @Override
   public void okClicked()
   {
     List<Message> errors = checkErrors(true);
@@ -214,7 +214,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
-    @Override
     public Type getType()
     {
       return Type.NEW_INDEX;
@@ -223,7 +222,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
-    @Override
     public Set<String> getBackends()
     {
       return backendSet;
@@ -232,7 +230,6 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
-    @Override
     public Message getTaskDescription()
     {
       return INFO_CTRL_PANEL_NEW_VLV_INDEX_TASK_DESCRIPTION.get(
@@ -242,12 +239,11 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation

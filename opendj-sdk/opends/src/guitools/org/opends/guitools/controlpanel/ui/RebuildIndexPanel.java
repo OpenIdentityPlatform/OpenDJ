@@ -228,7 +228,7 @@ implements IndexModifiedListener
    * Refresh the contents of the panel with the provided server descriptor.
    * @param desc the server descriptor.
    */
-  private void refreshContents(ServerDescriptor desc)
+  private void refreshContents(final ServerDescriptor desc)
   {
     updateIndexMap(desc, hmIndexes);
     updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
@@ -249,7 +249,9 @@ implements IndexModifiedListener
     if (!allDisabled)
     {
       updateErrorPaneAndOKButtonIfAuthRequired(desc,
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_DISABLE_BACKEND.get());
+        isLocal() ?
+            INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_DISABLE_BACKEND.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -277,6 +279,17 @@ implements IndexModifiedListener
         addRemove.getSelectedList().repaint();
 
         Utilities.updateViewPositions(pos);
+        if (!desc.isLocal() && false)
+        {
+          displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
+          INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_REBUILD_INDEX_SUMMARY.get());
+          setEnabledOK(false);
+        }
+        else
+        {
+          displayMainPanel();
+          setEnabledOK(true);
+        }
       }
     });
   }

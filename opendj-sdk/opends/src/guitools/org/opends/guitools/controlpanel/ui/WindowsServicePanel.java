@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -44,6 +44,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -63,6 +64,8 @@ public class WindowsServicePanel extends StatusGenericPanel
   private JLabel lState;
   private JButton bEnable;
   private JButton bDisable;
+
+  private boolean previousLocal = true;
 
   private boolean isWindowsServiceEnabled;
 
@@ -193,13 +196,37 @@ public class WindowsServicePanel extends StatusGenericPanel
   {
     boolean previousValue = isWindowsServiceEnabled;
     isWindowsServiceEnabled = ev.getNewDescriptor().isWindowsServiceEnabled();
-    if (isWindowsServiceEnabled != previousValue)
+
+    final boolean isLocal = ev.getNewDescriptor().isLocal();
+    if ((isLocal != previousLocal) ||
+        (isWindowsServiceEnabled != previousValue))
     {
-      lState.setText(isWindowsServiceEnabled ?
-          INFO_ENABLED_LABEL.get().toString() :
-            INFO_DISABLED_LABEL.get().toString());
-      bEnable.setVisible(!isWindowsServiceEnabled);
-      bDisable.setVisible(isWindowsServiceEnabled);
+      previousLocal = isLocal;
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void run()
+        {
+          lState.setText(isWindowsServiceEnabled ?
+              INFO_ENABLED_LABEL.get().toString() :
+                INFO_DISABLED_LABEL.get().toString());
+          bEnable.setVisible(!isWindowsServiceEnabled);
+          bDisable.setVisible(isWindowsServiceEnabled);
+
+          if (!isLocal)
+          {
+            displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
+            INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_WINDOWS_SERVICE_SUMMARY.get());
+            packParentDialog();
+          }
+          else
+          {
+            displayMainPanel();
+          }
+        }
+      });
     }
   }
 
@@ -314,7 +341,7 @@ public class WindowsServicePanel extends StatusGenericPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         if ((taskToBeLaunched.getType() == Type.ENABLE_WINDOWS_SERVICE) ||
             (taskToBeLaunched.getType() == Type.DISABLE_WINDOWS_SERVICE))

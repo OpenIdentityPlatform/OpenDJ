@@ -575,6 +575,10 @@ class StatusCli extends ConsoleApplication
       status = INFO_SERVER_STOPPING_LABEL.get();
       break;
 
+    case NOT_CONNECTED_TO_REMOTE:
+      status = INFO_SERVER_NOT_CONNECTED_TO_REMOTE_STATUS_LABEL.get();
+      break;
+
     case UNKNOWN:
       status = INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
       break;

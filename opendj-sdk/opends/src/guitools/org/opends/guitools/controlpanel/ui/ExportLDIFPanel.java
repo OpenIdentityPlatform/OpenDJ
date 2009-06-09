@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -47,12 +47,14 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
@@ -76,11 +78,13 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
   private JCheckBox generateSignedHash;
   private JCheckBox wrapText;
   private JTextField wrapColumn;
+  private JButton bBrowse;
 
   private JLabel lBackend;
   private JLabel lNoBackendsFound;
   private JLabel lFile;
   private JLabel lExportOptions;
+  private JLabel lRemoteFileHelp;
   private JCheckBox excludeOperationalAttrs;
 
   private DocumentListener documentListener;
@@ -195,7 +199,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(file, gbc);
-    JButton bBrowse = Utilities.createButton(
+    bBrowse = Utilities.createButton(
         INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     bBrowse.addActionListener(
         new BrowseActionListener(file,
@@ -205,6 +209,16 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     gbc.weightx = 0.0;
     bBrowse.setOpaque(false);
     add(bBrowse, gbc);
+
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    gbc.gridwidth = 3;
+    add(lRemoteFileHelp, gbc);
+
     gbc.gridx = 1;
     gbc.gridy ++;
     gbc.insets.left = 30;
@@ -312,11 +326,22 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    ServerDescriptor desc = ev.getNewDescriptor();
     updateSimpleBackendComboBoxModel(backends, lNoBackendsFound,
         ev.getNewDescriptor());
 
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_EXPORT.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+       isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_EXPORT.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        lRemoteFileHelp.setVisible(!isLocal());
+        bBrowse.setVisible(isLocal());
+      }
+    });
   }
 
   /**
@@ -350,7 +375,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
     }
-    else
+    else if (isLocal())
     {
       File f = new File(ldifPath);
       if (f.isDirectory())
@@ -468,7 +493,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.

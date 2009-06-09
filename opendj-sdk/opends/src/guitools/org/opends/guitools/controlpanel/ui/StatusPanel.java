@@ -266,6 +266,20 @@ class StatusPanel extends StatusGenericPanel
               mb.toMessage(), ColorAndFontConstants.defaultFont);
         }
       }
+      else if (desc.getStatus() ==
+        ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
+      {
+        errorPaneVisible = true;
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
+            desc.getHostname()));
+        mb.append("<br><br>"+getAuthenticateHTML());
+        Message title =
+          INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
+        updateErrorPane(errorPane, title,
+            ColorAndFontConstants.errorTitleFont,
+            mb.toMessage(), ColorAndFontConstants.defaultFont);
+      }
       if (errorPane.isVisible() != errorPaneVisible)
       {
         errorPane.setVisible(errorPaneVisible);
@@ -292,11 +306,19 @@ class StatusPanel extends StatusGenericPanel
       {
         if (!desc.isAuthenticated())
         {
+          mb.append("<br>");
           mb.append(
      INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
      get());
           mb.append("<br><br>"+getAuthenticateHTML());
         }
+      }
+      else if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
+      {
+        mb.append("<br>");
+        mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
+          desc.getHostname()));
+        mb.append("<br><br>"+getAuthenticateHTML());
       }
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -307,20 +329,29 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    serverStatus.setText(desc.getStatus().toString().toLowerCase());
+    serverStatus.setText(getStatusLabel(desc));
 
     boolean isRunning = desc.getStatus() ==
       ServerDescriptor.ServerStatus.STARTED;
     boolean isAuthenticated = desc.isAuthenticated();
+    boolean isLocal = desc.isLocal();
 
     startButton.setVisible(desc.getStatus() ==
-      ServerDescriptor.ServerStatus.STOPPED);
-    restartButton.setVisible(isRunning);
-    stopButton.setVisible(isRunning);
+      ServerDescriptor.ServerStatus.STOPPED  && isLocal);
+    restartButton.setVisible(isRunning  && isLocal);
+    stopButton.setVisible(isRunning && isLocal);
 
     if (!isRunning)
     {
-      Utilities.setNotAvailableBecauseServerIsDown(currentConnections);
+      if (isLocal)
+      {
+        Utilities.setNotAvailableBecauseServerIsDown(currentConnections);
+      }
+      else
+      {
+        Utilities.setTextValue(currentConnections,
+            INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+      }
     }
     else if (!isAuthenticated)
     {
@@ -358,22 +389,50 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    String htmlString = "<html>"+Utilities.applyFont(
-        Utilities.getStringFromCollection(sortedRootUsers, "<br>"),
-        administrativeUsers.getFont());
-    administrativeUsers.setText(htmlString);
-
+    if (rootUsers.size() > 0)
+    {
+      String htmlString = "<html>"+Utilities.applyFont(
+          Utilities.getStringFromCollection(sortedRootUsers, "<br>"),
+          administrativeUsers.getFont());
+      administrativeUsers.setText(htmlString);
+    }
+    else
+    {
+      administrativeUsers.setText(
+          INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+    }
     File install = desc.getInstallPath();
-    installPath.setText(install.getAbsolutePath());
+    if (install != null)
+    {
+      installPath.setText(install.getAbsolutePath());
+    }
+    else
+    {
+      installPath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+    }
 
     File instance = desc.getInstancePath();
 
-    instancePath.setText(instance.getAbsolutePath());
+    if (instance != null)
+    {
+      instancePath.setText(instance.getAbsolutePath());
+    }
+    else
+    {
+      instancePath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+    }
 
     boolean sameInstallAndInstance;
     try
     {
-      sameInstallAndInstance = instance.getCanonicalFile().equals(install);
+      if (instance != null)
+      {
+        sameInstallAndInstance = instance.getCanonicalFile().equals(install);
+      }
+      else
+      {
+        sameInstallAndInstance = install == null;
+      }
     }
     catch (IOException ioe)
     {
@@ -383,11 +442,26 @@ class StatusPanel extends StatusGenericPanel
     instancePath.setVisible(!sameInstallAndInstance);
     lInstancePath.setVisible(!sameInstallAndInstance);
 
-    opendsVersion.setText(desc.getOpenDSVersion());
+    if (desc.getOpenDSVersion() != null)
+    {
+      opendsVersion.setText(desc.getOpenDSVersion());
+    }
+    else
+    {
+      opendsVersion.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+    }
 
     if (!isRunning)
     {
-      Utilities.setNotAvailableBecauseServerIsDown(javaVersion);
+      if (isLocal)
+      {
+        Utilities.setNotAvailableBecauseServerIsDown(javaVersion);
+      }
+      else
+      {
+        Utilities.setTextValue(javaVersion,
+            INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+      }
     }
     else if (!isAuthenticated)
     {
@@ -642,7 +716,7 @@ class StatusPanel extends StatusGenericPanel
       gbc.insets.left = 0;
       if (i != 0)
       {
-        gbc.insets.top = 5;
+        gbc.insets.top = 10;
       }
       gbc.gridwidth = GridBagConstraints.RELATIVE;
       auxPanel.add(leftLabels[i], gbc);
@@ -771,6 +845,41 @@ class StatusPanel extends StatusGenericPanel
     {
       return INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString();
     }
+  }
+
+  private String getStatusLabel(ServerDescriptor desc)
+  {
+    Message status;
+    switch (desc.getStatus())
+    {
+    case STARTED:
+      status = INFO_SERVER_STARTED_LABEL.get();
+      break;
+
+    case STOPPED:
+      status = INFO_SERVER_STOPPED_LABEL.get();
+      break;
+
+    case STARTING:
+      status = INFO_SERVER_STARTING_LABEL.get();
+      break;
+
+    case STOPPING:
+      status = INFO_SERVER_STOPPING_LABEL.get();
+      break;
+
+    case NOT_CONNECTED_TO_REMOTE:
+      status = INFO_SERVER_NOT_CONNECTED_TO_REMOTE_STATUS_LABEL.get();
+      break;
+
+    case UNKNOWN:
+      status = INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
+      break;
+
+    default:
+      throw new IllegalStateException("Unknown status: "+desc.getStatus());
+    }
+    return status.toString();
   }
 }
 

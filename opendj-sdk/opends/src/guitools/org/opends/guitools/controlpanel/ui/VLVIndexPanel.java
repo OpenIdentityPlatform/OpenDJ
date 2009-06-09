@@ -62,6 +62,7 @@ import javax.swing.event.ListDataListener;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -142,12 +143,15 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
-  public void configurationChanged(final ConfigurationChangeEvent ev)
+  public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    if (updateLayout(ev.getNewDescriptor()))
+    final ServerDescriptor desc = ev.getNewDescriptor();
+    if (updateLayout(desc))
     {
-      updateErrorPaneIfAuthRequired(ev.getNewDescriptor(),
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_VLV_INDEX_EDITING.get());
+      updateErrorPaneIfAuthRequired(desc,
+          isLocal() ?
+          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_VLV_INDEX_EDITING.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
       SwingUtilities.invokeLater(new Runnable()
       {
         /**
@@ -157,7 +161,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         {
           checkSaveButton();
           deleteIndex.setEnabled(
-              !authenticationRequired(ev.getNewDescriptor()));
+              !authenticationRequired(desc));
         }
       });
     }
@@ -668,7 +672,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation

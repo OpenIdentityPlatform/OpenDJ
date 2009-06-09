@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -64,8 +64,6 @@ import static org.opends.messages.ToolMessages.
     ERR_CANNOT_DECODE_BASE_DN;
 import static org.opends.messages.ToolMessages.
     ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-import static org.opends.messages.ToolMessages.
-    ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND;
 import static org.opends.messages.ToolMessages.
     WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
 import static org.opends.server.config.ConfigConstants.
@@ -195,65 +193,43 @@ public class RebuildTask extends Task
     // to aquire exclusive lock.
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
-    if(rebuildConfig.includesSystemIndex())
+
+    // Disable the backend.
+    try
     {
-      // Disable the backend.
-      try
+      TaskUtils.disableBackend(backend.getBackendID());
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
       {
-        TaskUtils.disableBackend(backend.getBackendID());
-      }
-      catch (DirectoryException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        logError(e.getMessageObject());
-        return TaskState.STOPPED_BY_ERROR;
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        if(! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-        {
-          Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          logError(message);
-          return TaskState.STOPPED_BY_ERROR;
-        }
-      }
-      catch (Exception e)
+      logError(e.getMessageObject());
+      return TaskState.STOPPED_BY_ERROR;
+    }
+
+    try
+    {
+      if(! LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
         Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(e));
+            backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
         return TaskState.STOPPED_BY_ERROR;
       }
     }
-    else
+    catch (Exception e)
     {
-      try
-      {
-        if(! LockFileManager.acquireSharedLock(lockFile, failureReason))
-        {
-          Message message = ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(
-              backend.getBackendID(), String.valueOf(failureReason));
-          logError(message);
-          return TaskState.STOPPED_BY_ERROR;
-        }
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_REBUILDINDEX_CANNOT_SHARED_LOCK_BACKEND.get(
-            backend.getBackendID(), getExceptionMessage(e));
-        logError(message);
-        return TaskState.STOPPED_BY_ERROR;
-      }
-
+      Message message = ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND.get(
+          backend.getBackendID(), getExceptionMessage(e));
+      logError(message);
+      return TaskState.STOPPED_BY_ERROR;
     }
 
 
+    TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
     // Launch the rebuild process.
     try
     {
@@ -270,31 +246,33 @@ public class RebuildTask extends Task
       Message message =
           ERR_REBUILDINDEX_ERROR_DURING_REBUILD.get(e.getMessage());
       logError(message);
-      return TaskState.STOPPED_BY_ERROR;
+      returnCode = TaskState.STOPPED_BY_ERROR;
     }
-
     // Release the lock on the backend.
-    try
+    finally
     {
-      lockFile = LockFileManager.getBackendLockFileName(backend);
-      failureReason = new StringBuilder();
-      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      try
+      {
+        lockFile = LockFileManager.getBackendLockFileName(backend);
+        failureReason = new StringBuilder();
+        if (! LockFileManager.releaseLock(lockFile, failureReason))
+        {
+          Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
+              backend.getBackendID(), String.valueOf(failureReason));
+          logError(message);
+          returnCode = TaskState.COMPLETED_WITH_ERRORS;
+        }
+      }
+      catch (Throwable t)
       {
         Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
-            backend.getBackendID(), String.valueOf(failureReason));
+            backend.getBackendID(), getExceptionMessage(t));
         logError(message);
-        return TaskState.COMPLETED_WITH_ERRORS;
+        returnCode = TaskState.COMPLETED_WITH_ERRORS;
       }
     }
-    catch (Exception e)
-    {
-      Message message = WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND.get(
-          backend.getBackendID(), getExceptionMessage(e));
-      logError(message);
-      return TaskState.COMPLETED_WITH_ERRORS;
-    }
 
-    if(rebuildConfig.includesSystemIndex())
+    if(returnCode == TaskState.COMPLETED_SUCCESSFULLY)
     {
       // Enable the backend.
       try
@@ -309,10 +287,10 @@ public class RebuildTask extends Task
         }
 
         logError(e.getMessageObject());
-        return TaskState.STOPPED_BY_ERROR;
+        returnCode = TaskState.STOPPED_BY_ERROR;
       }
     }
 
-    return TaskState.COMPLETED_SUCCESSFULLY;
+    return returnCode;
   }
 }

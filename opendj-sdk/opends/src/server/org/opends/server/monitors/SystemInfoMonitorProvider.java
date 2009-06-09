@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -196,7 +196,16 @@ public class SystemInfoMonitorProvider
                               String.valueOf(runtime.totalMemory())));
     attrs.add(createAttribute("freeUsedMemory",
                               String.valueOf(runtime.freeMemory())));
-
+    String installPath = DirectoryServer.getServerRoot();
+    if (installPath != null)
+    {
+      attrs.add(createAttribute("installPath", installPath));
+    }
+    String instancePath = DirectoryServer.getInstanceRoot();
+    if (instancePath != null)
+    {
+      attrs.add(createAttribute("instancePath", instancePath));
+    }
 
     // Get the JVM input arguments.
     RuntimeMXBean rtBean = ManagementFactory.getRuntimeMXBean();

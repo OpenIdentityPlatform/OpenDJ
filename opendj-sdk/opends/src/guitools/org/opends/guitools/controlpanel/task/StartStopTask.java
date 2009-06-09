@@ -79,7 +79,7 @@ public abstract class StartStopTask extends Task
       Collection<Message> incompatibilityReasons)
   {
     boolean canLaunch = true;
-    if (state == State.RUNNING)
+    if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
     {
       incompatibilityReasons.add(getIncompatibilityMessage(this,
           taskToBeLaunched));

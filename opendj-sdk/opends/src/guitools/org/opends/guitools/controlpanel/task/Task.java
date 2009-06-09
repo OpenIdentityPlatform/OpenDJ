@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -53,6 +53,7 @@ import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.quicksetup.Installation;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
@@ -68,6 +69,7 @@ import org.opends.server.util.cli.CommandBuilder;
 public abstract class Task
 {
   private static String localHostName = null;
+  private String binDir;
   static
   {
     // Do this since by default the hostname used by the connection is
@@ -275,6 +277,8 @@ public abstract class Task
   protected Process process;
   private ControlPanelInfo info;
 
+  private ServerDescriptor server;
+
   private ProgressDialog progressDialog;
 
   private static int MAX_BINARY_LENGTH_TO_DISPLAY = 1024;
@@ -313,6 +317,7 @@ public abstract class Task
         logs.append(msg+"\n");
       }
     });
+    server = info.getServerDescriptor();
   }
 
   /**
@@ -600,16 +605,80 @@ public abstract class Task
    */
   protected String getBinaryDir()
   {
-    if (Utilities.isWindows())
+    if (binDir == null)
     {
-      return getInfo().getServerDescriptor().getInstallPath() +
-      File.separator + "bat" + File.separator;
+      File f = Installation.getLocal().getBinariesDirectory();
+      try
+      {
+        binDir = f.getCanonicalPath();
+      }
+      catch (Throwable t)
+      {
+        binDir = f.getAbsolutePath();
+      }
+      if (binDir.lastIndexOf(File.separatorChar) != (binDir.length() - 1))
+      {
+        binDir += File.separatorChar;
+      }
+    }
+
+    return binDir;
+  }
+
+  /**
+   * Check whether the provided task and this task run on the same server.
+   * @param task the task the task to be analyzed.
+   * @return <CODE>true</CODE> if both tasks run on the same server and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean runningOnSameServer(Task task)
+  {
+    boolean runningOnSameServer = false;
+    if (getServer().isLocal() && task.getServer().isLocal())
+    {
+      runningOnSameServer = true;
     }
     else
     {
-      return getInfo().getServerDescriptor().getInstallPath() +
-      File.separator + "bin" + File.separator;
+      // Compare the host name and the instance path.  This is safer than
+      // comparing ports: we might be running locally on a stopped instance with
+      // the same configuration as a "remote" (though located on the same
+      // machine) server.
+      File f1 = getServer().getInstancePath();
+      File f2 = task.getServer().getInstancePath();
+
+      String host1 = getServer().getHostname();
+      String host2 = task.getServer().getHostname();
+      if (host1 == null)
+      {
+        runningOnSameServer = host2 == null;
+      }
+      else
+      {
+        runningOnSameServer = host1.equalsIgnoreCase(host2);
+      }
+      if (runningOnSameServer)
+      {
+        if (f1 == null)
+        {
+          runningOnSameServer = f2 == null;
+        }
+        else
+        {
+          runningOnSameServer = f1.equals(f2);
+        }
+      }
     }
+    return runningOnSameServer;
+  }
+
+  /**
+   * Returns the server descriptor on which the task was launched.
+   * @return the server descriptor on which the task was launched.
+   */
+  public ServerDescriptor getServer()
+  {
+    return server;
   }
 
   /**
@@ -729,7 +798,7 @@ public abstract class Task
     if (isServerRunning() && (ctx != null))
     {
       String hostName = localHostName;
-      if (hostName == null)
+      if ((hostName == null) || !getInfo().getServerDescriptor().isLocal())
       {
         hostName = ConnectionUtils.getHostName(ctx);
       }

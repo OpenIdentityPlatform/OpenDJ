@@ -79,29 +79,7 @@ public class MainMenuBar extends GenericMenuBar
    */
   protected void addMenus()
   {
-    JMenu menu;
-    JMenuItem menuItem;
-
-    if (!Utilities.isMacOS())
-    {
-      menu = Utilities.createMenu(INFO_CTRL_PANEL_FILE_MENU.get(),
-          INFO_CTRL_PANEL_FILE_MENU_DESCRIPTION.get());
-      menu.setMnemonic(KeyEvent.VK_F);
-      menuItem = Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
-      menuItem.addActionListener(new ActionListener()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        public void actionPerformed(ActionEvent ev)
-        {
-          quitClicked();
-        }
-      });
-      menu.add(menuItem);
-
-      add(menu);
-    }
+    add(createFileMenuBar());
     add(createViewMenuBar());
     add(createHelpMenuBar());
   }
@@ -138,7 +116,44 @@ public class MainMenuBar extends GenericMenuBar
     }
   }
 
-
+  /**
+   * Creates the File menu bar.
+   * @return the File menu bar.
+   */
+  protected JMenu createFileMenuBar()
+  {
+    JMenu menu = Utilities.createMenu(INFO_CTRL_PANEL_FILE_MENU.get(),
+        INFO_CTRL_PANEL_FILE_MENU_DESCRIPTION.get());
+    menu.setMnemonic(KeyEvent.VK_F);
+    if (!Utilities.isMacOS())
+    {
+      JMenuItem menuItem =
+        Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
+      menuItem.addActionListener(new ActionListener()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void actionPerformed(ActionEvent ev)
+        {
+          quitClicked();
+        }
+      });
+      menu.add(menuItem);
+    }
+    JMenuItem menuItem = Utilities.createMenuItem(
+        INFO_CTRL_PANEL_CONNECT_TO_SERVER_MENU.get());
+    menu.setMnemonic(KeyEvent.VK_R);
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        connectToServerClicked();
+      }
+    });
+    menu.add(menuItem);
+    return menu;
+  }
 
   /**
    * Creates the View menu bar.
@@ -229,6 +244,40 @@ public class MainMenuBar extends GenericMenuBar
       getInfo().setPoolingPeriod(panel.getPoolingPeriod());
       getInfo().stopPooling();
       getInfo().startPooling();
+    }
+  }
+
+  /**
+   * The method called when the user clicks on 'Connect to Server...'.
+   */
+  protected void connectToServerClicked()
+  {
+    Set<String> runningTasks = new HashSet<String>();
+    for (Task task : getInfo().getTasks())
+    {
+      if (task.getState() == Task.State.RUNNING)
+      {
+        runningTasks.add(task.getTaskDescription().toString());
+      }
+    }
+    boolean confirmed = true;
+    if (runningTasks.size() > 0)
+    {
+      String allTasks = Utilities.getStringFromCollection(runningTasks, "<br>");
+      Message title = INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get();
+      Message msg =
+        INFO_CTRL_PANEL_RUNNING_TASKS_CHANGE_SERVER_CONFIRMATION_DETAILS.get(
+            allTasks);
+      confirmed = Utilities.displayConfirmationDialog(
+          Utilities.getParentDialog(this), title, msg);
+    }
+    if (confirmed)
+    {
+      GenericDialog dlg =
+        ControlCenterMainPane.getLocalOrRemoteDialog(getInfo());
+      Utilities.centerGoldenMean(dlg,
+          Utilities.getFrame(MainMenuBar.this));
+      dlg.setVisible(true);
     }
   }
 }

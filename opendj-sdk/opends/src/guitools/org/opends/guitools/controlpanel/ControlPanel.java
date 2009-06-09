@@ -36,11 +36,12 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.ui.ControlCenterMainPane;
+import org.opends.guitools.controlpanel.ui.GenericDialog;
 import org.opends.guitools.controlpanel.ui.MainMenuBar;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
+import org.opends.quicksetup.Installation;
 import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
 
@@ -55,6 +56,7 @@ public class ControlPanel
   private JFrame dlg;
   private ControlPanelInfo info;
   private ControlCenterMainPane controlCenterPane;
+  private MainMenuBar menuBar;
 
   /**
    * Main method that is used for testing purposes.  The control-panel
@@ -83,15 +85,16 @@ public class ControlPanel
 
   /**
    * Method that creates the ControlCenterInfo object that will be in all the
-   * control panel.  Here it basically reads the configuration of the
-   * configuration file.
+   * control panel.  Nothing is done here: the user must say whether the server
+   * is local or remote.
    * @param args the arguments that are passed in the command line.
    */
   public void initialize(String[] args)
   {
     info = ControlPanelInfo.getInstance();
-    info.regenerateDescriptor();
-    info.startPooling();
+    // Call Installation because the LocalOrRemotePanel uses it to check
+    // whether the server is running or not and to get the install path.
+    Installation.getLocal();
   }
 
   /**
@@ -99,34 +102,47 @@ public class ControlPanel
    */
   public void createAndDisplayGUI()
   {
-//  Create and set up the content pane.
-    controlCenterPane = new ControlCenterMainPane(info);
-    //  Create and set up the window.
-    dlg = new JFrame();
-    dlg.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    final MainMenuBar menuBar = new MainMenuBar(info);
-    dlg.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        menuBar.quitClicked();
+    GenericDialog localOrRemote =
+      ControlCenterMainPane.getLocalOrRemoteDialog(info);
+    Utilities.centerOnScreen(localOrRemote);
+    localOrRemote.setVisible(true);
+
+    if (info.getServerDescriptor() == null)
+    {
+      menuBar = new MainMenuBar(info);
+      // Assume that the user decided to quit the application
+      menuBar.quitClicked();
+    }
+    // To be sure that the dlg receives the new configuration event before
+    // calling pack.
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        // Create and set up the content pane.
+        controlCenterPane = new ControlCenterMainPane(info);
+        //  Create and set up the window.
+        dlg = new JFrame();
+        dlg.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        final MainMenuBar menuBar = new MainMenuBar(info);
+        dlg.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {
+            menuBar.quitClicked();
+          }
+        });
+        dlg.setJMenuBar(menuBar);
+        String title = Utils.getCustomizedObject(
+            "INFO_CONTROL_PANEL_TITLE",
+            AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(),
+            Message.class).toString();
+        dlg.setTitle(title);
+        dlg.setContentPane(controlCenterPane);
+        dlg.pack();
+        Utilities.centerOnScreen(dlg);
+
+        dlg.setVisible(true);
       }
     });
-    dlg.setJMenuBar(menuBar);
-    String title = Utils.getCustomizedObject(
-        "INFO_CONTROL_PANEL_TITLE",
-        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(),
-        Message.class).toString();
-    dlg.setTitle(title);
-    dlg.setContentPane(controlCenterPane);
-
-    dlg.pack();
-    Utilities.centerOnScreen(dlg);
-    dlg.setVisible(true);
-    if (info.getServerDescriptor().getStatus() ==
-      ServerDescriptor.ServerStatus.STARTED)
-    {
-      controlCenterPane.getLoginDialog().setVisible(true);
-      controlCenterPane.getLoginDialog().toFront();
-    }
   }
 
   private static void initLookAndFeel() throws Throwable

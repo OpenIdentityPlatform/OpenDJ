@@ -155,7 +155,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   private boolean readUseOpenDSJavaHome;
   private boolean readUseOpenDSJavaArgs;
 
-  private boolean firstDisplay = true;
+  private boolean initialized = false;
+
+  private boolean previousLocal = true;
 
   private Message READING_JAVA_SETTINGS =
     INFO_CTRL_PANEL_READING_JAVA_SETTINGS_SUMMARY.get();
@@ -239,7 +241,6 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME_HELP.get());
     gbc.insets.left = 0;
     add(useOpenDSJavaHomeLabel, gbc);
-
 
     gbc.gridx = 1;
     gbc.gridy ++;
@@ -416,7 +417,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
     comps = new JComponent[] {
         javaHome, useOpenDSJavaHome, useSpecifiedJavaHome, browse,
-        useOpenDSJavaArgs, useSpecifiedJavaArgs
+        useOpenDSJavaArgs, useSpecifiedJavaArgs, showAll
     };
   }
 
@@ -425,6 +426,31 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    final boolean isLocal = ev.getNewDescriptor().isLocal();
+    if (isLocal != previousLocal)
+    {
+      previousLocal = isLocal;
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void run()
+        {
+          if (!isLocal)
+          {
+            displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
+            INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_JAVA_PROPERTIES_SUMMARY.get());
+            setEnabledOK(false);
+          }
+          else
+          {
+            displayMainPanel();
+            setEnabledOK(true);
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -433,9 +459,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   @Override
   public void toBeDisplayed(boolean visible)
   {
-    if (visible && (firstDisplay || !updatedByUser()))
+    boolean isLocal = true;
+    if (getInfo() != null)
     {
-      firstDisplay = false;
+      isLocal = getInfo().getServerDescriptor().isLocal();
+    }
+    if (visible && isLocal && (!initialized || !updatedByUser()))
+    {
+      initialized = true;
       initContents();
     }
   }
@@ -1376,7 +1407,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       boolean canLaunch = true;
       if (!isServerRunning())
       {
-        if (state == State.RUNNING)
+        if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
         {
           // All the operations are incompatible if they apply to this
           // backend for safety.  This is a short operation so the limitation

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -50,6 +50,7 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.tools.RebuildIndex;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.cli.CommandBuilder;
 
@@ -109,7 +110,7 @@ public class RebuildIndexTask extends IndexTask
       Collection<Message> incompatibilityReasons)
   {
     boolean canLaunch = true;
-    if (state == State.RUNNING)
+    if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
     {
       // All the operations are incompatible if they apply to this
       // backend.
@@ -137,8 +138,9 @@ public class RebuildIndexTask extends IndexTask
     {
       boolean mustDisable = false;
       boolean mustEnable = false;
+      boolean isLocal = getInfo().getServerDescriptor().isLocal();
       String backendName = backendSet.iterator().next();
-      if (isServerRunning())
+      if (isServerRunning() && isLocal)
       {
         for (BackendDescriptor backend :
           getInfo().getServerDescriptor().getBackends())
@@ -188,8 +190,16 @@ public class RebuildIndexTask extends IndexTask
           }
         });
 
-        returnCode = executeCommandLine(getCommandLinePath("rebuild-index"),
-            args);
+        if (isLocal)
+        {
+          returnCode = executeCommandLine(getCommandLinePath("rebuild-index"),
+              args);
+        }
+        else
+        {
+          returnCode = RebuildIndex.mainRebuildIndex(args, false,
+              outPrintStream, errorPrintStream);
+        }
 
         if (returnCode != 0)
         {
@@ -256,6 +266,13 @@ public class RebuildIndexTask extends IndexTask
       {
         args.add(index.getName());
       }
+    }
+
+    boolean isLocal = getInfo().getServerDescriptor().isLocal();
+    if (!isLocal)
+    {
+      args.addAll(getConnectionCommandLineArguments());
+      args.addAll(getConfigCommandLineArguments());
     }
 
     return args;

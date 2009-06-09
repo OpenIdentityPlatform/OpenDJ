@@ -41,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteSchemaElementsTask;
@@ -116,10 +117,13 @@ public class CustomObjectClassPanel extends StandardObjectClassPanel
   /**
    * {@inheritDoc}
    */
-  public void configurationChanged(final ConfigurationChangeEvent ev)
+  public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    updateErrorPaneIfAuthRequired(ev.getNewDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_OBJECTCLASS_DELETE.get());
+    final ServerDescriptor desc = ev.getNewDescriptor();
+    updateErrorPaneIfAuthRequired(desc,
+       isLocal() ?
+          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_OBJECTCLASS_DELETE.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
       /**
@@ -127,7 +131,7 @@ public class CustomObjectClassPanel extends StandardObjectClassPanel
        */
       public void run()
       {
-        delete.setEnabled(!authenticationRequired(ev.getNewDescriptor()));
+        delete.setEnabled(!authenticationRequired(desc));
       }
     });
   }

@@ -1366,6 +1366,16 @@ implements BackendPopulatedListener
         }
       }
     }
+    else if (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
+          desc.getHostname()));
+      mb.append("<br><br>"+getAuthenticateHTML());
+      errorDetails = mb.toMessage();
+      errorTitle = INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
+      displayErrorPane = true;
+    }
     else
     {
       errorTitle = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();

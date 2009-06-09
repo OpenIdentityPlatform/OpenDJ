@@ -125,7 +125,7 @@ public class DeleteIndexTask extends Task
       Collection<Message> incompatibilityReasons)
   {
     boolean canLaunch = true;
-    if (state == State.RUNNING)
+    if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
     {
       // All the operations are incompatible if they apply to this
       // backend for safety.  This is a short operation so the limitation

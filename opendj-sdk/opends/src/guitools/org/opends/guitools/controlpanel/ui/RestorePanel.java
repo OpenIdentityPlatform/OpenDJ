@@ -38,6 +38,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -45,6 +47,7 @@ import javax.swing.event.ListSelectionListener;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BackupCreatedEvent;
 import org.opends.guitools.controlpanel.event.BackupCreatedListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -62,6 +65,8 @@ implements BackupCreatedListener
 {
   private static final long serialVersionUID = -205585323128518051L;
   private ListSelectionListener listener;
+  private JLabel lBackupID;
+  private JTextField backupID;
 
   /**
    * Constructor of the panel.
@@ -140,9 +145,22 @@ implements BackupCreatedListener
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    final ServerDescriptor desc = ev.getNewDescriptor();
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public void run()
+      {
+        lBackupID.setVisible(!desc.isLocal());
+        backupID.setVisible(!desc.isLocal());
+      }
+    });
     super.configurationChanged(ev);
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_RESTORE.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+        isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_RESTORE.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
   /**
@@ -194,6 +212,24 @@ implements BackupCreatedListener
 
     super.createLayout(gbc);
 
+    gbc.insets.top = 10;
+    gbc.gridx = 0;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    gbc.gridwidth = 1;
+    lBackupID = Utilities.createPrimaryLabel(
+        INFO_CTRL_PANEL_BACKUP_ID_LABEL.get());
+    add(lBackupID, gbc);
+    backupID = Utilities.createMediumTextField();
+    gbc.weightx = 0.0;
+    gbc.gridx = 1;
+    gbc.insets.left = 10;
+    gbc.insets.right = 40;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.gridwidth = 2;
+    add(backupID, gbc);
+
     listener = new ListSelectionListener()
     {
       public void valueChanged(ListSelectionEvent ev)
@@ -203,6 +239,8 @@ implements BackupCreatedListener
       }
     };
     backupList.getSelectionModel().addListSelectionListener(listener);
+
+    addBottomGlue(gbc);
   }
 
   /**
@@ -220,24 +258,44 @@ implements BackupCreatedListener
   {
     setPrimaryValid(lPath);
     setPrimaryValid(lAvailableBackups);
+    setPrimaryValid(lBackupID);
 
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
 
     BackupDescriptor backup = getSelectedBackup();
 
-    boolean selected = backupList.isVisible() && (backup != null);
-    if (!selected)
+    if (isLocal())
     {
-      if (backupList.getRowCount() == 0)
+      boolean selected = backupList.isVisible() && (backup != null);
+      if (!selected)
       {
+        if (backupList.getRowCount() == 0)
+        {
+          setPrimaryInvalid(lPath);
+          errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_TO_VERIFY.get());
+        }
+        else
+        {
+          errors.add(ERR_CTRL_PANEL_REQUIRED_BACKUP_TO_VERIFY.get());
+        }
+        setPrimaryInvalid(lAvailableBackups);
+      }
+    }
+    else
+    {
+      String parentPath = parentDirectory.getText();
+      if ((parentPath == null) || (parentPath.trim().equals("")))
+      {
+        errors.add(ERR_CTRL_PANEL_NO_BACKUP_PATH_PROVIDED.get());
         setPrimaryInvalid(lPath);
-        errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_TO_VERIFY.get());
       }
-      else
+
+      String id = backupID.getText();
+      if ((id == null) || (id.trim().equals("")))
       {
-        errors.add(ERR_CTRL_PANEL_REQUIRED_BACKUP_TO_VERIFY.get());
+        errors.add(ERR_CTRL_PANEL_NO_BACKUP_ID_PROVIDED.get());
+        setPrimaryInvalid(lBackupID);
       }
-      setPrimaryInvalid(lAvailableBackups);
     }
 
     if (errors.isEmpty())
@@ -312,9 +370,17 @@ implements BackupCreatedListener
     {
       super(info, dlg);
       this.verify = verify;
-      BackupDescriptor backup = getSelectedBackup();
-      dir = backup.getPath().getAbsolutePath();
-      backupID = backup.getID();
+      if (isLocal())
+      {
+        BackupDescriptor backup = getSelectedBackup();
+        dir = backup.getPath().getAbsolutePath();
+        backupID = backup.getID();
+      }
+      else
+      {
+        dir = parentDirectory.getText();
+        backupID = RestorePanel.this.backupID.getText();
+      }
       backendSet = new HashSet<String>();
       for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
       {
@@ -355,7 +421,7 @@ implements BackupCreatedListener
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.

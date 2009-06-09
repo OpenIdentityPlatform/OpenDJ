@@ -48,6 +48,7 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.naming.CompositeName;
@@ -290,6 +291,25 @@ public class Utilities
         null, // don't use a custom Icon
         null, // the titles of buttons
         null); // default button title
+  }
+
+  /**
+   * Displays a warning dialog.
+   * @param parentComponent the parent component relative to which the dialog
+   * will be displayed.
+   * @param title the title of the dialog.
+   * @param msg the message to be displayed.
+   */
+  public static void displayWarningDialog(Component parentComponent,
+      Message title, Message msg)
+  {
+    String plainText = msg.toString().replaceAll("<br>", ServerConstants.EOL);
+    String wrappedText = StaticUtils.wrapText(plainText, 70);
+    wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
+    JOptionPane.showMessageDialog(
+        parentComponent, "<html>"+wrappedText,
+        title.toString(),
+        JOptionPane.WARNING_MESSAGE);
   }
 
 
@@ -1734,6 +1754,16 @@ public class Utilities
       "03-uddiv3.ldif", "05-solaris.ldif"
   };
 
+  private final static String[] configurationSchemaOrigins =
+  {
+      "OpenDS Directory Server", "Sun Directory Server"
+  };
+
+  private final static String[] standardSchemaOrigins =
+  {
+      "Sun Java System Directory Server", "Solaris Specific", "X.501"
+  };
+
   private final static String[] configurationSchemaFileNames =
   {
       "02-config.ldif", "06-compat.ldif"
@@ -1765,6 +1795,27 @@ public class Utilities
         isStandard = fileName.toLowerCase().indexOf("-rfc") != -1;
       }
     }
+    else if (fileElement instanceof CommonSchemaElements)
+    {
+      CommonSchemaElements element = (CommonSchemaElements)fileElement;
+      String xOrigin = getOrigin(element);
+      if (xOrigin != null)
+      {
+        for (String name : standardSchemaOrigins)
+        {
+          isStandard = xOrigin.equals(name);
+          if (isStandard)
+          {
+            break;
+          }
+        }
+        if (!isStandard)
+        {
+          isStandard = xOrigin.startsWith("RFC ") ||
+          xOrigin.startsWith("draft-");
+        }
+      }
+    }
     return isStandard;
   }
 
@@ -1790,7 +1841,44 @@ public class Utilities
         }
       }
     }
+    else if (fileElement instanceof CommonSchemaElements)
+    {
+      CommonSchemaElements element = (CommonSchemaElements)fileElement;
+      String xOrigin = getOrigin(element);
+      if (xOrigin != null)
+      {
+        for (String name : configurationSchemaOrigins)
+        {
+          isConfiguration = xOrigin.equals(name);
+          if (isConfiguration)
+          {
+            break;
+          }
+        }
+      }
+    }
     return isConfiguration;
+  }
+
+  /**
+   * Returns the origin of the provided schema element.
+   * @param element the schema element.
+   * @return the origin of the provided schema element.
+   */
+  public static String getOrigin(CommonSchemaElements element)
+  {
+    String xOrigin = null;
+    Iterable<String> it =
+      element.getExtraProperty(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
+    if (it != null)
+    {
+      Iterator<String> iterator = it.iterator();
+      if (iterator.hasNext())
+      {
+        xOrigin = iterator.next();
+      }
+    }
+    return xOrigin;
   }
 
   /**
@@ -1976,13 +2064,7 @@ public class Utilities
     /*
      * Search for the config to check that it is the directory manager.
      */
-    SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(1);
-    searchControls.setSearchScope(
-    SearchControls. OBJECT_SCOPE);
-    searchControls.setReturningAttributes(
-    new String[] {"dn"});
-    ctx.search("cn=config", "objectclass=*", searchControls);
+    checkCanReadConfig(ctx);
     return ctx;
   }
 
@@ -2042,6 +2124,18 @@ public class Utilities
           bindDN, pwd, Utils.getDefaultLDAPTimeout(), null);
     }
 
+    checkCanReadConfig(ctx);
+    return ctx;
+  }
+
+  /**
+   * Checks that the provided connection can read cn=config.
+   * @param ctx the connection to be tested.
+   * @throws NamingException if an error occurs while reading cn=config.
+   */
+  public static void checkCanReadConfig(InitialLdapContext ctx)
+  throws NamingException
+  {
     /*
      * Search for the config to check that it is the directory manager.
      */
@@ -2052,7 +2146,6 @@ public class Utilities
     searchControls.setReturningAttributes(
     new String[] {"dn"});
     ctx.search("cn=config", "objectclass=*", searchControls);
-    return ctx;
   }
 
   /**
