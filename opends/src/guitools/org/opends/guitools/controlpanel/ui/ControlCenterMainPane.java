@@ -178,7 +178,7 @@ public class ControlCenterMainPane extends JPanel
    * Returns the login dialog used to ask authentication to the user.
    * @return the login dialog used to ask authentication to the user.
    */
-  public GenericDialog getLoginDialog()
+  private GenericDialog getLoginDialog()
   {
     return statusPane.getLoginDialog();
   }
@@ -207,10 +207,60 @@ public class ControlCenterMainPane extends JPanel
             INFO_CTRL_PANEL_NOT_AUTHENTICATED.get().toString());
       }
     }
-    else
+    else if (server.isLocal())
     {
       lAuthenticatedAs.setText(
          INFO_CTRL_PANEL_NOT_AUTHENTICATED_SERVER_NOT_RUNNING.get().toString());
     }
+    else
+    {
+      lAuthenticatedAs.setText(
+          INFO_CTRL_PANEL_NOT_AUTHENTICATED_SERVER_REMOTE.get(
+              server.getHostname()).toString());
+    }
+  }
+
+  private static GenericDialog localOrRemoteDlg;
+  private static GenericDialog loginDlg;
+
+  /**
+   * Returns the dialog that is in charge of asking the user the server
+   * to be administer.  This method will return always the same dialog.  The
+   * dialog will do all the logic of updating the ControlPanelInfo object.
+   * @param info the control panel information object.
+   * @return the dialog that is in charge of asking the user the server
+   * to be administer.
+   */
+  public static GenericDialog getLocalOrRemoteDialog(ControlPanelInfo info)
+  {
+    if (localOrRemoteDlg == null)
+    {
+      LocalOrRemotePanel localOrRemotePanel = new LocalOrRemotePanel();
+      localOrRemotePanel.setInfo(info);
+      localOrRemoteDlg = new GenericDialog(null, localOrRemotePanel);
+      localOrRemoteDlg.setModal(true);
+      localOrRemoteDlg.pack();
+    }
+    return localOrRemoteDlg;
+  }
+
+  /**
+   * Returns the dialog that is in charge of asking the user the authentication
+   * for the local server.  This method will return always the same dialog.
+   * @param info the control panel information object.  The
+   * dialog will do all the logic of updating the ControlPanelInfo object.
+   * @return the dialog that is in charge of asking the user the authentication
+   * for the local server.
+   */
+  public static GenericDialog getLocalServerLoginDialog(ControlPanelInfo info)
+  {
+    if (loginDlg == null)
+    {
+      LoginPanel loginPanel = new LoginPanel();
+      loginDlg = new GenericDialog(null, loginPanel);
+      loginPanel.setInfo(info);
+      loginDlg.setModal(true);
+    }
+    return loginDlg;
   }
 }

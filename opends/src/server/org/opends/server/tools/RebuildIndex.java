@@ -22,31 +22,38 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
 
 import static org.opends.server.util.StaticUtils.wrapText;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.extensions.ConfigFileHandler;
 
+
 import static org.opends.messages.ToolMessages.*;
 import org.opends.server.config.ConfigException;
+
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.tasks.RebuildTask;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
@@ -67,8 +74,12 @@ import java.util.List;
  * intended to run separate from Directory Server and not internally within the
  * server process (e.g., via the tasks interface).
  */
-public class RebuildIndex
+public class RebuildIndex extends TaskTool
 {
+  private StringArgument  configClass             = null;
+  private StringArgument  configFile              = null;
+  private StringArgument  baseDNString            = null;
+  private StringArgument  indexList               = null;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -102,6 +113,12 @@ public class RebuildIndex
                                      OutputStream outStream,
                                      OutputStream errStream)
   {
+    RebuildIndex tool = new RebuildIndex();
+    return tool.process(args, initializeServer, outStream, errStream);
+  }
+
+  private int process(String[] args, boolean initializeServer,
+      OutputStream outStream, OutputStream errStream) {
     PrintStream out;
     if (outStream == null)
     {
@@ -123,18 +140,14 @@ public class RebuildIndex
     }
 
     // Define the command-line arguments that may be used with this program.
-    StringArgument  configClass             = null;
-    StringArgument  configFile              = null;
-    StringArgument  baseDNString            = null;
-    StringArgument  indexList               = null;
     BooleanArgument displayUsage            = null;
 
 
     // Create the command-line argument parser for use with this program.
     Message toolDescription = INFO_REBUILDINDEX_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.server.tools.RebuildIndex",
-                            toolDescription, false);
+    LDAPConnectionArgumentParser argParser =
+      createArgParser("org.opends.server.tools.RebuildIndex",
+                            toolDescription);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -232,6 +245,17 @@ public class RebuildIndex
       return 1;
     }
 
+    return process(argParser, initializeServer, out, err);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected int processLocal(boolean initializeServer,
+                           PrintStream out,
+                           PrintStream err) {
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
@@ -511,5 +535,51 @@ public class RebuildIndex
     }
 
     return returnCode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskId() {
+    // NYI.
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void addTaskAttributes(List<RawAttribute> attributes)
+  {
+    //
+    // Required attributes
+    //
+    ArrayList<ByteString> values;
+
+    String baseDN = baseDNString.getValue();
+    values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(baseDN));
+    attributes.add(new LDAPAttribute(ATTR_REBUILD_BASE_DN, values));
+
+    List<String> indexes = indexList.getValues();
+    values = new ArrayList<ByteString>(indexes.size());
+    for (String s : indexes)
+    {
+      values.add(ByteString.valueOf(s));
+    }
+    attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getTaskObjectclass() {
+    return "ds-task-rebuild";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Class getTaskClass() {
+    return RebuildTask.class;
   }
 }

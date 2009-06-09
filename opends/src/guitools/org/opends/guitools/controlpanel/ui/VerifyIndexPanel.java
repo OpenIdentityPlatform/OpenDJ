@@ -295,7 +295,7 @@ implements IndexModifiedListener
     refreshContents(ev.getNewDescriptor());
   }
 
-  private void refreshContents(ServerDescriptor desc)
+  private void refreshContents(final ServerDescriptor desc)
   {
     updateIndexMap(desc, hmIndexes);
     updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
@@ -327,6 +327,19 @@ implements IndexModifiedListener
         baseDNs.setVisible(comboVisible);
         lNoBaseDNsFound.setVisible(!comboVisible);
         Utilities.updateViewPositions(pos);
+
+
+        if (!desc.isLocal())
+        {
+          displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
+          INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_VERIFY_INDEX_SUMMARY.get());
+          setEnabledOK(false);
+        }
+        else
+        {
+          displayMainPanel();
+          setEnabledOK(true);
+        }
       }
     });
   }
@@ -572,7 +585,7 @@ implements IndexModifiedListener
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.

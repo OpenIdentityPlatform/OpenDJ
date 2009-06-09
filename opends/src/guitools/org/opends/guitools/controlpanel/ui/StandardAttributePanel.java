@@ -149,13 +149,14 @@ public class StandardAttributePanel extends SchemaElementPanel
         INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_TYPE_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_APPROXIMATE_MATCHING_RULE_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get(),
         INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get()
     };
     JLabel[] values = {name, parent, oid, aliases, origin, description, usage,
-        syntax, approximate, equality, ordering, substring, type};
+        syntax, type, approximate, equality, ordering, substring};
     gbc.gridy = 0;
     gbc.gridwidth = 2;
     addErrorPane(c, gbc);

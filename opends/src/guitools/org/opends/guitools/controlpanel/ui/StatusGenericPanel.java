@@ -91,6 +91,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -128,9 +129,7 @@ implements ConfigChangeListener
   private boolean disposeOnClose = false;
 
   private JPanel mainPanel;
-  private JLabel message;
-
-  private GenericDialog loginDialog;
+  private JEditorPane message;
 
   /**
    * The error pane.
@@ -238,7 +237,7 @@ implements ConfigChangeListener
     mainPanel = new JPanel(new GridBagLayout());
     mainPanel.setOpaque(false);
 
-    message = Utilities.createDefaultLabel();
+    message = Utilities.makeHtmlPane("", ColorAndFontConstants.progressFont);
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -627,10 +626,21 @@ implements ConfigChangeListener
     }
     else
     {
-      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
-              index.getName(), backendName, backendName));
+      if (isLocal() || true)
+      {
+        rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
+                index.getName(), backendName, backendName));
+      }
+      else
+      {
+        Utilities.displayWarningDialog(progressDialog,
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
+            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(
+                index.getName(), backendName));
+        rebuildIndexes = false;
+      }
     }
     if (rebuildIndexes)
     {
@@ -824,8 +834,9 @@ implements ConfigChangeListener
   {
     boolean returnValue;
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if ((status == ServerDescriptor.ServerStatus.STARTED) &&
-        !desc.isAuthenticated())
+    if (((status == ServerDescriptor.ServerStatus.STARTED) &&
+        !desc.isAuthenticated()) ||
+        (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
     {
       returnValue = true;
     }
@@ -896,7 +907,8 @@ implements ConfigChangeListener
       Message authRequired)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if (status != ServerDescriptor.ServerStatus.STARTED)
+    if ((status != ServerDescriptor.ServerStatus.STARTED) &&
+        (status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
     {
       Message title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
       MessageBuilder mb = new MessageBuilder();
@@ -1051,7 +1063,7 @@ implements ConfigChangeListener
         displayMessage(INFO_CTRL_PANEL_LOADING_PANEL_SUMMARY.get());
         worker.startBackgroundTask();
       }
-      else
+      else if (info.getServerDescriptor() != null)
       {
         configurationChanged(new ConfigurationChangeEvent(
           this.info, this.info.getServerDescriptor()));
@@ -1070,14 +1082,46 @@ implements ConfigChangeListener
   }
 
   /**
+   * Returns whether the main panel is visible or not.
+   * @return whether the main panel is visible or not.
+   */
+  protected boolean isMainPanelVisible()
+  {
+    return mainPanel.isVisible();
+  }
+
+  /**
    * Displays a message and hides the main panel.
    * @param msg the message to be displayed.
    */
   protected void displayMessage(Message msg)
   {
-    message.setText(msg.toString());
+    message.setText(Utilities.applyFont(msg.toString(),
+        ColorAndFontConstants.progressFont));
     mainPanel.setVisible(false);
     message.setVisible(true);
+  }
+
+  /**
+   * Displays an error message and hides the main panel.
+   * @param title the title of the message to be displayed.
+   * @param msg the message to be displayed.
+   */
+  protected void displayErrorMessage(Message title, Message msg)
+  {
+    updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
+        msg, ColorAndFontConstants.defaultFont);
+    mainPanel.setVisible(false);
+    message.setVisible(true);
+  }
+
+  /**
+   * Returns whether the message is visible or not.
+   * @return whether the message is visible or not.
+   */
+  protected boolean isMessageVisible()
+  {
+    return message.isVisible();
   }
 
   /**
@@ -1156,7 +1200,7 @@ implements ConfigChangeListener
    * @param detailsFont the font to be used for the details.
    * @param type the type of panel.
    */
-  private void updatePane(JEditorPane pane, Message title,
+  private void updatePane(final JEditorPane pane, Message title,
       Font titleFont, Message details, Font detailsFont, PanelType type)
   {
     String text;
@@ -1202,11 +1246,11 @@ implements ConfigChangeListener
           ServerConstants.EOL);
       Utilities.updatePreferredSize(pane2, 100, plainText, detailsFont, true);
       Dimension d2 = pane2.getPreferredSize();
+      pane.setText(text);
       pane.setPreferredSize(new Dimension(Math.max(d1.width, d2.width),
           d1.height + d2.height));
 
       lastDisplayedError = text;
-      pane.setText(text);
     }
     final Window window =
       Utilities.getParentDialog(StatusGenericPanel.this);
@@ -1219,6 +1263,7 @@ implements ConfigChangeListener
          */
         public void run()
         {
+          pane.invalidate();
           window.validate();
         }
       });
@@ -1563,6 +1608,17 @@ implements ConfigChangeListener
   }
 
   /**
+   * Returns <CODE>true</CODE> if the managed server is the local installation
+   * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the managed server is the local installation
+   * (where the control panel is installed) <CODE>false</CODE> otherwise.
+   */
+  protected boolean isLocal()
+  {
+    return getInfo().getServerDescriptor().isLocal();
+  }
+
+  /**
    * Launch an task.
    * @param task the task to be launched.
    * @param initialSummary the initial summary to be displayed in the progress
@@ -1715,10 +1771,26 @@ implements ConfigChangeListener
             if ((task.getReturnCode() != null) &&
                 (errorDetailCode != null))
             {
+              String sThrowable;
+              if (t instanceof OpenDsException)
+              {
+                sThrowable = ((OpenDsException)t).getMessageObject().toString();
+              }
+              else
+              {
+                if (t.getMessage() != null)
+                {
+                  sThrowable = t.getMessage();
+                }
+                else
+                {
+                  sThrowable = t.toString();
+                }
+              }
               MessageBuilder mb = new MessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
               mb.append(
-                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(t.toString()));
+                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -1943,15 +2015,22 @@ implements ConfigChangeListener
    */
   protected GenericDialog getLoginDialog()
   {
-    if (loginDialog == null)
+    if (isLocal())
     {
-      LoginPanel loginPanel = new LoginPanel();
-      loginDialog = new GenericDialog(Utilities.getFrame(this), loginPanel);
-      loginPanel.setInfo(getInfo());
+      GenericDialog loginDialog =
+        ControlCenterMainPane.getLocalServerLoginDialog(getInfo());
       Utilities.centerGoldenMean(loginDialog, Utilities.getFrame(this));
       loginDialog.setModal(true);
+      return loginDialog;
     }
-    return loginDialog;
+    else
+    {
+      GenericDialog localOrRemoteDialog =
+        ControlCenterMainPane.getLocalOrRemoteDialog(getInfo());
+      Utilities.centerGoldenMean(localOrRemoteDialog, Utilities.getFrame(this));
+      localOrRemoteDialog.setModal(true);
+      return localOrRemoteDialog;
+    }
   }
 
   /**

@@ -132,6 +132,8 @@ public abstract class BackupListPanel extends StatusGenericPanel
    */
   protected JTable backupList;
 
+  private JLabel lRemoteFileHelp;
+
   /**
    * Whether the backup parent directory has been initialized with a value or
    * not.
@@ -214,6 +216,15 @@ public abstract class BackupListPanel extends StatusGenericPanel
     gbc.weightx = 0.0;
     add(browse, gbc);
 
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.gridx = 1;
+    gbc.gridwidth = 2;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridy ++;
+    add(lRemoteFileHelp, gbc);
+
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.top = 10;
@@ -222,6 +233,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_AVAILABLE_BACKUPS_LABEL.get());
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.fill = GridBagConstraints.NONE;
+    gbc.gridwidth = 1;
     add(lAvailableBackups, gbc);
 
     gbc.gridx = 1;
@@ -339,7 +351,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     verifyBackup.setEnabled(false);
     tableScroll.setVisible(false);
     lRefreshingList.setText(REFRESHING_LIST.toString());
-    lRefreshingList.setVisible(true);
+    lRefreshingList.setVisible(isLocal());
     final int lastSelectedRow = backupList.getSelectedRow();
 
     final String parentPath = parentDirectory.getText();
@@ -428,6 +440,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
           {
             model.fireTableDataChanged();
             lRefreshingList.setText(NO_BACKUPS_FOUND.toString());
+            lRefreshingList.setVisible(isLocal());
           }
           errorPane.setVisible(false);
           // This is done to perform checks against whether we require to
@@ -522,20 +535,41 @@ public abstract class BackupListPanel extends StatusGenericPanel
     if (!backupDirectoryInitialized &&
         (parentDirectory.getText().length() == 0))
     {
-      final String path =
-        org.opends.quicksetup.util.Utils.getPath(
-            new File(desc.getInstancePath(),
-                org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE));
+      String path;
+
+      File f = new File(desc.getInstancePath(),
+          org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE);
+      try
+      {
+        path = f.getCanonicalPath();
+      }
+      catch (Throwable t)
+      {
+        path = f.getAbsolutePath();
+      }
+      final String fPath = path;
       SwingUtilities.invokeLater(new Runnable()
       {
         public void run()
         {
-          parentDirectory.setText(path);
+          parentDirectory.setText(fPath);
           refreshList();
           backupDirectoryInitialized = true;
         }
       });
     }
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        lRemoteFileHelp.setVisible(!isLocal());
+        browse.setVisible(isLocal());
+        lAvailableBackups.setVisible(isLocal());
+        tableScroll.setVisible(isLocal());
+        refreshList.setVisible(isLocal());
+        verifyBackup.setVisible(isLocal());
+      }
+    });
   }
 
   /**

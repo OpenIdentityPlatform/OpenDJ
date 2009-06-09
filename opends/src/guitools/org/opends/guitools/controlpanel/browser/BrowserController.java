@@ -36,6 +36,8 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
@@ -132,6 +134,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private NodeSearcherQueue refreshQueue;
 
   private String filter;
+
+  private static final Logger LOG =
+    Logger.getLogger(BrowserController.class.getName());
 
   /**
    * Constructor of the BrowserController.
@@ -1540,8 +1545,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         try {
           refreshTaskDidProgress(task, oldState, newState);
         }
-        catch(Exception x) {
-          x.printStackTrace();
+        catch(Throwable t)
+        {
+          LOG.log(Level.SEVERE, "Error calling refreshTaskDidProgress: "+t, t);
         }
       }
     };
@@ -1735,7 +1741,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (node.getError() != null) {
       if (node.getError().getException() != null)
       {
-        node.getError().getException().printStackTrace();
+        LOG.log(Level.SEVERE, "node has error: "+node.getError().getException(),
+            node.getError().getException());
       }
       modifiers |= IconPool.MODIFIER_ERROR;
     }

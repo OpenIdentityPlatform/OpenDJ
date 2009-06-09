@@ -84,6 +84,7 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.ManagementContext;
@@ -98,6 +99,8 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ImportLDIF;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.makeldif.MakeLDIF;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -123,6 +126,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
   private JRadioButton importAutomaticallyGenerated;
   private JTextField path;
   private JTextField numberOfEntries;
+  private JLabel lRemoteFileHelp;
   private JButton browseImportPath;
 
   private JLabel lBackend;
@@ -342,6 +346,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         browseImportPath.setEnabled(importDataFromLDIF.isSelected());
         lPath.setEnabled(importDataFromLDIF.isSelected());
+        lRemoteFileHelp.setEnabled(importDataFromLDIF.isSelected());
         numberOfEntries.setEnabled(importAutomaticallyGenerated.isSelected());
         lNumberOfEntries.setEnabled(importAutomaticallyGenerated.isSelected());
       }
@@ -380,8 +385,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
     newElements.add(NEW_BACKEND);
     super.updateComboBoxModel(newElements,
         ((DefaultComboBoxModel)backends.getModel()));
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+      isLocal() ?
+          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_CREATE_BASE_DN.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      public void run()
+      {
+        lRemoteFileHelp.setVisible(!isLocal());
+        browseImportPath.setVisible(isLocal());
+      }
+    });
   }
 
   private JPanel createPathPanel()
@@ -390,6 +405,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
     panel.setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = 1;
+    gbc.gridy = 0;
+    gbc.gridx = 0;
     lPath = Utilities.createDefaultLabel(
         INFO_CTRL_PANEL_IMPORT_LDIF_PATH_LABEL.get());
     panel.add(lPath, gbc);
@@ -408,6 +425,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
     gbc.gridx = 2;
     gbc.weightx = 0.0;
     panel.add(browseImportPath, gbc);
+
+    gbc.gridy ++;
+    gbc.gridx = 1;
+    lRemoteFileHelp = Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_REMOTE_SERVER_PATH.get());
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    panel.add(lRemoteFileHelp, gbc);
 
     return panel;
   }
@@ -573,7 +598,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         errors.add(INFO_NO_LDIF_PATH.get());
         setSecondaryInvalid(lPath);
-      } else if (!Utils.fileExists(ldifPath))
+      } else if (isLocal() && !Utils.fileExists(ldifPath))
       {
         errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
         setSecondaryInvalid(lPath);
@@ -584,7 +609,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       String nEntries = numberOfEntries.getText();
       int minValue = 1;
-      int maxValue = 20000;
+      int maxValue = isLocal() ? 20000 : 1000;
       Message errMsg = ERR_NUMBER_OF_ENTRIES_INVALID.get(minValue, maxValue);
       checkIntValue(errors, nEntries, minValue, maxValue, errMsg);
     }
@@ -714,7 +739,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.
@@ -758,7 +783,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
       String cmdLineName;
       if (!leaveDatabaseEmpty.isSelected())
       {
-        cmdLineName = getCommandLinePath("import-ldif");
+        if (isLocal())
+        {
+          cmdLineName = getCommandLinePath("import-ldif");
+        }
+        else
+        {
+          cmdLineName = getCommandLinePath("ldapmodify");
+        }
       }
       else
       {
@@ -781,25 +813,33 @@ public class NewBaseDNPanel extends StatusGenericPanel
       ArrayList<String> args = new ArrayList<String>();
       if (!leaveDatabaseEmpty.isSelected())
       {
-        if (!useTemplate)
+        if (isLocal())
         {
-          args.add("--ldifFile");
-          args.add(ldifFile);
+          if (!useTemplate)
+          {
+            args.add("--ldifFile");
+            args.add(ldifFile);
+          }
+          else
+          {
+            args.add("--templateFile");
+            args.add(ldifFile);
+            args.add("--randomSeed");
+            args.add("0");
+          }
+          args.add("--backendID");
+          args.add(getBackendName());
+          args.add("--append");
         }
         else
         {
-          args.add("--templateFile");
+          args.add("-a");
+          args.add("-f");
           args.add(ldifFile);
-          args.add("--randomSeed");
-          args.add("0");
         }
-        args.add("--backendID");
-        args.add(getBackendName());
-        args.add("--append");
+        args.addAll(getConnectionCommandLineArguments(true, !isLocal()));
 
-        args.addAll(getConnectionCommandLineArguments());
-
-        if (isServerRunning())
+        if (isServerRunning() && isLocal())
         {
           args.addAll(getConfigCommandLineArguments());
         }
@@ -816,7 +856,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         if (!isServerRunning())
         {
-          configHandlerUpdated = true;
           getInfo().stopPooling();
           if (getInfo().mustDeregisterConfig())
           {
@@ -826,6 +865,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
                 org.opends.server.extensions.ConfigFileHandler.class.getName(),
                 ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
+          configHandlerUpdated = true;
         }
         else
         {
@@ -1009,14 +1049,60 @@ public class NewBaseDNPanel extends StatusGenericPanel
           {
             public void run()
             {
-               progressDialog.appendProgressHtml(Utilities.applyFont(
-                   INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries).
-                   toString(), ColorAndFontConstants.progressFont)+"<br>");
+              if (isLocal())
+              {
+                progressDialog.appendProgressHtml(Utilities.applyFont(
+                    INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries).
+                    toString(), ColorAndFontConstants.progressFont)+"<br>");
+              }
+              else
+              {
+                getProgressDialog().appendProgressHtml(
+                    Utilities.getProgressWithPoints(
+              INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_REMOTE.get(nEntries),
+                      ColorAndFontConstants.progressFont));
+              }
             }
           });
           File f = SetupUtils.createTemplateFile(newBaseDN,
               Integer.parseInt(nEntries));
-          ldifFile = f.getAbsolutePath();
+          if (!isLocal())
+          {
+            File tempFile = File.createTempFile("opends-control-panel",
+                ".ldif");
+            tempFile.deleteOnExit();
+            ldifFile = tempFile.getAbsolutePath();
+            // Create the LDIF file locally using make-ldif
+            ArrayList<String> makeLDIFArgs = new ArrayList<String>();
+            makeLDIFArgs.add("--templateFile");
+            makeLDIFArgs.add(f.getAbsolutePath());
+            makeLDIFArgs.add("--ldifFile");
+            makeLDIFArgs.add(ldifFile);
+            makeLDIFArgs.add("--randomSeed");
+            makeLDIFArgs.add("0");
+            makeLDIFArgs.add("--resourcePath");
+            File makeLDIFPath =
+              new File(Installation.getLocal().getConfigurationDirectory(),
+                  "MakeLDIF");
+            makeLDIFArgs.add(makeLDIFPath.getAbsolutePath());
+            makeLDIFArgs.addAll(getConfigCommandLineArguments());
+            MakeLDIF makeLDIF = new MakeLDIF();
+            String[] array = new String[makeLDIFArgs.size()];
+            makeLDIFArgs.toArray(array);
+            returnCode = makeLDIF.makeLDIFMain(array, false, false,
+                outPrintStream, errorPrintStream);
+            f.delete();
+            if (returnCode != 0)
+            {
+              throw new OnlineUpdateException(
+                  ERR_CTRL_PANEL_ERROR_CREATING_NEW_DATA_LDIF.get(returnCode),
+                  null);
+            }
+          }
+          else
+          {
+            ldifFile = f.getAbsolutePath();
+          }
         }
         ArrayList<String> arguments = getDataCommandLineArguments(ldifFile,
             generateData);
@@ -1024,7 +1110,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         String[] args = new String[arguments.size()];
 
         arguments.toArray(args);
-        if (createBaseEntry)
+        if (createBaseEntry || !isLocal())
         {
           outPrintStream.setNotifyListeners(false);
           errorPrintStream.setNotifyListeners(false);
@@ -1033,8 +1119,18 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           if (isServerRunning())
           {
-            returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream,
+            if (isLocal() || importLDIF)
+            {
+              returnCode = ImportLDIF.mainImportLDIF(args, false,
+                  outPrintStream,
                 errorPrintStream);
+            }
+            else
+            {
+              returnCode = LDAPModify.mainModify(args,  false,
+                  outPrintStream,
+                  errorPrintStream);
+            }
           }
           else
           {
@@ -1043,7 +1139,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
         finally
         {
-          if (createBaseEntry)
           {
             outPrintStream.setNotifyListeners(true);
             errorPrintStream.setNotifyListeners(true);
@@ -1056,7 +1151,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
         else
         {
-          if (createBaseEntry)
+          if (createBaseEntry || (!isLocal() && generateData))
           {
             SwingUtilities.invokeLater(new Runnable()
             {

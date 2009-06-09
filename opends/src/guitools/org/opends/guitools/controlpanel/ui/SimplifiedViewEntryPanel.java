@@ -2024,7 +2024,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         }
         values.addAll(ocDesc.getAuxiliary());
         Schema schema = getInfo().getServerDescriptor().getSchema();
-        if (schema != null)
+        if ((schema != null) && (structural != null))
         {
           ObjectClass oc = schema.getObjectClass(structural.toLowerCase());
           if (oc != null)

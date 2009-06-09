@@ -67,6 +67,7 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
@@ -88,6 +89,9 @@ public class ConfigFromDirContext extends ConfigReader
   private CustomSearchResult systemInformation;
   private CustomSearchResult entryCaches;
   private CustomSearchResult workQueue;
+  private CustomSearchResult versionMonitor;
+
+  private boolean isLocal = true;
 
   private Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
     new HashMap<String, CustomSearchResult>();
@@ -112,6 +116,10 @@ public class ConfigFromDirContext extends ConfigReader
    * The work queue monitoring entry DN.
    */
   protected DN workQueueDN = DN.nullDN();
+  /**
+   * The version monitoring entry DN.
+   */
+  protected DN versionDN = DN.nullDN();
 
   {
     try
@@ -121,6 +129,7 @@ public class ConfigFromDirContext extends ConfigReader
       systemInformationDN = DN.decode("cn=System Information,cn=monitor");
       entryCachesDN = DN.decode("cn=Entry Caches,cn=monitor");
       workQueueDN = DN.decode("cn=Work Queue,cn=monitor");
+      versionDN = DN.decode("cn=Version,cn=monitor");
     }
     catch (Throwable t)
     {
@@ -169,6 +178,15 @@ public class ConfigFromDirContext extends ConfigReader
   }
 
   /**
+   * Returns the version entry of the monitoring tree.
+   * @return the version entry of the monitoring tree.
+   */
+  public CustomSearchResult getVersionMonitor()
+  {
+    return versionMonitor;
+  }
+
+  /**
    * Returns the monitoring entry for the system information.
    * @return the monitoring entry for the system information.
    */
@@ -184,6 +202,28 @@ public class ConfigFromDirContext extends ConfigReader
   public CustomSearchResult getWorkQueue()
   {
     return workQueue;
+  }
+
+  /**
+   * Sets whether this server represents the local instance or a remote server.
+   * @param isLocal whether this server represents the local instance or a
+   * remote server (in another machine or in another installation on the same
+   * machine).
+   */
+  public void setIsLocal(boolean isLocal)
+  {
+    this.isLocal = isLocal;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isLocal()
+  {
+    return isLocal;
   }
 
   /**
@@ -204,8 +244,27 @@ public class ConfigFromDirContext extends ConfigReader
     systemInformation = null;
     entryCaches = null;
     workQueue = null;
+    versionMonitor = null;
 
     hmConnectionHandlersMonitor.clear();
+
+    if (mustReadSchema())
+    {
+      try
+      {
+        readSchema(ctx);
+        if (getSchema() != null)
+        {
+          // Update the schema: so that when we call the server code the
+          // latest schema read on the server we are managing is used.
+          DirectoryServer.setSchema(getSchema());
+        }
+      }
+      catch (OpenDsException oe)
+      {
+        ex.add(oe);
+      }
+    }
 
     try
     {
@@ -449,15 +508,6 @@ public class ConfigFromDirContext extends ConfigReader
       {
         ex.add(oe);
       }
-
-      try
-      {
-        readSchema();
-      }
-      catch (OpenDsException oe)
-      {
-        ex.add(oe);
-      }
     }
     catch (final Throwable t)
     {
@@ -503,6 +553,33 @@ public class ConfigFromDirContext extends ConfigReader
     return new String[] {
         "*"
     };
+  }
+
+  /**
+   * Reads the schema from the files.
+   * @param ctx the connection to be used to load the schema.
+   * @throws OpenDsException if an error occurs reading the schema.
+   */
+  private void readSchema(InitialLdapContext ctx) throws OpenDsException
+  {
+    if (isLocal)
+    {
+      super.readSchema();
+    }
+    else
+    {
+      RemoteSchemaLoader loader = new RemoteSchemaLoader();
+      try
+      {
+        loader.readSchema(ctx);
+      }
+      catch (NamingException ne)
+      {
+        throw new OnlineUpdateException(
+            ERR_READING_SCHEMA_LDAP.get(ne.toString()), ne);
+      }
+      schema = loader.getSchema();
+    }
   }
 
   /**
@@ -661,6 +738,10 @@ public class ConfigFromDirContext extends ConfigReader
         else if ((systemInformation == null) && isSystemInformation(csr))
         {
           systemInformation = csr;
+        }
+        else if ((versionMonitor == null) && isVersionMonitor(csr))
+        {
+          versionMonitor = csr;
         }
         else if (isConnectionHandler(csr))
         {
@@ -827,6 +908,12 @@ public class ConfigFromDirContext extends ConfigReader
   throws OpenDsException
   {
     return monitorDN.equals(DN.decode(csr.getDN()));
+  }
+
+  private boolean isVersionMonitor(CustomSearchResult csr)
+  throws OpenDsException
+  {
+    return versionDN.equals(DN.decode(csr.getDN()));
   }
 
   private boolean isSystemInformation(CustomSearchResult csr)

@@ -110,6 +110,25 @@ public class ConfigFromFile extends ConfigReader
     try
     {
       DirectoryServer.getInstance().initializeConfiguration();
+
+      if (mustReadSchema())
+      {
+        try
+        {
+          readSchema();
+          if (getSchema() != null)
+          {
+            // Update the schema: so that when we call the server code the
+            // latest schema read on the server we are managing is used.
+            DirectoryServer.setSchema(getSchema());
+          }
+        }
+        catch (OpenDsException oe)
+        {
+          ex.add(oe);
+        }
+      }
+
       // Get the Directory Server configuration handler and use it.
       RootCfg root =
         ServerManagementContext.getInstance().getRootConfiguration();
@@ -342,18 +361,6 @@ public class ConfigFromFile extends ConfigReader
       catch (OpenDsException oe)
       {
         ex.add(oe);
-      }
-
-      if (mustReadSchema())
-      {
-        try
-        {
-          readSchema();
-        }
-        catch (OpenDsException oe)
-        {
-          ex.add(oe);
-        }
       }
     }
     catch (OpenDsException oe)

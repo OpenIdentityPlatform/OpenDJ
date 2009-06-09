@@ -269,7 +269,8 @@ public class NewIndexPanel extends AbstractIndexPanel
     if (!error[0])
     {
       updateErrorPaneAndOKButtonIfAuthRequired(desc,
-          INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_INDEX.get());
+       isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_NEW_INDEX.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     }
   }
 
@@ -448,7 +449,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -362,8 +362,10 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
       }
     }
     updateList(newElements);
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_BASE_DN_DELETE.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+        isLocal() ?
+            INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_BASE_DN_DELETE.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
   /**

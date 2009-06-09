@@ -60,6 +60,7 @@ import javax.swing.event.DocumentListener;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
@@ -249,10 +250,13 @@ public class IndexPanel extends AbstractIndexPanel
   /**
    * {@inheritDoc}
    */
-  public void configurationChanged(final ConfigurationChangeEvent ev)
+  public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    updateErrorPaneIfAuthRequired(ev.getNewDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_INDEX_EDITING.get());
+    final ServerDescriptor desc = ev.getNewDescriptor();
+    updateErrorPaneIfAuthRequired(desc,
+        isLocal() ?
+            INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_INDEX_EDITING.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
       /**
@@ -261,7 +265,7 @@ public class IndexPanel extends AbstractIndexPanel
       public void run()
       {
         checkSaveButton();
-        deleteIndex.setEnabled(!authenticationRequired(ev.getNewDescriptor()));
+        deleteIndex.setEnabled(!authenticationRequired(desc));
       }
     });
   }
@@ -581,7 +585,7 @@ public class IndexPanel extends AbstractIndexPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend for safety.  This is a short operation so the limitation

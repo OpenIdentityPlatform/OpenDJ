@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -81,6 +81,7 @@ public class BackupPanel extends BackupListPanel
   private JComboBox backends;
   private JCheckBox allBackends;
   private JTextField backupID;
+  private JTextField parentBackupID;
   private JRadioButton fullBackup;
   private JRadioButton incrementalBackup;
   private JCheckBox compressData;
@@ -91,6 +92,7 @@ public class BackupPanel extends BackupListPanel
   private JLabel lBackend;
   private JLabel lNoBackendsFound;
   private JLabel lBackupID;
+  private JLabel lParentID;
   private JLabel lBackupType;
   private JLabel lBackupOptions;
 
@@ -220,6 +222,7 @@ public class BackupPanel extends BackupListPanel
     gbc.gridx = 0;
     gbc.gridy ++;
     super.createLayout(gbc);
+
     verifyBackup.setVisible(false);
     lAvailableBackups.setText(
         INFO_CTRL_PANEL_AVAILABLE_PARENT_BACKUPS_LABEL.get().toString());
@@ -229,6 +232,21 @@ public class BackupPanel extends BackupListPanel
     gbc.insets.top = 10;
     gbc.gridwidth = 1;
     gbc.anchor = GridBagConstraints.WEST;
+    lParentID = Utilities.createPrimaryLabel(
+        INFO_CTRL_PANEL_PARENT_BACKUP_ID_LABEL.get());
+    add(lParentID, gbc);
+    parentBackupID = Utilities.createMediumTextField();
+    gbc.weightx = 0.0;
+    gbc.gridx ++;
+    gbc.insets.left = 10;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.gridwidth = 2;
+    add(parentBackupID, gbc);
+
+    gbc.gridy ++;
+    gbc.gridx = 0;
+    gbc.gridwidth = 1;
+    gbc.insets.left = 0;
     lBackupOptions = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_BACKUP_OPTIONS_LABEL.get());
     add(lBackupOptions, gbc);
@@ -275,6 +293,11 @@ public class BackupPanel extends BackupListPanel
         refreshList.setEnabled(enable);
         tableScroll.setEnabled(enable);
         backupList.setEnabled(enable);
+        lAvailableBackups.setEnabled(enable);
+        lRefreshingList.setEnabled(enable);
+        lParentID.setEnabled(enable);
+        parentBackupID.setEnabled(enable);
+        verifyBackup.setEnabled(enable && getSelectedBackup() != null);
       }
     };
     incrementalBackup.addChangeListener(changeListener);
@@ -290,7 +313,7 @@ public class BackupPanel extends BackupListPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ServerDescriptor desc = ev.getNewDescriptor();
+    final ServerDescriptor desc = ev.getNewDescriptor();
     updateSimpleBackendComboBoxModel(backends, lNoBackendsFound, desc);
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -300,11 +323,23 @@ public class BackupPanel extends BackupListPanel
       public void run()
       {
         allBackends.setVisible(backends.getModel().getSize() > 0);
+        lParentID.setVisible(!desc.isLocal());
+        parentBackupID.setVisible(!desc.isLocal());
+        if (desc.isLocal())
+        {
+          lPath.setText(INFO_CTRL_PANEL_BACKUP_PATH_LABEL.get().toString());
+        }
+        else
+        {
+          lPath.setText(
+              INFO_CTRL_PANEL_PARENT_BACKUP_PATH_LABEL.get().toString());
+        }
       }
     });
     super.configurationChanged(ev);
-    updateErrorPaneAndOKButtonIfAuthRequired(getInfo().getServerDescriptor(),
-        INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_BACKUP.get());
+    updateErrorPaneAndOKButtonIfAuthRequired(desc,
+        isLocal() ? INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_BACKUP.get() :
+      INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
   /**
@@ -315,6 +350,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lBackend);
     setPrimaryValid(lPath);
     setPrimaryValid(lAvailableBackups);
+    setPrimaryValid(lParentID);
     backupIDInitialized = false;
 
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
@@ -343,7 +379,7 @@ public class BackupPanel extends BackupListPanel
       errors.add(ERR_CTRL_PANEL_NO_BACKUP_PATH_PROVIDED.get());
       setPrimaryInvalid(lPath);
     }
-    else
+    else if (isLocal())
     {
       File f = new File(parentPath);
       if (f.isFile())
@@ -364,7 +400,7 @@ public class BackupPanel extends BackupListPanel
       setPrimaryInvalid(lBackupID);
     }
 
-    if (errors.isEmpty())
+    if (errors.isEmpty() && isLocal())
     {
       File f = new File(parentPath, dir);
       if (f.isFile())
@@ -377,12 +413,24 @@ public class BackupPanel extends BackupListPanel
 
     if (incrementalBackup.isSelected())
     {
-      boolean selected = backupList.isVisible() &&
-      (getSelectedBackup() != null);
-      if (!selected)
+      if (isLocal())
       {
-        errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_SELECTED.get());
-        setPrimaryInvalid(lAvailableBackups);
+        boolean selected = backupList.isVisible() &&
+        (getSelectedBackup() != null);
+        if (!selected)
+        {
+          errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_SELECTED.get());
+          setPrimaryInvalid(lAvailableBackups);
+        }
+      }
+      else
+      {
+        String parentID = parentBackupID.getText();
+        if ((parentID == null) || (parentID.trim().equals("")))
+        {
+          errors.add(ERR_CTRL_PANEL_NO_PARENT_BACKUP_ID_PROVIDED.get());
+          setPrimaryInvalid(lParentID);
+        }
       }
     }
 
@@ -604,8 +652,15 @@ public class BackupPanel extends BackupListPanel
       }
       if (incrementalBackup.isSelected())
       {
-        BackupDescriptor backup = getSelectedBackup();
-        dir = backup.getPath().getAbsolutePath();
+        if (isLocal())
+        {
+          BackupDescriptor backup = getSelectedBackup();
+          dir = backup.getPath().getAbsolutePath();
+        }
+        else
+        {
+          dir = parentDirectory.getText();
+        }
       }
       else
       {
@@ -637,7 +692,7 @@ public class BackupPanel extends BackupListPanel
         Collection<Message> incompatibilityReasons)
     {
       boolean canLaunch = true;
-      if (state == State.RUNNING)
+      if (state == State.RUNNING && runningOnSameServer(taskToBeLaunched))
       {
         // All the operations are incompatible if they apply to this
         // backend.
@@ -734,9 +789,17 @@ public class BackupPanel extends BackupListPanel
       if (incrementalBackup.isSelected())
       {
         args.add("--incremental");
-        BackupDescriptor backup = getSelectedBackup();
-        args.add("--incrementalBaseID");
-        args.add(backup.getID());
+        if (isLocal())
+        {
+          BackupDescriptor backup = getSelectedBackup();
+          args.add("--incrementalBaseID");
+          args.add(backup.getID());
+        }
+        else
+        {
+          args.add("--incrementalBaseID");
+          args.add(parentBackupID.getText());
+        }
       }
 
 

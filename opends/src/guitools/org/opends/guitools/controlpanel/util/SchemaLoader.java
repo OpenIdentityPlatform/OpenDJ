@@ -128,23 +128,7 @@ public class SchemaLoader
   public void readSchema() throws DirectoryException,
   ConfigException, InitializationException
   {
-    schema = new Schema();
-    for (MatchingRule mr : matchingRulesToKeep)
-    {
-      schema.registerMatchingRule(mr, true);
-    }
-    for (AttributeSyntax syntax : syntaxesToKeep)
-    {
-      schema.registerSyntax(syntax, true);
-    }
-    for (AttributeType attr : attributesToKeep)
-    {
-      schema.registerAttributeType(attr, true);
-    }
-    for (ObjectClass oc : objectclassesToKeep)
-    {
-      schema.registerObjectClass(oc, true);
-    }
+    schema = getBaseSchema();
 
     String[] fileNames = null;
     try
@@ -260,6 +244,35 @@ public class SchemaLoader
     {
       SchemaConfigManager.loadSchemaFile(schema, schemaFile);
     }
+  }
+
+  /**
+   * Returns a basic version of the schema.  The schema is created and contains
+   * enough definitions for the schema to be loaded.
+   * @return a basic version of the schema.
+   * @throws DirectoryException if there is an error registering the minimal
+   * objectclasses.
+   */
+  protected Schema getBaseSchema() throws DirectoryException
+  {
+    Schema schema = new Schema();
+    for (MatchingRule mr : matchingRulesToKeep)
+    {
+      schema.registerMatchingRule(mr, true);
+    }
+    for (AttributeSyntax syntax : syntaxesToKeep)
+    {
+      schema.registerSyntax(syntax, true);
+    }
+    for (AttributeType attr : attributesToKeep)
+    {
+      schema.registerAttributeType(attr, true);
+    }
+    for (ObjectClass oc : objectclassesToKeep)
+    {
+      schema.registerObjectClass(oc, true);
+    }
+    return schema;
   }
 
   /**

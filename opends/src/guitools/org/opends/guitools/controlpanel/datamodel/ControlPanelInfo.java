@@ -27,6 +27,7 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,7 +59,7 @@ import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.util.UIKeyStore;
-import org.opends.server.core.DirectoryServer;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ConfigureWindowsService;
 
 /**
@@ -88,10 +89,15 @@ public class ControlPanelInfo
   private String startTLSURL;
   private String ldapsURL;
   private String adminConnectorURL;
+  private String localAdminConnectorURL;
   private String lastWorkingBindDN;
   private String lastWorkingBindPwd;
+  private String lastRemoteHostName;
+  private String lastRemoteAdministrationURL;
 
   private static boolean mustDeregisterConfig;
+
+  private boolean isLocal = true;
 
   private Set<AbstractIndexDescriptor> modifiedIndexes =
     new HashSet<AbstractIndexDescriptor>();
@@ -296,6 +302,8 @@ public class ControlPanelInfo
     {
       lastWorkingBindDN = ConnectionUtils.getBindDN(ctx);
       lastWorkingBindPwd = ConnectionUtils.getBindPassword(ctx);
+      lastRemoteHostName = ConnectionUtils.getHostName(ctx);
+      lastRemoteAdministrationURL = ConnectionUtils.getLdapUrl(ctx);
     }
   }
 
@@ -420,7 +428,9 @@ public class ControlPanelInfo
    */
   protected ConfigFromDirContext createNewConfigFromDirContextReader()
   {
-    return new ConfigFromDirContext();
+    ConfigFromDirContext configFromDirContext = new ConfigFromDirContext();
+    configFromDirContext.setIsLocal(isLocal());
+    return configFromDirContext;
   }
 
   /**
@@ -439,39 +449,55 @@ public class ControlPanelInfo
     desc.setSchema(reader.getSchema());
     desc.setSchemaEnabled(reader.isSchemaEnabled());
   }
+  private int i=0;
   /**
    * Regenerates the last found ServerDescriptor object.
    *
    */
   public synchronized void regenerateDescriptor()
   {
+    boolean isLocal = isLocal();
+
     ServerDescriptor desc = createNewServerDescriptorInstance();
+    desc.setIsLocal(isLocal);
     InitialLdapContext ctx = getDirContext();
-    desc.setInstallPath(Utilities.getServerRootDirectory());
-    desc.setInstancePath(Utilities.getInstanceRootDirectory(
-        Utilities.getServerRootDirectory().getAbsolutePath()));
-    boolean windowsServiceEnabled = false;
-    if (Utilities.isWindows())
+    if (isLocal)
     {
-      int result = ConfigureWindowsService.serviceState(null, null);
-      windowsServiceEnabled =
-        result == ConfigureWindowsService.SERVICE_STATE_ENABLED;
-    }
-    desc.setWindowsServiceEnabled(windowsServiceEnabled);
-    desc.setOpenDSVersion(
+      desc.setOpenDSVersion(
         org.opends.server.util.DynamicConstants.FULL_VERSION_STRING);
+      desc.setInstallPath(Utilities.getServerRootDirectory());
+      desc.setInstancePath(Utilities.getInstanceRootDirectory(
+          Utilities.getServerRootDirectory().getAbsolutePath()));
+      boolean windowsServiceEnabled = false;
+      if (Utilities.isWindows())
+      {
+        int result = ConfigureWindowsService.serviceState(null, null);
+        windowsServiceEnabled =
+          result == ConfigureWindowsService.SERVICE_STATE_ENABLED;
+      }
+      desc.setWindowsServiceEnabled(windowsServiceEnabled);
+    }
+    else
+    {
+      if (lastRemoteHostName != null)
+      {
+        desc.setHostname(lastRemoteHostName);
+      }
+    }
     ConfigReader reader;
 
     ServerDescriptor.ServerStatus status = null;
     for (Task task : getTasks())
     {
       if ((task.getType() == Task.Type.START_SERVER) &&
-          task.getState() == Task.State.RUNNING)
+          (task.getState() == Task.State.RUNNING) &&
+          isRunningOnServer(desc, task))
       {
         status = ServerDescriptor.ServerStatus.STARTING;
       }
       else if ((task.getType() == Task.Type.STOP_SERVER) &&
-          task.getState() == Task.State.RUNNING)
+          (task.getState() == Task.State.RUNNING) &&
+          isRunningOnServer(desc, task))
       {
         status = ServerDescriptor.ServerStatus.STOPPING;
       }
@@ -514,11 +540,19 @@ public class ControlPanelInfo
           userDataCtx = null;
         }
       }
-      reader = createNewConfigFromFileReader();
-      ((ConfigFromFile)reader).readConfiguration();
+      if (isLocal)
+      {
+        reader = createNewConfigFromFileReader();
+        ((ConfigFromFile)reader).readConfiguration();
+      }
+      else
+      {
+        reader = null;
+      }
       desc.setAuthenticated(false);
     }
-    else if (Utilities.isServerRunning(
+    else if (!isLocal ||
+        Utilities.isServerRunning(
         Utilities.getInstanceRootDirectory(
             desc.getInstallPath().getAbsolutePath())))
     {
@@ -529,8 +563,19 @@ public class ControlPanelInfo
         // Try with previous credentials.
         try
         {
-          ctx = Utilities.getAdminDirContext(this, lastWorkingBindDN,
+          if (isLocal)
+          {
+            ctx = Utilities.getAdminDirContext(this, lastWorkingBindDN,
               lastWorkingBindPwd);
+          }
+          else if (lastRemoteAdministrationURL != null)
+          {
+            ctx = Utils.createLdapsContext(lastRemoteAdministrationURL,
+                lastWorkingBindDN,
+                lastWorkingBindPwd,
+                Utils.getDefaultLDAPTimeout(), null,
+                getTrustManager());
+          }
         }
         catch (ConfigReadException cre)
         {
@@ -546,83 +591,117 @@ public class ControlPanelInfo
         }
       }
 
-      if (ctx == null)
+      if (isLocal && (ctx == null))
       {
         reader = createNewConfigFromFileReader();
         ((ConfigFromFile)reader).readConfiguration();
       }
       else
       {
-        reader = createNewConfigFromDirContextReader();
-        ((ConfigFromDirContext)reader).readConfiguration(ctx);
-        if (reader.getExceptions().size() > 0)
+        if (!isLocal && (ctx == null))
         {
-          // Check the connection
-          boolean connectionWorks = false;
-          int nMaxErrors = 5;
-          for (int i=0; i< nMaxErrors && !connectionWorks; i++)
+          desc.setStatus(ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
+          reader = null;
+        }
+        else
+        {
+          reader = createNewConfigFromDirContextReader();
+          ((ConfigFromDirContext)reader).readConfiguration(ctx);
+          if (reader.getExceptions().size() > 0)
           {
-            try
-            {
-              Utilities.pingDirContext(ctx);
-              connectionWorks = true;
-            }
-            catch (NamingException ne)
+            // Check the connection
+            boolean connectionWorks = false;
+            int nMaxErrors = 5;
+            for (int i=0; i< nMaxErrors && !connectionWorks; i++)
             {
               try
               {
-                Thread.sleep(400);
+                Utilities.pingDirContext(ctx);
+                connectionWorks = true;
+              }
+              catch (NamingException ne)
+              {
+                try
+                {
+                  Thread.sleep(400);
+                }
+                catch (Throwable t)
+                {
+                }
+              }
+            }
+            if (!connectionWorks)
+            {
+              if (isLocal)
+              {
+                // Try with offline info
+                reader = createNewConfigFromFileReader();
+                ((ConfigFromFile)reader).readConfiguration();
+              }
+              else
+              {
+                desc.setStatus(
+                    ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
+                reader = null;
+              }
+              try
+              {
+                ctx.close();
               }
               catch (Throwable t)
               {
               }
-            }
-          }
-          if (!connectionWorks)
-          {
-            // Try with offline info
-            reader = createNewConfigFromFileReader();
-            ((ConfigFromFile)reader).readConfiguration();
-            try
-            {
-              ctx.close();
-            }
-            catch (Throwable t)
-            {
-            }
-            this.ctx = null;
-            if (connectionPool.isConnectionRegistered(userDataCtx))
-            {
+              this.ctx = null;
+              if (connectionPool.isConnectionRegistered(userDataCtx))
+              {
+                try
+                {
+                  connectionPool.unregisterConnection(userDataCtx);
+                }
+                catch (Throwable t)
+                {
+                }
+              }
               try
               {
-                connectionPool.unregisterConnection(userDataCtx);
+                userDataCtx.close();
               }
               catch (Throwable t)
               {
               }
+              userDataCtx = null;
             }
-            try
-            {
-              userDataCtx.close();
-            }
-            catch (Throwable t)
-            {
-            }
-            userDataCtx = null;
           }
         }
       }
-      desc.setAuthenticated(reader instanceof ConfigFromDirContext);
-      desc.setJavaVersion(reader.getJavaVersion());
-      desc.setOpenConnections(reader.getOpenConnections());
-      if (reader instanceof ConfigFromDirContext)
+      if (reader != null)
       {
-        ConfigFromDirContext rCtx = (ConfigFromDirContext)reader;
-        desc.setRootMonitor(rCtx.getRootMonitor());
-        desc.setEntryCachesMonitor(rCtx.getEntryCaches());
-        desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
-        desc.setSystemInformationMonitor(rCtx.getSystemInformation());
-        desc.setWorkQueueMonitor(rCtx.getWorkQueue());
+        desc.setAuthenticated(reader instanceof ConfigFromDirContext);
+        desc.setJavaVersion(reader.getJavaVersion());
+        desc.setOpenConnections(reader.getOpenConnections());
+        if (reader instanceof ConfigFromDirContext)
+        {
+          ConfigFromDirContext rCtx = (ConfigFromDirContext)reader;
+          desc.setRootMonitor(rCtx.getRootMonitor());
+          desc.setEntryCachesMonitor(rCtx.getEntryCaches());
+          desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
+          desc.setSystemInformationMonitor(rCtx.getSystemInformation());
+          desc.setWorkQueueMonitor(rCtx.getWorkQueue());
+          desc.setOpenDSVersion((String)Utilities.getFirstMonitoringValue(
+              rCtx.getVersionMonitor(), "fullVersion"));
+          String installPath = (String)Utilities.getFirstMonitoringValue(
+              rCtx.getSystemInformation(), "installPath");
+          if (installPath != null)
+          {
+            desc.setInstallPath(new File(installPath));
+          }
+          String instancePath = (String)Utilities.getFirstMonitoringValue(
+              rCtx.getSystemInformation(), "instancePath");
+          if (instancePath != null)
+          {
+            desc.setInstancePath(new File(instancePath));
+          }
+        }
       }
     }
     else
@@ -632,24 +711,21 @@ public class ControlPanelInfo
       reader = createNewConfigFromFileReader();
       ((ConfigFromFile)reader).readConfiguration();
     }
-    updateServerDescriptor(reader, desc);
+    if (reader != null)
+    {
+      updateServerDescriptor(reader, desc);
+    }
 
     if ((serverDesc == null) || !serverDesc.equals(desc))
     {
       serverDesc = desc;
-      // Update the schema: so that when we call the server code the latest
-      // schema read is used.
-      if (serverDesc.getSchema() != null)
-      {
-        if (!ServerDescriptor.areSchemasEqual(serverDesc.getSchema(),
-            DirectoryServer.getSchema()))
-        {
-          DirectoryServer.setSchema(desc.getSchema());
-        }
-      }
       ldapURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP);
       ldapsURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAPS);
       adminConnectorURL = getAdminConnectorURL(serverDesc);
+      if (serverDesc.isLocal())
+      {
+        localAdminConnectorURL = adminConnectorURL;
+      }
       startTLSURL = getURL(serverDesc,
           ConnectionHandlerDescriptor.Protocol.LDAP_STARTTLS);
       ConfigurationChangeEvent ev = new ConfigurationChangeEvent(this, desc);
@@ -766,6 +842,7 @@ public class ControlPanelInfo
             regenerateDescriptor();
             Thread.sleep(poolingPeriod);
           }
+
         }
         catch (Throwable t)
         {
@@ -861,7 +938,29 @@ public class ControlPanelInfo
    */
   public String getAdminConnectorURL()
   {
-    return adminConnectorURL;
+    if (isLocal)
+    {
+      // If the user set isLocal to true, we want to return the
+      // localAdminConnectorURL (in particular if regenerateDescriptor has not
+      // been called).
+      return localAdminConnectorURL;
+    }
+    else
+    {
+      return adminConnectorURL;
+    }
+  }
+
+  /**
+   * Gets the Administration Connector URL based in what is read in the local
+   * configuration. It returns <CODE>null</CODE> if no Administration
+   * Connector URL was found.
+   * @return the Administration Connector URL to be used to connect
+   * to the local server.
+   */
+  public String getLocalAdminConnectorURL()
+  {
+    return localAdminConnectorURL;
   }
 
   /**
@@ -958,19 +1057,26 @@ public class ControlPanelInfo
     String url = null;
 
     ConnectionHandlerDescriptor desc = server.getAdminConnector();
-    int port = desc.getPort();
-    SortedSet<InetAddress> addresses = desc.getAddresses();
-    if (addresses.size() == 0) {
-      if (port > 0) {
-        url = "ldaps://localhost:" + port;
-      }
-    } else {
-      if (port > 0) {
-        InetAddress address = addresses.first();
-        url = "ldaps://" +
+    if (desc != null)
+    {
+      int port = desc.getPort();
+      SortedSet<InetAddress> addresses = desc.getAddresses();
+      if (addresses.size() == 0) {
+        if (port > 0) {
+          url = "ldaps://localhost:" + port;
+        }
+      } else {
+        if (port > 0) {
+          InetAddress address = addresses.first();
+          url = "ldaps://" +
           ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress()) + ":"
           + port;
+        }
       }
+    }
+    else
+    {
+      url = null;
     }
     return url;
   }
@@ -1081,6 +1187,26 @@ public class ControlPanelInfo
   }
 
   /**
+   * Sets whether the server is local or not.
+   * @param isLocal whether the server is local or not.
+   */
+  public void setIsLocal(boolean isLocal)
+  {
+    this.isLocal = isLocal;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we are trying to manage the local host and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isLocal()
+  {
+    return isLocal;
+  }
+
+  /**
    * Returns the connection pool to be used by the LDAP entry browsers.
    * @return the connection pool to be used by the LDAP entry browsers.
    */
@@ -1114,5 +1240,88 @@ public class ControlPanelInfo
   public void setPoolingPeriod(long poolingPeriod)
   {
     this.poolingPeriod = poolingPeriod;
+  }
+
+  /**
+   * Returns whether the provided task is running on the provided server or not.
+   * The code takes into account that the server object might not be fully
+   * initialized (but at least it contains the host name and the instance
+   * path if it is local).
+   * @param server the server.
+   * @param task the task to be analyzed.
+   * @return <CODE>true</CODE> if the provided task is running on the provided
+   * server and <CODE>false</CODE> otherwise.
+   */
+  private boolean isRunningOnServer(ServerDescriptor server, Task task)
+  {
+    boolean isRunningOnServer;
+    if (!server.isLocal() || !task.getServer().isLocal())
+    {
+      if (!server.isLocal())
+      {
+        // At this point we only have connection information about the new
+        // server.  Use the dir context which corresponds to the server to
+        // compare things.
+        String host1 = server.getHostname();
+        String host2 = task.getServer().getHostname();
+        if (host1 == null)
+        {
+          isRunningOnServer = host2 == null;
+        }
+        else
+        {
+          isRunningOnServer = host1.equalsIgnoreCase(host2);
+        }
+        if (isRunningOnServer)
+        {
+          // Compare administration port;
+          int adminPort1 = -1;
+          int adminPort2 = -1;
+          if (server.getAdminConnector() != null)
+          {
+            adminPort1 = server.getAdminConnector().getPort();
+          }
+
+          if (getDirContext() != null)
+          {
+            adminPort2 = ConnectionUtils.getPort(getDirContext());
+          }
+          isRunningOnServer = adminPort1 == adminPort2;
+        }
+      }
+      else
+      {
+        // Compare host names and paths
+        File f1 = server.getInstancePath();
+        File f2 = task.getServer().getInstancePath();
+
+        String host1 = server.getHostname();
+        String host2 = task.getServer().getHostname();
+        if (host1 == null)
+        {
+          isRunningOnServer = host2 == null;
+        }
+        else
+        {
+          isRunningOnServer = host1.equalsIgnoreCase(host2);
+        }
+        if (isRunningOnServer)
+        {
+          if (f1 == null)
+          {
+            isRunningOnServer = f2 == null;
+          }
+          else
+          {
+            isRunningOnServer = f1.equals(f2);
+          }
+        }
+      }
+    }
+    else
+    {
+      isRunningOnServer = true;
+    }
+    return isRunningOnServer;
   }
 }

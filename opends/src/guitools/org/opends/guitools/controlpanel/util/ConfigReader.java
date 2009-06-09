@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
@@ -58,14 +60,18 @@ import org.opends.server.types.Schema;
  */
 public abstract class ConfigReader
 {
+  private static final Logger LOG =
+    Logger.getLogger(ConfigReader.class.getName());
   /**
    * The class used to read the configuration from a file.
    */
   public static String configClassName;
   /**
    * The configuration file full path (-INSTANCE_ROOT-/config/config.ldif).
+   * of the installation of the control panel.
    */
   public static String configFile;
+
   /**
    * The error that occurred when setting the environment (null if no error
    * occurred).
@@ -89,9 +95,9 @@ public abstract class ConfigReader
     {
       DirectoryEnvironmentConfig env = DirectoryServer.getEnvironmentConfig();
       env.setServerRoot(new File(installRoot));
+      DirectoryServer instance = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
       DirectoryServer.initializeJMX();
-      DirectoryServer instance = DirectoryServer.getInstance();
       instance.initializeConfiguration(configClassName, configFile);
       instance.initializeSchema();
     }
@@ -100,6 +106,7 @@ public abstract class ConfigReader
       environmentSettingException = new OfflineUpdateException(
           ERR_CTRL_PANEL_SETTING_ENVIRONMENT.get(t.getMessage().toString()), t);
     }
+    LOG.log(Level.INFO, "Environment initialized.");
   }
 
   /**
@@ -275,8 +282,8 @@ public abstract class ConfigReader
   /**
    * Reads the schema from the files.
    * @throws ConfigException if an error occurs reading the schema.
-   * @throws InitializationException if an error occurs trying to find out
-   * the schema files.
+   * @throws InitializationException if an error occurs initializing
+   * configuration to read schema.
    * @throws DirectoryException if there is an error registering the minimal
    * objectclasses.
    */
@@ -285,7 +292,7 @@ public abstract class ConfigReader
   {
     SchemaLoader loader = new SchemaLoader();
     loader.readSchema();
-    schema = loader.getSchema().duplicate();
+    schema = loader.getSchema();
   }
 
   /**
