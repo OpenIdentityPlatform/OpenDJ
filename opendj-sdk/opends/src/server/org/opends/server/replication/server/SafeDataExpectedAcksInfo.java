@@ -85,7 +85,7 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
      * him with assured safe data mode, we double check here that the ack sender
      * is a RS to take the ack into account.
      */
-     if (ackingServer.isLDAPserver())
+     if (ackingServer.isDataServer())
      {
        // Sanity check: this should never happen
         if (debugEnabled())

@@ -64,7 +64,7 @@ public class LightweightServerHandler
   // The tracer object for the debug logger.
   private static final DebugTracer TRACER = getTracer();
 
-  private ServerHandler replServerHandler;
+  private ReplicationServerHandler replServerHandler;
   private ReplicationServerDomain rsDomain;
   // The id of the RS this DS is connected to
   private short replicationServerId = -1;
@@ -103,7 +103,7 @@ public class LightweightServerHandler
    * @param assuredMode The assured mode of the remote DS
    * @param safeDataLevel The safe data level of the remote DS
    */
-  public LightweightServerHandler(ServerHandler replServerHandler,
+  public LightweightServerHandler(ReplicationServerHandler replServerHandler,
     short replicationServerId, short serverId, long generationId, byte groupId,
     ServerStatus status, List<String> refUrls, boolean assuredFlag,
     AssuredMode assuredMode, byte safeDataLevel)

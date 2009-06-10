@@ -78,6 +78,7 @@ ds-cfg-global-aci: (target="ldap:///cn=schema")(targetscope="base")(targetattr="
 ds-cfg-global-aci: (target="ldap:///")(targetscope="base")(targetattr="objectClass||namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedLDAPVersion||supportedSASLMechanisms||vendorName||vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (targetattr="createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (target="ldap:///dc=replicationchanges")(targetattr="*")(version 3.0; acl "Replication backend access"; deny (all) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (target="ldap:///cn=changelog")(targetattr="*")(version 3.0; acl "External changelog access"; deny (all) userdn="ldap:///anyone";)
 cn: Access Control Handler
 ds-cfg-java-class: org.opends.server.authorization.dseecompat.AciHandler
 ds-cfg-enabled: true

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.protocol;
@@ -103,9 +103,8 @@ public class HeartbeatMonitor extends DirectoryThread
     boolean gotOneFailure = false;
     if (debugEnabled())
     {
-      TRACER.debugInfo("Heartbeat monitor is starting, expected interval is " +
-                heartbeatInterval +
-          stackTraceToSingleLineString(new Exception()));
+      TRACER.debugInfo(this + " is starting, expected interval is " +
+                heartbeatInterval);
     }
     try
     {

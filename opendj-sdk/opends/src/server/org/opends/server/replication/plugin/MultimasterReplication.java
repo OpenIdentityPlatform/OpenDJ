@@ -817,4 +817,23 @@ public class MultimasterReplication
   {
     return domains.size();
   }
+
+  /**
+   * Gets the baseDn of the domains that have a private backend.
+   * @return The private baseDN.
+   */
+  public static ArrayList<String> getPrivateDomains()
+  {
+    ArrayList<String> privateDNs = new ArrayList<String>();
+
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      Backend b = domain.getBackend();
+      if (b != null)
+        if (b.isPrivateBackend())
+          privateDNs.add(domain.getBaseDN().toNormalizedString());
+    }
+    return privateDNs;
+  }
+
 }

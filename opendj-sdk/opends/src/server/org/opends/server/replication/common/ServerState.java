@@ -122,6 +122,8 @@ public class ServerState implements Iterable<Short>
 
   /**
    * Get the length of the next String encoded in the in byte array.
+   * This method is used to cut the different parts (server ids, change number)
+   * of a server state.
    *
    * @param in the byte array where to calculate the string.
    * @param pos the position whre to start from in the byte array.
@@ -135,7 +137,7 @@ public class ServerState implements Iterable<Short>
     while (in[offset++] != 0)
     {
       if (offset >= in.length)
-        throw new DataFormatException("byte[] is not a valid modify msg");
+        throw new DataFormatException("byte[] is not a valid server state");
       length++;
     }
     return length;
@@ -251,7 +253,6 @@ public class ServerState implements Iterable<Short>
    * Return the text representation of ServerState.
    * @return the text representation of ServerState
    */
-  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -261,9 +262,11 @@ public class ServerState implements Iterable<Short>
       for (Short key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
+        buffer.append(change.toString());
         buffer.append(" ");
-        buffer.append(change.toStringUI());
       }
+      if (!list.isEmpty())
+        buffer.deleteCharAt(buffer.length()-1);
     }
 
     return buffer.toString();

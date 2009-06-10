@@ -90,6 +90,8 @@ import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import static org.opends.server.util.ServerConstants.OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -175,7 +177,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST ** " + s));
+    //ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST ** " + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST ** " + s);
@@ -689,7 +691,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           new ChangeNumberGenerator(serverId , (long) 0);
         broker[i] =
           openReplicationSession( DN.decode(TEST_ROOT_DN_STRING), serverId,
-            100, replicationServerPort, 100000, 1000, 0, false);
+              100, replicationServerPort, 3000, 1000, 0, true);
 
         assertTrue(broker[i].isConnected());
 
@@ -706,10 +708,11 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         reader[i].start();
       }
-      debugInfo("Ending multipleWriterMultipleReader");
+      debugInfo("multipleWriterMultipleReader produces and readers started");
     }
     finally
     {
+      debugInfo("multipleWriterMultipleReader wait producers");
       for (int i = 0; i< THREADS; i++)
       {
         if (producer[i] != null)
@@ -717,6 +720,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         // kill the thread in case it is not yet stopped.
         producer[i].interrupt();
       }
+      debugInfo("multipleWriterMultipleReader producers done, wait readers");
       for (int i = 0; i< THREADS; i++)
       {
         if (reader[i] != null)
@@ -724,15 +728,18 @@ public class ReplicationServerTest extends ReplicationTestCase
         // kill the thread in case it is not yet stopped.
         reader[i].interrupt();
       }
+      debugInfo("multipleWriterMultipleReader reader's done");
       for (int i = 0; i< THREADS; i++)
       {
         if (broker[i] != null)
           broker[i].stop();
       }
+      debugInfo("multipleWriterMultipleReader brokers stopped");
 
       replicationServer.clearDb();
       TestCaseUtils.initializeTestBackend(true);
     }
+    debugInfo("Ending multipleWriterMultipleReader");
   }
 
 
@@ -1123,6 +1130,8 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private class BrokerReader extends Thread
   {
+    int count;
+
     private ReplicationBroker broker;
     private int numMsgRcv = 0;
     private final int numMsgExpected;
@@ -1142,8 +1151,11 @@ public class ReplicationServerTest extends ReplicationTestCase
     @Override
     public void run()
     {
+      debugInfo("BrokerReader " + broker.getServerId() + " starts");
+
       // loop receiving messages until either we get a timeout
       // because there is nothing left or an error condition happens.
+      count = 0;
       try
       {
         while (true)
@@ -1165,7 +1177,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       } catch (Exception e)
       {
         assertTrue(false,
-            "a BrokerReader received an Exception" + e.getMessage());
+            "a BrokerReader received an Exception" + e.getMessage()
+            + stackTraceToSingleLineString(e));
       }
     }
   }
@@ -1194,6 +1207,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     @Override
     public void run()
     {
+      debugInfo("BrokerWriter " + broker.getServerId() + " starts");
+      int ccount = count;
       /*
        * Simple loop creating changes and sending them
        * to the replicationServer.
@@ -1206,7 +1221,11 @@ public class ReplicationServerTest extends ReplicationTestCase
           new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
               "uid");
         broker.publish(msg);
+        
+        if ((count % 10) == 0)
+        debugInfo("BrokerWriter " + broker.getServerId() + "  sent="+count);
       }
+      debugInfo("BrokerWriter " + broker.getServerId() + " ends sent="+ccount);
     }
   }
 
