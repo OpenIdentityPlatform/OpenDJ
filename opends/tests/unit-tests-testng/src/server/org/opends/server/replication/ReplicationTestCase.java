@@ -158,11 +158,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
-    // After start of server because not seen if server not started
-    // after server started once, TestCaseUtils.startServer() does nothing.
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        " ##### Calling ReplicationTestCase.setUp ##### "));
-
     // Initialize the test backend (TestCaseUtils.TEST_ROOT_DN_STRING)
     // (in case previous (non replication?) tests were run before...)
     TestCaseUtils.initializeTestBackend(true);
@@ -265,7 +260,60 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return broker;
   }
 
-   /**
+  /**
+   * Open an ECL replicationServer session to the local ReplicationServer 
+  protected ReplicationBroker openECLReplicationSession(
+        int window_size, int port, int timeout, boolean emptyOldChanges,
+        Short serverId)
+  throws Exception, SocketException
+  {
+    ServerState state = new ServerState();
+
+    //if (emptyOldChanges)
+    //   new PersistentServerState(baseDn, serverId, new ServerState());
+
+    ReplicationBroker broker = new ReplicationBroker(null,
+        state, "cn=changelog", serverId, window_size,
+        -1, 100000, getReplSessionSecurity(), (byte)1);
+    ArrayList<String> servers = new ArrayList<String>(1);
+    servers.add("localhost:" + port);
+    broker.start(servers);
+    if (timeout != 0)
+      broker.setSoTimeout(timeout);
+    checkConnection(30, broker, port); // give some time to the broker to connect
+                                       // to the replicationServer.
+    if (emptyOldChanges)
+    {
+      // loop receiving update until there is nothing left
+      // to make sure that message from previous tests have been consumed.
+      try
+      {
+        while (true)
+        {
+          ReplicationMsg rMsg = broker.receive();
+          if (rMsg instanceof ErrorMsg)
+          {
+            ErrorMsg eMsg = (ErrorMsg)rMsg;
+            logError(new MessageBuilder(
+                "ReplicationTestCase/openReplicationSession ").append(
+                " received ErrorMessage when emptying old changes ").append(
+                eMsg.getDetails()).toMessage());
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        logError(new MessageBuilder(
+            "ReplicationTestCase/openReplicationSession ").append(e.getMessage())
+            .append(" when emptying old changes").toMessage());
+      }
+    }
+    return broker;
+  }
+  */
+
+
+  /**
    * Check connection of the provided ds to the
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.

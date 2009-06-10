@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -240,6 +240,15 @@ public final class PersistentSearch
   }
 
 
+  /**
+   * Get the search operation associated with this persistent search.
+   *
+   * @return The search operation associated with this persistent search.
+   */
+  public SearchOperation getSearchOperation()
+  {
+    return searchOperation;
+  }
 
   /**
    * Notifies the persistent searches that an entry has been added.

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -210,7 +210,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
    * Checks that changes to the schema pushed to the replicationServer
    * are received and correctly replayed by replication plugin.
    */
-  @Test(dependsOnMethods = { "pushSchemaChange" })
+  @Test(enabled=true,dependsOnMethods = { "pushSchemaChange" })
   public void replaySchemaChange() throws Exception
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
@@ -341,5 +341,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     {
       broker.stop();
     }
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+    "Ending replication test : pushSchemaFilesChange "));
   }
 }

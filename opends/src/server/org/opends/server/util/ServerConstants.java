@@ -747,6 +747,12 @@ public final class ServerConstants
   public static final String OC_GROUP_OF_URLS_LC = "groupofurls";
 
 
+  /**
+   * The name of the objectclass that will be used as the structural class for
+   * monitor entries.
+   */
+  public static final String OC_CHANGELOG_ENTRY = "changeLogEntry";
+
 
   /**
    * The request OID for the cancel extended operation.
@@ -1961,6 +1967,13 @@ public final class ServerConstants
        "1.3.6.1.4.1.42.2.27.9.5.8";
 
 
+  /**
+   *  The OID for the entry change request control.
+   *  FIXME:ECL ask for OID_ECL_REQUEST_CONTROL
+   */
+  public static final String OID_ECL_COOKIE_EXCHANGE_CONTROL =
+    "1.3.6.1.4.1.26027.1.5.4";
+
 
   /**
    * The IANA-assigned OID for the feature allowing a user to request that all
@@ -2983,5 +2996,12 @@ public final class ServerConstants
    * The normalized false value.
    */
   public static final ByteString FALSE_VALUE = ByteString.valueOf("FALSE");
+
+  /**
+   * The root Dn for the external change log.
+   */
+  public static final String DN_EXTERNAL_CHANGELOG_ROOT = "cn=changelog";
+
+
 }
 

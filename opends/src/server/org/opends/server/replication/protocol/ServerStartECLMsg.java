@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,11 +38,9 @@ import org.opends.server.replication.common.ServerState;
  * to a replication server to let them know who they are and what is their state
  * (their RUV)
  */
-public class ServerStartMsg extends StartMsg
+public class ServerStartECLMsg extends StartMsg
 {
-  private short serverId; // Id of the LDAP server that sent this message
   private String serverURL;
-  private String baseDn;
   private int maxReceiveQueue;
   private int maxSendQueue;
   private int maxReceiveDelay;
@@ -60,6 +58,7 @@ public class ServerStartMsg extends StartMsg
    * Whether to continue using SSL to encrypt messages after the start
    * messages have been exchanged.
    */
+
   private boolean sslEncryption;
 
   /**
@@ -67,8 +66,6 @@ public class ServerStartMsg extends StartMsg
    * Server after being connected to a replication server for a given
    * replication domain.
    *
-   * @param serverId The serverId of the server for which the ServerStartMsg
-   *                 is created.
    * @param baseDn   The base DN.
    * @param maxReceiveDelay The max receive delay for this server.
    * @param maxReceiveQueue The max receive Queue for this server.
@@ -83,7 +80,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(short serverId, String baseDn, int maxReceiveDelay,
+  public ServerStartECLMsg(String baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, int windowSize,
                             long heartbeatInterval,
@@ -95,8 +92,6 @@ public class ServerStartMsg extends StartMsg
   {
     super(protocolVersion, generationId);
 
-    this.serverId = serverId;
-    this.baseDn = baseDn;
     this.maxReceiveDelay = maxReceiveDelay;
     this.maxReceiveQueue = maxReceiveQueue;
     this.maxSendDelay = maxSendDelay;
@@ -125,10 +120,10 @@ public class ServerStartMsg extends StartMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the ServerStartMsg.
    */
-  public ServerStartMsg(byte[] in) throws DataFormatException
+  public ServerStartECLMsg(byte[] in) throws DataFormatException
   {
     byte[] allowedPduTypes = new byte[1];
-    allowedPduTypes[0] = MSG_TYPE_SERVER_START;
+    allowedPduTypes[0] = MSG_TYPE_START_ECL;
     headerLength = decodeHeader(allowedPduTypes, in);
 
     try
@@ -137,25 +132,9 @@ public class ServerStartMsg extends StartMsg
       int pos = headerLength;
 
       /*
-       * read the dn
-       * first calculate the length then construct the string
-       */
-      int length = getNextLength(in, pos);
-      baseDn = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-
-      /*
-       * read the ServerId
-       */
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Short.valueOf(serverIdString);
-      pos += length +1;
-
-      /*
        * read the ServerURL
        */
-      length = getNextLength(in, pos);
+      int length = getNextLength(in, pos);
       serverURL = new String(in, pos, length, "UTF-8");
       pos += length +1;
 
@@ -224,30 +203,12 @@ public class ServerStartMsg extends StartMsg
   }
 
   /**
-   * Get the ServerID from the message.
-   * @return the server ID
-   */
-  public short getServerId()
-  {
-    return serverId;
-  }
-
-  /**
    * get the Server URL from the message.
    * @return the server URL
    */
   public String getServerURL()
   {
     return serverURL;
-  }
-
-  /**
-   * Get the baseDn.
-   * @return Returns the baseDn.
-   */
-  public String getBaseDn()
-  {
-    return baseDn;
   }
 
   /**
@@ -302,8 +263,6 @@ public class ServerStartMsg extends StartMsg
   public byte[] getBytes()
   {
     try {
-      byte[] byteDn = baseDn.getBytes("UTF-8");
-      byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteMaxRecvDelay =
                      String.valueOf(maxReceiveDelay).getBytes("UTF-8");
@@ -321,8 +280,7 @@ public class ServerStartMsg extends StartMsg
                      String.valueOf(sslEncryption).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
 
-      int length = byteDn.length + 1 + byteServerId.length + 1 +
-                   byteServerUrl.length + 1 +
+      int length = byteServerUrl.length + 1 +
                    byteMaxRecvDelay.length + 1 +
                    byteMaxRecvQueue.length + 1 +
                    byteMaxSendDelay.length + 1 +
@@ -333,12 +291,8 @@ public class ServerStartMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_SERVER_START, length);
+      byte resultByteArray[] = encodeHeader(MSG_TYPE_START_ECL, length);
       int pos = headerLength;
-
-      pos = addByteArray(byteDn, resultByteArray, pos);
-
-      pos = addByteArray(byteServerId, resultByteArray, pos);
 
       pos = addByteArray(byteServerUrl, resultByteArray, pos);
 
@@ -406,17 +360,15 @@ public class ServerStartMsg extends StartMsg
   @Override
   public String toString()
   {
-    return "ServerStartMsg content: " +
+    return this.getClass().getCanonicalName() + " content: " +
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
       "\ngroupId: " + groupId +
-      "\nbaseDn: " + baseDn.toString() +
       "\nheartbeatInterval: " + heartbeatInterval +
       "\nmaxReceiveDelay: " + maxReceiveDelay +
       "\nmaxReceiveQueue: " + maxReceiveQueue +
       "\nmaxSendDelay: " + maxSendDelay +
       "\nmaxSendQueue: " + maxSendQueue +
-      "\nserverId: " + serverId +
       "\nserverState: " + serverState +
       "\nserverURL: " + serverURL +
       "\nsslEncryption: " + sslEncryption +

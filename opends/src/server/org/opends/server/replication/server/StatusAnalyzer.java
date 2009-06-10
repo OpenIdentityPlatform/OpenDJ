@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -115,7 +114,7 @@ public class StatusAnalyzer extends DirectoryThread
       // Go through each connected DS, get the number of pending changes we have
       // for it and change status accordingly if threshold value is
       // crossed/uncrossed
-      for (ServerHandler serverHandler :
+      for (DataServerHandler serverHandler :
         replicationServerDomain.getConnectedDSs(). values())
       {
         // Get number of pending changes for this server

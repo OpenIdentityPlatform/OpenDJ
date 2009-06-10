@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.Message;
@@ -58,7 +58,6 @@ public class ServerWriter extends DirectoryThread
   private ProtocolSession session;
   private ServerHandler handler;
   private ReplicationServerDomain replicationServerDomain;
-  private short serverId;
   private short protocolVersion = -1;
 
   /**
@@ -76,10 +75,10 @@ public class ServerWriter extends DirectoryThread
                       ServerHandler handler,
                       ReplicationServerDomain replicationServerDomain)
   {
-    super("Replication Writer for " + handler.toString() + " in RS " +
-      replicationServerDomain.getReplicationServer().getServerId());
+    super("Replication Writer Thread for handler of " +
+        handler.toString() +
+        " in " + replicationServerDomain);
 
-    this.serverId = serverId;
     this.session = session;
     this.handler = handler;
     this.replicationServerDomain = replicationServerDomain;
@@ -94,16 +93,10 @@ public class ServerWriter extends DirectoryThread
    */
   public void run()
   {
+    Message errMessage = null;
     if (debugEnabled())
     {
-      if (handler.isReplicationServer())
-      {
-        TRACER.debugInfo("Replication server writer starting " + serverId);
-      }
-      else
-      {
-        TRACER.debugInfo("LDAP server writer starting " + serverId);
-      }
+      TRACER.debugInfo(this.getName() + " starting");
     }
     try
     {
@@ -111,10 +104,14 @@ public class ServerWriter extends DirectoryThread
       {
         UpdateMsg update = replicationServerDomain.take(this.handler);
         if (update == null)
+        {
+          errMessage = Message.raw(
+           "Connection closure: null update returned by domain.");
           return;       /* this connection is closing */
+        }
 
         /* Ignore updates in some cases */
-        if (handler.isLDAPserver())
+        if (handler.isDataServer())
         {
           /**
            * Ignore updates to DS in bad BAD_GENID_STATUS or FULL_UPDATE_STATUS
@@ -184,6 +181,7 @@ public class ServerWriter extends DirectoryThread
             ", writer to " + this.handler.getMonitorInstanceName() +
             " publishes msg=[" + update.toString() + "]"+
             " refgenId=" + referenceGenerationId +
+            " isAssured=" + update.isAssured() +
             " server=" + handler.getServerId() +
             " generationId=" + handler.getGenerationId());
         }
@@ -200,10 +198,10 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      Message message = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
         Short.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
-      logError(message);
+      logError(errMessage);
     }
     catch (SocketException e)
     {
@@ -211,10 +209,10 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      Message message = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
         Short.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
-      logError(message);
+      logError(errMessage);
     }
     catch (Exception e)
     {
@@ -222,9 +220,9 @@ public class ServerWriter extends DirectoryThread
        * An unexpected error happened.
        * Log an error and close the connection.
        */
-      Message message = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString() +
+      errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString() +
                         " " +  stackTraceToSingleLineString(e));
-      logError(message);
+      logError(errMessage);
     }
     finally {
       try
@@ -235,17 +233,9 @@ public class ServerWriter extends DirectoryThread
        // Can't do much more : ignore
       }
       replicationServerDomain.stopServer(handler);
-
       if (debugEnabled())
       {
-        if (handler.isReplicationServer())
-        {
-          TRACER.debugInfo("Replication server writer stopping " + serverId);
-        }
-        else
-        {
-          TRACER.debugInfo("LDAP server writer stopping " + serverId);
-        }
+        TRACER.debugInfo(this.getName() + " stopped " + errMessage);
       }
     }
   }

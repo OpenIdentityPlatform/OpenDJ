@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -167,9 +167,13 @@ public class ReplServerStartMsg extends StartMsg
         pos += length + 1;
       }
 
-      /*
-       * read the ServerState
-       */
+      // Read the ServerState
+      // Caution: ServerState MUST be the last field. Because ServerState can
+      // contain null character (string termination of sererid string ..) it
+      // cannot be decoded using getNextLength() like the other fields. The
+      // only way is to rely on the end of the input buffer : and that forces
+      // the ServerState to be the last. This should be changed and we want to
+      // have more than one ServerState field.
       serverState = new ServerState(in, pos, in.length - 1);
     } catch (UnsupportedEncodingException e)
     {

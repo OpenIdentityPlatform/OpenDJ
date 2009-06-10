@@ -453,7 +453,7 @@ public class DebugLogger implements
    */
   public static boolean debugEnabled()
   {
-    return enabled;
+    return true;
   }
 
   /**

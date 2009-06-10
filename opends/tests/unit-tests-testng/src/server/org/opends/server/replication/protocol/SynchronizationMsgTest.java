@@ -22,20 +22,26 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.testng.Assert.*;
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.zip.DataFormatException;
 
+import org.opends.messages.Message;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
@@ -44,8 +50,13 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
@@ -60,15 +71,9 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
-import org.opends.messages.Message;
-import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.common.ServerStatus;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test the constructors, encoders and decoders of the replication protocol
@@ -563,18 +568,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          throws Exception
   {
     AckMsg msg1, msg2 ;
-
+  
     // Consctructor test (with ChangeNumber)
     // Chech that retrieved CN is OK
     msg1 = new  AckMsg(cn);
     assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
-
+  
     // Check default values for error info
     assertFalse(msg1.hasTimeout());
     assertFalse(msg1.hasWrongStatus());
     assertFalse(msg1.hasReplayError());
     assertTrue(msg1.getFailedServers().size() == 0);
-
+  
     // Check constructor with error info
     msg1 = new  AckMsg(cn, hasTimeout, hasWrongStatus, hasReplayError, failedServers);
     assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
@@ -582,7 +587,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg1.hasWrongStatus() == hasWrongStatus);
     assertTrue(msg1.hasReplayError() == hasReplayError);
     assertEquals(msg1.getFailedServers(), failedServers);
-
+  
     // Consctructor test (with byte[])
     msg2 = new  AckMsg(msg1.getBytes());
     assertEquals(msg2.getChangeNumber().compareTo(cn), 0);
@@ -590,7 +595,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg1.hasWrongStatus() == msg2.hasWrongStatus());
     assertTrue(msg1.hasReplayError() == msg2.hasReplayError());
     assertEquals(msg1.getFailedServers(), msg2.getFailedServers());
-
+  
     // Check invalid bytes for constructor
     byte[] b = msg1.getBytes();
     b[0] = ReplicationMsg.MSG_TYPE_ADD;
@@ -604,9 +609,51 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     {
       assertTrue(true);
     }
-
+  
     // Check that retrieved CN is OK
     msg2 = (AckMsg) ReplicationMsg.generateMsg(msg1.getBytes());
+  }
+
+  @Test()
+  public void eclUpdateMsg()
+         throws Exception
+  {
+    // create a msg to put in the eclupdatemsg
+    InternalClientConnection connection =
+      InternalClientConnection.getRootConnection();
+    DeleteOperationBasis opBasis =
+      new DeleteOperationBasis(connection, 1, 1,null, DN.decode("cn=t1"));
+    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
+    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
+        (short) 123, (short) 45);
+    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
+    DeleteMsg delmsg = new DeleteMsg(op);
+
+    String serviceId = "serviceid";
+
+    // create a cookie
+    MultiDomainServerState cookie = 
+      new MultiDomainServerState(
+          "o=test:000001210b6f21e904b100000001 000001210b6f21e904b200000001;" +
+          "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
+    
+    // Constructor test
+    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, serviceId);
+    assertTrue(msg1.getCookie().equalsTo(cookie));
+    assertTrue(msg1.getServiceId().equalsIgnoreCase(serviceId));
+    DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
+    assertTrue(delmsg.compareTo(delmsg2)==0);
+
+    // Consctructor test (with byte[])
+    ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes());
+    assertTrue(msg2.getCookie().equalsTo(msg2.getCookie()));
+    assertTrue(msg2.getCookie().equalsTo(cookie));
+    assertTrue(msg2.getServiceId().equalsIgnoreCase(msg1.getServiceId()));
+    assertTrue(msg2.getServiceId().equalsIgnoreCase(serviceId));
+    DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
+    delmsg2 = (DeleteMsg)msg2.getUpdateMsg();
+    assertTrue(delmsg2.compareTo(delmsg)==0);
+    assertTrue(delmsg2.compareTo(delmsg1)==0);
   }
 
   @DataProvider(name="createServerStartData")
@@ -1119,5 +1166,86 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           test.getBytes());
     UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
     assertEquals(test.getBytes(), newMsg.getPayload());
+  }
+  
+  /**
+   * Test that ServerStartMsg encoding and decoding works
+   * by checking that : msg == new ServerStartMsg(msg.getBytes()).
+   */
+  @Test(dataProvider="createServerStartData")
+  public void startECLMsgTest(short serverId, String baseDN, int window,
+         ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
+  {
+    ServerStartECLMsg msg = new ServerStartECLMsg(baseDN,
+        window, window, window, window, window, window, state,
+        ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
+    ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes());
+    assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
+    assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
+    assertEquals(msg.getMaxSendDelay(), newMsg.getMaxSendDelay());
+    assertEquals(msg.getMaxSendQueue(), newMsg.getMaxSendQueue());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
+    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
+    assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
+        newMsg.getServerState().getMaxChangeNumber((short)1));
+    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
+    assertTrue(msg.getGroupId() == newMsg.getGroupId());
+  }
+  /**
+   * Test StartSessionMsg encoding and decoding.
+   */
+  @Test()
+  public void startECLSessionMsgTest()
+    throws Exception
+  {
+    // data
+    ChangeNumber changeNumber = new ChangeNumber(TimeThread.getTime(),
+        (short) 123, (short) 45);
+    String generalizedState = new String("fakegenstate");
+    ServerState state = new ServerState();
+    assertTrue(state.update(new ChangeNumber((long)75, 5,(short)263)));
+    short mode = 3;
+    int firstDraftChangeNumber = 13;    
+    int lastDraftChangeNumber  = 14;  
+    String myopid = new String("fakeopid");
+    // create original
+    StartECLSessionMsg msg = new StartECLSessionMsg();
+    msg.setChangeNumber(changeNumber);
+    msg.setCrossDomainServerState(generalizedState);
+    msg.setPersistent(StartECLSessionMsg.PERSISTENT);
+    msg.setFirstDraftChangeNumber(firstDraftChangeNumber);
+    msg.setLastDraftChangeNumber(lastDraftChangeNumber);
+    msg.setECLRequestType(mode);
+    msg.setOperationId(myopid);
+    ArrayList<String> dns = new ArrayList<String>();
+    String dn1 = "cn=admin data";
+    String dn2 = "cn=config";
+    dns.add(dn1);
+    dns.add(dn2);
+    msg.setExcludedDNs(dns);
+    // create copy
+    StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes());
+    // test equality between the two copies
+    assertEquals(msg.getChangeNumber(), newMsg.getChangeNumber());
+    assertTrue(msg.isPersistent() == newMsg.isPersistent());
+    assertTrue(msg.getFirstDraftChangeNumber() == newMsg.getFirstDraftChangeNumber());
+    assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
+    assertEquals(msg.getLastDraftChangeNumber(), newMsg.getLastDraftChangeNumber());
+    assertTrue(
+        msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
+    assertTrue(
+        msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
+    ArrayList<String> dns2 = newMsg.getExcludedServiceIDs();
+    assertTrue(dns2.size()==2);
+    boolean dn1found=false,dn2found=false;
+    for (String dn : dns2)
+    {
+      if (!dn1found) dn1found=(dn.compareTo(dn1)==0);
+      if (!dn2found) dn2found=(dn.compareTo(dn2)==0);
+    }
+    assertTrue(dn1found);
+    assertTrue(dn2found);
   }
 }

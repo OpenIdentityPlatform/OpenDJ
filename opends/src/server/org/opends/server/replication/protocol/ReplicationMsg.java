@@ -70,6 +70,9 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_START_SESSION = 27;
   static final byte MSG_TYPE_CHANGE_STATUS = 28;
   static final byte MSG_TYPE_GENERIC_UPDATE = 29;
+  static final byte MSG_TYPE_START_ECL = 30;
+  static final byte MSG_TYPE_START_ECL_SESSION = 31;
+  static final byte MSG_TYPE_ECL_UPDATE = 32;
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -214,6 +217,15 @@ public abstract class ReplicationMsg
       break;
       case MSG_TYPE_GENERIC_UPDATE:
         msg = new UpdateMsg(buffer);
+      break;
+      case MSG_TYPE_START_ECL:
+        msg = new ServerStartECLMsg(buffer);
+      break;
+      case MSG_TYPE_START_ECL_SESSION:
+        msg = new StartECLSessionMsg(buffer);
+      break;
+      case MSG_TYPE_ECL_UPDATE:
+        msg = new ECLUpdateMsg(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");
