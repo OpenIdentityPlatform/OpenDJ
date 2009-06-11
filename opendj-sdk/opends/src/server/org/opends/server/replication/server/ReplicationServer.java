@@ -248,8 +248,6 @@ public class ReplicationServer
 
   void runListen()
   {
-    Socket newSocket;
-
     // wait for the connect thread to find other replication
     // servers in the topology before starting to accept connections
     // from the ldap servers.
@@ -272,16 +270,30 @@ public class ReplicationServer
       // Read incoming messages and create LDAP or ReplicationServer listener
       // and Publisher.
 
+      ProtocolSession session;
+      Socket newSocket = null;
+
       try
       {
-        newSocket =  listenSocket.accept();
-        newSocket.setTcpNoDelay(true);
-        newSocket.setKeepAlive(true);
-        ProtocolSession session =
-             replSessionSecurity.createServerSession(newSocket,
-             ReplSessionSecurity.HANDSHAKE_TIMEOUT);
-        if (session == null) // Error, go back to accept
+        try
+        {
+          newSocket = listenSocket.accept();
+          newSocket.setTcpNoDelay(true);
+          newSocket.setKeepAlive(true);
+          session =
+            replSessionSecurity.createServerSession(newSocket,
+                ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+          if (session == null) // Error, go back to accept
+            continue;
+        }
+        catch (Exception e)
+        {
+          // If problems happen during the SSL handshake, it is necessary
+          // to close the socket to free the associated resources.
+          if (newSocket != null)
+            newSocket.close();
           continue;
+        }
 
         ReplicationMsg msg = session.receive();
 
