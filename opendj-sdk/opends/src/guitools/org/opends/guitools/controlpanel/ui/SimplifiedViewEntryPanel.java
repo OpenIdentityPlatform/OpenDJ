@@ -81,7 +81,7 @@ import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
+import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.ui.components.BinaryCellPanel;
 import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
@@ -1368,7 +1368,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     catch (IOException ioe)
     {
-      throw new OfflineUpdateException(
+      throw new OnlineUpdateException(
           ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe.toString()),
           ioe);
     }

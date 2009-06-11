@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -59,7 +59,7 @@ import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
+import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -252,7 +252,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     }
     catch (IOException ioe)
     {
-      throw new OfflineUpdateException(
+      throw new OnlineUpdateException(
           ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe.toString()),
           ioe);
     }
