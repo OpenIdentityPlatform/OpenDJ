@@ -29,12 +29,10 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 
 import org.opends.messages.Message;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -48,19 +46,15 @@ import org.opends.server.types.ResultCode;
 
 
 /**
- * This class implements the persistent search control defined in
- * draft-ietf-ldapext-psearch.  It makes it possible for clients to be notified
- * of changes to information in the Directory Server as they occur.
+ * This class implements the control used to browse the external changelog.
  */
 public class ExternalChangelogRequestControl
        extends Control
 {
-  private static final DebugTracer TRACER = getTracer();
-
   private MultiDomainServerState cookie;
 
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private final static class Decoder
       implements ControlDecoder<ExternalChangelogRequestControl>
