@@ -485,7 +485,6 @@ public class TaskBackendTestCase
     calendar.set(GregorianCalendar.MINUTE, 0);
     calendar.set(GregorianCalendar.SECOND, 0);
 
-    Date scheduledDate = calendar.getTime();
     int scheduledMonth =
       calendar.get(GregorianCalendar.MONTH) + 1;
 
@@ -496,16 +495,17 @@ public class TaskBackendTestCase
     String taskSchedule = "00 * * " +
       Integer.toString(scheduledMonth) + " *";
 
-    String scheduledTaskID = taskID + " - " + scheduledDate.toString();
-    String scheduledTaskDN =
-        "ds-task-id=" + scheduledTaskID
-            + ",cn=Scheduled Tasks,cn=tasks";
+    TaskBackend taskBackend =
+      (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
+    long tasksCountBefore = taskBackend.numSubordinates(DN.decode(
+      "cn=Scheduled Tasks,cn=tasks"), true);
 
     assertTrue(addRecurringTask(taskID, taskSchedule));
 
-    Task scheduledTask =
-        TasksTestCase.getTask(DN.decode(scheduledTaskDN));
-    assertTrue(TaskState.isPending(scheduledTask.getTaskState()));
+    // Make sure recurring task iteration got scheduled.
+    long tasksCountAfter = taskBackend.numSubordinates(DN.decode(
+      "cn=Scheduled Tasks,cn=tasks"), true);
+    assertTrue(tasksCountAfter == (tasksCountBefore + 1));
 
     // Perform a modification to update a non-state attribute.
     int resultCode =
@@ -523,7 +523,9 @@ public class TaskBackendTestCase
     assertFalse(DirectoryServer.entryExists(DN.decode(taskDN)));
 
     // Make sure recurring task iteration got canceled and removed.
-    assertFalse(DirectoryServer.entryExists(DN.decode(scheduledTaskDN)));
+    tasksCountAfter = taskBackend.numSubordinates(DN.decode(
+      "cn=Scheduled Tasks,cn=tasks"), true);
+    assertTrue(tasksCountAfter == tasksCountBefore);
   }
 
 
