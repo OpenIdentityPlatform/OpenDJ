@@ -107,6 +107,18 @@ public class MultiDomainServerState implements Iterable<String>
   }
 
   /**
+   * Update the ServerState of the provided serviceId with the
+   * provided server state.
+   *
+   * @param serviceId    The provided serviceId.
+   * @param serverState  The provided serverState.
+   */
+  public void update(String serviceId, ServerState serverState)
+  {
+    list.put(serviceId,serverState);
+  }
+
+  /**
    * Create an object from a string representation.
    * @param mdss The provided string representation of the state.
    */
