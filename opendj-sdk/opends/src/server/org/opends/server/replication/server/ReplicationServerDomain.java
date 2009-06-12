@@ -2928,7 +2928,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public ServerState getStartState()
   {
     ServerState domainStartState = new ServerState();
-    Iterator<Short> it = this.getDbServerState().iterator();
     for (DbHandler dbHandler : sourceDbHandlers.values())
     {
       domainStartState.update(dbHandler.getFirstChange());

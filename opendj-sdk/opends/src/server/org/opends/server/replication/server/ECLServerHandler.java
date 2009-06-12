@@ -1247,7 +1247,7 @@ public class ECLServerHandler extends ServerHandler
     // starvation of changelog messages
     // all domain have been unactived means are covered
     if (debugEnabled())
-    TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
+      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
         getMonitorInstanceName() + "," + this + " closePhase1()"
         + " searchCtxt=" + cLSearchCtxt);
 
@@ -1308,7 +1308,8 @@ public class ECLServerHandler extends ServerHandler
         }
       }
     }
-    TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
+    if (debugEnabled())
+      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
         getMonitorInstanceName()
         + "," + this + " getGeneralizedOldestChange() " +
         " returns " +
@@ -1352,7 +1353,8 @@ public class ECLServerHandler extends ServerHandler
       {
         // non blocking
         UpdateMsg newMsg = clDomCtxts[idomain].mh.getnextMessage(false);
-        TRACER.debugInfo(this +
+        if (debugEnabled())
+          TRACER.debugInfo(this +
             " getNextElligibleMessage got the next changelogmsg "
             + " from " + clDomCtxts[idomain].mh.getServiceId()
             + " newCLMsg=" + newMsg);
@@ -1443,7 +1445,9 @@ public class ECLServerHandler extends ServerHandler
       String s = "=> ";
 
       ReplicationServer rs = replicationServerDomain.getReplicationServer();
-      TRACER.debugInfo("ECLSH.computeNewCrossDomainElligibleCN() "
+
+      if (debugEnabled())
+        TRACER.debugInfo("ECLSH.computeNewCrossDomainElligibleCN() "
           + " periodic starts rs="+rs);
 
       Iterator<ReplicationServerDomain> rsdi = rs.getCacheIterator();
@@ -1470,7 +1474,8 @@ public class ECLServerHandler extends ServerHandler
         }
       }
 
-      TRACER.debugInfo("SH.computeNewCrossDomainElligibleCN() periodic " +
+      if (debugEnabled())
+        TRACER.debugInfo("SH.computeNewCrossDomainElligibleCN() periodic " +
           " ends with " +
           " the following domainElligibleCN for each domain :" + s +
           "\n thus CrossDomainElligibleCN=" + computedCrossDomainElligibleCN +
@@ -1507,7 +1512,8 @@ public class ECLServerHandler extends ServerHandler
       // then the server is considered down and not considered for eligibility
       if (TimeThread.getTime()-storedCN.getTime()>2000)
       {
-        TRACER.debugInfo(
+        if (debugEnabled())
+          TRACER.debugInfo(
             "For RSD." + rsd.getBaseDn() + " Server " + sid
             + " is not considered for eligibility ... potentially down");
         continue;
@@ -1518,7 +1524,9 @@ public class ECLServerHandler extends ServerHandler
         elligibleCN = storedCN;
       }
     }
-    TRACER.debugInfo(
+
+    if (debugEnabled())
+      TRACER.debugInfo(
         "For RSD." + rsd.getBaseDn() + " ElligibleCN()=" + elligibleCN);
     return elligibleCN;
   }

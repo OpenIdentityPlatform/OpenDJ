@@ -94,6 +94,7 @@ import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.ExternalChangeLogSessionImpl;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -171,31 +172,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     replicationServerPort = socket.getLocalPort();
     socket.close();
 
-    /*
-    // Add the replication server to the configuration
-    TestCaseUtils.dsconfig(
-        "create-replication-server",
-        "--provider-name", "Multimaster Synchronization",
-        "--set", "replication-db-directory:" + "externalChangeLogTestConfigureDb",
-        "--set", "replication-port:" + replicationServerPort,
-        "--set", "replication-server-id:71");
-
-    // Retrieves the replicationServer object
-    DirectoryServer.getSynchronizationProviders();
-    for (SynchronizationProvider<?> provider : DirectoryServer
-        .getSynchronizationProviders()) {
-      if (provider instanceof MultimasterReplication) {
-        MultimasterReplication mmp = (MultimasterReplication) provider;
-        ReplicationServerListener list = mmp.getReplicationServerListener();
-        if (list != null) {
-          replicationServer = list.getReplicationServer();
-          if (replicationServer != null) {
-            break;
-          }
-        }
-      }
-    }
-    */
     ReplServerFakeConfiguration conf1 =
       new ReplServerFakeConfiguration(
           replicationServerPort, "ExternalChangeLogTestDb",
@@ -643,9 +619,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s2test2.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
 
-      cn = new ChangeNumber(time++, ts++, s2test2.getServerId());
+      ChangeNumber cn3 = new ChangeNumber(time++, ts++, s2test2.getServerId());
       delMsg =
-        new DeleteMsg("uid="+tn+"3," + TEST_ROOT_DN_STRING2, cn, tn+"uuid3");
+        new DeleteMsg("uid="+tn+"3," + TEST_ROOT_DN_STRING2, cn3, tn+"uuid3");
       s2test2.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
 
@@ -764,9 +740,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       
       debugInfo(tn, "STEP 3 - from cookie" + cookie);
 
-      cn = new ChangeNumber(time++, ts++, s1test.getServerId());
+      ChangeNumber cn5 = new ChangeNumber(time++, ts++, s1test.getServerId());
       delMsg =
-        new DeleteMsg("uid="+tn+"5," + TEST_ROOT_DN_STRING, cn, tn+"uuid5");
+        new DeleteMsg("uid="+tn+"5," + TEST_ROOT_DN_STRING, cn5, tn+"uuid5");
       s1test.publish(delMsg);
       sleep(500);
 
@@ -876,7 +852,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           1000, true);
       sleep(500);
 
-      // Test startState of the domain for the first cookie feature
+      // Test startState ("first cookie") of the ECL
       time = TimeThread.getTime();
       cn = new ChangeNumber(time++, ts++, s1test2.getServerId());
       delMsg =
@@ -888,14 +864,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         new DeleteMsg("uid="+tn+"7," + TEST_ROOT_DN_STRING, cn, tn+"uuid7");
       s2test.publish(delMsg);
 
-      cn = new ChangeNumber(time++, ts++, s1test2.getServerId());
+      ChangeNumber cn8 = new ChangeNumber(time++, ts++, s1test2.getServerId());
       delMsg =
-        new DeleteMsg("uid="+tn+"8," + TEST_ROOT_DN_STRING2, cn, tn+"uuid8");
+        new DeleteMsg("uid="+tn+"8," + TEST_ROOT_DN_STRING2, cn8, tn+"uuid8");
       s1test2.publish(delMsg);
 
-      cn = new ChangeNumber(time++, ts++, s2test.getServerId());
+      ChangeNumber cn9 = new ChangeNumber(time++, ts++, s2test.getServerId());
       delMsg =
-        new DeleteMsg("uid="+tn+"9," + TEST_ROOT_DN_STRING, cn, tn+"uuid9");
+        new DeleteMsg("uid="+tn+"9," + TEST_ROOT_DN_STRING, cn9, tn+"uuid9");
       s2test.publish(delMsg);
       sleep(500);
 
@@ -910,7 +886,59 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       startState = rsd.getStartState();
       assertTrue(startState.getMaxChangeNumber(s2test2.getServerId()).getSeqnum()==2);
       assertTrue(startState.getMaxChangeNumber(s1test2.getServerId()).getSeqnum()==6);
+
+      // Test lastState ("last cookie") of the ECL
+      // create an ECL sessionm and request lastCookie
+      ExternalChangeLogSessionImpl session = 
+        new ExternalChangeLogSessionImpl(replicationServer);
+      MultiDomainServerState expectedLastCookie =
+        new MultiDomainServerState("o=test:"+cn5+" "+cn9+";o=test2:"+cn3+" "+cn8+";");
+      MultiDomainServerState lastCookie = session.getLastCookie();
+      assertTrue(expectedLastCookie.equalsTo(lastCookie),
+          " ExpectedLastCookie=" + expectedLastCookie +
+          " lastCookie=" + lastCookie);
+
+      //
+      LinkedHashSet<String> lastcookieattribute = new LinkedHashSet<String>();
+      lastcookieattribute.add("lastExternalChangelogCookie");
+
+      searchOp = connection.processSearch(
+          ByteString.valueOf(""),
+          SearchScope.BASE_OBJECT,
+          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          0, // Size limit
+          0, // Time limit
+          false, // Types only
+          LDAPFilter.decode("(objectclass=*)"),
+          lastcookieattribute,
+          null,
+          null);
+            
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString()
+          + searchOp.getAdditionalLogMessage());
       
+      cookie = "";
+      entries = searchOp.getSearchEntries();
+      if (entries != null)
+      {
+        for (SearchResultEntry resultEntry : entries)
+        {
+          debugInfo(tn, "Result entry=\n" + resultEntry.toLDIFString());
+          ldifWriter.writeEntry(resultEntry);
+          try
+          {
+            List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
+            cookie = l.get(0).iterator().next().toString();
+          }
+          catch(NullPointerException e)
+          {}
+        }
+      }
+
+      assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(cookie)),
+          " Expected last cookie attribute value:" + expectedLastCookie +
+          " Read from server: " + cookie + " are equal :");
       s1test.stop();
       s1test2.stop();
       s2test.stop();
