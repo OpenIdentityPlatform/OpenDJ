@@ -649,26 +649,43 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     Message successMsg;
     Installation installation = getInstallation();
     String libPath = getPath(installation.getLibrariesDirectory());
+    String resourcesPath = getPath(installation.getResourcesDirectory());
+    String classesPath = getPath(installation.getClassesDirectory());
+    boolean resourcesDefined =
+     Utils.directoryExistsAndIsNotEmpty(resourcesPath);
+    boolean classesDefined =
+      Utils.directoryExistsAndIsNotEmpty(classesPath);
+    ArrayList<String> paths = new ArrayList<String>();
+    paths.add(libPath);
+    if (resourcesDefined)
+    {
+      paths.add(resourcesPath);
+    }
+    if (classesDefined)
+    {
+      paths.add(classesPath);
+    }
     if (isCli()) {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
         String arg;
         if (isWindows()) {
           arg = installation.getUninstallBatFile() + getLineBreak().toString() +
-                  getTab() + libPath;
+                  getTab() + getStringFromCollection(paths,
+                      getLineBreak().toString());
         } else {
-          arg = libPath;
+          arg = getStringFromCollection(paths, getLineBreak().toString());
         }
         successMsg =
-                INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES_CLI
-                        .get(arg);
+            INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES_CLI
+            .get(arg);
       } else {
         successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_CLI.get();
       }
     } else {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
         successMsg =
-                INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES
-                        .get(libPath);
+            INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES
+            .get(getStringFromCollection(paths, getLineBreak().toString()));
       } else {
         successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY.get();
       }
@@ -1376,9 +1393,15 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     File quicksetupFile = installation.getQuicksetupJarFile();
     File openDSFile = installation.getOpenDSJarFile();
     File librariesFile = installation.getLibrariesDirectory();
-    File activationFile = new File(librariesFile, "activation.jar");
-    File aspectRuntimeFile = new File(librariesFile, "aspectjrt.jar");
+    File resourcesDir = installation.getResourcesDirectory();
+    File classesDir = installation.getClassesDirectory();
     File uninstallBatFile = installation.getUninstallBatFile();
+
+    boolean canDeleteResourcesDir =
+      !Utils.directoryExistsAndIsNotEmpty(resourcesDir.getAbsolutePath());
+    boolean canDeleteClassesDir =
+      !Utils.directoryExistsAndIsNotEmpty(classesDir.getAbsolutePath());
+
 
     File installationPath = installation.getRootDirectory();
 
@@ -1388,6 +1411,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     public boolean accept(File file) {
       UninstallUserData userData = getUninstallUserData();
       boolean[] uData = {
+              userData.getRemoveLibrariesAndTools(),
+              userData.getRemoveLibrariesAndTools(),
               userData.getRemoveLibrariesAndTools(),
               userData.getRemoveLibrariesAndTools(),
               userData.getRemoveDatabases(),
@@ -1403,6 +1428,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         File[] tmp  = {
               installation.getLibrariesDirectory().getCanonicalFile(),
               installation.getBinariesDirectory().getCanonicalFile(),
+              installation.getResourcesDirectory().getCanonicalFile(),
+              installation.getClassesDirectory().getCanonicalFile(),
               installation.getDatabasesDirectory().getCanonicalFile(),
               installation.getLogsDirectory().getCanonicalFile(),
               installation.getConfigurationDirectory().getCanonicalFile(),
@@ -1417,10 +1444,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
 
       boolean accept =
-              !installationPath.equals(file)
-                      && !equalsOrDescendant(file, librariesFile)
-                      && !quicksetupFile.equals(file)
-                      && !openDSFile.equals(file);
+        !installationPath.equals(file)
+        && !equalsOrDescendant(file, librariesFile)
+        && (canDeleteClassesDir  || !equalsOrDescendant(file, classesDir))
+        && (canDeleteResourcesDir || !equalsOrDescendant(file, resourcesDir))
+        && !quicksetupFile.equals(file)
+        && !openDSFile.equals(file);
 
       if (accept && isWindows() && isCli()) {
         accept = !uninstallBatFile.equals(file);

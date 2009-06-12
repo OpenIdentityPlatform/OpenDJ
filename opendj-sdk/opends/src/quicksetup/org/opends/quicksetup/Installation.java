@@ -77,6 +77,12 @@ public class Installation {
     SetupUtils.LIBRARIES_PATH_RELATIVE;
 
   /**
+   * The relative path where the resources directory (to customize the product)
+   * is.
+   */
+  public static final String RESOURCES_PATH_RELATIVE = "resources";
+
+  /**
    * The relative path where customer classes are.
    */
   public static final String CLASSES_PATH_RELATIVE = "classes";
@@ -673,6 +679,24 @@ public class Installation {
    */
   public File getLibrariesDirectory() {
     return new File(getRootDirectory(), LIBRARIES_PATH_RELATIVE);
+  }
+
+  /**
+   * Returns the path to the resources directory.
+   *
+   * @return the path to the resources directory.
+   */
+  public File getResourcesDirectory() {
+    return new File(getRootDirectory(), RESOURCES_PATH_RELATIVE);
+  }
+
+  /**
+   * Returns the path to the classes directory.
+   *
+   * @return the path to the classes directory.
+   */
+  public File getClassesDirectory() {
+    return new File(getRootDirectory(), CLASSES_PATH_RELATIVE);
   }
 
   /**
