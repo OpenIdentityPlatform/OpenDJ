@@ -1713,7 +1713,7 @@ public final class AttributeBuilder
    * Indicates whether this attribute builder has exactly the
    * specified set of options.
    *
-   * This implementation returns {@link SmallSet#isEmpty()}
+   * This implementation returns AbstractCollection#isEmpty()
    * if the provided set of options is <code>null</code>.
    * Otherwise it checks that the size of the provided
    * set of options is equal to the size of this attribute
