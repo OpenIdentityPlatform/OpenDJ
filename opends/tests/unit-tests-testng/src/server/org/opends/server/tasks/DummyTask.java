@@ -137,6 +137,7 @@ public class DummyTask
   public void interruptTask(TaskState taskState, Message interruptMessage)
   {
     interruptedState = taskState;
+    setTaskInterruptState(taskState);
   }
 }
 

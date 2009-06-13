@@ -1145,10 +1145,11 @@ public abstract class Task
     setTaskState(TaskState.RUNNING);
     taskScheduler.writeState();
 
+    TaskState taskState = this.taskState;
+
     try
     {
-      TaskState taskState = runTask();
-      setTaskState(taskState);
+      taskState = runTask();
     }
     catch (Exception e)
     {
@@ -1157,28 +1158,11 @@ public abstract class Task
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      setTaskState(TaskState.STOPPED_BY_ERROR);
+      taskState = TaskState.STOPPED_BY_ERROR;
 
       Message message = ERR_TASK_EXECUTE_FAILED.get(
           String.valueOf(taskEntry.getDN()), stackTraceToSingleLineString(e));
       logError(message);
-    }
-    finally
-    {
-      setCompletionTime(TimeThread.getTime());
-      taskScheduler.writeState();
-    }
-
-    try
-    {
-      sendNotificationEMailMessage();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
     }
 
     return taskState;
@@ -1193,7 +1177,7 @@ public abstract class Task
    * @throws  MessagingException  If a problem occurs while attempting to send
    *                              the message.
    */
-  private void sendNotificationEMailMessage()
+  protected void sendNotificationEMailMessage()
           throws MessagingException
   {
     if (DirectoryServer.mailServerConfigured())
