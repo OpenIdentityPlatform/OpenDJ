@@ -633,8 +633,21 @@ public class TaskScheduler
 
     try
     {
+      completedTask.setCompletionTime(TimeThread.getTime());
       completedTask.setTaskState(taskState);
       addCompletedTask(completedTask);
+
+      try
+      {
+        completedTask.sendNotificationEMailMessage();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
 
       String taskID = completedTask.getTaskID();
       if (activeThreads.remove(taskID) == null)
