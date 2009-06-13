@@ -142,7 +142,7 @@ public class ServerStateTest extends ReplicationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
+  @Test(enabled = false)
   public void translateRuvEntryTest()
          throws Exception
   {
