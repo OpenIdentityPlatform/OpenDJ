@@ -55,6 +55,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -617,37 +618,7 @@ public class SearchOperationBasis
       // we'll return it anyway.  Technically, this isn't part of the
       // specification so we don't need to get carried away with really in-depth
       // checks.
-      SearchFilter filter = getFilter();
-      switch (filter.getFilterType())
-      {
-        case AND:
-        case OR:
-          for (SearchFilter f : filter.getFilterComponents())
-          {
-            if ((f.getFilterType() == FilterType.EQUALITY) &&
-                (f.getAttributeType().isObjectClassType()))
-            {
-              AttributeValue v = f.getAssertionValue();
-              if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
-              {
-                setReturnLDAPSubentries(true);
-              }
-              break;
-            }
-          }
-          break;
-        case EQUALITY:
-          AttributeType t = filter.getAttributeType();
-          if (t.isObjectClassType())
-          {
-            AttributeValue v = filter.getAssertionValue();
-            if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
-            {
-              setReturnLDAPSubentries(true);
-            }
-          }
-          break;
-      }
+      checkFilterForLDAPSubEntry(getFilter(), 0);
 
       if (! isReturnLDAPSubentries())
       {
@@ -1476,5 +1447,60 @@ public class SearchOperationBasis
     Message message =
             ERR_SEARCH_BASE_DOESNT_EXIST.get(String.valueOf(getBaseDN()));
     appendErrorMessage(message);
+  }
+
+
+  /**
+   * Checks if the filter contains an equality element with the
+   * objectclass attribute type and a value of "ldapSubentry"
+   * and if so sets returnLDAPSubentries to <code>true</code>.
+   *
+   * @param filter The complete filter being checked, of which
+   *               this filter may be a subset.
+   * @param depth  The current depth of the evaluation, which
+   *               is used to prevent infinite recursion due
+   *               to highly nested filters and eventually
+   *               running out of stack space.
+   */
+  private void checkFilterForLDAPSubEntry(SearchFilter filter, int depth)
+  {
+    switch (filter.getFilterType())
+    {
+      case EQUALITY:
+      case AND:
+      case OR:
+        for (SearchFilter f : filter.getFilterComponents())
+        {
+          if (f.getFilterType() == FilterType.EQUALITY)
+          {
+            if (f.getAttributeType().isObjectClassType())
+            {
+              AttributeValue v = f.getAssertionValue();
+              if (toLowerCase(v.getValue().toString(
+                  )).equals("ldapsubentry"))
+              {
+                setReturnLDAPSubentries(true);
+                return;
+              }
+            }
+          }
+          else
+          {
+            // Paranoid check to avoid recursion deep enough to provoke
+            // the stack overflow. This should never happen because if
+            // a given filter is too nested SearchFilter exception gets
+            // raised long before this method is invoked.
+            if (depth >= MAX_NESTED_FILTER_DEPTH)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugError("Exceeded maximum filter depth");
+              }
+              return;
+            }
+            checkFilterForLDAPSubEntry(f, depth + 1);
+          }
+        }
+    }
   }
 }
