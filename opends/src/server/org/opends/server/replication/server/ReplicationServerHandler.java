@@ -370,7 +370,7 @@ public class ReplicationServerHandler extends ServerHandler
           {
             // The local RS is not initialized - take the one received
             oldGenerationId =
-              replicationServerDomain.setGenerationId(generationId, false);
+              replicationServerDomain.changeGenerationId(generationId, false);
           }
         }
 
@@ -546,7 +546,7 @@ public class ReplicationServerHandler extends ServerHandler
         // to peer server as topo message must embed valid generation id
         // for our server
         oldGenerationId =
-          replicationServerDomain.setGenerationId(generationId, false);
+          replicationServerDomain.changeGenerationId(generationId, false);
       }
     }
 

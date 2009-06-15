@@ -1058,7 +1058,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             unregisterServerHandler(handler);
             handler.shutdown();
 
-            // Check if generation id has to be resetted
+            // Check if generation id has to be reset
             mayResetGenerationId();
             // Warn our DSs that a RS or DS has quit (does not use this
             // handler as already removed from list)
@@ -1083,7 +1083,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             unregisterServerHandler(handler);
             handler.shutdown();
 
-            // Check if generation id has to be resetted
+            // Check if generation id has to be reset
             mayResetGenerationId();
             // Update the remote replication servers with our list
             // of connected LDAP servers
@@ -1233,7 +1233,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       (!this.generationIdSavedStatus) &&
       (generationId != -1))
     {
-      setGenerationId(-1, false);
+      changeGenerationId(-1, false);
     }
   }
 
@@ -1710,6 +1710,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     stopAllServers();
 
+    stopDbHandlers();
+  }
+
+  /**
+   * Stop the dbHandlers .
+   */
+  private void stopDbHandlers()
+  {
     // Shutdown the dbHandlers
     synchronized (sourceDbHandlers)
     {
@@ -1924,14 +1932,30 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return generationIdSavedStatus;
   }
 
+
+  /**
+   * Initialize the value of the generationID for this ReplicationServerDomain.
+   * This method is intended to be used for initialization at startup and
+   * simply stores the new value without any additional processing.
+   * For example it does not clear the change-log DBs
+   *
+   * @param generationId The new value of generationId.
+   */
+  synchronized public void initGenerationID(long generationId)
+  {
+    this.generationId = generationId;
+    this.generationIdSavedStatus = true;
+  }
+
   /**
    * Sets the provided value as the new in memory generationId.
+   * Also clear the changelog databases.
    *
    * @param generationId The new value of generationId.
    * @param savedStatus  The saved status of the generationId.
    * @return The old generation id
    */
-  synchronized public long setGenerationId(long generationId,
+  synchronized public long changeGenerationId(long generationId,
     boolean savedStatus)
   {
     long oldGenerationId = this.generationId;
@@ -1980,7 +2004,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (newGenId != this.generationId)
     {
-      setGenerationId(newGenId, false);
+      changeGenerationId(newGenId, false);
     }
     else
     {
@@ -2184,7 +2208,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           logError(mb.toMessage());
         }
       }
-      sourceDbHandlers.clear();
+      stopDbHandlers();
 
       if (debugEnabled())
         TRACER.debugInfo(

@@ -302,7 +302,7 @@ public abstract class ServerHandler extends MessageHandler
     // replication server domain
     if (oldGenerationId != -100)
     {
-      replicationServerDomain.setGenerationId(oldGenerationId, false);
+      replicationServerDomain.changeGenerationId(oldGenerationId, false);
     }
   }
 

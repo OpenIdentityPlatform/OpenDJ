@@ -179,7 +179,7 @@ public class ReplicationDbEnv
                 + " generationId=" + generationId);
 
             replicationServer.getReplicationServerDomain(baseDn, true).
-            setGenerationId(generationId, true);
+            initGenerationID(generationId);
           }
         }
         catch (UnsupportedEncodingException e)
