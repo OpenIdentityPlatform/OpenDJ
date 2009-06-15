@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -663,8 +663,6 @@ public class ReplicationDB
 
       // Clears the changes
       dbenv.clearDb(dbName);
-
-      db = null;
 
       // RE-create the db
       db = dbenv.getOrAddDb(serverId, baseDn, (long)-1);
