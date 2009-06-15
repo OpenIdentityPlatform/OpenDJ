@@ -565,7 +565,7 @@ public class TraditionalWorkQueue
                                  TraditionalWorkQueueCfg configuration)
   {
     ArrayList<Message> resultMessages = new ArrayList<Message>();
-    int newNumThreads  = configuration.getNumWorkerThreads();
+    int newNumThreads  = getNumWorkerThreads(configuration);
     int newMaxCapacity = configuration.getMaxWorkQueueCapacity();
 
 
