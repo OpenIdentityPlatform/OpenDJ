@@ -993,6 +993,12 @@ public class Utilities
     }
     JEditorPane pane2 = makeHtmlPane(wrappedText, font);
     pane.setPreferredSize(pane2.getPreferredSize());
+    JFrame frame = getFrame(pane);
+    if ((frame != null) && frame.isVisible())
+    {
+      frame.getRootPane().revalidate();
+      frame.getRootPane().repaint();
+    }
   }
 
   /**

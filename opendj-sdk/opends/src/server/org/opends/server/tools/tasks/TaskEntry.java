@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -66,6 +66,7 @@ public class TaskEntry {
   private static Map<String, Message> mapAttrToDisplayName =
           new HashMap<String, Message>();
 
+  private int hashCode;
 
   // These attributes associated with the ds-task object
   // class are all handled explicitly below in the constructor
@@ -154,6 +155,68 @@ public class TaskEntry {
         }
       }
     }
+    hashCode += id.hashCode();
+    hashCode += className.hashCode();
+    hashCode += state.hashCode();
+    hashCode += schedStart.hashCode();
+    hashCode += actStart.hashCode();
+    hashCode += compTime.hashCode();
+    hashCode += depends.hashCode();
+    hashCode += depFailAct.hashCode();
+    hashCode += logs.hashCode();
+    hashCode += notifyErr.hashCode();
+    hashCode += notifyComp.hashCode();
+    hashCode += schedTab.hashCode();
+    hashCode += taskSpecificAttrValues.hashCode();
+  }
+
+  /**
+   * Retrieves a hash code for this task entry.
+   *
+   * @return  The hash code for this task entry.
+   */
+  @Override()
+  public int hashCode()
+  {
+    return hashCode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean equals(Object o)
+  {
+    if (this == o)
+    {
+      return true;
+    }
+
+    if (o == null)
+    {
+      return false;
+    }
+
+    if (! (o instanceof TaskEntry))
+    {
+      return false;
+    }
+
+    TaskEntry e = (TaskEntry) o;
+
+    return e.id.equals(id) &&
+    e.className.equals(className) &&
+    e.state.equals(state) &&
+    e.schedStart.equals(schedStart) &&
+    e.actStart.equals(actStart) &&
+    e.compTime.equals(compTime) &&
+    e.depends.equals(depends) &&
+    e.depFailAct.equals(depFailAct) &&
+    e.logs.equals(logs) &&
+    e.notifyErr.equals(notifyErr) &&
+    e.notifyComp.equals(notifyComp) &&
+    e.schedTab.equals(schedTab) &&
+    e.taskSpecificAttrValues.equals(taskSpecificAttrValues);
   }
 
   /**

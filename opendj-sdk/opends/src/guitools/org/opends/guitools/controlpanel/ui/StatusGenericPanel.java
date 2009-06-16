@@ -42,8 +42,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -77,6 +80,7 @@ import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.*;
 import org.opends.guitools.controlpanel.task.RebuildIndexTask;
@@ -146,6 +150,9 @@ implements ConfigChangeListener
 
   private boolean sizeSet = false;
   private boolean focusSet = false;
+
+  private static DateFormat taskDateFormat =
+    new SimpleDateFormat("yyyyMMddHHmmss");
 
   /**
    * Returns the title that will be used as title of the dialog.
@@ -2182,5 +2189,59 @@ implements ConfigChangeListener
   {
     return INFO_CTRL_PANEL_OPERATION_NAME_AS_LABEL.get(
         attr.getMessage().toString());
+  }
+
+  /**
+   * Returns the command-line arguments associated with the provided schedule.
+   * @param schedule the schedule.
+   * @return the command-line arguments associated with the provided schedule.
+   */
+  protected List<String> getScheduleArgs(ScheduleType schedule)
+  {
+    List<String> args = new ArrayList<String>(2);
+    switch (schedule.getType())
+    {
+    case LAUNCH_LATER:
+      args.add("--start");
+      args.add(getStartTimeForTask(schedule.getLaunchLaterDate()));
+      break;
+    case LAUNCH_PERIODICALLY:
+      args.add("--recurringTask");
+      args.add(schedule.getCronValue());
+      break;
+    }
+    return args;
+  }
+
+  /**
+   * Checks whether the server is running or not and depending on the schedule
+   * updates the list of errors with the errors found.
+   * @param schedule the schedule.
+   * @param errors the list of errors.
+   * @param label the label to be marked as invalid if errors where encountered.
+   */
+  protected void addScheduleErrors(ScheduleType schedule,
+      Collection<Message> errors, JLabel label)
+  {
+    if (!isServerRunning())
+    {
+      ScheduleType.Type type = schedule.getType();
+      if (type == ScheduleType.Type.LAUNCH_LATER)
+      {
+        errors.add(ERR_CTRL_PANEL_LAUNCH_LATER_REQUIRES_SERVER_RUNNING.get());
+        setPrimaryInvalid(label);
+      }
+      else if (type == ScheduleType.Type.LAUNCH_PERIODICALLY)
+      {
+        errors.add(
+            ERR_CTRL_PANEL_LAUNCH_SCHEDULE_REQUIRES_SERVER_RUNNING.get());
+        setPrimaryInvalid(label);
+      }
+    }
+  }
+
+  private String getStartTimeForTask(Date date)
+  {
+    return taskDateFormat.format(date);
   }
 }

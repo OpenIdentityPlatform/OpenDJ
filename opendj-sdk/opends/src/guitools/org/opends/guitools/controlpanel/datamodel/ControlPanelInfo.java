@@ -679,6 +679,7 @@ public class ControlPanelInfo
         desc.setAuthenticated(reader instanceof ConfigFromDirContext);
         desc.setJavaVersion(reader.getJavaVersion());
         desc.setOpenConnections(reader.getOpenConnections());
+        desc.setTaskEntries(reader.getTaskEntries());
         if (reader instanceof ConfigFromDirContext)
         {
           ConfigFromDirContext rCtx = (ConfigFromDirContext)reader;

@@ -91,13 +91,26 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * Creates an instance of this panel that uses MonitoringAttributes as
   * attributes.
   * @param attributes the list of possible attributes.
-  * @return an instance of this panel that uses String as attributes.
+  * @return an instance of this panel that uses MonitoringAttributes as
+  * attributes.
   */
  public static MonitoringAttributesViewPanel<MonitoringAttributes>
  createMonitoringAttributesInstance(
      LinkedHashSet<MonitoringAttributes> attributes)
  {
    return new MonitoringAttributesViewPanel<MonitoringAttributes>(attributes);
+ }
+
+ /**
+  * Creates an instance of this panel that uses Message as
+  * attributes.
+  * @param attributes the list of possible attributes.
+  * @return an instance of this panel that uses Message as attributes.
+  */
+ public static MonitoringAttributesViewPanel<Message>
+ createMessageInstance(LinkedHashSet<Message> attributes)
+ {
+   return new MonitoringAttributesViewPanel<Message>(attributes);
  }
 
  /**
@@ -353,6 +366,10 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    if (operation instanceof MonitoringAttributes)
    {
      m = ((MonitoringAttributes)operation).getMessage();
+   }
+   else if (operation instanceof Message)
+   {
+     m = (Message)operation;
    }
    else
    {
