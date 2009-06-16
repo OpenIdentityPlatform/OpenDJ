@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -49,7 +49,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private SortedSet<String> replicationServers;
   private long heartbeatInterval = 1000;
   private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
-  
+
   // Is assured mode enabled or not ?
   private boolean assured = false;
   // Assured sub mode (used when assured is true)
@@ -73,7 +73,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.serverId = serverId;
     this.replicationServers = replServers;
   }
-  
+
   /**
    * Creates a new Domain with the provided information
    * (assured mode disabled, group id provided)
@@ -84,7 +84,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this(baseDn, serverId, replServers);
     this.groupId = groupId;
   }
-  
+
   /**
    * Creates a new Domain with the provided information
    * (assured mode info provided as well as group id)
@@ -110,6 +110,24 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.assuredTimeout = assuredTimeout;
     if (refUrls != null)
       this.refUrls = refUrls;
+  }
+
+  /**
+   * Create a new Domain from the provided arguments.
+   *
+   * @param string         The baseDN in string form.
+   * @param serverId       The serverID.
+   * @param replServer     The replication Server that will be used.
+   *
+   * @throws DirectoryException  When the provided string is not a valid DN.
+   */
+  public DomainFakeCfg(String string, int serverId, String replServer)
+         throws DirectoryException
+  {
+    this.replicationServers = new TreeSet<String>();
+    this.replicationServers.add(replServer);
+    this.baseDn = DN.decode(string);
+    this.serverId = serverId;
   }
 
   /**
@@ -277,7 +295,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return assuredType;
   }
-  
+
   public boolean isAssured()
   {
     return assured;
