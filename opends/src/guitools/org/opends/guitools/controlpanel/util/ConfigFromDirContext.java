@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,7 +68,9 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
@@ -238,6 +241,7 @@ public class ConfigFromDirContext extends ConfigReader
       new HashSet<ConnectionHandlerDescriptor>();
     Set<BackendDescriptor> bs = new HashSet<BackendDescriptor>();
     Set<DN> as = new HashSet<DN>();
+    Set<TaskEntry> ts = new HashSet<TaskEntry>();
 
     rootMonitor = null;
     jvmMemoryUsage = null;
@@ -528,11 +532,23 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (Throwable t)
     {
-      LOG.log(Level.WARNING, "Error reading configuration: "+t, t);
+      LOG.log(Level.WARNING, "Error reading monitoring: "+t, t);
       OnlineUpdateException oupe = new OnlineUpdateException(
           ERR_READING_CONFIG_LDAP.get(t.toString()), t);
       ex.add(oupe);
     }
+    try
+    {
+      updateTaskInformation(ctx, ex, ts);
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error reading task information: "+t, t);
+      OnlineUpdateException oupe = new OnlineUpdateException(
+          ERR_READING_CONFIG_LDAP.get(t.toString()), t);
+      ex.add(oupe);
+    }
+    taskEntries = Collections.unmodifiableSet(ts);
     for (ConnectionHandlerDescriptor ch : getConnectionHandlers())
     {
       ch.setMonitoringEntries(getMonitoringEntries(ch));
@@ -762,6 +778,33 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
+  /**
+   * Takes the provided search result and updates the task information
+   * accordingly.
+   * @param sr the search result.
+   * @param searchBaseDN the base search.
+   * @param taskEntries the collection of TaskEntries to be updated.
+   * @throws NamingException if there is an error retrieving the values of the
+   * search result.
+   */
+  protected void handleTaskSearchResult(SearchResult sr, String searchBaseDN,
+      Collection<TaskEntry> taskEntries)
+  throws NamingException
+  {
+    CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
+    try
+    {
+      if (isTaskEntry(csr))
+      {
+        taskEntries.add(new TaskEntry(csr.getEntry()));
+      }
+    }
+    catch (OpenDsException ode)
+    {
+      exceptions.add(ode);
+    }
+  }
+
   private void updateMonitorInformation(InitialLdapContext ctx,
       List<OpenDsException> ex)
   {
@@ -786,6 +829,37 @@ public class ConfigFromDirContext extends ConfigReader
       {
         SearchResult sr = (SearchResult)monitorEntries.next();
         handleMonitoringSearchResult(sr, "cn=monitor");
+      }
+    }
+    catch (NamingException ne)
+    {
+      OnlineUpdateException oue = new OnlineUpdateException(
+          ERR_READING_CONFIG_LDAP.get(ne.getMessage().toString()), ne);
+      ex.add(oue);
+    }
+  }
+
+  private void updateTaskInformation(InitialLdapContext ctx,
+      List<OpenDsException> ex, Collection<TaskEntry> ts)
+  {
+    // Read monitoring information: since it is computed, it is faster
+    // to get everything in just one request.
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    ctls.setReturningAttributes(
+        getMonitoringAttributes());
+    String filter = "(objectclass=ds-task)";
+
+    try
+    {
+      LdapName jndiName = new LdapName(ConfigConstants.DN_TASK_ROOT);
+
+      NamingEnumeration taskEntries = ctx.search(jndiName, filter, ctls);
+
+      while (taskEntries.hasMore())
+      {
+        SearchResult sr = (SearchResult)taskEntries.next();
+        handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts);
       }
     }
     catch (NamingException ne)
@@ -962,6 +1036,24 @@ public class ConfigFromDirContext extends ConfigReader
     return isConnectionHandler;
   }
 
+  private boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
+  {
+    boolean isTaskEntry = false;
+    Set<Object> vs = csr.getAttributeValues("objectclass");
+    if ((vs != null) && !vs.isEmpty())
+    {
+      for (Object oc : vs)
+      {
+        if (oc.toString().equalsIgnoreCase("ds-task"))
+        {
+          isTaskEntry = true;
+          break;
+        }
+      }
+    }
+    return isTaskEntry;
+  }
+
   /**
    * Commodity method to get the string representation to be used in the
    * hash maps as key.
@@ -977,11 +1069,33 @@ public class ConfigFromDirContext extends ConfigReader
       ConnectionHandlerDescriptor ch)
   {
     Set<CustomSearchResult> monitorEntries = new HashSet<CustomSearchResult>();
-    for (String key : hmConnectionHandlersMonitor.keySet())
+    if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
     {
-      if (key.indexOf(getKey(ch.getName())) != -1)
+      for (String key : hmConnectionHandlersMonitor.keySet())
       {
-        monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+        // The name of the connection handler does not appear necessarily in the
+        // key (which is based on the DN of the monitoring entry).  In general
+        // the DN contains the String specified in
+        // LDAPConnectionHandler.DEFAULT_FRIENDLY_NAME, so we have to check that
+        // this connection handler is the right one.
+        // See org.opends.server.protocols.ldap.LDAPConnectionHandler to see
+        // how the DN of the monitoring entry is generated.
+        if (key.indexOf(getKey("port "+ch.getPort())) != -1)
+        {
+          boolean hasAllAddresses = true;
+          for (InetAddress a : ch.getAddresses())
+          {
+            if (key.indexOf(getKey(a.getHostAddress())) == -1)
+            {
+              hasAllAddresses = false;
+              break;
+            }
+          }
+          if (hasAllAddresses)
+          {
+            monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+          }
+        }
       }
     }
 

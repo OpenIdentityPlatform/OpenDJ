@@ -54,10 +54,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
+import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.tools.ExportLDIF;
@@ -88,6 +90,8 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
   private JCheckBox excludeOperationalAttrs;
 
   private DocumentListener documentListener;
+
+  private ScheduleSummaryPanel schedulePanel;
 
   /**
    * Default constructor.
@@ -238,13 +242,21 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       Utilities.createPrimaryLabel(INFO_CTRL_PANEL_EXPORT_OPTIONS.get());
     add(lExportOptions, gbc);
 
-    compressData = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
-    compressData.setSelected(false);
+    schedulePanel = new ScheduleSummaryPanel(
+        INFO_CTRL_PANEL_EXPORT_LDIF_TITLE.get().toString());
+    schedulePanel.setSchedule(ScheduleType.createLaunchNow());
 
     gbc.insets.left = 10;
     gbc.gridx = 1;
     gbc.gridwidth = 3;
+    add(schedulePanel, gbc);
+
+    compressData = Utilities.createCheckBox(
+        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
+    compressData.setSelected(false);
+
+    gbc.gridy ++;
+    gbc.insets.top = 5;
     add(compressData, gbc);
 
     encryptData = Utilities.createCheckBox(
@@ -384,6 +396,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
+    addScheduleErrors(getSchedule(), errors, lExportOptions);
     if (wrapText.isSelected())
     {
       String cols = wrapColumn.getText();
@@ -391,7 +404,12 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       int maxValue = 1000;
       Message errMsg = ERR_CTRL_PANEL_INVALID_WRAP_COLUMN.get(minValue,
       maxValue);
+      int size1 = errors.size();
       checkIntValue(errors, cols, minValue, maxValue, errMsg);
+      if (errors.size() > size1)
+      {
+        setPrimaryInvalid(lExportOptions);
+      }
     }
 
     updateIncludeExclude(errors, backendName);
@@ -446,6 +464,11 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lFile);
     setPrimaryValid(lExportOptions);
     super.cancelClicked();
+  }
+
+  private ScheduleType getSchedule()
+  {
+    return schedulePanel.getSchedule();
   }
 
   /**
@@ -588,6 +611,8 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
 
       args.addAll(super.getCommandLineArguments());
+
+      args.addAll(getScheduleArgs(getSchedule()));
 
       if (isServerRunning())
       {

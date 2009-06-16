@@ -521,7 +521,7 @@ public class RecurringTask
    *         the schedule field.
    * @throws IllegalArgumentException if tab field is invalid.
    */
-  private boolean[] parseTaskTabField(String tabField,
+  public static boolean[] parseTaskTabField(String tabField,
     int minValue, int maxValue) throws IllegalArgumentException
   {
     boolean[] valueList = new boolean[maxValue + 1];

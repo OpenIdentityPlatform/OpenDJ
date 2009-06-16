@@ -217,7 +217,8 @@ public class MainActionsPane extends StatusGenericPanel
           {
             INFO_CTRL_PANEL_CATEGORY_MONITORING.get(),
             INFO_CTRL_PANEL_BROWSE_GENERAL_MONITORING.get(),
-            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get()
+            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get(),
+            INFO_CTRL_PANEL_MANAGE_TASKS.get()
           },
           {
             INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
@@ -251,7 +252,8 @@ public class MainActionsPane extends StatusGenericPanel
           {
             INFO_CTRL_PANEL_CATEGORY_MONITORING.get(),
             INFO_CTRL_PANEL_BROWSE_GENERAL_MONITORING.get(),
-            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get()
+            INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING.get(),
+            INFO_CTRL_PANEL_MANAGE_TASKS.get()
           },
           {
             INFO_CTRL_PANEL_CATEGORY_RUNTIME_OPTIONS.get(),
@@ -273,6 +275,7 @@ public class MainActionsPane extends StatusGenericPanel
     classes.add(RebuildIndexPanel.class);
     classes.add(BrowseGeneralMonitoringPanel.class);
     classes.add(ConnectionHandlerMonitoringPanel.class);
+    classes.add(ManageTasksPanel.class);
     classes.add(JavaPropertiesPanel.class);
     if (Utilities.isWindows())
     {

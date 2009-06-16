@@ -60,9 +60,11 @@ import javax.swing.event.ChangeListener;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
+import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
@@ -99,6 +101,8 @@ public class BackupPanel extends BackupListPanel
   private ChangeListener changeListener;
 
   private boolean backupIDInitialized = false;
+
+  private ScheduleSummaryPanel schedulePanel;
 
   private static final Logger LOG =
     Logger.getLogger(BackupPanel.class.getName());
@@ -251,20 +255,27 @@ public class BackupPanel extends BackupListPanel
         INFO_CTRL_PANEL_BACKUP_OPTIONS_LABEL.get());
     add(lBackupOptions, gbc);
 
-    compressData = Utilities.createCheckBox(
-        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
-    compressData.setSelected(false);
+    schedulePanel = new ScheduleSummaryPanel(
+        INFO_CTRL_PANEL_BACKUP_TASK_NAME.get().toString());
+    schedulePanel.setSchedule(ScheduleType.createLaunchNow());
 
     gbc.insets.left = 10;
     gbc.gridx = 1;
     gbc.gridwidth = 2;
+    add(schedulePanel, gbc);
+
+    compressData = Utilities.createCheckBox(
+        INFO_CTRL_PANEL_COMPRESS_DATA_LABEL.get());
+    compressData.setSelected(false);
+
+    gbc.gridy ++;
+    gbc.insets.top = 5;
     add(compressData, gbc);
 
     encryptData = Utilities.createCheckBox(
         INFO_CTRL_PANEL_ENCRYPT_DATA_LABEL.get());
 
     gbc.gridy ++;
-    gbc.insets.top = 5;
     add(encryptData, gbc);
     encryptData.setSelected(false);
     generateMessageDigest = Utilities.createCheckBox(
@@ -351,6 +362,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lPath);
     setPrimaryValid(lAvailableBackups);
     setPrimaryValid(lParentID);
+    setPrimaryValid(lBackupOptions);
     backupIDInitialized = false;
 
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
@@ -433,6 +445,8 @@ public class BackupPanel extends BackupListPanel
         }
       }
     }
+
+    addScheduleErrors(getSchedule(), errors, lBackupOptions);
 
     // Check that there is not a backup with the provided ID
     final JComponent[] components =
@@ -578,6 +592,11 @@ public class BackupPanel extends BackupListPanel
     }
   }
 
+  private ScheduleType getSchedule()
+  {
+    return schedulePanel.getSchedule();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -586,6 +605,7 @@ public class BackupPanel extends BackupListPanel
     setPrimaryValid(lBackend);
     setPrimaryValid(lPath);
     setPrimaryValid(lAvailableBackups);
+    setPrimaryValid(lBackupOptions);
 
     super.cancelClicked();
   }
@@ -823,6 +843,8 @@ public class BackupPanel extends BackupListPanel
       }
 
       args.addAll(getConnectionCommandLineArguments());
+
+      args.addAll(getScheduleArgs(getSchedule()));
 
       if (isServerRunning())
       {

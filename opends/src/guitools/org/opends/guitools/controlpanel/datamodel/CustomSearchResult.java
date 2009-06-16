@@ -27,9 +27,13 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.server.util.StaticUtils.toLowerCase;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -44,6 +48,17 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.util.LDIFReader;
 
 /**
  * This is a commodity class used to wrap the SearchResult class of JNDI.
@@ -260,5 +275,90 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
   private int calculateHashCode()
   {
     return 23 + toString.hashCode();
+  }
+
+  /**
+   * Gets the Entry object equivalent to this CustomSearchResult.
+   * The method assumes that the schema in DirectoryServer has been initialized.
+   * @return the Entry object equivalent to this CustomSearchResult.
+   * @throws OpenDsException if there is an error parsing the DN or retrieving
+   * the attributes definition and objectclasses in the schema of the server.
+   */
+  public Entry getEntry() throws OpenDsException
+  {
+    DN dn = DN.decode(this.getDN());
+    Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
+    Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes =
+      new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
+    Map<AttributeType,List<org.opends.server.types.Attribute>>
+    operationalAttributes =
+      new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
+
+    for (String wholeName : this.getAttributeNames())
+    {
+      final org.opends.server.types.Attribute attribute =
+        LDIFReader.parseAttrDescription(wholeName);
+      final String attrName = attribute.getName();
+      final String lowerName = toLowerCase(attrName);
+
+      // See if this is an objectclass or an attribute.  Then get the
+      // corresponding definition and add the value to the appropriate hash.
+      if (lowerName.equals("objectclass"))
+      {
+        for (Object value : this.getAttributeValues(attrName))
+        {
+          String ocName = value.toString().trim();
+          String lowerOCName = toLowerCase(ocName);
+
+          ObjectClass objectClass =
+            DirectoryServer.getObjectClass(lowerOCName);
+          if (objectClass == null)
+          {
+            objectClass = DirectoryServer.getDefaultObjectClass(ocName);
+          }
+
+          objectClasses.put(objectClass, ocName);
+        }
+      }
+      else
+      {
+        AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+        if (attrType == null)
+        {
+          attrType = DirectoryServer.getDefaultAttributeType(attrName);
+        }
+
+        AttributeBuilder builder = new AttributeBuilder(attribute, true);
+        for (Object value : this.getAttributeValues(attrName))
+        {
+          ByteString bs;
+          if (value instanceof byte[])
+          {
+            bs = ByteString.wrap((byte[])value);
+          }
+          else
+          {
+            bs = ByteString.valueOf(value.toString());
+          }
+          AttributeValue attributeValue =
+            AttributeValues.create(attrType, bs);
+          builder.add(attributeValue);
+        }
+        List<org.opends.server.types.Attribute> attrList =
+          new ArrayList<org.opends.server.types.Attribute>(1);
+        attrList.add(builder.toAttribute());
+
+        if (attrType.isOperational())
+        {
+          operationalAttributes.put(attrType, attrList);
+        }
+        else
+        {
+          userAttributes.put(attrType, attrList);
+        }
+      }
+    }
+
+    return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
   }
 }

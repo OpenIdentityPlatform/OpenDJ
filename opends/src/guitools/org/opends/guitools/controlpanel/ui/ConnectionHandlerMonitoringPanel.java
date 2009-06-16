@@ -52,7 +52,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -76,7 +75,8 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.
  State;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
+import org.opends.guitools.controlpanel.ui.renderer.
+ NoLeftInsetCategoryComboBoxRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
@@ -193,7 +193,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       }
     });
     connectionHandlers.setRenderer(
-        new CustomComboBoxCellRenderer(connectionHandlers));
+        new NoLeftInsetCategoryComboBoxRenderer(connectionHandlers));
     gbc.gridx ++;
     viewOptions.add(connectionHandlers, gbc);
     gbc.gridx ++;
@@ -313,7 +313,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
           });
     for (ConnectionHandlerDescriptor ch : chs)
     {
-      if (ch.getProtocol() != ConnectionHandlerDescriptor.Protocol.LDIF)
+      if (protocolHasMonitoring(ch))
       {
         sortedChs.add(ch);
       }
@@ -355,7 +355,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
-          server.getHostname()));
+      server.getHostname()));
       mb.append("<br><br>"+getAuthenticateHTML());
       errorDetails = mb.toMessage();
       errorTitle = INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
@@ -555,7 +555,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         {
           for (ConnectionHandlerDescriptor ch : server.getConnectionHandlers())
           {
-            if (ch.getProtocol() != Protocol.LDIF)
+            if (protocolHasMonitoring(ch))
             {
               cchs.add(ch);
             }
@@ -586,6 +586,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       }
     }
     return cchs;
+  }
+
+  private boolean protocolHasMonitoring(ConnectionHandlerDescriptor ch)
+  {
+    return (ch.getProtocol() == Protocol.LDAP) ||
+    (ch.getProtocol() == Protocol.LDAPS) ||
+    (ch.getProtocol() == Protocol.LDAP_STARTTLS) ||
+    (ch.getProtocol() == Protocol.OTHER);
   }
 
   /**
@@ -648,44 +656,6 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         }
       });
       return menu;
-    }
-  }
-
-  /**
-   *  This class is used simply to avoid an inset on the left for the
-   *  elements of the combo box.
-   *  Since this item is a CategorizedComboBoxElement of type
-   *  CategorizedComboBoxElement.Type.REGULAR, it has by default an inset on
-   *  the left.
-   */
-  class CustomComboBoxCellRenderer extends CustomListCellRenderer
-  {
-    /**
-     * The constructor.
-     * @param combo the combo box to be rendered.
-     */
-    CustomComboBoxCellRenderer(JComboBox combo)
-    {
-      super(combo);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Component getListCellRendererComponent(JList list, Object value,
-        int index, boolean isSelected, boolean cellHasFocus)
-    {
-      Component comp = super.getListCellRendererComponent(list, value, index,
-          isSelected, cellHasFocus);
-      if (value instanceof CategorizedComboBoxElement)
-      {
-        CategorizedComboBoxElement element = (CategorizedComboBoxElement)value;
-        String name = getStringValue(element);
-        ((JLabel)comp).setText(name);
-      }
-      comp.setFont(defaultFont);
-      return comp;
     }
   }
 }

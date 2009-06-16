@@ -40,6 +40,7 @@ import java.util.Set;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
 
+import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
@@ -78,6 +79,8 @@ public class ServerDescriptor
   private CustomSearchResult entryCaches;
 
   private CustomSearchResult workQueue;
+
+  private Set<TaskEntry> taskEntries = new HashSet<TaskEntry>();
 
   private long runningTime = -1;
 
@@ -289,6 +292,24 @@ public class ServerDescriptor
   }
 
   /**
+   * Returns the task entries.
+   * @return the task entries.
+   */
+  public Set<TaskEntry> getTaskEntries()
+  {
+    return taskEntries;
+  }
+
+  /**
+   * Sets the the task entries.
+   * @param taskEntries the task entries.
+   */
+  public void setTaskEntries(Set<TaskEntry> taskEntries)
+  {
+    this.taskEntries = Collections.unmodifiableSet(taskEntries);
+  }
+
+  /**
    * {@inheritDoc}
    */
   public boolean equals(Object o)
@@ -410,6 +431,11 @@ public class ServerDescriptor
         {
           equals =
             desc.isWindowsServiceEnabled() == isWindowsServiceEnabled();
+        }
+
+        if (equals)
+        {
+          desc.getTaskEntries().equals(getTaskEntries());
         }
       }
     }

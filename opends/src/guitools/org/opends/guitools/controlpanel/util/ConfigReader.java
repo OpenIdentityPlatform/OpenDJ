@@ -46,6 +46,7 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -166,6 +167,11 @@ public abstract class ConfigReader
   protected Schema schema;
 
   /**
+   * The task entries.
+   **/
+  protected Set<TaskEntry> taskEntries = Collections.emptySet();
+
+  /**
    * Returns the Administrative User DNs found in the config.ldif.  The set
    * must be unmodifiable (the inheriting classes must take care of this).
    * @return the Administrative User DNs found in the config.ldif.
@@ -277,6 +283,15 @@ public abstract class ConfigReader
   public Schema getSchema()
   {
     return schema;
+  }
+
+  /**
+   * Returns the task entries.
+   * @return the task entries.
+   */
+  public Set<TaskEntry> getTaskEntries()
+  {
+    return taskEntries;
   }
 
   /**

@@ -1235,7 +1235,7 @@ public final class LDIFReader
    * @return A new attribute with no values, representing the
    *         attribute type and its options.
    */
-  private static Attribute parseAttrDescription(String attrDescr)
+  public static Attribute parseAttrDescription(String attrDescr)
   {
     AttributeBuilder builder;
     int semicolonPos = attrDescr.indexOf(';');
