@@ -24,7 +24,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.server.replication.common;
+package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -81,7 +81,9 @@ import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
-import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
