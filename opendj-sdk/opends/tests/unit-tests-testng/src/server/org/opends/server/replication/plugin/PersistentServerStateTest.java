@@ -22,18 +22,26 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ServerState;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
@@ -102,5 +110,74 @@ public class PersistentServerStateTest extends ReplicationTestCase
     assertEquals(cn1Saved, null,
         "cn1 has not been saved after clear for " + dn);
 
+  }
+
+  /**
+   * Ensures that the Directory Server is able to
+   * translate a ruv entry to a sever state.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @SuppressWarnings("unchecked")
+  @Test(enabled = false)
+  public void translateRuvEntryTest()
+         throws Exception
+  {
+    SynchronizationProvider replicationPlugin = null;
+    LDAPReplicationDomain replDomain = null;
+
+    try
+    {
+      String RuvString =
+        "dn: nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff, o=test\n"
+        +"objectClass: top\n"
+        +"objectClass: ldapsubentry\n"
+        +"objectClass: extensibleobject\n"
+        +"nsds50ruv: {replicageneration} 49098853000000010000\n"
+        +"nsds50ruv: {replica 3 ldap://kawax:3389} 491d517b000000030000 "
+        +"491d564a000000030000\n"
+        +"nsds50ruv: {replica 1 ldap://kawax:1389} 490989e8000000010000 "
+        +"490989e8000000010000\n"
+        +"ds6ruv: {PRIO 3 ldap://kawax:3389}\n"
+        +"ds6ruv: {PRIO 1 ldap://kawax:1389}\n"
+        +"entryUUID: ffffffff-ffff-ffff-ffff-ffffffffffff\n";
+
+      Entry RuvEntry = TestCaseUtils.entryFromLdifString(RuvString);
+      AddOperationBasis addOp = new AddOperationBasis(InternalClientConnection.
+          getRootConnection(), InternalClientConnection.nextOperationID(),
+          InternalClientConnection.nextMessageID(), null, RuvEntry.getDN(),
+          RuvEntry.getObjectClasses(), RuvEntry.getUserAttributes(),
+          RuvEntry.getOperationalAttributes());
+
+      addOp.setInternalOperation(true);
+      addOp.run();
+
+      assertTrue(addOp.getResultCode() == ResultCode.SUCCESS);
+
+      replicationPlugin = new MultimasterReplication();
+      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
+      DomainFakeCfg domainConf =
+        new DomainFakeCfg("o=test", 1, "localhost:3389");
+      replDomain = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin.completeSynchronizationProvider();
+
+      // Then check serverSate and GenId
+      assertTrue(replDomain.getGenerationID() == 1225361491);
+
+      ServerState state = replDomain.getServerState();
+      assertTrue(state.getMaxChangeNumber((short) 1).
+          compareTo(new ChangeNumber("0000011d4d42b240000100000000")) == 0);
+      assertTrue(state.getMaxChangeNumber((short) 3).
+          compareTo(new ChangeNumber("0000011d9a991110000300000000")) == 0);
+
+    }
+    finally
+    {
+      if (replDomain != null)
+        MultimasterReplication.deleteDomain(DN.decode("o=test"));
+
+      if (replicationPlugin != null)
+        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
+    }
   }
 }
