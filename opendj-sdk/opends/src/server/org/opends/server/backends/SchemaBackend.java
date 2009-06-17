@@ -5303,12 +5303,12 @@ public class SchemaBackend
       String baseDirPath ;
       if (fileName.endsWith(".install"))
       {
-        fileName = fileName.substring(fileName.lastIndexOf(".install"));
+        fileName = fileName.substring(0,fileName.lastIndexOf(".install"));
         baseDirPath = schemaInstallDirPath;
       }
       else
       {
-        fileName = fileName.substring(fileName.lastIndexOf(".instance"));
+        fileName = fileName.substring(0,fileName.lastIndexOf(".instance"));
         baseDirPath = schemaInstanceDirPath;
       }
 
