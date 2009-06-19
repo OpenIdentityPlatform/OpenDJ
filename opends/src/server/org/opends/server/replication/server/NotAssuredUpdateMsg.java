@@ -56,9 +56,9 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   // Ready to be sent.
   private byte[] realUpdateMsgNotAssuredBytesV1 = null;
 
-  // V2 serialized form of the real message with assured flag set to false.
+  // VLatest serialized form of the real message with assured flag set to false.
   // Ready to be sent.
-  private byte[] realUpdateMsgNotAssuredBytesV2 = null;
+  private byte[] realUpdateMsgNotAssuredBytesVLatest = null;
 
   /**
    * Creates a new empty UpdateMsg.
@@ -131,12 +131,11 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       realUpdateMsgNotAssuredBytesV1 = bytes;
 
       /**
-       * Prepare V2 serialized form of the message:
+       * Prepare VLATEST serialized form of the message:
        * Get the encoding form of the real message then overwrite the assured
        * flag to always be false.
        */
-      origBytes = realUpdateMsg.getBytes(
-        ProtocolVersion.REPLICATION_PROTOCOL_V2);
+      origBytes = realUpdateMsg.getBytes(ProtocolVersion.getCurrentVersion());
       // Clone the byte array to be able to modify it without problems
       // (ModifyMsg messages for instance do not return a cloned version of
       // their byte array)
@@ -179,8 +178,8 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       // Force assured flag to false
       bytes[pos] = (byte) 0;
 
-      // Store computed V2 serialized form
-      realUpdateMsgNotAssuredBytesV2 = bytes;
+      // Store computed VLATEST serialized form
+      realUpdateMsgNotAssuredBytesVLatest = bytes;
 
     } else
     {
@@ -192,12 +191,12 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       }
 
       /**
-       * Prepare V2 serialized form of the message:
+       * Prepare VLATEST serialized form of the message:
        * Get the encoding form of the real message then overwrite the assured
        * flag to always be false.
        */
       byte[] origBytes = realUpdateMsg.getBytes(
-        ProtocolVersion.REPLICATION_PROTOCOL_V2);
+          ProtocolVersion.getCurrentVersion());
       // Clone the byte array to be able to modify it without problems
       // (ModifyMsg messages for instance do not return a cloned version of
       // their byte array)
@@ -241,8 +240,8 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       // Force assured flag to false
       bytes[pos] = (byte) 0;
 
-      // Store computed V2 serialized form
-      realUpdateMsgNotAssuredBytesV2 = bytes;
+      // Store computed VLatest serialized form
+      realUpdateMsgNotAssuredBytesVLatest = bytes;
     }
   }
 
@@ -320,16 +319,10 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
   {
-    switch (reqProtocolVersion)
-    {
-      case ProtocolVersion.REPLICATION_PROTOCOL_V1:
-        return realUpdateMsgNotAssuredBytesV1;
-      case ProtocolVersion.REPLICATION_PROTOCOL_V2:
-        return realUpdateMsgNotAssuredBytesV2;
-      default:
-        throw new UnsupportedEncodingException("Unsupported requested " +
-          " protocol version: " + reqProtocolVersion);
-    }
+    if (reqProtocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+      return realUpdateMsgNotAssuredBytesV1;
+    else
+      return realUpdateMsgNotAssuredBytesVLatest;
   }
 
   /**

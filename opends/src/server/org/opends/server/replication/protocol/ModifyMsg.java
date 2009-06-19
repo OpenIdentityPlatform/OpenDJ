@@ -203,7 +203,7 @@ public class ModifyMsg extends ModifyCommonMsg
         "\nuniqueId: " + uniqueId +
         "\nassuredFlag: " + assuredFlag;
     }
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "ModifyMsg content: " +
         "\nprotocolVersion: " + protocolVersion +

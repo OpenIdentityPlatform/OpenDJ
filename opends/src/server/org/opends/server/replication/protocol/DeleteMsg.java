@@ -131,7 +131,7 @@ public class DeleteMsg extends LDAPUpdateMsg
         "\nuniqueId: " + uniqueId +
         "\nassuredFlag: " + assuredFlag;
     }
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "DeleteMsg content: " +
         "\nprotocolVersion: " + protocolVersion +
