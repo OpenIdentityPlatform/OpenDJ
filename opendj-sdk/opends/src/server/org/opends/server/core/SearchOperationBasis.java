@@ -1464,43 +1464,44 @@ public class SearchOperationBasis
    */
   private void checkFilterForLDAPSubEntry(SearchFilter filter, int depth)
   {
+    // Paranoid check to avoid recursion deep enough to provoke
+    // the stack overflow. This should never happen because if
+    // a given filter is too nested SearchFilter exception gets
+    // raised long before this method is invoked.
+    if (depth >= MAX_NESTED_FILTER_DEPTH)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugError("Exceeded maximum filter depth");
+      }
+      return;
+    }
+
     switch (filter.getFilterType())
     {
-      case EQUALITY:
-      case AND:
-      case OR:
-        for (SearchFilter f : filter.getFilterComponents())
+    case EQUALITY:
+      if (filter.getAttributeType().isObjectClassType())
+      {
+        AttributeValue v = filter.getAssertionValue();
+        if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
         {
-          if (f.getFilterType() == FilterType.EQUALITY)
-          {
-            if (f.getAttributeType().isObjectClassType())
-            {
-              AttributeValue v = f.getAssertionValue();
-              if (toLowerCase(v.getValue().toString(
-                  )).equals("ldapsubentry"))
-              {
-                setReturnLDAPSubentries(true);
-                return;
-              }
-            }
-          }
-          else
-          {
-            // Paranoid check to avoid recursion deep enough to provoke
-            // the stack overflow. This should never happen because if
-            // a given filter is too nested SearchFilter exception gets
-            // raised long before this method is invoked.
-            if (depth >= MAX_NESTED_FILTER_DEPTH)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugError("Exceeded maximum filter depth");
-              }
-              return;
-            }
-            checkFilterForLDAPSubEntry(f, depth + 1);
-          }
+          setReturnLDAPSubentries(true);
         }
+      }
+      break;
+    case AND:
+    case OR:
+      for (SearchFilter f : filter.getFilterComponents())
+      {
+        checkFilterForLDAPSubEntry(f, depth + 1);
+
+        if (isReturnLDAPSubentries())
+        {
+          // No point in continuing.
+          break;
+        }
+      }
+      break;
     }
   }
 }
