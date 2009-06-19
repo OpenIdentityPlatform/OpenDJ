@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer;
@@ -848,7 +848,7 @@ public class InstallerHelper {
           "import-ldif.online", "ldapcompare", "ldapdelete",
           "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
           "manage-account", "manage-tasks", "restore.online", "stop-ds",
-          "status", "status-panel", "uninstall", "setup"
+          "status", "control-panel", "uninstall", "setup"
       };
 
       // Scripts to which we will pass -server argument
