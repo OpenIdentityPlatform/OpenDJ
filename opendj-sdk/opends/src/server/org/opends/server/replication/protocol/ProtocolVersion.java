@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -45,6 +45,11 @@ public class ProtocolVersion
    * The constant for the second version of the replication protocol.
    */
   public static final short REPLICATION_PROTOCOL_V2 = 2;
+
+  /**
+   * The constant for the 3rd version of the replication protocol.
+   */
+  public static final short REPLICATION_PROTOCOL_V3 = 3;
 
   /**
    * The replication protocol version used by the instance of RS/DS in this VM.
@@ -81,7 +86,7 @@ public class ProtocolVersion
    */
   public static void resetCurrentVersion()
   {
-    currentVersion = REPLICATION_PROTOCOL_V2;
+    currentVersion = REPLICATION_PROTOCOL_V3;
   }
 
   /**

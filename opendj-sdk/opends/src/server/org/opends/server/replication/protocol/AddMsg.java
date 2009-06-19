@@ -321,7 +321,7 @@ public class AddMsg extends LDAPUpdateMsg
         "\nuniqueId: " + uniqueId +
         "\nassuredFlag: " + assuredFlag;
     }
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "AddMsg content: " +
         "\nprotocolVersion: " + protocolVersion +

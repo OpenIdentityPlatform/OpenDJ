@@ -819,14 +819,18 @@ searchProcessing:
     {
       DeleteMsg delMsg = (DeleteMsg)msg;
       ArrayList<RawAttribute> rattributes = new ArrayList<RawAttribute>();
+      /* TODO:ECL Entry attributes for DEL op
+      ArrayList<RawAttribute> rattributes = delMsg.getEntryAttributes();
+      // Map the entry attributes of the DelMsg to an LDIF string
+      // for the 'deletedentryattributes' attribute of the CL entry
       String delAttrs = delMsgToLDIFString(rattributes);
-
+      */
       clEntry = createChangelogEntry(
           eclmsg.getServiceId(),
           eclmsg.getCookie().toString(),
           DN.decode(delMsg.getDn()),
           delMsg.getChangeNumber(),
-          delAttrs,
+          null,
           delMsg.getUniqueId(),
           null,
           null,
@@ -873,7 +877,9 @@ searchProcessing:
   }
 
   /**
-   * Create an ECL entry.
+   * Create an ECL entry from a set of provided information. This is the part
+   * of entry creation common to all types of msgs (ADD, DEL, MOD, MODDN).
+   *
    * @param serviceID       The provided cookie value.
    * @param cookie          The provided cookie value.
    * @param targetDN        The provided targetDN.
@@ -1095,6 +1101,12 @@ searchProcessing:
     return cle;
   }
 
+  /**
+   * Dump a replication AddMsg to an LDIF string that will be the 'changes'
+   * attributes of the ECL entry.
+   * @param addMsg The provided replication add msg.
+   * @return The LDIF string.
+   */
   private static String addMsgToLDIFString(AddMsg addMsg)
   {
     StringBuilder modTypeLine = new StringBuilder();
@@ -1164,13 +1176,13 @@ searchProcessing:
   }
 
   /**
-   * q.
-   * @param rattributes q.
-   * @return
-   */
+   * Dump a replication delMsg to an LDIF string that will be the 'changes'
+   * attributes of the ECL entry.
+   * @param addMsg The provided replication del msg.
+   * @return The LDIF string.
   private static String delMsgToLDIFString(ArrayList<RawAttribute> rattributes)
   {
-    StringBuilder modTypeLine = new StringBuilder();
+    StringBuilder delTypeLine = new StringBuilder();
     try
     {
 
@@ -1208,22 +1220,22 @@ searchProcessing:
           {
             // ??
             String stringValue = av.toString();
-            modTypeLine.append(attrName);
+            delTypeLine.append(attrName);
             if (needsBase64Encoding(stringValue))
             {
-              modTypeLine.append(":: ");
-              modTypeLine.append(Base64.encode(av.getValue()));
+              delTypeLine.append(":: ");
+              delTypeLine.append(Base64.encode(av.getValue()));
             }
             else
             {
-              modTypeLine.append(": ");
-              modTypeLine.append(stringValue);
+              delTypeLine.append(": ");
+              delTypeLine.append(stringValue);
             }
-            modTypeLine.append("\n");
+            delTypeLine.append("\n");
           }
         }
       }
-      return modTypeLine.toString();
+      return delTypeLine.toString();
     }
     catch(Exception e)
     {
@@ -1231,6 +1243,7 @@ searchProcessing:
     }
     return null;
   }
+   */
 
   /**
    * Dumps a list of modifications into an LDIF string.

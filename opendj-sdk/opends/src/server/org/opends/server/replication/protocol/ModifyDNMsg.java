@@ -324,7 +324,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
         "\nnewSuperior: " + newSuperior +
         "\ndeleteOldRdn: " + deleteOldRdn;
     }
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V2)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "ModifyDNMsg content: " +
         "\nprotocolVersion: " + protocolVersion +

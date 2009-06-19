@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.protocol;
@@ -62,6 +62,7 @@ import static org.testng.Assert.assertTrue;
  */
 public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
+  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V3;
   /**
    * Set up the environment for performing the tests in this Class.
    *
@@ -109,18 +110,25 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   /**
    * Test that various combinations of ReplServerStartMsg encoding and decoding
-   * using protocol V1 and V2 are working.
+   * using protocol VLAST and V2 are working.
    */
   @Test(dataProvider="createReplServerStartData")
-  public void replServerStartMsgTest(short serverId, String baseDN, int window,
+  public void replServerStartMsgTestVLASTV2(short serverId, String baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
-    // Create V2 message
+    // TODO: replServerStartMsgTestV3V2 as soon as V3 will have any incompatibility with V2
+  }
+
+  @Test(dataProvider="createReplServerStartData")
+  public void replServerStartMsgTestVLASTV1(short serverId, String baseDN, int window,
+        String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
+  {
+    // Create VLAST message
     ReplServerStartMsg msg = new ReplServerStartMsg(serverId,
         url, baseDN, window, state, ProtocolVersion.getCurrentVersion(), genId, true, groupId, degTh);
 
     // Check version of message
-    assertEquals(msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -141,31 +149,31 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
 
-    // Check default value for only V2 fields
+    // Check default value for only post V1 fields
     assertEquals(newMsg.getGroupId(), (byte) -1);
     assertEquals(newMsg.getDegradedStatusThreshold(), -1);
 
-    // Set again only V2 fields
+    // Set again only post V1 fields
     newMsg.setGroupId(groupId);
     newMsg.setDegradedStatusThreshold(degTh);
 
-    // Serialize in V2 msg
-    ReplServerStartMsg v2Msg = new ReplServerStartMsg(newMsg.getBytes());
+    // Serialize in VLAST msg
+    ReplServerStartMsg vlastMsg = new ReplServerStartMsg(newMsg.getBytes());
 
     // Check original version of message
-    assertEquals(v2Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
-    // Check we retrieve original V2 message (V2 fields)
-    assertEquals(msg.getGenerationId(), v2Msg.getGenerationId());
-    assertEquals(msg.getServerId(), v2Msg.getServerId());
-    assertEquals(msg.getServerURL(), v2Msg.getServerURL());
-    assertEquals(msg.getBaseDn(), v2Msg.getBaseDn());
-    assertEquals(msg.getWindowSize(), v2Msg.getWindowSize());
+    // Check we retrieve original V3 message (V3 fields)
+    assertEquals(msg.getGenerationId(), vlastMsg.getGenerationId());
+    assertEquals(msg.getServerId(), vlastMsg.getServerId());
+    assertEquals(msg.getServerURL(), vlastMsg.getServerURL());
+    assertEquals(msg.getBaseDn(), vlastMsg.getBaseDn());
+    assertEquals(msg.getWindowSize(), vlastMsg.getWindowSize());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
-        v2Msg.getServerState().getMaxChangeNumber((short)1));
-    assertEquals(msg.getSSLEncryption(), v2Msg.getSSLEncryption());
-    assertEquals(msg.getGroupId(), v2Msg.getGroupId());
-    assertEquals(msg.getDegradedStatusThreshold(), v2Msg.getDegradedStatusThreshold());
+        vlastMsg.getServerState().getMaxChangeNumber((short)1));
+    assertEquals(msg.getSSLEncryption(), vlastMsg.getSSLEncryption());
+    assertEquals(msg.getGroupId(), vlastMsg.getGroupId());
+    assertEquals(msg.getDegradedStatusThreshold(), vlastMsg.getDegradedStatusThreshold());
   }
 
   @DataProvider(name = "createAddData")
@@ -177,11 +185,19 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @Test(dataProvider = "createAddData")
-  public void addMsgTest(String rawDN, boolean isAssured, AssuredMode assuredMode,
+  public void addMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
     byte safeDataLevel)
          throws Exception
   {
-    // Create V2 message
+    // TODO: addMsgTest as soon as V3 will have any incompatibility with V2
+  }
+
+  @Test(dataProvider = "createAddData")
+  public void addMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
+    byte safeDataLevel)
+         throws Exception
+  {
+    // Create VLAST message
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
     HashMap<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
@@ -214,7 +230,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setSafeDataLevel(safeDataLevel);
 
     // Check version of message
-    assertEquals(msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -248,32 +264,32 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(addOpBasis.getOperationalAttributes(), genAddOpBasis.getOperationalAttributes());
     assertEquals(addOpBasis.getUserAttributes(), genAddOpBasis.getUserAttributes());
 
-    // Check default value for only V2 fields
+    // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
-    // Set again only V2 fields
+    // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
 
-    // Serialize in V2 msg
-    AddMsg v2Msg = (AddMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    // Serialize in VLAST msg
+    AddMsg vlastMsg = (AddMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
 
     // Check original version of message
-    assertEquals(v2Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
-    // Check we retrieve original V2 message (V2 fields)
-    assertEquals(msg.getUniqueId(), v2Msg.getUniqueId());
-    assertEquals(msg.getDn(), v2Msg.getDn());
-    assertEquals(msg.getChangeNumber(), v2Msg.getChangeNumber());
-    assertEquals(msg.getParentUid(), v2Msg.getParentUid());
-    assertEquals(msg.isAssured(), v2Msg.isAssured());
-    assertEquals(msg.getAssuredMode(), v2Msg.getAssuredMode());
-    assertEquals(msg.getSafeDataLevel(), v2Msg.getSafeDataLevel());
+    // Check we retrieve original VLAST message (VLAST fields)
+    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.getParentUid(), vlastMsg.getParentUid());
+    assertEquals(msg.isAssured(), vlastMsg.isAssured());
+    assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
+    assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
 
     //        Create an add operation from each message to compare attributes (kept encoded in messages)
     op = msg.createOperation(connection, rawDN);
-    generatedOperation = v2Msg.createOperation(connection, rawDN);
+    generatedOperation = vlastMsg.createOperation(connection, rawDN);
 
     assertEquals(op.getClass(), AddOperationBasis.class);
     assertEquals(generatedOperation.getClass(), AddOperationBasis.class);
@@ -301,10 +317,22 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   /**
    * Test that various combinations of DeleteMsg encoding and decoding
-   * using protocol V1 and V2 are working.
+   * using protocol V2 and VLAST are working.
    */
   @Test(dataProvider = "createDeleteData")
-  public void deleteMsgTest(String rawDN, boolean isAssured, AssuredMode assuredMode,
+  public void deleteMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
+    byte safeDataLevel)
+         throws Exception
+  {
+    // TODO: deleteMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
+  }
+
+  /**
+   * Test that various combinations of DeleteMsg encoding and decoding
+   * using protocol V1 and VLAST are working.
+   */
+  @Test(dataProvider = "createDeleteData")
+  public void deleteMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
     byte safeDataLevel)
          throws Exception
   {
@@ -317,7 +345,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setSafeDataLevel(safeDataLevel);
 
     // Check version of message
-    assertEquals(msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -334,27 +362,27 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
     assertEquals(newMsg.isAssured(), msg.isAssured());
 
-    // Check default value for only V2 fields
+    // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
-    // Set again only V2 fields
+    // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
 
-    // Serialize in V2 msg
-    DeleteMsg v2Msg = (DeleteMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    // Serialize in VLAST msg
+    DeleteMsg vlastMsg = (DeleteMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
 
     // Check original version of message
-    assertEquals(v2Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original V2 message (V2 fields)
-    assertEquals(msg.getUniqueId(), v2Msg.getUniqueId());
-    assertEquals(msg.getDn(), v2Msg.getDn());
-    assertEquals(msg.getChangeNumber(), v2Msg.getChangeNumber());
-    assertEquals(msg.isAssured(), v2Msg.isAssured());
-    assertEquals(msg.getAssuredMode(), v2Msg.getAssuredMode());
-    assertEquals(msg.getSafeDataLevel(), v2Msg.getSafeDataLevel());
+    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.isAssured(), vlastMsg.isAssured());
+    assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
+    assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
   }
 
   /**
@@ -421,13 +449,27 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol V1 and V2 are working.
    */
   @Test(dataProvider = "createModifyData")
-  public void modifyMsgTest(ChangeNumber changeNumber,
+  public void modifyMsgTestVLASTV2(ChangeNumber changeNumber,
                                String rawdn, List<Modification> mods,
                                boolean isAssured, AssuredMode assuredMode,
                                byte safeDataLevel)
          throws Exception
   {
-    // Create V2 message
+    // TODO: modifyMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
+  }
+
+  /**
+   * Test that various combinations of ModifyMsg encoding and decoding
+   * using protocol V1 and VLAST are working.
+   */
+  @Test(dataProvider = "createModifyData")
+  public void modifyMsgTestVLASTV1(ChangeNumber changeNumber,
+                               String rawdn, List<Modification> mods,
+                               boolean isAssured, AssuredMode assuredMode,
+                               byte safeDataLevel)
+         throws Exception
+  {
+    // Create VLAST message
     DN dn = DN.decode(rawdn);
     ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
 
@@ -436,7 +478,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setSafeDataLevel(safeDataLevel);
 
     // Check version of message
-    assertEquals(msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -467,31 +509,31 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
                   genModOpBasis.getAttachment(SYNCHROCONTEXT));
     assertEquals(modOpBasis.getModifications(), genModOpBasis.getModifications());
 
-    // Check default value for only V2 fields
+    // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
 
-    // Set again only V2 fields
+    // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
 
-    // Serialize in V2 msg
-    ModifyMsg v2Msg = (ModifyMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    // Serialize in VLAST msg
+    ModifyMsg vlastMsg = (ModifyMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
 
     // Check original version of message
-    assertEquals(v2Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
-    // Check we retrieve original V2 message (V2 fields)
-    assertEquals(msg.getUniqueId(), v2Msg.getUniqueId());
-    assertEquals(msg.getDn(), v2Msg.getDn());
-    assertEquals(msg.getChangeNumber(), v2Msg.getChangeNumber());
-    assertEquals(msg.isAssured(), v2Msg.isAssured());
-    assertEquals(msg.getAssuredMode(), v2Msg.getAssuredMode());
-    assertEquals(msg.getSafeDataLevel(), v2Msg.getSafeDataLevel());
+    // Check we retrieve original VLAST message (VLAST fields)
+    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.isAssured(), vlastMsg.isAssured());
+    assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
+    assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
 
     //        Create a modify operation from each message to compare mods (kept encoded in messages)
     op = msg.createOperation(connection);
-    generatedOperation = v2Msg.createOperation(connection);
+    generatedOperation = vlastMsg.createOperation(connection);
 
     assertEquals(op.getClass(), ModifyOperationBasis.class);
     assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
@@ -549,16 +591,30 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   /**
    * Test that various combinations of ModifyDnMsg encoding and decoding
-   * using protocol V1 and V2 are working.
+   * using protocol VLAST and V2 are working.
    */
   @Test(dataProvider = "createModifyDnData")
-  public void modifyDnMsgTest(String rawDN, String newRdn, String uid, String newParentUid,
+  public void modifyDnMsgTestVLASTV2(String rawDN, String newRdn, String uid, String newParentUid,
                                    boolean deleteOldRdn, String newSuperior,
                                    List<Modification> mods, boolean isAssured,
                                    AssuredMode assuredMode, byte safeDataLevel)
          throws Exception
   {
-    // Create V2 message
+    // TODO: modifyMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
+  }
+
+  /**
+   * Test that various combinations of ModifyDnMsg encoding and decoding
+   * using protocol VLAST and V1 are working.
+   */
+  @Test(dataProvider = "createModifyDnData")
+  public void modifyDnMsgTestVLASTV1(String rawDN, String newRdn, String uid, String newParentUid,
+                                   boolean deleteOldRdn, String newSuperior,
+                                   List<Modification> mods, boolean isAssured,
+                                   AssuredMode assuredMode, byte safeDataLevel)
+         throws Exception
+  {
+    // Create VLAST message
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
                                       (short) 596, (short) 13);
     ModifyDNMsg msg = new ModifyDNMsg(rawDN, cn, uid,
@@ -570,7 +626,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setSafeDataLevel(safeDataLevel);
 
     // Check version of message
-    assertEquals(msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -604,38 +660,38 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals( modDnOpBasis.getAttachment(SYNCHROCONTEXT),
                   genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
 
-    // Check default value for only V2 fields
+    // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
     assertEquals(modDnOpBasis.getModifications(), mods);
     assertTrue(genModDnOpBasis.getModifications() == null);
 
-    // Set again only V2 fields
+    // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
     newMsg.setMods(mods);
 
-    // Serialize in V2 msg
-    ModifyDNMsg v2Msg = (ModifyDNMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    // Serialize in VLAST msg
+    ModifyDNMsg vlastMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
 
     // Check original version of message
-    assertEquals(v2Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V2);
+    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
-    // Check we retrieve original V2 message (V2 fields)
-    assertEquals(msg.getUniqueId(), v2Msg.getUniqueId());
-    assertEquals(msg.getDn(), v2Msg.getDn());
-    assertEquals(msg.getChangeNumber(), v2Msg.getChangeNumber());
-    assertEquals(msg.isAssured(), v2Msg.isAssured());
-    assertEquals(msg.getAssuredMode(), v2Msg.getAssuredMode());
-    assertEquals(msg.getSafeDataLevel(), v2Msg.getSafeDataLevel());
-    assertEquals(msg.getNewRDN(), v2Msg.getNewRDN());
-    assertEquals(msg.getNewSuperior(), v2Msg.getNewSuperior());
-    assertEquals(msg.getNewSuperiorId(), v2Msg.getNewSuperiorId());
-    assertEquals(msg.deleteOldRdn(), v2Msg.deleteOldRdn());
+    // Check we retrieve original VLAST message (VLAST fields)
+    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
+    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.isAssured(), vlastMsg.isAssured());
+    assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
+    assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
+    assertEquals(msg.getNewRDN(), vlastMsg.getNewRDN());
+    assertEquals(msg.getNewSuperior(), vlastMsg.getNewSuperior());
+    assertEquals(msg.getNewSuperiorId(), vlastMsg.getNewSuperiorId());
+    assertEquals(msg.deleteOldRdn(), vlastMsg.deleteOldRdn());
 
     //        Create a modDn operation from each message to compare mods (kept encoded in messages)
     op = msg.createOperation(connection);
-    generatedOperation = v2Msg.createOperation(connection);
+    generatedOperation = vlastMsg.createOperation(connection);
 
     assertEquals(op.getClass(), ModifyDNOperationBasis.class);
     assertEquals(generatedOperation.getClass(), ModifyDNOperationBasis.class);
