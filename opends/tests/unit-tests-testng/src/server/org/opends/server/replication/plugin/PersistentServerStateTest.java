@@ -119,7 +119,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled = false)
+  @Test
   public void translateRuvEntryTest()
          throws Exception
   {
