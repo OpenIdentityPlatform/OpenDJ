@@ -557,6 +557,29 @@ public class ADSContext
       {
         unregisterInstanceKeyCertificate(serverProperties, dn);
       }
+
+      // Unregister the server from the server groups.
+      String member = "cn="
+        + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
+      Set<Map<ServerGroupProperty, Object>> serverGroups =
+        readServerGroupRegistry();
+      for (Map<ServerGroupProperty, Object> serverGroup : serverGroups)
+      {
+        Set<?> memberList =
+          (Set<?>)serverGroup.get(ServerGroupProperty.MEMBERS);
+        if (memberList != null)
+        {
+          if (memberList.remove(member))
+          {
+            HashMap<ServerGroupProperty, Object> serverGroupProperties =
+              new HashMap<ServerGroupProperty, Object>();
+            serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+            String groupName = (String)serverGroup.get(ServerGroupProperty.UID);
+            updateServerGroup(groupName, serverGroupProperties);
+          }
+        }
+      }
+
       dirContext.destroySubcontext(dn);
     }
     catch (NameNotFoundException x)
