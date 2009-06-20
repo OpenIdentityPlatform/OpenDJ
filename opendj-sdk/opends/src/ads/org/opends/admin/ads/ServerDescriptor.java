@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -57,6 +59,10 @@ public class ServerDescriptor
   private Map<ServerProperty, Object> serverProperties =
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
+
+  private static final Logger LOG =
+    Logger.getLogger(ServerDescriptor.class.getName());
+
   /**
    * Enumeration containing the different server properties that we can keep in
    * the ServerProperty object.
@@ -472,26 +478,64 @@ public class ServerDescriptor
     }
     else
     {
-      boolean secure;
+      ArrayList<ADSContext.ServerProperty> enabledAttrs =
+        new ArrayList<ADSContext.ServerProperty>();
 
-      Object v = adsProperties.get(ADSContext.ServerProperty.ADMIN_ENABLED);
-      secure = securePreferred && "true".equalsIgnoreCase(String.valueOf(v));
-      try
+      if (securePreferred)
       {
-        if (secure)
-        {
-          port = Integer.parseInt((String)adsProperties.get(
-              ADSContext.ServerProperty.ADMIN_PORT));
-        }
-        else
-        {
-          port = Integer.parseInt((String)adsProperties.get(
-              ADSContext.ServerProperty.LDAP_PORT));
-        }
+        enabledAttrs.add(ADSContext.ServerProperty.ADMIN_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAPS_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAP_ENABLED);
       }
-      catch (Throwable t)
+      else
       {
-        /* ignore */
+        enabledAttrs.add(ADSContext.ServerProperty.LDAP_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.ADMIN_ENABLED);
+        enabledAttrs.add(ADSContext.ServerProperty.LDAPS_ENABLED);
+      }
+
+      for (ADSContext.ServerProperty prop : enabledAttrs)
+      {
+        Object v = adsProperties.get(prop);
+        if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
+        {
+          ADSContext.ServerProperty portProp;
+          if (prop == ADSContext.ServerProperty.ADMIN_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.ADMIN_PORT;
+          }
+          else if (prop == ADSContext.ServerProperty.LDAPS_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.LDAPS_PORT;
+          }
+          else if (prop == ADSContext.ServerProperty.LDAP_ENABLED)
+          {
+            portProp = ADSContext.ServerProperty.LDAP_PORT;
+          }
+          else
+          {
+            throw new IllegalStateException("Unexpected prop: "+prop);
+          }
+          Object p = adsProperties.get(portProp);
+          if (p != null)
+          {
+            try
+            {
+              port = Integer.parseInt(String.valueOf(p));
+            }
+            catch (Throwable t)
+            {
+              LOG.log(Level.WARNING, "Error calculating host port: "+t+" in "+
+                  adsProperties, t);
+            }
+            break;
+          }
+          else
+          {
+            LOG.log(Level.WARNING, "Value for "+portProp+" is null in "+
+                adsProperties);
+          }
+        }
       }
     }
     return host + ":" + port;
