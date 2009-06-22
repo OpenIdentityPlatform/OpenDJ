@@ -775,6 +775,10 @@ public class DirectoryServer
   // if it does not exist in the common servicetag registry.
   private ServiceTagRegistration serviceTagRegistry;
 
+  /**
+   * The default timeout used to start the server in detach mode.
+   */
+  public static int DEFAULT_TIMEOUT = 200;
 
   /**
    * Creates a new instance of the Directory Server.  This will allow only a
@@ -9175,7 +9179,8 @@ public class DirectoryServer
       // Not used in this class, but required by the start-ds script
       // (see issue #3814)
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, INFO_SECONDS_PLACEHOLDER.get(), 60,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(),
+                                    DEFAULT_TIMEOUT,
                                     null, true, 0, false,
                                     0, INFO_DSCORE_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
