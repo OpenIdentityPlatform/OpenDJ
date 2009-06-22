@@ -449,7 +449,7 @@ public class ControlPanelInfo
     desc.setSchema(reader.getSchema());
     desc.setSchemaEnabled(reader.isSchemaEnabled());
   }
-  private int i=0;
+
   /**
    * Regenerates the last found ServerDescriptor object.
    *
@@ -1029,17 +1029,36 @@ public class ControlPanelInfo
         {
           if (port > 0)
           {
-            url = sProtocol +"://localhost:"+port;
+            if (server.isLocal())
+            {
+              url = sProtocol +"://localhost:"+port;
+            }
+            else
+            {
+              url = sProtocol +"://"+
+              ConnectionUtils.getHostNameForLdapUrl(server.getHostname())+
+              ":"+port;
+            }
           }
         }
         else
         {
           if (port > 0)
           {
-            InetAddress address = addresses.first();
-            url = sProtocol +"://"+
-            ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress())+":"+
-            port;
+            if (server.isLocal())
+            {
+              InetAddress address = addresses.first();
+              url = sProtocol +"://"+
+              ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress())+
+              ":"+
+              port;
+            }
+            else
+            {
+              url = sProtocol +"://"+
+              ConnectionUtils.getHostNameForLdapUrl(server.getHostname())+
+              ":"+port;
+            }
           }
         }
       }
