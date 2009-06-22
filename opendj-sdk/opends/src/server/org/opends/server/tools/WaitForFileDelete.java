@@ -158,7 +158,7 @@ public class WaitForFileDelete
 
 
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, INFO_SECONDS_PLACEHOLDER.get(), 60,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(), 200,
                                     null, true, 0, false,
                                     0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
