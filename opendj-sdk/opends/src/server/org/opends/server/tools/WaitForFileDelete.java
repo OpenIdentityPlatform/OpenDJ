@@ -30,18 +30,22 @@ import org.opends.messages.Message;
 
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.RandomAccessFile;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.cli.ConsoleApplication;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -51,7 +55,7 @@ import static org.opends.server.util.StaticUtils.*;
  * deleted before exiting.  It can be used in the process of confirming that the
  * server has completed its startup or shutdown process.
  */
-public class WaitForFileDelete
+public class WaitForFileDelete extends ConsoleApplication
 {
   /**
    * The fully-qualified name of this class.
@@ -86,6 +90,18 @@ public class WaitForFileDelete
 
 
   /**
+   * Constructor for the WaitForFileDelete object.
+   *
+   * @param out the print stream to use for standard output.
+   * @param err the print stream to use for standard error.
+   * @param in the input stream to use for standard input.
+   */
+  public WaitForFileDelete(PrintStream out, PrintStream err, InputStream in)
+  {
+    super(in, out, err);
+  }
+
+  /**
    * Processes the command-line arguments and initiates the process of waiting
    * for the file to be removed.
    *
@@ -93,19 +109,66 @@ public class WaitForFileDelete
    */
   public static void main(String[] args)
   {
+    int retCode = mainCLI(args, true, System.out, System.err, System.in);
+
+    System.exit(retCode);
+  }
+
+  /**
+   * Processes the command-line arguments and initiates the process of waiting
+   * for the file to be removed.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param initializeServer   Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   * @param  inStream          The input stream to use for standard input.
+   * @return The error code.
+   */
+
+  public static int mainCLI(String[] args, boolean initializeServer,
+      OutputStream outStream, OutputStream errStream, InputStream inStream)
+  {
+    int exitCode;
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
     try
     {
-      int exitCode = mainWait(args);
+      WaitForFileDelete wffd = new WaitForFileDelete(out, err, System.in);
+      exitCode = wffd.mainWait(args);
       if (exitCode != EXIT_CODE_SUCCESS)
       {
-        System.exit(filterExitCode(exitCode));
+        exitCode = filterExitCode(exitCode);
       }
     }
     catch (Exception e)
     {
       e.printStackTrace();
-      System.exit(EXIT_CODE_INTERNAL_ERROR);
+      exitCode = EXIT_CODE_INTERNAL_ERROR;
     }
+    return exitCode;
   }
 
 
@@ -115,11 +178,18 @@ public class WaitForFileDelete
    * to be removed.
    *
    * @param  args  The command-line arguments provided to this program.
+   * @param  out         The output stream to use for standard output, or
+   *                           <CODE>null</CODE> if standard output is not
+   *                           needed.
+   * @param  err         The output stream to use for standard error, or
+   *                           <CODE>null</CODE> if standard error is not
+   *                           needed.
+   * @param  inStream          The input stream to use for standard input.
    *
    * @return  An integer value of zero if the file was deleted successfully, or
    *          some other value if a problem occurred.
    */
-  public static int mainWait(String[] args)
+  private int mainWait(String[] args)
   {
     // Create all of the command-line arguments for this program.
     BooleanArgument showUsage      = null;
@@ -188,7 +258,7 @@ public class WaitForFileDelete
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      println(message);
       return EXIT_CODE_INTERNAL_ERROR;
     }
 
@@ -202,8 +272,8 @@ public class WaitForFileDelete
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
+      println(message);
+      println(Message.raw(argParser.getUsage()));
       return EXIT_CODE_INTERNAL_ERROR;
     }
 
@@ -243,7 +313,7 @@ public class WaitForFileDelete
       {
         Message message = WARN_WAIT4DEL_CANNOT_OPEN_LOG_FILE.get(
                 logFilePath.getValue(), String.valueOf(e));
-        System.err.println(wrapText(message, MAX_LINE_WIDTH));
+        println(message);
 
         logFile = null;
       }
@@ -272,7 +342,7 @@ public class WaitForFileDelete
         {
           Message message = WARN_WAIT4DEL_CANNOT_OPEN_OUTPUT_FILE.get(
                   outputFilePath.getValue(), String.valueOf(e));
-          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          println(message);
 
           outputFile = null;
         }
@@ -315,8 +385,8 @@ public class WaitForFileDelete
             {
               if (outputFile == null)
               {
-                System.out.write(logBuffer, 0, bytesRead);
-                System.out.flush();
+                getOutputStream().write(logBuffer, 0, bytesRead);
+                getOutputStream().flush();
               }
               else
               {
@@ -360,12 +430,63 @@ public class WaitForFileDelete
 
     if (targetFile.exists())
     {
+      println(ERR_TIMEOUT_DURING_STARTUP.get(
+          Integer.parseInt(timeout.getValue()),
+          timeout.getLongIdentifier()));
       return EXIT_CODE_TIMEOUT;
     }
     else
     {
       return EXIT_CODE_SUCCESS;
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isMenuDrivenMode()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose()
+  {
+    return false;
   }
 }
 
