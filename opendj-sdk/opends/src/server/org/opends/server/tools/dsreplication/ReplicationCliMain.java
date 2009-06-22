@@ -4603,7 +4603,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             adsCtx1.createAdministrator(getAdministratorProperties(uData));
           }
-          if (registry2.size() == 0)
+          if (!ADSContext.isRegistered(server2, registry2))
           {
             server2.updateAdsPropertiesWithServerProperties();
             registerServer(adsCtx1, server2.getAdsProperties());
@@ -4611,6 +4611,11 @@ public class ReplicationCliMain extends ConsoleApplication
           else
           {
             registerServer(adsCtx1, registry2.iterator().next());
+          }
+          if (!ADSContext.isRegistered(server1, registry1))
+          {
+            server1.updateAdsPropertiesWithServerProperties();
+            registerServer(adsCtx1, server1.getAdsProperties());
           }
 
           ctxSource = ctx1;
@@ -4624,7 +4629,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             adsCtx2.createAdministrator(getAdministratorProperties(uData));
           }
-          if (registry1.size() == 0)
+          if (!ADSContext.isRegistered(server1, registry1))
           {
             server1.updateAdsPropertiesWithServerProperties();
             registerServer(adsCtx2, server1.getAdsProperties());
@@ -4632,6 +4637,11 @@ public class ReplicationCliMain extends ConsoleApplication
           else
           {
             registerServer(adsCtx2, registry1.iterator().next());
+          }
+          if (!ADSContext.isRegistered(server2, registry2))
+          {
+            server2.updateAdsPropertiesWithServerProperties();
+            registerServer(adsCtx2, server2.getAdsProperties());
           }
 
           ctxSource = ctx2;
@@ -4664,6 +4674,13 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         server1.updateAdsPropertiesWithServerProperties();
         registerServer(adsCtx2, server1.getAdsProperties());
+        Set<Map<ADSContext.ServerProperty, Object>> registry2 =
+          adsCtx2.readServerRegistry();
+        if (!ADSContext.isRegistered(server2, registry2))
+        {
+          server2.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx2, server2.getAdsProperties());
+        }
 
         ctxSource = ctx2;
         ctxDestination = ctx1;
@@ -4678,6 +4695,13 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         server2.updateAdsPropertiesWithServerProperties();
         registerServer(adsCtx1, server2.getAdsProperties());
+        Set<Map<ADSContext.ServerProperty, Object>> registry1 =
+          adsCtx1.readServerRegistry();
+        if (!ADSContext.isRegistered(server1, registry1))
+        {
+          server1.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx1, server1.getAdsProperties());
+        }
 
         ctxSource = ctx1;
         ctxDestination = ctx2;
@@ -5247,7 +5271,7 @@ public class ReplicationCliMain extends ConsoleApplication
         // contents of the ADS.
         try
         {
-          Thread.sleep(2000);
+          Thread.sleep(5000);
         }
         catch (Throwable t)
         {
