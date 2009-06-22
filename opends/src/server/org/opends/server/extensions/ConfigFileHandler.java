@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -690,7 +690,19 @@ public class ConfigFileHandler
         if ((configDirFile != null) &&
             configDirFile.getName().equals(CONFIG_DIR_NAME))
         {
-          serverRoot = configDirFile.getParentFile().getAbsolutePath();
+          /*
+           * Do a best effort to avoid having a relative representation (for
+           * instance to avoid having ../../../).
+           */
+          try
+          {
+            serverRoot = configDirFile.getParentFile().getCanonicalPath();
+          }
+          catch (IOException ioe)
+          {
+            // Best effort
+            serverRoot = configDirFile.getParentFile().getAbsolutePath();
+          }
         }
 
         if (serverRoot == null)
@@ -739,7 +751,19 @@ public class ConfigFileHandler
     }
     else
     {
-      instanceRoot = instanceFile.getAbsolutePath();
+      /*
+       * Do a best effort to avoid having a relative representation (for
+       * instance to avoid having ../../../).
+       */
+      try
+      {
+        instanceRoot = instanceFile.getCanonicalPath();
+      }
+      catch (IOException ioe)
+      {
+        // Best effort
+        instanceRoot = instanceFile.getAbsolutePath();
+      }
     }
 
 
