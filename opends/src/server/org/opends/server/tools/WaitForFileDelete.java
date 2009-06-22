@@ -32,6 +32,7 @@ import org.opends.messages.Message;
 import java.io.File;
 import java.io.RandomAccessFile;
 
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -158,7 +159,8 @@ public class WaitForFileDelete
 
 
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, INFO_SECONDS_PLACEHOLDER.get(), 200,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(),
+                                    DirectoryServer.DEFAULT_TIMEOUT,
                                     null, true, 0, false,
                                     0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
