@@ -26,12 +26,8 @@
  */
 package org.opends.server.replication.common;
 
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import java.util.Iterator;
 import java.util.TreeMap;
-
-import org.opends.server.loggers.debug.DebugTracer;
 
 
 /**
@@ -41,11 +37,6 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public class MultiDomainServerState implements Iterable<String>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   /**
    * The list of (domain service id, ServerState).
    */

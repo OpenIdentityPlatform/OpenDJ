@@ -184,8 +184,6 @@ public abstract class ServerHandler extends MessageHandler
    */
   int sendWindowSize;
 
-  private int saturationCount = 0;
-
   /**
    * The protocol version established with the remote server.
    */
@@ -315,19 +313,9 @@ public abstract class ServerHandler extends MessageHandler
   {
     if (rcvWindow < rcvWindowSizeHalf)
     {
-      if (flowControl)
-      {
-        if (replicationServerDomain.restartAfterSaturation(this))
-        {
-          flowControl = false;
-        }
-      }
-      if (!flowControl)
-      {
-        WindowMsg msg = new WindowMsg(rcvWindowSizeHalf);
-        session.publish(msg);
-        rcvWindow += rcvWindowSizeHalf;
-      }
+      WindowMsg msg = new WindowMsg(rcvWindowSizeHalf);
+      session.publish(msg);
+      rcvWindow += rcvWindowSizeHalf;
     }
   }
 
@@ -1183,22 +1171,6 @@ public abstract class ServerHandler extends MessageHandler
     boolean interrupted = true;
     UpdateMsg msg = getnextMessage(true); // synchronous:block until msg
 
-    /*
-     * When we remove a message from the queue we need to check if another
-     * server is waiting in flow control because this queue was too long.
-     * This check might cause a performance penalty an therefore it
-     * is not done for every message removed but only every few messages.
-     */
-    if (++saturationCount > 10)
-    {
-      saturationCount = 0;
-      try
-      {
-        replicationServerDomain.checkAllSaturation();
-      } catch (IOException e)
-      {
-      }
-    }
     boolean acquired = false;
     do
     {

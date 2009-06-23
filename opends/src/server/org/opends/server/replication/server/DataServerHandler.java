@@ -415,41 +415,12 @@ public class DataServerHandler extends ServerHandler
     serverId = serverStartMsg.getServerId();
     serverURL = serverStartMsg.getServerURL();
     groupId = serverStartMsg.getGroupId();
-    maxReceiveDelay = serverStartMsg.getMaxReceiveDelay();
-    maxReceiveQueue = serverStartMsg.getMaxReceiveQueue();
-    maxSendDelay = serverStartMsg.getMaxSendDelay();
-    maxSendQueue = serverStartMsg.getMaxSendQueue();
     heartbeatInterval = serverStartMsg.getHeartbeatInterval();
 
     // generic stuff
     setServiceIdAndDomain(serverStartMsg.getBaseDn());
     setInitialServerState(serverStartMsg.getServerState());
     setSendWindowSize(serverStartMsg.getWindowSize());
-
-    if (maxReceiveQueue > 0)
-      restartReceiveQueue = (maxReceiveQueue > 1000 ? maxReceiveQueue -
-          200 : maxReceiveQueue * 8 / 10);
-    else
-      restartReceiveQueue = 0;
-
-    if (maxSendQueue > 0)
-      restartSendQueue =
-        (maxSendQueue > 1000 ? maxSendQueue - 200 : maxSendQueue * 8 /
-            10);
-    else
-      restartSendQueue = 0;
-
-    if (maxReceiveDelay > 0)
-      restartReceiveDelay = (maxReceiveDelay > 10 ? maxReceiveDelay - 1
-          : maxReceiveDelay);
-    else
-      restartReceiveDelay = 0;
-
-    if (maxSendDelay > 0)
-      restartSendDelay =
-        (maxSendDelay > 10 ? maxSendDelay - 1 : maxSendDelay);
-    else
-      restartSendDelay = 0;
 
     if (heartbeatInterval < 0)
     {

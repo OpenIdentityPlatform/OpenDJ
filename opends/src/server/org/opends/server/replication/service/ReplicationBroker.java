@@ -731,8 +731,7 @@ public class ReplicationBroker
       /*
        * Send our ServerStartMsg.
        */
-      ServerStartMsg serverStartMsg = new ServerStartMsg(serverId,
-          baseDn, 0, 0, 0, 0,
+      ServerStartMsg serverStartMsg = new ServerStartMsg(serverId, baseDn,
         maxRcvWindow, heartbeatInterval, state,
         ProtocolVersion.getCurrentVersion(), this.getGenerationID(),
         isSslEncryption,
