@@ -98,7 +98,6 @@ import com.sleepycat.je.DatabaseException;
  */
 public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 {
-  private final Object flowControlLock = new Object();
   private final String baseDn;
   // The Status analyzer that periodically verifis if the connected DSs are
   // late or not
@@ -1293,16 +1292,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      * So this methods simply need to check that dependencies are OK
      * and update this replicaId RUV
      *
-     *  TODO : dependency  :
-     *  before forwarding change, we should check that the dependency
-     *  that is indicated in this change is OK (change already in the RUV)
      */
     msg = handler.take();
-    synchronized (flowControlLock)
-    {
-      if (handler.restartAfterSaturation(null))
-        flowControlLock.notifyAll();
-    }
+
     return msg;
   }
 
@@ -1664,7 +1656,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         } catch (IOException ioe)
         {
           /*
-           * An error happened trying the send a routabled message
+           * An error happened trying the send a routable message
            * to its destination server.
            * Send back an error to the originator of the message.
            */
@@ -1751,46 +1743,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public String toString()
   {
     return "ReplicationServerDomain " + baseDn;
-  }
-
-  /**
-   * Check if some server Handler should be removed from flow control state.
-   * @throws IOException If an error happened.
-   */
-  public void checkAllSaturation() throws IOException
-  {
-    for (ReplicationServerHandler handler : replicationServers.values())
-    {
-      handler.checkWindow();
-    }
-
-    for (DataServerHandler handler : directoryServers.values())
-    {
-      handler.checkWindow();
-    }
-  }
-
-  /**
-   * Check if a server that was in flow control can now restart
-   * sending updates.
-   * @param sourceHandler The server that must be checked.
-   * @return true if the server can restart sending changes.
-   *         false if the server can't restart sending changes.
-   */
-  public boolean restartAfterSaturation(MessageHandler sourceHandler)
-  {
-    for (MessageHandler handler : replicationServers.values())
-    {
-      if (!handler.restartAfterSaturation(sourceHandler))
-        return false;
-    }
-
-    for (MessageHandler handler : directoryServers.values())
-    {
-      if (!handler.restartAfterSaturation(sourceHandler))
-        return false;
-    }
-    return true;
   }
 
   /**

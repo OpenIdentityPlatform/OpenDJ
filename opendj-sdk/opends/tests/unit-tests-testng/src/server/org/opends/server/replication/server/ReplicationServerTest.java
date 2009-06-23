@@ -48,15 +48,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -1004,7 +1000,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       // send a ServerStartMsg with an empty ServerState.
       ServerStartMsg msg =
         new ServerStartMsg((short) 1723, TEST_ROOT_DN_STRING,
-            0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
+            WINDOW, (long) 5000, new ServerState(),
             ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
 
@@ -1050,7 +1046,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       msg = new ServerStartMsg(
           (short) 1724, TEST_ROOT_DN_STRING,
-          0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
+          WINDOW, (long) 5000, replServerState,
           ProtocolVersion.getCurrentVersion(),
           ReplicationTestCase.getGenerationId(baseDn),
           sslEncryption, (byte)10);
@@ -1221,7 +1217,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
               "uid");
         broker.publish(msg);
-        
+
         if ((count % 10) == 0)
         debugInfo("BrokerWriter " + broker.getServerId() + "  sent="+count);
       }

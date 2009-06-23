@@ -27,7 +27,6 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 
 import java.io.IOException;
@@ -629,19 +628,7 @@ public class ECLServerHandler extends ServerHandler
     attributes.add(Attributes.create("External-Changelog-Server",
         serverURL));
 
-    try
-    {
-      MonitorData md;
-      md = replicationServerDomain.computeMonitorData();
-      // FIXME:ECL No monitoring exist for ECL.
-    }
-    catch (Exception e)
-    {
-      Message message =
-        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
-      // We failed retrieving the monitor data.
-      attributes.add(Attributes.create("error", message.toString()));
-    }
+    // FIXME:ECL No monitoring exist for ECL.
     return attributes;
   }
   /**

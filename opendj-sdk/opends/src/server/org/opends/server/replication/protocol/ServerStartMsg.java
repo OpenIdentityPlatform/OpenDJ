@@ -70,10 +70,6 @@ public class ServerStartMsg extends StartMsg
    * @param serverId The serverId of the server for which the ServerStartMsg
    *                 is created.
    * @param baseDn   The base DN.
-   * @param maxReceiveDelay The max receive delay for this server.
-   * @param maxReceiveQueue The max receive Queue for this server.
-   * @param maxSendDelay The max Send Delay from this server.
-   * @param maxSendQueue The max send Queue from this server.
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
@@ -83,9 +79,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(short serverId, String baseDn, int maxReceiveDelay,
-                            int maxReceiveQueue, int maxSendDelay,
-                            int maxSendQueue, int windowSize,
+  public ServerStartMsg(short serverId, String baseDn, int windowSize,
                             long heartbeatInterval,
                             ServerState serverState,
                             short protocolVersion,
@@ -97,10 +91,10 @@ public class ServerStartMsg extends StartMsg
 
     this.serverId = serverId;
     this.baseDn = baseDn;
-    this.maxReceiveDelay = maxReceiveDelay;
-    this.maxReceiveQueue = maxReceiveQueue;
-    this.maxSendDelay = maxSendDelay;
-    this.maxSendQueue = maxSendQueue;
+    this.maxReceiveDelay = 0;
+    this.maxReceiveQueue = 0;
+    this.maxSendDelay = 0;
+    this.maxSendQueue = 0;
     this.windowSize = windowSize;
     this.heartbeatInterval = heartbeatInterval;
     this.sslEncryption = sslEncryption;

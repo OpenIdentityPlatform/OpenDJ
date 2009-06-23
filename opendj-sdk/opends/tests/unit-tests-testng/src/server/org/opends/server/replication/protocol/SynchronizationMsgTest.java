@@ -568,18 +568,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
          throws Exception
   {
     AckMsg msg1, msg2 ;
-  
+
     // Consctructor test (with ChangeNumber)
     // Chech that retrieved CN is OK
     msg1 = new  AckMsg(cn);
     assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
-  
+
     // Check default values for error info
     assertFalse(msg1.hasTimeout());
     assertFalse(msg1.hasWrongStatus());
     assertFalse(msg1.hasReplayError());
     assertTrue(msg1.getFailedServers().size() == 0);
-  
+
     // Check constructor with error info
     msg1 = new  AckMsg(cn, hasTimeout, hasWrongStatus, hasReplayError, failedServers);
     assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
@@ -587,7 +587,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg1.hasWrongStatus() == hasWrongStatus);
     assertTrue(msg1.hasReplayError() == hasReplayError);
     assertEquals(msg1.getFailedServers(), failedServers);
-  
+
     // Consctructor test (with byte[])
     msg2 = new  AckMsg(msg1.getBytes());
     assertEquals(msg2.getChangeNumber().compareTo(cn), 0);
@@ -595,7 +595,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg1.hasWrongStatus() == msg2.hasWrongStatus());
     assertTrue(msg1.hasReplayError() == msg2.hasReplayError());
     assertEquals(msg1.getFailedServers(), msg2.getFailedServers());
-  
+
     // Check invalid bytes for constructor
     byte[] b = msg1.getBytes();
     b[0] = ReplicationMsg.MSG_TYPE_ADD;
@@ -609,7 +609,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     {
       assertTrue(true);
     }
-  
+
     // Check that retrieved CN is OK
     msg2 = (AckMsg) ReplicationMsg.generateMsg(msg1.getBytes());
   }
@@ -632,11 +632,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     String serviceId = "serviceid";
 
     // create a cookie
-    MultiDomainServerState cookie = 
+    MultiDomainServerState cookie =
       new MultiDomainServerState(
           "o=test:000001210b6f21e904b100000001 000001210b6f21e904b200000001;" +
           "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
-    
+
     // Constructor test
     ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, serviceId);
     assertTrue(msg1.getCookie().equalsTo(cookie));
@@ -679,16 +679,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void serverStartMsgTest(short serverId, String baseDN, int window,
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
-    ServerStartMsg msg = new ServerStartMsg(serverId, baseDN,
-        window, window, window, window, window, window, state,
+    ServerStartMsg msg = new ServerStartMsg(
+        serverId, baseDN, window, window, state,
         ProtocolVersion.getCurrentVersion(), genId, sslEncryption, groupId);
     ServerStartMsg newMsg = new ServerStartMsg(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
-    assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
-    assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
-    assertEquals(msg.getMaxSendDelay(), newMsg.getMaxSendDelay());
-    assertEquals(msg.getMaxSendQueue(), newMsg.getMaxSendQueue());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
@@ -990,7 +986,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // LS2 state
     ServerState s2 = new ServerState();
     short sid2 = 222;
-    Long now = TimeThread.getTime();
+    Long now = ((Integer)10).longValue();
     ChangeNumber cn2 = new ChangeNumber(now,
                                        (short) 123, sid2);
     s2.update(cn2);
@@ -1167,7 +1163,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
     assertEquals(test.getBytes(), newMsg.getPayload());
   }
-  
+
   /**
    * Test that ServerStartMsg encoding and decoding works
    * by checking that : msg == new ServerStartMsg(msg.getBytes()).
@@ -1207,8 +1203,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ServerState state = new ServerState();
     assertTrue(state.update(new ChangeNumber((long)75, 5,(short)263)));
     short mode = 3;
-    int firstDraftChangeNumber = 13;    
-    int lastDraftChangeNumber  = 14;  
+    int firstDraftChangeNumber = 13;
+    int lastDraftChangeNumber  = 14;
     String myopid = new String("fakeopid");
     // create original
     StartECLSessionMsg msg = new StartECLSessionMsg();
