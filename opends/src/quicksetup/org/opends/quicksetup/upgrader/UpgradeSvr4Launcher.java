@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -32,6 +32,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
+import org.opends.messages.Message;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
@@ -120,8 +121,11 @@ public class UpgradeSvr4Launcher extends UpgradeLauncher {
       System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     }
 
-    argParser = new ArgumentParser(getClass().getName(),
-        INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
+    Message msg = Utils.getCustomizedObject(
+        "INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION",
+        INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), Message.class);
+
+    argParser = new ArgumentParser(getClass().getName(), msg, false);
     try
     {
       revertMostRecent = new BooleanArgument(
