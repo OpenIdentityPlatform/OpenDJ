@@ -253,7 +253,7 @@ public class EntryChangeNotificationControl
     writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
-    writer.writeInteger(changeType.intValue());
+    writer.writeEnumerated(changeType.intValue());
 
     if (previousDN != null)
     {
