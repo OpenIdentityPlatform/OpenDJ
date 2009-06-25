@@ -683,9 +683,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
     } else {
       if (getUninstallUserData().getRemoveLibrariesAndTools()) {
+        String formattedPath =
+          addWordBreaks(
+              getStringFromCollection(paths, getLineBreak().toString()), 60, 5);
         successMsg =
             INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES
-            .get(getStringFromCollection(paths, getLineBreak().toString()));
+            .get(formattedPath);
       } else {
         successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY.get();
       }
