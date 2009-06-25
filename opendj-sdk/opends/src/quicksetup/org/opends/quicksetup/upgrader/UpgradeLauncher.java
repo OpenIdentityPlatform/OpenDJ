@@ -311,8 +311,10 @@ public class UpgradeLauncher extends Launcher {
       System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     }
 
-    argParser = new ArgumentParser(getClass().getName(),
-        INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
+    Message msg = Utils.getCustomizedObject(
+        "INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION",
+        INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), Message.class);
+    argParser = new ArgumentParser(getClass().getName(), msg, false);
     try
     {
       file = new StringArgument(
