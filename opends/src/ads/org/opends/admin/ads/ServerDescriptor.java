@@ -246,13 +246,12 @@ public class ServerDescriptor
    */
   public int getReplicationServerId()
   {
-    int port = -1;
+    int id = -1;
     if (isReplicationServer())
     {
-      port = (Integer)serverProperties.get(
-          ServerProperty.REPLICATION_SERVER_ID);
+      id = (Integer)serverProperties.get(ServerProperty.REPLICATION_SERVER_ID);
     }
-    return port;
+    return id;
   }
 
   /**
