@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -30,10 +30,6 @@ package org.opends.quicksetup.installer.ui;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,12 +37,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -56,10 +50,8 @@ import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 
-import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.FieldName;
@@ -81,7 +73,6 @@ implements Comparator<SuffixDescriptor>
 {
   private static final long serialVersionUID = -8051367953737385327L;
   private Component lastFocusComponent;
-  private UserData defaultUserData;
   private TreeSet<SuffixDescriptor> orderedSuffixes =
     new TreeSet<SuffixDescriptor>(this);
   private HashMap<String, JCheckBox> hmCheckBoxes =
@@ -91,9 +82,6 @@ implements Comparator<SuffixDescriptor>
   // panel
   private String serverToConnectDisplay = null;
 
-
-  private JRadioButton rbCreateNewSuffix;
-  private JRadioButton rbReplicate;
   private JLabel noSuffixLabel;
   private Component labelGlue;
   private JPanel checkBoxPanel;
@@ -107,9 +95,7 @@ implements Comparator<SuffixDescriptor>
   public SuffixesToReplicatePanel(GuiApplication application)
   {
     super(application);
-    this.defaultUserData = application.getUserData();
     createComponents();
-    addFocusListeners();
   }
 
   /**
@@ -121,15 +107,7 @@ implements Comparator<SuffixDescriptor>
 
     if (fieldName == FieldName.SUFFIXES_TO_REPLICATE_OPTIONS)
     {
-      if (rbCreateNewSuffix.isSelected())
-      {
-        value = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
-      }
-      else
-      {
-        value =
-          SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
-      }
+      value = SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
     }
     else if (fieldName == FieldName.SUFFIXES_TO_REPLICATE)
     {
@@ -152,19 +130,6 @@ implements Comparator<SuffixDescriptor>
    */
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
-    if (fieldName == FieldName.SUFFIXES_TO_REPLICATE)
-    {
-      UIFactory.TextStyle style;
-      if (invalid)
-      {
-        style = UIFactory.TextStyle.SECONDARY_FIELD_INVALID;
-      } else
-      {
-        style = UIFactory.TextStyle.SECONDARY_FIELD_VALID;
-      }
-
-      UIFactory.setTextStyle(rbReplicate, style);
-    }
   }
 
   /**
@@ -195,10 +160,6 @@ implements Comparator<SuffixDescriptor>
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets = UIFactory.getEmptyInsets();
-    panel.add(rbCreateNewSuffix, gbc);
-
-    gbc.insets.top = UIFactory.TOP_INSET_RADIOBUTTON;
-    panel.add(rbReplicate, gbc);
 
     gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
     gbc.insets.left = UIFactory.LEFT_INSET_SUBPANEL_SUBORDINATE;
@@ -302,16 +263,6 @@ implements Comparator<SuffixDescriptor>
         {
           cb.setSelected(v);
         }
-        cb.addActionListener(new ActionListener()
-        {
-          public void actionPerformed(ActionEvent ev)
-          {
-            if (((JCheckBox)ev.getSource()).isSelected())
-            {
-              rbReplicate.setSelected(true);
-            }
-          }
-        });
         hmCheckBoxes.put(suffix.getId(), cb);
       }
       populateCheckBoxPanel();
@@ -321,13 +272,6 @@ implements Comparator<SuffixDescriptor>
     noSuffixLabel.setVisible(!display);
     labelGlue.setVisible(!display);
     scroll.setVisible(display);
-    if (!display)
-    {
-      rbCreateNewSuffix.setSelected(true);
-    }
-    rbReplicate.setEnabled(display);
-
-    checkEnablingState();
   }
 
   /**
@@ -346,65 +290,9 @@ implements Comparator<SuffixDescriptor>
    */
   private void createComponents()
   {
-    ButtonGroup buttonGroup = new ButtonGroup();
-    rbCreateNewSuffix =
-      UIFactory.makeJRadioButton(INFO_CREATE_NEW_SUFFIX_LABEL.get(),
-          INFO_CREATE_NEW_SUFFIX_TOOLTIP.get(),
-          UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbCreateNewSuffix.setOpaque(false);
-    rbReplicate =
-      UIFactory.makeJRadioButton(INFO_REPLICATE_WITH_SUFFIXES_LABEL.get(),
-          INFO_REPLICATE_WITH_SUFFIXES_TOOLTIP.get(),
-          UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    rbReplicate.setOpaque(false);
-    buttonGroup.add(rbCreateNewSuffix);
-    buttonGroup.add(rbReplicate);
-
-    SuffixesToReplicateOptions.Type type =
-      defaultUserData.getSuffixesToReplicateOptions().getType();
-    rbCreateNewSuffix.setSelected(type ==
-      SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY);
-    rbReplicate.setSelected(type ==
-      SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
-
     noSuffixLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         INFO_SUFFIX_LIST_EMPTY.get(),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-
-    ActionListener l = new ActionListener()
-    {
-      public void actionPerformed(ActionEvent ev)
-      {
-        checkEnablingState();
-        ButtonEvent be = new ButtonEvent(ev.getSource(),
-            ButtonName.INPUT_PANEL_BUTTON);
-        notifyButtonListeners(be);
-      }
-    };
-    rbCreateNewSuffix.addActionListener(l);
-    rbReplicate.addActionListener(l);
-  }
-
-  /**
-   * Adds the required focus listeners to the fields.
-   */
-  private void addFocusListeners()
-  {
-    final FocusListener l = new FocusListener()
-    {
-      public void focusGained(FocusEvent e)
-      {
-        lastFocusComponent = e.getComponent();
-      }
-
-      public void focusLost(FocusEvent e)
-      {
-      }
-    };
-    rbReplicate.addFocusListener(l);
-    rbCreateNewSuffix.addFocusListener(l);
-
-    lastFocusComponent = rbReplicate;
   }
 
   private void populateCheckBoxPanel()
@@ -522,22 +410,6 @@ implements Comparator<SuffixDescriptor>
       SuffixDescriptor desc2)
   {
     return getSuffixString(desc1).compareTo(getSuffixString(desc2));
-  }
-
-  private void checkEnablingState()
-  {
-    boolean enable = rbReplicate.isSelected();
-    for (JCheckBox cb : hmCheckBoxes.values())
-    {
-      cb.setEnabled(enable);
-    }
-
-    for (JEditorPane p : suffixLabels)
-    {
-      p.setEnabled(enable);
-    }
-
-    noSuffixLabel.setEnabled(enable);
   }
 }
 

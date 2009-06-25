@@ -2070,10 +2070,9 @@ public abstract class Installer extends GuiApplication {
         "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
         INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
             formatter.getFormattedText(
-                    Message.raw(
-                        getPath(new File(getInstancePath())))),
-            INFO_GENERAL_SERVER_STOPPED.get(),
-            cmd), Message.class);
+                Message.raw(getPath(new File(getInstancePath())))),
+                INFO_GENERAL_SERVER_STOPPED.get(),
+                cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
@@ -2107,8 +2106,7 @@ public abstract class Installer extends GuiApplication {
        "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
        INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
            formatter.getFormattedText(
-                   Message.raw(
-                       getPath(new File(getInstancePath())))),
+               Message.raw(getPath(new File(getInstancePath())))),
            status,
            cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
@@ -4086,7 +4084,7 @@ public abstract class Installer extends GuiApplication {
     if ((suf == null) || (suf.getType() ==
       SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE))
     {
-      type = suf.getType();
+      type = SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE;
     }
     else
     {
