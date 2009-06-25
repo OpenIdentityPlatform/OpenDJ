@@ -2024,9 +2024,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
               formatter.getFormattedText(Message.raw(installPath)),
               newVersion);
     } else {
+      String formattedPath = Utils.addWordBreaks(
+          formatter.getFormattedText(Message.raw(installPath)).toString(),
+          60, 5);
       txt = getFormattedSuccess(
               INFO_SUMMARY_UPGRADE_FINISHED_SUCCESSFULLY.get(
-                      formatter.getFormattedText(Message.raw(installPath)),
+                  formattedPath,
                       newVersion));
     }
     return txt;

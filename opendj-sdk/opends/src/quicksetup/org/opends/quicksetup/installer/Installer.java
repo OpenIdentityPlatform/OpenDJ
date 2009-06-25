@@ -2064,15 +2064,18 @@ public abstract class Installer extends GuiApplication {
         getFormattedSummary(INFO_SUMMARY_CANCELING.get()));
 
     Installation installation = getInstallation();
-    String cmd = getPath(installation.getControlPanelCommandFile());
+    String cmd = Utils.addWordBreaks(
+        getPath(installation.getControlPanelCommandFile()), 60, 5);
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+    String formattedPath = Utils.addWordBreaks(
+        formatter.getFormattedText(
+            Message.raw(getPath(new File(getInstancePath())))).toString(),
+            60, 5);
     Message successMessage = Utils.getCustomizedObject(
         "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
         INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
-            formatter.getFormattedText(
-                Message.raw(getPath(new File(getInstancePath())))),
-                INFO_GENERAL_SERVER_STOPPED.get(),
-                cmd), Message.class);
+            formattedPath, INFO_GENERAL_SERVER_STOPPED.get(),
+            cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
@@ -2092,7 +2095,9 @@ public abstract class Installer extends GuiApplication {
   {
    Installation installation = getInstallation();
    String cmd = getPath(installation.getControlPanelCommandFile());
-   cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+   cmd = Utils.addWordBreaks(
+       UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
+       60, 5);
    Message status;
    if (installation.getStatus().isServerRunning())
    {
@@ -2102,11 +2107,13 @@ public abstract class Installer extends GuiApplication {
    {
      status = INFO_GENERAL_SERVER_STOPPED.get();
    }
+   String formattedPath = Utils.addWordBreaks(
+   formatter.getFormattedText(
+       Message.raw(getPath(new File(getInstancePath())))).toString(),
+       60, 5);
    Message successMessage = Utils.getCustomizedObject(
        "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
-       INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
-           formatter.getFormattedText(
-               Message.raw(getPath(new File(getInstancePath())))),
+       INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(formattedPath,
            status,
            cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,

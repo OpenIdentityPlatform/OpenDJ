@@ -1785,6 +1785,45 @@ public class Utils
     }
     return value;
   }
+
+  /**
+   * Adds word break tags to the provided html string.
+   * @param htmlString the string.
+   * @param from the first index to start the spacing from.
+   * @param spacing the minimal spacing between word breaks.
+   * @return a string containing word breaks.
+   */
+  public static String addWordBreaks(String htmlString, int from, int spacing)
+  {
+    StringBuffer sb = new StringBuffer();
+    boolean insideTag = false;
+    int totalAddedChars = 0;
+    int addedChars = 0;
+    for (int i = 0 ; i<htmlString.length(); i++)
+    {
+      char c = htmlString.charAt(i);
+      sb.append(c);
+      if (c == '<')
+      {
+        insideTag = true;
+      }
+      else if ((c == '>') && insideTag)
+      {
+        insideTag = false;
+      }
+      if (!insideTag && (c != '>'))
+      {
+        addedChars ++;
+        totalAddedChars ++;
+      }
+      if ((addedChars > spacing) && (totalAddedChars > from) && !insideTag)
+      {
+        sb.append("<wbr>");
+        addedChars = 0;
+      }
+    }
+    return sb.toString();
+  }
 }
 
 /**
