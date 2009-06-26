@@ -773,7 +773,7 @@ public class PasswordPolicyStateExtendedOperation
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeInteger(opType);
+    writer.writeEnumerated(opType);
 
     if ((value != null))
     {
@@ -801,7 +801,7 @@ public class PasswordPolicyStateExtendedOperation
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeInteger(opType);
+    writer.writeEnumerated(opType);
 
     if ((values != null) && (values.length > 0))
     {
@@ -830,7 +830,7 @@ public class PasswordPolicyStateExtendedOperation
       throws IOException
   {
     writer.writeStartSequence();
-    writer.writeInteger(opType);
+    writer.writeEnumerated(opType);
 
     if ((values != null) && (values.size() > 0))
     {
