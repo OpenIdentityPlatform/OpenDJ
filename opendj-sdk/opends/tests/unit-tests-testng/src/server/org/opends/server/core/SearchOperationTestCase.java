@@ -889,6 +889,78 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   @Test
+  public void testSearchInternalSubEntry() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=ldapsubentry)"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+
+    searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(&(cn=*)(objectclass=ldapsubentry))"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+
+    searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(&(&(cn=*)(objectclass=ldapsubentry)))"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+  @Test
   public void testSearchInternalMatchedDN() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
