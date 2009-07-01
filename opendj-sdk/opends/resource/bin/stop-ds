@@ -164,7 +164,7 @@ then
     EXIT_CODE=${?}
     if test ${EXIT_CODE} -eq 0
     then
-      "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+      "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
         --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
         --logFile "${INSTANCE_ROOT}/logs/errors"
       EXIT_CODE=${?}

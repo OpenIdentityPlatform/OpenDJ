@@ -108,10 +108,10 @@ then
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
   else
-    "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" "${@}"
   fi
   EC=${?}
