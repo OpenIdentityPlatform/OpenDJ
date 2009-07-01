@@ -91,7 +91,7 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
-${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+${OPENDS_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
@@ -108,17 +108,17 @@ then
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
   else
-    "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" "${@}"
   fi
   EC=${?}
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+  	${OPENDS_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
     EC=${?}

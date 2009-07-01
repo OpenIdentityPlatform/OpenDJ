@@ -164,7 +164,7 @@ then
     EXIT_CODE=${?}
     if test ${EXIT_CODE} -eq 0
     then
-      "${OPENDS_JAVA_BIN}" org.opends.server.tools.WaitForFileDelete \
+      "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
         --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
         --logFile "${INSTANCE_ROOT}/logs/errors"
       EXIT_CODE=${?}
@@ -225,5 +225,5 @@ else
 fi
 
 # If we've gotten here, then we should try to stop the server over LDAP.
-"${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS "${@}"

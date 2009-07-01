@@ -64,7 +64,7 @@ if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
-"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 
 if %errorlevel% == 98 goto serverAlreadyStopped
 if %errorlevel% == 99 goto startUsingSystemCall
@@ -110,16 +110,16 @@ goto end
 
 :stopAsWindowsService
 echo %SCRIPT%: stop as windows service >> %LOG%
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.StopWindowsService
+"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
 goto end
 
 :restartAsWindowsService
 echo %SCRIPT%: restart as windows service, stopping >> %LOG%
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.StopWindowsService
+"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
 if not %errorlevel% == 0 goto end
 echo %SCRIPT%: restart as windows service, starting >> %LOG%
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.StartWindowsService
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
+"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StartWindowsService
+"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
 if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winservice.out"
 if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"
