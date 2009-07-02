@@ -4049,4 +4049,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.202
   SUP ds-cfg-virtual-attribute
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.231
+  NAME 'ds-cfg-extensible-matching-rule'
+  SUP ds-cfg-matching-rule
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 

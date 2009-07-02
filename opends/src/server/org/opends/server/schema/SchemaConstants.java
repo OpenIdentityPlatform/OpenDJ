@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -1906,5 +1906,89 @@ public class SchemaConstants
    * The OID for the "top" objectclass.
    */
   public static final String TOP_OBJECTCLASS_OID = "2.5.6.0";
+
+
+
+  /**
+   * The name for the relative time greater-than extensible ordering matching
+   * rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_GT_NAME =
+          "relativeTimeGTOrderingMatch";
+
+
+
+  /**
+   * The alternative name for the relative time greater-than extensible
+   * ordering matching rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_GT_ALT_NAME =
+          "relativeTimeOrderingMatch.gt";
+
+
+
+  /**
+   * The OID for the relative time greater-than extensible ordering matching
+   * rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_GT_OID =
+          "1.3.6.1.4.1.26027.1.4.5";
+
+
+
+  /**
+   * The name for the relative time less-than  extensible ordering matching
+   * rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_LT_NAME =
+          "relativeTimeLTOrderingMatch";
+
+
+
+  /**
+   * The alternative name for the relative time less-than extensible ordering
+   * matching rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_LT_ALT_NAME =
+          "relativeTimeOrderingMatch.lt";
+
+
+
+  /**
+   * The OID for the relative time less-than extensible ordering matching rule.
+   */
+  public static final String EXT_OMR_RELATIVE_TIME_LT_OID =
+          "1.3.6.1.4.1.26027.1.4.6";
+
+
+
+  /**
+   * The OID for the partial date and time extensible matching rule.
+   */
+  public static final String EXT_PARTIAL_DATE_TIME_OID =
+          "1.3.6.1.4.1.26027.1.4.7";
+
+
+
+  /**
+   * The name for the partial date and time extensible rule.
+   */
+  public static final String EXT_PARTIAL_DATE_TIME_NAME =
+          "partialDateAndTimeMatchingRule";
+
+
+
+  /**
+   * The preferred index name for partial date and time matching rule.
+   */
+  public static final String PARTIAL_DATE_TIME_INDEX_NAME = "pdt";
+
+
+
+  /**
+   * The preferred index name for partial date and time matching rule.
+   */
+  public static final String RELATIVE_TIME_INDEX_NAME = "rt";
+
 }
 
