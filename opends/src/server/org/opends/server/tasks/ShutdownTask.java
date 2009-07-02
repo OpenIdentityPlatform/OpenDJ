@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 
@@ -176,8 +176,24 @@ public class ShutdownTask
     // that will be responsible for really invoking the shutdown and then this
     // method will return.  We'll have to use different types of threads
     // depending on whether we're doing a restart or a shutdown.
-    if (restart)
+    boolean configuredAsService =
+      DirectoryServer.isRunningAsWindowsService();
+    if (configuredAsService && !restart)
     {
+      ShutdownTaskThread shutdownThread =
+        new ShutdownTaskThread(shutdownMessage)
+      {
+        public void run()
+        {
+          org.opends.server.tools.StopWindowsService.main(new String[]{});
+        }
+      };
+      shutdownThread.start();
+    }
+    else if (restart)
+    {
+      // Since the process will not be killed, we can proceed exactly the same
+      // way with or without windows service configured.
       RestartTaskThread restartThread = new RestartTaskThread(shutdownMessage);
       restartThread.start();
     }
