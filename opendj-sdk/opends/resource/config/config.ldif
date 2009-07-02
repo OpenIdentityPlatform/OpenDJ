@@ -1303,6 +1303,14 @@ cn: Telephone Number Substring Matching Rule
 ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory
 ds-cfg-enabled: true
 
+dn: cn=Time Based Matching Rule,cn=Matching Rules,cn=config
+objectClass: top
+objectClass: ds-cfg-matching-rule
+objectClass: ds-cfg-extensible-matching-rule
+cn: Time Based Matching Rule
+ds-cfg-java-class: org.opends.server.schema.TimeBasedMatchingRuleFactory
+ds-cfg-enabled: true
+
 dn: cn=Unique Member Equality Matching Rule,cn=Matching Rules,cn=config
 objectClass: top
 objectClass: ds-cfg-matching-rule

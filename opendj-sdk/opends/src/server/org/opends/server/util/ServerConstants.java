@@ -2954,6 +2954,14 @@ public final class ServerConstants
 
 
   /**
+   * The extensible indexer identifier string that will be used for default
+   * type.
+   */
+  public static final String EXTENSIBLE_INDEXER_ID_DEFAULT="ext";
+
+
+
+  /**
    * The lines that make up the CDDL header.  They will not have any prefix, so
    * an appropriate prefix may need to be added for some cases (e.g., "# " for
    * shell scripts, "rem " for batch files, etc.).
