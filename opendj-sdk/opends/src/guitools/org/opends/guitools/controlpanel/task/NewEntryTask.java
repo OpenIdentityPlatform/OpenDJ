@@ -250,23 +250,47 @@ public class NewEntryTask extends Task
         {
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+          boolean entryInserted = false;
           if (parentNode != null)
           {
-            TreePath parentPath =
-              new TreePath(controller.getTreeModel().getPathToRoot(parentNode));
-            if (parentPath != null)
+            boolean isReallyParentNode = false;
+            try
             {
-              BrowserNodeInfo nodeInfo =
-                controller.getNodeInfoFromPath(parentPath);
-              if (nodeInfo != null)
+              DN parentDN = DN.decode(parentNode.getDN());
+              isReallyParentNode =
+                parentDN.equals(newEntry.getDN().getParent());
+            }
+            catch (Throwable t)
+            {
+              // Bug
+              t.printStackTrace();
+              isReallyParentNode = false;
+            }
+            if (isReallyParentNode)
+            {
+              insertNode(parentNode, newEntry.getDN(),
+                  isBaseDN(newEntry.getDN()));
+              entryInserted = true;
+            }
+          }
+          if (!entryInserted)
+          {
+            BasicNode root = (BasicNode)controller.getTreeModel().getRoot();
+            BasicNode realParentNode = findParentNode(newEntry.getDN(), root);
+            if (realParentNode != null)
+            {
+              insertNode(realParentNode, newEntry.getDN(), false);
+            }
+            else
+            {
+              if (isBaseDN(newEntry.getDN()))
               {
-                TreePath newPath = controller.notifyEntryAdded(
-                    controller.getNodeInfoFromPath(parentPath),
-                    newEntry.getDN().toString());
-                if (newPath != null)
+                int nRootChildren = controller.getTreeModel().getChildCount(
+                  controller.getTreeModel().getRoot());
+                if (nRootChildren > 1)
                 {
-                  controller.getTree().setSelectionPath(newPath);
-                  controller.getTree().scrollPathToVisible(newPath);
+                  // Insert in the root.
+                  insertNode(root, newEntry.getDN(), true);
                 }
               }
             }
@@ -310,6 +334,91 @@ public class NewEntryTask extends Task
         INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ENTRY.get()+"<br><b>"+
         sb.toString()+"</b><br><br>",
         ColorAndFontConstants.progressFont));
+  }
+
+  private BasicNode findParentNode(DN dn, BasicNode root)
+  {
+    BasicNode parentNode = null;
+    int nRootChildren = controller.getTreeModel().getChildCount(root);
+    for (int i=0; i<nRootChildren; i++)
+    {
+      BasicNode node =
+        (BasicNode)controller.getTreeModel().getChild(root, i);
+      try
+      {
+        DN nodeDN = DN.decode(node.getDN());
+        if (dn.isDescendantOf(nodeDN))
+        {
+          if (dn.getNumComponents() == nodeDN.getNumComponents() + 1)
+          {
+            parentNode = node;
+            break;
+          }
+          else
+          {
+            parentNode = findParentNode(dn, node);
+            break;
+          }
+        }
+      }
+      catch (Throwable t)
+      {
+        // Bug
+        throw new IllegalStateException("Unexpected error: "+t, t);
+      }
+    }
+    return parentNode;
+  }
+
+  private void insertNode(BasicNode parentNode, DN dn, boolean isSuffix)
+  {
+    TreePath parentPath =
+      new TreePath(controller.getTreeModel().getPathToRoot(parentNode));
+    if (parentPath != null)
+    {
+      BrowserNodeInfo nodeInfo =
+        controller.getNodeInfoFromPath(parentPath);
+      if (nodeInfo != null)
+      {
+        TreePath newPath;
+        if (isSuffix)
+        {
+          newPath = controller.addSuffix(dn.toString(), parentNode.getDN());
+        }
+        else
+        {
+          newPath = controller.notifyEntryAdded(
+            controller.getNodeInfoFromPath(parentPath), dn.toString());
+        }
+        if (newPath != null)
+        {
+          controller.getTree().setSelectionPath(newPath);
+          controller.getTree().scrollPathToVisible(newPath);
+        }
+      }
+    }
+  }
+
+  private boolean isBaseDN(DN dn)
+  {
+    boolean isBaseDN = false;
+    for (BackendDescriptor backend :
+      getInfo().getServerDescriptor().getBackends())
+    {
+      for (BaseDNDescriptor baseDN : backend.getBaseDns())
+      {
+        if (baseDN.getDn().equals(dn))
+        {
+          isBaseDN = true;
+          break;
+        }
+      }
+      if (isBaseDN)
+      {
+        break;
+      }
+    }
+    return isBaseDN;
   }
 }
 
