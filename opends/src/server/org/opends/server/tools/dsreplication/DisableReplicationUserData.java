@@ -41,6 +41,8 @@ public class DisableReplicationUserData extends ReplicationUserData
   private boolean useSSL;
   private String bindDn;
   private String bindPwd;
+  private boolean disableReplicationServer;
+  private boolean disableAll;
 
   /**
    * Returns the host name of the server.
@@ -157,5 +159,49 @@ public class DisableReplicationUserData extends ReplicationUserData
   public void setBindPwd(String bindPwd)
   {
     this.bindPwd = bindPwd;
+  }
+
+  /**
+   * Tells whether the user wants to disable all the replication from the
+   * server.
+   * @return <CODE>true</CODE> if the user wants to disable all replication
+   * from the server and <CODE>false</CODE> otherwise.
+   */
+  public boolean disableAll()
+  {
+    return disableAll;
+  }
+
+  /**
+   * Sets whether the user wants to disable all the replication from the
+   * server.
+   * @param disableAll whether the user wants to disable all the replication
+   * from the server.
+   */
+  public void setDisableAll(boolean disableAll)
+  {
+    this.disableAll = disableAll;
+  }
+
+  /**
+   * Tells whether the user asked to disable the replication server in the
+   * server.
+   * @return <CODE>true</CODE> if the user wants to disable replication server
+   * in the server and <CODE>false</CODE> otherwise.
+   */
+  public boolean disableReplicationServer()
+  {
+    return disableReplicationServer;
+  }
+
+  /**
+   * Sets whether the user asked to disable the replication server in the
+   * server.
+   * @param disableReplicationServer whether the user asked to disable the
+   * replication server in the server.
+   */
+  public void setDisableReplicationServer(boolean disableReplicationServer)
+  {
+    this.disableReplicationServer = disableReplicationServer;
   }
 }

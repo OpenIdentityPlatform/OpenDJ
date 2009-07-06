@@ -286,16 +286,6 @@ public final class DSConfig extends ConsoleApplication {
   public static final String GENERIC_TYPE = "generic";
 
   /**
-   * The value for the long option advanced.
-   */
-  private static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
-
-  /**
-   * The value for the short option advanced.
-   */
-  private static final Character OPTION_DSCFG_SHORT_ADVANCED = null;
-
-  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();

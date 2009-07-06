@@ -735,5 +735,15 @@ public class ToolConstants
    */
   public static final String OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH =
     "commandFilePath";
+
+  /**
+   * The value for the long option advanced.
+   */
+  public static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
+
+  /**
+   * The value for the short option advanced.
+   */
+  public static final Character OPTION_DSCFG_SHORT_ADVANCED = null;
 }
 
