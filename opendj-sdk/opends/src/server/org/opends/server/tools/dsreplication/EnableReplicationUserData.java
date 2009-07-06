@@ -48,6 +48,10 @@ public class EnableReplicationUserData extends ReplicationUserData
   private int replicationPort2;
   private boolean secureReplication2;
   private boolean replicateSchema = true;
+  private boolean configureReplicationServer1 = true;
+  private boolean configureReplicationServer2 = true;
+  private boolean configureReplicationDomain1 = true;
+  private boolean configureReplicationDomain2 = true;
 
   /**
    * Returns the host name of the first server.
@@ -299,5 +303,97 @@ public class EnableReplicationUserData extends ReplicationUserData
   public void setSecureReplication2(boolean secureReplication2)
   {
     this.secureReplication2 = secureReplication2;
+  }
+
+  /**
+   * Returns whether the user asked to configure the replication server on the
+   * first server or not.
+   * @return whether the user asked to configure the replication server on the
+   * first server or not.
+   */
+  public boolean configureReplicationServer1()
+  {
+    return configureReplicationServer1;
+  }
+
+  /**
+   * Sets whether the replication server on the first server must be configured
+   * or not.
+   * @param configureReplicationServer1 whether the replication server on the
+   * first server must be configured or not.
+   */
+  public void setConfigureReplicationServer1(
+      boolean configureReplicationServer1)
+  {
+    this.configureReplicationServer1 = configureReplicationServer1;
+  }
+
+  /**
+   * Returns whether the user asked to configure the replication server on the
+   * second server or not.
+   * @return whether the user asked to configure the replication server on the
+   * second server or not.
+   */
+  public boolean configureReplicationServer2()
+  {
+    return configureReplicationServer2;
+  }
+
+  /**
+   * Sets whether the replication server on the second server must be configured
+   * or not.
+   * @param configureReplicationServer2 whether the replication server on the
+   * second server must be configured or not.
+   */
+  public void setConfigureReplicationServer2(
+      boolean configureReplicationServer2)
+  {
+    this.configureReplicationServer2 = configureReplicationServer2;
+  }
+
+  /**
+   * Returns whether the user asked to configure the replication domain on the
+   * first server or not.
+   * @return whether the user asked to configure the replication domain on the
+   * first server or not.
+   */
+  public boolean configureReplicationDomain1()
+  {
+    return configureReplicationDomain1;
+  }
+
+  /**
+   * Sets whether the replication domain on the first server must be configured
+   * or not.
+   * @param configureReplicationDomain1 whether the replication domain on the
+   * first server must be configured or not.
+   */
+  public void setConfigureReplicationDomain1(
+      boolean configureReplicationDomain1)
+  {
+    this.configureReplicationDomain1 = configureReplicationDomain1;
+  }
+
+  /**
+   * Returns whether the user asked to configure the replication domain on the
+   * second server or not.
+   * @return whether the user asked to configure the replication domain on the
+   * second server or not.
+   */
+  public boolean configureReplicationDomain2()
+  {
+    return configureReplicationDomain2;
+  }
+
+  /**
+   * Sets whether the replication domain on the second server must be configured
+   * or not.
+   * @param configureReplicationDomain2 whether the replication domain on the
+   * second server must be configured or not.
+   */
+  public void setConfigureReplicationDomain2(
+      boolean configureReplicationDomain2)
+  {
+    this.configureReplicationDomain2 = configureReplicationDomain2;
   }
 }

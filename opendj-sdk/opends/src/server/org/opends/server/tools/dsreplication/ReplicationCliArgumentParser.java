@@ -34,6 +34,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 
 import org.opends.messages.Message;
@@ -45,6 +46,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.ArgumentGroup;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
@@ -107,6 +109,16 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   IntegerArgument replicationPort1Arg = null;
 
   /**
+   * The 'noReplicationServer' argument for the first server.
+   */
+  BooleanArgument noReplicationServer1Arg = null;
+
+  /**
+   * The 'onlyReplicationServer' argument for the first server.
+   */
+  BooleanArgument onlyReplicationServer1Arg = null;
+
+  /**
    * The 'secureReplication' argument for the first server.
    */
   BooleanArgument secureReplication1Arg = null;
@@ -142,6 +154,16 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   IntegerArgument replicationPort2Arg = null;
 
   /**
+   * The 'noReplicationServer' argument for the second server.
+   */
+  BooleanArgument noReplicationServer2Arg = null;
+
+  /**
+   * The 'onlyReplicationServer' argument for the second server.
+   */
+  BooleanArgument onlyReplicationServer2Arg = null;
+
+  /**
    * The 'secureReplication' argument for the second server.
    */
   private BooleanArgument secureReplication2Arg = null;
@@ -160,6 +182,18 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The 'useSecondServerAsSchemaSource' argument to not replicate schema.
    */
   private BooleanArgument useSecondServerAsSchemaSourceArg;
+
+  /**
+   * The 'disableAll' argument to disable all the replication configuration of
+   * server.
+   */
+  BooleanArgument disableAllArg;
+
+  /**
+   * The 'disableReplicationServer' argument to disable the replication
+   * server.
+   */
+  BooleanArgument disableReplicationServerArg;
 
   /**
    * The 'hostName' argument for the source server.
@@ -223,6 +257,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * command to a file.
    */
   StringArgument equivalentCommandFileArgument;
+
+  /**
+   * The argument that the user must set to have advanced options in interactive
+   * mode.
+   */
+  BooleanArgument advancedArg;
 
   /**
    * The text of the enable replication subcommand.
@@ -365,10 +405,21 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       }
     }
 
+    if (noPromptArg.isPresent() && advancedArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          noPromptArg.getLongIdentifier(),
+          advancedArg.getLongIdentifier());
+      errors.add(message);
+    }
+
     if (!isInteractive())
     {
       // Check that we have the required data
-      if (!baseDNsArg.isPresent() && !isStatusReplicationSubcommand())
+      if (!baseDNsArg.isPresent() &&
+          !isStatusReplicationSubcommand() &&
+          !disableAllArg.isPresent() &&
+          !disableReplicationServerArg.isPresent())
       {
         errors.add(ERR_REPLICATION_NO_BASE_DN_PROVIDED.get());
       }
@@ -503,6 +554,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_REPLICATION_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
     defaultArgs.add(index++, equivalentCommandFileArgument);
 
+    advancedArg = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
+        OPTION_DSCFG_SHORT_ADVANCED,
+        OPTION_DSCFG_LONG_ADVANCED,
+        INFO_REPLICATION_DESCRIPTION_ADVANCED.get());
+    defaultArgs.add(index++, advancedArg);
+
     for (int i=0; i<index; i++)
     {
       Argument arg = defaultArgs.get(i);
@@ -522,7 +579,38 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.add(this.noPropertiesFileArgument);
     setNoPropertiesFileArgument(this.noPropertiesFileArgument);
 
-    initializeGlobalArguments(defaultArgs);
+    initializeGlobalArguments(defaultArgs, null);
+  }
+
+  /**
+   * Initialize the global options with the provided set of arguments.
+   * @param args the arguments to use to initialize the global options.
+   * @param argGroup to which args will be added
+   * @throws ArgumentException if there is a conflict with the provided
+   * arguments.
+   */
+  protected void initializeGlobalArguments(
+          Collection<Argument> args,
+          ArgumentGroup argGroup)
+  throws ArgumentException
+  {
+
+    for (Argument arg : args)
+    {
+      if (arg == advancedArg)
+      {
+        ArgumentGroup toolOptionsGroup = new ArgumentGroup(
+            INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS.get(), 2);
+        addGlobalArgument(advancedArg, toolOptionsGroup);
+      }
+      else
+      {
+        addGlobalArgument(arg, argGroup);
+      }
+    }
+
+    // Set the propertiesFile argument
+    setFilePropertiesArgument(propertiesFileArg);
   }
 
   /**
@@ -567,6 +655,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "secureReplication1",
         INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
 
+    noReplicationServer1Arg = new BooleanArgument(
+        "noreplicationserver1", null, "noReplicationServer1",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get());
+
+    onlyReplicationServer1Arg = new BooleanArgument(
+        "onlyreplicationserver1", null, "onlyReplicationServer1",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get());
+
     hostName2Arg = new StringArgument("host2", 'O',
         "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
         getDefaultHostValue(),
@@ -600,6 +696,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "secureReplication2",
         INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get());
 
+    noReplicationServer2Arg = new BooleanArgument(
+        "noreplicationserver2", null, "noReplicationServer2",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get());
+
+    onlyReplicationServer2Arg = new BooleanArgument(
+        "onlyreplicationserver2", null, "onlyReplicationServer2",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get());
+
     skipPortCheckArg = new BooleanArgument(
         "skipportcheck", 'S', "skipPortCheck",
         INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get());
@@ -620,8 +724,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     Argument[] argsToAdd = {
         hostName1Arg, port1Arg, bindDn1Arg, bindPassword1Arg,
         bindPasswordFile1Arg, replicationPort1Arg, secureReplication1Arg,
+        noReplicationServer1Arg, onlyReplicationServer1Arg,
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
         bindPasswordFile2Arg, replicationPort2Arg, secureReplication2Arg,
+        noReplicationServer2Arg, onlyReplicationServer2Arg,
         skipPortCheckArg, noSchemaReplicationArg,
         useSecondServerAsSchemaSourceArg
     };
@@ -649,8 +755,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
         "cn=Directory Manager", OPTION_LONG_BINDDN,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
+    disableReplicationServerArg = new BooleanArgument(
+        "disablereplicationserverarg", null, "disableReplicationServerArg",
+        INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get());
+    disableAllArg = new BooleanArgument(
+        "disableall", null, "disableAll",
+        INFO_DESCRIPTION_DISABLE_ALL.get());
+
+
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.bindDnArg };
+        secureArgsList.portArg, secureArgsList.bindDnArg,
+        disableReplicationServerArg, disableAllArg};
     for (int i=0; i<argsToAdd.length; i++)
     {
       disableReplicationSubCmd.addArgument(argsToAdd[i]);
@@ -1775,6 +1890,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
         {bindPassword1Arg, bindPasswordFile1Arg},
         {bindPassword2Arg, bindPasswordFile2Arg},
+        {replicationPort1Arg, noReplicationServer1Arg},
+        {noReplicationServer1Arg, onlyReplicationServer1Arg},
+        {replicationPort2Arg, noReplicationServer1Arg},
+        {noReplicationServer2Arg, onlyReplicationServer2Arg},
         {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
 
@@ -1816,7 +1935,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {secureArgsList.adminUidArg, secureArgsList.bindDnArg}
+        {secureArgsList.adminUidArg, secureArgsList.bindDnArg},
+        {disableAllArg, disableReplicationServerArg},
+        {disableAllArg, baseDNsArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)
