@@ -75,6 +75,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ServerStartECLMsg;
 import org.opends.server.replication.protocol.ServerStartMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
+import org.opends.server.replication.protocol.StartMsg;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -299,18 +300,21 @@ public class ReplicationServer
 
         if (msg instanceof ServerStartMsg)
         {
+          session.setProtocolVersion(((StartMsg)msg).getVersion());
           DataServerHandler handler = new DataServerHandler(session,
               queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteDS((ServerStartMsg)msg);
         }
         else if (msg instanceof ReplServerStartMsg)
         {
+          session.setProtocolVersion(((StartMsg)msg).getVersion());
           ReplicationServerHandler handler = new ReplicationServerHandler(
               session,queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteRS((ReplServerStartMsg)msg);
         }
         else if (msg instanceof ServerStartECLMsg)
         {
+          session.setProtocolVersion(((StartMsg)msg).getVersion());
           ECLServerHandler handler = new ECLServerHandler(
               session,queueSize,serverURL,serverId,this,rcvWindow);
           handler.startFromRemoteServer((ServerStartECLMsg)msg);

@@ -291,7 +291,8 @@ public class ServerStartECLMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_START_ECL, length);
+      byte resultByteArray[] = encodeHeader(
+          MSG_TYPE_START_ECL, length, ProtocolVersion.getCurrentVersion());
       int pos = headerLength;
 
       pos = addByteArray(byteServerUrl, resultByteArray, pos);

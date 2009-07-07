@@ -156,4 +156,12 @@ public interface ProtocolSession
    * on this ProtocolSession.
    */
   public abstract boolean closeInitiated();
+
+  /**
+   * This method is called at the establishment of the session and can
+   * be used to record the version of the protocol that is currently used.
+   *
+   * @param version The version of the protocol that is currently used.
+   */
+  public abstract void setProtocolVersion(short version);
 }

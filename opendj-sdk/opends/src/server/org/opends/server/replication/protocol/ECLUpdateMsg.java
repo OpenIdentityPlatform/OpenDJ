@@ -98,7 +98,9 @@ public class ECLUpdateMsg extends ReplicationMsg
       length = in.length - pos - 1;
       byte[] encodedMsg = new byte[length];
       System.arraycopy(in, pos, encodedMsg, 0, length);
-      ReplicationMsg rmsg = ReplicationMsg.generateMsg(encodedMsg);
+      ReplicationMsg rmsg =
+        ReplicationMsg.generateMsg(
+            encodedMsg, ProtocolVersion.getCurrentVersion());
       this.updateMsg = (LDAPUpdateMsg)rmsg;
     }
     catch (UnsupportedEncodingException e)

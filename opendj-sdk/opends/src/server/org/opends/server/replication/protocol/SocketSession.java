@@ -69,6 +69,7 @@ public class SocketSession implements ProtocolSession
 
   private boolean closeInitiated = false;
 
+  private short protocolVersion = ProtocolVersion.getCurrentVersion();
 
   /**
    * Creates a new SocketSession based on the provided socket.
@@ -175,7 +176,7 @@ public class SocketSession implements ProtocolSession
       /* We do not want the heartbeat to close the session when */
       /* we are processing a message even a time consuming one. */
       lastReceiveTime=0;
-      return ReplicationMsg.generateMsg(buffer);
+      return ReplicationMsg.generateMsg(buffer, protocolVersion);
     }
     catch (OutOfMemoryError e)
     {
@@ -242,5 +243,13 @@ public class SocketSession implements ProtocolSession
   public boolean closeInitiated()
   {
     return closeInitiated;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setProtocolVersion(short version)
+  {
+    protocolVersion = version;
   }
 }

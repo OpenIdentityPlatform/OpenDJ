@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,7 +82,12 @@ public class MonitorMsg extends RoutableMsg
   SubTopoMonitorData data = new SubTopoMonitorData();
 
   /**
-   * Creates a new EntryMessage.
+   * The protocolVersion that should be used when serializing this message.
+   */
+  private final short protocolVersion;
+
+  /**
+   * Creates a new MonitorMsg.
    *
    * @param sender The sender of this message.
    * @param destination The destination of this message.
@@ -89,7 +95,24 @@ public class MonitorMsg extends RoutableMsg
   public MonitorMsg(short sender, short destination)
   {
     super(sender, destination);
+    protocolVersion = ProtocolVersion.getCurrentVersion();
   }
+
+
+  /**
+   * Creates a new MonitorMsg with a specific protocol version.
+   *
+   * @param sender                The sender of this message.
+   * @param destination           The destination of this message.
+   * @param replicationProtocol   The protocol version to use.
+   */
+  public MonitorMsg(short sender, short destination,
+      short replicationProtocol)
+  {
+    super(sender, destination);
+    protocolVersion = replicationProtocol;
+  }
+
 
   /**
    * Sets the state of the replication server.
@@ -174,24 +197,58 @@ public class MonitorMsg extends RoutableMsg
   /**
    * Creates a new EntryMessage from its encoded form.
    *
-   * @param in The byte array containing the encoded form of the message.
+   * @param in       The byte array containing the encoded form of the message.
+   * @param version  The version of the protocol to use to decode the msg.
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the ServerStartMessage.
    */
-  public MonitorMsg(byte[] in) throws DataFormatException
+  public MonitorMsg(byte[] in, short version) throws DataFormatException
   {
+    protocolVersion = ProtocolVersion.getCurrentVersion();
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
 
-    /* first byte is the type */
-    if (reader.get() != MSG_TYPE_REPL_SERVER_MONITOR)
-      throw new DataFormatException("input is not a valid " +
-          this.getClass().getCanonicalName());
+    if (version == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      try
+      {
+        /* first byte is the type */
+        if (in[0] != MSG_TYPE_REPL_SERVER_MONITOR)
+          throw new DataFormatException("input is not a valid " +
+              this.getClass().getCanonicalName());
+        int pos = 1;
 
-    // sender
-    this.senderID = reader.getShort();
+        // sender
+        int length = getNextLength(in, pos);
+        String senderIDString = new String(in, pos, length, "UTF-8");
+        this.senderID = Short.valueOf(senderIDString);
+        pos += length +1;
 
-    // destination
-    this.destination = reader.getShort();
+        // destination
+        length = getNextLength(in, pos);
+        String destinationString = new String(in, pos, length, "UTF-8");
+        this.destination = Short.valueOf(destinationString);
+        pos += length +1;
+
+        reader.position(pos);
+      }
+      catch (UnsupportedEncodingException e)
+      {
+        throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      }
+    }
+    else
+    {
+      if (reader.get() != MSG_TYPE_REPL_SERVER_MONITOR)
+        throw new DataFormatException("input is not a valid " +
+            this.getClass().getCanonicalName());
+
+      // sender
+      this.senderID = reader.getShort();
+
+      // destination
+      this.destination = reader.getShort();
+    }
+
 
     ASN1Reader asn1Reader = ASN1.getReader(reader);
     try
@@ -262,11 +319,14 @@ public class MonitorMsg extends RoutableMsg
       ByteStringBuilder byteBuilder = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(byteBuilder);
 
-      /* put the type of the operation */
-      byteBuilder.append(MSG_TYPE_REPL_SERVER_MONITOR);
+      if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
+      {
+        /* put the type of the operation */
+        byteBuilder.append(MSG_TYPE_REPL_SERVER_MONITOR);
 
-      byteBuilder.append(senderID);
-      byteBuilder.append(destination);
+        byteBuilder.append(senderID);
+        byteBuilder.append(destination);
+      }
 
       /* Put the serverStates ... */
       writer.writeStartSequence();
@@ -331,7 +391,31 @@ public class MonitorMsg extends RoutableMsg
 
       writer.writeEndSequence();
 
-      return byteBuilder.toByteArray();
+      if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
+      {
+        return byteBuilder.toByteArray();
+      }
+      else
+      {
+        byte[] temp = byteBuilder.toByteArray();
+
+        byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
+        byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
+
+        int length = 1 +  1 + senderBytes.length +
+        1 + destinationBytes.length + temp.length +1;
+        byte[] resultByteArray = new byte[length];
+
+        /* put the type of the operation */
+        resultByteArray[0] = MSG_TYPE_REPL_SERVER_MONITOR;
+        int pos = 1;
+
+        pos = addByteArray(senderBytes, resultByteArray, pos);
+        pos = addByteArray(destinationBytes, resultByteArray, pos);
+        pos = addByteArray(temp, resultByteArray, pos);
+
+        return resultByteArray;
+      }
     }
     catch (Exception e)
     {

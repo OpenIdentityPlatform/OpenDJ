@@ -236,7 +236,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Un-serialize V1 message
-    AddMsg newMsg = (AddMsg)ReplicationMsg.generateMsg(v1MsgBytes);
+    AddMsg newMsg = (AddMsg)ReplicationMsg.generateMsg(
+        v1MsgBytes, ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -273,7 +274,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setSafeDataLevel(safeDataLevel);
 
     // Serialize in VLAST msg
-    AddMsg vlastMsg = (AddMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    AddMsg vlastMsg = (AddMsg)ReplicationMsg.generateMsg(
+        newMsg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -351,7 +353,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Un-serialize V1 message
-    DeleteMsg newMsg = (DeleteMsg)ReplicationMsg.generateMsg(v1MsgBytes);
+    DeleteMsg newMsg = (DeleteMsg)ReplicationMsg.generateMsg(
+        v1MsgBytes, ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -371,7 +374,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setSafeDataLevel(safeDataLevel);
 
     // Serialize in VLAST msg
-    DeleteMsg vlastMsg = (DeleteMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    DeleteMsg vlastMsg = (DeleteMsg)ReplicationMsg.generateMsg(
+        newMsg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -484,7 +488,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Un-serialize V1 message
-    ModifyMsg newMsg = (ModifyMsg)ReplicationMsg.generateMsg(v1MsgBytes);
+    ModifyMsg newMsg = (ModifyMsg)ReplicationMsg.generateMsg(
+        v1MsgBytes, ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -518,7 +523,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setSafeDataLevel(safeDataLevel);
 
     // Serialize in VLAST msg
-    ModifyMsg vlastMsg = (ModifyMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    ModifyMsg vlastMsg = (ModifyMsg)ReplicationMsg.generateMsg(
+        newMsg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -548,7 +554,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
-    
+
     AttributeType type = DirectoryServer.getAttributeType("description");
 
     Attribute attr1 = Attributes.create("description", "new value");
@@ -579,7 +585,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods4.add(mod);
     }
-    
+
     return new Object[][] {
         {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0},
         {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1},
@@ -632,7 +638,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Un-serialize V1 message
-    ModifyDNMsg newMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(v1MsgBytes);
+    ModifyDNMsg newMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(
+        v1MsgBytes, ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
@@ -672,7 +679,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setMods(mods);
 
     // Serialize in VLAST msg
-    ModifyDNMsg vlastMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(newMsg.getBytes());
+    ModifyDNMsg vlastMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(
+        newMsg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);

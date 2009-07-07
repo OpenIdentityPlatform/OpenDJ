@@ -327,7 +327,8 @@ public class ServerStartMsg extends StartMsg
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_SERVER_START, length);
+      byte resultByteArray[] = encodeHeader(
+          MSG_TYPE_SERVER_START, length, ProtocolVersion.getCurrentVersion());
       int pos = headerLength;
 
       pos = addByteArray(byteDn, resultByteArray, pos);

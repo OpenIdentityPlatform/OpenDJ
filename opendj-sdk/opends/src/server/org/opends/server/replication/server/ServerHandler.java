@@ -1042,10 +1042,7 @@ public abstract class ServerHandler extends MessageHandler
         replicationServerDomain.
         getReplicationServer().getDegradedStatusThreshold());
 
-    if (requestedProtocolVersion>0)
-      session.publish(outReplServerStartMsg, requestedProtocolVersion);
-    else
-      session.publish(outReplServerStartMsg);
+    session.publish(outReplServerStartMsg, requestedProtocolVersion);
 
     return outReplServerStartMsg;
   }

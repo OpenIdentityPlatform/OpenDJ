@@ -1509,8 +1509,21 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         // in the topology.
         if (senderHandler.isDataServer())
         {
-          MonitorMsg returnMsg =
+          MonitorMsg returnMsg;
+
+          if (senderHandler.getProtocolVersion() >
+                             ProtocolVersion.REPLICATION_PROTOCOL_V1)
+          {
+           returnMsg =
             new MonitorMsg(msg.getDestination(), msg.getsenderID());
+          }
+          else
+          {
+            returnMsg =
+              new MonitorMsg(msg.getDestination(), msg.getsenderID(),
+                  ProtocolVersion.REPLICATION_PROTOCOL_V1);
+          }
+
           try
           {
             returnMsg.setReplServerDbState(getDbServerState());
@@ -1555,13 +1568,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           return;
         }
 
-        MonitorRequestMsg replServerMonitorRequestMsg =
-          (MonitorRequestMsg) msg;
+        MonitorMsg monitorMsg;
 
-        MonitorMsg monitorMsg =
-          new MonitorMsg(
-          replServerMonitorRequestMsg.getDestination(),
-          replServerMonitorRequestMsg.getsenderID());
+        if (senderHandler.getProtocolVersion() >
+                                  ProtocolVersion.REPLICATION_PROTOCOL_V1)
+        {
+          monitorMsg =
+            new MonitorMsg(msg.getDestination(), msg.getsenderID());
+        }
+        else
+        {
+          monitorMsg =
+            new MonitorMsg(msg.getDestination(), msg.getsenderID(),
+                ProtocolVersion.REPLICATION_PROTOCOL_V1);
+        }
 
         // Populate for each connected LDAP Server
         // from the states stored in the serverHandler.

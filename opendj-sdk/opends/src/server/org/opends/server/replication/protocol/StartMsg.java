@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -75,17 +75,21 @@ public abstract class StartMsg extends ReplicationMsg
    * Encode the header for the start message.
    *
    * @param type The type of the message to create.
-   * @param additionalLength additional length needed to encode the remaining
+   * @param additionalLength Additional length needed to encode the remaining
    *                         part of the UpdateMessage.
+   * @param protocolVersion  The version to use when encoding the header.
    * @return a byte array containing the common header and enough space to
    *         encode the remaining bytes of the UpdateMessage as was specified
    *         by the additionalLength.
    *         (byte array length = common header length + additionalLength)
    * @throws UnsupportedEncodingException if UTF-8 is not supported.
    */
-  public byte[] encodeHeader(byte type, int additionalLength)
+  public byte[] encodeHeader(
+      byte type, int additionalLength,
+      short protocolVersion)
   throws UnsupportedEncodingException
   {
+
     byte[] byteGenerationID =
       String.valueOf(generationId).getBytes("UTF-8");
 
@@ -101,7 +105,7 @@ public abstract class StartMsg extends ReplicationMsg
     encodedMsg[0] = type;
 
     /* put the protocol version */
-    encodedMsg[1] = (byte)ProtocolVersion.getCurrentVersion();
+    encodedMsg[1] = (byte)protocolVersion;
 
     /* put the generationId */
     int pos = 2;
@@ -192,11 +196,11 @@ public abstract class StartMsg extends ReplicationMsg
     {
       /* then read the version */
       short readVersion = (short)encodedMsg[1];
-      if (readVersion != ProtocolVersion.getCurrentVersion())
+      if (readVersion < ProtocolVersion.REPLICATION_PROTOCOL_V2)
         throw new DataFormatException("Not a valid message: type is " +
           encodedMsg[0] + " but protocol version byte is " + readVersion +
           " instead of " + ProtocolVersion.getCurrentVersion());
-      protocolVersion = ProtocolVersion.getCurrentVersion();
+      protocolVersion = readVersion;
 
       /* read the generationId */
       int pos = 2;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -194,17 +194,8 @@ public class UpdateMsg extends ReplicationMsg
   public byte[] getBytes(short reqProtocolVersion)
     throws UnsupportedEncodingException
   {
-    // Of course, always support current protocol version
-    if (reqProtocolVersion == ProtocolVersion.getCurrentVersion())
-    {
-      return getBytes();
-    }
-    else
-    {
-      throw new UnsupportedEncodingException(getClass().getSimpleName() +
-          " PDU does not support requested protocol version serialization: " +
-          reqProtocolVersion);
-    }
+    // There was no change since version 2.
+    return getBytes();
   }
 
   /**
