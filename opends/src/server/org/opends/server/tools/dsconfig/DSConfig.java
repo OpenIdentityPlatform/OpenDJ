@@ -74,7 +74,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;

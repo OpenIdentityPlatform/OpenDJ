@@ -22,10 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.messages.Message;
 import org.opends.server.types.OpenDsException;
@@ -120,7 +122,7 @@ public class ADSContextException extends OpenDsException {
    */
   public ADSContextException(ErrorType error)
   {
-    this.error = error;
+    this(error, null);
   }
 
   /**
@@ -131,8 +133,14 @@ public class ADSContextException extends OpenDsException {
    */
   public ADSContextException(ErrorType error, Throwable x)
   {
+    super(getMessage(error, x), x);
     this.error = error;
     this.embeddedException = x;
+    toString = "ADSContextException: error type "+error+".";
+    if (getCause() != null)
+    {
+      toString += "  Root cause: "+getCause().toString();
+    }
   }
 
   /**
@@ -154,24 +162,6 @@ public class ADSContextException extends OpenDsException {
   }
 
   /**
-   * Retrieves a message providing the reason for this exception.
-   *
-   * @return  A message providing the reason for this exception.
-   */
-  public Message getReason()
-  {
-    if (toString == null)
-    {
-      toString = "ADSContextException: error type "+error+".";
-      if (getCause() != null)
-      {
-        toString += "  Root cause: "+getCause().toString();
-      }
-    }
-    return Message.raw(toString); // TODO: i18n
-  }
-
-  /**
    * {@inheritDoc}
    */
   public void printStackTrace()
@@ -183,5 +173,36 @@ public class ADSContextException extends OpenDsException {
       embeddedException.printStackTrace();
       System.out.println("}");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return toString;
+  }
+
+  private static Message getMessage(ErrorType error, Throwable x)
+  {
+    Message msg;
+    if (x != null)
+    {
+      if (x instanceof OpenDsException)
+      {
+        msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error.toString(),
+            ((OpenDsException)x).getMessageObject());
+      }
+      else
+      {
+        msg = INFO_ADS_CONTEXT_EXCEPTION_WITH_DETAILS_MSG.get(error.toString(),
+            x.toString());
+      }
+    }
+    else
+    {
+      msg = INFO_ADS_CONTEXT_EXCEPTION_MSG.get(error.toString());
+    }
+    return msg;
   }
 }

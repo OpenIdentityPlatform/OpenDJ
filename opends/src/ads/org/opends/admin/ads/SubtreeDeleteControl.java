@@ -22,17 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
 
-import javax.naming.ldap.Control;
+import javax.naming.ldap.BasicControl;
 
 /**
  * This class implements the LDAP subtree delete control for JNDI.
  */
-public class SubtreeDeleteControl implements Control
+public class SubtreeDeleteControl extends BasicControl
 {
   /**
    * The serial version identifier required to satisfy the compiler
@@ -44,39 +44,10 @@ public class SubtreeDeleteControl implements Control
   static final long serialVersionUID = 3941576361457157921L;
 
   /**
-    * Retrieves the object identifier assigned for the LDAP control.
-    *
-    * @return The non-null object identifier string.
+    * Default constructor.
     */
-  public String getID() {
-    return "1.2.840.113556.1.4.805";
+  public SubtreeDeleteControl()
+  {
+    super("1.2.840.113556.1.4.805");
   }
-
-  /**
-    * Determines the criticality of the LDAP control.
-    * A critical control must not be ignored by the server.
-    * In other words, if the server receives a critical control
-    * that it does not support, regardless of whether the control
-    * makes sense for the operation, the operation will not be performed
-    * and an <tt>OperationNotSupportedException</tt> will be thrown.
-    * @return true if this control is critical; false otherwise.
-    */
-  public boolean isCritical() {
-    return true;
-  }
-
-  /**
-    * Retrieves the ASN.1 BER encoded value of the LDAP control.
-    * The result is the raw BER bytes including the tag and length of
-    * the control's value. It does not include the controls OID or criticality.
-    *
-    * Null is returned if the value is absent.
-    *
-    * @return A possibly null byte array representing the ASN.1 BER encoded
-    *         value of the LDAP control.
-    */
-  public byte[] getEncodedValue() {
-    return new byte[] {};
-  }
-
 }
