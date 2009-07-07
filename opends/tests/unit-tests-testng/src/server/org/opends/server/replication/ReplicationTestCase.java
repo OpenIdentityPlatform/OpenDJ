@@ -1202,4 +1202,34 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       throw new Exception("Entry: " + dn + " Could not be found.");
     return found;
   }
+
+  /**
+   * Utility method : removes a domain deleting the passed config entry
+   */
+  protected void removeDomain(Entry domainCfgEntry)
+  {
+    DeleteOperationBasis op;
+    // Delete entries
+    try
+    {
+      DN dn = domainCfgEntry.getDN();
+
+      logError(Message.raw(Category.SYNC, Severity.NOTICE,
+        "cleaning config entry " + dn));
+
+      op = new DeleteOperationBasis(connection, InternalClientConnection.
+        nextOperationID(), InternalClientConnection.nextMessageID(), null,
+        dn);
+      op.run();
+      if ((op.getResultCode() != ResultCode.SUCCESS) &&
+        (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
+      {
+        fail("Deleting config entry" + dn +
+          " failed: " + op.getResultCode().getResultCodeName());
+      }
+    } catch (NoSuchElementException e)
+    {
+      // done
+    }
+  }
 }
