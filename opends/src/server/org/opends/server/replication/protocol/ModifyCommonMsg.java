@@ -26,9 +26,12 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -38,6 +41,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 
 /**
@@ -94,6 +98,24 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   public void setMods(List<Modification> mods)
   {
     encodedMods = modsToByte(mods);
+  }
+
+  /**
+   * Get the Modifications associated to the UpdateMsg to the provided value.
+   * @throws LDAPException In case of LDAP decoding exception
+   * @throws ASN1Exception In case of ASN1 decoding exception
+   * @return the list of modifications
+   */
+  public List<Modification> getMods() throws ASN1Exception, LDAPException
+  {
+    List<Modification> mods = new ArrayList<Modification>();
+
+    ASN1Reader reader = ASN1.getReader(encodedMods);
+
+    while (reader.hasNextElement())
+      mods.add((LDAPModification.decode(reader)).toModification());
+
+    return mods;
   }
 
   /**
