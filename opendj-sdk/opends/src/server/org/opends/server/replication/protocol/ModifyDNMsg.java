@@ -401,6 +401,15 @@ public class ModifyDNMsg extends ModifyCommonMsg
   }
 
   /**
+   * Get the delete old rdn option.
+   * @return true if delete old rdn option
+   */
+  public boolean getDeleteOldRdn()
+  {
+    return deleteOldRdn;
+  }
+
+  /**
    * Get the new RDN of this operation.
    *
    * @return The new RDN of this operation.
@@ -525,6 +534,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     if (bytes == null)

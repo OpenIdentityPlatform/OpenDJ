@@ -364,6 +364,24 @@ public class AddMsg extends LDAPUpdateMsg
   }
 
   /**
+   * Get the attributes of this add msg.
+   * @throws LDAPException In case of LDAP decoding exception
+   * @throws ASN1Exception In case of ASN1 decoding exception
+   * @return the list of attributes
+   */
+  public List<Attribute> getAttributes() throws LDAPException, ASN1Exception
+  {
+    List<Attribute> attrs = new ArrayList<Attribute>();
+
+    ASN1Reader reader = ASN1.getReader(encodedAttributes);
+
+    while (reader.hasNextElement())
+      attrs.add(LDAPAttribute.decode(reader).toAttribute());
+
+    return attrs;
+  }
+
+  /**
    * Set the parent unique id of this add msg.
    *
    * @param uid the parent unique id.
@@ -394,6 +412,7 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * {@inheritDoc}
    */
+  @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     int length = encodedAttributes.length;
