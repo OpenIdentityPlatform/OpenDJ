@@ -1025,7 +1025,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean hasNext()
     {
       return attrValIt.hasNext();
@@ -1034,7 +1033,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
     /**
      * {@inheritDoc}
      */
-    @Override
     public String next()
     {
       return attrValIt.next().getValue().toString();
@@ -1043,7 +1041,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
     /**
      * {@inheritDoc}
      */
-    @Override
     // Should not be needed anyway
     public void remove()
     {
