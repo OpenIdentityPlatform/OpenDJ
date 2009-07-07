@@ -5137,7 +5137,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (ADSContextException adce)
     {
       throw new ReplicationCliException(
-          ERR_REPLICATION_UPDATING_ADS.get(adce.getReason()),
+          ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
           ERROR_UPDATING_ADS, adce);
     }
     if (!adsAlreadyReplicated)
@@ -5789,10 +5789,12 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         LOG.log(Level.INFO, "Error unregistering server: "+
             server.getAdsProperties(), adce);
-        println();
-        println(
-            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
-        println();
+        if (adce.getError() != ADSContextException.ErrorType.NOT_YET_REGISTERED)
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+              ERROR_READING_ADS, adce);
+        }
       }
     }
 
@@ -5942,10 +5944,13 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             LOG.log(Level.WARNING, "Error unregistering server: "+
                 s.getAdsProperties(), adce);
-            println();
-            println(
-                ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
-            println();
+            if (adce.getError() !=
+              ADSContextException.ErrorType.NOT_YET_REGISTERED)
+            {
+              throw new ReplicationCliException(
+                  ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+                  ERROR_READING_ADS, adce);
+            }
           }
         }
       }
@@ -5977,15 +5982,15 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         adsCtx.createAdminData(adminBackendName);
         printProgress(formatter.getFormattedDone());
+        printlnProgress();
       }
       catch (ADSContextException adce)
       {
         LOG.log(Level.SEVERE, "Error resetting contents of cn=admin data: "+
             adce, adce);
-        println();
-        println(
-            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
-        println();
+        throw new ReplicationCliException(
+            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+            ERROR_READING_ADS, adce);
       }
     }
   }
@@ -8307,6 +8312,10 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         s = ((NamingException)c).toString(true);
       }
+      else if (c instanceof OpenDsException)
+      {
+        s = ((OpenDsException)c).getMessageObject().toString();
+      }
       else
       {
         s = c.toString();
@@ -8903,8 +8912,13 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         BufferedWriter writer =
-          new BufferedWriter(new FileWriter(file, false));
+          new BufferedWriter(new FileWriter(file, true));
+
+        writer.write(SHELL_COMMENT_SEPARATOR+getCurrentOperationDateMessage());
+        writer.newLine();
+
         writer.write(commandBuilder.toString());
+        writer.newLine();
         writer.newLine();
 
         writer.flush();
@@ -8996,6 +9010,29 @@ public class ReplicationCliMain extends ConsoleApplication
             }
           }
         }
+      }
+    }
+
+    if (subcommandName.equals(
+        ReplicationCliArgumentParser.DISABLE_REPLICATION_SUBCMD_NAME))
+    {
+      DisableReplicationUserData disableData =
+        (DisableReplicationUserData)uData;
+      if (disableData.disableAll())
+      {
+        commandBuilder.addArgument(new BooleanArgument(
+            argParser.disableAllArg.getName(),
+            argParser.disableAllArg.getShortIdentifier(),
+            argParser.disableAllArg.getLongIdentifier(),
+            INFO_DESCRIPTION_DISABLE_ALL.get()));
+      }
+      else if (disableData.disableReplicationServer())
+      {
+        commandBuilder.addArgument(new BooleanArgument(
+            argParser.disableReplicationServerArg.getName(),
+            argParser.disableReplicationServerArg.getShortIdentifier(),
+            argParser.disableReplicationServerArg.getLongIdentifier(),
+            INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get()));
       }
     }
 

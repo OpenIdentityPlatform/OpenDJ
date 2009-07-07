@@ -2697,7 +2697,7 @@ public abstract class Installer extends GuiApplication {
               ReturnCode.CONFIGURATION_ERROR,
               ((isRemoteServer)
                       ? INFO_REMOTE_ADS_EXCEPTION.get(
-                      getHostDisplay(auth), ace.getReason())
+                      getHostDisplay(auth), ace.getMessageObject())
                       : INFO_ADS_EXCEPTION.get(ace.toString())), ace);
     }
     finally
