@@ -34,6 +34,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
+import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
@@ -46,6 +47,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -122,7 +125,7 @@ public final class DSConfig extends ConsoleApplication {
      * {@inheritDoc}
      */
     public MenuResult<Integer> invoke(ConsoleApplication app)
-        throws CLIException {
+    throws CLIException {
       try {
         MenuResult<Integer> result = handler.run(app, factory);
 
@@ -206,8 +209,8 @@ public final class DSConfig extends ConsoleApplication {
               INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL.get(ufpn), callback);
         } else {
           builder
-              .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR
-                  .get(ufn), callback);
+          .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR
+              .get(ufn), callback);
         }
       }
 
@@ -223,8 +226,8 @@ public final class DSConfig extends ConsoleApplication {
           new SubCommandHandlerMenuCallback(sh);
         if (ufpn != null) {
           builder
-              .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
-                  .get(ufn), callback);
+          .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
+              .get(ufn), callback);
         } else {
           builder.addNumberedOption(
               INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR.get(ufn),
@@ -251,7 +254,7 @@ public final class DSConfig extends ConsoleApplication {
      * {@inheritDoc}
      */
     public final MenuResult<Integer> invoke(ConsoleApplication app)
-        throws CLIException {
+    throws CLIException {
       try {
         app.println();
         app.println();
@@ -293,6 +296,9 @@ public final class DSConfig extends ConsoleApplication {
   // This CLI is always using the administration connector with SSL
   private static final boolean alwaysSSL = true;
 
+  private long sessionStartTime;
+  private boolean sessionStartTimePrinted = false;
+  private int sessionEquivalentOperationNumber = 0;
 
   /**
    * Provides the command-line arguments to the main application for
@@ -333,6 +339,7 @@ public final class DSConfig extends ConsoleApplication {
       OutputStream outStream, OutputStream errStream) {
     DSConfig app = new DSConfig(System.in, outStream, errStream,
         new LDAPManagementContextFactory(alwaysSSL));
+    app.sessionStartTime = System.currentTimeMillis();
     // Only initialize the client environment when run as a standalone
     // application.
     if (initializeServer) {
@@ -411,10 +418,6 @@ public final class DSConfig extends ConsoleApplication {
   // The argument which should be used to indicate that we will not look for
   // properties file.
   private BooleanArgument noPropertiesFileArgument;
-
-  // The boolean that is used to know if data must be appended to the file
-  // containing equivalent non-interactive commands.
-  private boolean alreadyWroteEquivalentCommand;
 
   /**
    * Creates a new dsconfig application instance.
@@ -543,7 +546,7 @@ public final class DSConfig extends ConsoleApplication {
    *           If a global argument could not be registered.
    */
   private void initializeGlobalArguments(String[] args)
-    throws ArgumentException {
+  throws ArgumentException {
     if (globalArgumentsInitialized == false) {
       verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
           INFO_DESCRIPTION_VERBOSE.get());
@@ -573,7 +576,7 @@ public final class DSConfig extends ConsoleApplication {
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
-              .get());
+          .get());
 
       batchFileArgument = new StringArgument(OPTION_LONG_BATCH_FILE_PATH,
           OPTION_SHORT_BATCH_FILE_PATH, OPTION_LONG_BATCH_FILE_PATH,
@@ -606,7 +609,7 @@ public final class DSConfig extends ConsoleApplication {
       // Register the global arguments.
 
       ArgumentGroup toolOptionsGroup = new ArgumentGroup(
-        INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS.get(), 2);
+          INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS.get(), 2);
       parser.addGlobalArgument(advancedModeArgument, toolOptionsGroup);
 
       parser.addGlobalArgument(showUsageArgument);
@@ -747,8 +750,8 @@ public final class DSConfig extends ConsoleApplication {
     if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
       Message message =
         ERR_DSCFG_ERROR_BATCH_FILE_AND_INTERACTIVE_INCOMPATIBLE.get(
-          batchFileArgument.getLongIdentifier(), noPromptArgument
-              .getLongIdentifier());
+            batchFileArgument.getLongIdentifier(), noPromptArgument
+            .getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -756,7 +759,7 @@ public final class DSConfig extends ConsoleApplication {
     if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
       Message message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
           quietArgument.getLongIdentifier(), noPromptArgument
-              .getLongIdentifier());
+          .getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }
@@ -1137,14 +1140,31 @@ public final class DSConfig extends ConsoleApplication {
     }
     if (equivalentCommandFileArgument.isPresent())
     {
-      // Write to the file.
-      boolean append = alreadyWroteEquivalentCommand;
       String file = equivalentCommandFileArgument.getValue();
       try
       {
         BufferedWriter writer =
-          new BufferedWriter(new FileWriter(file, append));
+          new BufferedWriter(new FileWriter(file, true));
+
+        if (!sessionStartTimePrinted)
+        {
+          writer.write(SHELL_COMMENT_SEPARATOR+getSessionStartTimeMessage());
+          writer.newLine();
+          sessionStartTimePrinted = true;
+        }
+
+        sessionEquivalentOperationNumber++;
+        writer.newLine();
+        writer.write(SHELL_COMMENT_SEPARATOR+
+            INFO_DSCFG_EQUIVALENT_COMMAND_LINE_SESSION_OPERATION_NUMBER.get(
+                sessionEquivalentOperationNumber));
+        writer.newLine();
+
+        writer.write(SHELL_COMMENT_SEPARATOR+getCurrentOperationDateMessage());
+        writer.newLine();
+
         writer.write(commandBuilder.toString());
+        writer.newLine();
         writer.newLine();
 
         writer.flush();
@@ -1155,76 +1175,93 @@ public final class DSConfig extends ConsoleApplication {
         println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file,
             ioe.toString()));
       }
-      alreadyWroteEquivalentCommand = true;
     }
   }
 
-  private void handleBatchFile(String[] args) {
-
-      BufferedReader reader = null;
-      try {
-        // Build a list of initial arguments,
-        // removing the batch file option + its value
-         List<String> initialArgs = new ArrayList<String>();
-        Collections.addAll(initialArgs, args);
-        int batchFileArgIndex = -1;
-        for (String elem : initialArgs) {
-          if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH) ||
-            elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
-            batchFileArgIndex = initialArgs.indexOf(elem);
-            break;
-          }
-        }
-        if (batchFileArgIndex != -1) {
-          // Remove both the batch file arg and its value
-          initialArgs.remove(batchFileArgIndex);
-          initialArgs.remove(batchFileArgIndex);
-        }
-        String batchFilePath = batchFileArgument.getValue().trim();
-        reader =
-          new BufferedReader(new FileReader(batchFilePath));
-        String line;
-        while ((line = reader.readLine()) != null) {
-          line = line.trim();
-          if (line.equals("") || line.startsWith("#")) {
-            // Empty line or comment
-            continue;
-          }
-          // Split the CLI string into arguments array
-          // For arguments including spaces, "\ " only is supported.
-          // CLI on several lines (using \) is not supported.
-          line = line.replace("\\ ", "##");
-          String[] fileArguments = line.split("\\s+");
-          for (int ii=0; ii<fileArguments.length; ii++) {
-            fileArguments[ii] = fileArguments[ii].replace("##", " ");
-          }
-
-          // Append initial arguments to the file line
-          List<String> allArguments = new ArrayList<String>();
-          Collections.addAll(allArguments, fileArguments);
-          allArguments.addAll(initialArgs);
-          String[] allArgsArray = allArguments.toArray(new String[] {});
-
-          // Build a single CLI string for display
-          StringBuffer cli = new StringBuffer();
-          for (String arg : allArgsArray) {
-            cli.append(arg + " ");
-          }
-
-          System.out.println("Running : dsconfig " + cli.toString() + "\n");
-          int exitCode =
-            main(allArgsArray, false, getOutputStream(), getErrorStream());
-          if (exitCode != 0) {
-            reader.close();
-            System.exit(filterExitCode(exitCode));
-          }
-        }
-
-        reader.close();
-
-      } catch (IOException ex) {
-        println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex.toString()));
-      }
+  /**
+   * Returns the message to be displayed in the file with the equivalent
+   * command-line with information about when the session started.
+   * @return  the message to be displayed in the file with the equivalent
+   * command-line with information about when the session started.
+   */
+  private String getSessionStartTimeMessage()
+  {
+    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    if ((scriptName == null) || (scriptName.length() == 0))
+    {
+      scriptName = "dsconfig";
+    }
+    String date = formatDateTimeStringForEquivalentCommand(
+        new Date(sessionStartTime));
+    return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(scriptName, date).
+    toString();
   }
 
+  private void handleBatchFile(String[] args)
+  {
+    BufferedReader reader = null;
+    try {
+      // Build a list of initial arguments,
+      // removing the batch file option + its value
+      List<String> initialArgs = new ArrayList<String>();
+      Collections.addAll(initialArgs, args);
+      int batchFileArgIndex = -1;
+      for (String elem : initialArgs) {
+        if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH) ||
+            elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
+          batchFileArgIndex = initialArgs.indexOf(elem);
+          break;
+        }
+      }
+      if (batchFileArgIndex != -1) {
+        // Remove both the batch file arg and its value
+        initialArgs.remove(batchFileArgIndex);
+        initialArgs.remove(batchFileArgIndex);
+      }
+      String batchFilePath = batchFileArgument.getValue().trim();
+      reader =
+        new BufferedReader(new FileReader(batchFilePath));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        line = line.trim();
+        if (line.equals("") || line.startsWith("#")) {
+          // Empty line or comment
+          continue;
+        }
+        // Split the CLI string into arguments array
+        // For arguments including spaces, "\ " only is supported.
+        // CLI on several lines (using \) is not supported.
+        line = line.replace("\\ ", "##");
+        String[] fileArguments = line.split("\\s+");
+        for (int ii=0; ii<fileArguments.length; ii++) {
+          fileArguments[ii] = fileArguments[ii].replace("##", " ");
+        }
+
+        // Append initial arguments to the file line
+        List<String> allArguments = new ArrayList<String>();
+        Collections.addAll(allArguments, fileArguments);
+        allArguments.addAll(initialArgs);
+        String[] allArgsArray = allArguments.toArray(new String[] {});
+
+        // Build a single CLI string for display
+        StringBuffer cli = new StringBuffer();
+        for (String arg : allArgsArray) {
+          cli.append(arg + " ");
+        }
+
+        System.out.println("Running : dsconfig " + cli.toString() + "\n");
+        int exitCode =
+          main(allArgsArray, false, getOutputStream(), getErrorStream());
+        if (exitCode != 0) {
+          reader.close();
+          System.exit(filterExitCode(exitCode));
+        }
+      }
+
+      reader.close();
+
+    } catch (IOException ex) {
+      println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex.toString()));
+    }
+  }
 }

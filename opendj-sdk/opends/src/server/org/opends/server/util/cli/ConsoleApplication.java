@@ -43,6 +43,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,6 +66,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
+import org.opends.server.util.SetupUtils;
 
 
 /**
@@ -108,6 +112,16 @@ public abstract class ConsoleApplication {
    *  The maximum number of times we try to confirm.
    */
   protected final static int CONFIRMATION_MAX_TRIES = 5;
+
+  private static final String COMMENT_SHELL_UNIX = "# ";
+  private static final String COMMENT_BATCH_WINDOWS = "rem ";
+
+  /**
+   * The String used to write comments in a shell (or batch) script.
+   */
+  protected static final String SHELL_COMMENT_SEPARATOR =
+    SetupUtils.isWindows() ?
+      COMMENT_BATCH_WINDOWS : COMMENT_SHELL_UNIX;
 
   /**
    * Creates a new console application instance.
@@ -1010,5 +1024,37 @@ public abstract class ConsoleApplication {
       }
     }
     return ctx;
+  }
+
+  /**
+   * Returns the message to be displayed in the file with the equivalent
+   * command-line with information about the current time.
+   * @return  the message to be displayed in the file with the equivalent
+   * command-line with information about the current time.
+   */
+  protected String getCurrentOperationDateMessage()
+  {
+    String date = formatDateTimeStringForEquivalentCommand(new Date());
+    return INFO_OPERATION_START_TIME_MESSAGE.get(date).
+    toString();
+  }
+
+  /**
+   * Formats a Date to String representation in "dd/MMM/yyyy:HH:mm:ss Z".
+   *
+   * @param date to format; null if <code>date</code> is null
+   * @return string representation of the date
+   */
+  protected String formatDateTimeStringForEquivalentCommand(Date date)
+  {
+    String timeStr = null;
+    if (date != null)
+    {
+      SimpleDateFormat dateFormat =
+        new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      timeStr = dateFormat.format(date);
+    }
+    return timeStr;
   }
 }
