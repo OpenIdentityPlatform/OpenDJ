@@ -1834,6 +1834,16 @@ ds-cfg-plugin-type: postOperationModify
 ds-cfg-plugin-type: postOperationModifyDn
 ds-cfg-java-class: org.opends.server.plugins.ChangeNumberControlPlugin
 
+dn: cn=Fractional Replication LDIF Import,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-fractional-ldif-import-plugin
+cn: Fractional Replication LDIF Import
+ds-cfg-java-class: org.opends.server.replication.plugin.FractionalLDIFImportPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: ldifImport
+ds-cfg-invoke-for-internal-operations: true
+
 dn: cn=Root DNs,cn=config
 objectClass: top
 objectClass: ds-cfg-root-dn

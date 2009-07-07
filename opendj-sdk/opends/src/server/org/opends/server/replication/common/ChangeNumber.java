@@ -41,7 +41,7 @@ public class ChangeNumber implements java.io.Serializable,
 
   // A String representation of the ChangeNumber suitable for network
   // transmission.
-  private String formatedString = null;;
+  private String formatedString = null;
 
   /**
    * Create a new ChangeNumber from a String.

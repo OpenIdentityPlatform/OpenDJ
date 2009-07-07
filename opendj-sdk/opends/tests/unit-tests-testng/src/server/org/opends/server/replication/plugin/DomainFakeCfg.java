@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.List;
 import java.util.SortedSet;
 
 import java.util.TreeSet;
@@ -63,6 +64,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   // Referrals urls to be published to other servers of the topology
   SortedSet<String> refUrls = new TreeSet<String>();
 
+  private SortedSet<String> fractionalExcludes = new TreeSet<String>();
+  private SortedSet<String> fractionalIncludes = new TreeSet<String>();
+
   /**
    * Creates a new Domain with the provided information
    * (assured mode disabled, default group id)
@@ -72,6 +76,30 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.baseDn = baseDn;
     this.serverId = serverId;
     this.replicationServers = replServers;
+  }
+
+  /**
+   * Creates a new Domain with the provided information
+   * (with some fractional configuration provided)
+   */
+  public DomainFakeCfg(DN baseDn, int serverId, SortedSet<String> replServers,
+    List<String> fractionalExcludes, List<String> fractionalIncludes)
+  {
+    this(baseDn, serverId, replServers);
+    if (fractionalExcludes != null)
+    {
+      for (String str : fractionalExcludes)
+      {
+        this.fractionalExcludes.add(str);
+      }
+    }
+    if (fractionalIncludes != null)
+    {
+      for (String str : fractionalIncludes)
+      {
+        this.fractionalIncludes.add(str);
+      }
+    }
   }
 
   /**
@@ -304,5 +332,15 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public SortedSet<String> getReferralsUrl()
   {
     return refUrls;
+  }
+
+  public SortedSet<String> getFractionalExclude()
+  {
+    return fractionalExcludes;
+  }
+
+  public SortedSet<String> getFractionalInclude()
+  {
+    return fractionalIncludes;
   }
 }

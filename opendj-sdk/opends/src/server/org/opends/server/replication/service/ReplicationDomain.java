@@ -151,7 +151,7 @@ public abstract class ReplicationDomain
   /**
    * Current status for this replicated domain.
    */
-  private ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
+  protected ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
 
   /**
    * The tracer object for the debug logger.
@@ -176,7 +176,7 @@ public abstract class ReplicationDomain
    * The ReplicationBroker that is used by this ReplicationDomain to
    * connect to the ReplicationService.
    */
-  private ReplicationBroker broker = null;
+  protected ReplicationBroker broker = null;
 
   /**
    * This Map is used to store all outgoing assured messages in order
@@ -191,7 +191,7 @@ public abstract class ReplicationDomain
    * The context related to an import or export being processed
    * Null when none is being processed.
    */
-  private IEContext ieContext = null;
+  protected IEContext ieContext = null;
 
   /**
    * The Thread waiting for incoming update messages for this domain and pushing
@@ -788,6 +788,7 @@ public abstract class ReplicationDomain
             mb.append(de.getMessageObject());
             TRACER.debugInfo(Message.toString(mb.toMessage()));
             broker.publish(errorMsg);
+            logError(de.getMessageObject());
           }
         }
         else if (msg instanceof ErrorMsg)
@@ -1076,11 +1077,11 @@ public abstract class ReplicationDomain
    * This class contain the context related to an import or export
    * launched on the domain.
    */
-  private class IEContext
+  protected class IEContext
   {
-    // The task that initiated the operation.
+    // Theprivate task that initiated the operation.
     Task initializeTask;
-    // The target in the case of an export
+    // The destination in the case of an export
     short exportTarget = RoutableMsg.UNKNOWN_SERVER;
     // The source in the case of an import
     short importSource = RoutableMsg.UNKNOWN_SERVER;
@@ -1111,9 +1112,9 @@ public abstract class ReplicationDomain
 
     /**
      * Initializes the import/export counters with the provider value.
-     * @param total
-     * @param left
-     * @throws DirectoryException
+     * @param total Total number of entries to be processed.
+     * @param left Remaining number of entries to be processed.
+     * @throws DirectoryException if an error occurred.
      */
     public void setCounters(long total, long left)
       throws DirectoryException
@@ -1139,7 +1140,7 @@ public abstract class ReplicationDomain
     /**
      * Update the counters of the task for each entry processed during
      * an import or export.
-     * @throws DirectoryException
+     * @throws DirectoryException if an error occurred.
      */
     public void updateCounters()
       throws DirectoryException
@@ -1166,7 +1167,7 @@ public abstract class ReplicationDomain
      * @param  entriesDone The number of entries that were processed
      *                     since the last time this method was called.
      *
-     * @throws DirectoryException
+     * @throws DirectoryException if an error occurred.
      */
     public void updateCounters(int entriesDone)
       throws DirectoryException
@@ -1194,6 +1195,42 @@ public abstract class ReplicationDomain
     {
       return new String("[ Entry count=" + this.entryCount +
                         ", Entry left count=" + this.entryLeftCount + "]");
+    }
+
+    /**
+     * Gets the server id of the exporting server.
+     * @return the server id of the exporting server.
+     */
+    public short getExportTarget()
+    {
+      return exportTarget;
+    }
+
+    /**
+     * Gets the server id of the importing server.
+     * @return the server id of the importing server.
+     */
+    public short getImportSource()
+    {
+      return importSource;
+    }
+
+    /**
+     * Get the exception that occurred during the import/export.
+     * @return the exception that occurred during the import/export.
+     */
+    public DirectoryException getException()
+    {
+      return exception;
+    }
+
+    /**
+     * Set the exception that occurred during the import/export.
+     * @param exception the exception that occurred during the import/export.
+     */
+    public void setException(DirectoryException exception)
+    {
+      this.exception = exception;
     }
   }
   /**
@@ -1304,8 +1341,8 @@ public abstract class ReplicationDomain
    *
    * @exception DirectoryException When an error occurs.
    */
-  void initializeRemote(short target, short requestorID, Task initTask)
-  throws DirectoryException
+  protected void initializeRemote(short target, short requestorID,
+    Task initTask) throws DirectoryException
   {
     Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(
       Short.toString(serverID),
@@ -1417,14 +1454,14 @@ public abstract class ReplicationDomain
 
     if (ieContext != null)
     {
-      ieContext.exception = new DirectoryException(ResultCode.OTHER,
-          errorMsg.getDetails());
+      ieContext.setException(new DirectoryException(ResultCode.OTHER,
+        errorMsg.getDetails()));
 
       if (ieContext.initializeTask instanceof InitializeTask)
       {
         // Update the task that initiated the import
         ((InitializeTask)ieContext.initializeTask).
-        updateTaskCompletionState(ieContext.exception);
+        updateTaskCompletionState(ieContext.getException());
 
         releaseIEContext();
       }
@@ -1437,7 +1474,7 @@ public abstract class ReplicationDomain
    *
    * @return The bytes. Null when the Done or Err message has been received
    */
-  byte[] receiveEntryBytes()
+  protected byte[] receiveEntryBytes()
   {
     ReplicationMsg msg;
     while (true)
@@ -1477,9 +1514,8 @@ public abstract class ReplicationDomain
           // The error is stored and the import is ended
           // by returning null
           ErrorMsg errorMsg = (ErrorMsg)msg;
-          ieContext.exception = new DirectoryException(
-                                      ResultCode.OTHER,
-                                      errorMsg.getDetails());
+          ieContext.setException(new DirectoryException(ResultCode.OTHER,
+            errorMsg.getDetails()));
           return null;
         }
         else
@@ -1490,9 +1526,9 @@ public abstract class ReplicationDomain
       catch(Exception e)
       {
         // TODO: i18n
-        ieContext.exception = new DirectoryException(ResultCode.OTHER,
-            Message.raw("received an unexpected message type" +
-                e.getLocalizedMessage()));
+        ieContext.setException(new DirectoryException(ResultCode.OTHER,
+          Message.raw("received an unexpected message type" +
+          e.getLocalizedMessage())));
       }
     }
   }
@@ -1547,15 +1583,15 @@ public abstract class ReplicationDomain
   {
     // If an error was raised - like receiving an ErrorMsg
     // we just let down the export.
-    if (ieContext.exception != null)
+    if (ieContext.getException() != null)
     {
-      IOException ioe = new IOException(ieContext.exception.getMessage());
+      IOException ioe = new IOException(ieContext.getException().getMessage());
       ieContext = null;
       throw ioe;
     }
 
     EntryMsg entryMessage = new EntryMsg(
-        serverID, ieContext.exportTarget, lDIFEntry, pos, length);
+        serverID,ieContext.getExportTarget(), lDIFEntry, pos, length);
     broker.publish(entryMessage);
 
     try
@@ -1702,8 +1738,8 @@ public abstract class ReplicationDomain
     }
     finally
     {
-      if ((ieContext != null)  && (ieContext.exception != null))
-        de = ieContext.exception;
+      if ((ieContext != null)  && (ieContext.getException() != null))
+        de = ieContext.getException();
 
       // Update the task that initiated the import
       if ((ieContext != null ) && (ieContext.initializeTask != null))
@@ -1732,7 +1768,7 @@ public abstract class ReplicationDomain
    * event.
    * @param event The event that may make the status be changed
    */
-  private void setNewStatus(StatusMachineEvent event)
+  protected void setNewStatus(StatusMachineEvent event)
   {
     ServerStatus newStatus =
       StatusMachine.computeNewStatus(status, event);

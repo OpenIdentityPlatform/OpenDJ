@@ -266,36 +266,6 @@ public class AssuredReplicationPluginTest
   }
 
   /**
-   * Removes a domain deleting the passed config entry
-   */
-  private void removeDomain(Entry domainCfgEntry)
-  {
-    DeleteOperationBasis op;
-    // Delete entries
-    try
-    {
-      DN dn = domainCfgEntry.getDN();
-
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "cleaning config entry " + dn));
-
-      op = new DeleteOperationBasis(connection, InternalClientConnection.
-        nextOperationID(), InternalClientConnection.nextMessageID(), null,
-        dn);
-      op.run();
-      if ((op.getResultCode() != ResultCode.SUCCESS) &&
-        (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
-      {
-        fail("Deleting config entry" + dn +
-          " failed: " + op.getResultCode().getResultCodeName());
-      }
-    } catch (NoSuchElementException e)
-    {
-      // done
-    }
-  }
-
-  /**
    * The fake replication server used to emulate RS behaviour the way we want
    * for assured features test.
    * This fake replication server is able to receive a DS connection only.

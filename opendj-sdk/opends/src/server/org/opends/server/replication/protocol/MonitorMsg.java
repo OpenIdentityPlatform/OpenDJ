@@ -78,7 +78,7 @@ public class MonitorMsg extends RoutableMsg
       new HashMap<Short, ServerData>();
   }
 
-  SubTopoMonitorData data = new SubTopoMonitorData();;
+  SubTopoMonitorData data = new SubTopoMonitorData();
 
   /**
    * Creates a new EntryMessage.
