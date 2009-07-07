@@ -435,13 +435,13 @@ public class DataServerHandler extends ServerHandler
    */
   public void registerIntoDomain()
   {
-    // Alright, connected with new DS: store handler.
+    // All-right, connected with new DS: store handler.
     Map<Short, DataServerHandler> connectedDSs =
       replicationServerDomain.getConnectedDSs();
     connectedDSs.put(serverId, this);
 
     // Tell peer DSs a new DS just connected to us
-    // No need to resend topo msg to this just new DS so not null
+    // No need to re-send TopologyMsg to this just new DS so not null
     // argument
     replicationServerDomain.buildAndSendTopoInfoToDSs(this);
     // Tell peer RSs a new DS just connected to us
@@ -499,13 +499,13 @@ public class DataServerHandler extends ServerHandler
       ReplServerStartMsg outReplServerStartMsg = null;
       try
       {
-        outReplServerStartMsg = sendStartToRemote((short)-1);
+        outReplServerStartMsg = sendStartToRemote(protocolVersion);
 
         // log
         logStartHandshakeRCVandSND(inServerStartMsg, outReplServerStartMsg);
 
         // The session initiator decides whether to use SSL.
-        // Until here session is encrypted then it depends on the negociation
+        // Until here session is encrypted then it depends on the negotiation
         if (!sessionInitiatorSSLEncryption)
           session.stopEncryption();
 
@@ -524,7 +524,7 @@ public class DataServerHandler extends ServerHandler
         // aborted after handshake phase one from a DS that is searching for
         // best suitable RS.
 
-        // don't log a poluting error when connection aborted
+        // don't log a polluting error when connection aborted
         // from a DS that wanted only to perform handshake phase 1 in order
         // to determine the best suitable RS:
         // 1) -> ServerStartMsg

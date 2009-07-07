@@ -299,7 +299,8 @@ public class ECLServerHandler extends ServerHandler
       lockDomain(true);
 
       // send start to remote
-      ReplServerStartMsg outReplServerStartMsg = sendStartToRemote((short)-1);
+      ReplServerStartMsg outReplServerStartMsg =
+        sendStartToRemote(protocolVersion);
 
       // log
       logStartHandshakeRCVandSND(inECLStartMsg, outReplServerStartMsg);

@@ -85,6 +85,7 @@ public class ReplicationServerHandler extends ServerHandler
     {
       protocolVersion = ProtocolVersion.minWithCurrent(
           inReplServerStartMsg.getVersion());
+      session.setProtocolVersion(protocolVersion);
       generationId = inReplServerStartMsg.getGenerationId();
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
@@ -163,13 +164,14 @@ public class ReplicationServerHandler extends ServerHandler
     try
     {
       //
-      lockDomain(false); // notimeout
+      lockDomain(false); // no timeout
 
       // we are the initiator and decides of the encryption
       boolean sessionInitiatorSSLEncryption = this.initSslEncryption;
 
       // Send start
-      ReplServerStartMsg outReplServerStartMsg = sendStartToRemote((short)-1);
+      ReplServerStartMsg outReplServerStartMsg =
+        sendStartToRemote(ProtocolVersion.getCurrentVersion());
 
       // Wait answer
       ReplicationMsg msg = session.receive();
@@ -260,20 +262,13 @@ public class ReplicationServerHandler extends ServerHandler
       // lock with timeout
       lockDomain(true);
 
-      short reqVersion = -1;
-      if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
-      {
-        // We support connection from a V1 RS, send PDU with V1 form
-        reqVersion = ProtocolVersion.REPLICATION_PROTOCOL_V1;
-      }
-
-      // send start to remote
-      ReplServerStartMsg outReplServerStartMsg = sendStartToRemote(reqVersion);
+      ReplServerStartMsg outReplServerStartMsg =
+        sendStartToRemote(protocolVersion);
 
       // log
       logStartHandshakeRCVandSND(inReplServerStartMsg, outReplServerStartMsg);
 
-      // until here session is encrypted then it depends on the negociation
+      // until here session is encrypted then it depends on the negotiation
       // The session initiator decides whether to use SSL.
       if (!sessionInitiatorSSLEncryption)
         session.stopEncryption();

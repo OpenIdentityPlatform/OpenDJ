@@ -765,9 +765,10 @@ public class ReplicationBroker
        * The replication server will use the same one (or an older one
        * if it is an old replication server).
        */
-      if (keepConnection)
-        protocolVersion = ProtocolVersion.minWithCurrent(
+      protocolVersion = ProtocolVersion.minWithCurrent(
           replServerStartMsg.getVersion());
+      localSession.setProtocolVersion(protocolVersion);
+
 
       if (!isSslEncryption)
       {
@@ -926,6 +927,7 @@ public class ReplicationBroker
       if (keepConnection)
         protocolVersion = ProtocolVersion.minWithCurrent(
           replServerStartMsg.getVersion());
+      localSession.setProtocolVersion(protocolVersion);
 
       if (!isSslEncryption)
       {

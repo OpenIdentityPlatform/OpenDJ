@@ -177,8 +177,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
 
-    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg
-        .generateMsg(msg.getBytes());
+    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg.generateMsg(
+        msg.getBytes(), ProtocolVersion.getCurrentVersion());
 
     // Test that generated attributes match original attributes.
     assertEquals(generatedMsg.isAssured(), isAssured);
@@ -234,8 +234,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg.getSafeDataLevel() == safeDataLevel);
 
     // Check equals
-    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg
-        .generateMsg(msg.getBytes());
+    ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg.generateMsg(
+        msg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
     assertFalse(msg.equals(null));
     assertFalse(msg.equals(new Object()));
 
@@ -298,8 +298,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
-    DeleteMsg generatedMsg = (DeleteMsg) ReplicationMsg
-        .generateMsg(msg.getBytes());
+    DeleteMsg generatedMsg = (DeleteMsg) ReplicationMsg.generateMsg(
+        msg.getBytes(), ProtocolVersion.getCurrentVersion());
 
     assertEquals(msg.toString(), generatedMsg.toString());
 
@@ -393,7 +393,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setSafeDataLevel(safeDataLevel);
 
     ModifyDNMsg generatedMsg = (ModifyDNMsg) ReplicationMsg
-        .generateMsg(msg.getBytes());
+        .generateMsg(msg.getBytes(), ProtocolVersion.getCurrentVersion());
 
     // Test that generated attributes match original attributes.
     assertEquals(generatedMsg.isAssured(), isAssured);
@@ -466,7 +466,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setSafeDataLevel(safeDataLevel);
 
     AddMsg generatedMsg = (AddMsg) ReplicationMsg.generateMsg(msg
-        .getBytes());
+        .getBytes(), ProtocolVersion.getCurrentVersion());
     assertEquals(msg.getBytes(), generatedMsg.getBytes());
     assertEquals(msg.toString(), generatedMsg.toString());
 
@@ -611,7 +611,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     }
 
     // Check that retrieved CN is OK
-    msg2 = (AckMsg) ReplicationMsg.generateMsg(msg1.getBytes());
+    msg2 = (AckMsg) ReplicationMsg.generateMsg(
+        msg1.getBytes(), ProtocolVersion.getCurrentVersion());
   }
 
   @Test()
@@ -1006,7 +1007,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setServerState(sid3, s3, now+3, false);
 
     byte[] b = msg.getBytes();
-    MonitorMsg newMsg = new MonitorMsg(b);
+    MonitorMsg newMsg = new MonitorMsg(b, ProtocolVersion.getCurrentVersion());
 
     assertEquals(rsState, msg.getReplServerDbState());
     assertEquals(newMsg.getReplServerDbState().toString(),

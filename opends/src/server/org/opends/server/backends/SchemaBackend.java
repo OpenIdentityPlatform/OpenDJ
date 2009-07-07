@@ -122,6 +122,7 @@ public class SchemaBackend
 
 
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
+  private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
 
 
@@ -4325,11 +4326,13 @@ public class SchemaBackend
     {
       String schemaFile = removeType.getSchemaFile();
       if ((schemaFile != null) &&
-           (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
+           ((schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)) ||
+            (schemaFile.equals(CORE_SCHEMA_ELEMENTS_FILE))) )
       {
-        // Don't import the file containing the definitiong of the
+        // Don't import the file containing the definitions of the
         // Schema elements used for configuration because these
         // definitions may vary between versions of OpenDS.
+        // Also never delete anything from the core schema file.
         continue;
       }
       if (!oidList.contains(removeType.getOID()))
@@ -4447,7 +4450,7 @@ public class SchemaBackend
       if ((schemaFile != null) &&
           (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
       {
-        // Don't import the file containing the definitiong of the
+        // Don't import the file containing the definition of the
         // Schema elements used for configuration because these
         // definitions may vary between versions of OpenDS.
         continue;

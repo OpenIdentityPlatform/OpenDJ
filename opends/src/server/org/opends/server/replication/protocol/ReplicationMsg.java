@@ -125,14 +125,19 @@ public abstract class ReplicationMsg
    * is done taking into account the various supported replication protocol
    * versions.
    *
-   * @param buffer The encode form of the ReplicationMsg.
+   * @param buffer    The encode form of the ReplicationMsg.
+   * @param version   The version to use to decode the msg.
+   *
    * @return The generated SycnhronizationMessage.
+   *
    * @throws DataFormatException If the encoded form was not a valid msg.
    * @throws UnsupportedEncodingException If UTF8 is not supported.
    * @throws NotSupportedOldVersionPDUException If the PDU is part of an old
    * protocol version and we do not support it.
    */
-  public static ReplicationMsg generateMsg(byte[] buffer)
+  public static ReplicationMsg generateMsg(
+                byte[] buffer,
+                short version)
                 throws DataFormatException, UnsupportedEncodingException,
                 NotSupportedOldVersionPDUException
   {
@@ -207,7 +212,7 @@ public abstract class ReplicationMsg
         msg = new MonitorRequestMsg(buffer);
       break;
       case MSG_TYPE_REPL_SERVER_MONITOR:
-        msg = new MonitorMsg(buffer);
+        msg = new MonitorMsg(buffer, version);
       break;
       case MSG_TYPE_START_SESSION:
         msg = new StartSessionMsg(buffer);

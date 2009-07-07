@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 
 import com.sleepycat.je.DatabaseEntry;
 
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 
@@ -67,6 +68,7 @@ public class ReplicationData extends DatabaseEntry
   public static UpdateMsg generateChange(byte[] data)
                                              throws Exception
   {
-    return (UpdateMsg) ReplicationMsg.generateMsg(data);
+    return (UpdateMsg) ReplicationMsg.generateMsg(
+        data, ProtocolVersion.getCurrentVersion());
   }
 }

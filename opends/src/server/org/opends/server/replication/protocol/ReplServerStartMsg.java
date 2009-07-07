@@ -223,59 +223,70 @@ public class ReplServerStartMsg extends StartMsg
    */
   @Override
   public byte[] getBytes()
+  throws UnsupportedEncodingException
   {
+    return getBytes(ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes(short protocolVersion)
+     throws UnsupportedEncodingException
+  {
+    if  (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+      return getBytes_V1();
+
     /* The ReplServerStartMsg is stored in the form :
      * <operation type><baseDn><serverId><serverURL><windowSize><sslEncryption>
      * <degradedStatusThreshold><serverState>
      */
-    try {
-      byte[] byteDn = baseDn.getBytes("UTF-8");
-      byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
-      byte[] byteServerUrl = serverURL.getBytes("UTF-8");
-      byte[] byteServerState = serverState.getBytes();
-      byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
-      byte[] byteSSLEncryption =
-                     String.valueOf(sslEncryption).getBytes("UTF-8");
-      byte[] byteDegradedStatusThreshold =
-        String.valueOf(degradedStatusThreshold).getBytes("UTF-8");
 
-      int length = byteDn.length + 1 + byteServerId.length + 1 +
-                   byteServerUrl.length + 1 + byteWindowSize.length + 1 +
-                   byteSSLEncryption.length + 1 +
-                   byteDegradedStatusThreshold.length + 1 +
-                   byteServerState.length + 1;
+    byte[] byteDn = baseDn.getBytes("UTF-8");
+    byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
+    byte[] byteServerUrl = serverURL.getBytes("UTF-8");
+    byte[] byteServerState = serverState.getBytes();
+    byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
+    byte[] byteSSLEncryption =
+      String.valueOf(sslEncryption).getBytes("UTF-8");
+    byte[] byteDegradedStatusThreshold =
+      String.valueOf(degradedStatusThreshold).getBytes("UTF-8");
 
-      /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START, length);
-      int pos = headerLength;
+    int length = byteDn.length + 1 + byteServerId.length + 1 +
+    byteServerUrl.length + 1 + byteWindowSize.length + 1 +
+    byteSSLEncryption.length + 1 +
+    byteDegradedStatusThreshold.length + 1 +
+    byteServerState.length + 1;
 
-      /* put the baseDN and a terminating 0 */
-      pos = addByteArray(byteDn, resultByteArray, pos);
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte resultByteArray[] =
+      encodeHeader(MSG_TYPE_REPL_SERVER_START, length, protocolVersion);
 
-      /* put the ServerId */
-      pos = addByteArray(byteServerId, resultByteArray, pos);
+    int pos = headerLength;
 
-      /* put the ServerURL */
-      pos = addByteArray(byteServerUrl, resultByteArray, pos);
+    /* put the baseDN and a terminating 0 */
+    pos = addByteArray(byteDn, resultByteArray, pos);
 
-      /* put the window size */
-      pos = addByteArray(byteWindowSize, resultByteArray, pos);
+    /* put the ServerId */
+    pos = addByteArray(byteServerId, resultByteArray, pos);
 
-      /* put the SSL Encryption setting */
-      pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
+    /* put the ServerURL */
+    pos = addByteArray(byteServerUrl, resultByteArray, pos);
 
-      /* put the degraded status threshold */
-      pos = addByteArray(byteDegradedStatusThreshold, resultByteArray, pos);
+    /* put the window size */
+    pos = addByteArray(byteWindowSize, resultByteArray, pos);
 
-      /* put the ServerState */
-      pos = addByteArray(byteServerState, resultByteArray, pos);
+    /* put the SSL Encryption setting */
+    pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
 
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    /* put the degraded status threshold */
+    pos = addByteArray(byteDegradedStatusThreshold, resultByteArray, pos);
+
+    /* put the ServerState */
+    pos = addByteArray(byteServerState, resultByteArray, pos);
+
+    return resultByteArray;
   }
 
   /**
@@ -335,32 +346,6 @@ public class ReplServerStartMsg extends StartMsg
       "\nsslEncryption: " + sslEncryption +
       "\ndegradedStatusThreshold: " + degradedStatusThreshold +
       "\nwindowSize: " + windowSize;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
-  {
-    // Of course, always support current protocol version
-    if (reqProtocolVersion == ProtocolVersion.getCurrentVersion())
-    {
-      return getBytes();
-    }
-
-    // Supported older protocol versions
-    switch (reqProtocolVersion)
-    {
-      case ProtocolVersion.REPLICATION_PROTOCOL_V1:
-        return getBytes_V1();
-      default:
-        // Unsupported requested version
-        throw new UnsupportedEncodingException(getClass().getSimpleName() +
-          " PDU does not support requested protocol version serialization: " +
-          reqProtocolVersion);
-    }
   }
 
   /**
