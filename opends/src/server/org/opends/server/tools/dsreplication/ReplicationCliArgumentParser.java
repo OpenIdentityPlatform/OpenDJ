@@ -756,7 +756,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "cn=Directory Manager", OPTION_LONG_BINDDN,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     disableReplicationServerArg = new BooleanArgument(
-        "disablereplicationserverarg", null, "disableReplicationServerArg",
+        "disablereplicationserver", null, "disableReplicationServer",
         INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get());
     disableAllArg = new BooleanArgument(
         "disableall", null, "disableAll",
