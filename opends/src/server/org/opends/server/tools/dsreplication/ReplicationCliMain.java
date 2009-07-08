@@ -6187,14 +6187,14 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         printlnProgress();
         printProgress(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
-        if (!replicasWithNoReplicationServer.isEmpty())
+
+        if (!replicasWithNoReplicationServer.isEmpty() ||
+            !serversWithNoReplica.isEmpty())
         {
           printlnProgress();
           printProgress(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LEGEND.get());
-        }
-        if (!replicasWithNoReplicationServer.isEmpty())
-        {
+
           printlnProgress();
           printProgress(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
@@ -7118,6 +7118,10 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
+    Set<ServerDescriptor> serversToConfigureDomain =
+      new HashSet<ServerDescriptor>();
+    Set<ServerDescriptor> replicationServersToConfigure =
+      new HashSet<ServerDescriptor>();
     SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
     if (suffix != null)
     {
@@ -7126,58 +7130,93 @@ public class ReplicationCliMain extends ConsoleApplication
         ServerDescriptor s = replica.getServer();
         if (!alreadyConfiguredServers.contains(s.getId()))
         {
-          String dn = ConnectionUtils.getBindDN(
-              cache.getAdsContext().getDirContext());
-          String pwd = ConnectionUtils.getBindPassword(
-              cache.getAdsContext().getDirContext());
-          TopologyCacheFilter filter = new TopologyCacheFilter();
-          filter.setSearchMonitoringInformation(false);
-          filter.setSearchBaseDNInformation(false);
-          ServerLoader loader = new ServerLoader(s.getAdsProperties(),
-              dn, pwd, getTrustManager(), cache.getPreferredConnections(),
-              filter);
-          InitialLdapContext ctx = null;
-          try
-          {
-            ctx = loader.createContext();
-            configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
-            if (!alreadyConfiguredReplicationServers.contains(s.getId()))
-            {
-              updateReplicationServer(ctx, allRepServers);
-              alreadyConfiguredReplicationServers.add(s.getId());
-            }
-          }
-          catch (NamingException ne)
-          {
-            String hostPort = getHostPort(server,
-                cache.getPreferredConnections());
-            Message msg = getMessageForException(ne, hostPort);
-            throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
-          }
-          catch (OpenDsException ode)
-          {
-            String hostPort = getHostPort(server,
-                cache.getPreferredConnections());
-            Message msg = getMessageForEnableException(ode, hostPort, baseDN);
-            throw new ReplicationCliException(msg,
-                ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
-          }
-          finally
-          {
-            if (ctx != null)
-            {
-              try
-              {
-                ctx.close();
-              }
-              catch (Throwable t)
-              {
-              }
-            }
-          }
-          alreadyConfiguredServers.add(s.getId());
+          serversToConfigureDomain.add(server);
         }
       }
+    }
+    // Now check the replication servers.
+    for (ServerDescriptor s : cache.getServers())
+    {
+      if (s.isReplicationServer() &&
+          !alreadyConfiguredReplicationServers.contains(server.getId()))
+      {
+        // Check if it is part of the replication topology
+        boolean isInTopology = false;
+        String repServerID = s.getReplicationServerHostPort();
+        for (String rID : repServers)
+        {
+          if (repServerID.equalsIgnoreCase(rID))
+          {
+            isInTopology = true;
+            break;
+          }
+        }
+        if (isInTopology)
+        {
+          replicationServersToConfigure.add(server);
+        }
+      }
+    }
+
+    Set<ServerDescriptor> allServers = new HashSet<ServerDescriptor>();
+    allServers.addAll(serversToConfigureDomain);
+    allServers.addAll(replicationServersToConfigure);
+
+    for (ServerDescriptor s : allServers)
+    {
+      String dn = ConnectionUtils.getBindDN(
+          cache.getAdsContext().getDirContext());
+      String pwd = ConnectionUtils.getBindPassword(
+          cache.getAdsContext().getDirContext());
+      TopologyCacheFilter filter = new TopologyCacheFilter();
+      filter.setSearchMonitoringInformation(false);
+      filter.setSearchBaseDNInformation(false);
+      ServerLoader loader = new ServerLoader(s.getAdsProperties(),
+          dn, pwd, getTrustManager(), cache.getPreferredConnections(),
+          filter);
+      InitialLdapContext ctx = null;
+      try
+      {
+        ctx = loader.createContext();
+        if (serversToConfigureDomain.contains(server))
+        {
+          configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
+        }
+        if (replicationServersToConfigure.contains(server))
+        {
+          updateReplicationServer(ctx, allRepServers);
+        }
+      }
+      catch (NamingException ne)
+      {
+        String hostPort = getHostPort(server,
+            cache.getPreferredConnections());
+        Message msg = getMessageForException(ne, hostPort);
+        throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
+      }
+      catch (OpenDsException ode)
+      {
+        String hostPort = getHostPort(server,
+            cache.getPreferredConnections());
+        Message msg = getMessageForEnableException(ode, hostPort, baseDN);
+        throw new ReplicationCliException(msg,
+            ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+      }
+      finally
+      {
+        if (ctx != null)
+        {
+          try
+          {
+            ctx.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+      alreadyConfiguredServers.add(s.getId());
+      alreadyConfiguredReplicationServers.add(s.getId());
     }
   }
 
