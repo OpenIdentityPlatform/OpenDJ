@@ -407,6 +407,8 @@ public abstract class ReplicationDomain
     {
       status = initStatus;
     }
+    generator.adjust(state);
+    generator.adjust(replicationServerState);
   }
 
   /**
