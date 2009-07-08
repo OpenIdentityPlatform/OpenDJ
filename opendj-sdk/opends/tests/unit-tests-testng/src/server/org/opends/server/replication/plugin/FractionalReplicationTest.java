@@ -976,7 +976,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     }
     catch(Exception e)
     {
-      fail("checkEntryFilteredAfterAdd error: " + e.getMessage());
+      fail("checkEntryFilteredAfterAdd error: "  +
+        e.getClass().getName() + " :" + e.getMessage());
     }
   }
 
@@ -1040,7 +1041,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     }
     catch(Exception e)
     {
-      fail("checkEntryFilteredAfterAdd error: " + e.getMessage());
+      fail("checkEntryFilteredAfterModify error: "  +
+        e.getClass().getName() + " :" + e.getMessage());
     }
   }
 
