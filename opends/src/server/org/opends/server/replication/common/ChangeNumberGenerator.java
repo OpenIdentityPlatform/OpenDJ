@@ -125,15 +125,35 @@ public class ChangeNumberGenerator
 
     long rcvdTime = number.getTime();
 
+    short changeServerId = number.getServerId();
+    int changeSeqNum = number.getSeqnum();
+
     /* need to synchronize with NewChangeNumber method so that we
      * protect writing lastTime fields
      */
     synchronized(this)
     {
-      if (lastTime > rcvdTime)
-        return;
-      else
+      if (lastTime <= rcvdTime)
+      {
         lastTime = ++rcvdTime;
+      }
+
+      if ((serverId == changeServerId) && (seqnum < changeSeqNum))
+      {
+        seqnum = changeSeqNum;
+      }
     }
+  }
+
+  /**
+   * Adjust utility method that takes ServerState as a parameter.
+   * @param state the ServerState to adjust with
+   */
+  public void adjust(ServerState state)
+  {
+    for (short localServerId : state)
+    {
+      adjust(state.getMaxChangeNumber(localServerId));
+     }
   }
 }
