@@ -159,6 +159,7 @@ public class ServerLoader extends Thread
       ctx = createContext();
       serverDescriptor = ServerDescriptor.createStandalone(ctx, filter);
       serverDescriptor.setAdsProperties(serverProperties);
+      serverDescriptor.updateAdsPropertiesWithServerProperties();
     }
     catch (NoPermissionException npe)
     {
