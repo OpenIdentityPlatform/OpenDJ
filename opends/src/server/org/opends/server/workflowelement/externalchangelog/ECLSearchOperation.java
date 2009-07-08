@@ -647,7 +647,12 @@ searchProcessing:
         if (update!=null)
         {
           if (phase==INITIAL)
-            buildAndReturnEntry(update);
+            if (!buildAndReturnEntry(update))
+            {
+              // Abandon, Size limit reached
+              eclSession.close();
+              break;
+            }
         }
         else
         {
@@ -678,9 +683,13 @@ searchProcessing:
   /**
    * Build an ECL entry from a provided ECL msg and return it.
    * @param eclmsg The provided ECL msg.
+   * @return  <CODE>true</CODE> if the caller should continue processing the
+   *          search request and sending additional entries and references, or
+   *          <CODE>false</CODE> if not for some reason (e.g., the size limit
+   *          has been reached or the search has been abandoned).
    * @throws DirectoryException When an errors occurs.
    */
-  private void buildAndReturnEntry(ECLUpdateMsg eclmsg)
+  private boolean buildAndReturnEntry(ECLUpdateMsg eclmsg)
   throws DirectoryException
   {
     Entry entry = null;
@@ -695,12 +704,9 @@ searchProcessing:
       = new EntryChangelogNotificationControl(
           true,eclmsg.getCookie().toString());
       controls.add(clrc);
-      boolean entryReturned = returnEntry(entry, controls);
-      if (entryReturned==false)
-      {
-        // FIXME:ECL Handle the error case where returnEntry fails
-      }
+      return returnEntry(entry, controls);
     }
+    return true;
   }
 
   /**
@@ -749,7 +755,7 @@ searchProcessing:
           null, // real time current entry
           null, // real time attrs names
           null, // hist entry attributes
-          0,    // TODO:ECL G Good changelog draft compat. addMsg.getSeqnum()
+          -1,    // TODO:ECL G Good changelog draft compat. addMsg.getSeqnum()
       "add");
 
     } else
@@ -778,7 +784,7 @@ searchProcessing:
             null, // real time current entry
             null, // real time attrs names
             null, // hist entry attributes
-            0,    // TODO:ECL G Good changelog draft compat. modMsg.getSeqnum()
+            -1,    // TODO:ECL G Good changelog draft compat. modMsg.getSeqnum()
         "modify");
 
       }
@@ -801,7 +807,7 @@ searchProcessing:
           null, // real time current entry
           null, // real time attrs names
           null, // hist entry attributes
-          0,    // TODO:ECL G Good changelog draft compat. modDNMsg.getSeqnum()
+          -1,    // TODO:ECL G Good changelog draft compat. modDNMsg.getSeqnum()
           "modrdn");
 
       Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
@@ -835,7 +841,7 @@ searchProcessing:
           null,
           null,
           null, //rattributes,
-          0, // TODO:ECL G Good changelog draft compat. delMsg.getSeqnum()
+          -1, // TODO:ECL G Good changelog draft compat. delMsg.getSeqnum()
          "delete");
     }
     return clEntry;
@@ -890,7 +896,7 @@ searchProcessing:
    * @param targetAttrNames The provided list of attributes names that should
    *                        be read from the entry (real time values)
    * @param histEntryAttributes TODO:ECL Adress hist entry attributes
-   * @param seqnum          The provided RCL int change number.
+   * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
    * @return                The created ECL entry.
    * @throws DirectoryException
@@ -906,7 +912,7 @@ searchProcessing:
       Entry entry,
       List<String> targetAttrNames,
       List<RawAttribute> histEntryAttributes,
-      int seqnum,
+      int draftChangenumber,
       String changetype)
   throws DirectoryException
   {
@@ -930,17 +936,11 @@ searchProcessing:
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
 
-    // TODO:ECL G Good changelog compat.
-    if (seqnum>0)
-    {
-      Attribute a = Attributes.create("changeNumber", String.valueOf(seqnum));
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      uAttrs.put(a.getAttributeType(), attrList);
-    }
+    // MUST attributes
 
-    //
-    Attribute a = Attributes.create("replicationCSN", changeNumber.toString());
+    // ECL Changelog draft change number
+    Attribute a = Attributes.create("changeNumber",
+        String.valueOf(draftChangenumber));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     uAttrs.put(a.getAttributeType(), attrList);
@@ -978,12 +978,19 @@ searchProcessing:
     attrList.add(a);
     uAttrs.put(a.getAttributeType(), attrList);
 
+    // MAY attributes
+
+    a = Attributes.create("replicationCSN", changeNumber.toString());
+    attrList = new ArrayList<Attribute>(1);
+    attrList.add(a);
+    operationalAttrs.put(a.getAttributeType(), attrList);
+
     //
     a = Attributes.create("replicaIdentifier",
         Short.toString(changeNumber.getServerId()));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
+    operationalAttrs.put(a.getAttributeType(), attrList);
 
     if (clearLDIFchanges != null)
     {
@@ -1014,6 +1021,15 @@ searchProcessing:
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     operationalAttrs.put(a.getAttributeType(), attrList);
+    if (draftChangenumber>0)
+    {
+      // compat mode
+      a = Attributes.create("targetuniqueid",
+          ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID));
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+      operationalAttrs.put(a.getAttributeType(), attrList);
+    }
 
     a = Attributes.create("cookie", cookie);
     attrList = new ArrayList<Attribute>(1);
@@ -1308,6 +1324,36 @@ searchProcessing:
       catch(Exception e){}
     }
     return super.cancel(cancelRequest);
+  }
+
+  /**
+  * The unique identifier used in DSEE is named nsUniqueId and its format is
+  * HHHHHHHH-HHHHHHHH-HHHHHHHH-HHHHHHHH where H is a hex digit.
+  * An nsUniqueId value is for example 3970de28-08b311d9-8095b9bf-c4d9231c
+  * The unique identifier used in OpenDS is named entryUUID.
+  * Its value is for example entryUUID: 50dd9673-71e1-4478-b13c-dba387c4d7e1
+  * @param entryUid the OpenDS entry UID
+  * @return the Dsee format for the entry UID
+  */
+  private static String openDsToSunDseeNsUniqueId(String entryUid)
+  {
+
+    if (entryUid == null)
+      return null;
+
+    //  the conversion from one unique identifier to an other is
+    //  a question of formating : the last “-” is placed
+    StringBuffer buffer = new StringBuffer(entryUid);
+    //  Delete a "-" at 13 to get something like
+    buffer.deleteCharAt(13);
+
+    //  Delete a "-" at 23 to get something like
+    buffer.deleteCharAt(22);
+
+    //  Add the last "-" to get something like
+    buffer.insert(26,'-');
+
+    return buffer.toString();
   }
 }
 

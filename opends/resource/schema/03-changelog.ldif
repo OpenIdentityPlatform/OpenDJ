@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 #
 #
 # This file contains schema definitions from draft-good-ldap-changelog, which
@@ -60,8 +60,34 @@ attributeTypes: ( 2.16.840.1.113730.3.1.11 NAME 'newSuperior'
   DESC 'the new parent of an entry which is the target of a moddn operation'
   EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   SINGLE-VALUE X-ORIGIN 'draft-good-ldap-changelog' )
+attributeTypes: ( 2.16.840.1.113730.3.1.77 NAME 'changeTime'
+  DESC 'the time when the change was processed'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'Sun DSEE6 Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.724 NAME 'replicaIdentifier'
+  DESC 'the OpenDS replication domain server identifier for the change'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.725 NAME 'replicationCSN'
+  DESC 'The OpenDS replication change number for the change'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.590 NAME 'targetEntryUUID'
+  DESC 'The OpenDS unique id of the entry targeted by the change'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.591 NAME 'changeLogCookie'
+  DESC 'The OpenDS opaque cookie for the External Changelog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 2.16.840.1.113730.3.2.1 NAME 'changeLogEntry' SUP top
-  STRUCTURAL MUST ( changeNumber $ targetDN $ changeType )
-  MAY ( changes $ newRDN $ deleteOldRDN $ newSuperior )
+  STRUCTURAL 
+  MUST ( changeNumber $ targetDN $ changeType $ changeTime )
+  MAY ( changes $ newRDN $ deleteOldRDN $ newSuperior $ replicaIdentifier
+  $ replicationCSN $ targetEntryUUID $ cookie )
   X-ORIGIN 'draft-good-ldap-changelog' )
-
