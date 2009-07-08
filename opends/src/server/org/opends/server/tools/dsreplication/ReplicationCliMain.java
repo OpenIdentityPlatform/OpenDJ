@@ -3294,6 +3294,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!hasReplicationPort1)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              uData.configureReplicationServer1() &&
               isLocalHost(host1) &&
               !SetupUtils.canUseAsPort(replPort1))
           {
@@ -3303,6 +3304,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!hasReplicationPort2)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              uData.configureReplicationServer2() &&
               isLocalHost(host2) &&
               !SetupUtils.canUseAsPort(replPort2))
           {
@@ -7130,7 +7132,7 @@ public class ReplicationCliMain extends ConsoleApplication
         ServerDescriptor s = replica.getServer();
         if (!alreadyConfiguredServers.contains(s.getId()))
         {
-          serversToConfigureDomain.add(server);
+          serversToConfigureDomain.add(s);
         }
       }
     }

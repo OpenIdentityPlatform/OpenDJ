@@ -299,7 +299,8 @@ public class ServerDescriptor
   public void setAdsProperties(
       Map<ADSContext.ServerProperty, Object> adsProperties)
   {
-    this.adsProperties = adsProperties;
+    this.adsProperties.clear();
+    this.adsProperties.putAll(adsProperties);
   }
 
   /**
