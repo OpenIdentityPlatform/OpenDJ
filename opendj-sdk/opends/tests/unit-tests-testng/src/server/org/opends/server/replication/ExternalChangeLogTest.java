@@ -1081,6 +1081,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","delete");
             checkValue(resultEntry,"cookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid1");
+            checkValue(resultEntry,"changenumber","-1");
           } else if (i==2)
           {
             // check the ADD entry has the right content
@@ -1095,7 +1096,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","add");
             checkValue(resultEntry,"cookie","o=test:"+cn2.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-
+            checkValue(resultEntry,"changenumber","-1");
           } else if (i==3)
           {
             // check the MOD entry has the right content
@@ -1108,6 +1109,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","modify");
             checkValue(resultEntry,"cookie","o=test:"+cn3.toString()+";");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid3");
+            checkValue(resultEntry,"changenumber","-1");
           } else if (i==4)
           {
             // check the MODDN entry has the right content
@@ -1120,6 +1122,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"newrdn","uid=ECLDirectAllOpsnew4");            
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
             checkValue(resultEntry,"deleteoldrdn","true");
+            checkValue(resultEntry,"changenumber","-1");
           }
         }
       }
