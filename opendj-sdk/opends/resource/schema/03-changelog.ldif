@@ -89,5 +89,5 @@ objectClasses: ( 2.16.840.1.113730.3.2.1 NAME 'changeLogEntry' SUP top
   STRUCTURAL 
   MUST ( changeNumber $ targetDN $ changeType $ changeTime )
   MAY ( changes $ newRDN $ deleteOldRDN $ newSuperior $ replicaIdentifier
-  $ replicationCSN $ targetEntryUUID $ cookie )
+  $ replicationCSN $ targetEntryUUID $ changeLogCookie )
   X-ORIGIN 'draft-good-ldap-changelog' )
