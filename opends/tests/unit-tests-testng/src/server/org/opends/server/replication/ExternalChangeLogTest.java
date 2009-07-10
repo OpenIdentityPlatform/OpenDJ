@@ -395,8 +395,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(objectclass=*)"));
 
-      debugInfo(tn, "Res code=" + op.getResultCode());
-      debugInfo(tn, "Res OE=" + ResultCode.OPERATIONS_ERROR);
       // Error because no cookie
       assertEquals(
           op.getResultCode(), ResultCode.OPERATIONS_ERROR,
@@ -675,7 +673,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             if (i++==2)
               cookie =
-                entry.getAttribute("cookie").get(0).iterator().next().toString();
+                entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
           }
           catch(NullPointerException e)
           {}
@@ -728,7 +726,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           try
           {
           cookie =
-            entry.getAttribute("cookie").get(0).iterator().next().toString();
+            entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
           }
           catch(NullPointerException e)
           {}
@@ -785,7 +783,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           try
           {
           cookie =
-            resultEntry.getAttribute("cookie").get(0).iterator().next().toString();
+            resultEntry.getAttribute("changelogcookie").get(0).iterator().next().toString();
           }
           catch(NullPointerException e)
           {}
@@ -831,7 +829,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           try
           {
           cookie =
-            resultEntry.getAttribute("cookie").get(0).iterator().next().toString();
+            resultEntry.getAttribute("changelogcookie").get(0).iterator().next().toString();
           }
           catch(NullPointerException e)
           {}
@@ -1050,7 +1048,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           0, // Size limit
           0, // Time limit
           false, // Types only
-          LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
+          LDAPFilter.decode("(targetdn=*"+tn+"*,o=test)"),
           attributes,
           controls,
           null);
@@ -1079,7 +1077,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","delete");
-            checkValue(resultEntry,"cookie","o=test:"+cn1.toString()+";");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid1");
             checkValue(resultEntry,"changenumber","-1");
           } else if (i==2)
@@ -1094,7 +1092,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","add");
-            checkValue(resultEntry,"cookie","o=test:"+cn2.toString()+";");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn2.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber","-1");
           } else if (i==3)
@@ -1107,7 +1105,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modify");
-            checkValue(resultEntry,"cookie","o=test:"+cn3.toString()+";");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid3");
             checkValue(resultEntry,"changenumber","-1");
           } else if (i==4)
@@ -1117,7 +1115,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modrdn");
-            checkValue(resultEntry,"cookie","o=test:"+cn4.toString()+";");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid4");
             checkValue(resultEntry,"newrdn","uid=ECLDirectAllOpsnew4");            
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
