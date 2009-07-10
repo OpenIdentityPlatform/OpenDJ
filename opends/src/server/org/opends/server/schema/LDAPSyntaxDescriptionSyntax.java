@@ -22,10 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
+
 
 
 
@@ -37,7 +37,7 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
+import org.opends.messages.Message;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -228,31 +228,18 @@ public class LDAPSyntaxDescriptionSyntax
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an attribute
-   * with this syntax.  If it is not, then the reason may be appended to the
-   * provided buffer.
-   *
-   * @param  value          The value for which to make the determination.
-   * @param  invalidReason  The buffer to which the invalid reason should be
-   *                        appended.
-   *
-   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
-   *          this syntax, or <CODE>false</CODE> if not.
+   *  Parse the OID and Description fields from the ldap syntaxes.
    */
-  @Override
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   MessageBuilder invalidReason)
+  private static int parseOIDAndDescription(String valueStr,
+          StringBuilder descriptionBuffer, StringBuilder oidBuffer)
+          throws DirectoryException
   {
-    // Get string representations of the provided value using the provided form
-    // and with all lowercase characters.
-    String valueStr = value.toString();
-    String lowerStr = toLowerCase(valueStr);
-
-
     // We'll do this a character at a time.  First, skip over any leading
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
+    String lowerStr = toLowerCase(valueStr);
+
     while ((pos < length) && (valueStr.charAt(pos) == ' '))
     {
       pos++;
@@ -263,8 +250,9 @@ public class LDAPSyntaxDescriptionSyntax
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
 
-      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get());
-      return false;
+      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
 
@@ -274,10 +262,11 @@ public class LDAPSyntaxDescriptionSyntax
     if (c != '(')
     {
 
-      invalidReason.append(
+      Message message =
               ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
-                      valueStr, (pos-1), String.valueOf(c)));
-      return false;
+                      valueStr, (pos-1), String.valueOf(c));
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
 
@@ -291,27 +280,30 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
-              valueStr));
-      return false;
+      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
-
+    int oidStartPos = pos;
     if (isDigit(c))
     {
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c = valueStr.charAt(pos)) != ')')
       {
         if (c == '.')
         {
           if (lastWasPeriod)
           {
-            invalidReason.append(
-                    ERR_ATTR_SYNTAX_ATTRSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
-                            valueStr, (pos-1)));
-            return false;
+            Message message =
+              ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
+                  get(valueStr, (pos-1));
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                         message);
           }
           else
           {
@@ -321,48 +313,56 @@ public class LDAPSyntaxDescriptionSyntax
         else if (! isDigit(c))
         {
           // This must have been an illegal character.
-          invalidReason.append(
-                  ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(
-                          valueStr, String.valueOf(c), (pos-1)));
-          return false;
+          Message message =
+            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+                get(valueStr, String.valueOf(c), (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
         }
         else
         {
           lastWasPeriod = false;
         }
+        pos++;
       }
     }
     else
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos++)) != ' '))
+      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
+              && (c=valueStr.charAt(pos))!=')')
       {
         if (isAlpha(c) || isDigit(c) || (c == '-') ||
             ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
+          pos++;
         }
         else
         {
           // This must have been an illegal character.
-
-          invalidReason.append(
-                  ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(
-                          valueStr, String.valueOf(c), (pos-1)));
-          return false;
+          Message message =
+                  ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+              get(valueStr, String.valueOf(c), (pos-1));
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
         }
       }
     }
-
 
     // If we're at the end of the value, then it isn't a valid attribute type
     // description.  Otherwise, parse out the OID.
     if (pos >= length)
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
-              valueStr));
-      return false;
+      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
+    }
+    else
+    {
+      oidBuffer.append(lowerStr.substring(oidStartPos, pos));
     }
 
 
@@ -376,9 +376,10 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
-              valueStr));
-      return false;
+      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+              valueStr);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
 
@@ -388,15 +389,14 @@ public class LDAPSyntaxDescriptionSyntax
     {
       if (pos < length)
       {
-        invalidReason.append(
+        Message message =
                 ERR_ATTR_SYNTAX_ATTRSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(
-                        valueStr, (pos-1)));
-        return false;
+                        valueStr, (pos-1));
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
       }
 
-      return true;
     }
-
 
     // The next token must be "DESC" followed by a quoted string.
     String tokenName;
@@ -413,24 +413,25 @@ public class LDAPSyntaxDescriptionSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      invalidReason.append(
+      Message message =
               ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN.get(
-                      valueStr, pos, getExceptionMessage(e)));
-      return false;
+                      valueStr, pos, getExceptionMessage(e));
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
     if (! tokenName.equals("desc"))
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC.get(
-              valueStr, tokenName));
-      return false;
+      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC.get(
+              valueStr, tokenName);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
     }
 
 
     // The next component must be the quoted description.
     try
     {
-      StringBuilder descriptionBuffer = new StringBuilder();
       pos = readQuotedString(valueStr, descriptionBuffer, pos);
     }
     catch (Exception e)
@@ -440,13 +441,173 @@ public class LDAPSyntaxDescriptionSyntax
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      invalidReason.append(
+      Message message =
               ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE.get(
-                      valueStr, pos, getExceptionMessage(e)));
+                      valueStr, pos, getExceptionMessage(e));
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
+    }
+
+    return pos;
+
+  }
+
+
+
+  /**
+   * Decodes the contents of the provided byte sequence as an ldap syntax
+   * definition according to the rules of this syntax.  Note that the provided
+   * byte sequence value does not need to be normalized (and in fact, it should
+   * not be in order to allow the desired capitalization to be preserved).
+   *
+   * @param  value                 The byte sequence containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that
+   *                               reference a superior class or required or
+   *                               optional attribute types which are not
+   *                               defined in the server schema.  This should
+   *                               only be true when called by
+   *                               {@code valueIsAcceptable}.
+   *
+   * @return  The decoded ldapsyntax definition.
+   *
+   * @throws  DirectoryException  If the provided value cannot be decoded as an
+   *                              ldapsyntax definition.
+   */
+  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value,
+          Schema schema,
+          boolean allowUnknownElements) throws DirectoryException
+  {
+     // Get string representations of the provided value using the provided form
+    // and with all lowercase characters.
+    String valueStr = value.toString();
+    String lowerStr = toLowerCase(valueStr);
+    int length = valueStr.length();
+
+    StringBuilder descriptionBuffer = new StringBuilder();
+    StringBuilder oidBuffer = new StringBuilder();
+
+    //Retrieve the OID and Description part of the defition.
+    int pos = parseOIDAndDescription(valueStr, descriptionBuffer,oidBuffer);
+
+    String oid = oidBuffer.toString();
+    String description = descriptionBuffer.toString();
+    StringBuilder extBuffer = new StringBuilder();
+    //Attribute syntax which will sustitute the syntax with oid.
+    AttributeSyntax subSyntax = null;
+
+    pos = readTokenName(valueStr, extBuffer, pos);
+    String lowerTokenName = toLowerCase(extBuffer.toString());
+
+    if(lowerTokenName.equals("x-subst"))
+    {
+      StringBuilder woidBuffer = new StringBuilder();
+      pos = readQuotedString(lowerStr, woidBuffer, pos);
+      String syntaxOID = woidBuffer.toString();
+      subSyntax = schema.getSyntax(syntaxOID);
+      if(subSyntax == null)
+      {
+        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
+            String.valueOf(oid), syntaxOID);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                     message);
+      }
+    }
+    else
+    {
+      Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
+              valueStr,lowerTokenName,pos);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
+    }
+
+    char c = valueStr.charAt(pos);
+
+    while ((pos < length) && (c == ' '))
+    {
+      pos++;
+    }
+
+    // The next character must be the closing parenthesis and there should not
+    // be anything after it (except maybe some spaces).
+    if ((c = valueStr.charAt(pos++)) != ')')
+    {
+
+      Message message =
+              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS.get(
+                      valueStr, pos, String.valueOf(c));
+       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
+    }
+
+    while (pos < length)
+    {
+      c = valueStr.charAt(pos++);
+      if (c != ' ')
+      {
+
+        Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE.get(
+                        valueStr, String.valueOf(c), pos);
+         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              message);
+      }
+    }
+
+    LDAPSyntaxDescription syntaxDesc = null;
+    //Since we reached here it means everything is OK.
+    if(subSyntax !=null)
+    {
+      //A SubstitutionSyntax is requested.
+      syntaxDesc = new LDAPSyntaxDescription(valueStr,
+              new SubstitutionSyntax(subSyntax,description,oid),
+              description,null);
+    }
+    return syntaxDesc;
+  }
+
+
+
+  /**
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax.  If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
+   * @param  value          The value for which to make the determination.
+   * @param  invalidReason  The buffer to which the invalid reason should be
+   *                        appended.
+   *
+   * @return  <CODE>true</CODE> if the provided value is acceptable for use with
+   *          this syntax, or <CODE>false</CODE> if not.
+   */
+  @Override
+  public boolean valueIsAcceptable(ByteSequence value,
+                                   MessageBuilder invalidReason)
+  {
+     // Get string representations of the provided value using the provided form
+    // and with all lowercase characters.
+    String valueStr = value.toString();
+    StringBuilder descriptionBuffer = new StringBuilder();
+    StringBuilder oidBuffer = new StringBuilder();
+
+    int length = valueStr.length();
+    int pos = 0;
+     try
+    {
+      pos = parseOIDAndDescription(valueStr, descriptionBuffer,oidBuffer);
+    }
+    catch(DirectoryException de)
+    {
+      invalidReason.append(de.getMessageObject());
       return false;
     }
+
+    char c = valueStr.charAt(pos);
     //Check if we have a RFC 4512 style extension.
-    if ((c = valueStr.charAt(pos)) != ')')
+    if (c  != ')')
     {
         try {
             pos=parseExtension(valueStr, pos);
@@ -723,6 +884,149 @@ private static int parseExtension(String valueStr, int startPos)
   public boolean isBinary()
   {
     return false;
+  }
+
+
+
+  /**
+   * This class provides a substitution mechanism where one unimplemented
+   * syntax can be substituted by another defined syntax. A substitution syntax
+   * is an LDAPSyntaxDescriptionSyntax with X-SUBST extension.
+   */
+  private static class SubstitutionSyntax extends
+          LDAPSyntaxDescriptionSyntax
+  {
+    // The syntax that will subsittute the unimplemented syntax.
+    private AttributeSyntax subSyntax;
+
+    // The description of this syntax.
+    private String description;
+
+    //The oid of this syntax.
+    private String oid;
+
+
+
+    //Creates a new instance of this syntax.
+    private SubstitutionSyntax(AttributeSyntax subSyntax,
+            String description,
+            String oid)
+    {
+      super();
+      this.subSyntax = subSyntax;
+      this.description = description;
+      this.oid = oid;
+    }
+
+
+
+     /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getSyntaxName()
+    {
+      // There is no name for a substitution syntax.
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getOID()
+    {
+      return oid;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getDescription()
+    {
+      return description;
+    }
+
+
+
+     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean valueIsAcceptable(ByteSequence value,
+                                     MessageBuilder invalidReason)
+    {
+      return  subSyntax.valueIsAcceptable(value, invalidReason);
+    }
+
+
+
+      /**
+   * Retrieves the default equality matching rule that will be used for
+   * attributes with this syntax.
+   *
+   * @return  The default equality matching rule that will be used for
+   *          attributes with this syntax, or <CODE>null</CODE> if equality
+   *          matches will not be allowed for this type by default.
+   */
+  @Override
+  public EqualityMatchingRule getEqualityMatchingRule()
+  {
+    return subSyntax.getEqualityMatchingRule();
+  }
+
+
+
+  /**
+   * Retrieves the default ordering matching rule that will be used for
+   * attributes with this syntax.
+   *
+   * @return  The default ordering matching rule that will be used for
+   *          attributes with this syntax, or <CODE>null</CODE> if ordering
+   *          matches will not be allowed for this type by default.
+   */
+  @Override
+  public OrderingMatchingRule getOrderingMatchingRule()
+  {
+    return subSyntax.getOrderingMatchingRule();
+  }
+
+
+
+  /**
+   * Retrieves the default substring matching rule that will be used for
+   * attributes with this syntax.
+   *
+   * @return  The default substring matching rule that will be used for
+   *          attributes with this syntax, or <CODE>null</CODE> if substring
+   *          matches will not be allowed for this type by default.
+   */
+  @Override
+  public SubstringMatchingRule getSubstringMatchingRule()
+  {
+    return subSyntax.getSubstringMatchingRule();
+  }
+
+
+
+  /**
+   * Retrieves the default approximate matching rule that will be used for
+   * attributes with this syntax.
+   *
+   * @return  The default approximate matching rule that will be used for
+   *          attributes with this syntax, or <CODE>null</CODE> if approximate
+   *          matches will not be allowed for this type by default.
+   */
+  @Override
+  public ApproximateMatchingRule getApproximateMatchingRule()
+  {
+    return subSyntax.getApproximateMatchingRule();
+  }
   }
 }
 
