@@ -190,6 +190,11 @@ public final class Schema
   // names/OID and the name form itself.
   private ConcurrentHashMap<String,NameForm> nameFormsByName;
 
+  // The set of ldap syntax descriptions for this schema, mapped
+  // the OID and the ldap syntax description itself.
+  private ConcurrentHashMap<String,LDAPSyntaxDescription>
+          ldapSyntaxDescriptions;
+
   // The set of pre-encoded attribute syntax representations.
   private LinkedHashSet<AttributeValue> syntaxSet;
 
@@ -263,6 +268,8 @@ public final class Schema
     nameFormsByOC =
             new ConcurrentHashMap<ObjectClass,List<NameForm>>();
     nameFormsByName = new ConcurrentHashMap<String,NameForm>();
+    ldapSyntaxDescriptions =
+            new ConcurrentHashMap<String,LDAPSyntaxDescription>();
     subordinateTypes =
          new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
@@ -899,6 +906,145 @@ public final class Schema
         ByteString normValue =
             ByteString.valueOf(toLowerCase(valueString));
         syntaxSet.remove(AttributeValues.create(rawValue, normValue));
+      }
+    }
+  }
+
+
+
+  /**
+   * Retrieves the ldap syntax definitions for this schema, as a
+   * mapping between the OID for the syntax and the ldap syntax
+   * defition itself. Each ldap syntax should only be present once,
+   * since its only key is its OID.  The contents of the returned
+   * mapping must not be altered.
+   *
+   * @return  The ldap syntax definitions for this schema.
+   */
+  public ConcurrentHashMap<String,LDAPSyntaxDescription>
+          getLdapSyntaxDescriptions()
+  {
+    return ldapSyntaxDescriptions;
+  }
+
+
+
+  /**
+   * Indicates whether this schema definition includes an ldap
+   * syntax description with the provided name or OID.
+   *
+   * @param  lowerName  The OID for which to make the
+   *                    determination, formatted in all lowercase
+   *                    characters.
+   *
+   * @return  {@code true} if this schema contains an ldap syntax
+   *          with the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasLdapSyntaxDescription(String lowerName)
+  {
+    return ldapSyntaxDescriptions.containsKey(lowerName);
+  }
+
+
+
+  /**
+   * Retrieves the ldap syntax definition with the OID.
+   *
+   * @param  lowerName  The OID of the ldap syntax to retrieve,
+   *                    formatted in all lowercase characters.
+   *
+   * @return  The requested ldap syntax, or <CODE>null</CODE> if
+   *          no syntax is registered with the provided OID.
+   */
+  public LDAPSyntaxDescription getLdapSyntaxDescription(
+          String lowerName)
+  {
+    return ldapSyntaxDescriptions.get(lowerName);
+  }
+
+
+
+  /**
+   * Registers the provided ldap syntax description with this
+   * schema.
+   *
+   * @param  syntax    The ldap syntax description to register
+   *                              with this schema.
+   * @param  overwriteExisting  Indicates whether to overwrite an
+   *                            existing mapping if there are any
+   *                            conflicts (i.e., another ldap
+   *                            syntax with the same OID).
+   *
+   * @throws  DirectoryException  If a conflict is encountered and
+   *                              <CODE>overwriteExisting</CODE> flag
+   *                              is set to <CODE>false</CODE>
+   */
+  public void registerLdapSyntaxDescription(
+                            LDAPSyntaxDescription syntax,
+                             boolean overwriteExisting)
+         throws DirectoryException
+  {
+    /**
+     * ldapsyntaxes is part real and part virtual. For any
+     * ldapsyntaxes attribute this is real, an LDAPSyntaxDescription
+     * object is created and stored with the schema. Also, the
+     * associated LDAPSyntaxDescriptionSyntax is added into the
+     * virtual syntax set to make this available through virtual
+     * ldapsyntaxes attribute.
+     */
+    synchronized (ldapSyntaxDescriptions)
+    {
+      String oid = toLowerCase(
+                syntax.getLdapSyntaxDescriptionSyntax().getOID());
+      if (! overwriteExisting)
+      {
+        if (ldapSyntaxDescriptions.containsKey(oid))
+        {
+           Message message =
+            ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.
+              get(oid);
+          throw new DirectoryException(
+                         ResultCode.CONSTRAINT_VIOLATION, message);
+        }
+      }
+
+      ldapSyntaxDescriptions.put(oid, syntax);
+
+      //Register the attribute syntax with the schema. It will ensure
+      // syntax is available along with the other virtual values for
+      // ldapsyntaxes.
+      registerSyntax(syntax.getLdapSyntaxDescriptionSyntax(),
+              overwriteExisting);
+    }
+  }
+
+
+
+  /**
+   * Deregisters the provided ldap syntax description with this
+   * schema.
+   *
+   * @param  syntax  The ldap syntax to deregister with this
+   *                 schema.
+   */
+  public void deregisterLdapSyntaxDescription(
+          LDAPSyntaxDescription syntax)
+  {
+    synchronized (ldapSyntaxDescriptions)
+    {
+      //Remove the real value.
+      ldapSyntaxDescriptions.remove(
+       toLowerCase(syntax.getLdapSyntaxDescriptionSyntax().getOID()),
+       syntax);
+
+      try
+      {
+        //Get rid of this from the virtual ldapsyntaxes.
+        deregisterSyntax(syntax.getLdapSyntaxDescriptionSyntax());
+      }
+      catch (Exception e)
+      {
+        deregisterSyntax(syntax.getLdapSyntaxDescriptionSyntax());
       }
     }
   }
@@ -3173,6 +3319,7 @@ public final class Schema
          ditStructureRulesByNameForm);
     dupSchema.nameFormsByOC.putAll(nameFormsByOC);
     dupSchema.nameFormsByName.putAll(nameFormsByName);
+    dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
     dupSchema.syntaxSet.addAll(syntaxSet);
     dupSchema.attributeTypeSet.addAll(attributeTypeSet);
     dupSchema.ditContentRuleSet.addAll(ditContentRuleSet);
