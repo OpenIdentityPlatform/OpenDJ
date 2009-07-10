@@ -939,7 +939,7 @@ searchProcessing:
     // MUST attributes
 
     // ECL Changelog draft change number
-    Attribute a = Attributes.create("changeNumber",
+    Attribute a = Attributes.create("changenumber",
         String.valueOf(draftChangenumber));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -950,7 +950,7 @@ searchProcessing:
     dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
     a = Attributes.create(
-        DirectoryServer.getAttributeType("changeTime", true),
+        DirectoryServer.getAttributeType("changetime", true),
         dateFormat.format(new Date(changeNumber.getTime())));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -965,7 +965,7 @@ searchProcessing:
     */
 
     //
-    a = Attributes.create("changeType", changetype);
+    a = Attributes.create("changetype", changetype);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     uAttrs.put(a.getAttributeType(), attrList);
@@ -980,13 +980,13 @@ searchProcessing:
 
     // MAY attributes
 
-    a = Attributes.create("replicationCSN", changeNumber.toString());
+    a = Attributes.create("replicationcsn", changeNumber.toString());
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     operationalAttrs.put(a.getAttributeType(), attrList);
 
     //
-    a = Attributes.create("replicaIdentifier",
+    a = Attributes.create("replicaidentifier",
         Short.toString(changeNumber.getServerId()));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1031,7 +1031,7 @@ searchProcessing:
       operationalAttrs.put(a.getAttributeType(), attrList);
     }
 
-    a = Attributes.create("cookie", cookie);
+    a = Attributes.create("changelogcookie", cookie);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     operationalAttrs.put(a.getAttributeType(), attrList);
