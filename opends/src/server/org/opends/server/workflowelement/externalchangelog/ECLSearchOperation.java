@@ -1342,7 +1342,7 @@ searchProcessing:
       return null;
 
     //  the conversion from one unique identifier to an other is
-    //  a question of formating : the last “-” is placed
+    //  a question of formating : the last "-" is placed
     StringBuffer buffer = new StringBuffer(entryUid);
     //  Delete a "-" at 13 to get something like
     buffer.deleteCharAt(13);
