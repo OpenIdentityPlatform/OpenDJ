@@ -27,6 +27,8 @@
 
 package org.opends.admin.ads;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -34,6 +36,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,6 +61,11 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
+
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.util.Utils;
 
 
 /**
@@ -2407,5 +2416,141 @@ public class ADSContext
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return certificateMap;
+  }
+
+  /**
+   * Merge the contents of this ADSContext with the contents of the provided
+   * ADSContext.  Note that only the contents of this ADSContext will be
+   * updated.
+   * @param adsCtx the other ADSContext to merge the contents with.
+   * @throws ADSContextException if there was an error during the merge.
+   */
+  public void mergeWithRegistry(ADSContext adsCtx) throws ADSContextException
+  {
+    try
+    {
+      // Merge administrators.
+      mergeAdministrators(adsCtx);
+
+      // Merge groups.
+      mergeServerGroups(adsCtx);
+
+      // Merge servers.
+      mergeServers(adsCtx);
+    }
+    catch (ADSContextException adce)
+    {
+      Message msg = ERR_ADS_MERGE.get(
+          ConnectionUtils.getHostPort(getDirContext()),
+          ConnectionUtils.getHostPort(adsCtx.getDirContext()),
+          adce.getMessageObject());
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_MERGING, msg, adce);
+    }
+  }
+
+  /**
+   * Merge the administrator contents of this ADSContext with the contents of
+   * the provided ADSContext.  Note that only the contents of this ADSContext
+   * will be updated.
+   * @param adsCtx the other ADSContext to merge the contents with.
+   * @throws ADSContextException if there was an error during the merge.
+   */
+  private void mergeAdministrators(ADSContext adsCtx) throws ADSContextException
+  {
+    Set<Map<AdministratorProperty, Object>> admins2 =
+      adsCtx.readAdministratorRegistry();
+    SortedSet<String> notDefinedAdmins = new TreeSet<String>();
+    for (Map<AdministratorProperty, Object> admin2 : admins2)
+    {
+      if (!isAdministratorAlreadyRegistered(admin2))
+      {
+        String uid = (String)admin2.get(AdministratorProperty.UID);
+        notDefinedAdmins.add(uid);
+      }
+    }
+    if (!notDefinedAdmins.isEmpty())
+    {
+      Message msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
+          ConnectionUtils.getHostPort(adsCtx.getDirContext()),
+          ConnectionUtils.getHostPort(getDirContext()),
+          Utils.getStringFromCollection(notDefinedAdmins,
+              Constants.LINE_SEPARATOR),
+          ConnectionUtils.getHostPort(getDirContext()));
+      throw new ADSContextException(ADSContextException.ErrorType.ERROR_MERGING,
+          msg, null);
+    }
+  }
+
+  /**
+   * Merge the groups contents of this ADSContext with the contents of the
+   * provided ADSContext.  Note that only the contents of this ADSContext will
+   * be updated.
+   * @param adsCtx the other ADSContext to merge the contents with.
+   * @throws ADSContextException if there was an error during the merge.
+   */
+  private void mergeServerGroups(ADSContext adsCtx) throws ADSContextException
+  {
+    Set<Map<ServerGroupProperty, Object>> serverGroups1 =
+      readServerGroupRegistry();
+    Set<Map<ServerGroupProperty, Object>> serverGroups2 =
+      adsCtx.readServerGroupRegistry();
+
+    for (Map<ServerGroupProperty, Object> group2 : serverGroups2)
+    {
+      Map<ServerGroupProperty, Object> group1 = null;
+      String uid2 = (String)group2.get(ServerGroupProperty.UID);
+      for (Map<ServerGroupProperty, Object> gr : serverGroups1)
+      {
+        String uid1 = (String)gr.get(ServerGroupProperty.UID);
+        if (uid1.equalsIgnoreCase(uid2))
+        {
+          group1 = gr;
+          break;
+        }
+      }
+      if (group1 != null)
+      {
+        // Merge the members, keep the description on this ADS.
+        Set<String> member1List = getServerGroupMemberList(uid2);
+        if (member1List == null)
+        {
+          member1List = new HashSet<String>();
+        }
+        Set<String> member2List = adsCtx.getServerGroupMemberList(uid2);
+        if (member2List != null && !member2List.isEmpty())
+        {
+          member1List.addAll(member2List);
+          Map<ServerGroupProperty, Object> newProperties =
+            new HashMap<ServerGroupProperty, Object>();
+          newProperties.put(ServerGroupProperty.MEMBERS, member1List);
+          updateServerGroup(uid2, newProperties);
+        }
+      }
+      else
+      {
+        createServerGroup(group2);
+      }
+    }
+  }
+
+  /**
+   * Merge the server contents of this ADSContext with the contents of the
+   * provided ADSContext.  Note that only the contents of this ADSContext will
+   * be updated.
+   * @param adsCtx the other ADSContext to merge the contents with.
+   * @throws ADSContextException if there was an error during the merge.
+   */
+  private void mergeServers(ADSContext adsCtx) throws ADSContextException
+  {
+    Set<Map<ServerProperty, Object>> servers2 = adsCtx.readServerRegistry();
+
+    for (Map<ServerProperty, Object> server2 : servers2)
+    {
+      if (!isServerAlreadyRegistered(server2))
+      {
+        registerServer(server2);
+      }
+    }
   }
 }

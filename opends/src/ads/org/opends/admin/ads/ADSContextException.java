@@ -108,6 +108,10 @@ public class ADSContextException extends OpenDsException {
      */
     UNEXPECTED_ADS_BACKEND_TYPE(),
     /**
+     * Error merging with another ADSContext.
+     */
+    ERROR_MERGING,
+    /**
      * Unexpected error (potential bug).
      */
     ERROR_UNEXPECTED();
@@ -133,7 +137,19 @@ public class ADSContextException extends OpenDsException {
    */
   public ADSContextException(ErrorType error, Throwable x)
   {
-    super(getMessage(error, x), x);
+    this(error, getMessage(error, x), x);
+  }
+
+  /**
+   * Creates an ADSContextException of the given error type with the provided
+   * error cause and message.
+   * @param error the error type.
+   * @param msg the message describing the error.
+   * @param x the throwable that generated this exception.
+   */
+  public ADSContextException(ErrorType error, Message msg, Throwable x)
+  {
+    super(msg);
     this.error = error;
     this.embeddedException = x;
     toString = "ADSContextException: error type "+error+".";

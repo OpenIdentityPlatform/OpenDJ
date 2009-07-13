@@ -759,7 +759,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "disablereplicationserver", null, "disableReplicationServer",
         INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get());
     disableAllArg = new BooleanArgument(
-        "disableall", null, "disableAll",
+        "disableall", 'a', "disableAll",
         INFO_DESCRIPTION_DISABLE_ALL.get());
 
 

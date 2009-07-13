@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -143,9 +143,9 @@ public class ReplicaDescriptor
   }
 
   /**
-   * Returns the replication server id for the replication domain associated
+   * Returns the replication id for the replication domain associated
    * with this replica.
-   * @return the replication server id for the replication domain associated
+   * @return the replication id for the replication domain associated
    * with this replica.
    */
   public int getReplicationId()
@@ -154,9 +154,9 @@ public class ReplicaDescriptor
   }
 
   /**
-   * Sets the replication server id for the replication domain associated
+   * Sets the replication id for the replication domain associated
    * with this replica.
-   * @param replicationId the replication server id for the replication domain
+   * @param replicationId the replication id for the replication domain
    * associated with this replica.
    */
   public void setReplicationId(int replicationId)

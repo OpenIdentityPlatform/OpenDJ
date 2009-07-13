@@ -60,6 +60,8 @@ public class ServerDescriptor
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
 
+  private static final String TRUSTSTORE_DN = "cn=ads-truststore";
+
   private static final Logger LOG =
     Logger.getLogger(ServerDescriptor.class.getName());
 
@@ -1337,7 +1339,6 @@ public class ServerDescriptor
   {
     /* TODO: this DN is declared in some core constants file. Create a
        constants file for the installer and import it into the core. */
-    final String truststoreDnStr = "cn=ads-truststore";
     final Attribute oc = new BasicAttribute("objectclass");
     oc.add("top");
     oc.add("ds-cfg-instance-key");
@@ -1353,7 +1354,7 @@ public class ServerDescriptor
                       getAttributeName() + ";binary", keyEntry.getValue()));
       final LdapName keyDn = new LdapName((new StringBuilder(rdnAttr.getID()))
               .append("=").append(Rdn.escapeValue(rdnAttr.get())).append(",")
-              .append(truststoreDnStr).toString());
+              .append(TRUSTSTORE_DN).toString());
       try {
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
@@ -1361,6 +1362,42 @@ public class ServerDescriptor
         ctx.destroySubcontext(keyDn);
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
+    }
+  }
+
+  /**
+   * Cleans up the contents of the ads truststore.
+   *
+   * @param ctx the bound instance.
+   * @throws NamingException in case an error occurs while updating the
+   * instance's ads-truststore via LDAP.
+   */
+  public static void cleanAdsTrustStore(InitialLdapContext ctx)
+  throws NamingException
+  {
+    try
+    {
+      SearchControls sc = new SearchControls();
+      sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+      String[] attList = {"dn"};
+      sc.setReturningAttributes(attList);
+      NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
+          "(objectclass=ds-cfg-instance-key)", sc);
+      ArrayList<String> dnsToDelete = new ArrayList<String>();
+      while (ne.hasMore())
+      {
+        SearchResult sr = ne.next();
+        dnsToDelete.add(sr.getName()+","+TRUSTSTORE_DN);
+      }
+      for (String dn : dnsToDelete)
+      {
+        ctx.destroySubcontext(dn);
+      }
+    }
+    catch (NameNotFoundException nnfe)
+    {
+      // Ignore
+      LOG.log(Level.WARNING, "Error cleaning truststore: "+nnfe, nnfe);
     }
   }
 
