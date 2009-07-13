@@ -868,6 +868,7 @@ public class ManageTasksPanel extends StatusGenericPanel
               !errorPane.isVisible());
           tableScroll.setVisible(visible);
           cancelTask.setVisible(visible);
+          detailsPanel.setVisible(visible);
         }
       });
     }
