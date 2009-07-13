@@ -530,21 +530,22 @@ public final class CollationMatchingRuleFactory extends
     String nOID = mapper.getNumericOID();
 
     MatchingRule matchingRule = getMatchingRule(nOID);
-    Collection<String> names = new HashSet<String>();
+    Collection<String> defaultNames = new HashSet<String>();
     if (matchingRule != null)
     {
       for (String name : matchingRule.getAllNames())
       {
-        names.add(name);
+        defaultNames.add(name);
       }
     }
 
-    names.add(lTag);
+    defaultNames.add(lTag);
     matchingRule =
-        new CollationEqualityMatchingRule(nOID, Collections
-            .<String> emptySet(), locale);
+        new CollationEqualityMatchingRule(nOID,
+                                      defaultNames, locale);
     addMatchingRule(nOID, matchingRule);
 
+    Collection<String> names = new HashSet<String>();
     // Register OID.3 as the equality matching rule.
     String OID = mapper.getNumericOID() + ".3";
     MatchingRule equalityMatchingRule = getMatchingRule(OID);
@@ -772,14 +773,8 @@ public final class CollationMatchingRuleFactory extends
     @Override
     public String getName()
     {
-      // Concatenate all the names and return.
-      StringBuilder builder = new StringBuilder();
-      for (String name : getAllNames())
-      {
-        builder.append(name);
-        builder.append("\b");
-      }
-      return builder.toString();
+      //This is called when there is only 1 name.
+      return names.iterator().next();
     }
 
 

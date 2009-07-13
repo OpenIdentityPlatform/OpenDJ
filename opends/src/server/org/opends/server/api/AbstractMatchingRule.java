@@ -224,14 +224,32 @@ public abstract class AbstractMatchingRule implements MatchingRule
   {
     buffer.append("( ");
     buffer.append(getOID());
-    buffer.append(" NAME '");
-    buffer.append(getName());
+    buffer.append(" NAME ");
+    Collection<String> names = getAllNames();
+    if(names.size()>1)
+    {
+      buffer.append("(");
+      for(String name: names)
+      {
+        buffer.append(" '");
+        buffer.append(name);
+        buffer.append('\'');
+      }
+     buffer.append(" )");
+    }
+    else
+    {
+      buffer.append('\'');
+      buffer.append(getName());
+      buffer.append('\'');
+    }
 
     String description = getDescription();
     if ((description != null) && (description.length() > 0))
     {
-      buffer.append("' DESC '");
+      buffer.append(" DESC '");
       buffer.append(description);
+      buffer.append('\'');
     }
 
     if (isObsolete())
@@ -240,7 +258,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
     }
     else
     {
-      buffer.append("' SYNTAX ");
+      buffer.append(" SYNTAX ");
     }
 
     buffer.append(getSyntaxOID());
