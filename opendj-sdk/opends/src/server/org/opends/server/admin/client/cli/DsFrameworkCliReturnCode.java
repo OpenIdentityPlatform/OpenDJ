@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 import org.opends.messages.Message;
@@ -143,7 +143,12 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
     /**
      * The server entity is not yet registered.
      */
-    SERVER_NOT_REGISTERED(19, ERR_ADMIN_SERVER_NOT_REGISTERED.get());
+    SERVER_NOT_REGISTERED(19, ERR_ADMIN_SERVER_NOT_REGISTERED.get()),
+
+    /**
+     * The merge of the ADS cannot be performed.
+     */
+    ERROR_MERGING(20, ERR_ADMIN_MERGING.get());
 
     // The retunCodevalue of the value.
     private final int returnCode;
@@ -225,6 +230,8 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
         MISSING_ADMIN_PASSWORD);
     adsErrorToReturnCode.put(ErrorType.ERROR_UNEXPECTED,
         ERROR_UNEXPECTED);
+    adsErrorToReturnCode.put(ErrorType.ERROR_MERGING,
+        ERROR_MERGING);
   }
 
   /**

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util.cli;
 
@@ -61,6 +61,9 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
@@ -1056,5 +1059,119 @@ public abstract class ConsoleApplication {
       timeStr = dateFormat.format(date);
     }
     return timeStr;
+  }
+
+  /**
+   * The default period time used to write points in the output.
+   */
+  protected static final long DEFAULT_PERIOD_TIME = 3000;
+  /**
+   * Class used to add points periodically to the end of the output.
+   *
+   */
+  protected class PointAdder implements Runnable
+  {
+    private Thread t;
+    private boolean stopPointAdder;
+    private boolean pointAdderStopped;
+    private long periodTime = DEFAULT_PERIOD_TIME;
+    private boolean isError;
+    private ProgressMessageFormatter formatter;
+
+    /**
+     * Default constructor.
+     * Creates a PointAdder that writes to the standard output with the default
+     * period time.
+     */
+    public PointAdder()
+    {
+      this(DEFAULT_PERIOD_TIME, false, new PlainTextProgressMessageFormatter());
+    }
+
+    /**
+     * Default constructor.
+     * @param periodTime the time between printing two points.
+     * @param isError whether the points must be printed in error stream
+     * or output stream.
+     * @param formatter the text formatter.
+     */
+    public PointAdder(long periodTime, boolean isError,
+        ProgressMessageFormatter formatter)
+    {
+      this.periodTime = periodTime;
+      this.isError = isError;
+      this.formatter = formatter;
+    }
+
+    /**
+     * Starts the PointAdder: points are added at the end of the logs
+     * periodically.
+     */
+    public void start()
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(formatter.getSpace());
+      for (int i=0; i< 5; i++)
+      {
+        mb.append(formatter.getFormattedPoint());
+      }
+      if (isError)
+      {
+        print(mb.toMessage());
+      }
+      else
+      {
+        printProgress(mb.toMessage());
+      }
+      t = new Thread(this);
+      t.start();
+    }
+
+    /**
+     * Stops the PointAdder: points are no longer added at the end of the logs
+     * periodically.
+     */
+    public synchronized void stop()
+    {
+      stopPointAdder = true;
+      while (!pointAdderStopped)
+      {
+        try
+        {
+          t.interrupt();
+          // To allow the thread to set the boolean.
+          Thread.sleep(100);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void run()
+    {
+      while (!stopPointAdder)
+      {
+        try
+        {
+          Thread.sleep(periodTime);
+          if (isError)
+          {
+            print(formatter.getFormattedPoint());
+          }
+          else
+          {
+            printProgress(formatter.getFormattedPoint());
+          }
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      pointAdderStopped = true;
+    }
   }
 }

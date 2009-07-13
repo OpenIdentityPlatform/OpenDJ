@@ -2488,9 +2488,6 @@ public class ReplicationCliMain extends ConsoleApplication
         uData.setPwd1(pwd1);
       }
     }
-    int replicationPort1 = getValue(argParser.getReplicationPort1(),
-        argParser.getDefaultReplicationPort1());
-    uData.setReplicationPort1(replicationPort1);
     uData.setSecureReplication1(argParser.isSecureReplication1());
 
     String host2Name = getValue(argParser.getHostName2(),
@@ -2526,9 +2523,6 @@ public class ReplicationCliMain extends ConsoleApplication
         uData.setPwd2(pwd2);
       }
     }
-    int replicationPort2 = getValue(argParser.getReplicationPort2(),
-        argParser.getDefaultReplicationPort2());
-    uData.setReplicationPort2(replicationPort2);
     uData.setSecureReplication2(argParser.isSecureReplication2());
     uData.setReplicateSchema(!argParser.noSchemaReplication());
     uData.setConfigureReplicationDomain1(
@@ -2539,6 +2533,20 @@ public class ReplicationCliMain extends ConsoleApplication
         !argParser.noReplicationServer1Arg.isPresent());
     uData.setConfigureReplicationServer2(
         !argParser.noReplicationServer2Arg.isPresent());
+
+    int replicationPort1 = getValue(argParser.getReplicationPort1(),
+        argParser.getDefaultReplicationPort1());
+    if (uData.configureReplicationServer1())
+    {
+      uData.setReplicationPort1(replicationPort1);
+    }
+
+    int replicationPort2 = getValue(argParser.getReplicationPort2(),
+        argParser.getDefaultReplicationPort2());
+    if (uData.configureReplicationServer2())
+    {
+      uData.setReplicationPort2(replicationPort2);
+    }
   }
 
   /**
@@ -3286,12 +3294,21 @@ public class ReplicationCliMain extends ConsoleApplication
 //    If we are not in interactive mode do some checks...
       if (!argParser.isInteractive())
       {
-        boolean hasReplicationPort1 = hasReplicationPort(ctx1);
-        boolean hasReplicationPort2 = hasReplicationPort(ctx2);
-        int replPort1 = uData.getReplicationPort1();
-        int replPort2 = uData.getReplicationPort2();
-
-        if (!hasReplicationPort1)
+        int replPort1 = getReplicationPort(ctx1);
+        boolean hasReplicationPort1 = replPort1 > 0;
+        if (replPort1 < 0 && uData.configureReplicationServer1())
+        {
+          replPort1 = uData.getReplicationPort1();
+        }
+        int replPort2 = getReplicationPort(ctx2);
+        boolean hasReplicationPort2 = replPort2 > 0;
+        if (replPort2 < 0 && uData.configureReplicationServer2())
+        {
+          replPort2 = uData.getReplicationPort2();
+        }
+        boolean checkReplicationPort1 = replPort1 > 0;
+        boolean checkReplicationPort2 = replPort2 > 0;
+        if (!hasReplicationPort1 && checkReplicationPort1)
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer1() &&
@@ -3301,7 +3318,7 @@ public class ReplicationCliMain extends ConsoleApplication
             errorMessages.add(getCannotBindToPortError(replPort1));
           }
         }
-        if (!hasReplicationPort2)
+        if (!hasReplicationPort2 && checkReplicationPort2)
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer2() &&
@@ -3311,7 +3328,7 @@ public class ReplicationCliMain extends ConsoleApplication
             errorMessages.add(getCannotBindToPortError(replPort2));
           }
         }
-        if (!hasReplicationPort1 && !hasReplicationPort2 &&
+        if (checkReplicationPort1 && checkReplicationPort2 &&
             (replPort1 == replPort2) &&
             (host1.equalsIgnoreCase(host2)))
         {
@@ -3323,14 +3340,14 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // This is something that we must do in any case... this test is
           // already included when we call SetupUtils.canUseAsPort
-          if (replPort1 == port1)
+          if (checkReplicationPort1 && replPort1 == port1)
           {
             errorMessages.add(
                 ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
                 host1, String.valueOf(replPort1)));
           }
 
-          if (replPort2 == port2)
+          if (checkReplicationPort2 && replPort2 == port2)
           {
             errorMessages.add(
                 ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
@@ -4112,7 +4129,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
     TreeSet<String> availableSuffixes;
     TreeSet<String> alreadyReplicatedSuffixes;
-
     if (uData.configureReplicationDomain1() &&
         uData.configureReplicationDomain2())
     {
@@ -4850,6 +4866,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+    filter.addBaseDNToSearch(Constants.SCHEMA_DN);
     for (String dn : uData.getBaseDNs())
     {
       filter.addBaseDNToSearch(dn);
@@ -4994,6 +5011,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ADSContext adsCtxSource = null;
 
     boolean adsAlreadyReplicated = false;
+    boolean adsMergeDone = false;
 
     printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
@@ -5059,13 +5077,19 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (!areEqual(registry1, registry2))
         {
-          // TO COMPLETE: we may want to merge the ADS but for the moment
-          // just say this is not supported.
-          throw new ReplicationCliException(
-              ERR_REPLICATION_ADS_MERGE_NOT_SUPPORTED.get(
-                  ConnectionUtils.getHostPort(ctx1),
-                  ConnectionUtils.getHostPort(ctx2)),
-                  REPLICATION_ADS_MERGE_NOT_SUPPORTED, null);
+          printProgress(formatter.getFormattedDone());
+          printlnProgress();
+
+          boolean isFirstSource = mergeRegistries(adsCtx1, adsCtx2);
+          if (isFirstSource)
+          {
+            ctxSource = ctx1;
+          }
+          else
+          {
+            ctxSource = ctx2;
+          }
+          adsMergeDone = true;
         }
         else
         {
@@ -5142,7 +5166,7 @@ public class ReplicationCliMain extends ConsoleApplication
           ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
           ERROR_UPDATING_ADS, adce);
     }
-    if (!adsAlreadyReplicated)
+    if (!adsAlreadyReplicated && !adsMergeDone)
     {
       try
       {
@@ -5152,14 +5176,21 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (Throwable t)
       {
         LOG.log(Level.SEVERE, "Error seeding truststores: "+t, t);
+        String arg = (t instanceof OpenDsException) ?
+            ((OpenDsException)t).getMessageObject().toString() : t.toString();
         throw new ReplicationCliException(
-            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(t.toString()),
+            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(adsCtxSource.getDirContext()),
+               arg),
             ERROR_SEEDING_TRUSTORE, t);
       }
     }
-    printProgress(formatter.getFormattedDone());
-    printlnProgress();
-
+    if (!adsMergeDone)
+    {
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+    }
     LinkedList<String> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated)
     {
@@ -5187,6 +5218,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     TopologyCache cache1 = null;
     TopologyCache cache2 = null;
+
     try
     {
       LinkedHashSet<PreferredConnection> cnx =
@@ -5435,7 +5467,27 @@ public class ReplicationCliMain extends ConsoleApplication
     // initialize the contents of one ADS with the other (in the case where
     // already both servers were replicating the same ADS there is nothing to be
     // done).
-    if ((ctxSource != null) && (ctxDestination != null))
+    if (adsMergeDone)
+    {
+      PointAdder pointAdder = new PointAdder();
+      printProgress(
+          INFO_ENABLE_REPLICATION_INITIALIZING_ADS_ALL.get(
+              ConnectionUtils.getHostPort(ctxSource)));
+      pointAdder.start();
+      try
+      {
+        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(),
+          ctxSource, false);
+      }
+      finally
+      {
+        pointAdder.stop();
+      }
+      printProgress(formatter.getSpace());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+    }
+    else if ((ctxSource != null) && (ctxDestination != null))
     {
       printProgress(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
@@ -5461,12 +5513,33 @@ public class ReplicationCliMain extends ConsoleApplication
         ctxSource = ctx1;
         ctxDestination = ctx2;
       }
-      printProgress(formatter.getFormattedWithPoints(
-          INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-              ConnectionUtils.getHostPort(ctxDestination),
-              ConnectionUtils.getHostPort(ctxSource))));
-      initializeSuffix(Constants.SCHEMA_DN, ctxSource,
+      if (adsMergeDone)
+      {
+        PointAdder pointAdder = new PointAdder();
+        printProgress(
+            INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(ctxSource)));
+        pointAdder.start();
+        try
+        {
+          initializeAllSuffix(Constants.SCHEMA_DN, ctxSource, false);
+        }
+        finally
+        {
+          pointAdder.stop();
+        }
+        printProgress(formatter.getSpace());
+      }
+      else
+      {
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+                ConnectionUtils.getHostPort(ctxDestination),
+                ConnectionUtils.getHostPort(ctxSource))));
+        initializeSuffix(Constants.SCHEMA_DN, ctxSource,
           ctxDestination, false);
+      }
       printProgress(formatter.getFormattedDone());
       printlnProgress();
     }
@@ -5970,7 +6043,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         // Delete all contents from ADSContext.
         printProgress(formatter.getFormattedWithPoints(
-            INFO_REPLICATION_DISABLE_ADS_CONTENTS.get()));
+            INFO_REPLICATION_REMOVE_ADS_CONTENTS.get()));
         adsCtx.removeAdminData();
         String adminBackendName = null;
         for (ReplicaDescriptor replica : server.getReplicas())
@@ -5988,11 +6061,27 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ADSContextException adce)
       {
-        LOG.log(Level.SEVERE, "Error resetting contents of cn=admin data: "+
+        LOG.log(Level.SEVERE, "Error removing contents of cn=admin data: "+
             adce, adce);
         throw new ReplicationCliException(
             ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
-            ERROR_READING_ADS, adce);
+            ERROR_UPDATING_ADS, adce);
+      }
+      try
+      {
+        // Delete all contents from truststore.
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_REPLICATION_REMOVE_TRUSTSTORE_CONTENTS.get()));
+        ServerDescriptor.cleanAdsTrustStore(adsCtx.getDirContext());
+        printProgress(formatter.getFormattedDone());
+        printlnProgress();
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Error removing contents of truststore: "+t, t);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_UPDATING_ADS.get(t.toString()),
+            ERROR_UPDATING_ADS, t);
       }
     }
   }
@@ -6010,6 +6099,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     ADSContext adsCtx = new ADSContext(ctx);
 
+    boolean somethingDisplayed = false;
     TopologyCache cache = null;
     try
     {
@@ -6142,12 +6232,8 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           displayStatus(rServers, uData.isScriptFriendly(),
               getPreferredConnections(ctx));
+          somethingDisplayed = true;
         }
-      }
-      else
-      {
-        printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
-        printlnProgress();
       }
     }
 
@@ -6184,6 +6270,7 @@ public class ReplicationCliMain extends ConsoleApplication
         displayStatus(replicas, uData.isScriptFriendly(),
             getPreferredConnections(ctx), cache.getServers(),
             replicasWithNoReplicationServer, serversWithNoReplica);
+        somethingDisplayed = true;
       }
       if (oneReplicated && !uData.isScriptFriendly())
       {
@@ -6201,6 +6288,20 @@ public class ReplicationCliMain extends ConsoleApplication
           printProgress(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
         }
+        printlnProgress();
+        somethingDisplayed = true;
+      }
+    }
+    if (!somethingDisplayed)
+    {
+      if (displayAll)
+      {
+        printProgress(INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get());
+        printlnProgress();
+      }
+      else
+      {
+        printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
         printlnProgress();
       }
     }
@@ -6706,6 +6807,17 @@ public class ReplicationCliMain extends ConsoleApplication
         break;
       }
     }
+    if (servers.isEmpty())
+    {
+      boolean found = false;
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        {
+          found = true;
+        }
+      }
+    }
     if (cache != null)
     {
       Set<SuffixDescriptor> suffixes = cache.getSuffixes();
@@ -6744,6 +6856,11 @@ public class ReplicationCliMain extends ConsoleApplication
       ServerDescriptor server)
   {
     SuffixDescriptor returnValue = null;
+    String replicationServer = null;
+    if (server.isReplicationServer())
+    {
+      replicationServer = server.getReplicationServerHostPort();
+    }
     Set<String> servers = new LinkedHashSet<String>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
@@ -6770,6 +6887,18 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           returnValue = suffix;
           break;
+        }
+        else if (replicationServer != null)
+        {
+          // Check if the server is only a replication server.
+          for (String repServer : s)
+          {
+            if (repServer.equalsIgnoreCase(replicationServer))
+            {
+              returnValue = suffix;
+              break;
+            }
+          }
         }
       }
     }
@@ -7120,6 +7249,8 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
+    LOG.log(Level.INFO, "Configuring base DN '"+baseDN+
+        "' the replication servers are "+repServers);
     Set<ServerDescriptor> serversToConfigureDomain =
       new HashSet<ServerDescriptor>();
     Set<ServerDescriptor> replicationServersToConfigure =
@@ -7140,7 +7271,7 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ServerDescriptor s : cache.getServers())
     {
       if (s.isReplicationServer() &&
-          !alreadyConfiguredReplicationServers.contains(server.getId()))
+          !alreadyConfiguredReplicationServers.contains(s.getId()))
       {
         // Check if it is part of the replication topology
         boolean isInTopology = false;
@@ -7155,7 +7286,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         if (isInTopology)
         {
-          replicationServersToConfigure.add(server);
+          replicationServersToConfigure.add(s);
         }
       }
     }
@@ -7166,40 +7297,29 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (ServerDescriptor s : allServers)
     {
-      String dn = ConnectionUtils.getBindDN(
-          cache.getAdsContext().getDirContext());
-      String pwd = ConnectionUtils.getBindPassword(
-          cache.getAdsContext().getDirContext());
-      TopologyCacheFilter filter = new TopologyCacheFilter();
-      filter.setSearchMonitoringInformation(false);
-      filter.setSearchBaseDNInformation(false);
-      ServerLoader loader = new ServerLoader(s.getAdsProperties(),
-          dn, pwd, getTrustManager(), cache.getPreferredConnections(),
-          filter);
+      LOG.log(Level.INFO,"Configuring server "+server.getHostPort(true));
       InitialLdapContext ctx = null;
       try
       {
-        ctx = loader.createContext();
-        if (serversToConfigureDomain.contains(server))
+        ctx = getDirContextForServer(cache, s);
+        if (serversToConfigureDomain.contains(s))
         {
           configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
         }
-        if (replicationServersToConfigure.contains(server))
+        if (replicationServersToConfigure.contains(s))
         {
           updateReplicationServer(ctx, allRepServers);
         }
       }
       catch (NamingException ne)
       {
-        String hostPort = getHostPort(server,
-            cache.getPreferredConnections());
+        String hostPort = getHostPort(s, cache.getPreferredConnections());
         Message msg = getMessageForException(ne, hostPort);
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
       }
       catch (OpenDsException ode)
       {
-        String hostPort = getHostPort(server,
-            cache.getPreferredConnections());
+        String hostPort = getHostPort(s, cache.getPreferredConnections());
         Message msg = getMessageForEnableException(ode, hostPort, baseDN);
         throw new ReplicationCliException(msg,
             ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
@@ -7607,7 +7727,7 @@ public class ReplicationCliMain extends ConsoleApplication
     attrs.put("ds-task-initialize-replica-server-id", "all");
     while (!taskCreated)
     {
-      String id = "quicksetup-initialize"+i;
+      String id = "dsreplication-initialize"+i;
       dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
       attrs.put("ds-task-id", id);
       try
@@ -9835,6 +9955,9 @@ public class ReplicationCliMain extends ConsoleApplication
         if (adsContext.hasAdminData())
         {
           cache1 = new TopologyCache(adsContext, getTrustManager());
+          cache1.getFilter().setSearchMonitoringInformation(false);
+          cache1.setPreferredConnections(getPreferredConnections(ctx1));
+          cache1.reloadTopology();
         }
       }
       catch (Throwable t)
@@ -9852,6 +9975,9 @@ public class ReplicationCliMain extends ConsoleApplication
         if (adsContext.hasAdminData())
         {
           cache2 = new TopologyCache(adsContext, getTrustManager());
+          cache2.getFilter().setSearchMonitoringInformation(false);
+          cache2.setPreferredConnections(getPreferredConnections(ctx2));
+          cache2.reloadTopology();
         }
       }
       catch (Throwable t)
@@ -9863,39 +9989,12 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (cache1 != null && cache2 != null)
     {
-      // Check common suffixes
-      Set<String> dns1 = new HashSet<String>();
-      Set<String> dns2 = new HashSet<String>();
-
-      Set<SuffixDescriptor> suffixes = cache1.getSuffixes();
-      for (SuffixDescriptor suffix : suffixes)
-      {
-        for (String rServer : suffix.getReplicationServers())
-        {
-          if (rServer.equalsIgnoreCase(replicationServer1))
-          {
-            dns1.add(suffix.getDN());
-          }
-        }
-      }
-
-      suffixes = cache2.getSuffixes();
-      for (SuffixDescriptor suffix : suffixes)
-      {
-        for (String rServer : suffix.getReplicationServers())
-        {
-          if (rServer.equalsIgnoreCase(replicationServer2))
-          {
-            dns2.add(suffix.getDN());
-          }
-        }
-      }
-
-      availableSuffixes.addAll(dns1);
-      availableSuffixes.removeAll(dns2);
-
-      alreadyReplicatedSuffixes.addAll(dns1);
-      alreadyReplicatedSuffixes.retainAll(dns2);
+      updateAvailableAndReplicatedSuffixesForNoDomainOneSense(cache1, cache2,
+          replicationServer1, replicationServer2, availableSuffixes,
+          alreadyReplicatedSuffixes);
+      updateAvailableAndReplicatedSuffixesForNoDomainOneSense(cache2, cache1,
+          replicationServer2, replicationServer1, availableSuffixes,
+          alreadyReplicatedSuffixes);
     }
     else if (cache1 != null)
     {
@@ -9922,6 +10021,59 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             availableSuffixes.add(suffix.getDN());
           }
+        }
+      }
+    }
+  }
+
+  private void updateAvailableAndReplicatedSuffixesForNoDomainOneSense(
+      TopologyCache cache1, TopologyCache cache2, String replicationServer1,
+      String replicationServer2,
+      Collection<String> availableSuffixes,
+      Collection<String> alreadyReplicatedSuffixes)
+  {
+    Set<SuffixDescriptor> suffixes = cache1.getSuffixes();
+    for (SuffixDescriptor suffix : suffixes)
+    {
+      for (String rServer : suffix.getReplicationServers())
+      {
+        if (rServer.equalsIgnoreCase(replicationServer1))
+        {
+          boolean isSecondReplicatedInSameTopology = false;
+          boolean isSecondReplicated = false;
+          boolean isFirstReplicated = false;
+          for (SuffixDescriptor suffix2 : cache2.getSuffixes())
+          {
+            if (Utils.areDnsEqual(suffix.getDN(), suffix2.getDN()))
+            {
+              for (String rServer2 : suffix2.getReplicationServers())
+              {
+                if (rServer2.equalsIgnoreCase(replicationServer2))
+                {
+                  isSecondReplicated = true;
+                }
+                if (rServer.equalsIgnoreCase(replicationServer2))
+                {
+                  isFirstReplicated = true;
+                }
+                if (isFirstReplicated && isSecondReplicated)
+                {
+                  isSecondReplicatedInSameTopology = true;
+                  break;
+                }
+              }
+              break;
+            }
+          }
+          if (!isSecondReplicatedInSameTopology)
+          {
+            availableSuffixes.add(suffix.getDN());
+          }
+          else
+          {
+            alreadyReplicatedSuffixes.add(suffix.getDN());
+          }
+          break;
         }
       }
     }
@@ -10054,7 +10206,365 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     return server1.getId().equals(server2.getId());
   }
+
+  /**
+   * Merge the contents of the two registries but only does it partially.
+   * Only one of the two ADSContext will be updated (in terms of data in
+   * cn=admin data), while the other registry's replication servers will have
+   * their truststore updated to be able to initialize all the contents.
+   *
+   * This method does NOT configure replication between topologies or initialize
+   * replication.
+   *
+   * @param adsCtx1 the ADSContext of the first registry.
+   * @param adsCtx2 the ADSContext of the second registry.
+   * @return <CODE>true</CODE> if the registry containing all the data is
+   * the first registry and <CODE>false</CODE> otherwise.
+   * @throws ReplicationCliException if there is a problem reading or updating
+   * the registries.
+   */
+  private boolean mergeRegistries(ADSContext adsCtx1, ADSContext adsCtx2)
+  throws ReplicationCliException
+  {
+
+    PointAdder pointAdder = new PointAdder();
+    try
+    {
+      LinkedHashSet<PreferredConnection> cnx =
+        new LinkedHashSet<PreferredConnection>();
+      cnx.addAll(getPreferredConnections(adsCtx1.getDirContext()));
+      cnx.addAll(getPreferredConnections(adsCtx2.getDirContext()));
+      // Check that there are no errors.  We do not allow to do the merge with
+      // errors.
+      TopologyCache cache1 = new TopologyCache(adsCtx1, getTrustManager());
+      cache1.setPreferredConnections(cnx);
+      cache1.getFilter().setSearchBaseDNInformation(false);
+      try
+      {
+        cache1.reloadTopology();
+      }
+      catch (TopologyCacheException te)
+      {
+        LOG.log(Level.SEVERE, "Error reading topology cache of "+
+            ConnectionUtils.getHostPort(adsCtx1.getDirContext())+ " "+te, te);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(te.getMessageObject()),
+            ERROR_UPDATING_ADS, te);
+      }
+      TopologyCache cache2 = new TopologyCache(adsCtx2, getTrustManager());
+      cache2.setPreferredConnections(cnx);
+      cache2.getFilter().setSearchBaseDNInformation(false);
+      try
+      {
+        cache2.reloadTopology();
+      }
+      catch (TopologyCacheException te)
+      {
+        LOG.log(Level.SEVERE, "Error reading topology cache of "+
+            ConnectionUtils.getHostPort(adsCtx2.getDirContext())+ " "+te, te);
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(te.getMessageObject()),
+            ERROR_UPDATING_ADS, te);
+      }
+
+      // Look for the cache with biggest number of replication servers:
+      // that one is going to be source.
+      int nRepServers1 = 0;
+      for (ServerDescriptor server : cache1.getServers())
+      {
+        if (server.isReplicationServer())
+        {
+          nRepServers1 ++;
+        }
+      }
+
+      int nRepServers2 = 0;
+      for (ServerDescriptor server : cache2.getServers())
+      {
+        if (server.isReplicationServer())
+        {
+          nRepServers2 ++;
+        }
+      }
+
+      InitialLdapContext ctxSource;
+      InitialLdapContext ctxDestination;
+      if (nRepServers1 >= nRepServers2)
+      {
+        ctxSource = adsCtx1.getDirContext();
+        ctxDestination = adsCtx2.getDirContext();
+      }
+      else
+      {
+        ctxSource = adsCtx2.getDirContext();
+        ctxDestination = adsCtx1.getDirContext();
+      }
+
+      if (isInteractive())
+      {
+        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_CONFIRMATION.get(
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination),
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination));
+        try
+        {
+          if (!askConfirmation(msg, true, LOG))
+          {
+            throw new ReplicationCliException(
+                ERR_REPLICATION_USER_CANCELLED.get(),
+                ReplicationCliReturnCode.USER_CANCELLED, null);
+          }
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          throw new ReplicationCliException(
+              ERR_REPLICATION_USER_CANCELLED.get(),
+              ReplicationCliReturnCode.USER_CANCELLED, null);
+        }
+      }
+      else
+      {
+        Message msg = INFO_REPLICATION_MERGING_REGISTRIES_DESCRIPTION.get(
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination),
+            ConnectionUtils.getHostPort(ctxSource),
+            ConnectionUtils.getHostPort(ctxDestination));
+      }
+
+      printProgress(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
+      pointAdder.start();
+
+      Collection<Message> cache1Errors = getErrorMessages(cache1);
+      if (!cache1Errors.isEmpty())
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
+                ConnectionUtils.getHostPort(adsCtx1.getDirContext()),
+                Utils.getMessageFromCollection(cache1Errors,
+                    Constants.LINE_SEPARATOR)),
+                    ERROR_READING_ADS, null);
+      }
+
+      Collection<Message> cache2Errors = getErrorMessages(cache2);
+      if (!cache2Errors.isEmpty())
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
+                ConnectionUtils.getHostPort(adsCtx2.getDirContext()),
+                Utils.getMessageFromCollection(cache2Errors,
+                    Constants.LINE_SEPARATOR)),
+                    ERROR_READING_ADS, null);
+      }
+
+      Set<Message> commonRepServerIDErrors = new HashSet<Message>();
+      for (ServerDescriptor server1 : cache1.getServers())
+      {
+        if (server1.isReplicationServer())
+        {
+          int replicationID1 = server1.getReplicationServerId();
+          boolean found = false;
+          for (ServerDescriptor server2 : cache2.getServers())
+          {
+            if (server2.isReplicationServer())
+            {
+              int replicationID2 = server2.getReplicationServerId();
+              found = replicationID2 == replicationID1;
+              if (found)
+              {
+                commonRepServerIDErrors.add(
+                    ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID_ARG.get(
+                        server1.getHostPort(true),
+                        server2.getHostPort(true),
+                        replicationID1));
+                found = true;
+                break;
+              }
+            }
+          }
+          if (found)
+          {
+            break;
+          }
+        }
+      }
+      Set<Message> commonDomainIDErrors = new HashSet<Message>();
+      for (SuffixDescriptor suffix1 : cache1.getSuffixes())
+      {
+        for (ReplicaDescriptor replica1 : suffix1.getReplicas())
+        {
+          if (replica1.isReplicated())
+          {
+            int domain1 = replica1.getReplicationId();
+            boolean found = false;
+            for (SuffixDescriptor suffix2 : cache2.getSuffixes())
+            {
+              if (!Utils.areDnsEqual(suffix2.getDN(),
+                  replica1.getSuffix().getDN()))
+              {
+                // Conflicting domain names must apply to same suffix.
+                continue;
+              }
+              for (ReplicaDescriptor replica2 : suffix2.getReplicas())
+              {
+                if (replica2.isReplicated())
+                {
+                  int domain2 = replica2.getReplicationId();
+                  if (domain1 == domain2)
+                  {
+                    commonDomainIDErrors.add(
+                        ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID_ARG.get(
+                            replica1.getServer().getHostPort(true),
+                            suffix1.getDN(),
+                            replica2.getServer().getHostPort(true),
+                            suffix2.getDN(),
+                            domain1));
+                    found = true;
+                    break;
+                  }
+                }
+              }
+              if (found)
+              {
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (!commonRepServerIDErrors.isEmpty() || !commonDomainIDErrors.isEmpty())
+      {
+        MessageBuilder mb = new MessageBuilder();
+        if (!commonRepServerIDErrors.isEmpty())
+        {
+          mb.append(ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID.get(
+            Utils.getMessageFromCollection(commonRepServerIDErrors,
+                Constants.LINE_SEPARATOR)));
+        }
+        if (!commonDomainIDErrors.isEmpty())
+        {
+          if (mb.length() > 0)
+          {
+            mb.append(Constants.LINE_SEPARATOR);
+          }
+          mb.append(ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID.get(
+            Utils.getMessageFromCollection(commonDomainIDErrors,
+                Constants.LINE_SEPARATOR)));
+        }
+        throw new ReplicationCliException(mb.toMessage(),
+            ReplicationCliReturnCode.REPLICATION_ADS_MERGE_NOT_SUPPORTED,
+            null);
+      }
+
+      ADSContext adsCtxSource;
+      ADSContext adsCtxDestination;
+      TopologyCache cacheDestination;
+      if (nRepServers1 >= nRepServers2)
+      {
+        adsCtxSource = adsCtx1;
+        adsCtxDestination = adsCtx2;
+        cacheDestination = cache2;
+      }
+      else
+      {
+        adsCtxSource = adsCtx2;
+        adsCtxDestination = adsCtx1;
+        cacheDestination = cache1;
+      }
+
+      try
+      {
+        adsCtxSource.mergeWithRegistry(adsCtxDestination);
+      }
+      catch (ADSContextException adce)
+      {
+        LOG.log(Level.SEVERE, "Error merging registry of "+
+            ConnectionUtils.getHostPort(adsCtxSource.getDirContext())+
+            " with registry of "+
+            ConnectionUtils.getHostPort(adsCtxDestination.getDirContext())+" "+
+            adce, adce);
+        if (adce.getError() == ADSContextException.ErrorType.ERROR_MERGING)
+        {
+          throw new ReplicationCliException(adce.getMessageObject(),
+          REPLICATION_ADS_MERGE_NOT_SUPPORTED, adce);
+        }
+        else
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
+              ERROR_UPDATING_ADS, adce);
+        }
+      }
+
+      try
+      {
+        for (ServerDescriptor server : cacheDestination.getServers())
+        {
+          if (server.isReplicationServer())
+          {
+            LOG.log(Level.INFO, "Seeding to replication server on "+
+                server.getHostPort(true)+" with certificates of "+
+                ConnectionUtils.getHostPort(adsCtxSource.getDirContext()));
+            InitialLdapContext ctx = null;
+            try
+            {
+              ctx = getDirContextForServer(cacheDestination, server);
+              ServerDescriptor.seedAdsTrustStore(ctx,
+                  adsCtxSource.getTrustedCertificates());
+            }
+            finally
+            {
+              if (ctx != null)
+              {
+                ctx.close();
+              }
+            }
+          }
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Error seeding truststore: "+t, t);
+        String arg = (t instanceof OpenDsException) ?
+            ((OpenDsException)t).getMessageObject().toString() : t.toString();
+            throw new ReplicationCliException(
+                ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(
+                    ConnectionUtils.getHostPort(adsCtx2.getDirContext()),
+                    ConnectionUtils.getHostPort(adsCtx1.getDirContext()),
+                    arg),
+                    ERROR_SEEDING_TRUSTORE, t);
+      }
+      pointAdder.stop();
+      printProgress(formatter.getSpace());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
+
+      return adsCtxSource == adsCtx1;
+    }
+    finally
+    {
+      pointAdder.stop();
+    }
+  }
+
+  private InitialLdapContext getDirContextForServer(TopologyCache cache,
+      ServerDescriptor server) throws NamingException
+  {
+    String dn = ConnectionUtils.getBindDN(
+        cache.getAdsContext().getDirContext());
+    String pwd = ConnectionUtils.getBindPassword(
+        cache.getAdsContext().getDirContext());
+    TopologyCacheFilter filter = new TopologyCacheFilter();
+    filter.setSearchMonitoringInformation(false);
+    filter.setSearchBaseDNInformation(false);
+    ServerLoader loader = new ServerLoader(server.getAdsProperties(),
+        dn, pwd, getTrustManager(), cache.getPreferredConnections(),
+        filter);
+    return loader.createContext();
+  }
 }
+
 
 
 /**
