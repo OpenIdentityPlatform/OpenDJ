@@ -1009,7 +1009,6 @@ public class ServerDescriptor
   throws NamingException
   {
     boolean replicationEnabled = false;
-    boolean oneDomainReplicated = false;
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
@@ -1071,7 +1070,6 @@ public class ServerDescriptor
           Set<String> replicationServers = getValues(sr,
           "ds-cfg-replication-server");
           Set<String> dns = getValues(sr, "ds-cfg-base-dn");
-          oneDomainReplicated = dns.size() > 0;
           for (String dn : dns)
           {
             for (ReplicaDescriptor replica : desc.getReplicas())
@@ -1143,72 +1141,6 @@ public class ServerDescriptor
     catch (NameNotFoundException nse)
     {
       /* ignore */
-    }
-
-    if (cacheFilter.searchMonitoringInformation())
-    {
-      ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] {
-              "approx-older-change-not-synchronized-millis", "missing-changes",
-              "domain-name", "server-id"
-          });
-      filter = "(missing-changes=*)";
-
-      jndiName = new LdapName("cn=monitor");
-
-      if (oneDomainReplicated)
-      {
-        try
-        {
-          NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
-
-          while(monitorEntries.hasMore())
-          {
-            SearchResult sr = (SearchResult)monitorEntries.next();
-
-            String dn = getFirstValue(sr, "domain-name");
-            int replicaId = -1;
-            try
-            {
-              replicaId = new Integer(getFirstValue(sr, "server-id"));
-            }
-            catch (Throwable t)
-            {
-            }
-
-            for (ReplicaDescriptor replica: desc.getReplicas())
-            {
-              if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
-                  replica.isReplicated() &&
-                  (replica.getReplicationId() == replicaId))
-              {
-                try
-                {
-                  replica.setAgeOfOldestMissingChange(
-                      new Long(getFirstValue(sr,
-                      "approx-older-change-not-synchronized-millis")));
-                }
-                catch (Throwable t)
-                {
-                }
-                try
-                {
-                  replica.setMissingChanges(
-                      new Integer(getFirstValue(sr, "missing-changes")));
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-            }
-          }
-        }
-        catch (NameNotFoundException nse)
-        {
-        }
-      }
     }
 
     boolean replicationSecure = false;
