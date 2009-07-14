@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.opends.admin.ads.ADSContext.ServerProperty;
@@ -44,6 +51,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * This class allows to read the configuration of the different servers that
@@ -166,6 +174,12 @@ public class TopologyCache
         }
         servers.add(descriptor);
       }
+
+      // Figure out the replication monitoring if it is required.
+      if (getFilter().searchMonitoringInformation())
+      {
+        readReplicationMonitoring();
+      }
     }
     catch (ADSContextException ade)
     {
@@ -174,6 +188,60 @@ public class TopologyCache
     catch (Throwable t)
     {
       throw new TopologyCacheException(TopologyCacheException.Type.BUG, t);
+    }
+  }
+
+  /**
+   * Reads the replication monitoring.
+   * @throws NamingException if an error occurs reading the replication
+   * monitoring.
+   */
+  private void readReplicationMonitoring() throws NamingException
+  {
+    Set<ReplicaDescriptor> replicasToUpdate = new HashSet<ReplicaDescriptor>();
+    for (ServerDescriptor server : getServers())
+    {
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (replica.isReplicated())
+        {
+          replicasToUpdate.add(replica);
+        }
+      }
+    }
+    for (ServerDescriptor server : getServers())
+    {
+      if (server.isReplicationServer())
+      {
+        Set<ReplicaDescriptor> candidateReplicas =
+          new HashSet<ReplicaDescriptor>();
+        // It contains replication information: analyze it.
+        String repServer = server.getReplicationServerHostPort();
+        for (SuffixDescriptor suffix : getSuffixes())
+        {
+          Set<String> repServers = suffix.getReplicationServers();
+          for (String r : repServers)
+          {
+            if (r.equalsIgnoreCase(repServer))
+            {
+              candidateReplicas.addAll(suffix.getReplicas());
+              break;
+            }
+          }
+        }
+        if (!candidateReplicas.isEmpty())
+        {
+          Set<ReplicaDescriptor> updatedReplicas =
+            new HashSet<ReplicaDescriptor>();
+          updateReplicas(server, candidateReplicas, updatedReplicas);
+          replicasToUpdate.removeAll(updatedReplicas);
+        }
+      }
+
+      if (replicasToUpdate.isEmpty())
+      {
+        break;
+      }
     }
   }
 
@@ -289,5 +357,97 @@ public class TopologyCache
   public ADSContext getAdsContext()
   {
     return adsContext;
+  }
+
+  /**
+   * Updates the monitoring information of the provided replicas using the
+   * information located in cn=monitor of a given replication server.
+   * @param replicationServer the replication server.
+   * @param candidateReplicas the collection of replicas that must be updated.
+   * @param updatedReplicas the collection of replicas that are actually
+   * updated.  This list is updated by the method.
+   */
+  private void updateReplicas(ServerDescriptor replicationServer,
+      Collection<ReplicaDescriptor> candidateReplicas,
+      Collection<ReplicaDescriptor> updatedReplicas) throws NamingException
+  {
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "approx-older-change-not-synchronized-millis", "missing-changes",
+            "domain-name", "server-id"
+        });
+    String filter = "(missing-changes=*)";
+
+    LdapName jndiName = new LdapName("cn=monitor");
+
+    InitialLdapContext ctx = null;
+    try
+    {
+      ServerLoader loader =
+        getServerLoader(replicationServer.getAdsProperties());
+      ctx = loader.createContext();
+      NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
+
+      while(monitorEntries.hasMore())
+      {
+        SearchResult sr = (SearchResult)monitorEntries.next();
+
+        String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
+        int replicaId = -1;
+        try
+        {
+          replicaId =
+            new Integer(ConnectionUtils.getFirstValue(sr, "server-id"));
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Unexpected error reading replica ID: "+t, t);
+        }
+
+        for (ReplicaDescriptor replica: candidateReplicas)
+        {
+          if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
+              replica.isReplicated() &&
+              (replica.getReplicationId() == replicaId))
+          {
+            try
+            {
+              replica.setAgeOfOldestMissingChange(
+                  new Long(ConnectionUtils.getFirstValue(sr,
+                      "approx-older-change-not-synchronized-millis")));
+            }
+            catch (Throwable t)
+            {
+              LOG.log(Level.WARNING,
+                  "Unexpected error reading age of oldest change: "+t, t);
+            }
+            try
+            {
+              replica.setMissingChanges(
+                  new Integer(ConnectionUtils.getFirstValue(sr,
+                      "missing-changes")));
+            }
+            catch (Throwable t)
+            {
+              LOG.log(Level.WARNING,
+                  "Unexpected error reading missing changes: "+t, t);
+            }
+            updatedReplicas.add(replica);
+          }
+        }
+      }
+    }
+    catch (NameNotFoundException nse)
+    {
+    }
+    finally
+    {
+      if (ctx != null)
+      {
+        ctx.close();
+      }
+    }
   }
 }
