@@ -196,7 +196,7 @@ public class TopologyCache
    * @throws NamingException if an error occurs reading the replication
    * monitoring.
    */
-  private void readReplicationMonitoring() throws NamingException
+  private void readReplicationMonitoring()
   {
     Set<ReplicaDescriptor> replicasToUpdate = new HashSet<ReplicaDescriptor>();
     for (ServerDescriptor server : getServers())
@@ -213,6 +213,9 @@ public class TopologyCache
     {
       if (server.isReplicationServer())
       {
+        // If is replication server, then at least we were able to read the
+        // configuration, so assume that we might be able to read monitoring
+        // (even if an exception occurred before).
         Set<ReplicaDescriptor> candidateReplicas =
           new HashSet<ReplicaDescriptor>();
         // It contains replication information: analyze it.
@@ -233,7 +236,15 @@ public class TopologyCache
         {
           Set<ReplicaDescriptor> updatedReplicas =
             new HashSet<ReplicaDescriptor>();
-          updateReplicas(server, candidateReplicas, updatedReplicas);
+          try
+          {
+            updateReplicas(server, candidateReplicas, updatedReplicas);
+          }
+          catch (NamingException ne)
+          {
+            server.setLastException(new TopologyCacheException(
+                TopologyCacheException.Type.GENERIC_READING_SERVER, ne));
+          }
           replicasToUpdate.removeAll(updatedReplicas);
         }
       }
