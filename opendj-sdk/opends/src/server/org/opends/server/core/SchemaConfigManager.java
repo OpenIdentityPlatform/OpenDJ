@@ -526,6 +526,47 @@ public class SchemaConfigManager
 
     // Get the attributeTypes attribute from the entry.
     LinkedList<Modification> mods = new LinkedList<Modification>();
+    //parse the syntaxes first because attributes rely on these.
+    LDAPSyntaxDescriptionSyntax ldapSyntax;
+    try
+    {
+      ldapSyntax = (LDAPSyntaxDescriptionSyntax) schema.getSyntax(
+              SYNTAX_LDAP_SYNTAX_OID);
+      if (ldapSyntax == null)
+      {
+        ldapSyntax = new LDAPSyntaxDescriptionSyntax();
+        ldapSyntax.initializeSyntax(null);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      ldapSyntax = new LDAPSyntaxDescriptionSyntax();
+      ldapSyntax.initializeSyntax(null);
+    }
+
+    AttributeType ldapSyntaxAttrType =
+         schema.getAttributeType(ATTR_LDAP_SYNTAXES_LC);
+    if (ldapSyntaxAttrType == null)
+    {
+      ldapSyntaxAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_LDAP_SYNTAXES,
+                                                   ldapSyntax);
+    }
+
+    List<Attribute> ldapSyntaxList = entry.getAttribute(ldapSyntaxAttrType);
+    if ((ldapSyntaxList != null) && (! ldapSyntaxList.isEmpty()))
+    {
+      for (Attribute a : ldapSyntaxList)
+      {
+        mods.add(new Modification(ModificationType.ADD, a));
+      }
+    }
+
     AttributeTypeSyntax attrTypeSyntax;
     try
     {
@@ -773,47 +814,6 @@ public class SchemaConfigManager
       }
     }
 
-    // Get the ldapsyntaxes attribute from the entry.
-    LDAPSyntaxDescriptionSyntax ldapSyntax;
-    try
-    {
-      ldapSyntax = (LDAPSyntaxDescriptionSyntax) schema.getSyntax(
-              SYNTAX_LDAP_SYNTAX_OID);
-      if (ldapSyntax == null)
-      {
-        ldapSyntax = new LDAPSyntaxDescriptionSyntax();
-        ldapSyntax.initializeSyntax(null);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      ldapSyntax = new LDAPSyntaxDescriptionSyntax();
-      ldapSyntax.initializeSyntax(null);
-    }
-
-    AttributeType ldapSyntaxAttrType =
-         schema.getAttributeType(ATTR_LDAP_SYNTAXES_LC);
-    if (ldapSyntaxAttrType == null)
-    {
-      ldapSyntaxAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_LDAP_SYNTAXES,
-                                                   ldapSyntax);
-    }
-
-    List<Attribute> ldapSyntaxList = entry.getAttribute(ldapSyntaxAttrType);
-    if ((ldapSyntaxList != null) && (! ldapSyntaxList.isEmpty()))
-    {
-      for (Attribute a : ldapSyntaxList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
-
     // Loop on all the attribute of the schema entry to
     // find the extra attribute that shoule be loaded in the Schema.
     for (Attribute attribute : entry.getAttributes())
@@ -821,6 +821,104 @@ public class SchemaConfigManager
       if (!isSchemaAttribute(attribute))
       {
         schema.addExtraAttribute(attribute.getName(), attribute);
+      }
+    }
+
+
+
+    // Parse the ldapsyntaxes definitions if there are any.
+    if (ldapSyntaxList != null)
+    {
+      for (Attribute a : ldapSyntaxList)
+      {
+        for (AttributeValue v : a)
+        {
+          LDAPSyntaxDescription syntaxDescription = null;
+          try
+          {
+            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
+                    v.getValue(),schema,false);
+            syntaxDescription.setExtraProperty(
+                    SCHEMA_PROPERTY_FILENAME, (String) null);
+            syntaxDescription.setSchemaFile(schemaFile);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
+                    schemaFile,
+                    de.getMessageObject());
+
+            if (failOnError)
+            {
+              throw new ConfigException(message, de);
+            }
+            else
+            {
+              logError(message);
+              continue;
+            }
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
+                    schemaFile,
+                    v.getValue().toString() + ":  " + getExceptionMessage(e));
+
+            if (failOnError)
+            {
+              throw new ConfigException(message, e);
+            }
+            else
+            {
+              logError(message);
+              continue;
+            }
+          }
+
+           // Register it with the schema.  We will allow duplicates, with the
+          // later definition overriding any earlier definition, but we want
+          // to trap them and log a warning.
+          try
+          {
+            schema.registerLdapSyntaxDescription(
+                                  syntaxDescription, failOnError);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
+                schemaFile, de.getMessageObject());
+            logError(message);
+
+            try
+            {
+              schema.registerLdapSyntaxDescription(syntaxDescription, true);
+            }
+            catch (Exception e)
+            {
+              // This should never happen.
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+            }
+          }
+
+        }
       }
     }
 
@@ -1386,101 +1484,6 @@ public class SchemaConfigManager
       }
     }
 
-
-    // Parse the ldapsyntaxes definitions if there are any.
-    if (ldapSyntaxList != null)
-    {
-      for (Attribute a : ldapSyntaxList)
-      {
-        for (AttributeValue v : a)
-        {
-          LDAPSyntaxDescription syntaxDescription = null;
-          try
-          {
-            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                    v.getValue(),schema,false);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                    schemaFile,
-                    de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logError(message);
-              continue;
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            Message message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                    schemaFile,
-                    v.getValue().toString() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logError(message);
-              continue;
-            }
-          }
-
-           // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          try
-          {
-            schema.registerLdapSyntaxDescription(
-                                  syntaxDescription, failOnError);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            Message message = WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX.get(
-                schemaFile, de.getMessageObject());
-            logError(message);
-
-            try
-            {
-              schema.registerLdapSyntaxDescription(syntaxDescription, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-            }
-          }
-
-        }
-      }
-    }
-
-
     return mods;
   }
 
@@ -1509,12 +1512,12 @@ public class SchemaConfigManager
         attributeOid.equals("1.3.6.1.4.1.1466.101.120.16") ||
         attributeOid.equals("attributetypes-oid")      ||
         attributeOid.equals("objectclasses-oid")       ||
-        attributeOid.equals("matchingRules-oid")       ||
-        attributeOid.equals("matchingRuleUse-oid")     ||
-        attributeOid.equals("NameFormDescription-oid") ||
-        attributeOid.equals("dITContentRules-oid")     ||
-        attributeOid.equals("dITStructureRules") ||
-        attributeOid.equals("ldapSyntaxes-oid")
+        attributeOid.equals("matchingrules-oid")       ||
+        attributeOid.equals("matchingruleuse-oid")     ||
+        attributeOid.equals("nameformdescription-oid") ||
+        attributeOid.equals("ditcontentrules-oid")     ||
+        attributeOid.equals("ditstructurerules-oid") ||
+        attributeOid.equals("ldapsyntaxes-oid")
 
         )
     {

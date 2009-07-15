@@ -397,8 +397,9 @@ public class SchemaBackend
       LinkedHashSet<String> newDCRs = new LinkedHashSet<String>();
       LinkedHashSet<String> newDSRs = new LinkedHashSet<String>();
       LinkedHashSet<String> newMRUs = new LinkedHashSet<String>();
+      LinkedHashSet<String> newLSDs = new LinkedHashSet<String>();
       Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs,
-                                   newMRUs);
+                                   newMRUs,newLSDs);
 
       // Next, generate lists of elements from the previous concatenated schema.
       // If there isn't a previous concatenated schema, then use the base
@@ -449,8 +450,9 @@ public class SchemaBackend
       LinkedHashSet<String> oldDCRs = new LinkedHashSet<String>();
       LinkedHashSet<String> oldDSRs = new LinkedHashSet<String>();
       LinkedHashSet<String> oldMRUs = new LinkedHashSet<String>();
+      LinkedHashSet<String> oldLSDs = new LinkedHashSet<String>();
       Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
-                                    oldDCRs, oldDSRs, oldMRUs);
+                                    oldDCRs, oldDSRs, oldMRUs,oldLSDs);
 
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
@@ -465,6 +467,8 @@ public class SchemaBackend
                                        mods);
       Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType,
                                        mods);
+      Schema.compareConcatenatedSchema(oldLSDs, newLSDs, ldapSyntaxesType,
+                                      mods);
       if (! mods.isEmpty())
       {
         DirectoryServer.setOfflineSchemaChanges(mods);
@@ -3472,12 +3476,36 @@ public class SchemaBackend
     // Start with an empty schema entry.
     Entry schemaEntry = createEmptySchemaEntry();
 
+     /**
+     * Add all of the ldap syntax descriptions to the schema entry. We do
+     * this only for the real part of the ldapsyntaxes attribute. The real part
+     * is read and write to/from the schema files.
+     */
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    for (LDAPSyntaxDescription ldapSyntax :
+                                   schema.getLdapSyntaxDescriptions().values())
+    {
+      if(schemaFile.equals(ldapSyntax.getSchemaFile()))
+      {
+        values.add(AttributeValues.create(ldapSyntaxesType,
+                ldapSyntax.getDefinition()));
+      }
+    }
+
+   if (! values.isEmpty())
+   {
+     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+     AttributeBuilder builder = new AttributeBuilder(ldapSyntaxesType);
+     builder.addAll(values);
+     attrList.add(builder.toAttribute());
+     schemaEntry.putAttribute(ldapSyntaxesType, attrList);
+   }
 
     // Add all of the appropriate attribute types to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
     HashSet<AttributeType> addedTypes = new HashSet<AttributeType>();
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<AttributeValue>();
     for (AttributeType at : schema.getAttributeTypes().values())
     {
       if (schemaFile.equals(at.getSchemaFile()))
@@ -3614,32 +3642,6 @@ public class SchemaBackend
       attrList.add(builder.toAttribute());
       schemaEntry.putAttribute(matchingRuleUsesType, attrList);
     }
-
-
-    /**
-     * Add all of the ldap syntax descriptions to the schema entry. We do
-     * this only for the real part of the ldapsyntaxes attribute. The real part
-     * is read and write to/from the schema files.
-     */
-    values = new LinkedHashSet<AttributeValue>();
-    for (LDAPSyntaxDescription ldapSyntax :
-                                   schema.getLdapSyntaxDescriptions().values())
-    {
-      if(schemaFile.equals(ldapSyntax.getSchemaFile()))
-      {
-        values.add(AttributeValues.create(ldapSyntaxesType,
-                ldapSyntax.getDefinition()));
-      }
-    }
-
-   if (! values.isEmpty())
-   {
-     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-     AttributeBuilder builder = new AttributeBuilder(ldapSyntaxesType);
-     builder.addAll(values);
-     attrList.add(builder.toAttribute());
-     schemaEntry.putAttribute(attributeTypesType, attrList);
-   }
 
 
     if (schemaFile.equals(FILE_USER_SCHEMA_ELEMENTS))
