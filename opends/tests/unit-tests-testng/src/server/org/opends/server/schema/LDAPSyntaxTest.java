@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -40,6 +41,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
@@ -136,71 +138,70 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
   /**
    * Tests whether an implemented syntax can't be substituted by another.
    */
-   @Test()
-   public void testSubstitutionSyntaxForInvalidSubstitution() throws Exception
-   {
+  @Test()
+  public void testSubstitutionSyntaxForInvalidSubstitution() throws Exception
+  {
+    try
+    {
+      //Test if we can substitute a directory string syntax by itself.
+      int resultCode = TestCaseUtils.applyModifications(true,
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: ldapsyntaxes",
+        "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 " +
+        "DESC 'Replacing DirectorySyntax'   " +
+        " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
 
-     try
-     {
-       //Test if we can substitute a directory string syntax by itself.
-        int resultCode = TestCaseUtils.applyModifications(true,
-          "dn: cn=schema",
-          "changetype: modify",
-          "add: ldapsyntaxes",
-          "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 " +
-          "DESC 'Replacing DirectorySyntax'   " +
-          " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
+      //This is not expected to happen
+      assertFalse(resultCode==0);
 
-        //This is not expected to happen
-        assertFalse(resultCode==0);
+      //Test if we can substitute a directory string syntax by an undefined.
+      resultCode = TestCaseUtils.applyModifications(true,
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: ldapsyntaxes",
+        "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 " +
+        "DESC 'Replacing DirectorySyntax'   " +
+        " X-SUBST '1.1.1' )");
 
-        //Test if we can substitute a directory string syntax by an undefined.
-        resultCode = TestCaseUtils.applyModifications(true,
-          "dn: cn=schema",
-          "changetype: modify",
-          "add: ldapsyntaxes",
-          "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.15 " +
-          "DESC 'Replacing DirectorySyntax'   " +
-          " X-SUBST '1.1.1' )");
-
-        //This is not expected to happen
-        assertFalse(resultCode==0);
+      //This is not expected to happen
+      assertFalse(resultCode==0);
 
 
-        //Test if we can substitute a core syntax with a user-defined
-        //syntax
-        addSubtitutionSyntax();
-        //Replace the IA5Stringsyntax with the custom syntax we just created.
-         resultCode = TestCaseUtils.applyModifications(true,
-          "dn: cn=schema",
-          "changetype: modify",
-          "add: ldapsyntaxes",
-          "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.26 " +
-          "DESC 'Replacing DirectorySyntax'   " +
-          " X-SUBST '9.9.9' )");
+      //Test if we can substitute a core syntax with a user-defined
+      //syntax
+      addSubtitutionSyntax();
+      //Replace the IA5Stringsyntax with the custom syntax we just created.
+      resultCode = TestCaseUtils.applyModifications(true,
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: ldapsyntaxes",
+        "ldapsyntaxes: ( 1.3.6.1.4.1.1466.115.121.1.26 " +
+        "DESC 'Replacing DirectorySyntax'   " +
+        " X-SUBST '9.9.9' )");
 
-        //This is not expected to happen
-        assertFalse(resultCode==0);
-     }
-     finally
-     {
+      //This is not expected to happen
+      assertFalse(resultCode==0);
+    }
+    finally
+    {
       deleteSubstitutionSyntax();
-     }
-   }
+    }
+  }
 
 
 
-   /**
+  /**
     * Tests whether both the virtual and the newly added real substitution
     * sytanx are available when a search is made for ldapsyntaxes attribute.
     *
     * @throws java.lang.Exception
     */
-   @Test()
-   public void testSubstitutionSyntaxSearch() throws Exception
-   {
-     try
-     {
+  @Test()
+  public void testSubstitutionSyntaxSearch() throws Exception
+  {
+    try
+    {
       addSubtitutionSyntax();
       InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
@@ -230,9 +231,9 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       assertNotNull(e);
       Attribute attr = e.getAttribute("ldapsyntaxes").get(0);
       Iterator<AttributeValue> iter = attr.iterator();
-      
+
       //There are other ways of doing it but we will extract the OID
-      //from the attribute values and then check to see if our 
+      //from the attribute values and then check to see if our
       //OID is found in the result set or not.
       List<String> syntaxList = new ArrayList<String>();
       while(iter.hasNext())
@@ -241,21 +242,21 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         //parse the OIDs.
         syntaxList.add(getOIDFromLdapSyntax(val.toString()));
       }
- 
+
       assertTrue(syntaxList.size() ==
               DirectoryServer.getAttributeSyntaxSet().size() ) ;
-      //Check if we find our OID.    
+      //Check if we find our OID.
       assertTrue(syntaxList.contains("9.9.9"));
       //DirectoryString.
       assertTrue(syntaxList.contains("1.3.6.1.4.1.1466.115.121.1.15"));
       //IA5String.
       assertTrue(syntaxList.contains("1.3.6.1.4.1.1466.115.121.1.26"));
-     }
-     finally
-     {
-       deleteSubstitutionSyntax();
-     }
-   }
+    }
+    finally
+    {
+      deleteSubstitutionSyntax();
+    }
+  }
 
 
 
@@ -265,6 +266,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     *
     * @throws java.lang.Exception
     */
+   @Test()
    public void testSubsitutionSyntaxAddValues() throws Exception
    {
      try
@@ -298,6 +300,109 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
    }
 
 
+
+  /**
+    * Tests whether it is possible to add values after a regex syntax
+    * has been added.
+    *
+    * @throws java.lang.Exception
+    */
+  @Test()
+  public void testRegexSyntaxAddValues() throws Exception
+  {
+    try
+    {
+      addRegexSyntax();
+      TestCaseUtils.initializeTestBackend(true);
+
+      //This addition should fail because it doesn't match the pattern.
+      Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=syntax-test,o=test",
+      "objectclass: person",
+      "objectclass: testOC",
+      "cn: syntax-test",
+      "sn: xyz",
+      "test-attr-regex: invalid regex");
+      InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+                                     entry.getObjectClasses(),
+                                     entry.getUserAttributes(),
+                                     entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(),
+            ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+
+      //This addition should go through.
+      TestCaseUtils.addEntry(
+        "dn: cn=syntax-test,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: syntax-test",
+        "sn: xyz",
+        "test-attr-regex: host:0.0.0");
+    }
+    finally
+    {
+     deleteRegexSyntax();
+    }
+  }
+
+
+
+  /**
+   * Tests the search using regex syntax.
+   *
+   * @throws java.lang.Exception
+   */
+  @Test()
+  public void testRegexSyntaxSearch() throws Exception
+  {
+    try
+    {
+      addRegexSyntax();
+      //This addition should go through.
+      TestCaseUtils.addEntry(
+        "dn: cn=test,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: test",
+        "sn: xyz",
+        "test-attr-regex: host:0.0.0");
+
+      InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+      InternalSearchOperation searchOperation =
+           new InternalSearchOperation(
+                conn,
+                InternalClientConnection.nextOperationID(),
+                InternalClientConnection.nextMessageID(),
+                null,
+                ByteString.valueOf("cn=test,o=test"),
+                SearchScope.WHOLE_SUBTREE,
+                DereferencePolicy.NEVER_DEREF_ALIASES,
+                Integer.MAX_VALUE,
+                Integer.MAX_VALUE,
+                false,
+                LDAPFilter.decode("test-attr-regex=host:0.0.0"),
+                null, null);
+
+      searchOperation.run();
+      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+      SearchResultEntry e = entries.get(0);
+      //An entry must be returned.
+      assertNotNull(e);
+    }
+    finally
+    {
+      deleteRegexSyntax();
+    }
+  }
+
+
+
   //Parses the OID from the syntax defitions.
   private String getOIDFromLdapSyntax(String valueStr)
   {
@@ -319,18 +424,9 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     }
     int oidStartPos = pos;
 
-    boolean lastWasPeriod = false;
     while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
           && (c = valueStr.charAt(pos)) != ')')
     {
-      if (c == '.')
-      {
-        lastWasPeriod = true;
-      }
-      else
-      {
-        lastWasPeriod = false;
-      }
       pos++;
     }
     return valueStr.substring(oidStartPos, pos);
@@ -363,6 +459,59 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "delete: ldapsyntaxes",
     "ldapsyntaxes: ( 9.9.9 DESC 'Unimplemented Syntax'   " +
     " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
+
+    assertTrue(resultCode==0);
+  }
+
+
+   //Adds a regex syntax to the schema.
+  private void addRegexSyntax() throws Exception
+  {
+    //Add the substitution syntax for an unimplemented syntax.
+    int resultCode = TestCaseUtils.applyModifications(true,
+    "dn: cn=schema",
+    "changetype: modify",
+    "add: ldapsyntaxes",
+    "ldapSyntaxes: ( 1.1.1 DESC 'Host and Port in the format of HOST:PORT'  " +
+            "X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )");
+    assertTrue(resultCode==0);
+
+    resultCode = TestCaseUtils.applyModifications(true,
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributetypes",
+          "attributetypes: ( test-attr-oid NAME 'test-attr-regex' SYNTAX 1.1.1 )",
+          "-",
+          "add: objectclasses",
+          "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-regex)"
+        );
+    assertTrue(resultCode == 0);
+  }
+
+
+
+  //Deletes the regex syntax from the schema.
+  private void deleteRegexSyntax() throws Exception
+  {
+    //delete the substitution syntax.
+    int resultCode = TestCaseUtils.applyModifications(true,
+      "dn: cn=schema",
+      "changetype: modify",
+      "delete: objectclasses",
+      "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-regex)",
+      "-",
+      "delete: attributetypes",
+      "attributetypes: ( test-attr-oid NAME 'test-attr-regex' SYNTAX 1.1.1 )"
+    );
+
+    assertTrue(resultCode==0);
+
+    resultCode = TestCaseUtils.applyModifications(true,
+    "dn: cn=schema",
+    "changetype: modify",
+    "delete: ldapsyntaxes",
+    "ldapSyntaxes: ( 1.1.1 DESC 'Host and Port in the format of HOST:PORT'  " +
+            "X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )");
 
     assertTrue(resultCode==0);
   }

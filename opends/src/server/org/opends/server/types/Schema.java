@@ -3386,9 +3386,11 @@ public final class Schema
            new LinkedHashSet<String>();
       LinkedHashSet<String> matchingRuleUses =
            new LinkedHashSet<String>();
+      LinkedHashSet<String> ldapSyntaxes =
+           new LinkedHashSet<String>();
       genConcatenatedSchema(attributeTypes, objectClasses, nameForms,
                             ditContentRules, ditStructureRules,
-                            matchingRuleUses);
+                            matchingRuleUses,ldapSyntaxes);
 
 
       File configFile = new File(DirectoryServer.getConfigFile());
@@ -3459,6 +3461,15 @@ public final class Schema
         writer.newLine();
       }
 
+
+      for (String line : ldapSyntaxes)
+      {
+        writer.write(ATTR_LDAP_SYNTAXES);
+        writer.write(": ");
+        writer.write(line);
+        writer.newLine();
+      }
+
       writer.close();
 
       if (concatFile.exists())
@@ -3506,6 +3517,9 @@ public final class Schema
    * @param  matchingRuleUses   The set into which to place the
    *                            matching rule uses read from the
    *                            schema files.
+   * @param ldapSyntaxes The set into which to place the
+   *                            ldap syntaxes read from the
+   *                            schema files.
    *
    * @throws  IOException  If a problem occurs while reading the
    *                       schema file elements.
@@ -3516,7 +3530,8 @@ public final class Schema
                           LinkedHashSet<String> nameForms,
                           LinkedHashSet<String> ditContentRules,
                           LinkedHashSet<String> ditStructureRules,
-                          LinkedHashSet<String> matchingRuleUses)
+                          LinkedHashSet<String> matchingRuleUses,
+                          LinkedHashSet<String> ldapSyntaxes)
           throws IOException
   {
     // Get a sorted list of the files in the schema directory.
@@ -3641,6 +3656,12 @@ public final class Schema
                      ATTR_MATCHING_RULE_USE.length()+1).trim();
           matchingRuleUses.add(value);
         }
+        else if(lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
+        {
+          value = line.substring(
+                     ATTR_LDAP_SYNTAXES.length()+1).trim();
+          ldapSyntaxes.add(value);
+        }
       }
     }
   }
@@ -3671,6 +3692,9 @@ public final class Schema
    * @param  matchingRuleUses   The set into which to place the
    *                            matching rule uses read from the
    *                            concatenated schema file.
+   * @param ldapSyntaxes The set into which to place the
+   *                            ldap syntaxes read from the
+   *                            concatenated schema file.
    *
    * @throws  IOException  If a problem occurs while reading the
    *                       schema file elements.
@@ -3681,7 +3705,8 @@ public final class Schema
                           LinkedHashSet<String> nameForms,
                           LinkedHashSet<String> ditContentRules,
                           LinkedHashSet<String> ditStructureRules,
-                          LinkedHashSet<String> matchingRuleUses)
+                          LinkedHashSet<String> matchingRuleUses,
+                          LinkedHashSet<String> ldapSyntaxes)
           throws IOException
   {
     BufferedReader reader =
@@ -3729,6 +3754,12 @@ public final class Schema
         value = line.substring(
                      ATTR_MATCHING_RULE_USE.length()+1).trim();
         matchingRuleUses.add(value);
+      }
+      else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
+      {
+        value = line.substring(
+                  ATTR_LDAP_SYNTAXES.length()+1).trim();
+        ldapSyntaxes.add(value);
       }
     }
 
@@ -3955,6 +3986,12 @@ public final class Schema
     {
       extensibleMatchingRules.clear();
       extensibleMatchingRules = null;
+    }
+
+    if(ldapSyntaxDescriptions != null)
+    {
+      ldapSyntaxDescriptions.clear();
+      ldapSyntaxDescriptions = null;
     }
 
   }

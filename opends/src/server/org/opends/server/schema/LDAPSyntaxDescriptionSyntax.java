@@ -29,6 +29,8 @@ package org.opends.server.schema;
 
 
 
+import java.util.regex.Pattern;
+
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -496,8 +498,7 @@ public class LDAPSyntaxDescriptionSyntax
     String oid = oidBuffer.toString();
     String description = descriptionBuffer.toString();
     StringBuilder extBuffer = new StringBuilder();
-    //Attribute syntax which will sustitute the syntax with oid.
-    AttributeSyntax subSyntax = null;
+    LDAPSyntaxDescriptionSyntax syntax = null;
 
     pos = readTokenName(valueStr, extBuffer, pos);
     String lowerTokenName = toLowerCase(extBuffer.toString());
@@ -507,13 +508,40 @@ public class LDAPSyntaxDescriptionSyntax
       StringBuilder woidBuffer = new StringBuilder();
       pos = readQuotedString(lowerStr, woidBuffer, pos);
       String syntaxOID = woidBuffer.toString();
-      subSyntax = schema.getSyntax(syntaxOID);
+      AttributeSyntax subSyntax = schema.getSyntax(syntaxOID);
       if(subSyntax == null)
       {
         Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
             String.valueOf(oid), syntaxOID);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      message);
+      }
+      syntax = new SubstitutionSyntax(subSyntax,description,oid);
+    }
+    else if(lowerTokenName.equals("x-pattern"))
+    {
+      StringBuilder regexBuffer = new StringBuilder();
+      pos = readQuotedString(valueStr, regexBuffer, pos);
+      String regex = regexBuffer.toString();
+      if(regex == null)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
+               valueStr);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
+      }
+
+      try
+      {
+        Pattern pattern = Pattern.compile(regex);
+        syntax = new RegexSyntax(pattern,description,oid);
+      }
+      catch(Exception e)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                (valueStr,regex);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
       }
     }
     else
@@ -557,16 +585,8 @@ public class LDAPSyntaxDescriptionSyntax
       }
     }
 
-    LDAPSyntaxDescription syntaxDesc = null;
     //Since we reached here it means everything is OK.
-    if(subSyntax !=null)
-    {
-      //A SubstitutionSyntax is requested.
-      syntaxDesc = new LDAPSyntaxDescription(valueStr,
-              new SubstitutionSyntax(subSyntax,description,oid),
-              description,null);
-    }
-    return syntaxDesc;
+    return new LDAPSyntaxDescription(valueStr,syntax,description,null);
   }
 
 
@@ -920,7 +940,7 @@ private static int parseExtension(String valueStr, int startPos)
 
 
 
-     /**
+    /**
      * {@inheritDoc}
      */
      @Override
@@ -966,67 +986,250 @@ private static int parseExtension(String valueStr, int startPos)
 
 
 
-      /**
-   * Retrieves the default equality matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default equality matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if equality
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public EqualityMatchingRule getEqualityMatchingRule()
-  {
-    return subSyntax.getEqualityMatchingRule();
+    /**
+     * Retrieves the default equality matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default equality matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if equality
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public EqualityMatchingRule getEqualityMatchingRule()
+    {
+      return subSyntax.getEqualityMatchingRule();
+    }
+
+
+
+    /**
+     * Retrieves the default ordering matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default ordering matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if ordering
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public OrderingMatchingRule getOrderingMatchingRule()
+    {
+      return subSyntax.getOrderingMatchingRule();
+    }
+
+
+
+    /**
+     * Retrieves the default substring matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default substring matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if substring
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public SubstringMatchingRule getSubstringMatchingRule()
+    {
+      return subSyntax.getSubstringMatchingRule();
+    }
+
+
+
+    /**
+     * Retrieves the default approximate matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default approximate matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if approximate
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public ApproximateMatchingRule getApproximateMatchingRule()
+    {
+      return subSyntax.getApproximateMatchingRule();
+    }
   }
 
 
 
   /**
-   * Retrieves the default ordering matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default ordering matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if ordering
-   *          matches will not be allowed for this type by default.
+   * This class provides a regex mechanism where a new syntax and its
+   * corresponding matching rules can be created on-the-fly. A regex
+   * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
    */
-  @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  private static class RegexSyntax extends
+          LDAPSyntaxDescriptionSyntax
   {
-    return subSyntax.getOrderingMatchingRule();
-  }
+    // The Pattern associated with the regex.
+    private Pattern pattern;
+
+    // The description of this syntax.
+    private String description;
+
+    //The oid of this syntax.
+    private String oid;
+
+    //The equality matching rule.
+    private EqualityMatchingRule equalityMatchingRule;
+
+    //The substring matching rule.
+    private SubstringMatchingRule substringMatchingRule;
+
+    //The ordering matching rule.
+    private OrderingMatchingRule orderingMatchingRule;
+
+    //The approximate matching rule.
+    private ApproximateMatchingRule approximateMatchingRule;
+
+
+    //Creates a new instance of this syntax.
+    private RegexSyntax(Pattern pattern,
+            String description,
+            String oid)
+    {
+      super();
+      this.pattern = pattern;
+      this.description = description;
+      this.oid = oid;
+    }
 
 
 
-  /**
-   * Retrieves the default substring matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default substring matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if substring
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
-  {
-    return subSyntax.getSubstringMatchingRule();
-  }
+     /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getSyntaxName()
+    {
+      // There is no name for a regex syntax.
+      return null;
+    }
 
 
 
-  /**
-   * Retrieves the default approximate matching rule that will be used for
-   * attributes with this syntax.
-   *
-   * @return  The default approximate matching rule that will be used for
-   *          attributes with this syntax, or <CODE>null</CODE> if approximate
-   *          matches will not be allowed for this type by default.
-   */
-  @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
-  {
-    return subSyntax.getApproximateMatchingRule();
-  }
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getOID()
+    {
+      return oid;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getDescription()
+    {
+      return description;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean valueIsAcceptable(ByteSequence value,
+                                     MessageBuilder invalidReason)
+    {
+      String strValue = value.toString();
+      boolean matches = pattern.matcher(strValue).matches();
+      if(!matches)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(
+                strValue,pattern.pattern());
+        invalidReason.append(message);
+      }
+      return matches;
+    }
+
+
+
+    /**
+     * Retrieves the default equality matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default equality matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if equality
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public EqualityMatchingRule getEqualityMatchingRule()
+    {
+      if(equalityMatchingRule == null)
+      {
+        //This has already been verified.
+        equalityMatchingRule =
+                DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+      }
+      return equalityMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default ordering matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default ordering matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if ordering
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public OrderingMatchingRule getOrderingMatchingRule()
+    {
+      if(orderingMatchingRule == null)
+      {
+        orderingMatchingRule =
+                DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
+      }
+      return orderingMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default substring matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default substring matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if substring
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public SubstringMatchingRule getSubstringMatchingRule()
+    {
+      if(substringMatchingRule == null)
+      {
+        substringMatchingRule =
+                DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+      }
+      return substringMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default approximate matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default approximate matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if approximate
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public ApproximateMatchingRule getApproximateMatchingRule()
+    {
+      if(approximateMatchingRule == null)
+      {
+        approximateMatchingRule =
+                DirectoryServer.getApproximateMatchingRule(
+                                    AMR_DOUBLE_METAPHONE_OID);
+      }
+      return approximateMatchingRule;
+    }
   }
 }
-
