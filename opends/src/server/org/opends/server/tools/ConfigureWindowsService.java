@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -399,6 +399,27 @@ public class ConfigureWindowsService
    */
   public static int enableService(PrintStream out, PrintStream err)
   {
+    return enableService(out, err, INFO_WINDOWS_SERVICE_NAME.get().toString(),
+        INFO_WINDOWS_SERVICE_DESCRIPTION.get(getServerRoot()).toString());
+  }
+
+  /**
+   * Enables OpenDS to run as a windows service.
+   * @param out the stream used to write the standard output.
+   * @param err the stream used to write the error output.
+   * @param serviceName the name of the service as it will appear in the
+   * registry.
+   * @param serviceDescription the description of the service as it will appear
+   * in the registry.
+   * @return <CODE>SERVICE_ENABLE_SUCCESS</CODE>,
+   * <CODE>SERVICE_ENABLE_ERROR</CODE>,
+   * <CODE>SERVICE_NAME_ALREADY_IN_USE</CODE> or
+   * <CODE>SERVICE_ALREADY_ENABLED</CODE> depending on whether the service could
+   * be enabled or not.
+   */
+  public static int enableService(PrintStream out, PrintStream err,
+      String serviceName, String serviceDescription)
+  {
     int returnValue;
     Message msg;
     String serverRoot = getServerRoot();
@@ -415,8 +436,8 @@ public class ConfigureWindowsService
           getBinaryFullPath(),
           "create",
           serverRoot,
-          INFO_WINDOWS_SERVICE_NAME.get().toString(),
-          INFO_WINDOWS_SERVICE_DESCRIPTION.get(serverRoot).toString(),
+          serviceName,
+          serviceDescription,
           DEBUG_OPTION
       };
     }
@@ -426,8 +447,8 @@ public class ConfigureWindowsService
           getBinaryFullPath(),
           "create",
           serverRoot,
-          INFO_WINDOWS_SERVICE_NAME.get().toString(),
-          INFO_WINDOWS_SERVICE_DESCRIPTION.get(serverRoot).toString(),
+          serviceName,
+          serviceDescription,
           DEBUG_OPTION
       };
     }

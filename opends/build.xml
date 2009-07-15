@@ -1179,8 +1179,104 @@
     <chmod file="${pdir}/lib/_mixed-script.sh" perm="755" />
     <chmod file="${pdir}/lib/_script-util.sh" perm="755" />
   </target>
+	
+	<!-- Populate the Directory Server package, but don't zip it up. -->
+	  <target name="dsreplication" depends="generatemessages"
+	       description="Compile only dsreplication.">
+	
+		<taskdef name="getversionnumber"
+	             classname="org.opends.build.tools.CreateVersionString">
+	      <classpath>
+	        <fileset dir="${build.dir}/build-tools">
+	          <include name="*.jar" />
+	        </fileset>
+	      </classpath>
+	    </taskdef>
+		<getversionnumber property="VERSION_NUMBER_STRING" />
+	    <property name="pdir"
+	         location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
+		<property name="dsreplication.rel.dir"
+	 		value="org/opends/server/tools/dsreplication"/>
+	<echo level="warning"
+	          message="src dir ${src.dir}."/>
+	<echo level="warning"
+		          message="classes dir ${classes.dir}."/>
+        <echo level="warning"
+                  message="dsreplication classes dir ${classes.dir}/${dsreplication.rel.dir}."/>
+	<delete dir="${classes.dir}/${dsreplication.rel.dir}" />
+		
+        <javac srcdir="${msg.javagen.dir}" destdir="${classes.dir}"
+                 debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
+                 deprecation="true" fork="true" memoryInitialSize="${MEM}"
+                 memoryMaximumSize="${MEM}">
+              <compilerarg value="-Xlint:all" />
+             <classpath>
+                <fileset dir="${lib.dir}">
+                  <include name="*.jar" />
+                </fileset>
+                <fileset dir="${build.dir}/build-tools">
+                  <include name="build-tools.jar" />
+                </fileset>
+                <fileset dir="${build.lib.dir}">
+                  <include name="*.jar" />
+                </fileset>
+              </classpath>
+            </javac>
 
+        <javac srcdir="${guitools.src.dir}"
+	         destdir="${classes.dir}"
+	         debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
+	         deprecation="true" fork="true" memoryInitialSize="${MEM}"
+	         memoryMaximumSize="${MEM}">
+	      <compilerarg value="-Xlint:all" />
+
+	      <classpath>
+	        <fileset dir="${lib.dir}">
+	          <include name="*.jar" />
+	        </fileset>
+	        <fileset dir="${build.dir}/build-tools">
+	          <include name="build-tools.jar" />
+	        </fileset>
+	        <fileset dir="${build.lib.dir}">
+	          <include name="*.jar" />
+	        </fileset>
+	      </classpath>
+	    </javac>
+
+        <javac srcdir="${src.dir}"
+                 destdir="${classes.dir}" includes="${dsreplication.rel.dir}/**,org/opends/server/util/cli/LDAPConnectionConsoleInteraction.java,org/opends/server/util/args/ArgumentParser.java"
+                 debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
+                 deprecation="true" fork="true" memoryInitialSize="${MEM}"
+                 memoryMaximumSize="${MEM}">
+              <compilerarg value="-Xlint:all" />
+
+              <classpath>
+                <fileset dir="${lib.dir}">
+                  <include name="*.jar" />
+                </fileset>
+                <fileset dir="${build.dir}/build-tools">
+                  <include name="build-tools.jar" />
+                </fileset>
+                <fileset dir="${build.lib.dir}">
+                  <include name="*.jar" />
+                </fileset>
+              </classpath>
+            </javac>
+	
+	<delete file="${pdir}/lib/${SHORT_NAME}.jar" />
+	    <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
+	         basedir="${classes.dir}"
+	         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+	        compress="true" index="true" />
+
+	    <copy todir="${pdir}/lib">
+	      <fileset file="${lib.dir}/*.jar" />
+	    </copy>
+
+	<echo level="warning"
+		          message="jar file ${pdir}/lib/${SHORT_NAME}.jar."/>
+	  </target>
 
 
   <!-- Package the Directory Server for distribution. -->
