@@ -52,7 +52,6 @@ import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.QuickSetupLog;
-import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
@@ -86,6 +85,8 @@ import org.opends.server.util.cli.MenuResult;
  *   <LI>Checks if the server is already installed and running</LI>
  *   <LI>Ask the user what base DN should be used for the data</LI>
  *   <LI>Ask the user whether to create the base entry, or to import LDIF</LI>
+ *   <LI>Ask the user for the administration port and make sure it's available
+ *   </LI>
  *   <LI>Ask the user for the LDAP port and make sure it's available</LI>
  *   <LI>Ask the user for the default root DN and password</LI>
  *   <LI>Ask the user to enable SSL or not and for the type of certificate that
@@ -146,7 +147,11 @@ public class InstallDS extends ConsoleApplication
     /**
      * The user doesn't accept the license.
      */
-    ERROR_LICENSE_NOT_ACCEPTED(7);
+    ERROR_LICENSE_NOT_ACCEPTED(7),
+    /**
+     * Incompatible java version.
+     */
+    JAVA_VERSION_INCOMPATIBLE(8);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -388,7 +393,7 @@ public class InstallDS extends ConsoleApplication
       catch (IncompatibleVersionException ive)
       {
         println(ive.getMessageObject());
-        return ReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
+        return ErrorReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
       }
     }
 
@@ -1172,7 +1177,8 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the LDAP and JMX port parameters.
+   * specified in the command-line for the administration connector, LDAP and
+   * JMX port parameters.
    * If the user did not provide explicitly some data or if the provided data is
    * not valid, it prompts the user to provide it.
    * Note: this method does not update nor check the LDAPS port.
