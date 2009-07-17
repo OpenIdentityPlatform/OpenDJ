@@ -152,7 +152,7 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                     new Message[]{cont, cancel},
                     defaultAction))) {
               throw new ApplicationException(
-                  ReturnCode.CANCELLED,
+                  ReturnCode.CANCELED,
                       INFO_UPGRADE_CANCELED.get(), null);
             }
           }

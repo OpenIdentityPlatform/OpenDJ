@@ -151,7 +151,7 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
                     new Message[]{cont, cancel},
                     defaultAction))) {
               throw new ApplicationException(
-                  ReturnCode.CANCELLED,
+                  ReturnCode.CANCELED,
                       INFO_REVERSION_CANCELED.get(), null);
             }
           }

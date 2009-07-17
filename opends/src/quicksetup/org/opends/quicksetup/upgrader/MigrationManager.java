@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -374,7 +374,7 @@ public class MigrationManager {
             // do nothing; will retry;
           } else {
             throw new ApplicationException(
-                ReturnCode.CANCELLED,
+                ReturnCode.CANCELED,
                 INFO_UPGRADE_CANCELED.get(), firstException);
           }
         } else {

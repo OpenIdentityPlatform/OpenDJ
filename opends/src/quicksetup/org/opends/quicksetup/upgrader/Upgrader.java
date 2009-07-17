@@ -851,7 +851,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                     || (response.toLowerCase().equals(no.toLowerCase()))
                     || (response.length() == 0))
                 {
-                  System.exit(ReturnCode.CANCELLED.getReturnCode());
+                  System.exit(ReturnCode.CANCELED.getReturnCode());
                 }
                 else if (response.toLowerCase().equals(yes.toLowerCase()))
                 {
@@ -1317,7 +1317,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       // We don't consider a  user cancelation exception
       // to be an error.
-      if (ae.getType() != ReturnCode.CANCELLED) {
+      if (ae.getType() != ReturnCode.CANCELED) {
         this.runError = ae;
       } else {
         this.abort = true;
@@ -1497,7 +1497,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
-        ReturnCode.CANCELLED,
+        ReturnCode.CANCELED,
             INFO_UPGRADE_CANCELED.get(), null);
   }
 

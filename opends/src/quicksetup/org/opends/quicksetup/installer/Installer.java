@@ -2136,8 +2136,8 @@ public abstract class Installer extends GuiApplication {
       setCurrentProgressStep(InstallProgressStep.CANCELING);
       notifyListeners(null);
       throw new ApplicationException(
-          ReturnCode.CANCELLED,
-            INFO_UPGRADE_CANCELED.get(), null);
+          ReturnCode.CANCELED,
+          INFO_INSTALL_CANCELED.get(), null);
     }
   }
 
