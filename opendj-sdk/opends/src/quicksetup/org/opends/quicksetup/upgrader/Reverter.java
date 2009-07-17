@@ -541,7 +541,7 @@ public class Reverter extends Application implements CliApplication {
                 new Message[] { cont, cancel },
                 cont))) {
           throw new ApplicationException(
-              ReturnCode.CANCELLED,
+              ReturnCode.CANCELED,
               INFO_REVERSION_CANCELED.get(), null);
         }
       }
@@ -641,7 +641,7 @@ public class Reverter extends Application implements CliApplication {
                 Message.raw(e.getLocalizedMessage()), e);
       } else {
         runError = (ApplicationException)e;
-        abort = ReturnCode.CANCELLED.equals(
+        abort = ReturnCode.CANCELED.equals(
                 ((ApplicationException)e).getType());
       }
     } finally {

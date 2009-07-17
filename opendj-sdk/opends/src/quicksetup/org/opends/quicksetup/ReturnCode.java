@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -38,9 +38,9 @@ public class ReturnCode {
   public static final ReturnCode SUCCESSFUL = new ReturnCode(0);
 
   /**
-   * Return code: User Cancelled uninstall.
+   * Return code: User Cancelled operation.
    */
-  public static final ReturnCode CANCELLED = new ReturnCode(0);
+  public static final ReturnCode CANCELED = new ReturnCode(0);
 
   /**
    * Return code: User provided invalid data.

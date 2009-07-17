@@ -426,7 +426,7 @@ public class ServerController {
            */
           boolean connected = false;
           Configuration config = installation.getCurrentConfiguration();
-          int port = config.getPort();
+          int port = config.getAdminConnectorPort();
           String hostName = null;
           if (application != null)
           {
@@ -437,7 +437,7 @@ public class ServerController {
             hostName = "localhost";
           }
           hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
-          String ldapUrl = "ldap://"+hostName+":" + port;
+          String ldapUrl = "ldaps://"+hostName+":" + port;
 
           // See if the application has prompted for credentials.  If
           // not we'll just try to connect anonymously.
@@ -459,20 +459,20 @@ public class ServerController {
             {
               // Try with local host.  This might be necessary in certain
               // network configurations.
-              ldapUrl = "ldap://localhost:" + port;
+              ldapUrl = "ldaps://localhost:" + port;
             }
             if (i == 15)
             {
               // Try with 0.0.0.0.  This might be necessary in certain
               // network configurations.
-              ldapUrl = "ldap://0.0.0.0:" + port;
+              ldapUrl = "ldaps://0.0.0.0:" + port;
             }
             try
             {
-              ctx = Utils.createLdapContext(
+              ctx = Utils.createLdapsContext(
                   ldapUrl,
                   userDn, userPw, ConnectionUtils.getDefaultLDAPTimeout(),
-                  null);
+                  null, null);
               connected = true;
             }
             catch (NamingException ne)
@@ -523,7 +523,6 @@ public class ServerController {
             }
           }
         }
-
       } catch (IOException ioe)
       {
         throw new ApplicationException(

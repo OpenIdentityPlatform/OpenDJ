@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -96,6 +96,18 @@ public class Configuration {
   }
 
   /**
+   * Provides the administration port as is specified in the config.ldif file.
+   *
+   * @return the administration port specified in the config.ldif file.
+   * @throws IOException if there were problems reading the information from
+   * the configuration file.
+   */
+  public int getAdminConnectorPort() throws IOException
+  {
+    return getAdminConnectorPort("ds-cfg-listen-port");
+  }
+
+  /**
    * Tells whether this server is configured as a replication server or not.
    * @return <CODE>true</CODE> if the server is configured as a Replication
    * Server and <CODE>false</CODE> otherwise.
@@ -159,6 +171,33 @@ public class Configuration {
     int port = -1;
     String contents = getLowerCaseContents();
     int index = contents.indexOf("cn=ldap connection handler");
+
+    if (index != -1) {
+      String attrWithPoints = portAttr + ":";
+      int index1 = contents.indexOf(attrWithPoints, index);
+      if (index1 != -1) {
+        int index2 =
+                contents.indexOf(Constants.LINE_SEPARATOR, index1);
+        if (index2 != -1) {
+          String sPort =
+                  contents.substring(attrWithPoints.length() +
+                          index1,
+                          index2).trim();
+          try {
+            port = Integer.parseInt(sPort);
+          } catch (NumberFormatException nfe) {
+            // do nothing;
+          }
+        }
+      }
+    }
+    return port;
+  }
+
+  private int getAdminConnectorPort(String portAttr) throws IOException {
+    int port = -1;
+    String contents = getLowerCaseContents();
+    int index = contents.indexOf("cn=administration connector");
 
     if (index != -1) {
       String attrWithPoints = portAttr + ":";

@@ -135,7 +135,7 @@ public class QuickSetupCli {
       else
       {
         // User cancelled operation.
-        returnValue = ReturnCode.CANCELLED;
+        returnValue = ReturnCode.CANCELED;
       }
     }
     catch (UserDataException uude)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -296,9 +296,9 @@ public abstract class Launcher {
       printUsage(true);
       System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
     }
-    else if (returnValue.equals(ReturnCode.CANCELLED))
+    else if (returnValue.equals(ReturnCode.CANCELED))
     {
-      System.exit(ReturnCode.CANCELLED.getReturnCode());
+      System.exit(ReturnCode.CANCELED.getReturnCode());
     }
     else if (returnValue.equals(ReturnCode.USER_INPUT_ERROR))
     {
