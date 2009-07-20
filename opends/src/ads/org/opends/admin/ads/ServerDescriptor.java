@@ -1042,6 +1042,8 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
 
+    Set<String> allReplicationServers = new LinkedHashSet<String>();
+
     if (cacheFilter.searchBaseDNInformation())
     {
       ctls = new SearchControls();
@@ -1085,6 +1087,7 @@ public class ServerDescriptor
                   repServers.add(s.toLowerCase());
                 }
                 replica.setReplicationServers(repServers);
+                allReplicationServers.addAll(repServers);
               }
             }
           }
@@ -1134,8 +1137,9 @@ public class ServerDescriptor
         {
           repServers.add(s.toLowerCase());
         }
+        allReplicationServers.addAll(repServers);
         desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS,
-            repServers);
+            allReplicationServers);
       }
     }
     catch (NameNotFoundException nse)
