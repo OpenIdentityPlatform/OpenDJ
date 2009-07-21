@@ -1041,6 +1041,7 @@ public final class Schema
       {
         //Get rid of this from the virtual ldapsyntaxes.
         deregisterSyntax(syntax.getLdapSyntaxDescriptionSyntax());
+        syntax.getLdapSyntaxDescriptionSyntax().finalizeSyntax();
       }
       catch (Exception e)
       {

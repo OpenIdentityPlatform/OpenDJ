@@ -667,6 +667,20 @@ public class SchemaConstants
 
 
   /**
+   * The name for the enumOrderingMatch ordering matching rule.
+   */
+  public static final String OMR_GENERIC_ENUM_NAME = "enumOrderingMatch";
+
+
+
+  /**
+   * The oid for the generic enum syntax ordering matching rule.
+   */
+  public static final String OMR_OID_GENERIC_ENUM="1.3.6.1.4.1.26027.1.4.8";
+
+
+
+  /**
    * The name for the caseExactSubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_EXACT_NAME = "caseExactSubstringsMatch";

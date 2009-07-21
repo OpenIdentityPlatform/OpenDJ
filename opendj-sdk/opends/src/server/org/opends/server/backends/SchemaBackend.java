@@ -3318,7 +3318,7 @@ public class SchemaBackend
     // We allow only unimplemented syntaxes to be substituted.
     if(schema.getSyntax(oid) !=null)
     {
-      Message message = ERR_ATTR_SYNTAX_INVALID_SUBSTITUTION_SYNTAX.get(
+      Message message = ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(
               ldapSyntaxDesc.getDefinition(),oid);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      message);
