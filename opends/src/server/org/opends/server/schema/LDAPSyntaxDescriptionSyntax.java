@@ -29,27 +29,35 @@ package org.opends.server.schema;
 
 
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.regex.Pattern;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.messages.Message;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
-import static org.opends.messages.SchemaMessages.*;
 import org.opends.messages.MessageBuilder;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.api.AbstractMatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DirectoryException;
 
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.StringPrepProfile.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
@@ -499,7 +507,7 @@ public class LDAPSyntaxDescriptionSyntax
     String description = descriptionBuffer.toString();
     StringBuilder extBuffer = new StringBuilder();
     LDAPSyntaxDescriptionSyntax syntax = null;
-
+    char c = '\u0000';
     pos = readTokenName(valueStr, extBuffer, pos);
     String lowerTokenName = toLowerCase(extBuffer.toString());
 
@@ -522,8 +530,8 @@ public class LDAPSyntaxDescriptionSyntax
     {
       StringBuilder regexBuffer = new StringBuilder();
       pos = readQuotedString(valueStr, regexBuffer, pos);
-      String regex = regexBuffer.toString();
-      if(regex == null)
+      String regex = regexBuffer.toString().trim();
+      if(regex.length() == 0)
       {
         Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
                valueStr);
@@ -544,6 +552,41 @@ public class LDAPSyntaxDescriptionSyntax
                 message);
       }
     }
+    else if(lowerTokenName.equals("x-enum"))
+    {
+      // The next character must be the opening parenthesis
+      if ((c = valueStr.charAt(pos++)) != '(')
+      {
+
+        Message message =
+                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
+                        valueStr, pos, String.valueOf(c));
+         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
+      }
+      LinkedList<ByteSequence> entries = new LinkedList<ByteSequence>();
+      while(true)
+      {
+        if ((c=valueStr.charAt(pos)) == ')')
+        {
+          pos++;
+          break;
+        }
+        StringBuilder buffer = new StringBuilder();
+        pos = readQuotedString(valueStr, buffer, pos);
+        ByteString entry = ByteString.valueOf(buffer.toString());
+        if(entries.contains(entry))
+        {
+          Message message =
+                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                        valueStr, entry.toString(),pos);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                message);
+        }
+        entries.add(entry);
+      }
+      syntax = new EnumSyntax(entries, description, oid);
+    }
     else
     {
       Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
@@ -552,16 +595,14 @@ public class LDAPSyntaxDescriptionSyntax
               message);
     }
 
-    char c = valueStr.charAt(pos);
-
-    while ((pos < length) && (c == ' '))
+    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
 
     // The next character must be the closing parenthesis and there should not
     // be anything after it (except maybe some spaces).
-    if ((c = valueStr.charAt(pos++)) != ')')
+    if (pos >= length || (c = valueStr.charAt(pos++)) != ')')
     {
 
       Message message =
@@ -889,6 +930,13 @@ private static int parseExtension(String valueStr, int startPos)
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
+          //Clean up any space after this.
+          while ((pos < valueStr.length()) &&
+                  ((c = valueStr.charAt(pos)) == ' '))
+          {
+            pos++;
+          }
+
           if(valueStr.charAt(pos) == ')')
               break;
       }
@@ -1230,6 +1278,376 @@ private static int parseExtension(String valueStr, int startPos)
                                     AMR_DOUBLE_METAPHONE_OID);
       }
       return approximateMatchingRule;
+    }
+  }
+
+
+
+  /**
+   * This class provides an enumeration-based mechanism where a new syntax
+   * and its corresponding matching rules can be created on-the-fly. An enum
+   * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
+   */
+  private static class EnumSyntax extends
+          LDAPSyntaxDescriptionSyntax
+  {
+    //Set of read-only enum entries.
+    LinkedList<ByteSequence> entries;
+
+    // The description of this syntax.
+    private String description;
+
+    //The oid of this syntax.
+    private String oid;
+
+    //The equality matching rule.
+    private EqualityMatchingRule equalityMatchingRule;
+
+    //The substring matching rule.
+    private SubstringMatchingRule substringMatchingRule;
+
+    //The ordering matching rule.
+    private OrderingMatchingRule orderingMatchingRule;
+
+    //The approximate matching rule.
+    private ApproximateMatchingRule approximateMatchingRule;
+
+
+    //Creates a new instance of this syntax.
+    private EnumSyntax(LinkedList<ByteSequence> entries,
+            String description,
+            String oid)
+    {
+      super();
+      this.entries = entries;
+      this.description = description;
+      this.oid = oid;
+    }
+
+
+
+     /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getSyntaxName()
+    {
+      // There is no name for a enum syntax.
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getOID()
+    {
+      return oid;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+     @Override
+    public String getDescription()
+    {
+      return description;
+    }
+
+
+
+     /**
+      * {@inheritDoc}
+      */
+    @Override
+    public void finalizeSyntax()
+    {
+      DirectoryServer.deregisterMatchingRule(orderingMatchingRule);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean valueIsAcceptable(ByteSequence value,
+                                     MessageBuilder invalidReason)
+    {
+      //The value is acceptable if it belongs to the set.
+      boolean isAllowed = entries.contains(value);
+
+      if(!isAllowed)
+      {
+        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(
+                value.toString(),oid);
+        invalidReason.append(message);
+      }
+
+      return isAllowed;
+    }
+
+
+
+    /**
+     * Retrieves the default equality matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default equality matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if equality
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public EqualityMatchingRule getEqualityMatchingRule()
+    {
+      if(equalityMatchingRule == null)
+      {
+        //This has already been verified.
+        equalityMatchingRule =
+                DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+      }
+      return equalityMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default ordering matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default ordering matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if ordering
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public OrderingMatchingRule getOrderingMatchingRule()
+    {
+      if(orderingMatchingRule == null)
+      {
+        orderingMatchingRule = new EnumOrderingMatchingRule(this, oid);
+        try
+        {
+          DirectoryServer.registerMatchingRule(orderingMatchingRule, false);
+        }
+        catch(DirectoryException de)
+        {
+          logError(de.getMessageObject());
+        }
+      }
+      return orderingMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default substring matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default substring matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if substring
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public SubstringMatchingRule getSubstringMatchingRule()
+    {
+      if(substringMatchingRule == null)
+      {
+        substringMatchingRule =
+                DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+      }
+      return substringMatchingRule;
+    }
+
+
+
+    /**
+     * Retrieves the default approximate matching rule that will be used for
+     * attributes with this syntax.
+     *
+     * @return  The default approximate matching rule that will be used for
+     *          attributes with this syntax, or <CODE>null</CODE> if approximate
+     *          matches will not be allowed for this type by default.
+     */
+    @Override
+    public ApproximateMatchingRule getApproximateMatchingRule()
+    {
+      if(approximateMatchingRule == null)
+      {
+        approximateMatchingRule =
+                DirectoryServer.getApproximateMatchingRule(
+                                    AMR_DOUBLE_METAPHONE_OID);
+      }
+      return approximateMatchingRule;
+    }
+
+
+
+    //Returns the associated data structure containing the enum
+    //values.
+    private LinkedList<ByteSequence> getEnumValues()
+    {
+      return entries;
+    }
+
+
+
+    /**
+      * Implementation of an Enum Ordering matching rule.
+      */
+    private final class EnumOrderingMatchingRule
+       extends AbstractMatchingRule
+       implements OrderingMatchingRule
+    {
+      //The enumeration syntax instance.
+      private EnumSyntax syntax;
+
+
+      //The oid of the matching rule.
+      private String oid;
+
+
+      //The name of the matching rule.
+      private String name;
+
+
+
+      static final long serialVersionUID = -2624642267131703408L;
+
+
+      /**
+       * Creates a new instance.
+       */
+      private EnumOrderingMatchingRule(EnumSyntax syntax,String oid)
+      {
+        super();
+        this.syntax = syntax;
+        this.oid = OMR_OID_GENERIC_ENUM + "." + oid;
+        this.name = OMR_GENERIC_ENUM_NAME + oid;
+      }
+
+
+
+      /**
+      * {@inheritDoc}
+      */
+      public int compare(byte[] arg0, byte[] arg1)
+      {
+        return compareValues(ByteString.wrap(arg0),ByteString.wrap(arg1));
+      }
+
+
+
+      /**
+      * {@inheritDoc}
+      */
+      public int compareValues(ByteSequence value1, ByteSequence value2)
+      {
+        LinkedList<ByteSequence> enumValues = syntax.getEnumValues();
+        return enumValues.indexOf(value1) - enumValues.indexOf(value2);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String getName()
+      {
+        return name;
+      }
+
+
+
+       /**
+       * {@inheritDoc}
+       */
+      @Override
+      public Collection<String> getAllNames()
+      {
+        return Collections.singleton(getName());
+      }
+
+
+
+       /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String getOID()
+      {
+        return oid;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String getDescription()
+      {
+        return null;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String getSyntaxOID()
+      {
+        return SYNTAX_DIRECTORY_STRING_OID;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public ByteString normalizeValue(ByteSequence value)
+              throws DirectoryException
+      {
+        StringBuilder buffer = new StringBuilder();
+        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
+
+        int bufferLength = buffer.length();
+        if (bufferLength == 0)
+        {
+          if (value.length() > 0)
+          {
+            // This should only happen if the value is composed entirely
+            // of spaces. In that case, the normalized value is a single space.
+            return SINGLE_SPACE_VALUE;
+          }
+          else
+          {
+            // The value is empty, so it is already normalized.
+            return ByteString.empty();
+          }
+        }
+
+
+        // Replace any consecutive spaces with a single space.
+        for (int pos = bufferLength-1; pos > 0; pos--)
+        {
+          if (buffer.charAt(pos) == ' ')
+          {
+            if (buffer.charAt(pos-1) == ' ')
+            {
+              buffer.delete(pos, pos+1);
+            }
+          }
+        }
+
+        return ByteString.valueOf(buffer.toString());
+      }
     }
   }
 }

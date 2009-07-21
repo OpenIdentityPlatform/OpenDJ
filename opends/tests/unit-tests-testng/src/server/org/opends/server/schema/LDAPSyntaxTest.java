@@ -40,6 +40,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -361,6 +362,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     try
     {
       addRegexSyntax();
+      TestCaseUtils.initializeTestBackend(true);
       //This addition should go through.
       TestCaseUtils.addEntry(
         "dn: cn=test,o=test",
@@ -398,6 +400,178 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     finally
     {
       deleteRegexSyntax();
+    }
+  }
+
+
+
+    /**
+    * Tests whether it is possible to add values after an enum syntax
+    * has been added.
+    *
+    * @throws java.lang.Exception
+    */
+  @Test()
+  public void testEnumSyntaxAddValues() throws Exception
+  {
+    try
+    {
+      addEnumSyntax();
+      TestCaseUtils.initializeTestBackend(true);
+
+      //This addition should fail because it doesn't match the pattern.
+      Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=syntax-test,o=test",
+      "objectclass: person",
+      "objectclass: testOC",
+      "cn: syntax-test",
+      "sn: xyz",
+      "test-attr-enum: arbit-day");
+      InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation = conn.processAdd(entry.getDN(),
+                                     entry.getObjectClasses(),
+                                     entry.getUserAttributes(),
+                                     entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(),
+            ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+
+      //This addition should go through.
+      TestCaseUtils.addEntry(
+        "dn: cn=syntax-test,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: syntax-test",
+        "sn: xyz",
+        "test-attr-enum: sunday");
+    }
+    finally
+    {
+      deleteEnumSyntax();
+    }
+  }
+
+
+
+  /**
+   * Tests the equality-based search using enum syntax.
+   *
+   * @throws java.lang.Exception
+   */
+  @Test()
+  public void testEnumSyntaxEqualitySearch() throws Exception
+  {
+    try
+    {
+      addEnumSyntax();
+      //This addition should go through.
+      TestCaseUtils.initializeTestBackend(true);
+      TestCaseUtils.addEntry(
+        "dn: cn=test,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: test",
+        "sn: xyz",
+        "test-attr-enum: wednesday");
+
+      InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+      InternalSearchOperation searchOperation =
+           new InternalSearchOperation(
+                conn,
+                InternalClientConnection.nextOperationID(),
+                InternalClientConnection.nextMessageID(),
+                null,
+                ByteString.valueOf("cn=test,o=test"),
+                SearchScope.WHOLE_SUBTREE,
+                DereferencePolicy.NEVER_DEREF_ALIASES,
+                Integer.MAX_VALUE,
+                Integer.MAX_VALUE,
+                false,
+                LDAPFilter.decode("test-attr-enum=wednesday"),
+                null, null);
+
+      searchOperation.run();
+      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+      SearchResultEntry e = entries.get(0);
+      //An entry must be returned.
+      assertNotNull(e);
+    }
+    finally
+    {
+      deleteEnumSyntax();
+    }
+  }
+
+
+
+  /**
+   * Tests the ordering-based search using enum syntax.
+   *
+   * @throws java.lang.Exception
+   */
+  @Test()
+  public void testEnumSyntaxOrderingSearch() throws Exception
+  {
+    try
+    {
+      addEnumSyntax();
+      TestCaseUtils.initializeTestBackend(true);
+      //This addition should go through.
+      TestCaseUtils.addEntries(
+        "dn: cn=test1,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: test1",
+        "sn: xyz",
+        "test-attr-enum: sunday",
+        "",
+        "dn: cn=test2,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: test2",
+        "sn: xyz",
+        "test-attr-enum: monday",
+        "",
+        "dn: cn=test3,o=test",
+        "objectclass: person",
+        "objectclass: testOC",
+        "cn: test3",
+        "sn: xyz",
+        "test-attr-enum: tuesday");
+
+      InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+      InternalSearchOperation searchOperation =
+           new InternalSearchOperation(
+                conn,
+                InternalClientConnection.nextOperationID(),
+                InternalClientConnection.nextMessageID(),
+                null,
+                ByteString.valueOf("o=test"),
+                SearchScope.WHOLE_SUBTREE,
+                DereferencePolicy.NEVER_DEREF_ALIASES,
+                Integer.MAX_VALUE,
+                Integer.MAX_VALUE,
+                false,
+                LDAPFilter.decode("test-attr-enum>=tuesday"),
+                null, null);
+
+      searchOperation.run();
+      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+      SearchResultEntry e = entries.get(0);
+      //An entry must be returned.
+      assertNotNull(e);
+      assertTrue(e.getDN().equals(DN.decode("cn=test1,o=test")));
+    }
+    finally
+    {
+      deleteEnumSyntax();
     }
   }
 
@@ -512,6 +686,59 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     "delete: ldapsyntaxes",
     "ldapSyntaxes: ( 1.1.1 DESC 'Host and Port in the format of HOST:PORT'  " +
             "X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )");
+
+    assertTrue(resultCode==0);
+  }
+
+
+
+     //Adds an enum syntax to the schema.
+  private void addEnumSyntax() throws Exception
+  {
+    //Add the enum syntax.
+    int resultCode = TestCaseUtils.applyModifications(true,
+    "dn: cn=schema",
+    "changetype: modify",
+    "add: ldapsyntaxes",
+    "ldapSyntaxes: ( 3.3.3  DESC 'Day Of The Week'  " +
+            "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
+    assertTrue(resultCode==0);
+
+    resultCode = TestCaseUtils.applyModifications(true,
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributetypes",
+          "attributetypes: ( test-attr-oid NAME 'test-attr-enum' SYNTAX 3.3.3 )",
+          "-",
+          "add: objectclasses",
+          "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-enum)"
+        );
+    assertTrue(resultCode == 0);
+  }
+
+
+
+  //Deletes the enum syntax from the schema.
+  private void deleteEnumSyntax() throws Exception
+  {
+    int resultCode = TestCaseUtils.applyModifications(true,
+      "dn: cn=schema",
+      "changetype: modify",
+      "delete: objectclasses",
+      "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr-enum)",
+      "-",
+      "delete: attributetypes",
+      "attributetypes: ( test-attr-oid NAME 'test-attr-enum' SYNTAX 3.3.3 )"
+    );
+
+    assertTrue(resultCode==0);
+
+    resultCode = TestCaseUtils.applyModifications(true,
+    "dn: cn=schema",
+    "changetype: modify",
+    "delete: ldapsyntaxes",
+    "ldapSyntaxes: ( 3.3.3  DESC 'Day Of The Week'  " +
+            "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )");
 
     assertTrue(resultCode==0);
   }
