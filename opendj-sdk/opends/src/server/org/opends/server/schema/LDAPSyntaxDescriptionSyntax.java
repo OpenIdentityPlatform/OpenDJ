@@ -524,7 +524,7 @@ public class LDAPSyntaxDescriptionSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      message);
       }
-      syntax = new SubstitutionSyntax(subSyntax,description,oid);
+      syntax = new SubstitutionSyntax(subSyntax,valueStr,description,oid);
     }
     else if(lowerTokenName.equals("x-pattern"))
     {
@@ -542,7 +542,7 @@ public class LDAPSyntaxDescriptionSyntax
       try
       {
         Pattern pattern = Pattern.compile(regex);
-        syntax = new RegexSyntax(pattern,description,oid);
+        syntax = new RegexSyntax(pattern,valueStr,description,oid);
       }
       catch(Exception e)
       {
@@ -585,7 +585,7 @@ public class LDAPSyntaxDescriptionSyntax
         }
         entries.add(entry);
       }
-      syntax = new EnumSyntax(entries, description, oid);
+      syntax = new EnumSyntax(entries, valueStr,description, oid);
     }
     else
     {
@@ -970,6 +970,10 @@ private static int parseExtension(String valueStr, int startPos)
     // The description of this syntax.
     private String description;
 
+    // The definition of this syntax.
+    private String definition;
+
+
     //The oid of this syntax.
     private String oid;
 
@@ -977,11 +981,13 @@ private static int parseExtension(String valueStr, int startPos)
 
     //Creates a new instance of this syntax.
     private SubstitutionSyntax(AttributeSyntax subSyntax,
+            String definition,
             String description,
             String oid)
     {
       super();
       this.subSyntax = subSyntax;
+      this.definition = definition;
       this.description = description;
       this.oid = oid;
     }
@@ -1018,6 +1024,17 @@ private static int parseExtension(String valueStr, int startPos)
     public String getDescription()
     {
       return description;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+      return definition;
     }
 
 
@@ -1116,6 +1133,9 @@ private static int parseExtension(String valueStr, int startPos)
     //The oid of this syntax.
     private String oid;
 
+    //The definition of this syntax.
+    private String definition;
+
     //The equality matching rule.
     private EqualityMatchingRule equalityMatchingRule;
 
@@ -1131,10 +1151,12 @@ private static int parseExtension(String valueStr, int startPos)
 
     //Creates a new instance of this syntax.
     private RegexSyntax(Pattern pattern,
+            String definition,
             String description,
             String oid)
     {
       super();
+      this.definition = definition;
       this.pattern = pattern;
       this.description = description;
       this.oid = oid;
@@ -1172,6 +1194,16 @@ private static int parseExtension(String valueStr, int startPos)
     public String getDescription()
     {
       return description;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+      return definition;
     }
 
 
@@ -1312,14 +1344,19 @@ private static int parseExtension(String valueStr, int startPos)
     //The approximate matching rule.
     private ApproximateMatchingRule approximateMatchingRule;
 
+    //The definition of this syntax.
+    private String definition;
+
 
     //Creates a new instance of this syntax.
     private EnumSyntax(LinkedList<ByteSequence> entries,
+            String definition,
             String description,
             String oid)
     {
       super();
       this.entries = entries;
+      this.definition = definition;
       this.description = description;
       this.oid = oid;
     }
@@ -1345,6 +1382,17 @@ private static int parseExtension(String valueStr, int startPos)
     public String getOID()
     {
       return oid;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+      return definition;
     }
 
 
