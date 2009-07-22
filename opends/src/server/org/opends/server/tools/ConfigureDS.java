@@ -119,13 +119,13 @@ public class ConfigureDS
   /**
    * The DN of the configuration entry defining the LDAP connection handler.
    */
-  private static final String DN_LDAP_CONNECTION_HANDLER =
+  public static final String DN_LDAP_CONNECTION_HANDLER =
        "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
 
   /**
    * The DN of the configuration entry defining the Administration connector.
    */
-  private static final String DN_ADMIN_CONNECTOR =
+  public static final String DN_ADMIN_CONNECTOR =
        "cn=Administration Connector," + DN_CONFIG_ROOT;
 
   /**
@@ -144,13 +144,13 @@ public class ConfigureDS
   /**
    * The DN of the configuration entry defining the initial root user.
    */
-  private static final String DN_ROOT_USER =
+  public static final String DN_ROOT_USER =
        "cn=Directory Manager," + DN_ROOT_DN_CONFIG_BASE;
 
   /**
    * The DN of the Crypto Manager.
    */
-  private static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
+  public static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
 
 
 
@@ -1243,7 +1243,7 @@ public class ConfigureDS
    * Returns <CODE>null</CODE> if no alternative cipher could be found.
    * @return a cipher that is supported by the JVM we are running at.
    */
-  private static String getAlternativeCipher()
+  public static String getAlternativeCipher()
   {
     final String[] preferredAlternativeCiphers =
     {
