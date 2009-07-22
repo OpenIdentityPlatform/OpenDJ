@@ -150,9 +150,8 @@ public class ArgumentParser
 
 
   /**
-   * Group for arguments that are related to utility input/output like
-   * verbose, quite, no-prompt etc.  These will appear toward the bottom
-   * of the usage statement.
+   * Group for arguments that are related to connection through LDAP.  This
+   * includes options like the bind DN, the port, etc.
    */
   protected ArgumentGroup ldapArgGroup = new ArgumentGroup(
           INFO_DESCRIPTION_LDAP_CONNECTION_ARGS.get(), Integer.MIN_VALUE + 2);
@@ -160,7 +159,7 @@ public class ArgumentParser
 
   /**
    * Group for arguments that are related to utility input/output like
-   * verbose, quite, no-prompt etc.  These will appear toward the bottom
+   * properties file, no-prompt etc.  These will appear toward the bottom
    * of the usage statement.
    */
   protected ArgumentGroup ioArgGroup = new ArgumentGroup(
