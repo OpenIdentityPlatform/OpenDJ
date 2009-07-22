@@ -1659,17 +1659,6 @@ public class Entry
       return allSuccessful;
     }
 
-    AttributeType ldapSyntaxType =
-         DirectoryServer.getAttributeType(ATTR_LDAP_SYNTAXES_LC,
-         true);
-    if (attribute.getAttributeType().equals(ldapSyntaxType))
-    {
-      // This is tricky as ldapsyntaxes type is part real and part
-      // virtual. Don't do anything here and let the backend take
-      // care of it.
-      return true;
-    }
-
     AttributeType attributeType = attribute.getAttributeType();
     List<Attribute> attributes;
 

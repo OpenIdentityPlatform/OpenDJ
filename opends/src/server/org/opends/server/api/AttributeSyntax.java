@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -285,7 +285,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @return  A string representation of this attribute syntax in the
    *          format defined in RFC 2252.
    */
-  public final String toString()
+  public String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
