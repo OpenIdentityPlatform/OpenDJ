@@ -202,7 +202,11 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  private static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
+  /**
+   * The maximum number of times that we should ask the user to provide the
+   * password to access to a keystore.
+   */
+  public static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
 
   // Different variables we use when the user decides to provide data again.
   private NewSuffixOptions.Type lastResetPopulateOption = null;
@@ -1934,9 +1938,10 @@ public class InstallDS extends ConsoleApplication
    * @param nicknameList the list that will be updated with the nicknames found
    * in the keystore.
    */
-  private void checkCertificateInKeystore(SecurityOptions.CertificateType type,
+  public static void checkCertificateInKeystore(
+      SecurityOptions.CertificateType type,
       String path, String pwd, String certNickname,
-      LinkedList<Message> errorMessages, LinkedList<String> nicknameList)
+      Collection<Message> errorMessages, Collection<String> nicknameList)
   {
     boolean errorWithPath = false;
     if (type != SecurityOptions.CertificateType.PKCS11)
@@ -2263,7 +2268,8 @@ public class InstallDS extends ConsoleApplication
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
    * to a problem with the key store path and <CODE>false</CODE> otherwise.
    */
-  private boolean containsKeyStorePathErrorMessage(Collection<Message> msgs)
+  public static boolean containsKeyStorePathErrorMessage(
+      Collection<Message> msgs)
   {
     boolean found = false;
     for (Message msg : msgs)
@@ -2293,7 +2299,8 @@ public class InstallDS extends ConsoleApplication
    * @return <CODE>true</CODE> if any of the error messages provided corresponds
    * to a problem with the key store password and <CODE>false</CODE> otherwise.
    */
-  private boolean containsKeyStorePasswordErrorMessage(Collection<Message> msgs)
+  public static boolean containsKeyStorePasswordErrorMessage(
+      Collection<Message> msgs)
   {
     boolean found = false;
     for (Message msg : msgs)
@@ -2324,7 +2331,8 @@ public class InstallDS extends ConsoleApplication
    * to a problem with the certificate nickname and <CODE>false</CODE>
    * otherwise.
    */
-  private boolean containsCertNicknameErrorMessage(Collection<Message> msgs)
+  public static boolean containsCertNicknameErrorMessage(
+      Collection<Message> msgs)
   {
     boolean found = false;
     for (Message msg : msgs)
@@ -2549,6 +2557,18 @@ public class InstallDS extends ConsoleApplication
     else
     {
       println(INFO_INSTALLDS_DO_NOT_START_SERVER.get());
+    }
+
+    if (Utils.isWindows())
+    {
+      if (uData.getEnableWindowsService())
+      {
+        println(INFO_INSTALLDS_ENABLE_WINDOWS_SERVICE.get());
+      }
+      else
+      {
+        println(INFO_INSTALLDS_DO_NOT_ENABLE_WINDOWS_SERVICE.get());
+      }
     }
 
     println();
