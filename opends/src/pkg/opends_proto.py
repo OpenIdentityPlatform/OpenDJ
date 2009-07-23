@@ -31,12 +31,15 @@ pkg = {
     "name" : "opends",
     "version" : "@{version}",
     "attributes"    : {
-                        "pkg.summary" : "OpenDS",
+                        "pkg.summary" : "OpenDS Open Source Java LDAP Directory Service",
                         "info.classification" : "Directory Services",
-                        "pkg.description" : "OpenDS is an open source community project\
-building a free and comprehensive\
-next generation directory service,\
-based on LDAP and DSML standards."
+                        "pkg.description" : "Core components of the OpenDS Open Source Java LDAP \
+Directory Service. OpenDS is a free and comprehensive next generation directory service based on \
+LDAP and DSML. OpenDS is designed to address large deployments, to provide high performance, \
+to be highly extensible, and to be easy to deploy, manage and monitor.",
+                        "pkg.detailed_url" :    "https://www.opends.org/wiki",
+                        "info.maintainer_url" : "http://www.opends.org/",
+                        "info.upstream_url" :   "http://www.opends.org/",
                       },
 
     "dirs"          : {
