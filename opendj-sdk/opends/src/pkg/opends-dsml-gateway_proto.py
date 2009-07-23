@@ -31,8 +31,17 @@ pkg = {
     "version" : "@{version}",
     "attributes"    : {
                         "pkg.summary" : "OpenDS DSML Gateway",
-                        "info.classification" : "Directory Services",
-                        "pkg.description" : "OpenDS DSML Gateway WAR File"
+                        "info.classification" : ":Directory Services",
+                        "pkg.description" : "OpenDS supports DSML through a DSML gateway, \
+which is implemented as a Web application that can run in an application server. A DSML \
+gateway (or DSML-to-LDAP gateway) is a special type of network daemon that is used to \
+translate between DSML and LDAP. In general, a DSML gateway accepts DSML requests from \
+clients, converts them to LDAP requests that it forwards to a directory server for \
+processing. It then translates the LDAP response from the directory server back \
+to DSML to return to the client. ",
+                        "pkg.detailed_url" :    "https://www.opends.org/wiki",
+                        "info.maintainer_url" : "http://www.opends.org/",
+                        "info.upstream_url" :   "http://www.opends.org/",
                       },
 
     "dirs"          : {

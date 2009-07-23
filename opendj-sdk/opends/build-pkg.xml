@@ -29,19 +29,32 @@
         This is a build script that extends the OpenDS build script by adding
         the generation of pkg(5) format packages and a pkg(5)-based installation image.
 
-        To make use of this build script, ensure that this file is placed in the same
-        directory as your build.xml file and add an import of this file at the top
-        of the build.xml file.
+        The following properties may be ones that you would like to override via
+        the build.properties file:
+
+        pkg.toolkit.dir - pkg(5) toolkit external dependency.
+
+        pkg.toolkit.repo.dir - pkg(5) toolkit repository from which the "pkg-java"
+            package is installed.
+
+        pkg.authority - Depending on whether you're building a community or
+            commercial bundle, you may want to specify different values.
+
+        pkg.repo.url - Depending on whether you're building a communituy or
+            commercial bundle, you want to specify different values.
     </description>
+
+    <property name="pkg.toolkit.dir" location="${ext.dir}/pkg-toolkit"/>
+    <property name="pkg.toolkit.repo.dir" location="${ext.dir}/pkg-toolkit-repo"/>
 
     <condition property="ispkgtoolkitpresent">
      <and>
        <available file="${pkg.toolkit.dir}/pkg/lib/pkg-ant-tasks.xml"/>
+            <available file="${pkg.toolkit.repo.dir}/catalog" type="dir"/>
      </and>
     </condition>
  
             <import file="${pkg.toolkit.dir}/pkg/lib/pkg-ant-tasks.xml" optional="true"/>
-
 
   <target name="pkg5messagebuild" if="ispkgtoolkitpresent">
       <echo message="pkg(5) delivery will be built."/>
@@ -56,14 +69,15 @@
   <target name="pkg5echo" depends="pkg5messageNotbuild,pkg5messagebuild"/>
 
     <target name="-pkg-init" if="ispkgtoolkitpresent" depends="pkg5echo">
+        <property name="pkg.authority" value="dev.opends.org"/>
+        <property name="pkg.repo.url" value="http://pkg.opends.org/dev/"/>
+
 <echo message="pkg.toolkit.dir is ${pkg.toolkit.dir}" />
         <property name="pkg.build.dir" location="${package.dir}/pkg"/>
         <property name="pkg.reference.install.dir" location="${pkg.build.dir}/reference-install"/>
         <property name="pkg.repo.dir" location="${pkg.build.dir}/repo"/>
         <property name="pkg.image.container.dir" location="${pkg.build.dir}/image/"/>
         <property name="pkg.image.dir" location="${pkg.image.container.dir}/${SHORT_NAME}"/>
-        <property name="pkg.authority" value="dev.sun.com"/>
-        <property name="pkg.toolkit.repo.url" value="http://pkg.sun.com/layered-collection/dev"/>
         <property name="pkg.java.name" value="pkg-java"/>
     </target>
 
@@ -146,7 +160,7 @@
         
         <!-- Now add the "pkg-java" Java bootstrap for pkg(5) package to the 
              pre-installed image.  -->
-        <makeimage repourl="${pkg.toolkit.repo.url}" imagedir="${pkg.image.dir}" authority="${pkg.authority}" title="${SHORT_NAME}" description="OpenDS is comprehensive next generation directory service. OpenDS is designed to address large deployments, to provide high performance, to be highly extensible, and to be easy to deploy, manage and monitor. ">
+        <makeimage repourl="file://${pkg.toolkit.repo.dir}" imagedir="${pkg.image.dir}" authority="${pkg.authority}" title="${SHORT_NAME}" description="OpenDS is comprehensive next generation directory service. OpenDS is designed to address large deployments, to provide high performance, to be highly extensible, and to be easy to deploy, manage and monitor. ">
            <packages>
               <package name="${pkg.java.name}"/>
            </packages>
@@ -174,13 +188,11 @@
         <makezip basedir="${pkg.image.container.dir}" destfile="${pkg.build.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}-image.zip" include="${SHORT_NAME}"/>
     </target>
 
-
     <target name="-pkg-copy-windows" if="os.windows">
         <copy todir="${pkg.reference.install.dir}/opends">
             <fileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
         </copy>
     </target>
-
 
     <target name="-pkg-copy-unix" unless="os.windows">
         <exec dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" executable="cp">
