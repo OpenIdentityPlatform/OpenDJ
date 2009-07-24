@@ -42,6 +42,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -1684,6 +1685,39 @@ public class Utils
         }
       }
     }
+  }
+
+  /**
+   * Basic method to know if the host is local or not.  This is only used to
+   * know if we can perform a port check or not.
+   * @param host the host to analyze.
+   * @return <CODE>true</CODE> if it is the local host and <CODE>false</CODE>
+   * otherwise.
+   */
+  public static boolean isLocalHost(String host)
+  {
+    boolean isLocalHost = false;
+    if (!"localhost".equalsIgnoreCase(host))
+    {
+      try
+      {
+        InetAddress localAddress = InetAddress.getLocalHost();
+        InetAddress[] addresses = InetAddress.getAllByName(host);
+        for (int i=0; i<addresses.length && !isLocalHost; i++)
+        {
+          isLocalHost = localAddress.equals(addresses[i]);
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.WARNING, "Failing checking host names: "+t, t);
+      }
+    }
+    else
+    {
+      isLocalHost = true;
+    }
+    return isLocalHost;
   }
 
   /**

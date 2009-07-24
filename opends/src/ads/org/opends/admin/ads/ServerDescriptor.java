@@ -46,6 +46,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -1434,5 +1435,63 @@ public class ServerDescriptor
       /* ignore */
     }
     return areDnsEqual;
+  }
+
+  /**
+   * Returns the replication server normalized String for a given host name
+   * and replication port.
+   * @param hostName the host name.
+   * @param replicationPort the replication port.
+   * @return the replication server normalized String for a given host name
+   * and replication port.
+   */
+  public static String getReplicationServer(String hostName,
+      int replicationPort)
+  {
+    return hostName.toLowerCase() + ":" + replicationPort;
+  }
+
+  /**
+   * Returns the normalized server representation for a given host name and
+   * port.
+   * @param hostName the host name.
+   * @param port the port.
+   * @return the normalized server representation for a given host name and
+   * port.
+   */
+  public static String getServerRepresentation(String hostName, int port)
+  {
+    return hostName.toLowerCase() + ":" + port;
+  }
+
+  /**
+   * Returns a representation of a base DN for a set of servers.
+   * @param baseDN the base DN.
+   * @param servers the servers.
+   * @return a representation of a base DN for a set of servers.
+   */
+  public static String getSuffixDisplay(String baseDN,
+      Set<ServerDescriptor> servers)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(baseDN);
+    for (ServerDescriptor server : servers)
+    {
+      sb.append(Constants.LINE_SEPARATOR+"    ");
+      sb.append(server.getHostPort(true));
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Tells whether the provided server descriptor represents the same server
+   * as this object.
+   * @param server the server to make the comparison.
+   * @return whether the provided server descriptor represents the same server
+   * as this object or not.
+   */
+  public boolean isSameServer(ServerDescriptor server)
+  {
+    return getId().equals(server.getId());
   }
 }

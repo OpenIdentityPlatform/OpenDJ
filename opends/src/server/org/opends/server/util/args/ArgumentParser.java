@@ -1828,5 +1828,38 @@ public class ArgumentParser
   {
     return versionPresent;
   }
+
+
+
+  /**
+   * Get the password which has to be used for the command without prompting
+   * the user.  If no password was specified, return null.
+   *
+   * @param clearArg
+   *          The password StringArgument argument.
+   * @param fileArg
+   *          The password FileBased argument.
+   * @return The password stored into the specified file on by the
+   *         command line argument, or null it if not specified.
+   */
+  public static String getBindPassword(StringArgument clearArg,
+      FileBasedArgument fileArg)
+  {
+    String pwd;
+    if (clearArg.isPresent())
+    {
+      pwd = clearArg.getValue();
+    }
+    else
+    if (fileArg.isPresent())
+    {
+      pwd = fileArg.getValue();
+    }
+    else
+    {
+      pwd = null;
+    }
+    return pwd;
+  }
 }
 

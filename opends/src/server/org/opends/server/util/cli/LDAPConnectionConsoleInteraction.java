@@ -58,6 +58,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -1932,6 +1933,93 @@ public class LDAPConnectionConsoleInteraction {
    {
      initializeTrustManager();
    }
+ }
+
+ /**
+  * Initializes the global arguments in the parser with the provided values.
+  * This is useful when we want to call LDAPConnectionConsoleInteraction.run()
+  * with some default values.
+  * @param hostName the host name.
+  * @param port the port to connect to the server.
+  * @param adminUid the administrator UID.
+  * @param bindDn the bind DN to bind to the server.
+  * @param bindPwd the password to bind.
+  * @param pwdFile the Map containing the file and the password to bind.
+  */
+ public void initializeGlobalArguments(String hostName, int port,
+     String adminUid, String bindDn,
+     String bindPwd, LinkedHashMap<String, String> pwdFile)
+ {
+   resetConnectionArguments();
+   if (hostName != null)
+   {
+     secureArgsList.hostNameArg.addValue(hostName);
+     secureArgsList.hostNameArg.setPresent(true);
+   }
+   // resetConnectionArguments does not clear the values for the port
+   secureArgsList.portArg.clearValues();
+   if (port != -1)
+   {
+     secureArgsList.portArg.addValue(String.valueOf(port));
+     secureArgsList.portArg.setPresent(true);
+   }
+   else
+   {
+     // This is done to be able to call IntegerArgument.getIntValue()
+     secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
+   }
+   secureArgsList.useSSLArg.setPresent(useSSL);
+   secureArgsList.useStartTLSArg.setPresent(useStartTLS);
+   if (adminUid != null)
+   {
+     secureArgsList.adminUidArg.addValue(adminUid);
+     secureArgsList.adminUidArg.setPresent(true);
+   }
+   if (bindDn != null)
+   {
+     secureArgsList.bindDnArg.addValue(bindDn);
+     secureArgsList.bindDnArg.setPresent(true);
+   }
+   if (pwdFile != null)
+   {
+     secureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(pwdFile);
+     for (String value : pwdFile.keySet())
+     {
+       secureArgsList.bindPasswordFileArg.addValue(value);
+     }
+     secureArgsList.bindPasswordFileArg.setPresent(true);
+   }
+   else if (bindPwd != null)
+   {
+     secureArgsList.bindPasswordArg.addValue(bindPwd);
+     secureArgsList.bindPasswordArg.setPresent(true);
+   }
+ }
+
+ /**
+  * Resets the connection parameters for the LDAPConsoleInteraction  object.
+  * The reset does not apply to the certificate parameters.  This is called
+  * in order the LDAPConnectionConsoleInteraction object to ask for all this
+  * connection parameters next time we call
+  * LDAPConnectionConsoleInteraction.run().
+  */
+ public void resetConnectionArguments()
+ {
+   secureArgsList.hostNameArg.clearValues();
+   secureArgsList.hostNameArg.setPresent(false);
+   secureArgsList.portArg.clearValues();
+   secureArgsList.portArg.setPresent(false);
+   //  This is done to be able to call IntegerArgument.getIntValue()
+   secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
+   secureArgsList.bindDnArg.clearValues();
+   secureArgsList.bindDnArg.setPresent(false);
+   secureArgsList.bindPasswordArg.clearValues();
+   secureArgsList.bindPasswordArg.setPresent(false);
+   secureArgsList.bindPasswordFileArg.clearValues();
+   secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
+   secureArgsList.bindPasswordFileArg.setPresent(false);
+   secureArgsList.adminUidArg.clearValues();
+   secureArgsList.adminUidArg.setPresent(false);
  }
 
  private void initializeTrustManager() throws ArgumentException
