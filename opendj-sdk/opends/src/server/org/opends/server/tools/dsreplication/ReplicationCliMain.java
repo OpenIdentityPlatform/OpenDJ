@@ -27,6 +27,9 @@
 
 package org.opends.server.tools.dsreplication;
 
+import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
+import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
+import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -42,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -844,7 +846,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    initializeGlobalArguments(host1, port1, adminUid,
+    ci.initializeGlobalArguments(host1, port1, adminUid,
         bindDn1, pwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     InitialLdapContext ctx1 = null;
@@ -885,7 +887,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -969,10 +971,10 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             replicationPort1 = askPort(
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(),
-                argParser.getDefaultReplicationPort1());
+                argParser.getDefaultReplicationPort1(), LOG);
             println();
           }
-          if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
+          if (!argParser.skipReplicationPortCheck() && Utils.isLocalHost(host1))
           {
             if (!SetupUtils.canUseAsPort(replicationPort1))
             {
@@ -1098,7 +1100,7 @@ public class ReplicationCliMain extends ConsoleApplication
        * Use a copy of the argument properties since the map might be cleared
        * in initializeGlobalArguments.
        */
-      initializeGlobalArguments(host2, port2, adminUid,
+      ci.initializeGlobalArguments(host2, port2, adminUid,
           bindDn2, pwd,
           pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     }
@@ -1158,7 +1160,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -1242,10 +1244,11 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               replicationPort2 = askPort(
                   INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
-                  argParser.getDefaultReplicationPort2());
+                  argParser.getDefaultReplicationPort2(), LOG);
               println();
             }
-            if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
+            if (!argParser.skipReplicationPortCheck() &&
+                Utils.isLocalHost(host2))
             {
               if (!SetupUtils.canUseAsPort(replicationPort2))
               {
@@ -1485,7 +1488,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -1748,7 +1751,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -1884,7 +1887,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -1995,7 +1998,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2087,7 +2090,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2171,7 +2174,8 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    initializeGlobalArguments(hostSource, portSource, adminUid, null, adminPwd,
+    ci.initializeGlobalArguments(hostSource, portSource, adminUid, null,
+        adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /*
      * Try to connect to the source server.
@@ -2203,7 +2207,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2236,7 +2240,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * Use a copy of the argument properties since the map might be cleared
      * in initializeGlobalArguments.
      */
-    initializeGlobalArguments(hostDestination, portDestination,
+    ci.initializeGlobalArguments(hostDestination, portDestination,
         adminUid, null, adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /*
@@ -2268,7 +2272,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(ce.getMessageObject());
         println();
-        resetConnectionArguments();
+        ci.resetConnectionArguments();
       }
       catch (ArgumentException ae)
       {
@@ -2789,7 +2793,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (getTrustManager() == null)
     {
       // This is required when the user did  connect to the server using SSL or
-      // Start TLS.  In this case LDAPConnectionInteraction.run does not
+      // Start TLS.  In this case LDAPConnectionConsoleInteraction.run does not
       // initialize the keystore and the trust manager is null.
       forceTrustManagerInitialization();
     }
@@ -3312,7 +3316,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer1() &&
-              isLocalHost(host1) &&
+              Utils.isLocalHost(host1) &&
               !SetupUtils.canUseAsPort(replPort1))
           {
             errorMessages.add(getCannotBindToPortError(replPort1));
@@ -3322,7 +3326,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer2() &&
-              isLocalHost(host2) &&
+              Utils.isLocalHost(host2) &&
               !SetupUtils.canUseAsPort(replPort2))
           {
             errorMessages.add(getCannotBindToPortError(replPort2));
@@ -4917,7 +4921,7 @@ public class ReplicationCliMain extends ConsoleApplication
             cache.getFilter().addBaseDNToSearch(dn);
           }
           cache.reloadTopology();
-          messages.addAll(getErrorMessages(cache));
+          messages.addAll(cache.getErrorMessages());
         }
 
         if (adsCtx2.hasAdminData())
@@ -4930,7 +4934,7 @@ public class ReplicationCliMain extends ConsoleApplication
             cache.getFilter().addBaseDNToSearch(dn);
           }
           cache.reloadTopology();
-          messages.addAll(getErrorMessages(cache));
+          messages.addAll(cache.getErrorMessages());
         }
       }
       catch (TopologyCacheException tce)
@@ -5613,7 +5617,7 @@ public class ReplicationCliMain extends ConsoleApplication
       LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
       if (cache != null)
       {
-        messages.addAll(getErrorMessages(cache));
+        messages.addAll(cache.getErrorMessages());
       }
       if (!messages.isEmpty())
       {
@@ -5768,7 +5772,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 new TreeSet<ServerDescriptor>(new ServerComparator());
               for (ReplicaDescriptor replica : suffix.getReplicas())
               {
-                if (!areSameServer(replica.getServer(), server))
+                if (!replica.getServer().isSameServer(server))
                 {
                   servers.add(replica.getServer());
                 }
@@ -6138,7 +6142,7 @@ public class ReplicationCliMain extends ConsoleApplication
       LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
       if (cache != null)
       {
-        messages.addAll(getErrorMessages(cache));
+        messages.addAll(cache.getErrorMessages());
       }
       if (!messages.isEmpty())
       {
@@ -6807,17 +6811,6 @@ public class ReplicationCliMain extends ConsoleApplication
         break;
       }
     }
-    if (servers.isEmpty())
-    {
-      boolean found = false;
-      for (ReplicaDescriptor replica : server.getReplicas())
-      {
-        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
-        {
-          found = true;
-        }
-      }
-    }
     if (cache != null)
     {
       Set<SuffixDescriptor> suffixes = cache.getSuffixes();
@@ -6836,6 +6829,29 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             servers.addAll(s);
             break;
+          }
+          else
+          {
+            // Check if this server is acting as replication server with
+            // no domain.
+            if (server.isReplicationServer())
+            {
+              boolean found = false;
+              String repServer = server.getReplicationServerHostPort();
+              for (String rS : s)
+              {
+                if (rS.equalsIgnoreCase(repServer))
+                {
+                  servers.addAll(s);
+                  found = true;
+                  break;
+                }
+              }
+              if (found)
+              {
+                break;
+              }
+            }
           }
         }
       }
@@ -7964,54 +7980,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns a set of error messages encountered in the provided TopologyCache.
-   * @param cache the topology cache.
-   * @return a set of error messages encountered in the provided TopologyCache.
-   */
-  private LinkedHashSet<Message> getErrorMessages(TopologyCache cache)
-  {
-    Set<TopologyCacheException> exceptions =
-      new HashSet<TopologyCacheException>();
-    Set<ServerDescriptor> servers = cache.getServers();
-    LinkedHashSet<Message> exceptionMsgs = new LinkedHashSet<Message>();
-    for (ServerDescriptor server : servers)
-    {
-      TopologyCacheException e = server.getLastException();
-      if (e != null)
-      {
-        exceptions.add(e);
-      }
-    }
-    /* Check the exceptions and see if we throw them or not. */
-    for (TopologyCacheException e : exceptions)
-    {
-      switch (e.getType())
-      {
-        case NOT_GLOBAL_ADMINISTRATOR:
-          exceptionMsgs.add(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
-
-        break;
-      case GENERIC_CREATING_CONNECTION:
-        if ((e.getCause() != null) &&
-            Utils.isCertificateException(e.getCause()))
-        {
-          exceptionMsgs.add(
-              INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              e.getHostPort(), e.getCause().getMessage()));
-        }
-        else
-        {
-          exceptionMsgs.add(Utils.getMessage(e));
-        }
-        break;
-      default:
-        exceptionMsgs.add(Utils.getMessage(e));
-      }
-    }
-    return exceptionMsgs;
-  }
-
-  /**
    * Removes the references to a replication server in the base DNs of a
    * given server.
    * @param server the server that we want to update.
@@ -8302,29 +8270,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns a message object for the given NamingException.
-   * @param ne the NamingException.
-   * @param hostPort the hostPort representation of the server we were
-   * contacting when the NamingException occurred.
-   * @return a message object for the given NamingException.
-   */
-  private Message getMessageForException(NamingException ne, String hostPort)
-  {
-    Message msg;
-    if (Utils.isCertificateException(ne))
-    {
-      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              hostPort, ne.toString(true));
-    }
-    else
-    {
-       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          hostPort, ne.toString(true));
-    }
-    return msg;
-  }
-
-  /**
    * Returns a message for a given OpenDsException (we assume that was an
    * exception generated updating the configuration of the server) that
    * occurred when we were configuring the replication server.
@@ -8490,39 +8435,6 @@ public class ReplicationCliMain extends ConsoleApplication
     return mb.toMessage();
   }
 
-  /**
-   * Basic method to know if the host is local or not.  This is only used to
-   * know if we can perform a port check or not.
-   * @param host the host to analyze.
-   * @return <CODE>true</CODE> if it is the local host and <CODE>false</CODE>
-   * otherwise.
-   */
-  private boolean isLocalHost(String host)
-  {
-    boolean isLocalHost = false;
-    if (!"localhost".equalsIgnoreCase(host))
-    {
-      try
-      {
-        InetAddress localAddress = InetAddress.getLocalHost();
-        InetAddress[] addresses = InetAddress.getAllByName(host);
-        for (int i=0; i<addresses.length && !isLocalHost; i++)
-        {
-          isLocalHost = localAddress.equals(addresses[i]);
-        }
-      }
-      catch (Throwable t)
-      {
-        LOG.log(Level.WARNING, "Failing checking host names: "+t, t);
-      }
-    }
-    else
-    {
-      isLocalHost = true;
-    }
-    return isLocalHost;
-  }
-
   private boolean mustInitializeSchema(ServerDescriptor server1,
       ServerDescriptor server2, EnableReplicationUserData uData)
   {
@@ -8641,31 +8553,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Commodity method used to repeatidly ask the user to provide a port value.
-   * @param prompt the prompt message.
-   * @param defaultValue the default value of the port to be proposed to the
-   * user.
-   * @return the port value provided by the user.
-   */
-  private int askPort(Message prompt, int defaultValue)
-  {
-    int port = -1;
-    while (port == -1)
-    {
-      try
-      {
-        port = readPort(prompt, defaultValue);
-      }
-      catch (CLIException ce)
-      {
-        port = -1;
-        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-      }
-    }
-    return port;
-  }
-
-  /**
    * Prompts the user to give the Global Administrator UID.
    * @param defaultValue the default value that will be proposed in the prompt
    * message.
@@ -8707,90 +8594,6 @@ public class ReplicationCliMain extends ConsoleApplication
       getOutputStream().print(msg.toString());
     }
   }
-
-  /**
-   * Resets the connection parameters for the LDAPConsoleInteraction  object.
-   * The reset does not apply to the certificate parameters.  This is called
-   * in order the LDAPConnectionConsoleInteraction object to ask for all this
-   * connection parameters next time we call
-   * LDAPConnectionConsoleInteraction.run().
-   */
-  private void resetConnectionArguments()
-  {
-    argParser.getSecureArgsList().hostNameArg.clearValues();
-    argParser.getSecureArgsList().hostNameArg.setPresent(false);
-    argParser.getSecureArgsList().portArg.clearValues();
-    argParser.getSecureArgsList().portArg.setPresent(false);
-    //  This is done to be able to call IntegerArgument.getIntValue()
-    argParser.getSecureArgsList().portArg.addValue(
-        argParser.getSecureArgsList().portArg.getDefaultValue());
-    argParser.getSecureArgsList().bindDnArg.clearValues();
-    argParser.getSecureArgsList().bindDnArg.setPresent(false);
-    argParser.getSecureArgsList().bindPasswordArg.clearValues();
-    argParser.getSecureArgsList().bindPasswordArg.setPresent(false);
-    argParser.getSecureArgsList().bindPasswordFileArg.clearValues();
-    argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap().
-    clear();
-    argParser.getSecureArgsList().bindPasswordFileArg.setPresent(false);
-    argParser.getSecureArgsList().adminUidArg.clearValues();
-    argParser.getSecureArgsList().adminUidArg.setPresent(false);
-  }
-
-  /**
-   * Initializes the global arguments in the parser with the provided values.
-   */
-  private void initializeGlobalArguments(String hostName, int port,
-      String adminUid, String bindDn,
-      String bindPwd, LinkedHashMap<String, String> pwdFile)
-  {
-    resetConnectionArguments();
-    if (hostName != null)
-    {
-      argParser.getSecureArgsList().hostNameArg.addValue(hostName);
-      argParser.getSecureArgsList().hostNameArg.setPresent(true);
-    }
-    // resetConnectionArguments does not clear the values for the port
-    argParser.getSecureArgsList().portArg.clearValues();
-    if (port != -1)
-    {
-      argParser.getSecureArgsList().portArg.addValue(String.valueOf(port));
-      argParser.getSecureArgsList().portArg.setPresent(true);
-    }
-    else
-    {
-      // This is done to be able to call IntegerArgument.getIntValue()
-      argParser.getSecureArgsList().portArg.addValue(
-          argParser.getSecureArgsList().portArg.getDefaultValue());
-    }
-    argParser.getSecureArgsList().useSSLArg.setPresent(useSSL);
-    argParser.getSecureArgsList().useStartTLSArg.setPresent(useStartTLS);
-    if (adminUid != null)
-    {
-      argParser.getSecureArgsList().adminUidArg.addValue(adminUid);
-      argParser.getSecureArgsList().adminUidArg.setPresent(true);
-    }
-    if (bindDn != null)
-    {
-      argParser.getSecureArgsList().bindDnArg.addValue(bindDn);
-      argParser.getSecureArgsList().bindDnArg.setPresent(true);
-    }
-    if (pwdFile != null)
-    {
-      argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap().
-      putAll(pwdFile);
-      for (String value : pwdFile.keySet())
-      {
-        argParser.getSecureArgsList().bindPasswordFileArg.addValue(value);
-      }
-      argParser.getSecureArgsList().bindPasswordFileArg.setPresent(true);
-    }
-    else if (bindPwd != null)
-    {
-      argParser.getSecureArgsList().bindPasswordArg.addValue(bindPwd);
-      argParser.getSecureArgsList().bindPasswordArg.setPresent(true);
-    }
-  }
-
 
   /**
    * Forces the initialization of the trust manager in the
@@ -10179,34 +9982,6 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private String getReplicationServer(String hostName, int replicationPort)
-  {
-    return hostName.toLowerCase() + ":" + replicationPort;
-  }
-
-  private String getServerRepresentation(String hostName, int port)
-  {
-    return hostName.toLowerCase() + ":" + port;
-  }
-
-  private String getSuffixDisplay(String baseDN, Set<ServerDescriptor> servers)
-  {
-    StringBuilder sb = new StringBuilder();
-    sb.append(baseDN);
-    for (ServerDescriptor server : servers)
-    {
-      sb.append(Constants.LINE_SEPARATOR+"    ");
-      sb.append(server.getHostPort(true));
-    }
-    return sb.toString();
-  }
-
-  private boolean areSameServer(ServerDescriptor server1,
-      ServerDescriptor server2)
-  {
-    return server1.getId().equals(server2.getId());
-  }
-
   /**
    * Merge the contents of the two registries but only does it partially.
    * Only one of the two ADSContext will be updated (in terms of data in
@@ -10331,12 +10106,14 @@ public class ReplicationCliMain extends ConsoleApplication
             ConnectionUtils.getHostPort(ctxDestination),
             ConnectionUtils.getHostPort(ctxSource),
             ConnectionUtils.getHostPort(ctxDestination));
+        println(msg);
+        println();
       }
 
       printProgress(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
       pointAdder.start();
 
-      Collection<Message> cache1Errors = getErrorMessages(cache1);
+      Collection<Message> cache1Errors = cache1.getErrorMessages();
       if (!cache1Errors.isEmpty())
       {
         throw new ReplicationCliException(
@@ -10347,7 +10124,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ERROR_READING_ADS, null);
       }
 
-      Collection<Message> cache2Errors = getErrorMessages(cache2);
+      Collection<Message> cache2Errors = cache2.getErrorMessages();
       if (!cache2Errors.isEmpty())
       {
         throw new ReplicationCliException(

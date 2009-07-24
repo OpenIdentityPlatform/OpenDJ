@@ -688,16 +688,15 @@ public class ADSContext
 
   /**
    * Returns whether a given administrator is already registered or not.
-   * @param adminProperties the administrator properties.
+   * @param uid the administrator UID.
    * @return <CODE>true</CODE> if the administrator was registered and
    * <CODE>false</CODE> otherwise.
    * @throws ADSContextException if something went wrong.
    */
-  public boolean isAdministratorAlreadyRegistered(
-      Map<AdministratorProperty, Object> adminProperties)
+  public boolean isAdministratorAlreadyRegistered(String uid)
   throws ADSContextException
   {
-    LdapName dn = makeDNFromAdministratorProperties(adminProperties);
+    LdapName dn = makeDNFromAdministratorProperties(uid);
     return isExistingEntry(dn);
   }
 
@@ -1505,7 +1504,20 @@ public class ADSContext
   throws ADSContextException
   {
     String adminUid = getAdministratorUID(adminProperties);
+    return makeDNFromAdministratorProperties(adminUid);
+  }
 
+  /**
+   * This method returns the DN of the entry that corresponds to the given
+   * administrator properties.
+   * @param adminUid the administrator uid.
+   * @return the DN of the entry that corresponds to the given administrator
+   * properties.
+   * @throws ADSContextException if something goes wrong.
+   */
+  private static LdapName makeDNFromAdministratorProperties(String adminUid)
+  throws ADSContextException
+  {
     String dnCentralAdmin = getAdministratorDN(adminUid);
 
     return nameFromDN(dnCentralAdmin);
@@ -2463,9 +2475,9 @@ public class ADSContext
     SortedSet<String> notDefinedAdmins = new TreeSet<String>();
     for (Map<AdministratorProperty, Object> admin2 : admins2)
     {
-      if (!isAdministratorAlreadyRegistered(admin2))
+      String uid = (String)admin2.get(AdministratorProperty.UID);
+      if (!isAdministratorAlreadyRegistered(uid))
       {
-        String uid = (String)admin2.get(AdministratorProperty.UID);
         notDefinedAdmins.add(uid);
       }
     }

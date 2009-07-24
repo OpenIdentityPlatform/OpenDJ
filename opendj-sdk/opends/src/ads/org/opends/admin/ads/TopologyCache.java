@@ -27,6 +27,11 @@
 
 package org.opends.admin.ads;
 
+import static org.opends.messages.QuickSetupMessages.
+ INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER;
+import static org.opends.messages.QuickSetupMessages.
+ INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,6 +56,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
+import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -369,6 +375,56 @@ public class TopologyCache
   {
     return adsContext;
   }
+
+
+
+  /**
+   * Returns a set of error messages encountered in the TopologyCache.
+   * @return a set of error messages encountered in the TopologyCache.
+   */
+  public LinkedHashSet<Message> getErrorMessages()
+  {
+    Set<TopologyCacheException> exceptions =
+      new HashSet<TopologyCacheException>();
+    Set<ServerDescriptor> servers = getServers();
+    LinkedHashSet<Message> exceptionMsgs = new LinkedHashSet<Message>();
+    for (ServerDescriptor server : servers)
+    {
+      TopologyCacheException e = server.getLastException();
+      if (e != null)
+      {
+        exceptions.add(e);
+      }
+    }
+    /* Check the exceptions and see if we throw them or not. */
+    for (TopologyCacheException e : exceptions)
+    {
+      switch (e.getType())
+      {
+        case NOT_GLOBAL_ADMINISTRATOR:
+          exceptionMsgs.add(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
+
+        break;
+      case GENERIC_CREATING_CONNECTION:
+        if ((e.getCause() != null) &&
+            Utils.isCertificateException(e.getCause()))
+        {
+          exceptionMsgs.add(
+              INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+              e.getHostPort(), e.getCause().getMessage()));
+        }
+        else
+        {
+          exceptionMsgs.add(Utils.getMessage(e));
+        }
+        break;
+      default:
+        exceptionMsgs.add(Utils.getMessage(e));
+      }
+    }
+    return exceptionMsgs;
+  }
+
 
   /**
    * Updates the monitoring information of the provided replicas using the

@@ -648,6 +648,55 @@ public abstract class ConsoleApplication {
   }
 
   /**
+   * Returns a message object for the given NamingException.
+   * @param ne the NamingException.
+   * @param hostPort the hostPort representation of the server we were
+   * contacting when the NamingException occurred.
+   * @return a message object for the given NamingException.
+   */
+  protected Message getMessageForException(NamingException ne, String hostPort)
+  {
+    Message msg;
+    if (Utils.isCertificateException(ne))
+    {
+      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+              hostPort, ne.toString(true));
+    }
+    else
+    {
+       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+          hostPort, ne.toString(true));
+    }
+    return msg;
+  }
+
+  /**
+   * Commodity method used to repeatidly ask the user to provide a port value.
+   * @param prompt the prompt message.
+   * @param defaultValue the default value of the port to be proposed to the
+   * user.
+   * @param logger the logger where the errors will be written.
+   * @return the port value provided by the user.
+   */
+  protected int askPort(Message prompt, int defaultValue, Logger logger)
+  {
+    int port = -1;
+    while (port == -1)
+    {
+      try
+      {
+        port = readPort(prompt, defaultValue);
+      }
+      catch (CLIException ce)
+      {
+        port = -1;
+        logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
+    }
+    return port;
+  }
+
+  /**
    * Interactively prompts for user input and continues until valid
    * input is provided.
    *
