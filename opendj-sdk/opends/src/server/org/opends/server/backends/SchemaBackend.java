@@ -4887,7 +4887,7 @@ public class SchemaBackend
     // there is no schema file to backup.
 
     String commentName = "schema.comment";
- 
+
     // We'll put the name in the hash, too.
     if (hash)
     {
