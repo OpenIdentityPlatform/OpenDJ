@@ -34,7 +34,6 @@ import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.backends.jeb.importLDIF.IntegerImportIDSet;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import static org.opends.messages.JebMessages.*;
 
@@ -61,7 +60,7 @@ public class Index extends DatabaseContainer
   /**
    * The comparator for index keys.
    */
-  private Comparator<byte[]> comparator;
+  private final Comparator<byte[]> comparator;
 
   /**
    * The limit on the number of entry IDs that may be indexed by one key.
@@ -72,7 +71,7 @@ public class Index extends DatabaseContainer
    * Limit on the number of entry IDs that may be retrieved by cursoring
    * through an index.
    */
-  private int cursorEntryLimit;
+  private final int cursorEntryLimit;
 
   /**
    * Number of keys that have exceeded the entry limit since this
@@ -91,7 +90,7 @@ public class Index extends DatabaseContainer
    */
   boolean maintainCount;
 
-  private State state;
+  private final State state;
 
   /**
    * A flag to indicate if this index should be trusted to be consistent
@@ -115,8 +114,7 @@ public class Index extends DatabaseContainer
   private boolean rebuildRunning = false;
 
   //Thread local area to store per thread cursors.
-  private ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
-
+  private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
 
   /**
    * Create a new index object.
@@ -310,42 +308,32 @@ public class Index extends DatabaseContainer
   }
 
 
-  /**
-   * Insert the specified import ID set into this index a the provided key.
-   *
-   * @param key The key to add the set to.
-   * @param importIdSet The set of import IDs.
-   * @param data Database entry to reuse for read.
-   * @param cursor A database cursor to use.
-   * @throws DatabaseException If an database error occurs.
-   */
 
   private void
-  insert(DatabaseEntry key, ImportIDSet importIdSet,
-         DatabaseEntry data, Cursor cursor) throws DatabaseException {
-    OperationStatus status =
-            cursor.getSearchKey(key, data, LockMode.DEFAULT);
+  insertKey(DatabaseEntry key, ImportIDSet importIdSet,
+         DatabaseEntry data) throws DatabaseException {
+    OperationStatus status  = read(null, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS) {
-      ImportIDSet newImportIDSet = new IntegerImportIDSet();
-      if (newImportIDSet.merge(data.getData(), importIdSet,
-              indexEntryLimit, maintainCount) && importIdSet.isDirty()) {
+      ImportIDSet newImportIDSet = new ImportIDSet();
+      if (newImportIDSet.merge(data.getData(), importIdSet, indexEntryLimit,
+                               maintainCount))
+      {
         entryLimitExceededCount++;
-        importIdSet.setDirty(false);
       }
       data.setData(newImportIDSet.toDatabase());
-      cursor.putCurrent(data);
+      put(null, key, data);
     } else if(status == OperationStatus.NOTFOUND) {
-      if(!importIdSet.isDefined() && importIdSet.isDirty()) {
+      if(!importIdSet.isDefined()) {
         entryLimitExceededCount++;
-        importIdSet.setDirty(false);
       }
       data.setData(importIdSet.toDatabase());
-      cursor.put(key,data);
+      put(null, key, data);
     } else {
       //Should never happen during import.
       throw new DatabaseException();
     }
   }
+
 
   /**
    * Insert the specified import ID set into this index. Creates a DB
@@ -364,7 +352,7 @@ public class Index extends DatabaseContainer
       cursor = openCursor(null, null);
       curLocal.set(cursor);
     }
-    insert(key, importIdSet, data, cursor);
+    insertKey(key, importIdSet, data);
   }
 
 
@@ -383,14 +371,9 @@ public class Index extends DatabaseContainer
   boolean insert(ImportIDSet importIDSet, Set<byte[]> keySet,
                  DatabaseEntry keyData, DatabaseEntry data)
           throws DatabaseException {
-    Cursor cursor = curLocal.get();
-    if(cursor == null) {
-      cursor = openCursor(null, null);
-      curLocal.set(cursor);
-    }
     for(byte[] key : keySet) {
       keyData.setData(key);
-      insert(keyData, importIDSet, data, cursor);
+      insert(keyData, importIDSet, data);
     }
     keyData.setData(null);
     data.setData(null);
@@ -1021,6 +1004,7 @@ public class Index extends DatabaseContainer
     }
   }
 
+
   /**
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
@@ -1168,14 +1152,7 @@ public class Index extends DatabaseContainer
       curLocal.remove();
     }
   }
-  /**
-   * Increment the count of the number of keys that have exceeded the entry
-   * limit since this object was created.
-   */
-  public void incEntryLimitExceededCount()
-  {
-    entryLimitExceededCount++;
-  }
+
 
   /**
    * Update the index buffer for a deleted entry.
@@ -1439,5 +1416,15 @@ public class Index extends DatabaseContainer
   public boolean getMaintainCount()
   {
     return maintainCount;
+  }
+
+  /**
+   * Return an indexes comparator.
+   *
+   * @return The comparator related to an index.
+   */
+  public Comparator<byte[]> getComparator()
+  {
+    return this.comparator;
   }
 }

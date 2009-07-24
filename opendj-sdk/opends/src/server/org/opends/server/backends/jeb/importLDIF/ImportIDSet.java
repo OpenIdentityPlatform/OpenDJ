@@ -22,115 +22,495 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
-
 package org.opends.server.backends.jeb.importLDIF;
 
 import org.opends.server.backends.jeb.EntryID;
+import org.opends.server.backends.jeb.JebFormat;
+
 
 /**
- * Interface defining and import ID set.
+ * An import ID set backed by an array of ints.
  */
-public interface ImportIDSet {
+public class ImportIDSet {
 
   /**
-   * Add an entry ID to the set.
+   * The internal array where elements are stored.
+   */
+  private long[] array = null;
+
+
+  /**
+   * The number of valid elements in the array.
+   */
+  private int count = 0;
+
+
+  //Boolean to keep track if the instance is defined or not.
+  private boolean isDefined=true;
+
+
+  //Size of the undefines.
+  private long undefinedSize = 0;
+
+  //Key related to an ID set.
+  private byte[] key;
+
+
+  /**
+   * Create an empty import set.
+   */
+  public ImportIDSet() { }
+
+
+  /**
+   * Create an import ID set of the specified size plus an extra 128 slots.
    *
-   * @param entryID The entry ID to add.
-   * @param entryLimit The entry limit.
-   * @param maintainCount Maintain count of IDs if in undefined mode.
+   * @param size The size of the the underlying array, plus some extra space.
+   */
+  public ImportIDSet(int size)
+  {
+    this.array = new long[size + 128];
+  }
+
+  /**
+   * Create an import set and add the specified entry ID to it.
+   *
+   * @param id The entry ID.
+   */
+  public ImportIDSet(EntryID id)
+  {
+    this.array = new long[1];
+    this.array[0] = id.longValue();
+    count=1;
+  }
+
+  /**
+   * Return if an import ID set is defined or not.
+   *
+   * @return <CODE>True</CODE> if an import ID set is defined.
+   */
+  public boolean isDefined()
+  {
+    return isDefined;
+  }
+
+  /**
+   * Return the undefined size of an import ID set.
+   *
+   * @return The undefined size of an import ID set.
+   */
+  long getUndefinedSize()
+  {
+    return undefinedSize;
+  }
+
+  /**
+   * Set an import ID set to undefined.
+   */
+  void setUndefined() {
+    array = null;
+    isDefined = false;
+  }
+
+
+  /**
+   * Merge an instance of an import ID set with the import ID set specified
+   * in the parameter. The specified limit and maintain count parameters define
+   * if the newly merged set is defined or not.
+   *
+   * @param importIDSet The import ID set to merge with.
+   * @param limit The index limit to use in the undefined calculation.
+   * @param maintainCount <CODE>True</CODE> if a count of the IDs should be kept
+   *                      after going undefined.
    */
   public void
-  addEntryID(EntryID entryID, int entryLimit, boolean maintainCount);
+  merge(ImportIDSet importIDSet, int limit, boolean maintainCount)
+  {
+    if(!isDefined() && !importIDSet.isDefined()) //both undefined
+    {
+      if(maintainCount)
+      {
+        undefinedSize += importIDSet.getUndefinedSize();
+      }
+      return;
+    }
+    else if(!isDefined()) //this undefined
+    {
+      if(maintainCount)
+      {
+          undefinedSize += importIDSet.size();
+      }
+      return;
+    }
+    else if(!importIDSet.isDefined()) //other undefined
+    {
+      isDefined = false;
+      if(maintainCount)
+      {
+        undefinedSize =  size() + importIDSet.getUndefinedSize();
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
+      array = null;
+      count = 0;
+    }
+    else if ((count + importIDSet.size()) > limit) //add together => undefined
+    {
+      isDefined = false;
+      if(maintainCount)  {
+        undefinedSize = size() + importIDSet.size();
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
+      array = null;
+      count = 0;
+    } else {
+      addAll(importIDSet);
+    }
+  }
+
 
   /**
-   * Return if a  set is defined or not.
+   * Add the specified entry id to an import ID set.
    *
-   * @return <CODE>True</CODE> if a set is defined.
+   * @param entryID  The entry ID to add to an import ID set.
+   * @param limit  The index limit to use in the undefined calculation.
+   * @param maintainCount <CODE>True</CODE> if a count of the IDs should be kept
+   *                      after going undefined.
    */
-  public boolean isDefined();
+  public void addEntryID(EntryID entryID, int limit, boolean maintainCount) {
+    addEntryID(entryID.longValue(), limit, maintainCount);
+  }
 
-  /**
-   * Return the memory size of a set.
+    /**
+   * Add the specified long value to an import ID set.
    *
-   * @return The sets current memory size.
+   * @param l The long value to add to an import ID set.
+   * @param limit  The index limit to use in the undefined calculation.
+   * @param maintainCount <CODE>True</CODE> if a count of the IDs should be kept
+   *                      after going undefined.
    */
-  public int getMemorySize();
+  public void addEntryID(long l, int limit, boolean maintainCount) {
+    if(!isDefined()) {
+      if(maintainCount)  {
+        undefinedSize++;
+      }
+      return;
+    }
+    if(isDefined() && ((count + 1) > limit)) {
+      isDefined = false;
+      array = null;
+      if(maintainCount)  {
+        undefinedSize = count + 1;
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
+      count = 0;
+    } else {
+      add(l);
+    }
+  }
+
+
+  private boolean
+  mergeCount(byte[] dBbytes, ImportIDSet importIdSet, int limit)  {
+    boolean incrLimitCount=false;
+    boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+
+    if(dbUndefined && (!importIdSet.isDefined()))  {
+       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+                                                 importIdSet.getUndefinedSize();
+       isDefined=false;
+    } else if(dbUndefined && (importIdSet.isDefined()))  {
+       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+                                                 importIdSet.size();
+       importIdSet.setUndefined();
+       isDefined=false;
+    } else if(!importIdSet.isDefined()) {
+       int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
+       undefinedSize= dbSize + importIdSet.getUndefinedSize();
+       isDefined=false;
+       incrLimitCount = true;
+    } else {
+      array = JebFormat.entryIDListFromDatabase(dBbytes);
+      if(array.length + importIdSet.size() > limit) {
+          undefinedSize = array.length + importIdSet.size();
+          importIdSet.setUndefined();
+          isDefined=false;
+          incrLimitCount=true;
+      } else {
+        count = array.length;
+        addAll(importIdSet);
+      }
+    }
+    return incrLimitCount;
+  }
 
   /**
-   * Convert a set to a byte array suitable for saving to DB.
+   * Merge the specified byte array read from a DB, with the specified import
+   * ID set. The specified limit and maintain count parameters define
+   * if the newly merged set is defined or not.
    *
-   * @return A byte array representing the set.
+   * @param dBbytes The byte array of IDs read from a DB.
+   * @param importIdSet The import ID set to merge the byte array with.
+   * @param limit The index limit to use in the undefined calculation.
+   * @param maintainCount <CODE>True</CODE> if the import ID set should
+   *                      maintain a count of import IDs.
+   * @return <CODE>True</CODE> if the import ID set started keeping a count as
+   *         a result of the merge.
    */
-  public byte[] toDatabase();
+  public boolean merge(byte[] dBbytes, ImportIDSet importIdSet,
+                       int limit, boolean maintainCount)
+  {
+    boolean incrLimitCount=false;
+    if(maintainCount) {
+      incrLimitCount = mergeCount(dBbytes,  importIdSet, limit);
+    } else {
+      boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+      if(dbUndefined) {
+        isDefined=false;
+        importIdSet.setUndefined();
+        undefinedSize = Long.MAX_VALUE;
+      } else if(!importIdSet.isDefined()) {
+        isDefined=false;
+        incrLimitCount=true;
+        undefinedSize = Long.MAX_VALUE;
+      } else {
+        array = JebFormat.entryIDListFromDatabase(dBbytes);
+        if(array.length + importIdSet.size() > limit) {
+          isDefined=false;
+          incrLimitCount=true;
+          count = 0;
+          importIdSet.setUndefined();
+          undefinedSize = Long.MAX_VALUE;
+        } else {
+          count = array.length;
+          addAll(importIdSet);
+        }
+      }
+    }
+    return incrLimitCount;
+  }
+
+  private  void addAll(ImportIDSet that) {
+    resize(this.count+that.count);
+
+    if (that.count == 0)
+    {
+      return;
+    }
+
+    // Optimize for the case where the two sets are sure to have no overlap.
+    if (this.count == 0 || that.array[0] > this.array[this.count-1])
+    {
+      System.arraycopy(that.array, 0, this.array, this.count, that.count);
+      count += that.count;
+      return;
+    }
+
+    if (this.array[0] > that.array[that.count-1])
+    {
+      System.arraycopy(this.array, 0, this.array, that.count, this.count);
+      System.arraycopy(that.array, 0, this.array, 0, that.count);
+      count += that.count;
+      return;
+    }
+
+    int destPos = binarySearch(this.array, this.count, that.array[0]);
+    if (destPos < 0)
+    {
+      destPos = -(destPos+1);
+    }
+
+    // Make space for the copy.
+    int aCount = this.count - destPos;
+    int aPos = destPos + that.count;
+    int aEnd = aPos + aCount;
+    System.arraycopy(this.array, destPos, this.array, aPos, aCount);
+
+    // Optimize for the case where there is no overlap.
+    if (this.array[aPos] > that.array[that.count-1])
+    {
+      System.arraycopy(that.array, 0, this.array, destPos, that.count);
+      count += that.count;
+      return;
+    }
+
+    int bPos;
+    for ( bPos = 0; aPos < aEnd && bPos < that.count; )
+    {
+      if ( this.array[aPos] < that.array[bPos] )
+      {
+        this.array[destPos++] = this.array[aPos++];
+      }
+      else if ( this.array[aPos] > that.array[bPos] )
+      {
+        this.array[destPos++] = that.array[bPos++];
+      }
+      else
+      {
+        this.array[destPos++] = this.array[aPos++];
+        bPos++;
+      }
+    }
+
+    // Copy any remainder.
+    int aRemain = aEnd - aPos;
+    if (aRemain > 0)
+    {
+      System.arraycopy(this.array, aPos, this.array, destPos, aRemain);
+      destPos += aRemain;
+    }
+
+    int bRemain = that.count - bPos;
+    if (bRemain > 0)
+    {
+      System.arraycopy(that.array, bPos, this.array, destPos, bRemain);
+      destPos += bRemain;
+    }
+
+    count = destPos;
+  }
+
 
   /**
-   * Return the size of the set.
+   * Return the number of IDs in an import ID set.
    *
-   * @return The size of the ID set.
+   * @return The current size of an import ID set.
    */
-  public int size();
+  public int size()
+  {
+    return count;
+  }
+
+
+  private boolean add(long v)
+  {
+    resize(count+1);
+
+    if (count == 0 || v > array[count-1])
+    {
+      array[count++] = v;
+      return true;
+    }
+
+    int pos = binarySearch(array, count, v);
+    if (pos >=0)
+    {
+      return false;
+    }
+
+    // For a negative return value r, the index -(r+1) gives the array
+    // index at which the specified value can be inserted to maintain
+    // the sorted order of the array.
+    pos = -(pos+1);
+
+    System.arraycopy(array, pos, array, pos+1, count-pos);
+    array[pos] = v;
+    count++;
+    return true;
+  }
+
+
+  private static int binarySearch(long[] a, int count, long key)
+  {
+    int low = 0;
+    int high = count-1;
+
+    while (low <= high)
+    {
+      int mid = (low + high) >> 1;
+      long midVal = a[mid];
+
+      if (midVal < key)
+        low = mid + 1;
+      else if (midVal > key)
+        high = mid - 1;
+      else
+        return mid; // key found
+    }
+    return -(low + 1);  // key not found.
+  }
+
+
+
+  private void resize(int size)
+  {
+    if (array == null)
+    {
+      array = new long[size];
+    }
+    else if (array.length < size)
+    {
+      // Expand the size of the array in powers of two.
+      int newSize = array.length == 0 ? 1 : array.length;
+      do
+      {
+        newSize *= 2;
+      } while (newSize < size);
+
+      long[] newBytes = new long[newSize];
+      System.arraycopy(array, 0, newBytes, 0, count);
+      array = newBytes;
+    }
+
+  }
+
 
   /**
-   * Merge a byte array read from DB with a ID set.
+   * Create a byte array suitable to write to a JEB DB from an import ID set.
    *
-   * @param dbBytes The byte array read from DB.
-   * @param bufImportIDSet The import ID set to merge.
-   * @param entryLimit The entry limit.
-   * @param maintainCount Maintain count of iDs if in undefined mode.
-   * @return <CODE>True</CODE> if the merged set is undefined.
+   * @return A byte array suitable for writing to a JEB DB.
    */
-  public boolean merge(byte[] dbBytes, ImportIDSet bufImportIDSet,
-                       int entryLimit, boolean maintainCount);
+  public byte[] toDatabase()
+  {
+    if(isDefined) {
+       return encode(null);
+     } else {
+       return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
+     }
+   }
+
+
+  private byte[] encode(byte[] bytes)
+  {
+    int encodedSize = count * 8;
+    if (bytes == null || bytes.length < encodedSize) {
+      bytes = new byte[encodedSize];
+    }
+    for (int pos = 0, i = 0; i < count; i++) {
+      long v = array[i] & 0x00ffffffffL;
+      bytes[pos++] = (byte) ((v >>> 56) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 48) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 40) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 32) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 24) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 16) & 0xFF);
+      bytes[pos++] = (byte) ((v >>> 8) & 0xFF);
+      bytes[pos++] = (byte) (v & 0xFF);
+    }
+    return bytes;
+  }
 
   /**
-   * Merge the specified import ID set with the current import ID set using the
-   * specified entry limit an maintain count values.
+   * Set the DB key related to an import ID set.
    *
-   * @param bufImportIDSet The import ID set to merge.
-   * @param entryLimit The entry limit to use.
-   * @param maintainCount <CODE>True</CODE> if maintain count is being kept.
+   * @param key Byte array containing the key.
    */
-  public void
-  merge(ImportIDSet bufImportIDSet, int entryLimit, boolean maintainCount);
+  public void setKey(byte[] key)
+  {
+    this.key = key;
+  }
 
   /**
-   * Set the import ID set to the undefined state.
-   */
-  public void setUndefined();
-
-  /**
-   * Return the undefined size.
+   * Return the DB key related to an import ID set.
    *
-   * @return The undefined count.
+   * @return  The byte array containing the key.
    */
-  public long getUndefinedSize();
-
-  /**
-   * Reset set.
-   */
-  public void reset();
-
-  /**
-   * Set the first entry ID to the specified entry ID.
-   *
-   * @param entryID The entry ID to use.
-   */
-  public void setEntryID(EntryID entryID);
-
-  /**
-   * Return if a undefined entry ID set has been written to the index DB.
-   *
-   * @return Return <CODE>True</CODE>if the undefined entry ID set has been
-   * written to the index DB.
-   */
-  public boolean isDirty();
-
-  /**
-   * Set the dirty flag to the specifed value.
-   *
-   * @param dirty The value to set the flag to.
-   */
-  public void setDirty(boolean dirty);
+  public byte[] getKey()
+  {
+    return this.key;
+  }
 }
