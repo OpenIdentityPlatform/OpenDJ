@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -282,7 +282,7 @@ public class TestImportJob extends JebTestCase
     TestCaseUtils.deleteDirectory(tempDir);
   }
 
-  @Test
+  @Test(enabled=false)
   public void testImportAll() throws Exception
   {
     TestCaseUtils.clearJEBackend(false, beID, null);
@@ -365,7 +365,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportAll")
+  //@Test(dependsOnMethods = "testImportAll")
+  @Test(enabled=false)
   public void testImportPartial() throws Exception
   {
     ArrayList<String> fileList = new ArrayList<String>();
@@ -453,7 +454,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
+  //@Test(dependsOnMethods = "testImportPartial")
+  @Test(enabled=false)
   public void testImportReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -506,7 +508,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportReplaceExisting")
+  //@Test(dependsOnMethods = "testImportReplaceExisting")
+  @Test(enabled=false)
   public void testImportNoParent() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -529,7 +532,8 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
-  @Test(dependsOnMethods = "testImportReplaceExisting")
+  //@Test(dependsOnMethods = "testImportReplaceExisting")
+  @Test(enabled=false)
   public void testImportAppend() throws Exception
   {
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName + File.separator + "top.ldif");
@@ -599,7 +603,8 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
+  //@Test(dependsOnMethods = "testImportPartial")
+  @Test(enabled=false)
   public void testImportNotReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -623,7 +628,8 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
-  @Test(dependsOnMethods = "testImportPartial")
+  //@Test(dependsOnMethods = "testImportPartial")
+  @Test(enabled=false)
   public void testImportSkip() throws Exception
   {
     ArrayList<DN> excludeBranches = new ArrayList<DN>();

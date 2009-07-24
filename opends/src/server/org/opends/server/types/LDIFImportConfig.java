@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -164,6 +164,8 @@ public final class LDIFImportConfig extends OperationConfig
   // excluded.
   private boolean excludeAllOpAttrs;
 
+  private String tmpDirectory;
+  private boolean dnCheckPhase2 = false;
 
 
   /**
@@ -1382,6 +1384,46 @@ public final class LDIFImportConfig extends OperationConfig
         }
       }
     }
+  }
+
+  /**
+   * Set the temporary directory to the specified path.
+   *
+   * @param path The path to set the temporary directory to.
+   */
+  public void setTmpDirectory(String path)
+  {
+    tmpDirectory = path;
+  }
+
+  /**
+   * Return the temporary directory path.
+   *
+   * @return  The temporary directory string.
+   */
+  public String getTmpDirectory()
+  {
+    return tmpDirectory;
+  }
+
+  /**
+   * Set the dn check in phase two boolean to the specified value.
+   *
+   * @param v The value to set the dn check in phase two boolean to.
+   */
+  public void setDNCheckPhase2(boolean v)
+  {
+    dnCheckPhase2 = v;
+  }
+
+  /**
+   * Return the dn check in phase two boolean.
+   *
+   * @return Return the dn check in phase two boolean value.
+   */
+  public boolean getDNCheckPhase2()
+  {
+    return dnCheckPhase2;
   }
 }
 

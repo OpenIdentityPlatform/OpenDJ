@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 import org.opends.messages.Message;
@@ -107,13 +107,12 @@ public final class LDIFException
    * @param  canContinueReading  Indicates whether it is possible to continue
    *                             reading from the LDIF input source.
    */
-  public LDIFException(Message message, long lineNumber,
+  public LDIFException(Message message, Number lineNumber,
                        boolean canContinueReading)
   {
     super(message);
 
-
-    this.lineNumber         = lineNumber;
+    this.lineNumber         = lineNumber.longValue();
     this.canContinueReading = canContinueReading;
   }
 
@@ -131,13 +130,12 @@ public final class LDIFException
    * @param  cause               The underlying cause that triggered this LDIF
    *                             exception.
    */
-  public LDIFException(Message message, long lineNumber,
+  public LDIFException(Message message, Number lineNumber,
                        boolean canContinueReading, Throwable cause)
   {
     super(message, cause);
 
-
-    this.lineNumber         = lineNumber;
+    this.lineNumber         = lineNumber.longValue();
     this.canContinueReading = canContinueReading;
   }
 

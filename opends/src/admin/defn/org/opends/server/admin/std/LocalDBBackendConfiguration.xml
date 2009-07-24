@@ -222,33 +222,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-queue-size" advanced="true">
-    <adm:synopsis>
-      Specifies the size (in number of entries) of the queue that is
-      used to hold the entries read during an LDIF import.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes do not take effect for any import that may already
-          be in progress.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>100</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer lower-limit="1" upper-limit="2147483647" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-import-queue-size</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="import-thread-count" advanced="true">
     <adm:synopsis>
       Specifies the number of threads that is used for concurrent

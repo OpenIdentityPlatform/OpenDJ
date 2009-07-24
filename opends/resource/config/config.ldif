@@ -182,7 +182,6 @@ ds-cfg-db-directory: db
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 4000
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-queue-size: 100
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-compact-encoding: true

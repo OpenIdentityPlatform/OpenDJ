@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 import java.io.IOException;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutionException;
 
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -41,6 +42,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.RunRecoveryException;
 
+import org.opends.server.backends.jeb.importLDIF.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
@@ -71,7 +73,7 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.DN;
-import org.opends.server.backends.jeb.importLDIF.Importer;
+
 import org.opends.server.api.ExtensibleMatchingRule;
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -107,12 +109,12 @@ public class BackendImpl
   /**
    * A count of the total operation threads currently in the backend.
    */
-  private AtomicInteger threadTotalCount = new AtomicInteger(0);
+  private final AtomicInteger threadTotalCount = new AtomicInteger(0);
 
   /**
    * A count of the write operation threads currently in the backend.
    */
-  private AtomicInteger threadWriteCount = new AtomicInteger(0);
+  private final AtomicInteger threadWriteCount = new AtomicInteger(0);
 
   /**
    * A list of monitor providers created for this backend instance.
@@ -281,6 +283,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configureBackend(Configuration cfg)
       throws ConfigException
   {
@@ -1128,10 +1131,11 @@ public class BackendImpl
       envConfig.setAllowCreate(true);
       envConfig.setTransactional(false);
       envConfig.setTxnNoSync(false);
-      envConfig.setConfigParam("je.env.isLocking", "false");
+      envConfig.setConfigParam("je.env.isLocking", "true");
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
       //Loop through local indexes and see if any are substring.
       boolean hasSubIndex = false;
+      int indexCount = cfg.listLocalDBIndexes().length;
 subIndex:
       for (String idx : cfg.listLocalDBIndexes()) {
         final LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
@@ -1164,10 +1168,32 @@ subIndex:
           }
         }
       }
-      Importer importer = new Importer(importConfig, hasSubIndex);
-      envConfig.setConfigParam("je.maxMemory", importer.getDBCacheSize());
+
+      Importer importer = new Importer(importConfig, cfg);
+      importer.init(envConfig);
       rootContainer = initializeRootContainer(envConfig);
+
       return importer.processImport(rootContainer);
+    }
+        catch (ExecutionException execEx)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
+      }
+      Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+    catch (InterruptedException intEx)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
+      }
+      Message message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
     }
     catch (IOException ioe)
     {
@@ -1187,14 +1213,6 @@ subIndex:
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessageObject());
-    }
-    catch (DatabaseException de)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-      throw createDirectoryException(de);
     }
     catch (InitializationException ie)
     {
@@ -1656,12 +1674,10 @@ subIndex:
    * @param  e The DatabaseException to be converted.
    * @return  DirectoryException created from exception.
    */
-  DirectoryException createDirectoryException(DatabaseException e)
-  {
+  DirectoryException createDirectoryException(DatabaseException e) {
     ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
     Message message = null;
-    if(e instanceof RunRecoveryException)
-    {
+    if (e instanceof RunRecoveryException) {
       message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logError(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
@@ -1669,8 +1685,7 @@ subIndex:
     }
 
     String jeMessage = e.getMessage();
-    if (jeMessage == null)
-    {
+    if (jeMessage == null) {
       jeMessage = stackTraceToSingleLineString(e);
     }
     message = ERR_JEB_DATABASE_EXCEPTION.get(jeMessage);
@@ -1680,45 +1695,38 @@ subIndex:
   /**
    * {@inheritDoc}
    */
-  public String getClassName()
-  {
+  public String getClassName() {
     return CLASS_NAME;
   }
 
   /**
    * {@inheritDoc}
    */
-  public LinkedHashMap<String,String> getAlerts()
-  {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+  public LinkedHashMap<String, String> getAlerts() {
+    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
-               ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
+            ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
     return alerts;
   }
 
   /**
    * {@inheritDoc}
    */
-  public DN getComponentEntryDN()
-  {
+  public DN getComponentEntryDN() {
     return cfg.dn();
   }
 
   private RootContainer initializeRootContainer(EnvironmentConfig envConfig)
-      throws ConfigException, InitializationException
-  {
+          throws ConfigException, InitializationException {
     // Open the database environment
-    try
-    {
+    try {
       RootContainer rc = new RootContainer(this, cfg);
       rc.open(envConfig);
       return rc;
     }
-    catch (DatabaseException e)
-    {
-      if (debugEnabled())
-      {
+    catch (DatabaseException e) {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       Message message = ERR_JEB_OPEN_ENV_FAIL.get(e.getMessage());
@@ -1729,11 +1737,11 @@ subIndex:
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws
-    UnsupportedOperationException
-  {
+          UnsupportedOperationException {
     EntryCachePreloader preloader =
-      new EntryCachePreloader(this);
+            new EntryCachePreloader(this);
     preloader.preload();
   }
 }

@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -55,6 +56,10 @@ import org.opends.server.protocols.ldap.LDAPModification;
 
 import org.opends.server.types.*;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.EntryID;
+import org.opends.server.backends.jeb.importLDIF.Suffix;
+import org.opends.server.backends.jeb.importLDIF.Importer;
 
 
 /**
@@ -90,17 +95,18 @@ public final class LDIFReader
   // read.
   private LinkedList<StringBuilder> lastEntryHeaderLines;
 
+
   // The number of entries that have been ignored by this LDIF reader because
   // they didn't match the criteria.
-  private long entriesIgnored;
+  private final AtomicLong entriesIgnored = new AtomicLong();
 
   // The number of entries that have been read by this LDIF reader, including
   // those that were ignored because they didn't match the criteria, and
   // including those that were rejected because they were invalid in some way.
-  private long entriesRead;
+  private final AtomicLong entriesRead = new AtomicLong();
 
   // The number of entries that have been rejected by this LDIF reader.
-  private long entriesRejected;
+  private final AtomicLong entriesRejected = new AtomicLong();
 
   // The line number on which the last entry started.
   private long lastEntryLineNumber;
@@ -112,6 +118,10 @@ public final class LDIFReader
   // on the entries as they are read.
   private PluginConfigManager pluginConfigManager;
 
+  private RootContainer rootContainer;
+
+  //Temporary until multiple suffixes are supported.
+  private volatile Suffix suffix = null;
 
 
   /**
@@ -132,15 +142,44 @@ public final class LDIFReader
 
     reader               = importConfig.getReader();
     buffer               = new byte[4096];
-    entriesRead          = 0;
-    entriesIgnored       = 0;
-    entriesRejected      = 0;
     lineNumber           = 0;
     lastEntryLineNumber  = -1;
     lastEntryBodyLines   = new LinkedList<StringBuilder>();
     lastEntryHeaderLines = new LinkedList<StringBuilder>();
     pluginConfigManager  = DirectoryServer.getPluginConfigManager();
   }
+
+
+  /**
+   * Creates a new LDIF reader that will read information from the
+   * specified file.
+   *
+   * @param importConfig
+   *          The import configuration for this LDIF reader. It must not
+   *          be <CODE>null</CODE>.
+   * @param rootContainer The root container needed to get the next entry ID.
+   * @param size The size of the buffer to read the LDIF bytes into.
+   *
+   * @throws IOException
+   *           If a problem occurs while opening the LDIF file for
+   *           reading.
+   */
+  public LDIFReader(LDIFImportConfig importConfig, RootContainer rootContainer,
+                     int size)
+         throws IOException
+  {
+    ensureNotNull(importConfig);
+    this.importConfig = importConfig;
+    this.reader               = importConfig.getReader();
+    this.lineNumber           = 0;
+    this.lastEntryLineNumber  = -1;
+    this.lastEntryBodyLines   = new LinkedList<StringBuilder>();
+    this.lastEntryHeaderLines = new LinkedList<StringBuilder>();
+    this.pluginConfigManager  = DirectoryServer.getPluginConfigManager();
+    this.buffer        = new byte[size];
+    this.rootContainer = rootContainer;
+  }
+
 
 
 
@@ -159,6 +198,211 @@ public final class LDIFReader
          throws IOException, LDIFException
   {
     return readEntry(importConfig.validateSchema());
+  }
+
+
+
+  /**
+   * Reads the next entry from the LDIF source. This method will need
+   * to be changed when multiple suffixes is supported.
+   *
+   * @return  The next entry read from the LDIF source, or <CODE>null</CODE> if
+   *          the end of the LDIF data is reached.
+   *
+   * @param map  A
+   *
+   * @throws  IOException  If an I/O problem occurs while reading from the file.
+   *
+   * @throws  LDIFException  If the information read cannot be parsed as an LDIF
+   *                         entry.
+   */
+  public final Entry readEntry(Map<DN, Suffix> map)
+         throws IOException, LDIFException
+  {
+    return readEntry(importConfig.validateSchema(), map);
+  }
+
+
+
+  private final Entry readEntry(boolean checkSchema, Map<DN, Suffix> map)
+          throws IOException, LDIFException
+  {
+
+    while (true)
+    {
+      LinkedList<StringBuilder> lines;
+      DN entryDN;
+      EntryID entryID;
+      synchronized (this)
+      {
+        // Read the set of lines that make up the next entry.
+        lines = readEntryLines();
+        if (lines == null)
+        {
+          return null;
+        }
+        lastEntryBodyLines   = lines;
+        lastEntryHeaderLines = new LinkedList<StringBuilder>();
+
+
+        // Read the DN of the entry and see if it is one that should be included
+        // in the import.
+        entryDN = readDN(lines);
+        if (entryDN == null)
+        {
+          // This should only happen if the LDIF starts with the "version:" line
+          // and has a blank line immediately after that.  In that case, simply
+          // read and return the next entry.
+          continue;
+        }
+        else if (!importConfig.includeEntry(entryDN))
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Skipping entry %s because the DN isn't" +
+                    "one that should be included based on the include and " +
+                    "exclude branches.", entryDN);
+          }
+          entriesRead.incrementAndGet();
+          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
+          logToSkipWriter(lines, message);
+          entriesIgnored.incrementAndGet();
+          continue;
+        }
+        entryID = rootContainer.getNextEntryID();
+      }
+      //Temporary until multiple suffixes are supported.
+      //getMatchSuffix calls the expensive DN getParentDNInSuffix
+      if(suffix == null)
+      {
+        suffix= Importer.getMatchSuffix(entryDN, map);
+      }
+      if(suffix == null)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Skipping entry %s because the DN isn't" +
+                  "one that should be included based on a suffix match" +
+                  "check." ,entryDN);
+        }
+        entriesRead.incrementAndGet();
+        Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
+        logToSkipWriter(lines, message);
+        entriesIgnored.incrementAndGet();
+        continue;
+      }
+      entriesRead.incrementAndGet();
+      suffix.addPending(entryDN);
+
+      // Read the set of attributes from the entry.
+      HashMap<ObjectClass,String> objectClasses =
+              new HashMap<ObjectClass,String>();
+      HashMap<AttributeType,List<Attribute>> userAttributes =
+              new HashMap<AttributeType,List<Attribute>>();
+      HashMap<AttributeType,List<Attribute>> operationalAttributes =
+              new HashMap<AttributeType,List<Attribute>>();
+      try
+      {
+        for (StringBuilder line : lines)
+        {
+          readAttribute(lines, line, entryDN, objectClasses, userAttributes,
+                        operationalAttributes, checkSchema);
+        }
+      }
+      catch (LDIFException e)
+      {
+        entriesRejected.incrementAndGet();
+        suffix.removePending(entryDN);
+        throw e;
+      }
+
+      // Create the entry and see if it is one that should be included in the
+      // import.
+      Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
+                               operationalAttributes);
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
+
+      try
+      {
+        if (! importConfig.includeEntry(entry))
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Skipping entry %s because the DN is not one " +
+                "that should be included based on the include and exclude " +
+                "filters.", entryDN);
+          }
+          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
+          logToSkipWriter(lines, message);
+          entriesIgnored.incrementAndGet();
+          suffix.removePending(entryDN);
+          continue;
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        suffix.removePending(entryDN);
+        Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
+            get(String.valueOf(entry.getDN()), lastEntryLineNumber,
+                String.valueOf(e));
+        throw new LDIFException(message, lastEntryLineNumber, true, e);
+      }
+
+
+      // If we should invoke import plugins, then do so.
+      if (importConfig.invokeImportPlugins())
+      {
+        PluginResult.ImportLDIF pluginResult =
+             pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
+        if (! pluginResult.continueProcessing())
+        {
+          Message m;
+          Message rejectMessage = pluginResult.getErrorMessage();
+          if (rejectMessage == null)
+          {
+            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(
+                     String.valueOf(entryDN));
+          }
+          else
+          {
+            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(String.valueOf(entryDN),
+                                                rejectMessage);
+          }
+
+          logToRejectWriter(lines, m);
+          entriesRejected.incrementAndGet();
+          suffix.removePending(entryDN);
+          continue;
+        }
+      }
+
+
+      // Make sure that the entry is valid as per the server schema if it is
+      // appropriate to do so.
+      if (checkSchema)
+      {
+        MessageBuilder invalidReason = new MessageBuilder();
+        if (! entry.conformsToSchema(null, false, true, false, invalidReason))
+        {
+          Message message = ERR_LDIF_SCHEMA_VIOLATION.get(
+                  String.valueOf(entryDN),
+                  lastEntryLineNumber,
+                  invalidReason.toString());
+          logToRejectWriter(lines, message);
+          entriesRejected.incrementAndGet();
+          suffix.removePending(entryDN);
+          throw new LDIFException(message, lastEntryLineNumber, true);
+        }
+      }
+
+      entry.setAttachment(entryID);
+      // The entry should be included in the import, so return it.
+      return entry;
+    }
   }
 
 
@@ -214,15 +458,15 @@ public final class LDIFReader
               "should be included based on the include and exclude branches.",
                     entryDN);
         }
-        entriesRead++;
+        entriesRead.incrementAndGet();
         Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
         logToSkipWriter(lines, message);
-        entriesIgnored++;
+        entriesIgnored.incrementAndGet();
         continue;
       }
       else
       {
-        entriesRead++;
+        entriesRead.incrementAndGet();
       }
 
       // Read the set of attributes from the entry.
@@ -242,7 +486,7 @@ public final class LDIFReader
       }
       catch (LDIFException e)
       {
-        entriesRejected++;
+        entriesRejected.incrementAndGet();
         throw e;
       }
 
@@ -296,7 +540,7 @@ public final class LDIFReader
           }
           Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
           logToSkipWriter(lines, message);
-          entriesIgnored++;
+          entriesIgnored.incrementAndGet();
           continue;
         }
       }
@@ -335,7 +579,7 @@ public final class LDIFReader
           }
 
           logToRejectWriter(lines, m);
-          entriesRejected++;
+          entriesRejected.incrementAndGet();
           continue;
         }
       }
@@ -353,7 +597,7 @@ public final class LDIFReader
                   lastEntryLineNumber,
                   invalidReason.toString());
           logToRejectWriter(lines, message);
-          entriesRejected++;
+          entriesRejected.incrementAndGet();
           throw new LDIFException(message, lastEntryLineNumber, true);
         }
         //Add any superior objectclass(s) missing in an entries
@@ -407,7 +651,7 @@ public final class LDIFReader
 
       String changeType = readChangeType(lines);
 
-      ChangeRecordEntry entry = null;
+      ChangeRecordEntry entry;
 
       if(changeType != null)
       {
@@ -468,6 +712,11 @@ public final class LDIFReader
     // Read the entry lines into a buffer.
     LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
     int lastLine = -1;
+
+    if(reader == null)
+    {
+      return null;
+    }
 
     while (true)
     {
@@ -852,10 +1101,10 @@ public final class LDIFReader
    * @param  entryDN                The DN of the entry being decoded.
    * @param  objectClasses          The set of objectclasses decoded so far for
    *                                the current entry.
-   * @param  userAttributes         The set of user attributes decoded so far
-   *                                for the current entry.
-   * @param  operationalAttributes  The set of operational attributes decoded so
-   *                                far for the current entry.
+   * @param userAttrBuilders        The map of user attribute builders decoded
+   *                                so far for the current entry.
+   * @param  operationalAttrBuilders  The map of operational attribute builders
+   *                                  decoded so far for the current entry.
    * @param  checkSchema            Indicates whether to perform schema
    *                                validation for the attribute.
    *
@@ -1142,7 +1391,7 @@ public final class LDIFReader
    */
   public void rejectLastEntry(Message message)
   {
-    entriesRejected++;
+    entriesRejected.incrementAndGet();
 
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
@@ -1190,7 +1439,7 @@ public final class LDIFReader
    */
   public synchronized void rejectEntry(Entry e, Message message) {
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
-    entriesRejected++;
+    entriesRejected.incrementAndGet();
     if (rejectWriter != null) {
       try {
         if ((message != null) && (message.length() > 0)) {
@@ -1284,7 +1533,7 @@ public final class LDIFReader
    */
   public long getEntriesRead()
   {
-    return entriesRead;
+    return entriesRead.get();
   }
 
 
@@ -1297,7 +1546,7 @@ public final class LDIFReader
    */
   public long getEntriesIgnored()
   {
-    return entriesIgnored;
+    return entriesIgnored.get();
   }
 
 
@@ -1313,7 +1562,7 @@ public final class LDIFReader
    */
   public long getEntriesRejected()
   {
-    return entriesRejected;
+    return entriesRejected.get();
   }
 
 
@@ -1333,8 +1582,8 @@ public final class LDIFReader
       LinkedList<StringBuilder> lines) throws LDIFException {
 
     DN newSuperiorDN = null;
-    RDN newRDN = null;
-    boolean deleteOldRDN = false;
+    RDN newRDN;
+    boolean deleteOldRDN;
 
     if(lines.isEmpty())
     {
@@ -1480,7 +1729,7 @@ public final class LDIFReader
     List<RawModification> modifications = new ArrayList<RawModification>();
     while(!lines.isEmpty())
     {
-      ModificationType modType = null;
+      ModificationType modType;
 
       StringBuilder line = lines.remove();
       Attribute attr =
@@ -1748,7 +1997,7 @@ public final class LDIFReader
 
 
         InputStream inputStream = null;
-        ByteStringBuilder builder = null;
+        ByteStringBuilder builder;
         try
         {
           builder = new ByteStringBuilder();
@@ -1881,5 +2130,209 @@ public final class LDIFReader
     }
   }
 
+
+  private void readAttribute(LinkedList<StringBuilder> lines,
+       StringBuilder line, DN entryDN, Map<ObjectClass,String> objectClasses,
+       Map<AttributeType,List<Attribute>> userAttributes,
+       Map<AttributeType,List<Attribute>> operationalAttributes,
+       boolean checkSchema) throws LDIFException
+  {
+    // Parse the attribute type description.
+    int colonPos = parseColonPosition(lines, line);
+    String attrDescr = line.substring(0, colonPos);
+    final Attribute attribute = parseAttrDescription(attrDescr);
+    final String attrName = attribute.getName();
+    final String lowerName = toLowerCase(attrName);
+
+    // Now parse the attribute value.
+    ByteString value = parseSingleValue(lines, line, entryDN,
+        colonPos, attrName);
+
+    // See if this is an objectclass or an attribute.  Then get the
+    // corresponding definition and add the value to the appropriate hash.
+    if (lowerName.equals("objectclass"))
+    {
+      if (! importConfig.includeObjectClasses())
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugVerbose("Skipping objectclass %s for entry %s due to " +
+              "the import configuration.", value, entryDN);
+        }
+        return;
+      }
+
+      String ocName      = value.toString();
+      String lowerOCName = toLowerCase(ocName);
+
+      ObjectClass objectClass = DirectoryServer.getObjectClass(lowerOCName);
+      if (objectClass == null)
+      {
+        objectClass = DirectoryServer.getDefaultObjectClass(ocName);
+      }
+
+      if (objectClasses.containsKey(objectClass))
+      {
+        logError(WARN_LDIF_DUPLICATE_OBJECTCLASS.get(
+            String.valueOf(entryDN), lastEntryLineNumber, ocName));
+      }
+      else
+      {
+        objectClasses.put(objectClass, ocName);
+      }
+    }
+    else
+    {
+      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+      if (attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      }
+
+
+      if (! importConfig.includeAttribute(attrType))
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugVerbose("Skipping attribute %s for entry %s due to the " +
+              "import configuration.", attrName, entryDN);
+        }
+        return;
+      }
+
+       //The attribute is not being ignored so check for binary option.
+      if(checkSchema && !attrType.isBinary())
+      {
+       if(attribute.hasOption("binary"))
+        {
+          Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(
+            String.valueOf(entryDN),lastEntryLineNumber, attrName);
+          logToRejectWriter(lines, message);
+          throw new LDIFException(message, lastEntryLineNumber,true);
+        }
+      }
+      if (checkSchema &&
+          (DirectoryServer.getSyntaxEnforcementPolicy() !=
+               AcceptRejectWarn.ACCEPT))
+      {
+        MessageBuilder invalidReason = new MessageBuilder();
+        if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
+        {
+          Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
+                  String.valueOf(entryDN),
+                  lastEntryLineNumber, value.toString(),
+                  attrName, invalidReason.toString());
+          if (DirectoryServer.getSyntaxEnforcementPolicy() ==
+                   AcceptRejectWarn.WARN)
+          {
+            logError(message);
+          }
+          else
+          {
+            logToRejectWriter(lines, message);
+            throw new LDIFException(message, lastEntryLineNumber,
+                                    true);
+          }
+        }
+      }
+
+      AttributeValue attributeValue =
+          AttributeValues.create(attrType, value);
+      List<Attribute> attrList;
+      if (attrType.isOperational())
+      {
+        attrList = operationalAttributes.get(attrType);
+        if (attrList == null)
+        {
+          AttributeBuilder builder = new AttributeBuilder(attribute, true);
+          builder.add(attributeValue);
+          attrList = new ArrayList<Attribute>();
+          attrList.add(builder.toAttribute());
+          operationalAttributes.put(attrType, attrList);
+          return;
+        }
+      }
+      else
+      {
+        attrList = userAttributes.get(attrType);
+        if (attrList == null)
+        {
+          AttributeBuilder builder = new AttributeBuilder(attribute, true);
+          builder.add(attributeValue);
+          attrList = new ArrayList<Attribute>();
+          attrList.add(builder.toAttribute());
+          userAttributes.put(attrType, attrList);
+          return;
+        }
+      }
+
+
+      // Check to see if any of the attributes in the list have the same set of
+      // options.  If so, then try to add a value to that attribute.
+      for (int i = 0; i < attrList.size(); i++) {
+        Attribute a = attrList.get(i);
+
+        if (a.optionsEqual(attribute.getOptions()))
+        {
+          if (a.contains(attributeValue))
+          {
+            if (! checkSchema)
+            {
+              // If we're not doing schema checking, then it is possible that
+              // the attribute type should use case-sensitive matching and the
+              // values differ in capitalization.  Only reject the proposed
+              // value if we find another value that is exactly the same as the
+              // one that was provided.
+              for (AttributeValue v : a)
+              {
+                if (v.getValue().equals(attributeValue.getValue()))
+                {
+                  Message message = WARN_LDIF_DUPLICATE_ATTR.get(
+                          String.valueOf(entryDN),
+                          lastEntryLineNumber, attrName,
+                          value.toString());
+                  logToRejectWriter(lines, message);
+                  throw new LDIFException(message, lastEntryLineNumber,
+                                          true);
+                }
+              }
+            }
+            else
+            {
+              Message message = WARN_LDIF_DUPLICATE_ATTR.get(
+                      String.valueOf(entryDN),
+                      lastEntryLineNumber, attrName,
+                      value.toString());
+              logToRejectWriter(lines, message);
+              throw new LDIFException(message, lastEntryLineNumber,
+                                      true);
+            }
+          }
+
+          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema)
+          {
+            Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
+                    .get(String.valueOf(entryDN),
+                         lastEntryLineNumber, attrName);
+            logToRejectWriter(lines, message);
+            throw new LDIFException(message, lastEntryLineNumber, true);
+          }
+
+          AttributeBuilder builder = new AttributeBuilder(a);
+          builder.add(attributeValue);
+          attrList.set(i, builder.toAttribute());
+          return;
+        }
+      }
+
+
+      // No set of matching options was found, so create a new one and
+      // add it to the list.
+      AttributeBuilder builder = new AttributeBuilder(attribute, true);
+      builder.add(attributeValue);
+      attrList.add(builder.toAttribute());
+      return;
+    }
+  }
 }
 

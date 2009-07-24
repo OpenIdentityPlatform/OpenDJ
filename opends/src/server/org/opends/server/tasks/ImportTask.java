@@ -170,6 +170,8 @@ public class ImportTask extends Task
   private boolean replaceExisting = false;
   private boolean skipSchemaValidation = false;
   private boolean clearBackend = false;
+  private boolean dnCheckPhase2 = false;
+  private String tmpDirectory = null;
   private String backendID = null;
   private String rejectFile = null;
   private String skipFile = null;
@@ -241,6 +243,8 @@ public class ImportTask extends Task
     AttributeType typeIsEncrypted;
     AttributeType typeClearBackend;
     AttributeType typeRandomSeed;
+    AttributeType typeTmpDirectory;
+    AttributeType typeDNCheckPhase2;
 
     typeLdifFile =
          getAttributeType(ATTR_IMPORT_LDIF_FILE, true);
@@ -280,6 +284,10 @@ public class ImportTask extends Task
          getAttributeType(ATTR_IMPORT_CLEAR_BACKEND, true);
     typeRandomSeed =
          getAttributeType(ATTR_IMPORT_RANDOM_SEED, true);
+    typeTmpDirectory =
+         getAttributeType(ATTR_IMPORT_TMP_DIRECTORY, true);
+    typeDNCheckPhase2 =
+         getAttributeType(ATTR_IMPORT_DN_CHECK_PHASE2, true);
 
     List<Attribute> attrList;
 
@@ -322,6 +330,12 @@ public class ImportTask extends Task
 
     attrList = taskEntry.getAttribute(typeAppend);
     append = TaskUtils.getBoolean(attrList, false);
+
+    attrList = taskEntry.getAttribute(typeDNCheckPhase2);
+    dnCheckPhase2 = TaskUtils.getBoolean(attrList, true);
+
+    attrList = taskEntry.getAttribute(typeTmpDirectory);
+    tmpDirectory = TaskUtils.getSingleValueString(attrList);
 
     attrList = taskEntry.getAttribute(typeReplaceExisting);
     replaceExisting = TaskUtils.getBoolean(attrList, false);
@@ -861,6 +875,10 @@ public class ImportTask extends Task
       ArrayList<String> fileList = new ArrayList<String>(ldifFiles);
       importConfig = new LDIFImportConfig(fileList);
     }
+    if(tmpDirectory == null)
+    {
+      tmpDirectory = "import-tmp";
+    }
     importConfig.setAppendToExistingData(append);
     importConfig.setReplaceExistingEntries(replaceExisting);
     importConfig.setCompressed(isCompressed);
@@ -873,6 +891,8 @@ public class ImportTask extends Task
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation);
+    importConfig.setDNCheckPhase2(dnCheckPhase2);
+    importConfig.setTmpDirectory(tmpDirectory);
 
     // FIXME -- Should this be conditional?
     importConfig.setInvokeImportPlugins(true);

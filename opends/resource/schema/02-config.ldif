@@ -1085,11 +1085,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.219
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.222
-  NAME 'ds-cfg-import-queue-size'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.223
   NAME 'ds-cfg-import-thread-count'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -2464,7 +2459,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
   MUST ds-cfg-db-directory
   MAY ( ds-cfg-index-entry-limit $
         ds-cfg-preload-time-limit $
-        ds-cfg-import-queue-size $
         ds-cfg-import-thread-count $
         ds-cfg-entries-compressed $
         ds-cfg-db-directory-permissions $
@@ -4035,7 +4029,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.196
         ds-cfg-ndb-thread-count $
         ds-cfg-ndb-num-connections $
         ds-cfg-deadlock-retry-limit $
-        ds-cfg-import-queue-size $
         ds-cfg-import-thread-count $
         ds-cfg-index-entry-limit )
   X-ORIGIN 'OpenDS Directory Server' )
