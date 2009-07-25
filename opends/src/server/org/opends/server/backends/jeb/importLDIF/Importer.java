@@ -521,7 +521,11 @@ public class Importer
         }
         DN entryDN = entry.getDN();
         EntryID entryID = (EntryID) entry.getAttachment();
-        suffix = getMatchSuffix(entryDN, dnSuffixMap);
+        //Temporary until multiple suffixes supported.
+        if(suffix == null)
+        {
+             suffix = getMatchSuffix(entryDN, dnSuffixMap);
+        }
         if(!suffixMap.containsKey(suffix))
         {
           suffixMap.put(suffix, new HashMap<DatabaseContainer, IndexBuffer>());
