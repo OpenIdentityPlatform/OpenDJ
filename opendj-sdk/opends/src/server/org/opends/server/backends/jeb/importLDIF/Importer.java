@@ -454,8 +454,9 @@ public class Importer
     {
       cacheSize = bufferSize;
     }
-    System.out.println("Direct indexes begin Total bufferCount: " +
-            bufferCount.get() + " cacheSize: " + cacheSize);
+    Message msg =
+       NOTE_JEB_IMPORT_LDIF_DIRECT_MEM_REPORT.get(bufferCount.get(), cacheSize);
+    logError(msg);
     return cacheSize;
   }
 
@@ -469,9 +470,9 @@ public class Importer
     {
       cacheSize = bufferSize;
     }
-    System.out.println("Indirect indexes begin Total bufferCount: " +
-            bufferCount.get() + " avgBufSize: "
-            + avgBufSize + " cacheSize: " + cacheSize);
+    Message msg =
+     NOTE_JEB_IMPORT_LDIF_INDIRECT_MEM_REPORT.get(bufferCount.get(), cacheSize);
+    logError(msg);
     return cacheSize;
   }
 
