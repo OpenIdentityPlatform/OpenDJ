@@ -1111,6 +1111,39 @@ public abstract class ConsoleApplication {
   }
 
   /**
+   * Prompts the user to give the Global Administrator UID.
+   * @param defaultValue the default value that will be proposed in the prompt
+   * message.
+   * @param logger the Logger to be used to log the error message.
+   * @return the Global Administrator UID as provided by the user.
+   */
+  protected String askForAdministratorUID(String defaultValue,
+      Logger logger)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator password.
+   * @param logger the Logger to be used to log the error message.
+   * @return the Global Administrator password as provided by the user.
+   */
+  protected String askForAdministratorPwd(Logger logger)
+  {
+    String pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get(), logger);
+    return pwd;
+  }
+
+  /**
    * The default period time used to write points in the output.
    */
   protected static final long DEFAULT_PERIOD_TIME = 3000;

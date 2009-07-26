@@ -33,6 +33,8 @@ import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.
+ ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
 import static org.opends.server.tools.ToolConstants.*;
@@ -1353,7 +1355,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
         promptedForAdmin = true;
         adminUid= askForAdministratorUID(
-            argParser.getDefaultAdministratorUID());
+            argParser.getDefaultAdministratorUID(), LOG);
         println();
       }
       uData.setAdminUid(adminUid);
@@ -1366,8 +1368,17 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled && (uData.getAdminPwd() == null) && !administratorDefined)
     {
       adminPwd = null;
+      int nPasswordPrompts = 0;
       while (adminPwd == null)
       {
+        if (nPasswordPrompts > CONFIRMATION_MAX_TRIES)
+        {
+          println(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+              CONFIRMATION_MAX_TRIES));
+          cancelled = true;
+          break;
+        }
+        nPasswordPrompts ++;
         if (!promptedForAdmin)
         {
           println();
@@ -1376,7 +1387,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         while (adminPwd == null)
         {
-          adminPwd = askForAdministratorPwd();
+          adminPwd = askForAdministratorPwd(LOG);
           println();
         }
         String adminPwdConfirm = null;
@@ -2813,7 +2824,8 @@ public class ReplicationCliMain extends ConsoleApplication
               getTrustManager());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.getFilter().setSearchBaseDNInformation(false);
-          cache.setPreferredConnections(getPreferredConnections(ctx[0]));
+          cache.setPreferredConnections(
+              PreferredConnection.getPreferredConnections(ctx[0]));
           cache.reloadTopology();
 
           reloadTopology = false;
@@ -2872,9 +2884,9 @@ public class ReplicationCliMain extends ConsoleApplication
                       errorDisplayed = true;
                     }
                     adminUid = askForAdministratorUID(
-                        argParser.getDefaultAdministratorUID());
+                        argParser.getDefaultAdministratorUID(), LOG);
                     println();
-                    adminPwd = askForAdministratorPwd();
+                    adminPwd = askForAdministratorPwd(LOG);
                     println();
                   }
                   try
@@ -2894,7 +2906,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
                     cache.setPreferredConnections(
-                        getPreferredConnections(ctx[0]));
+                        PreferredConnection.getPreferredConnections(ctx[0]));
                     connected = true;
                   }
                   catch (Throwable t)
@@ -4909,8 +4921,8 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         LinkedHashSet<PreferredConnection> cnx =
           new LinkedHashSet<PreferredConnection>();
-        cnx.addAll(getPreferredConnections(ctx1));
-        cnx.addAll(getPreferredConnections(ctx2));
+        cnx.addAll(PreferredConnection.getPreferredConnections(ctx1));
+        cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
         if (adsCtx1.hasAdminData())
         {
           TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager());
@@ -5227,8 +5239,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       LinkedHashSet<PreferredConnection> cnx =
         new LinkedHashSet<PreferredConnection>();
-      cnx.addAll(getPreferredConnections(ctx1));
-      cnx.addAll(getPreferredConnections(ctx2));
+      cnx.addAll(PreferredConnection.getPreferredConnections(ctx1));
+      cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
       if (adsCtx1.hasAdminData())
       {
         cache1 = new TopologyCache(adsCtx1, getTrustManager());
@@ -5590,7 +5602,8 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx.hasAdminData() && tryToUpdateRemote)
       {
         cache = new TopologyCache(adsCtx, getTrustManager());
-        cache.setPreferredConnections(getPreferredConnections(ctx));
+        cache.setPreferredConnections(
+            PreferredConnection.getPreferredConnections(ctx));
         cache.getFilter().setSearchMonitoringInformation(false);
         for (String dn : uData.getBaseDNs())
         {
@@ -5993,7 +6006,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
             baseDNsToUpdate, disableReplicationServer,
-            getPreferredConnections(ctx));
+            PreferredConnection.getPreferredConnections(ctx));
       }
 
       if (disableReplicationServer)
@@ -6108,7 +6121,8 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       cache = new TopologyCache(adsCtx, getTrustManager());
-      cache.setPreferredConnections(getPreferredConnections(ctx));
+      cache.setPreferredConnections(
+          PreferredConnection.getPreferredConnections(ctx));
       for (String dn : uData.getBaseDNs())
       {
         cache.getFilter().addBaseDNToSearch(dn);
@@ -6235,7 +6249,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!rServers.isEmpty())
         {
           displayStatus(rServers, uData.isScriptFriendly(),
-              getPreferredConnections(ctx));
+              PreferredConnection.getPreferredConnections(ctx));
           somethingDisplayed = true;
         }
       }
@@ -6272,7 +6286,8 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         printlnProgress();
         displayStatus(replicas, uData.isScriptFriendly(),
-            getPreferredConnections(ctx), cache.getServers(),
+            PreferredConnection.getPreferredConnections(ctx),
+            cache.getServers(),
             replicasWithNoReplicationServer, serversWithNoReplica);
         somethingDisplayed = true;
       }
@@ -7046,7 +7061,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (!areReplicationServersEqual(servers, replicationServers))
       {
-        replicationServers.addAll(servers);
         replicationServer.setReplicationServer(
             mergeReplicationServers(replicationServers, servers));
         mustCommit = true;
@@ -8553,36 +8567,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Prompts the user to give the Global Administrator UID.
-   * @param defaultValue the default value that will be proposed in the prompt
-   * message.
-   * @return the Global Administrator UID as provided by the user.
-   */
-  private String askForAdministratorUID(String defaultValue)
-  {
-    String s = defaultValue;
-    try
-    {
-      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
-    }
-    catch (CLIException ce)
-    {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-    }
-    return s;
-  }
-
-  /**
-   * Prompts the user to give the Global Administrator password.
-   * @return the Global Administrator password as provided by the user.
-   */
-  private String askForAdministratorPwd()
-  {
-    String pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get(), LOG);
-    return pwd;
-  }
-
-  /**
    * Prints a message to the output with no wrapping if we are not in quiet
    * mode.
    * @param msg the message to be displayed.
@@ -8754,22 +8738,6 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
-    return returnValue;
-  }
-
-  /**
-   * Commodity method that generates a list of preferred connection (of just
-   * one) with the information on a given InitialLdapContext.
-   * @param ctx the connection we retrieve the inforamtion from.
-   * @return a list containing the preferred connection object.
-   */
-  private LinkedHashSet<PreferredConnection> getPreferredConnections(
-      InitialLdapContext ctx)
-  {
-    PreferredConnection cnx = PreferredConnection.getPreferredConnection(ctx);
-    LinkedHashSet<PreferredConnection> returnValue =
-      new LinkedHashSet<PreferredConnection>();
-    returnValue.add(cnx);
     return returnValue;
   }
 
@@ -9759,7 +9727,8 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           cache1 = new TopologyCache(adsContext, getTrustManager());
           cache1.getFilter().setSearchMonitoringInformation(false);
-          cache1.setPreferredConnections(getPreferredConnections(ctx1));
+          cache1.setPreferredConnections(
+              PreferredConnection.getPreferredConnections(ctx1));
           cache1.reloadTopology();
         }
       }
@@ -9779,7 +9748,8 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           cache2 = new TopologyCache(adsContext, getTrustManager());
           cache2.getFilter().setSearchMonitoringInformation(false);
-          cache2.setPreferredConnections(getPreferredConnections(ctx2));
+          cache2.setPreferredConnections(
+              PreferredConnection.getPreferredConnections(ctx2));
           cache2.reloadTopology();
         }
       }
@@ -10007,8 +9977,10 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       LinkedHashSet<PreferredConnection> cnx =
         new LinkedHashSet<PreferredConnection>();
-      cnx.addAll(getPreferredConnections(adsCtx1.getDirContext()));
-      cnx.addAll(getPreferredConnections(adsCtx2.getDirContext()));
+      cnx.addAll(PreferredConnection.getPreferredConnections(
+          adsCtx1.getDirContext()));
+      cnx.addAll(PreferredConnection.getPreferredConnections(
+          adsCtx2.getDirContext()));
       // Check that there are no errors.  We do not allow to do the merge with
       // errors.
       TopologyCache cache1 = new TopologyCache(adsCtx1, getTrustManager());

@@ -22,10 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads.util;
+
+import java.util.LinkedHashSet;
 
 import javax.naming.ldap.InitialLdapContext;
 
@@ -143,5 +145,23 @@ public class PreferredConnection
     }
     PreferredConnection cnx = new PreferredConnection(ldapUrl, type);
     return cnx;
+  }
+
+
+
+  /**
+   * Commodity method that generates a list of preferred connection (of just
+   * one) with the information on a given InitialLdapContext.
+   * @param ctx the connection we retrieve the inforamtion from.
+   * @return a list containing the preferred connection object.
+   */
+  public static LinkedHashSet<PreferredConnection> getPreferredConnections(
+      InitialLdapContext ctx)
+  {
+    PreferredConnection cnx = PreferredConnection.getPreferredConnection(ctx);
+    LinkedHashSet<PreferredConnection> returnValue =
+      new LinkedHashSet<PreferredConnection>();
+    returnValue.add(cnx);
+    return returnValue;
   }
 }
