@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -429,6 +430,30 @@ public class ServerDescriptor
       adminConnectorUrl = ConnectionUtils.getLDAPUrl(host, port, true);
     }
     return adminConnectorUrl;
+  }
+
+  /**
+   * Returns the list of enabled administration ports.
+   * @return the list of enabled administration ports.
+   */
+  public List<Integer> getEnabledAdministrationPorts()
+  {
+    List<Integer> ports = new ArrayList<Integer>(1);
+    ArrayList s = (ArrayList)serverProperties.get(
+        ServerProperty.ADMIN_ENABLED);
+    ArrayList p = (ArrayList)serverProperties.get(
+        ServerProperty.ADMIN_PORT);
+    if (s != null)
+    {
+      for (int i=0; i<s.size(); i++)
+      {
+        if (Boolean.TRUE.equals(s.get(i)))
+        {
+          ports.add((Integer)p.get(i));
+        }
+      }
+    }
+    return ports;
   }
 
   /**

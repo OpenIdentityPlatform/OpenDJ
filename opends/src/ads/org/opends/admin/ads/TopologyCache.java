@@ -198,6 +198,15 @@ public class TopologyCache
   }
 
   /**
+   * Returns the trust manager used by this class.
+   * @return the trust manager used by this class.
+   */
+  public ApplicationTrustManager getTrustManager()
+  {
+    return trustManager;
+  }
+
+  /**
    * Reads the replication monitoring.
    * @throws NamingException if an error occurs reading the replication
    * monitoring.
