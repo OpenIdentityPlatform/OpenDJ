@@ -143,7 +143,6 @@ public class MainMenuBar extends GenericMenuBar
     }
     JMenuItem menuItem = Utilities.createMenuItem(
         INFO_CTRL_PANEL_CONNECT_TO_SERVER_MENU.get());
-    menu.setMnemonic(KeyEvent.VK_R);
     menuItem.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
