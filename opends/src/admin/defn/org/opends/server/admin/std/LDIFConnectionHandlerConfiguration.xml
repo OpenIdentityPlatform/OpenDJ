@@ -39,7 +39,7 @@
   <adm:description>
     The connection handler periodically looks for the existence of a
     new file, processes the changes contained in that file as
-    internal operations, and writse the result to an output file
+    internal operations, and writes the result to an output file
     with comments indicating the result of the processing. NOTE: By
     default
     <adm:user-friendly-name />
