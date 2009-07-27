@@ -187,7 +187,7 @@
             Specifies the type of security level : NoAuthNoPriv : No security 
             mechanisms activated, AuthNoPriv : Authentication activated with no 
             privacy, AuthPriv : Authentication with privacy activated. 
-            This property id required for SNMP V3 security configuration.
+            This property is required for SNMP V3 security configuration.
         </adm:synopsis>
         <adm:requires-admin-action>
           <adm:component-restart />
@@ -225,7 +225,7 @@
     <!-- Trap Community  -->
     <adm:property name="traps-community" >
         <adm:synopsis>
-            Specifies the community string that must be include in the traps 
+            Specifies the community string that must be included in the traps 
             sent to define managers (trap-destinations). 
             This property is used in the context of SNMP v1, v2 and v3.
         </adm:synopsis>

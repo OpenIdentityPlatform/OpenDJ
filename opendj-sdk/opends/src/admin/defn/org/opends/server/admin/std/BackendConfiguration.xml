@@ -115,7 +115,7 @@
             Allows write operations to be performed in that backend (if
             the requested operation is valid, the user has permission to
             perform the operation, the backend supports that type of
-            write operation, and the global writability mode property is
+            write operation, and the global writability-mode property is
             also enabled).
           </adm:synopsis>
         </adm:value>
