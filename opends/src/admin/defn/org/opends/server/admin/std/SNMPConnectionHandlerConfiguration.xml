@@ -138,7 +138,7 @@
         <adm:synopsis>
             Specifies the hosts of the managers to be granted the access rights. 
             This property is required for SNMP v1 and v2 security configuration.
-            An asterik (*) opens access to all managers. 
+            An asterisk (*) opens access to all managers. 
         </adm:synopsis>
         <adm:requires-admin-action>
           <adm:component-restart />
@@ -162,7 +162,7 @@
         <adm:synopsis>
             Specifies the users to be granted the access rights. This property
             is required for SNMP v3 security configuration.
-            An asterik (*) opens access to all users. 
+            An asterisk (*) opens access to all users. 
         </adm:synopsis>
         <adm:requires-admin-action>
           <adm:component-restart />
