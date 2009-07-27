@@ -159,7 +159,7 @@
           <adm:synopsis>Protocol element dump</adm:synopsis>
         </adm:value>
         <adm:value name="thrown">
-          <adm:synopsis>Exception throw from method</adm:synopsis>
+          <adm:synopsis>Exception thrown from method</adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
