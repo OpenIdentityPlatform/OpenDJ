@@ -789,16 +789,14 @@ public abstract class Installer extends GuiApplication {
    * @return a list of file objects pointing to the create template files.
    * @throws ApplicationException if an error occurs.
    */
-  private LinkedList<File> createTemplateFiles() throws ApplicationException {
-    LinkedList<File> files = new LinkedList<File>();
+  private File createTemplateFile() throws ApplicationException {
+    File file;
     try
     {
+      Set<String> baseDNs = new LinkedHashSet<String>(
+          getUserData().getNewSuffixOptions().getBaseDns());
       int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
-
-      for (String baseDn : getUserData().getNewSuffixOptions().getBaseDns())
-      {
-        files.add(SetupUtils.createTemplateFile(baseDn, nEntries));
-      }
+      file = SetupUtils.createTemplateFile(baseDNs, nEntries);
     }
     catch (IOException ioe)
     {
@@ -808,7 +806,7 @@ public abstract class Installer extends GuiApplication {
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           failedMsg, ioe);
     }
-    return files;
+    return file;
   }
 
   /**
@@ -1155,11 +1153,6 @@ public abstract class Installer extends GuiApplication {
     checkAbort();
 
     ArrayList<String> argList = new ArrayList<String>();
-    argList.add("-C");
-    argList.add(getConfigurationClassName());
-
-    argList.add("-f");
-    argList.add(getConfigurationFile());
 
     argList.add("-n");
     argList.add(getBackendName());
@@ -1187,18 +1180,18 @@ public abstract class Installer extends GuiApplication {
       {
         try
         {
-          int result = helper.invokeImportLDIF(args);
+          int result = helper.invokeImportLDIF(Installer.this, args);
 
           if (result != 0)
           {
             ae = new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.IMPORT_ERROR,
                 INFO_ERROR_CREATING_BASE_ENTRY.get(), null);
           }
         } catch (Throwable t)
         {
           ae = new ApplicationException(
-              ReturnCode.CONFIGURATION_ERROR,
+              ReturnCode.IMPORT_ERROR,
               getThrowableMsg(INFO_ERROR_CREATING_BASE_ENTRY.get(), t), t);
         }
         finally
@@ -1266,11 +1259,6 @@ public abstract class Installer extends GuiApplication {
     }
 
     ArrayList<String> argList = new ArrayList<String>();
-    argList.add("-C");
-    argList.add(getConfigurationClassName());
-
-    argList.add("-f");
-    argList.add(getConfigurationFile());
     argList.add("-n");
     argList.add(getBackendName());
     for (String ldifPath : ldifPaths)
@@ -1301,26 +1289,26 @@ public abstract class Installer extends GuiApplication {
         try
         {
           InstallerHelper helper = new InstallerHelper();
-          int result = helper.invokeImportLDIF(args);
+          int result = helper.invokeImportLDIF(Installer.this, args);
 
           if (result != 0)
           {
             ae = new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
+                ReturnCode.IMPORT_ERROR,
                 INFO_ERROR_IMPORTING_LDIF.get(), null);
           }
         } catch (Throwable t)
         {
           ae = new ApplicationException(
-              ReturnCode.CONFIGURATION_ERROR,
+              ReturnCode.IMPORT_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), t), t);
         }
         finally
         {
           if (!isVerbose())
           {
-            pointAdder.stop();
             setNotifyListeners(true);
+            pointAdder.stop();
           }
         }
         isOver = true;
@@ -1367,7 +1355,7 @@ public abstract class Installer extends GuiApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void importAutomaticallyGenerated() throws ApplicationException {
-    LinkedList<File> templatePaths = createTemplateFiles();
+    File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     MessageBuilder mb = new MessageBuilder();
     if (isVerbose())
@@ -1390,79 +1378,71 @@ public abstract class Installer extends GuiApplication {
     {
       pointAdder.start();
     }
-    for (File templatePath : templatePaths)
+
+    if (!isVerbose())
     {
-      if (!isVerbose())
+      setNotifyListeners(false);
+    }
+    final ArrayList<String> argList = new ArrayList<String>();
+    argList.add("-n");
+    argList.add(getBackendName());
+    argList.add("-A");
+    argList.add(templatePath.getAbsolutePath());
+    argList.add("-s"); // seed
+    argList.add("0");
+
+    argList.add("-F");
+
+    final String[] args = new String[argList.size()];
+    argList.toArray(args);
+
+    InvokeThread thread = new InvokeThread()
+    {
+      public void run()
       {
-        setNotifyListeners(false);
-      }
-      final ArrayList<String> argList = new ArrayList<String>();
-      argList.add("-C");
-      argList.add(getConfigurationClassName());
-
-      argList.add("-f");
-      argList.add(getConfigurationFile());
-      argList.add("-n");
-      argList.add(getBackendName());
-      argList.add("-A");
-      argList.add(templatePath.getAbsolutePath());
-      argList.add("-s"); // seed
-      argList.add("0");
-
-      // append: each file contains data for each base DN.
-      argList.add("-a");
-
-      final String[] args = new String[argList.size()];
-      argList.toArray(args);
-
-      InvokeThread thread = new InvokeThread()
-      {
-        public void run()
+        try
         {
-          try
-          {
-            InstallerHelper helper = new InstallerHelper();
-            int result = helper.invokeImportLDIF(args);
+          InstallerHelper helper = new InstallerHelper();
+          int result = helper.invokeImportLDIF(Installer.this, args);
 
-            if (result != 0)
-            {
-              ae = new ApplicationException(
-                  ReturnCode.CONFIGURATION_ERROR,
-                  INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
-                      Integer.toString(result)), null);
-            }
-          } catch (Throwable t)
+          if (result != 0)
           {
             ae = new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
-                    listToString(argList, " "), t.getLocalizedMessage()), t),
-                    t);
+                ReturnCode.IMPORT_ERROR,
+                INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
+                    Integer.toString(result)), null);
           }
-          finally
+        } catch (Throwable t)
+        {
+          ae = new ApplicationException(
+              ReturnCode.IMPORT_ERROR,
+              getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
+                  listToString(argList, " "), t.getLocalizedMessage()), t),
+                  t);
+        }
+        finally
+        {
+          if (!isVerbose())
           {
-            if (!isVerbose())
+            setNotifyListeners(true);
+            if (ae != null)
             {
-              setNotifyListeners(true);
-              if (ae != null)
-              {
-                pointAdder.stop();
-              }
+              pointAdder.stop();
             }
           }
-          isOver = true;
         }
-        public void abort()
-        {
-          // TODO: implement the abort
-        }
-      };
-      invokeLongOperation(thread);
-      if (!isVerbose())
-      {
-        pointAdder.stop();
-        notifyListeners(getFormattedDoneWithLineBreak());
+        isOver = true;
       }
+      public void abort()
+      {
+        // TODO: implement the abort
+      }
+    };
+    invokeLongOperation(thread);
+    if (!isVerbose())
+    {
+      pointAdder.stop();
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
 
