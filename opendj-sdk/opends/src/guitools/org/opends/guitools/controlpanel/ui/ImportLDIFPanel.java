@@ -288,6 +288,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridy ++;
     add(replaceEntries, gbc);
 
+//  TODO: change this once the append is supported by the import again.
+    lImportType.setVisible(false);
+    overwrite.setVisible(false);
+    append.setVisible(false);
+    replaceEntries.setVisible(false);
+
     gbc.gridx = 0;
     gbc.gridy ++;
     gbc.insets.left = 0;
@@ -709,7 +715,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       }
       if (append.isSelected())
       {
-        args.add("--append");
+        // TODO: change this once the append is supported again by the import.
+        //args.add("--append");
         if (replaceEntries.isSelected())
         {
           args.add("--replaceExisting");

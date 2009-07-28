@@ -27,11 +27,13 @@
 
 package org.opends.quicksetup.installer;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,12 +46,15 @@ import java.util.logging.Logger;
 
 import javax.naming.ldap.InitialLdapContext;
 
+import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
 
 import static org.opends.quicksetup.util.Utils.*;
+
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
@@ -63,9 +68,9 @@ import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -109,14 +114,99 @@ public class InstallerHelper {
   }
 
   /**
-   * Invokes the method ImportLDIF.mainImportLDIF with the provided parameters.
-   * @param args the arguments to be passed to ImportLDIF.mainImportLDIF.
-   * @return the return code of the ImportLDIF.mainImportLDIF method.
-   * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
-   * @see org.opends.server.tools.ImportLDIF#mainImportLDIF(String[]).
+   * Invokes the import-ldif command-line with the provided parameters.
+   * @param application the application that is launching this.
+   * @param args the arguments to be passed to import-ldif.
+   * @return the return code of the import-ldif call.
+   * @throws IOException if the process could not be launched.
+   * @throws InterruptedException if the process was interrupted.
    */
-  public int invokeImportLDIF(String[] args) throws ApplicationException {
-    return ImportLDIF.mainImportLDIF(args);
+  public int invokeImportLDIF(final Application application, String[] args)
+  throws IOException, InterruptedException
+  {
+    File installPath = new File(application.getInstallationPath());
+    ArrayList<String> argList = new ArrayList<String>();
+    File binPath;
+    if (Utils.isWindows())
+    {
+      binPath =
+        new File(installPath, Installation.WINDOWS_BINARIES_PATH_RELATIVE);
+    } else
+    {
+      binPath =
+        new File(installPath, Installation.UNIX_BINARIES_PATH_RELATIVE);
+    }
+    File importPath;
+    if (Utils.isWindows())
+    {
+      importPath = new File(binPath, Installation.WINDOWS_IMPORT_LDIF);
+    } else
+    {
+      importPath = new File(binPath, Installation.UNIX_IMPORT_LDIF);
+    }
+    argList.add(Utils.getScriptPath(importPath.getAbsolutePath()));
+    for (String arg : args)
+    {
+      argList.add(arg);
+    }
+    String[] allArgs = new String[argList.size()];
+    argList.toArray(allArgs);
+    LOG.log(Level.INFO, "import-ldif arg list: "+argList);
+    ProcessBuilder pb = new ProcessBuilder(allArgs);
+    Map<String, String> env = pb.environment();
+    env.remove(SetupUtils.OPENDS_JAVA_HOME);
+    env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+    pb.directory(installPath);
+    Process process = null;
+    try
+    {
+      process = pb.start();
+      final BufferedReader err =
+        new BufferedReader(new InputStreamReader(process.getErrorStream()));
+      new OutputReader(err)
+      {
+        public void processLine(String line)
+        {
+          LOG.log(Level.WARNING, "import-ldif error log: "+line);
+          application.notifyListeners(Message.raw(line));
+          application.notifyListeners(application.getLineBreak());
+        }
+      };
+      BufferedReader out =
+        new BufferedReader(new InputStreamReader(process.getInputStream()));
+      new OutputReader(out)
+      {
+        public void processLine(String line)
+        {
+          LOG.log(Level.INFO, "import-ldif out log: "+line);
+          application.notifyListeners(Message.raw(line));
+          application.notifyListeners(application.getLineBreak());
+        }
+      };
+      return process.waitFor();
+    }
+    finally
+    {
+      if (process != null)
+      {
+        try
+        {
+          process.getErrorStream().close();
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error closing error stream: "+t, t);
+        }
+        try
+        {
+          process.getOutputStream().close();
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error closing output stream: "+t, t);
+        }
+      }
+    }
   }
 
   /**

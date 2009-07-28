@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -39,7 +39,9 @@ import java.net.Socket;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import java.util.Random;
 import org.opends.server.types.OperatingSystem;
@@ -146,51 +148,79 @@ public class SetupUtils
   public static File createTemplateFile(String baseDN, int numEntries)
          throws IOException
   {
+    Set<String> baseDNs = new HashSet<String>(1);
+    baseDNs.add(baseDN);
+    return createTemplateFile(baseDNs, numEntries);
+  }
+
+  /**
+   * Creates a MakeLDIF template file using the provided information.
+   *
+   * @param  baseDNs     The base DNs for the data in the template file.
+   * @param  numEntries  The number of user entries the template file should
+   *                     create.
+   *
+   * @return  The {@code File} object that references the created template file.
+   *
+   * @throws  IOException  If a problem occurs while writing the template file.
+   */
+  public static File createTemplateFile(Set<String> baseDNs,
+      int numEntries)
+         throws IOException
+  {
     File templateFile = File.createTempFile("opends-install", ".template");
     templateFile.deleteOnExit();
 
     LinkedList<String> lines = new LinkedList<String>();
-    lines.add("define suffix=" + baseDN);
-
+    int i = 0;
+    for (String baseDN : baseDNs)
+    {
+      i++;
+      lines.add("define suffix"+i+"=" + baseDN);
+    }
     if (numEntries > 0)
     {
       lines.add("define numusers=" + numEntries);
     }
 
-    lines.add("");
-    lines.add("branch: [suffix]");
-    lines.add("");
-    lines.add("branch: ou=People,[suffix]");
-
-    if (numEntries > 0)
+    for (i=0; i<baseDNs.size(); i++)
     {
-      lines.add("subordinateTemplate: person:[numusers]");
+      i++;
       lines.add("");
-      lines.add("template: person");
-      lines.add("rdnAttr: uid");
-      lines.add("objectClass: top");
-      lines.add("objectClass: person");
-      lines.add("objectClass: organizationalPerson");
-      lines.add("objectClass: inetOrgPerson");
-      lines.add("givenName: <first>");
-      lines.add("sn: <last>");
-      lines.add("cn: {givenName} {sn}");
-      lines.add("initials: {givenName:1}" +
-                "<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}");
-      lines.add("employeeNumber: <sequential:0>");
-      lines.add("uid: user.{employeeNumber}");
-      lines.add("mail: {uid}@maildomain.net");
-      lines.add("userPassword: password");
-      lines.add("telephoneNumber: <random:telephone>");
-      lines.add("homePhone: <random:telephone>");
-      lines.add("pager: <random:telephone>");
-      lines.add("mobile: <random:telephone>");
-      lines.add("street: <random:numeric:5> <file:streets> Street");
-      lines.add("l: <file:cities>");
-      lines.add("st: <file:states>");
-      lines.add("postalCode: <random:numeric:5>");
-      lines.add("postalAddress: {cn}${street}${l}, {st}  {postalCode}");
-      lines.add("description: This is the description for {cn}.");
+      lines.add("branch: [suffix"+i+"]");
+      lines.add("");
+      lines.add("branch: ou=People,[suffix"+i+"]");
+
+      if (numEntries > 0)
+      {
+        lines.add("subordinateTemplate: person:[numusers]");
+        lines.add("");
+        lines.add("template: person");
+        lines.add("rdnAttr: uid");
+        lines.add("objectClass: top");
+        lines.add("objectClass: person");
+        lines.add("objectClass: organizationalPerson");
+        lines.add("objectClass: inetOrgPerson");
+        lines.add("givenName: <first>");
+        lines.add("sn: <last>");
+        lines.add("cn: {givenName} {sn}");
+        lines.add("initials: {givenName:1}" +
+        "<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}");
+        lines.add("employeeNumber: <sequential:0>");
+        lines.add("uid: user.{employeeNumber}");
+        lines.add("mail: {uid}@maildomain.net");
+        lines.add("userPassword: password");
+        lines.add("telephoneNumber: <random:telephone>");
+        lines.add("homePhone: <random:telephone>");
+        lines.add("pager: <random:telephone>");
+        lines.add("mobile: <random:telephone>");
+        lines.add("street: <random:numeric:5> <file:streets> Street");
+        lines.add("l: <file:cities>");
+        lines.add("st: <file:states>");
+        lines.add("postalCode: <random:numeric:5>");
+        lines.add("postalAddress: {cn}${street}${l}, {st}  {postalCode}");
+        lines.add("description: This is the description for {cn}.");
+      }
     }
 
     BufferedWriter writer = new BufferedWriter(new FileWriter(templateFile));

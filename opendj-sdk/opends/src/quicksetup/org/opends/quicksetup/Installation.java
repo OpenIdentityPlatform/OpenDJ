@@ -289,6 +289,16 @@ public class Installation {
   public static final String WINDOWS_STATUSCLI_FILE_NAME = "status.bat";
 
   /**
+   * The UNIX import LDIF script file name.
+   */
+  public static final String UNIX_IMPORT_LDIF = "import-ldif";
+
+  /**
+   * The Windows import LDIF batch file name.
+   */
+  public static final String WINDOWS_IMPORT_LDIF = "import-ldif.bat";
+
+  /**
    * Name of the file kept in the history directory containing logs
    * of upgrade and reversions.
    */
