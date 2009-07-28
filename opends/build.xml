@@ -188,7 +188,7 @@
 
 
   <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="checkstyle,clean,checkprecommit,dsml,testwithcoverage"
+  <target name="precommit" depends="clean,dynamicconstants,checkstyle,checkprecommit,dsml,testwithcoverage"
        description="Perform all processing needed before committing code.">
   </target>
 
