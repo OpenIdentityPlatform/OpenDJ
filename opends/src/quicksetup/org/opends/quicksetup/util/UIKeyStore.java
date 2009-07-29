@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
@@ -143,8 +144,17 @@ public class UIKeyStore extends KeyStore
     KeyStore k = getInstance();
     for (int i = 0; i < chain.length; i++)
     {
-      String alias = chain[i].getSubjectDN().getName();
-      k.setCertificateEntry(alias, chain[i]);
+      if (!containsCertificate(chain[i], k))
+      {
+        String alias = chain[i].getSubjectDN().getName();
+        int j = 1;
+        while (k.containsAlias(alias))
+        {
+          alias = chain[i].getSubjectDN().getName()+ "-" + j;
+          j++;
+        }
+        k.setCertificateEntry(alias, chain[i]);
+      }
     }
     String keyStorePath = getKeyStorePath();
     File f = new File(keyStorePath);
@@ -253,5 +263,30 @@ public class UIKeyStore extends KeyStore
       Utils.getInstancePathFromClasspath(Utils.getInstallPathFromClasspath());
     return  instancePath + File.separator + "config" +
     File.separator + "admin-truststore";
+  }
+
+  /**
+   * Returns whether the key store contains the provided certificate or not.
+   * @param cert the certificate.
+   * @param keyStore the key store.
+   * @return whether the key store contains the provided certificate or not.
+   * @throws KeyStoreException if an error occurs reading the contents of the
+   * key store.
+   */
+  private static boolean containsCertificate(X509Certificate cert,
+      KeyStore keyStore) throws KeyStoreException
+  {
+    boolean found = false;
+    Enumeration<String> aliases = keyStore.aliases();
+    while (aliases.hasMoreElements() && !found)
+    {
+      String alias = aliases.nextElement();
+      if (keyStore.isCertificateEntry(alias))
+      {
+        Certificate c = keyStore.getCertificate(alias);
+        found = c.equals(cert);
+      }
+    }
+    return found;
   }
 }
