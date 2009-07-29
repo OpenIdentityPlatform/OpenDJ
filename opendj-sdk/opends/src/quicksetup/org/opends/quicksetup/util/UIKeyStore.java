@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -37,6 +37,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,6 +119,7 @@ public class UIKeyStore extends KeyStore
       {
         keyStore.load(null, null);
       }
+      loadLocalAdminTrustStore(keyStore);
     }
     return keyStore;
   }
@@ -150,7 +152,7 @@ public class UIKeyStore extends KeyStore
     {
       Utils.createFile(f);
     }
-    FileOutputStream fos = new FileOutputStream(getKeyStorePath());
+    FileOutputStream fos = new FileOutputStream(getKeyStorePath(), true);
     k.store(fos, new char[]{});
     if (fos != null)
     {
@@ -168,5 +170,88 @@ public class UIKeyStore extends KeyStore
   {
     return System.getProperty("user.home") + File.separator +
     ".opends" + File.separator + "gui-keystore";
+  }
+
+  /**
+   * Loads the local admin truststore.
+   * @param keyStore the keystore where the admin truststore will be loaded.
+   */
+  private static void loadLocalAdminTrustStore(KeyStore keyStore)
+  {
+    String adminTrustStorePath = getLocalAdminTrustStorePath();
+    File f = new File(adminTrustStorePath);
+    if (!f.exists())
+    {
+      LOG.log(Level.INFO, "Path "+adminTrustStorePath+ " does not exist");
+      adminTrustStorePath = null;
+    }
+    else if (f.isDirectory())
+    {
+      LOG.log(Level.SEVERE, "Path "+adminTrustStorePath+ " is a directory");
+      adminTrustStorePath = null;
+    }
+    else if (!f.canRead())
+    {
+      LOG.log(Level.SEVERE, "Path "+adminTrustStorePath+ " is not readable");
+      adminTrustStorePath = null;
+    }
+
+    if (adminTrustStorePath != null)
+    {
+      FileInputStream fos = null;
+      try
+      {
+        fos = new FileInputStream(adminTrustStorePath);
+        KeyStore adminKeyStore =
+          KeyStore.getInstance(KeyStore.getDefaultType());
+        adminKeyStore.load(fos, null);
+        Enumeration<String> aliases = adminKeyStore.aliases();
+        while (aliases.hasMoreElements())
+        {
+          String alias = aliases.nextElement();
+          if (adminKeyStore.isCertificateEntry(alias))
+          {
+            keyStore.setCertificateEntry(alias,
+                adminKeyStore.getCertificate(alias));
+          }
+          else
+          {
+            keyStore.setEntry(alias, adminKeyStore.getEntry(alias, null), null);
+          }
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.SEVERE, "Error reading admin key store on "+
+            adminTrustStorePath, t);
+      }
+      finally
+      {
+        try
+        {
+          if (fos != null)
+          {
+            fos.close();
+          }
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.SEVERE, "Error closing admin key store on "+
+              adminTrustStorePath, t);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the path where the local admin trust store is.
+   * @return the path where the local admin trust store is.
+   */
+  private static String getLocalAdminTrustStorePath()
+  {
+    String instancePath =
+      Utils.getInstancePathFromClasspath(Utils.getInstallPathFromClasspath());
+    return  instancePath + File.separator + "config" +
+    File.separator + "admin-truststore";
   }
 }
