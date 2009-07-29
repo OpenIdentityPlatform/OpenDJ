@@ -102,10 +102,6 @@ public class InstallerHelper {
 
   private static final String INITIAL_CLIENT_HEAP_ARG = "-Xms8m";
 
-  private static final String SERVER_HEAP_ARGS = "-Xms256m -Xmx512m";
-
-  private static final long SERVER_MAX_HEAP_BYTES = 512 * 1024 * 1024;
-
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
    * @param args the arguments to be passed to ConfigureDS.configMain.
@@ -930,17 +926,10 @@ public class InstallerHelper {
       boolean supportsClient = supportsClient(javaHome, installPath);
       boolean supportsServer = supportsServer(javaHome, installPath);
 
-      boolean supportsClientInitialHeap =
-        supportsOption(INITIAL_CLIENT_HEAP_ARG, javaHome, installPath);
-      boolean supportsServerInitialHeap = false;
-      // If the current max memory is bigger than the max heap we want to set,
-      // assume that the JVM ergonomics are going to be able to allocate enough
-      // memory.
-      if (Runtime.getRuntime().maxMemory() < SERVER_MAX_HEAP_BYTES)
-      {
-        supportsServerInitialHeap =
-          supportsOption(SERVER_HEAP_ARGS, javaHome, installPath);
-      }
+
+      boolean supportsClientInitialHeap = supportsInitialHeap(javaHome,
+          installPath);
+
       // Scripts to which we will pass -client argument
       String[] clientScripts =
       {
@@ -961,25 +950,12 @@ public class InstallerHelper {
           "upgrade", "verify-index", "dbtest"
       };
 
-      if (supportsServer || supportsServerInitialHeap)
+      if (supportsServer)
       {
         for (int i=0; i<serverScripts.length; i++)
         {
           writer.newLine();
-          String arg = "";
-          if (supportsServer)
-          {
-            arg = "-server";
-          }
-          if (supportsServerInitialHeap)
-          {
-            if (arg.length() > 0)
-            {
-              arg += " ";
-            }
-            arg += SERVER_HEAP_ARGS;
-          }
-          writer.write(serverScripts[i]+".java-args="+arg);
+          writer.write(serverScripts[i]+".java-args=-server");
         }
       }
       else
@@ -990,6 +966,7 @@ public class InstallerHelper {
           writer.write(serverScripts[i]+".java-args=");
         }
       }
+
 
       if (supportsClient || supportsClientInitialHeap)
       {
@@ -1105,6 +1082,19 @@ public class InstallerHelper {
   private boolean supportsServer(String javaHome, String installPath)
   {
     return supportsOption("-server", javaHome, installPath);
+  }
+
+  /**
+   * Tells whether the provided java installation supports the server option
+   * or not.
+   * @param javaHome the java installation path.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports the
+   * server option and <CODE>false</CODE> otherwise.
+   */
+  private boolean supportsInitialHeap(String javaHome, String installPath)
+  {
+    return supportsOption(INITIAL_CLIENT_HEAP_ARG, javaHome, installPath);
   }
 
   /**
