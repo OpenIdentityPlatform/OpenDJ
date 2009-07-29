@@ -35,11 +35,8 @@ import java.security.cert.Certificate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.*;
+
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -359,6 +356,12 @@ public class TLSByteChannel implements
             netData.clear();
             SSLEngineResult res = sslEngine.wrap(clearData, netData);
             netData.flip();
+            if(netData.remaining() == 0)
+            {
+              // wrap didn't produce any data from our clear buffer.
+              // Throw exception to prevent looping.
+              throw new SSLException("SSLEngine.wrap produced 0 bytes");
+            }
             if(res.getStatus() != SSLEngineResult.Status.OK)
                 throw new ClosedChannelException();
             if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
