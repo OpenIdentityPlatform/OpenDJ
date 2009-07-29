@@ -845,7 +845,7 @@ public class LDAPClientConnection extends ClientConnection implements
       }
 
       // FIXME -- Log a message or something
-      disconnect(DisconnectReason.SERVER_ERROR, true, null);
+      disconnect(DisconnectReason.SERVER_ERROR, false, null);
       return;
     }
   }
@@ -1469,7 +1469,7 @@ public class LDAPClientConnection extends ClientConnection implements
         Message m =
             ERR_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED.get(String
                 .valueOf(e));
-        disconnect(DisconnectReason.PROTOCOL_ERROR, true, m);
+        disconnect(DisconnectReason.PROTOCOL_ERROR, false, m);
         return false;
       }
     }
