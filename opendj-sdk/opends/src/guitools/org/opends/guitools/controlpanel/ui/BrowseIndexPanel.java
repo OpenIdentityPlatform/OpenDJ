@@ -34,6 +34,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -159,8 +160,15 @@ implements IndexModifiedListener
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
-    ((GenericDialog)Utilities.getParentDialog(this)).
-      getRootPane().setDefaultButton(null);
+    Window w = Utilities.getParentDialog(this);
+    if (w instanceof GenericDialog)
+    {
+      ((GenericDialog)w).getRootPane().setDefaultButton(null);
+    }
+    else if (w instanceof GenericFrame)
+    {
+      ((GenericFrame)w).getRootPane().setDefaultButton(null);
+    }
   }
 
   /**

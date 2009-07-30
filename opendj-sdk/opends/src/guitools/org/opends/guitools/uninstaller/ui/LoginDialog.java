@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -717,7 +717,8 @@ public class LoginDialog extends JDialog
   {
     try
     {
-      LoginDialog dlg = new LoginDialog(new JFrame(),
+      LoginDialog dlg = new LoginDialog(
+          org.opends.guitools.controlpanel.util.Utilities.createFrame(),
           new ApplicationTrustManager(null));
       dlg.pack();
       dlg.setVisible(true);

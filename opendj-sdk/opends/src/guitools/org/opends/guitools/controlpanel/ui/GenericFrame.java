@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -50,7 +50,6 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
@@ -63,13 +62,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 
+import org.opends.guitools.controlpanel.ui.GenericDialog.ButtonType;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 /**
- * The generic dialog of the Control Panel.  It contains a StatusGenericPanel.
+ * The generic frame of the Control Panel.  It contains a StatusGenericPanel.
  *
  */
-public class GenericDialog extends JDialog
+public class GenericFrame extends JFrame
 {
   private static final long serialVersionUID = -2643144936460484112L;
   private final static Color buttonPanelBackground =
@@ -83,7 +83,7 @@ public class GenericDialog extends JDialog
   private JButton cancelButton;
   //private JPanel contentPanel;
   /**
-   * The panel contained in the dialog.
+   * The panel contained in the frame.
    */
   protected StatusGenericPanel panel;
   //private ProgressPanel progressPanel;
@@ -91,35 +91,10 @@ public class GenericDialog extends JDialog
   private Component lastComponentWithFocus;
 
   /**
-   * The different combinations of buttons that the dialog can have.
-   *
+   * Constructor of the frame.
+   * @param panel the panel contained in this frame.
    */
-  public enum ButtonType
-  {
-    /**
-     * The dialog contains OK and CANCEL buttons.
-     */
-    OK_CANCEL,
-    /**
-     * The dialog contains a OK button.
-     */
-    OK,
-    /**
-     * The dialog contains a CLOSE button.
-     */
-    CLOSE,
-    /**
-     * The dialog has no buttons.
-     */
-    NO_BUTTON
-  };
-
-  /**
-   * Constructor of the dialog.
-   * @param parentFrame the parent frame of the dialog.
-   * @param panel the panel contained in this dialog.
-   */
-  public GenericDialog(JFrame parentFrame, StatusGenericPanel panel)
+  public GenericFrame(StatusGenericPanel panel)
   {
     super();
     this.panel = panel;
@@ -130,7 +105,7 @@ public class GenericDialog extends JDialog
     JMenuBar menu = panel.getMenuBar();
     if (menu != null)
     {
-      parentFrame.setJMenuBar(menu);
+      setJMenuBar(menu);
     }
     setResizable(true);
     JScrollPane scroll = Utilities.createScrollPane(panel);
@@ -188,7 +163,7 @@ public class GenericDialog extends JDialog
        * {@inheritDoc}
        */
       public void windowClosing(WindowEvent e) {
-        GenericDialog.this.panel.closeClicked();
+        GenericFrame.this.panel.closeClicked();
       }
     });
 
@@ -201,7 +176,7 @@ public class GenericDialog extends JDialog
 
   /**
    * Method used to add a focus listeners to all the components in the panel.
-   * This is done to recover the focus on an item when the dialog is closed
+   * This is done to recover the focus on an item when the frame is closed
    * and then opened again.
    * @param focusListener the focus listener.
    * @param container the container where the components are layed out.
@@ -275,7 +250,7 @@ public class GenericDialog extends JDialog
   }
 
   /**
-   * Updates the title of the dialog using the title of the panel.
+   * Updates the title of the frame using the title of the panel.
    *
    */
   public void updateTitle()
@@ -386,9 +361,9 @@ public class GenericDialog extends JDialog
   }
 
   /**
-   * Updates the default button of the dialog, depending on the type of
+   * Updates the default button of the frame, depending on the type of
    * generic panel that it contains.
-   * @param panel the generic panel contained in this dialog.
+   * @param panel the generic panel contained in this frame.
    */
   private void updateDefaultButton(StatusGenericPanel panel)
   {

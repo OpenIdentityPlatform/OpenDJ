@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1017,12 +1017,11 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     BrowseEntriesPanel panel = new BrowseEntriesPanel();
     panel.setDisposeOnClose(true);
     panel.setInfo(getInfo());
-    GenericDialog dlg = new GenericDialog(Utilities.getFrame(this),
-        panel);
+    GenericFrame frame = new GenericFrame(panel);
 
-    Utilities.centerGoldenMean(dlg, Utilities.getFrame(this));
+    Utilities.centerGoldenMean(frame, Utilities.getFrame(this));
 
-    dlg.setVisible(true);
+    frame.setVisible(true);
   }
 
   /**

@@ -168,6 +168,17 @@ public class Utilities
   }
 
   /**
+   * Creates a frame.
+   * @return a frame.
+   */
+  public static JFrame createFrame()
+  {
+    JFrame frame = new JFrame();
+    frame.setResizable(true);
+    return frame;
+  }
+
+  /**
    * Returns <CODE>true</CODE> if an attribute value must be obfuscated because
    * it contains sensitive information (like passwords) and <CODE>false</CODE>
    * otherwise.

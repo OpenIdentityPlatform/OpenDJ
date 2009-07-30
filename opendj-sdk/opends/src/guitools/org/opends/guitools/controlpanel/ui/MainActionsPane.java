@@ -80,8 +80,8 @@ public class MainActionsPane extends StatusGenericPanel
     ArrayList<Category> categories = createCategories();
     ButtonGroup group = new ButtonGroup();
     int maxWidth = 0;
-    final Map<Action, GenericDialog> dialogs =
-      new HashMap<Action, GenericDialog>();
+    final Map<Action, GenericFrame> frames =
+      new HashMap<Action, GenericFrame>();
     ArrayList<ActionButton> actions = new ArrayList<ActionButton>();
     for(Category category: categories)
     {
@@ -104,8 +104,8 @@ public class MainActionsPane extends StatusGenericPanel
           {
             // Constructs the panels using reflection.
             Action action = b.getActionObject();
-            GenericDialog dlg = dialogs.get(action);
-            if (dlg == null)
+            GenericFrame frame = frames.get(action);
+            if (frame == null)
             {
               Class<? extends StatusGenericPanel> panelClass =
                 action.getAssociatedPanelClass();
@@ -118,10 +118,10 @@ public class MainActionsPane extends StatusGenericPanel
                 {
                   panel.setInfo(getInfo());
                 }
-                dlg = createDialog(panel);
+                frame = createFrame(panel);
 
-                dialogs.put(action, dlg);
-                Utilities.centerGoldenMean(dlg,
+                frames.put(action, frame);
+                Utilities.centerGoldenMean(frame,
                     Utilities.getFrame(MainActionsPane.this));
               }
               catch (Throwable t)
@@ -130,13 +130,13 @@ public class MainActionsPane extends StatusGenericPanel
                 t.printStackTrace();
               }
             }
-            if (!dlg.isVisible())
+            if (!frame.isVisible())
             {
-              dlg.setVisible(true);
+              frame.setVisible(true);
             }
             else
             {
-              dlg.toFront();
+              frame.toFront();
             }
           }
         });
@@ -173,15 +173,13 @@ public class MainActionsPane extends StatusGenericPanel
   }
 
   /**
-   * Creates the dialog to be displayed using the provided panel.
-   * @param panel the panel that will be contained in the dialog.
-   * @return the dialog to be displayed using the provided panel.
+   * Creates the frame to be displayed using the provided panel.
+   * @param panel the panel that will be contained in the frame.
+   * @return the frame to be displayed using the provided panel.
    */
-  protected GenericDialog createDialog(StatusGenericPanel panel)
+  protected GenericFrame createFrame(StatusGenericPanel panel)
   {
-    return new GenericDialog(
-        Utilities.getFrame(MainActionsPane.this),
-        panel);
+    return new GenericFrame(panel);
   }
 
   /**

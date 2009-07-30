@@ -122,7 +122,7 @@ public class ControlPanel
         // Create and set up the content pane.
         controlCenterPane = new ControlCenterMainPane(info);
         //  Create and set up the window.
-        dlg = new JFrame();
+        dlg = Utilities.createFrame();
         dlg.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         final MainMenuBar menuBar = new MainMenuBar(info);
         dlg.addWindowListener(new WindowAdapter() {

@@ -46,7 +46,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -1170,7 +1169,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     while (true)
     {
       TaskToSchedulePanel p = new TaskToSchedulePanel("TEST TASK");
-      GenericDialog dlg = new GenericDialog(new JFrame(), p);
+      GenericDialog dlg = new GenericDialog(Utilities.createFrame(), p);
       dlg.setModal(true);
       dlg.setVisible(true);
     }

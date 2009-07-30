@@ -50,7 +50,6 @@ import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -789,7 +788,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     SwingUtilities.invokeLater(new Runnable(){
       public void run()
       {
-        GenericDialog dlg = new GenericDialog(new JFrame(), p);
+        GenericDialog dlg = new GenericDialog(Utilities.createFrame(), p);
         dlg.setModal(true);
         dlg.pack();
         dlg.setVisible(true);
