@@ -192,7 +192,9 @@ public class Importer
       dbCacheSize =  MIN_DB_CACHE_SIZE;
       if(bufferSize < MIN_BUFFER_SIZE)
       {
-        System.out.println("Log size less than default -- give it a try");
+        Message msg =
+               NOTE_JEB_IMPORT_LDIF_BUFF_SIZE_LESS_DEFAULT.get(MIN_BUFFER_SIZE);
+        logError(msg);
         bufferSize = MIN_BUFFER_SIZE;
       }
       else
@@ -244,7 +246,10 @@ public class Importer
     Message msg;
     Runtime runtime = Runtime.getRuntime();
     long freeMemory = runtime.freeMemory();
-    long availMemImport = (freeMemory * MEM_PCT_PHASE_1) / 100;
+    long maxMemory = runtime.maxMemory();
+    long totMemory = runtime.totalMemory();
+    long totFreeMemory = (freeMemory + (maxMemory - totMemory));
+    long availMemImport = (totFreeMemory * MEM_PCT_PHASE_1) / 100;
     int phaseOneBuffers = 2 * (indexCount * threadCount);
     msg = NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(availMemImport, phaseOneBuffers);
     logError(msg);
@@ -463,7 +468,11 @@ public class Importer
   private int cacheSizeFromFreeMemory()
   {
     Runtime runtime = Runtime.getRuntime();
-    long availMemory = runtime.freeMemory()  * MEM_PCT_PHASE_2 / 100;
+    long freeMemory = runtime.freeMemory();
+    long maxMemory = runtime.maxMemory();
+    long totMemory = runtime.totalMemory();
+    long totFreeMemory = (freeMemory + (maxMemory - totMemory));
+    long availMemory = (totFreeMemory * MEM_PCT_PHASE_2) / 100;
     int avgBufSize = (int)(availMemory / bufferCount.get());
     int cacheSize = Math.max(MIN_READ_AHEAD_CACHE_SIZE, avgBufSize);
     if(cacheSize > bufferSize)
