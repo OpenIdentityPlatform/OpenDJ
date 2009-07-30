@@ -22,14 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import java.awt.Component;
-import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -111,27 +109,6 @@ implements TableCellRenderer
       setBorder(defaultBorder);
     }
     return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getToolTipText(MouseEvent ev)
-  {
-    Rectangle r = new Rectangle();
-    r.x = label.getPreferredSize().width + INSET_WITH_ICON;
-    r.y = 0;
-    r.width = iconLabel.getPreferredSize().width;
-    r.height = iconLabel.getPreferredSize().height;
-
-    if (r.contains(ev.getPoint()))
-    {
-      return getHelpTooltip();
-    }
-    else
-    {
-      return null;
-    }
   }
 
   /**

@@ -96,6 +96,7 @@ import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
+import org.opends.guitools.controlpanel.event.ClickTooltipDisplayer;
 import org.opends.guitools.controlpanel.event.TextComponentFocusListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
@@ -2451,5 +2452,14 @@ public class Utilities
       returnValue = false;
     }
     return returnValue;
+  }
+
+  /**
+   * Adds a click tool tip listener to the provided component.
+   * @param comp the component.
+   */
+  public static void addClickTooltipListener(JComponent comp)
+  {
+    comp.addMouseListener(new ClickTooltipDisplayer());
   }
 }
