@@ -760,6 +760,7 @@ class StatusPanel extends StatusGenericPanel
     connectionHandlersTable =
       Utilities.createSortableTable(connectionHandlerTableModel,
         new CustomCellRenderer());
+    connectionHandlersTable.setCellSelectionEnabled(false);
 
     gbc.insets.top = 5;
     p.add(connectionHandlersTable.getTableHeader(), gbc);
@@ -797,14 +798,19 @@ class StatusPanel extends StatusGenericPanel
 
     dbTableModelWithReplication = new BaseDNTableModel(true);
     dbTableModelWithoutReplication = new BaseDNTableModel(false);
+    BaseDNCellRenderer renderer = new BaseDNCellRenderer();
     noReplicatedBaseDNsTable =
       Utilities.createSortableTable(dbTableModelWithoutReplication,
-        new BaseDNCellRenderer());
+        renderer);
     noReplicatedBaseDNsTable.setVisible(false);
     noReplicatedBaseDNsTable.getTableHeader().setVisible(false);
     replicationBaseDNsTable =
       Utilities.createSortableTable(dbTableModelWithReplication,
-        new BaseDNCellRenderer());
+        renderer);
+    noReplicatedBaseDNsTable.setCellSelectionEnabled(false);
+    replicationBaseDNsTable.setCellSelectionEnabled(false);
+    Utilities.addClickTooltipListener(noReplicatedBaseDNsTable);
+    Utilities.addClickTooltipListener(replicationBaseDNsTable);
 
     gbc.insets.top = 5;
     p.add(noReplicatedBaseDNsTable.getTableHeader(), gbc);
@@ -882,4 +888,3 @@ class StatusPanel extends StatusGenericPanel
     return status.toString();
   }
 }
-

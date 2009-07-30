@@ -22,30 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JToolTip;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
-import javax.swing.ToolTipManager;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -69,11 +60,7 @@ public class LabelWithHelpIcon extends JPanel
   protected JLabel iconLabel = new JLabel(icon);
   private static final ImageIcon icon =
     Utilities.createImageIcon("org/opends/quicksetup/images/help_small.gif");
-  private static final ToolTipManager ttipManager =
-    ToolTipManager.sharedInstance();
 
-  private Popup tipWindow;
-  private boolean isVisible;
 
   /**
    * The left inset of the help icon.
@@ -109,33 +96,7 @@ public class LabelWithHelpIcon extends JPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(Box.createHorizontalGlue(), gbc);
 
-    ttipManager.unregisterComponent(iconLabel);
-
-    iconLabel.addMouseListener(new MouseAdapter()
-    {
-      /**
-       * {@inheritDoc}
-       */
-      public void mouseExited(MouseEvent event)
-      {
-        hideToolTip(event);
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      public void mousePressed(MouseEvent event)
-      {
-        if (isVisible)
-        {
-          hideToolTip(event);
-        }
-        else
-        {
-          displayToolTip(event);
-        }
-      }
-    });
+    Utilities.addClickTooltipListener(iconLabel);
   }
 
   /**
@@ -221,67 +182,20 @@ public class LabelWithHelpIcon extends JPanel
   }
 
   /**
-   * Displays a tooltip depending on the MouseEvent received.
-   * @param event the mouse event.
+   * {@inheritDoc}
    */
-  private void displayToolTip(MouseEvent event)
+  public String getToolTipText(MouseEvent ev)
   {
-    JComponent component = (JComponent)event.getSource();
-    String toolTipText = component.getToolTipText();
-    if (toolTipText != null)
+    int x = ev.getPoint().x;
+    boolean display = x > label.getPreferredSize().width - 10;
+
+    if (display)
     {
-      Point preferredLocation = component.getToolTipLocation(event);
-      Rectangle sBounds = component.getGraphicsConfiguration().
-      getBounds();
-
-      JToolTip tip = component.createToolTip();
-      tip.setTipText(toolTipText);
-      Dimension size = tip.getPreferredSize();
-      Point location = new Point();
-
-      Point screenLocation = component.getLocationOnScreen();
-      if(preferredLocation != null)
-      {
-        location.x = screenLocation.x + preferredLocation.x;
-        location.y = screenLocation.y + preferredLocation.y;
-      }
-      else
-      {
-        location.x = screenLocation.x + event.getX();
-        location.y = screenLocation.y + event.getY() + 20;
-      }
-
-      if (location.x < sBounds.x) {
-        location.x = sBounds.x;
-      }
-      else if (location.x - sBounds.x + size.width > sBounds.width) {
-        location.x = sBounds.x + Math.max(0, sBounds.width - size.width);
-      }
-      if (location.y < sBounds.y) {
-        location.y = sBounds.y;
-      }
-      else if (location.y - sBounds.y + size.height > sBounds.height) {
-        location.y = sBounds.y + Math.max(0, sBounds.height - size.height);
-      }
-
-      PopupFactory popupFactory = PopupFactory.getSharedInstance();
-      tipWindow = popupFactory.getPopup(component, tip, location.x, location.y);
-      tipWindow.show();
+      return getHelpTooltip();
     }
-    isVisible = true;
-  }
-
-  /**
-   * Hides the tooltip if we are displaying it.
-   * @param event the mouse event.
-   */
-  private void hideToolTip(MouseEvent event)
-  {
-    if (tipWindow != null)
+    else
     {
-      tipWindow.hide();
-      tipWindow = null;
+      return null;
     }
-    isVisible = false;
   }
 }
