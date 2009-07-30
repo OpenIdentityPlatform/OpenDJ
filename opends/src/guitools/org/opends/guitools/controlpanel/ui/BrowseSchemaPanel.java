@@ -35,6 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -229,8 +230,15 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   @Override
   public void toBeDisplayed(boolean visible)
   {
-    ((GenericDialog)Utilities.getParentDialog(this)).getRootPane().
-      setDefaultButton(null);
+    Window w = Utilities.getParentDialog(this);
+    if (w instanceof GenericDialog)
+    {
+      ((GenericDialog)w).getRootPane().setDefaultButton(null);
+    }
+    else if (w instanceof GenericFrame)
+    {
+      ((GenericFrame)w).getRootPane().setDefaultButton(null);
+    }
   }
 
   /**

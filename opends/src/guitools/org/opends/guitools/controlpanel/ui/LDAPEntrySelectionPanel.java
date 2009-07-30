@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -271,9 +272,14 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
   public void setTitle(Message title)
   {
     this.title = title;
-    if (Utilities.getParentDialog(this) instanceof GenericDialog)
+    Window w = Utilities.getParentDialog(this);
+    if (w instanceof GenericDialog)
     {
-      ((GenericDialog)Utilities.getParentDialog(this)).updateTitle();
+      ((GenericDialog)w).updateTitle();
+    }
+    else if (w instanceof GenericFrame)
+    {
+      ((GenericFrame)w).updateTitle();
     }
   }
 }

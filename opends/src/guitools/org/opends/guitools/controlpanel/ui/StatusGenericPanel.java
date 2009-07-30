@@ -62,7 +62,6 @@ import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
@@ -412,10 +411,14 @@ implements ConfigChangeListener
    */
   protected void setEnabledOK(boolean enable)
   {
-    Window parent = Utilities.getParentDialog(this);
-    if ((parent != null) && (parent instanceof GenericDialog))
+    Window w = Utilities.getParentDialog(this);
+    if (w instanceof GenericDialog)
     {
-      ((GenericDialog)parent).setEnabledOK(enable);
+      ((GenericDialog)w).setEnabledOK(enable);
+    }
+    else if (w instanceof GenericFrame)
+    {
+      ((GenericFrame)w).setEnabledOK(enable);
     }
     enableOK = enable;
   }
@@ -426,10 +429,14 @@ implements ConfigChangeListener
    */
   protected void setEnabledCancel(boolean enable)
   {
-    JDialog parent = (JDialog)Utilities.getParentDialog(this);
-    if ((parent != null) && (parent instanceof GenericDialog))
+    Window w = Utilities.getParentDialog(this);
+    if (w instanceof GenericDialog)
     {
-      ((GenericDialog)parent).setEnabledCancel(enable);
+      ((GenericDialog)w).setEnabledCancel(enable);
+    }
+    else if (w instanceof GenericFrame)
+    {
+      ((GenericFrame)w).setEnabledCancel(enable);
     }
     enableCancel = enable;
   }
