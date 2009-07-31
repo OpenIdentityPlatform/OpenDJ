@@ -162,7 +162,7 @@ public class UIKeyStore extends KeyStore
     {
       Utils.createFile(f);
     }
-    FileOutputStream fos = new FileOutputStream(getKeyStorePath(), true);
+    FileOutputStream fos = new FileOutputStream(getKeyStorePath(), false);
     k.store(fos, new char[]{});
     if (fos != null)
     {
