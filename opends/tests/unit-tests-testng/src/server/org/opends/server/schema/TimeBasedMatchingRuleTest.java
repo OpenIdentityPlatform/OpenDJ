@@ -412,7 +412,7 @@ public final class TimeBasedMatchingRuleTest
   {
     //Get the date today.
     int date = cal.get(Calendar.DATE);
-    int month = cal.get(Calendar.MONTH);
+    int month = cal.get(Calendar.MONTH) + 1;
     int year = cal.get(Calendar.YEAR);
     
     return new Object[][] {
