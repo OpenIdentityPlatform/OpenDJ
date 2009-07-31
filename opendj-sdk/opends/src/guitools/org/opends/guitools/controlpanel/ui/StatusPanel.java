@@ -313,7 +313,8 @@ class StatusPanel extends StatusGenericPanel
           mb.append("<br><br>"+getAuthenticateHTML());
         }
       }
-      else if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
+      else if (desc.getStatus() ==
+        ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
       {
         mb.append("<br>");
         mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
