@@ -56,7 +56,6 @@ public class ControlPanel
   private JFrame dlg;
   private ControlPanelInfo info;
   private ControlCenterMainPane controlCenterPane;
-  private MainMenuBar menuBar;
 
   /**
    * Main method that is used for testing purposes.  The control-panel
@@ -109,7 +108,7 @@ public class ControlPanel
 
     if (info.getServerDescriptor() == null)
     {
-      menuBar = new MainMenuBar(info);
+      MainMenuBar menuBar = new MainMenuBar(info);
       // Assume that the user decided to quit the application
       menuBar.quitClicked();
     }
