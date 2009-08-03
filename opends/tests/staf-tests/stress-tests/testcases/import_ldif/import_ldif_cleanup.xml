@@ -30,6 +30,14 @@
   <defaultcall function="import_ldif_cleanup"/>
 
   <function name="import_ldif_cleanup">
+    <function-map-args>
+      <function-arg-def name="suiteSuffix" type="required">
+        <function-arg-description>
+          Suite suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+    </function-map-args>
 
     <sequence>
 
@@ -57,7 +65,41 @@
             </sequence>
 
           </block>
-        
+
+          <!--- Save access and errors logs -->
+          <block name="'Save Logs'">
+
+            <sequence>
+
+              <message>
+                'Copy %s/%s/logs/errors from %s to %s/errors_%s on %s' \
+                % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,STAF_REMOTE_HOSTNAME,logs.sut,suiteSuffix,STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_REMOTE_HOSTNAME ,
+                'srcfile'    : '%s/%s/logs/errors' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+                'destfile'   : '%s/errors_%s' % (logs.sut,suiteSuffix) ,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+              <message>
+                'Copy %s/%s/logs/access from %s to %s/access_%s on %s' \
+                % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,STAF_REMOTE_HOSTNAME,logs.sut,suiteSuffix,STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_REMOTE_HOSTNAME ,
+                'srcfile'    : '%s/%s/logs/access' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+                'destfile'   : '%s/access_%s' % (logs.sut,suiteSuffix) ,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+            </sequence>
+
+          </block>
+
           <!-- Remove  the topology created for the test suite -->
           <block name="'Block Remove DS Topology'">
 

@@ -418,22 +418,78 @@
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
-        <returnstdout/>          
-        <returnfile>outputLdif</returnfile>
+        <returnstdout/>
       </process>
     
       <script>
         STAXCode=RC
-        STAXReason=STAXResult
       </script>
-      <script>
-        diffsInfo = STAXReason[1]
-        diffs = diffsInfo[1]           
-        if (diffsInfo[0] == 0) and (diffs.startswith("# No differences were detected between the source and target LDIF files")) :
-          diffRC = 0
-        else:
-          diffRC = 1
-      </script>      
+      <if expr="STAXCode == 0">
+        <sequence>
+          <!-- Check the size of the diff file, and avoid reading its
+               content with getFile if the file is too big to prevent
+               the staf process from running out of memory -->
+          <call function="'GetEntry'">
+            {
+            'location'  : location,
+            'entry'     : outputLdif,
+            'attribute' : 'SIZE'
+            }
+          </call>
+          <script>
+            # GetEntry returns: STAXResult = [cmdRC, cmdResult]
+            if RC == 0:
+              diffsFileSize = int(STAXResult[1]['lowerSize'])
+              msg = 'File: %s   Size (bytes): %s' % (outputLdif, diffsFileSize)
+            else:
+              diffsFileSize = MAX_READABLE_SIZE
+              msg = 'Could not retrieve the size of file %s' % outputLdif
+          </script>
+          <message log="1"> 'LdifDiffWithScript: %s' % msg </message>
+          <if expr="diffsFileSize &lt; MAX_READABLE_SIZE">
+            <sequence>                                          
+              <call function="'getFile'">
+                { 'location' : location,
+                  'filename' : outputLdif
+                }                
+              </call>
+              <script>
+                # getFile returns: STAXResult = [cmdRC, cmdResult]
+                diffsFileContent = STAXResult[1]
+                
+                if diffsFileContent.startswith("# No differences were detected between the source and target LDIF files") :
+                  diffRC = 0
+                else:
+                  diffRC = 1
+              </script>
+            </sequence>
+            <else>
+              <script>
+                # diffs file to big to be read
+                diffsFileContent = 'File too big to be read.'
+                
+                # if the diff file is too big, it means that there ARE
+                # actually some diffs, so we may deduce diffRC = 1
+                diffRC = 1
+              </script>
+            </else>
+          </if>
+        </sequence>
+      </if>
+
+      <if expr="diffRC == 0">
+        <message log="1">
+          'NO DIFFERENCES were detected between the source and the target \
+          LDIF files.'
+        </message>
+        <else>
+          <message log="1" level="'Error'">
+            'Source and target LDIF files are DIFFERENT: \n\n%s' % \
+            diffsFileContent
+          </message>
+        </else>
+      </if>
+
       <return> diffRC </return>
     </sequence>
   </function>
@@ -620,19 +676,18 @@
         'Verify tree %s taking %s as reference.' \
         % (treeSuffix, referenceServerPath)
       </message>
-      <!-- Retrieve the tree from the reference server -->
-      <call function="'ldapSearchWithScript'">
-        { 'location'       : location,
-          'dsPath'         : dsPath,
-          'dsInstanceHost' : referenceServer.getHostname(),
-          'dsInstancePort' : referenceServer.getPort(),
-          'dsInstanceDn'   : referenceServer.getRootDn(),
-          'dsInstancePswd' : referenceServer.getRootPwd(),
-          'dsBaseDN'       : treeSuffix,
-          'dsFilter'       : 'objectclass=*',
-          'outputFile'     : referenceTree
+      <!-- Retrieve the tree from the reference server -->      
+      <call function="'exportLdif'">
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : referenceServer.getHostname(),
+          'dsInstanceAdminPort' : referenceServer.getAdminPort(),
+          'dsInstanceDn'        : referenceServer.getRootDn(),
+          'dsInstancePswd'      : referenceServer.getRootPwd(),
+          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree)
         }
       </call>
+            
       <if expr="RC != 0">
         <!-- If the reference tree could not be retrieved, return an error -->
         <return> [1, None] </return>
@@ -640,21 +695,43 @@
       <iterate var="server" in="serverList">
         <sequence>
           <!-- Retrieve the same tree for every other server in the list -->
-          <call function="'ldapSearchWithScript'">
-            { 'location'       : location,
-              'dsPath'         : dsPath,
-              'dsInstanceHost' : server.getHostname(),
-              'dsInstancePort' : server.getPort(),
-              'dsInstanceDn'   : server.getRootDn(),
-              'dsInstancePswd' : server.getRootPwd(),
-              'dsBaseDN'       : treeSuffix,
-              'dsFilter'       : 'objectclass=*',
-              'outputFile'     : sampleTree,
-              'logStderr'      : False
+          <if expr="server.getHostname() == location">
+            <script>
+              filePath = dsPath
+              isSameLocation = True
+            </script>
+            <else>
+              <script>
+                filePath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                isSameLocation = False
+              </script>
+            </else>
+          </if>
+          <call function="'exportLdif'">
+            { 'location'            : location,
+              'dsPath'              : dsPath,
+              'dsInstanceHost'      : server.getHostname(),
+              'dsInstanceAdminPort' : server.getAdminPort(),
+              'dsInstanceDn'        : server.getRootDn(),
+              'dsInstancePswd'      : server.getRootPwd(),
+              'ldifFile'            : '%s/../%s' % (filePath, sampleTree)
             }
           </call>
+          
           <if expr="RC == 0">
             <sequence>
+              
+              <if expr="not isSameLocation">                
+                <!-- Copy sample tree file to reference server -->  
+                <call function="'copyFile'">
+                  { 'location'   : server.getHostname(),
+                    'remotehost' : location,
+                    'srcfile'    : '%s/../%s' % (filePath, sampleTree),
+                    'destfile'   : '%s/../%s' % (dsPath, sampleTree)
+                  }
+                </call>
+              </if>
+              
               <!-- Compare this tree to the reference one -->
               <call function="'LdifDiffWithScript'">
                 { 'location'   : location,
@@ -664,11 +741,19 @@
                   'outputLdif' : '%s/../%s' % (dsPath, treeDiffs)
                 }
               </call>
-              <script>
-                if STAXResult != 0 :
-                  failedServers.append('%s:%s' % \
-                                       (server.getHostname(), server.getPort()))
-              </script>
+              <if expr="STAXResult != 0">
+                <sequence>
+                  <script>            
+                    failedServers.append('%s:%s' % \
+                                         (server.getHostname(), server.getPort()))
+                  </script>
+                  <message log="1" level="'Error'">
+                    'Tree is DIFFERENT for %s:%s compared to %s:%s' % \
+                    (server.getHostname(), server.getPort(), 
+                     referenceServer.getHostname(), referenceServer.getPort())
+                  </message>
+                </sequence>
+              </if>
             </sequence>
             <else>
               <script>
@@ -1795,6 +1880,171 @@
       </return>
     </sequence>
   </function>
+
+
   
+  <function name="verifyReplication">
+    <function-prolog>
+      This function verifies that replication is working, that is, the updates
+      done on any of the servers in the topology are being pushed to the other
+      servers.
+    </function-prolog>
+    <function-list-args>
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      
+      <function-arg-def name="replicatedSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+
+    </function-list-args>
+    <sequence>
+
+      <message>
+        'verifyReplication: Verify updates on the suffix %s are being \
+        replicated.' % replicatedSuffix
+      </message>
+      
+      <iterate var="server" in="serverList" indexvar="i">
+        <sequence>
+                    
+          <script>
+            serverHost = server.getHostname()
+            serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)            
+            otherServersList = serverList[:i] + serverList[i+1:]
+            entryDn = 'uid=testentry-%s, %s' % (i, replicatedSuffix)
+            
+            myRC = 0
+            myKnownIssue = knownIssue
+            failedServers = STAXGlobal( [] )
+            failingServerList = ''            
+          </script>
+                                        
+          <!-- Add entry to one of the other servers -->
+          <script>
+            listAttr = []
+            listAttr.append('objectclass:top')
+            listAttr.append('objectclass:organizationalperson')
+            listAttr.append('objectclass:inetorgperson')
+            listAttr.append('objectclass:person')
+            listAttr.append('givenname:Test-%s' % i)
+            listAttr.append('sn:Entry-%s' % i)
+            listAttr.append('cn:Test Entry - %s' % i)
+          </script>
+          
+          <message>
+            'verifyReplication: Add entry %s to server %s:%s' % \
+            (entryDn, serverHost, server.getPort())
+          </message>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : serverHost,
+              'dsPath'         : serverPath,
+              'dsInstanceHost' : serverHost,
+              'dsInstancePort' : server.getPort(),
+              'dsInstanceDn'   : server.getRootDn(),
+              'dsInstancePswd' : server.getRootPwd(),
+              'DNToAdd'        : entryDn,
+              'listAttributes' : listAttr
+            }
+          </call>
+
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : 2000 }
+          </call>                                      
+
+          <!-- Check the update has been propagated -->
+          <paralleliterate var="otherServer" in="otherServersList">
+            <sequence>
+              <call function="'ldapSearchWithScript'">
+                { 'location'       : otherServer.getHostname(),
+                  'dsPath'         : '%s/%s' \
+                                     % (otherServer.getDir(), OPENDSNAME),
+                  'dsInstanceHost' : otherServer.getHostname(),
+                  'dsInstancePort' : otherServer.getPort(),
+                  'dsInstanceDn'   : otherServer.getRootDn(),
+                  'dsInstancePswd' : otherServer.getRootPwd(),
+                  'dsBaseDN'       : entryDn,
+                  'dsFilter'       : 'objectclass=*',
+                  'dsAttributes'   : 'employeeNumber',
+                  'logStderr'      : False
+                }                
+              </call>                
+              <script>
+                searchRC = STAXResult[0][0]
+                searchResult = STAXResult[0][1]
+                resultLength = len(searchResult) > 0
+              </script>
+              <if expr="resultLength != 0">
+                <sequence>
+                  <message>
+                    '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                    % (otherServer.getHostname(), otherServer.getPort(), 
+                       searchResult)
+                  </message>
+                </sequence>
+              <else>
+                <sequence>
+                  <message>
+                    'verifyReplication: Entry %s NOT found in server %s:%s' % \
+                    (entryDn, otherServer.getHostname(), otherServer.getPort())
+                  </message>
+                  <script>
+                    failedServers.append('%s:%s' % \
+                             (otherServer.getHostname(), otherServer.getPort()))                    
+                  </script>
+                </sequence>                  
+              </else>
+              </if>
+            </sequence>                  
+          </paralleliterate>
+              
+          <if expr="len(failedServers) > 0">
+            <!-- If at least one server failed to receive the update return an 
+             !   error, along with the list of the servers that failed to do so 
+            --> 
+            <script>
+              myRC = 1
+              comma = ','  
+              failingServerList = \
+                'List of non-synchronized servers (replication verify FAILED \
+                for entry %s): %s ' % (entryDn, comma.join(failedServers))
+            </script>
+            <else>
+              <message>
+                'All servers synchronized (replication verify SUCCEEDED for \
+                entry %s)' % entryDn
+              </message>
+            </else>
+          </if>
+          <call function="'checktestRC'">
+            { 'returncode' : myRC,
+              'result'     : failingServerList,
+              'expected'   : 0,
+              'issue'      : myKnownIssue
+            }
+          </call>                              
+      
+        </sequence>                  
+      </iterate>      
+      
+    </sequence>
+  </function>
+      
+    
 </stax>
 

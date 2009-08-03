@@ -49,7 +49,7 @@
             modifyLoop      = testsDuration / 10
             lowRange        = 100000
             highRange       = lowRange + numberOfEntries
-            jvmLoop         = testsDuration / 1800
+            jvmLoop         = testsDuration / 1800 + 1
             jvmSleep        = 1800000
             baseDN          = 'ou=People,dc=com'
             ldcltDir        = '%s/ldclt_dir' % TMPDIR
@@ -236,9 +236,11 @@
                             }
                           </call>
 
-                          <call function="'Sleep'">
-                            { 'sleepForMilliSeconds'  : jvmSleep }
-                          </call>
+                          <if expr="loop != jvmLoop">
+                            <call function="'Sleep'">
+                              { 'sleepForMilliSeconds'  : jvmSleep }
+                            </call>
+                          </if>
                         </sequence>
                       </loop>
                     </sequence>
@@ -255,7 +257,20 @@
                   <tcstatus result="'fail'"/>
                 </sequence>
               </if>-->
-              
+
+              <message>
+                'Copy %s/ldclt_modify.res from %s to %s on %s' \
+                % (ldcltDir,STAF_CLIENT_HOSTNAME,logs.sut,STAXServiceMachine)
+              </message>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_CLIENT_HOSTNAME ,
+                'srcfile'    : '%s/ldclt_modify.res' % ldcltDir ,
+                'destfile'   : '%s/ldclt_modify.res' % logs.sut ,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
               <call function="'testCase_Postamble'"/>
 
             </sequence>
@@ -290,7 +305,9 @@
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/ldap_operation/ldap_operation_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'ldap_operation_cleanup'" />
+          <call function="'ldap_operation_cleanup'">
+            { 'suiteSuffix' : 'modify' }
+          </call>
 
           <call function="'testSuite_Postamble'"/>
             

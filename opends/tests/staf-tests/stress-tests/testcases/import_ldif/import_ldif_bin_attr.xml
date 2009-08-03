@@ -187,7 +187,7 @@
                   'noOfMilliSeconds' : 5000
                   }
                 </call> 
-        
+
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -203,17 +203,17 @@
 
                 <call function="'checkImport'">
                   {
-                  'expectedEntries' : ['uid=user.100000,ou=People,dc=com' ,
-                                      'uid=user.110000,ou=People,dc=com' ,
-                                      'uid=user.120000,ou=People,dc=com' ,
-                                      'uid=user.130000,ou=People,dc=com' ,
-                                      'uid=user.140000,ou=People,dc=com' ,
-                                      'uid=user.150000,ou=People,dc=com' ,
-                                      'uid=user.160000,ou=People,dc=com' ,
-                                      'uid=user.170000,ou=People,dc=com' ,
-                                      'uid=user.180000,ou=People,dc=com' ,
-                                      'uid=user.190000,ou=People,dc=com' ,
-                                      'uid=user.199999,ou=People,dc=com'] ,
+                  'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                      'uid=user.10000,ou=People,dc=com' ,
+                                      'uid=user.20000,ou=People,dc=com' ,
+                                      'uid=user.30000,ou=People,dc=com' ,
+                                      'uid=user.40000,ou=People,dc=com' ,
+                                      'uid=user.50000,ou=People,dc=com' ,
+                                      'uid=user.60000,ou=People,dc=com' ,
+                                      'uid=user.70000,ou=People,dc=com' ,
+                                      'uid=user.80000,ou=People,dc=com' ,
+                                      'uid=user.90000,ou=People,dc=com' ,
+                                      'uid=user.99999,ou=People,dc=com'] ,
                   'startDS'         : 'no'
                   }
                 </call>
@@ -221,45 +221,36 @@
                 <!--<call function="'setKnownIssue'">
                     { 'issueId' : '2535' }
                 </call>-->
-                
+
+                <message>
+                  'ldclt_compare: Delete ldif and template files'
+                </message>
+
+                <call function="'deleteFile'">
+                  {
+                  'location' : STAF_REMOTE_HOSTNAME,
+                  'filename' : ldifFile
+                  }
+                </call>
+
+                <call function="'deleteFile'">
+                  {
+                  'location' : STAF_REMOTE_HOSTNAME,
+                  'filename' : ldifTemplate
+                  }
+                </call>
+
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
           </testcase>
 
-          <testcase name="getTestCaseName('Postamble')">
-
-            <sequence>
-
-              <call function="'testCase_Preamble'"/>
-
-              <message>
-                'ldclt_compare: Delete ldif and template files'
-              </message>
-
-              <call function="'deleteFile'">
-                {
-                'location' : STAF_REMOTE_HOSTNAME,
-                'filename' : ldifFile
-                }
-              </call>
-
-              <call function="'deleteFile'">
-                {
-                'location' : STAF_REMOTE_HOSTNAME,
-                'filename' : ldifTemplate
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-
-            </sequence>
-
-          </testcase>
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'import' }
+          </call>
               
           <call function="'testSuite_Postamble'"/>
             

@@ -2545,5 +2545,220 @@
      </sequence>
 
   </function>
-     
+
+
+  <!-- Get replication status using dsreplication, and check for missing changes
+       or inconsistencies in the number of entries across the topology -->
+  <function name="getReplicationStatus">
+    <function-prolog>
+      This function gets the replication status of a topology using
+      dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceAdminPort" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+
+                                    
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN list" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                                   type="optional"
+                                   default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                                   type="optional"
+                                   default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <message>
+        'Getting replication status from server %s:%s' \
+         % (dsInstanceHost,dsInstanceAdminPort)
+      </message>                
+        
+      <!-- Local variables -->
+      <script>
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
+        
+        STAFCmdParamsList=[]
+          
+        STAFCmdParamsList.append('status')          
+        STAFCmdParamsList.append('-n')
+        STAFCmdParamsList.append('-X')
+        # option for getting status in script-friendly format
+        STAFCmdParamsList.append('-s')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('-p %s' % dsInstanceAdminPort)
+                
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+                    
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+      
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+                    
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Get Replication Status',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+
+      <script>
+        commandRC = RC
+        commandResult = STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : commandRC,
+          'result'     : commandResult,
+          'expected'   : expectedRC
+        }
+      </call>
+      
+      <script>
+        replStatusRC = commandResult[0][0]
+        replStatusResult = commandResult[0][1]
+        resultLength = len(replStatusResult) > 0
+      </script>
+      
+      <if expr="(replStatusRC == 0) and (resultLength != 0)">
+        <sequence>
+          <message>
+            'getReplicationStatus: Replication status retrieved from server \
+            %s:%s : \n%s ' % \
+            (dsInstanceHost, dsInstanceAdminPort, replStatusResult)
+          </message>
+          <script>
+            serverList = []
+            entriesList = []
+            missingChangesList = []
+            ageList = []
+            
+            for line in replStatusResult.splitlines():
+              if line.startswith('Server:'):
+                server = line[line.find('Server:') + 7:].strip()
+                serverList.append(server)
+              elif line.startswith('Entries:'):
+                entries = line[line.find('Entries:') + 8:].strip()
+                entriesList.append(entries)
+              elif line.startswith('Missing Changes:'):
+                missingChanges = line[line.find('Missing') + 16:].strip()
+                missingChangesList.append(missingChanges)
+              elif line.startswith('Age of oldest missing change:'):
+                age = line[line.find('Age of') + 29:].strip()
+                ageList.append(age)
+            
+            refNbOfEntries = entriesList[0]
+          </script>
+          
+          <iterate var="server" in="serverList" indexvar="i">
+            <sequence>
+              <script>
+                entries = entriesList[i]
+                missingChanges = missingChangesList[i]
+                age = ageList[i]
+              </script>
+              <if expr="(missingChanges != '0') or (age != 'N/A')">
+                <sequence>
+                  <message log="1" level="'Error'">
+                    'getReplicationStatus: Server %s is missing %s changes. \
+                    Entries: %s - Age of the oldest missing change: %s ' % \
+                    (server, missingChanges, entries, age)
+                  </message>
+                  <tcstatus result="'fail'"/>
+                </sequence>
+              </if>
+              <if expr="entries != refNbOfEntries">
+                <sequence>
+                  <message log="1" level="'Error'">
+                    'getReplicationStatus: Different number of entries.\n\
+                      Server %s : %s entries\n\
+                      Reference server %s : %s entries\n' % \
+                    (server, entries, serverList[0], refNbOfEntries)
+                  </message>
+                  <tcstatus result="'fail'"/>
+                </sequence>
+              </if>
+            </sequence>
+          </iterate>
+      
+        </sequence>
+      </if>      
+
+      <return>
+        commandResult
+      </return>
+    </sequence>
+  </function>
+
 </stax>

@@ -30,7 +30,16 @@
   <defaultcall function="replication_cleanup"/>
 
   <function name="replication_cleanup">
-
+    <function-map-args>
+      <function-arg-def name="suiteSuffix" 
+                        type="optional" 
+                        default="None">
+        <function-arg-description>
+          Test suite suffix used to copy the server logs back to the controller.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
     <sequence>
 
       <block name="'replication-cleanup'">
@@ -41,8 +50,59 @@
           <call function="'stopServers'">
             [_topologyServerList]
           </call>
-  
-        <!-- Remove  the topology created for the test suite -->
+          
+          <!-- Copy the server logs to the controller machine -->
+          <if expr="suiteSuffix != None">
+            <paralleliterate var="server" in="_topologyServerList" indexvar="i">
+              <sequence>
+                <script>
+                  suffix     = suiteSuffix + '_%s' % (i + 1)
+                  serverHost = server.getHostname()
+                  serverName = '%s:%s' % (serverHost, server.getPort())
+                  serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                </script>
+              
+                <message>
+                  'Copy %s/logs/errors from %s to %s/errors_%s on %s' % \
+                  (serverPath, serverName, logs.sut, suffix, STAXServiceMachine)
+                </message>
+                <call function="'copyFile'">
+                  {
+                    'location'   : serverHost,
+                    'srcfile'    : '%s/logs/errors' % serverPath,
+                    'destfile'   : '%s/errors_%s' % (logs.sut, suffix),
+                    'remotehost' : STAXServiceMachine
+                  }
+                </call>
+                <message>
+                  'Copy %s/logs/access from %s to %s/access_%s on %s' % \
+                  (serverPath, serverName,logs.sut, suffix, STAXServiceMachine)
+                </message>
+                <call function="'copyFile'">
+                  {
+                    'location'   : serverHost,
+                    'srcfile'    : '%s/logs/access' % serverPath,
+                    'destfile'   : '%s/access_%s' % (logs.sut, suffix),
+                    'remotehost' : STAXServiceMachine
+                  }
+                </call>
+                <message>
+                  'Copy %s/logs/replication from %s to %s/replication_%s on %s' % \
+                  (serverPath, serverName, logs.sut, suffix, STAXServiceMachine)
+                </message>
+                <call function="'copyFile'">
+                  {
+                    'location'   : serverHost,
+                    'srcfile'    : '%s/logs/replication' % serverPath,
+                    'destfile'   : '%s/replication_%s' % (logs.sut, suffix),
+                    'remotehost' : STAXServiceMachine
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+          </if>
+              
+          <!-- Remove  the topology created for the test suite -->
           <message>
             'Remove DS topology created for the Synchronization Basic Test Suite'
           </message>          

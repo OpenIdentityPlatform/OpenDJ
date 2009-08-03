@@ -219,7 +219,7 @@
                   'noOfMilliSeconds' : 5000
                   }
                 </call>      
-        
+
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -253,46 +253,37 @@
                 <!--<call function="'setKnownIssue'">
                     { 'issueId' : '2535' }
                 </call>-->
-                
+
+                <message>
+                  'ldclt_compare: Delete ldif and template files'
+                </message>
+
+                <call function="'deleteFile'">
+                  {
+                  'location' : STAF_REMOTE_HOSTNAME,
+                  'filename' : ldifFile
+                  }
+                </call>
+
+                <call function="'deleteFile'">
+                  {
+                  'location' : STAF_REMOTE_HOSTNAME,
+                  'filename' : ldifTemplate
+                  }
+                </call>
+
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
           </testcase>
 
-          <testcase name="getTestCaseName('Postamble')">
-
-            <sequence>
-
-              <call function="'testCase_Preamble'"/>
-
-              <message>
-                'ldclt_compare: Delete ldif and template files'
-              </message>
-
-              <call function="'deleteFile'">
-                {
-                'location' : STAF_REMOTE_HOSTNAME,
-                'filename' : ldifFile
-                }
-              </call>
-
-              <call function="'deleteFile'">
-                {
-                'location' : STAF_REMOTE_HOSTNAME,
-                'filename' : ldifTemplate
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-
-            </sequence>
-
-          </testcase>
 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'import_ldif_cleanup'" />
-          
+          <call function="'import_ldif_cleanup'">
+            { 'suiteSuffix' : 'import_1m' }
+          </call>
+
           <call function="'testSuite_Postamble'"/>
             
         </sequence>

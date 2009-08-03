@@ -169,7 +169,10 @@
         CurrentTestPath={}
         DSInfoServersDict={}
         True = 1
-        False = 0     
+        False = 0
+        # threshold set so that functions such as getFile may not cause staf
+        # process to run out of memory (value in bytes)
+        MAX_READABLE_SIZE = 104800
 
         # this function return a well-formatted testcase name
         def getTestCaseName(name):

@@ -284,7 +284,7 @@
       <if expr='re.search(searchre, returnString) != None'>
         <sequence>
           <message log="1">
-            'SUCCESS :  Found substring, %s, in the return string' \
+            'Found substring, %s, in the return string' \
             % (expectedString)
           </message>
           <script>
@@ -294,8 +294,8 @@
         </sequence>
         <else>
           <sequence>
-            <message log="1" level="'Error'">
-              'ERROR : Did not find substring, %s, in the return string, %s' \
+            <message log="1">
+              'Did not find substring, %s, in the return string, %s' \
               % (expectedString, returnString)
             </message>
             <script>
@@ -309,16 +309,26 @@
       <!-- Manage expectedRC and knownIssue -->
       <if expr="expectedRC != 'noCheck'">
           <if expr="myRC == expectedRC">
-            <tcstatus result="'pass'"/>
+            <sequence>
+              <message log="1">
+                'SUCCESS: searchString successful'
+              </message>
+              <tcstatus result="'pass'"/>
+            </sequence>
             <else>
-              <if expr="knownIssue == None">
-                <tcstatus result="'fail'"/>
-                <else>
-                  <call function="'setKnownIssue'">
-                    { 'issueId' : knownIssue }
-                  </call>
-                </else>
-              </if>
+              <sequence>
+                <message log="1" level="'Error'">
+                  'ERROR: searchString fail'
+                </message>
+                <if expr="knownIssue == None">
+                  <tcstatus result="'fail'"/>
+                  <else>
+                    <call function="'setKnownIssue'">
+                      { 'issueId' : knownIssue }
+                    </call>
+                  </else>
+                </if>
+              </sequence>
             </else>
           </if>
       </if>

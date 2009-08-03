@@ -616,7 +616,11 @@
         <service>'fs'</service>
         <request>'GET ENTRY %s %s' % (entry,attribute)</request>
       </stafcmd>
-
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <return>[cmdRC,cmdResult]</return>
     </sequence>
 
   </function>
