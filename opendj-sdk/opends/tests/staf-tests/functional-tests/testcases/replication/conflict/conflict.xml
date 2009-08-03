@@ -142,8 +142,8 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('uid=tuser-0')
-                entry.addAttr('employeeNumber', '0')
+                myEntry = Entry('uid=tuser-0')
+                myEntry.addAttr('employeeNumber', '0')
               </script>
               <call function="'addAnEntry'">
                 { 'location'       : server1Host,
@@ -152,8 +152,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -173,7 +173,7 @@
                     'dsInstancePort'    : server.getPort(),
                     'dsInstanceDn'      : server.getRootDn(),
                     'dsInstancePswd'    : server.getRootPwd(),
-                    'DNToModify'        : entry.getDn(),
+                    'DNToModify'        : myEntry.getDn(),
                     'attributeName'     : 'employeeNumber',
                     'newAttributeValue' : '%i' % (i + 1),
                     'changetype'        : 'replace'
@@ -191,7 +191,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -228,7 +228,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
   
@@ -265,9 +265,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=A1')
-                entry.addAttr('description', '1')
-                entry.addAttr('description', '2')
+                myEntry = Entry('cn=A1')
+                myEntry.addAttr('description', '1')
+                myEntry.addAttr('description', '2')
                 server1mods = ['description:3', 'description:4']
                 server2mods = ['description:5', 'description:6']
                 mods = [server1mods, server2mods]
@@ -279,8 +279,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -301,7 +301,7 @@
                     'dsInstancePort' : server.getPort(),
                     'dsInstanceDn'   : server.getRootDn(),
                     'dsInstancePswd' : server.getRootPwd(),
-                    'DNToModify'     : entry.getDn(),
+                    'DNToModify'     : myEntry.getDn(),
                     'listAttributes' : mods[i],
                     'changetype'     : 'replace'
                   }
@@ -319,7 +319,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -357,7 +357,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -393,7 +393,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -428,8 +428,8 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=A4')
-                entry.addAttr('employeeNumber', '0')
+                myEntry = Entry('cn=A4')
+                myEntry.addAttr('employeeNumber', '0')
               </script>
               <call function="'addAnEntry'">
                 { 'location'       : server1Host,
@@ -438,8 +438,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -460,7 +460,7 @@
                     'dsInstancePort'    : server.getPort(),
                     'dsInstanceDn'      : server.getRootDn(),
                     'dsInstancePswd'    : server.getRootPwd(),
-                    'DNToModify'        : entry.getDn(),
+                    'DNToModify'        : myEntry.getDn(),
                     'attributeName'     : 'employeeNumber',
                     'newAttributeValue' : '%i' % (i + 1),
                     'changetype'        : 'replace'
@@ -479,7 +479,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -517,7 +517,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -553,7 +553,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -593,9 +593,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=A2')
+                myEntry = Entry('cn=A2')
                 for x in range(10):
-                  entry.addAttr('description', '%i' % (x+1))
+                  myEntry.addAttr('description', '%i' % (x+1))
                 server1del = ['description:1']
                 server1add = ['description:11']
                 server2del = ['description:1']
@@ -611,8 +611,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -634,7 +634,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'delete'
                     }
@@ -647,7 +647,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][1],
                       'changetype'     : 'add'
                     }
@@ -666,7 +666,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -704,7 +704,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -740,7 +740,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -780,9 +780,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=A3')
+                myEntry = Entry('cn=A3')
                 for x in range(10):
-                  entry.addAttr('description', '%i' % (x+1))
+                  myEntry.addAttr('description', '%i' % (x+1))
                 server1del = ['description:1']
                 server1add = ['description:11']
                 server2del = ['description:10']
@@ -798,8 +798,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -821,7 +821,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'delete'
                     }
@@ -834,7 +834,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][1],
                       'changetype'     : 'add'
                     }
@@ -853,7 +853,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -891,7 +891,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -927,7 +927,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -963,7 +963,7 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=B1')
+                myEntry = Entry('cn=B1')
                 server1add = ['description:1']
                 server2add = ['description:1', 'description:2']
                 server1mods = [server1add]
@@ -977,8 +977,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1000,7 +1000,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'add'
                     }
@@ -1019,7 +1019,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1057,7 +1057,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1093,7 +1093,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -1129,7 +1129,7 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=B2')
+                myEntry = Entry('cn=B2')
                 server1add = ['employeeNumber:1']
                 server2add = ['employeeNumber:2']
                 server1mods = [server1add]
@@ -1143,8 +1143,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1166,7 +1166,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'add'
                     }
@@ -1185,7 +1185,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -1223,7 +1223,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -1259,7 +1259,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -1296,9 +1296,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=C1')
+                myEntry = Entry('cn=C1')
                 for x in range(10):
-                  entry.addAttr('description', '%i' % (x+1))
+                  myEntry.addAttr('description', '%i' % (x+1))
                 server1del = []
                 for y in range(1,6):
                   server1del.append('description:%i' % y)
@@ -1316,8 +1316,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1339,7 +1339,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'delete'
                     }
@@ -1358,7 +1358,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1396,7 +1396,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1432,7 +1432,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -1469,8 +1469,8 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=C2')
-                entry.addAttr('employeeNumber', '1')
+                myEntry = Entry('cn=C2')
+                myEntry.addAttr('employeeNumber', '1')
                 server1del = ['employeeNumber:']
                 server2del = ['employeeNumber:1']
                 server1mods = [server1del]
@@ -1484,8 +1484,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1507,7 +1507,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : 'delete'
                     }
@@ -1526,7 +1526,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -1564,7 +1564,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'employeeNumber',
                       'logStderr'      : False
@@ -1600,7 +1600,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -1641,9 +1641,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=D1')
-                entry.addAttr('description', '1')
-                entry.addAttr('telephoneNumber', '1')
+                myEntry = Entry('cn=D1')
+                myEntry.addAttr('description', '1')
+                myEntry.addAttr('telephoneNumber', '1')
                 server1add = ['description:2']
                 server1del = ['telephoneNumber:']
                 server2del = ['description:']
@@ -1662,8 +1662,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1685,7 +1685,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : changetypes[i][0]
                     }
@@ -1698,7 +1698,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][1],
                       'changetype'     : changetypes[i][1]
                     }
@@ -1717,7 +1717,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description telephoneNumber',
                       'logStderr'      : False
@@ -1755,7 +1755,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description telephoneNumber',
                       'logStderr'      : False
@@ -1791,7 +1791,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -1829,8 +1829,8 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=E1')
-                entry.addAttr('description', '1')
+                myEntry = Entry('cn=E1')
+                myEntry.addAttr('description', '1')
                 server1add = ['description:2', 'description:3']
                 server2replace = ['description:4', 'description:5']
                 server1mods = [server1add]
@@ -1847,8 +1847,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -1870,7 +1870,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : changetypes[i][0]
                     }
@@ -1889,7 +1889,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1927,7 +1927,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -1963,7 +1963,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -2001,8 +2001,8 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=E2')
-                entry.addAttr('description', '1')
+                myEntry = Entry('cn=E2')
+                myEntry.addAttr('description', '1')
                 server1replace = ['description:2', 'description:3']
                 server2add = ['description:4', 'description:5']
                 server1mods = [server1replace]
@@ -2019,8 +2019,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -2042,7 +2042,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : changetypes[i][0]
                     }
@@ -2061,7 +2061,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2099,7 +2099,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2135,7 +2135,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -2174,9 +2174,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=F1')
+                myEntry = Entry('cn=F1')
                 for x in range(4):
-                  entry.addAttr('description', '%i' % (x+1))
+                  myEntry.addAttr('description', '%i' % (x+1))
                 server1del = ['description:2', 'description:3']
                 server2replace = []
                 for y in range(6,11):
@@ -2195,8 +2195,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -2218,7 +2218,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : changetypes[i][0]
                     }
@@ -2237,7 +2237,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2275,7 +2275,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2311,7 +2311,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -2350,9 +2350,9 @@
                                                                 
               <!-- Add entry to server1 -->
               <script>
-                entry = Entry('cn=F2')
+                myEntry = Entry('cn=F2')
                 for x in range(4):
-                  entry.addAttr('description', '%i' % (x+1))
+                  myEntry.addAttr('description', '%i' % (x+1))
                 server1replace = ['description:1', 'description:2', 
                                   'description:3']
                 server2del = ['description:3', 'description:4']
@@ -2370,8 +2370,8 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'DNToAdd'        : entry.getDn(),
-                  'listAttributes' : entry.getAttrList()
+                  'DNToAdd'        : myEntry.getDn(),
+                  'listAttributes' : myEntry.getAttrList()
                 }
               </call>
 
@@ -2393,7 +2393,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'DNToModify'     : entry.getDn(),
+                      'DNToModify'     : myEntry.getDn(),
                       'listAttributes' : mods[i][0],
                       'changetype'     : changetypes[i][0]
                     }
@@ -2412,7 +2412,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2450,7 +2450,7 @@
                       'dsInstancePort' : server.getPort(),
                       'dsInstanceDn'   : server.getRootDn(),
                       'dsInstancePswd' : server.getRootPwd(),
-                      'dsBaseDN'       : entry.getDn(),
+                      'dsBaseDN'       : myEntry.getDn(),
                       'dsFilter'       : 'objectclass=*',
                       'dsAttributes'   : 'description',
                       'logStderr'      : False
@@ -2486,7 +2486,7 @@
                   'dsInstancePort' : server1.getPort(),
                   'dsInstanceDn'   : server1.getRootDn(),
                   'dsInstancePswd' : server1.getRootPwd(),
-                  'dsDn'           : [entry.getDn()]
+                  'dsDn'           : [myEntry.getDn()]
                 }
               </call>
 
@@ -2981,8 +2981,11 @@
 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
+              <!-- If the trees don't match, we may have come across Issue 4071
+               (Replication conflict: delete parent, add child) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, server1, [server2], synchroSuffix ]
+                [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                  '4071' ]
               </call> 
 
               <!-- Delete added entries -->
@@ -3534,7 +3537,6 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-
 
 
           <import machine="STAF_LOCAL_HOSTNAME"

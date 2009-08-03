@@ -32,9 +32,9 @@ Jmxport: 11689
 RootDn: cn=directory manager
 RootPwd: secret12
 BaseDn: o=example
-Changelogport: 11111
+Changelogport: 11112
 SynchronizedSuffix: o=example
-ChangelogServer: ${remote.hostname}:11111
+ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
 ChangelogServer: ${remote.hostname}:33333
 
@@ -49,7 +49,7 @@ RootPwd: secret12
 BaseDn: o=example
 Changelogport: 22222
 SynchronizedSuffix: o=example
-ChangelogServer: ${remote.hostname}:11111
+ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
 ChangelogServer: ${remote.hostname}:33333
 
@@ -64,6 +64,6 @@ RootPwd: secret12
 BaseDn: o=example
 Changelogport: 33333
 SynchronizedSuffix: o=example
-ChangelogServer: ${remote.hostname}:11111
+ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
 ChangelogServer: ${remote.hostname}:33333

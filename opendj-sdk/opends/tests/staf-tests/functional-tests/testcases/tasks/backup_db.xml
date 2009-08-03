@@ -510,9 +510,11 @@
               }
             </call>
 
+	    <!---
             <call function="'setKnownIssue'">
               { 'issueId' : '3773' }
             </call>
+	    -->
 
             <call function="'testCase_Postamble'"/>
           </sequence>

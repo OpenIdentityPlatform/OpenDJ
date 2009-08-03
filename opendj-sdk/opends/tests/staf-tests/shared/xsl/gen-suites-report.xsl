@@ -58,7 +58,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:param name="tests-type"/>
 
   <!--- Test Suites Report Header Variables -->
-  <xsl:variable name="ft"             select="qa/$tests-type"/>
   <xsl:variable name="id"             select="identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
