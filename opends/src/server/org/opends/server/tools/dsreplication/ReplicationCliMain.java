@@ -439,10 +439,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         ci = new LDAPConnectionConsoleInteraction(this,
             argParser.getSecureArgsList());
-        ci.setDisplayLdapIfSecureParameters(
-            !argParser.isInitializeAllReplicationSubcommand() &&
-            !argParser.isPreExternalInitializationSubcommand() ||
-            !argParser.isPostExternalInitializationSubcommand());
+        ci.setDisplayLdapIfSecureParameters(false);
       }
       if (returnValue == SUCCESSFUL_NOP)
       {

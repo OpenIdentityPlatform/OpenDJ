@@ -97,6 +97,9 @@ public class LDAPConnectionConsoleInteraction {
   // Indicate if the truststore in in memory
   private boolean trustStoreInMemory = false;
 
+  // Indicate if the all certificates are accepted
+  private boolean trustAll = false;
+
   // Indicate that the trust manager was created with the parameters provided
   private boolean trustManagerInitialized;
 
@@ -282,6 +285,9 @@ public class LDAPConnectionConsoleInteraction {
     this.app = app;
     this.secureArgsList = secureArgs;
     this.commandBuilder = new CommandBuilder(null);
+    this.useSSL = secureArgs.useSSL();
+    this.useStartTLS = secureArgs.useStartTLS();
+    this.trustAll = secureArgs.trustAllArg.isPresent();
     copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysSSL());
     try
     {
@@ -343,7 +349,6 @@ public class LDAPConnectionConsoleInteraction {
           ||
           secureArgsList.keyStorePasswordFileArg.isPresent()
       );
-
     // Get the LDAP host.
     hostName = secureArgsList.hostNameArg.getValue();
     final String tmpHostName = hostName;
@@ -403,6 +408,8 @@ public class LDAPConnectionConsoleInteraction {
     useStartTLS = secureArgsList.useStartTLS();
     boolean connectionTypeIsSet =
       (
+        secureArgsList.alwaysSSL()
+        ||
         secureArgsList.useSSLArg.isPresent()
         ||
         secureArgsList.useStartTLSArg.isPresent()
@@ -826,6 +833,8 @@ public class LDAPConnectionConsoleInteraction {
         );
     boolean askForTrustStore = false;
 
+    trustAll = secureArgsList.trustAllArg.isPresent();
+
     // Try to use the local instance trustore, to avoid certifacte validation
     // when both the CLI and the server are in the same instance.
     if (weDontKnowTheTrustMethod) {
@@ -866,6 +875,7 @@ public class LDAPConnectionConsoleInteraction {
           if (result.getValue().equals(TrustMethod.TRUSTALL.getChoice()))
           {
             commandBuilder.addArgument(copySecureArgsList.trustAllArg);
+            trustAll = true;
             // If we have the trustALL flag, don't do anything
             // just return null
             return null;
@@ -1434,6 +1444,15 @@ public class LDAPConnectionConsoleInteraction {
    */
   public boolean isTrustStoreInMemory() {
     return this.trustStoreInMemory;
+  }
+
+  /**
+   * Indicate if all certificates must be accepted.
+   *
+   * @return true all certificates must be accepted.
+   */
+  public boolean isTrustAll() {
+    return this.trustAll;
   }
 
   /**
