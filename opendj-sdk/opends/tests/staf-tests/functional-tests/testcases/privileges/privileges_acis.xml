@@ -25,26 +25,13 @@
  !
  !      Copyright 2009 Sun Microsystems, Inc.
  ! -->
-
 <stax>
 
-  <defaultcall function="group_setup"/>
+  <defaultcall function="privileges_acis"/>
 
-  <function name="group_setup">
+  <function name="privileges_acis">
     <function-map-args>
-      <function-arg-def name="startDS" type="optional" default="True">
-        <function-arg-description>
-          Optional start the Directory Server
-        </function-arg-description>
-        <function-arg-property name="type" value="boolean"/>
-      </function-arg-def>  
-      <function-arg-def name="loadBackend" type="optional" default="True">
-        <function-arg-description>
-          Specifies whether the backend should be loaded with some data.
-        </function-arg-description>
-        <function-arg-property name="type" value="boolean"/>
-      </function-arg-def>            
-      <function-arg-def name="globalAcis" type="optional" default="True">
+      <function-arg-def name="globalAcis" type="optional" default="False">
         <function-arg-description>
           Specifies whether the test should use global acis.
         </function-arg-description>
@@ -54,7 +41,7 @@
       
     <sequence>
   
-      <block name="'setup'">
+      <block name="'privileges_acis'">
         <sequence>
 
           <if expr="globalAcis == True">
@@ -67,7 +54,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsFilename'       : '%s/groups/global_acis.ldif' % remote.data
+                'dsFilename'       : '%s/privileges/privileges_global_acis.ldif' % remote.data
                 }
               </call>
             </sequence>
@@ -80,7 +67,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsFilename'       : '%s/groups/entry_acis.ldif' % remote.data
+                'dsFilename'       : '%s/privileges/privileges_entry_acis.ldif' % remote.data
                 }
               </call>
             </sequence>

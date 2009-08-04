@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="bob_custom_jks"/>
+  <defaultcall function="security_bob_custom_jks"/>
 
-  <function name="bob_custom_jks">
+  <function name="security_bob_custom_jks">
       <!---
             Place suite-specific test information here.
             #@TestSuiteName             JKS Tests

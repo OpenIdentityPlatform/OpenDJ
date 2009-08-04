@@ -23,80 +23,86 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_auth_pwd_syntax"/>
 
-  <function name="security_auth_pwd_syntax">
+  <function name="security_auth_pwd_syntax" scope="local">
 
-     <sequence>
+    <sequence>
 
-      <block name="'auth-pwd-syntax'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-        
-          <call function="'testSuite_Preamble'"/>
+      <block name="'auth_pwd_syntax'">
 
+        <try>      
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-                                  
+          <sequence>
+    
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='auth_pwd_syntax'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_setup_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
-          <call function="'setup_auth_pwd_syntax'" />
+            <script>
+              testList = []
+              testList.append('setup_auth_pwd_syntax')
+              testList.append('auth_pwd_syntax_MD5_policy')
+              testList.append('auth_pwd_syntax_SHA256_policy')
+              testList.append('auth_pwd_syntax_SHA384_policy')
+              testList.append('auth_pwd_syntax_SHA512_policy')
+              testList.append('auth_pwd_syntax_SHA1_policy')
+              testList.append('auth_pwd_syntax_def_policy')
+              testList.append('teardown_auth_pwd_syntax')
+            </script>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_MD5_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_MD5_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA256_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_SHA256_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA384_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_SHA384_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA512_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_SHA512_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_SHA1_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_SHA1_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_auth_pwd_syntax_def_policy.xml' % (TESTS_DIR)"/>
-          <call function="'auth_pwd_syntax_def_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/auth_pwd_syntax/security_teardown_auth_pwd_syntax.xml' % (TESTS_DIR)"/>
-          <call function="'teardown_auth_pwd_syntax'" />
-  
+            <iterate  var="_test" in="testList">
+              <sequence>              
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
 
+              </sequence>
+            </iterate>
+  
+          </sequence>
 
-                        
-          <call function="'testSuite_Postamble'"/>
-        
-        </sequence>
-     
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Auth Password Syntax Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-     
-     </sequence>
+   
+    </sequence>
 
   </function>
 

@@ -256,6 +256,7 @@ class directory_server:
     self.port=''
     self.dn=''
     self.password=''
+    self.suffix=''
     self.backend=''
 
   def location(self,location):

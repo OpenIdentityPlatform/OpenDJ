@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -34,174 +34,192 @@
     <sequence>
 
       <block name="'dsconfig-get'">
-      
-        <sequence>
-  
-        <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='aci'                
-            CurrentTestPath['suite']=STAXCurrentBlock
-        </script>
-      
-        <call function="'testSuite_Preamble'"/>
-          
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/dsconfig/dsconfig_setup.xml' % (TESTS_DIR)"/>
-        <call function="'dsconfig_setup'" />
 
-                            
-        <script>
-            componentList = []
-         
-            f = open('%s/testcases/dsconfig/get.dat' % (TESTS_DIR),'r')
-            for line in f.readlines():
-                if line.startswith('#'):
-                    continue
-                else: 
-                    lineSingle = line.split(':')
-                    componentList.append(lineSingle)
-            f.close()
-          
-            componentNumber=0
-            testNumber=0
-            i=1
-        </script>
-        <iterate var="dummyIndex" in="componentList">
+        <try>      
           <sequence>
-            <script>
-                # avoid same testName by incrementing the number
-                thisTestname = "%s.%s, %s" % (i,componentList[componentNumber][0],componentList[componentNumber][2])
-                i+=1
-            </script>
-            <message>'TRACE %s' % thisTestname</message>
-            <testcase name="getTestCaseName(thisTestname)" >
-              <sequence>
-                <call function="'testCase_Preamble'" />
-                <message>
-                    'Getting component %s, %s, %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2], componentList[componentNumber][3], componentList[componentNumber][4])
-                </message>
-                
-                <if expr="componentList[componentNumber][0] == 'get-local-db-index-prop'">
-                  <call function="'dsconfig'">
-                  {   
-                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
-                    'subcommand'     :  '%s' % componentList[componentNumber][0] ,
-                    'objectType'     :  '%s' % componentList[componentNumber][1] ,
-                    'objectName'     :  '%s' % componentList[componentNumber][2] ,
-                    'optionsString'  :  '--backend-name %s' % DIRECTORY_INSTANCE_BE ,
-                    'expectedRC'     : 0 
-                  }
-                  </call>
-                <else>
-                  <call function="'dsconfig'">
-                  {                       
-                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
-                    'subcommand'     :  '%s' % componentList[componentNumber][0] ,
-                    'objectType'     :  '%s' % componentList[componentNumber][1] ,
-                    'objectName'     :  '%s' % componentList[componentNumber][2] ,
-                    'expectedRC'     : 0 
-                  }
-                  </call>
-                </else>
-                </if>
-              
-                <script> 
-                 returnString = STAXResult[0][1]
-                </script> 
     
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : componentList[componentNumber][3]  ,
-                      'expectedResult'     : '1' }
-                </call>
-                
-                <call function="'checktestString'">
-                    { 'returnString'       : returnString ,
-                      'expectedString'     : componentList[componentNumber][4] }
-                </call>
-               
-                <call function="'testCase_Postamble'" />
-              </sequence>
-            </testcase>
-            <script>
-                    componentNumber=componentNumber+1
-            </script>
-          </sequence>
-        </iterate>
-       
-        <script>
-            componentList2 = []
-         
-            f = open('%s/testcases/dsconfig/get2.dat' % (TESTS_DIR),'r')
-            for line in f.readlines():
-                if line.startswith('#'):
-                    continue
-                else: 
-                    lineSingle = line.split(':')
-                    componentList2.append(lineSingle)
-            f.close()
-          
-            componentNumber=0
-            testNumber=0
-        </script>
-        <iterate var="dummyIndex" in="componentList2">
-          <sequence>
-            <script>
-                thisTestname = componentList2[componentNumber][0]
-            </script>
-            <testcase name="getTestCaseName(thisTestname)" >
-              <sequence>
-                <call function="'testCase_Preamble'" />
-                <message>
-                    'Getting component %s, %s, %s' % (componentList2[componentNumber][0], componentList2[componentNumber][1], componentList2[componentNumber][2])
-                </message>
-                
-                <call function="'dsconfig'">
-                  {   
-                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-                    'subcommand'     :  '%s' % componentList2[componentNumber][0] ,
-                    'expectedRC'     : 0 
-                  }
-                </call>
-                
-                <script> 
-                 returnString = STAXResult[0][1]
-                </script> 
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : componentList2[componentNumber][1]  ,
-                      'expectedResult'     : '1' }
-                </call>
-                
-                <call function="'checktestString'">
-                    { 'returnString'       : returnString ,
-                      'expectedString'     : componentList2[componentNumber][2] }
-                </call>
-               
-                <call function="'testCase_Postamble'" />
-              </sequence>
-            </testcase>
-            <script>
-                    componentNumber=componentNumber+1
-            </script>
-          </sequence>
-        </iterate>
-       
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/dsconfig/dsconfig_cleanup.xml' % (TESTS_DIR)"/>
-        <call function="'dsconfig_cleanup'" />
-
-                            
-        <call function="'testSuite_Postamble'"/>
+          <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='aci'                
+              CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
         
-        </sequence>
+          <call function="'testSuite_Preamble'"/>
+            
+          <call function="'common_setup'">
+            {
+              'quickStart'  : False,
+              'startServer' : True,
+              'stopServer'  : False,
+            }
+          </call>
+                              
+          <script>
+              componentList = []
+           
+              f = open('%s/testcases/dsconfig/get.dat' % (TESTS_DIR),'r')
+              for line in f.readlines():
+                  if line.startswith('#'):
+                      continue
+                  else: 
+                      lineSingle = line.split(':')
+                      componentList.append(lineSingle)
+              f.close()
+            
+              componentNumber=0
+              testNumber=0
+              i=1
+          </script>
+          <iterate var="dummyIndex" in="componentList">
+            <sequence>
+              <script>
+                  # avoid same testName by incrementing the number
+                  thisTestname = "%s.%s, %s" % (i,componentList[componentNumber][0],componentList[componentNumber][2])
+                  i+=1
+              </script>
+              <message>'TRACE %s' % thisTestname</message>
+              <testcase name="getTestCaseName(thisTestname)" >
+                <sequence>
+                  <call function="'testCase_Preamble'" />
+                  <message>
+                      'Getting component %s, %s, %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2], componentList[componentNumber][3], componentList[componentNumber][4])
+                  </message>
+                  
+                  <if expr="componentList[componentNumber][0] == 'get-local-db-index-prop'">
+                    <call function="'dsconfig'">
+                    {   
+                      'dsInstanceHost' : server.host ,
+                      'dsInstanceDn'   : server.dn ,
+                      'dsInstancePswd' : server.password , 
+                      'subcommand'     :  '%s' % componentList[componentNumber][0] ,
+                      'objectType'     :  '%s' % componentList[componentNumber][1] ,
+                      'objectName'     :  '%s' % componentList[componentNumber][2] ,
+                      'optionsString'  :  '--backend-name %s' % DIRECTORY_INSTANCE_BE ,
+                      'expectedRC'     : 0 
+                    }
+                    </call>
+                  <else>
+                    <call function="'dsconfig'">
+                    {                       
+                      'dsInstanceHost' : server.host ,
+                      'dsInstanceDn'   : server.dn ,
+                      'dsInstancePswd' : server.password , 
+                      'subcommand'     :  '%s' % componentList[componentNumber][0] ,
+                      'objectType'     :  '%s' % componentList[componentNumber][1] ,
+                      'objectName'     :  '%s' % componentList[componentNumber][2] ,
+                      'expectedRC'     : 0 
+                    }
+                    </call>
+                  </else>
+                  </if>
+                
+                  <script> 
+                   returnString = STAXResult[0][1]
+                  </script> 
+      
+                  <call function="'searchStringForSubstring'">
+                      { 'returnString'       : returnString ,
+                        'testString'         : componentList[componentNumber][3]  ,
+                        'expectedResult'     : '1' }
+                  </call>
+                  
+                  <call function="'checktestString'">
+                      { 'returnString'       : returnString ,
+                        'expectedString'     : componentList[componentNumber][4] }
+                  </call>
+                 
+                  <call function="'testCase_Postamble'" />
+                </sequence>
+              </testcase>
+              <script>
+                      componentNumber=componentNumber+1
+              </script>
+            </sequence>
+          </iterate>
+         
+          <script>
+              componentList2 = []
+           
+              f = open('%s/testcases/dsconfig/get2.dat' % (TESTS_DIR),'r')
+              for line in f.readlines():
+                  if line.startswith('#'):
+                      continue
+                  else: 
+                      lineSingle = line.split(':')
+                      componentList2.append(lineSingle)
+              f.close()
+            
+              componentNumber=0
+              testNumber=0
+          </script>
+          <iterate var="dummyIndex" in="componentList2">
+            <sequence>
+              <script>
+                  thisTestname = componentList2[componentNumber][0]
+              </script>
+              <testcase name="getTestCaseName(thisTestname)" >
+                <sequence>
+                  <call function="'testCase_Preamble'" />
+                  <message>
+                      'Getting component %s, %s, %s' % (componentList2[componentNumber][0], componentList2[componentNumber][1], componentList2[componentNumber][2])
+                  </message>
+                  
+                  <call function="'dsconfig'">
+                    {   
+                      'dsInstanceHost' : server.host ,
+                      'dsInstanceDn'   : server.dn ,
+                      'dsInstancePswd' : server.password ,
+                      'subcommand'     :  '%s' % componentList2[componentNumber][0] ,
+                      'expectedRC'     : 0 
+                    }
+                  </call>
+                  
+                  <script> 
+                   returnString = STAXResult[0][1]
+                  </script> 
+      
+                  <call function="'searchStringForSubstring'">
+                      { 'returnString'       : returnString ,
+                        'testString'         : componentList2[componentNumber][1]  ,
+                        'expectedResult'     : '1' }
+                  </call>
+                  
+                  <call function="'checktestString'">
+                      { 'returnString'       : returnString ,
+                        'expectedString'     : componentList2[componentNumber][2] }
+                  </call>
+                 
+                  <call function="'testCase_Postamble'" />
+                </sequence>
+              </testcase>
+              <script>
+                      componentNumber=componentNumber+1
+              </script>
+            </sequence>
+          </iterate>
+          
+          </sequence>
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Dsconfig Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'">
+                  { 'deleteSuffix'  : False }
+                </call>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
       </block>
     </sequence>
   </function>

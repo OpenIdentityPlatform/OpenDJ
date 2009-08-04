@@ -23,73 +23,96 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_restore-tasks"/>
   <function name="main_restore-tasks">
     <sequence>
       <block name="'restore-tasks'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'"/>
-          <!--- Test Suite information
-            #@TestSuiteName       Backend Restore Tasks Tests
-            #@TestSuitePurpose    Verify that the basic restore task functionality is working in the Directory Server.
-            #@TestSuiteID         Restore Tasks Tests
-            #@TestSuiteGroup      Restore Tasks
-            #@TestGroup           Backend
-            #@TestScript          restore-tasks.xml
-            #@TestHTMLLink        http://opends.dev.java.net/
-          -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_setup'"> { 'loadBackend' : True } </call>    
-          
-          <!--- Test Case information
-            #@TestMarker          Backend Restore Tasks Tests
-            #@TestName            Restore Tasks: Restore Tasks 1
-            #@TestID              RestoreTasks1
-            #@TestPurpose         Verify an restore task of a LDIF file on the default backend.
-            #@TestPreamble
-            #@TestSteps           An ldif file is created that describes the restore task to be
-                                  scheduled. The task is scheduled by adding the ldif file
-                                  with the static ldapmodify.
-            #@TestPostamble
-            #@TestResult          Success if OpenDS returns 0
-          -->
-          <testcase name="getTestCaseName('Test 1')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <message>
-                'Backend RestoreTasks1: Restore the data in OpenDS by scheduling a task'
-              </message>
-              <call function="'restoreTask'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'taskID'         : '4',
-                  'backupDir'      : '%s/backends/' % remote.data
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              <call function="'testCase_Postamble'"/>
+        <try>
+          <sequence>
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='backends'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            <call function="'testSuite_Preamble'"/>
+            <!--- Test Suite information
+              #@TestSuiteName       Backend Restore Tasks Tests
+              #@TestSuitePurpose    Verify that the basic restore task functionality is working in the Directory Server.
+              #@TestSuiteID         Restore Tasks Tests
+              #@TestSuiteGroup      Restore Tasks
+              #@TestGroup           Backend
+              #@TestScript          restore-tasks.xml
+              #@TestHTMLLink        http://opends.dev.java.net/
+            -->
+            <call function="'common_setup'">
+              {
+                'quickStart'  : False ,
+                'loadData'    : False ,
+                'startServer' : True ,
+                'stopServer'  : False
+              }
+            </call> 
+            
+            <!--- Test Case information
+              #@TestMarker          Backend Restore Tasks Tests
+              #@TestName            Restore Tasks: Restore Tasks 1
+              #@TestID              RestoreTasks1
+              #@TestPurpose         Verify an restore task of a LDIF file on the default backend.
+              #@TestPreamble
+              #@TestSteps           An ldif file is created that describes the restore task to be
+                                    scheduled. The task is scheduled by adding the ldif file
+                                    with the static ldapmodify.
+              #@TestPostamble
+              #@TestResult          Success if OpenDS returns 0
+            -->
+            <testcase name="getTestCaseName('Test 1')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                  'Backend RestoreTasks1: Restore the data in OpenDS by scheduling a task'
+                </message>
+                <call function="'restoreTask'">
+                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'taskID'         : '4',
+                    'backupDir'      : '%s/backends/' % remote.data
+                  }
+                </call>
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult
+                  }
+                </call>
+                <call function="'testCase_Postamble'"/>
               </sequence>
             </testcase>
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_cleanup'"/>
-          <call function="'testSuite_Postamble'"/>
-        </sequence>
+  
+          </sequence>
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Backup Cleanup.'</message>
+              <try>
+                <try>
+                  <call function="'common_cleanup'" />
+                <catch exception="'STAFException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                  </sequence>
+                </catch>
+                </try>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+        </try>
       </block>
     </sequence>
   </function>

@@ -23,123 +23,91 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_pwd_policy"/>
 
-  <function name="security_pwd_policy">
+  <function name="security_pwd_policy" scope="local">
 
     <sequence>
 
-      <block name="'pwd-policy'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
+      <block name="'pwd_policy'">
+
+        <try>      
+
+          <sequence>
+    
+            <script>
               CurrentTestPath['group']='security'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          
-       <!---
-            Place group-specific test information here.
-            #@TestGroupName             Security
-            #@TestGroupPurpose          To test the security functionality.
-            #@TestSubgroupName          Password Policy
-        -->
-      
-          <call function="'testSuite_Preamble'"/>
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='pwd_policy'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
 
+            <script>
+              testList = []
+              testList.append('setup_pwd_policy')
+              testList.append('user_pwd_policy')
+              testList.append('force_pwd_change')
+              testList.append('force_pwd_change_all_users')
+# DISABLED    testList.append('enable_max_pwd_age')
+# DISABLED    testList.append('disable_max_pwd_age')
+              testList.append('min_pwd_age')
+              testList.append('lockout_fail_cnt')
+              testList.append('grace_login')
+              testList.append('mult_pwd_policies')
+              testList.append('preencoded_pwds')
+              testList.append('lockout_duration')
+              testList.append('last_login')
+              testList.append('teardown_pwd_policy')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
 
-                                      
+              </sequence>
+            </iterate>
+  
+          </sequence>
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_setup_pwd_policy.xml'
-          % (TESTS_DIR)"/>
-          <call function="'setup_pwd_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_user_pwd_policy.xml'
-          % (TESTS_DIR)"/>
-          <call function="'user_pwd_policy'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_force_pwd_change.xml'
-          % (TESTS_DIR)"/>
-          <call function="'force_pwd_change'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-file="'%s/testcases/security/pwd_policy/security_force_pwd_change_all_users.xml'
-% (TESTS_DIR)"/>
-          <call function="'force_pwd_change_all_users'" />
-          <!--
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy/security_enable_max_pwd_age.xml' % (TESTS_DIR)"/>
-          <call function="'enable_max_pwd_age'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy/security_disable_max_pwd_age.xml' % (TESTS_DIR)"/>
-          <call function="'disable_max_pwd_age'" />
-          -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy/security_min_pwd_age.xml'
-            % (TESTS_DIR)"/>
-          <call function="'min_pwd_age'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_lockout_fail_cnt.xml'
-          % (TESTS_DIR)"/>
-          <call function="'lockout_fail_cnt'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy/security_grace_login.xml'
-            % (TESTS_DIR)"/>
-          <call function="'grace_login'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-         file="'%s/testcases/security/pwd_policy/security_mult_pwd_policies.xml'
-         % (TESTS_DIR)"/>
-          <call function="'mult_pwd_policies'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_preencoded_pwds.xml'
-          % (TESTS_DIR)"/>
-          <call function="'preencoded_pwds'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/testcases/security/pwd_policy/security_lockout_duration.xml'
-          % (TESTS_DIR)"/>
-          <call function="'lockout_duration'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy/security_last_login.xml'
-            % (TESTS_DIR)"/>
-          <call function="'last_login'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-       file="'%s/testcases/security/pwd_policy/security_teardown_pwd_policy.xml'
-       % (TESTS_DIR)"/>
-          <call function="'teardown_pwd_policy'" />
-  
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                  
-    
-          <call function="'testSuite_Postamble'"/>
-    
-        </sequence>
-    
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Password Policy Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-    
+   
     </sequence>
 
   </function>

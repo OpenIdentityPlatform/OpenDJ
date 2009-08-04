@@ -23,76 +23,84 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_sasl"/>
 
-  <function name="security_sasl">
+  <function name="security_sasl" scope="local">
 
     <sequence>
 
       <block name="'sasl'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-      
-          <call function="'testSuite_Preamble'"/>
 
+        <try>      
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-
-                                    
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_setup_sasl.xml' % (TESTS_DIR)"/>
-          <call function="'setup_sasl'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_sasl_anon.xml' % (TESTS_DIR)"/>
-          <call function="'sasl_anon'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_sasl_plain.xml' % (TESTS_DIR)"/>
-          <call function="'sasl_plain'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_sasl_cram-md5.xml' % (TESTS_DIR)"/>
-          <call function="'sasl_cram-md5'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_sasl_digest-md5.xml' % (TESTS_DIR)"/>
-          <call function="'sasl_digest-md5'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_sasl_new.xml' % (TESTS_DIR)"/>
-          <call function="'sasl_new'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/sasl/security_teardown_sasl.xml' % (TESTS_DIR)"/>
-          <call function="'teardown_sasl'" />
-
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                            
-          <call function="'testSuite_Postamble'"/>
-            
-        </sequence>
+          <sequence>
     
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='sasl'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
+
+            <script>
+              testList = []
+              testList.append('setup_sasl')
+              testList.append('sasl_anon')
+              testList.append('sasl_plain')
+              testList.append('sasl_cram-md5')
+              testList.append('sasl_digest-md5')
+              testList.append('sasl_new')
+              testList.append('teardown_sasl')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
+
+              </sequence>
+            </iterate>
+  
+          </sequence>
+
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global SASL Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-    
+   
     </sequence>
 
   </function>

@@ -26,97 +26,74 @@
  !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
-  <defaultcall function="main_schema"/>
-
-  <function name="main_schema" scope="local">
+  <defaultcall function="main_schema" />
+  <function name="main_schema">
     <function-list-args>
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
 
     <sequence>
       <try>
-        <block name="'main_schema'">
+        <block name="'schema'">
           <sequence>
-
-            <message log="1" level="'Info'">'STAXParentID= %s' % STAXParentID</message>
-            
             <!--- Load the job environment for the test group execution -->
             <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
             <call function="'loadJobEnvironment'">
                  { 'parent' : STAXParentID }
             </call>
-
             <script>
-              _group='schema'
-              CurrentTestPath={ 'group' : '%s' % _group }
+              CurrentTestPath['group']='schema'
+              _group=CurrentTestPath['group']
+              
             </script>
-
-            <!--- Test Group information
-            #@TestGroupName       Schema Test
-            #@TestGroupPurpose    Verify that schema is working correctly
-            -->
-            <call function="'testGroup_Preamble'"/>            
-
-            <!-- List of test suites to run -->
+            <call function="'testGroup_Preamble'" />
             <script>
-              suiteList=[]
+              suiteList = []
               suiteList.append('rfc')
               suiteList.append('dynamic')
               suiteList.append('solaris')
             </script>
-                
-            <!-- Data global to this test group  -->
-            <!-- LDAP Server Object -->
-            <script>
-              server=directory_server()
-              server.location   = STAF_REMOTE_HOSTNAME
-              server.host       = DIRECTORY_INSTANCE_HOST
-              server.port       = DIRECTORY_INSTANCE_PORT
-              server.adminport  = DIRECTORY_INSTANCE_ADMIN_PORT
-              server.dn         = DIRECTORY_INSTANCE_DN
-              server.password   = DIRECTORY_INSTANCE_PSWD
-              server.suffix     = DIRECTORY_INSTANCE_SFX
-            </script>
-
+    
             <!-- Run the test suites -->
             <iterate  var="_suite" in="suiteList">
               <sequence>              
                 <try>
                   <sequence>                  
                     <import machine="STAF_LOCAL_HOSTNAME"
-                            file="'%s/testcases/%s/%s/%s_%s.xml' % 
-                              (TESTS_DIR,_group,_suite,_group,_suite)"/>
+                      file="'%s/testcases/%s/%s/%s_%s.xml' % (TESTS_DIR,_group,_suite,_group,_suite)"/> 
                     <call function="'main_%s_%s' % (_group,_suite)" />
                   </sequence>
                 <catch exception="'STAFException.TestSuite.SetupException'">
                   <sequence>
                     <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite</message>
-                    <throw exception="'STAXException.TestGroupException'" />
                   </sequence>
                 </catch>
                 <catch exception="'STAFException.TestSuite.MainException'">
                   <sequence>
                     <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite</message>
-                    <throw exception="'STAXException.TestGroupException'" />
                   </sequence>
                 </catch>
                 <catch exception="'STAFException.TestSuite.CleanupException'">
                   <sequence>
                     <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite</message>
-                    <throw exception="'STAXException.TestGroupException'" />
                   </sequence>
                 </catch>
                 </try>
               </sequence>
             </iterate>
-
+                                    
           </sequence>
         </block>
-      <finally>
-        <!-- Test Group postamble -->
-        <call function="'testGroup_Postamble'"/>
-      </finally>
+        <catch exception="'STAXException.TestGroupException'">
+          <sequence>
+            <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
+          </sequence>
+        </catch>        
+        <finally>
+          <!-- Test Group postamble -->
+          <call function="'testGroup_Postamble'"/>
+        </finally>
       </try>
     </sequence>
   </function>

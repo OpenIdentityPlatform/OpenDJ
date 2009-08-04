@@ -23,120 +23,145 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="monitoring_componant"/>
   <function name="monitoring_componant" scope="local">
     <block name="STAXCurrentFunction">    
-      <sequence>
-        <script>
-          CurrentTestPath['suite']=STAXCurrentFunction
-        </script>
-        <call function="'testSuite_Preamble'" />
-        
-        
-        <!--- Test Suite information
-#@TestSuiteName       Monitoring componants
-#@TestSuitePurpose    Verify the monitoring of  componants
-#@TestSuiteID         Monitoring
-#@TestSuiteGroup      Monitoring
-#@TestGroup           Monitoring
-#@TestScript          monitoring_componants.xml
-#@TestHTMLLink        http://opends.dev.java.net/
--->
-        
-        <!---
-#@TestMarker            monitoring componants
-#@TestName              monitoring componants
-#@TestIssue             Check the monitoring of the componant Backup Backend
-#@TestPreamble          none
-#@TestStep              Check the entry on cn=backup Backend,cn=monitor,cn=monitor is available
-#@TestPostamble         none
-
--->  
-    
-        <testcase name="getTestCaseName('Backup Backend monitoring')">
+      <try>
+        <sequence>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentFunction
+          </script>
+          <call function="'testSuite_Preamble'" />
+          
+          <call function="'common_setup'">
+            {
+              'quickStart'    : True ,
+              'startServer'   : True  ,
+              'stopServer'    : False
+            }
+          </call>
+          
+          <!--- Test Suite information
+          #@TestSuiteName       Monitoring componants
+          #@TestSuitePurpose    Verify the monitoring of  componants
+          #@TestSuiteID         Monitoring
+          #@TestSuiteGroup      Monitoring
+          #@TestGroup           Monitoring
+          #@TestScript          monitoring_componants.xml
+          #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+                  
+                  <!---
+          #@TestMarker            monitoring componants
+          #@TestName              monitoring componants
+          #@TestIssue             Check the monitoring of the componant Backup Backend
+          #@TestPreamble          none
+          #@TestStep              Check the entry on cn=backup Backend,cn=monitor,cn=monitor is available
+          #@TestPostamble         none
+          
+          -->  
+      
+          <testcase name="getTestCaseName('Backup Backend monitoring')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <!-- Check the entry on cn=backup Backend,cn=monitor is available -->  
+              <message>'######  Monitor the Backup Backend ###### '</message>     
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+                'dsBaseDN'           : 'cn=backup Backend,cn=monitor',
+                'dsFilter'           : 'objectclass=*',
+                'expectedRC'	   :  0 }
+              </call>  	    
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!---
+          #@TestMarker            monitoring componants
+          #@TestName              monitoring componants
+          #@TestIssue             Check the monitoring of the componant Database Backend
+          #@TestPreamble          none
+          #@TestStep               Check the entry on cn=userRoot Backend,cn=monitor,cn=monitor is available
+          #@TestPostamble         none
+          
+          -->  
+      
+          <testcase name="getTestCaseName('Database Backend monitoring')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <!-- Check the entry on cn=userRoot Backend,cn=monitor is available -->  
+              <message>'######  Monitor the dbName Backend ###### '</message>     
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+                'dsBaseDN'           : 'cn=%s Backend,cn=monitor' % DIRECTORY_INSTANCE_BE,
+                'dsFilter'           : 'objectclass=*',
+                'expectedRC'	   :  0 }
+              </call>  	    
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!---
+          #@TestMarker            monitoring componants
+          #@TestName              monitoring componants
+          #@TestIssue             Check the monitoring of the componant tasks Backend
+          #@TestPreamble          none
+          #@TestStep               Check the entry on cn=tasks Backend,cn=monitor,cn=monitor is available
+          #@TestPostamble         none
+          
+          -->  
+      
+          <testcase name="getTestCaseName('Tasks Backend monitoring')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <!-- Check the entry on cn=tasks Backend,cn=monitor is available -->  
+              <message>'######  Monitor the tasks Backend ###### '</message>     
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+                'dsBaseDN'           : 'cn=tasks Backend,cn=monitor',
+                'dsFilter'           : 'objectclass=*',
+                'expectedRC'	   :  0 }
+              </call>  	    
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+        </sequence>
+        <finally>
           <sequence>
-            <call function="'testCase_Preamble'"/>
-            
-            <!-- Check the entry on cn=backup Backend,cn=monitor is available -->  
-            <message>'######  Monitor the Backup Backend ###### '</message>     
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
-              'dsBaseDN'           : 'cn=backup Backend,cn=monitor',
-              'dsFilter'           : 'objectclass=*',
-              'expectedRC'	   :  0 }
-            </call>  	    
-            <call function="'testCase_Postamble'"/>
+            <!-- Test Suite Cleanup -->
+            <message>'Finally: Global Monitoring Component Cleanup.'</message>
+            <try>
+              <call function="'common_cleanup'" />
+            <catch exception="'STAFException'">
+              <sequence>
+                <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+              </sequence>
+            </catch>
+            <finally>
+              <call function="'testSuite_Postamble'"/>
+            </finally>
+            </try>
           </sequence>
-        </testcase>
-        
-        <!---
-#@TestMarker            monitoring componants
-#@TestName              monitoring componants
-#@TestIssue             Check the monitoring of the componant Database Backend
-#@TestPreamble          none
-#@TestStep               Check the entry on cn=userRoot Backend,cn=monitor,cn=monitor is available
-#@TestPostamble         none
-
--->  
-    
-        <testcase name="getTestCaseName('Database Backend monitoring')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            
-            <!-- Check the entry on cn=userRoot Backend,cn=monitor is available -->  
-            <message>'######  Monitor the dbName Backend ###### '</message>     
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
-              'dsBaseDN'           : 'cn=%s Backend,cn=monitor' % DIRECTORY_INSTANCE_BE,
-              'dsFilter'           : 'objectclass=*',
-              'expectedRC'	   :  0 }
-            </call>  	    
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-        
-        
-        <!---
-#@TestMarker            monitoring componants
-#@TestName              monitoring componants
-#@TestIssue             Check the monitoring of the componant tasks Backend
-#@TestPreamble          none
-#@TestStep               Check the entry on cn=tasks Backend,cn=monitor,cn=monitor is available
-#@TestPostamble         none
-
--->  
-    
-        <testcase name="getTestCaseName('Tasks Backend monitoring')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>
-            
-            <!-- Check the entry on cn=tasks Backend,cn=monitor is available -->  
-            <message>'######  Monitor the tasks Backend ###### '</message>     
-            <call function="'SearchObject'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
-              'dsBaseDN'           : 'cn=tasks Backend,cn=monitor',
-              'dsFilter'           : 'objectclass=*',
-              'expectedRC'	   :  0 }
-            </call>  	    
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-        
-        
-        <call function="'testSuite_Postamble'" />
-      </sequence>
+        </finally>
+      
+      </try>
     </block>      
   </function>
 </stax>

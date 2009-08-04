@@ -23,70 +23,97 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="aci_cleanup"/>
 
-  <function name="aci_cleanup">
+  <function name="aci_cleanup" scope="local">
 
     <sequence>
 
-      <block name="'cleanup'">
-      
-        <sequence>
+      <block name="'aci_cleanup'">
 
-      
-          <block name="'Block DS Process Stop'">        
-          <!--- Stop DS -->
-        <sequence>
-              <message>
-                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
+        <testcase name="getTestCaseName('ACI Cleanup')">
 
-              <call function="'StopDsWithScript'">
-                { 'location'    : STAF_REMOTE_HOSTNAME,
-                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
-                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+          <try>
+          
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'runFunction'">
+                { 'functionName'      : 'ldapDeleteWithScript'                  ,
+                  'functionMessage'   : 'Recursive delete of suffix.'           ,
+                  'functionException' : 'LDAP.DeleteException'                  ,
+                  'functionArguments' : { 'location'        : STAF_REMOTE_HOSTNAME  ,
+                                          'dsDeleteSubtree' : 'TRUE'                ,
+                                          'dsInstanceHost'  : server.host           ,
+                                          'dsInstancePort'  : server.port           ,
+                                          'dsInstanceDn'    : server.dn             ,
+                                          'dsInstancePswd'  : server.password       ,
+                                          'dsDn'            : ['%s' % server.suffix] }
+                }
               </call>
-
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+  
+              <call function="'runFunction'">
+                { 'functionName'      : 'StopDsWithScript'                      ,
+                  'functionMessage'   : 'Stop the Directory Server.'            ,
+                  'functionException' : 'Server.StopException'                  ,
+                  'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME  ,
+                                          'dsHost'      : server.host           ,
+                                          'dsAdminPort' : server.adminport      ,
+                                          'dsBindDN'    : server.dn             ,
+                                          'dsBindPwd'   : server.password }
+                }
               </call>
-
-        </sequence>        
-          <!--- End Block DS Process Stop -->
-          </block>
-      
-                              
-
-      <block name="'Block Remove DS Topology'">
-      <!-- Remove  the topology created for the test suite -->
-      <sequence>
-        
-              <message>
-                 'Remove DS topology created for the Test Suite'
-              </message>          
-
-        <call function="'removeTopology'"/>
-        
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-      </sequence>        
-      <!-- End Block Remove DS Topology-->  
-      </block>                                  
               
-      
-        </sequence>        
+              <call function="'runFunction'">
+                { 'functionName'      : 'removeTopology'                  ,
+                  'functionMessage'   : 'Remove DS topology.'             ,
+                  'functionException' : 'Server.RemoveTopologyException' 
+                }
+              </call>
+                      
+            </sequence> 
+                             
+            <catch exception="'STAXException.LDAP.DeleteException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: LDAPDelete failed. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+  
+            <catch exception="'STAXException.Server.RemoveTopologyException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Remove topology failed. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+  
+            <catch exception="'STAXException.Server.StopException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to stop Directory Server. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.CleanupException'" />
+              </sequence>
+            </catch>
+            <finally>
+              <!-- Test Group postamble -->
+              <call function="'testCase_Postamble'"/>
+            </finally>
+  
+          </try>        
+
+        </testcase>
+
       </block>
-            
+
      </sequence>
 
   </function>

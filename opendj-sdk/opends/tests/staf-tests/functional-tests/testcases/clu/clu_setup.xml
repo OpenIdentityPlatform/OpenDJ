@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -91,45 +91,6 @@
 
           <!--- Test Case information
             #@TestMarker          setup
-            #@TestName            setup: adding initial entries
-            #@TestIssue           none
-            #@TestPurpose         Load the data needed by the test suite.
-            #@TestPreamble        none
-            #@TestStep            Load the data needed by the test suite.
-            #@TestPostamble       none
-            #@TestResult          Success if importLdif returns 0.
-          -->
-          <testcase name="getTestCaseName('setup: load data')">
-
-            <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'setup: add initial entries'
-              </message>
-
-              <call function="'importLdif'">
-                { 
-                'ldifFile'    : '%s/clu/clu_start.ldif' % remote.data 
-                }
-              </call>
-
-              <call function="'checktestRC'">
-                {
-                'returncode' : RC ,
-                'result'     : STAXResult
-                }
-              </call>              
-              
-              <call function="'testCase_Postamble'"/>
-              
-            </sequence>
-
-          </testcase>
-
-          <!--- Test Case information
-            #@TestMarker          setup
             #@TestName            setup: start DS
             #@TestIssue           none
             #@TestPurpose         Start DS.
@@ -163,7 +124,7 @@
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
-                'noOfLoops'        : 10 ,
+                'noOfLoops'        : 5 ,
                 'noOfMilliSeconds' : 2000
                 }
               </call>
@@ -172,6 +133,76 @@
               
             </sequence>
             
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          setup
+            #@TestName            setup: adding initial entries
+            #@TestIssue           none
+            #@TestPurpose         Load the data needed by the test suite.
+            #@TestPreamble        none
+            #@TestStep            Load the data needed by the test suite.
+            #@TestPostamble       none
+            #@TestResult          Success if importLdif returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: load data')">
+
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'setup: add initial entries'
+              </message>
+
+              <!-- Turn off pre-encoded passwords -->
+              <call function="'dsconfigSet'">
+                { 
+                  'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                  'dsInstanceAdminPort'    : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+                  'objectName'             : 'password-policy',
+                  'propertyType'           : 'policy',
+                  'propertyName'           : 'Default Password Policy',
+                  'attributeName'          : 'allow-pre-encoded-passwords',
+                  'attributeValue'         : 'true',
+                  'expectedRC'             : expectedRC
+                }
+              </call>
+
+              <call function="'ldapModifyWithScript'">
+              { 'dsAdd'             : 'True',
+                'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+                'dsFilename'        : '%s/clu/clu_start.ldif' \
+                                      % remote.data,
+                'dsContinueOnError' : 'true',
+                'expectedRC'        : 0
+              }
+              </call>
+
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>              
+              
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+
           </testcase>
 
           <call function="'testSuite_Postamble'"/>

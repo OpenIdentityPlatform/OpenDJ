@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -46,11 +46,9 @@
         <sequence>
 
           <if expr="stopDS == True">      
-          <block name="'Block DS Process Stop'">        
-          <!--- Stop DS -->
-        <sequence>
+            <sequence>
               <message>
-                 '------ Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
 
               <call function="'StopDsWithScript'">
@@ -61,43 +59,21 @@
                   'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
               </call>
 
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
+            </sequence>        
 
-        </sequence>        
-          <!--- End Block DS Process Stop -->
-          </block>
-      </if>
-      
+          </if>
                               
+          <message>
+             'Remove DS topology created for the Test Suite'
+          </message>          
 
-      <block name="'Block Remove DS Topology'">
-      <!-- Remove  the topology created for the test suite -->
-      <sequence>
-        
-              <message>
-                 '------ Remove DS topology created for the Test Suite'
-              </message>          
+          <call function="'removeTopology'"/>
 
-        <call function="'removeTopology'"/>
-        
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-      </sequence>        
-      <!-- End Block Remove DS Topology-->  
-      </block>                                  
-              
-      
-        </sequence>        
+        </sequence>
       </block>
-            
-     </sequence>
 
+    </sequence>        
+              
   </function>
 
 </stax>

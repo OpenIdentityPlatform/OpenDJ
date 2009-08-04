@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2008 Sun Microsystems, Inc.
+#      Copyright 2008-2009 Sun Microsystems, Inc.
 #
 
 dn: cn=Aroot Manager,cn=Root DNs,cn=config
@@ -38,6 +38,14 @@ ds-pwp-password-policy-dn: cn=Root Password Policy,cn=Password Policies,cn=confi
 ds-rlim-lookthrough-limit: 0
 ds-rlim-time-limit: 0
 ds-rlim-size-limit: 0
+
+dn: dc=com
+dc: com
+objectclass: domain
+
+dn: dc=example,dc=com
+dc: example
+objectclass: domain
 
 dn: o=Privileges Tests, dc=example,dc=com
 o: Privileges Tests
@@ -157,7 +165,6 @@ telephonenumber: +1 408 555 9187
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 4117
 userpassword: irrefutable
-aci: (targetattr="*")(version 3.0; acl "rep_search_aci_tmorris"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
 
 dn: uid=abergin, ou=People, o=Privileges Tests, dc=example,dc=com
 cn: Andy Bergin
@@ -176,7 +183,6 @@ telephonenumber: +1 408 555 8585
 facsimiletelephonenumber: +1 408 555 7472
 roomnumber: 3472
 userpassword: inflict
-aci: (targetattr="*")(version 3.0; acl "del_search_aci_abergin"; allow (search,read) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
 
 dn: uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com
 cn: David Miller
@@ -195,7 +201,6 @@ telephonenumber: +1 408 555 9423
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
-aci: (targetattr="*")(version 3.0; acl "del_search_aci_dmiller"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
 
 dn: uid=gfarmer, ou=People, o=Privileges Tests, dc=example,dc=com
 cn: Gern Farmer
@@ -217,7 +222,6 @@ userpassword: ruling
 title: Engineer
 title: architect
 title: sweeper
-aci: (targetattr="*")(version 3.0; acl "del_search_aci_gfarmer"; allow (write) userdn="ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com";)
 
 dn: uid=kwinters, ou=People, o=Privileges Tests, dc=example,dc=com
 cn: Kelly Winters

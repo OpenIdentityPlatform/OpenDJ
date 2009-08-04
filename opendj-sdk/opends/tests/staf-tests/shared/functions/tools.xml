@@ -1693,7 +1693,7 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
       
-      <function-arg-def name="Help" type="optional">
+      <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Help option
         </function-arg-description>

@@ -37,8 +37,8 @@
         <block name="'core'">
           <sequence>
             <!--- Load the job environment for the test group execution -->
-            <import machine="STAF_LOCAL_HOSTNAME"
-                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <import machine="STAF_LOCAL_HOSTNAME" 
+              file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
             <call function="'loadJobEnvironment'">
                  { 'parent' : STAXParentID }
             </call>
@@ -59,6 +59,7 @@
               suiteList.append('controls/core_ctrls_assertion')
               suiteList.append('controls/core_ctrls_matched_values')
               suiteList.append('binaryattr/core_binaryattr')
+
             </script>
     
             <!-- Run the test suites -->

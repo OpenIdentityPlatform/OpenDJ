@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_aci"/>
@@ -33,59 +33,90 @@
     </function-list-args>
     <sequence>
 
-      <block name="'aci'">
-      
+      <try>
+        <block name="'aci'">
+        
+          <sequence>
+  
+            <!--- Load the job environment for the test group execution -->
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <call function="'loadJobEnvironment'">
+                 { 'parent' : STAXParentID }
+            </call>
+            
+            <script>
+              CurrentTestPath['group']='aci'
+              GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+            </script>
+            
+            <call function="'testGroup_Preamble'"/>
+  
+            <!-- List of ACI test suites to run -->
+            <script>
+              suiteList=[]
+              suiteList.append('global_acis')
+              suiteList.append('aci_target')
+              suiteList.append('aci_targetattr')
+              suiteList.append('aci_targetfilter')
+              suiteList.append('aci_targattrfilter')
+              suiteList.append('aci_targetscope')
+              suiteList.append('aci_targetcontrol')
+              suiteList.append('aci_delete_entry')
+              suiteList.append('aci_add_entry')
+              suiteList.append('aci_modify_entry')
+              suiteList.append('aci_modify_filter_tests')
+              suiteList.append('aci_compare_tests')
+              suiteList.append('multiple_aci_tests')
+              suiteList.append('aci_modify_rdn')
+              suiteList.append('aci_rdn_wildcards')
+              suiteList.append('aci_bindtypes')
+              suiteList.append('aci_proxy_auth')
+              suiteList.append('aci_effective_rights')
+#OOS          #suiteList.append('aci_import')
+            </script>
+
+            <!-- Run the test suites -->
+            <iterate  var="_suite" in="suiteList">
+              <sequence>              
+                <try>
+                  <sequence>                  
+                    <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/aci/%s.xml' % (TESTS_DIR,_suite)"/> 
+                    <call function="'%s' % _suite" />
+                  </sequence>
+                <catch exception="'STAFException.TestSuite.SetupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.MainException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.CleanupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                </try>
+              </sequence>
+            </iterate>
+                                    
+          </sequence>
+        </block>
+      <catch exception="'STAXException.TestGroupException'">
         <sequence>
-
-          <!--- Load the job environment for the test group execution -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-          <call function="'loadJobEnvironment'">
-               { 'parent' : STAXParentID }
-          </call>
-          
-          <script>
-            CurrentTestPath['group']='aci'
-            GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-          </script>
-          
-          <call function="'testGroup_Preamble'"/>
-
-          <!-- List of ACI test suites to run -->
-          <script>
-            suiteList=[]
-            suiteList.append('global_acis')
-            suiteList.append('aci_target')
-            suiteList.append('aci_targetattr')
-            suiteList.append('aci_targetfilter')
-            suiteList.append('aci_targattrfilter')
-            suiteList.append('aci_targetscope')
-            suiteList.append('aci_targetcontrol')
-            suiteList.append('aci_delete_entry')
-            suiteList.append('aci_add_entry')
-            suiteList.append('aci_modify_entry')
-            suiteList.append('aci_modify_filter_tests')
-            suiteList.append('aci_compare_tests')
-            suiteList.append('multiple_aci_tests')
-            suiteList.append('aci_modify_rdn')
-            suiteList.append('aci_rdn_wildcards')
-            suiteList.append('aci_bindtypes')
-            suiteList.append('aci_proxy_auth')
-            suiteList.append('aci_effective_rights')
-#OOS        suiteList.append('aci_import')
-          </script>
-
-          <iterate  var="_suite" in="suiteList">
-            <sequence>
-              <import machine="STAF_LOCAL_HOSTNAME"
-                file="'%s/testcases/aci/%s.xml' % (TESTS_DIR,_suite)"/>
-              <call function="'%s' % _suite" />    
-            </sequence>
-          </iterate>
-                                  
-          <call function="'testGroup_Postamble'"/>
+          <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
         </sequence>
-      </block>
+      </catch>        
+      <finally>
+        <!-- Test Group postamble -->
+        <call function="'testGroup_Postamble'"/>
+      </finally>
+      </try>
+
     </sequence>
   </function>
 </stax>

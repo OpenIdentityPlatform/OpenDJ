@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -79,7 +79,8 @@
                 <message>
                    'ACI: Proxy Auth: Preamble - Removing Search Global ACI'
                 </message>
-    
+
+                <!-- Remove the global ACI -->    
                 <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
@@ -87,11 +88,13 @@
                     'aciValue'               : GLOBAL_ACI_SEARCH ,
                     'opType'                 : 'remove' }
                 </call>
-            
+
+                <!-- Allow the proxy auth control for all ldap users read only -->            
                 <script>
-                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                    allow_aci='(targetcontrol=\"2.16.840.1.113730.3.4.18\") (version 3.0; acl \"allow proxy auth control access\"; allow(read) userdn=\"ldap:///anyone\";)'
                 </script>
-        
+
+                <!--  Add the ACI under suffix -->        
                 <call function="'modifyAnAttribute'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
@@ -106,7 +109,8 @@
                 <message>
                  'ACI: Proxy Auth: Preamble - existing branch, user searching entry that will be targeted in future tests'
                 </message>
-  
+
+              <!-- Search a users entry as another user. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -126,11 +130,14 @@
                     'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
                     'expectedResult'     : '0' }
               </call>
-              
+
+              <!-- TODO: Also perform a modify operation - should return insufficient access -->              
+
               <message>
                  'ACI: Proxy Auth: Preamble - existing branch, user searching entry that will be non-targeted in future tests'
               </message>
-  
+
+              <!-- Search a users entry as another user. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -149,6 +156,8 @@
                   { 'returnString'       : returnString ,
                     'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
               </call>
+
+              <!-- TODO: Also perform a modify operation - should return insufficient access -->
               
               <call function="'testCase_Postamble'"/>
   
@@ -183,7 +192,8 @@
               <message>
                  'ACI: Proxy Auth: one proxied user, user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as another user (uid=auser). This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -207,7 +217,8 @@
               <message>
                  'ACI: Proxy Auth: one proxied user, second user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as another user (uid=buser). This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -231,7 +242,8 @@
               <message>
                  'ACI: Proxy Auth: one proxied user, proxied user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as uid=aproxy. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -251,7 +263,8 @@
                     'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
                     'expectedResult'     : '0' }
               </call>
-              
+
+              <!-- Add the proxi aci for user uid=aproxy under ou=aci branch -->              
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
                   curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
@@ -269,14 +282,11 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one proxied user, proxy user searching targeted entry'
               </message>
-  
+
+              <!-- Search users entry with proxy dn without allowed aci access. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -297,11 +307,14 @@
                     'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
                     'expectedResult'     : '0' }
               </call>
-              
+
+              <!-- TODO: Also perform a modify operation - should return insufficient access -->
+                            
               <message>
                  'ACI: Proxy Auth: one proxied user, admin deleting both acis'
               </message>
-  
+
+              <!-- Delete the proxy aci for user uid=aproxy -->  
               <call function="'modifyEntry'">
                 { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
@@ -310,14 +323,11 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one proxied user, user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as another user. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -368,6 +378,7 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
 
+              <!-- Allow user uid=auser access to all entries under ou=aci branch -->
               <script>
                   curr_aci_ldif_file = 'add_user_aci_all.ldif'
                   curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
@@ -385,14 +396,11 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry under suffix as uid=auser. This should return a result -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -422,7 +430,8 @@
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as another user. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -446,7 +455,8 @@
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, proxied user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry just as proxy user. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -466,7 +476,8 @@
                     'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' ,
                     'expectedResult'     : '0' }
               </call>
-              
+
+              <!-- Add the proxi aci for user uid=aproxy under ou=aci branch -->             
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci.ldif'
                   curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
@@ -484,14 +495,11 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, proxied user searching targeted entry'
               </message>
-  
+
+              <!-- Search users entry with proxy dn with allowed aci access. This should return results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -518,11 +526,14 @@
                     'testString'         : 'cn:' ,
                     'expectedResult'     : '1' }
               </call>
+
+              <!-- TODO: Also perform a modify operation - should return success -->
               
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, proxied second user searching targeted entry'
               </message>
-  
+
+              <!-- Search users entry with proxy dn without allowed aci access. This should return no results -->
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -547,7 +558,8 @@
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, admin deleting both acis'
               </message>
-  
+
+              <!-- Remove aci attribute for uid=auser -->  
               <call function="'modifyEntry'">
                 { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
@@ -556,14 +568,11 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
               </message>
-  
+
+              <!-- Search a users entry as a uid=auser. This should return no results -->  
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -2460,7 +2469,7 @@
               </call>
               
                 <script>
-                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                    allow_aci='(targetcontrol=\"2.16.840.1.113730.3.4.18\") (version 3.0; acl \"allow proxy auth control access\"; allow(read) userdn=\"ldap:///anyone\";)'
                 </script>
         
                 <call function="'modifyAnAttribute'">

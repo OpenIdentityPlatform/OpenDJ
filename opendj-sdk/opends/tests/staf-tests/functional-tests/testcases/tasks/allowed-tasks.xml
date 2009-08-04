@@ -23,87 +23,110 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="allowed-tasks"/>
   <function name="allowed-tasks" scope="local">
     <block name="STAXCurrentFunction">    
-      <sequence>
-        <script>
-          CurrentTestPath['suite']=STAXCurrentFunction
-        </script>
-        <call function="'testSuite_Preamble'" />        
-        
-
-        <!--- Test Suite information
-          #@TestSuiteName      Allowed tasks
-          #@TestSuitePurpose   Control which tasks are allowed
-          #@TestSuiteID        export Tests
-          #@TestSuiteGroup     export
-          #@TestGroup          tasks
-          #@TestScript         allowed-tasks.xml
-          #@TestHTMLLink       http://opends.dev.java.net/
-          -->
-          
-
-         
-                         
-        <!--- Test Case information
-          #@TestMarker          Allowed tasks
-          #@TestName            Tasks control
-          #@TestPurpose         Control which tasks are allowed
-          #@TestPreamble
-          #@TestStep            Change the list of allowed tasks 
-          #@TestStep            Check  we can only schedule allowed tasks
-          #@TestPostamble
-          #@TestResult
-          -->
+      <try>
+        <sequence>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentFunction
+          </script>
+          <call function="'testSuite_Preamble'" />        
+  
+          <!--- Test Suite information
+            #@TestSuiteName      Allowed tasks
+            #@TestSuitePurpose   Control which tasks are allowed
+            #@TestSuiteID        export Tests
+            #@TestSuiteGroup     export
+            #@TestGroup          tasks
+            #@TestScript         allowed-tasks.xml
+            #@TestHTMLLink       http://opends.dev.java.net/
+            -->
             
-        <testcase name="getTestCaseName('Control which tasks are allowed')">
+          <call function="'common_setup'">
+            {
+              'quickStart'    : True ,
+              'startServer'   : True  ,
+              'stopServer'    : False
+            }
+          </call>
+           
+                           
+          <!--- Test Case information
+            #@TestMarker          Allowed tasks
+            #@TestName            Tasks control
+            #@TestPurpose         Control which tasks are allowed
+            #@TestPreamble
+            #@TestStep            Change the list of allowed tasks 
+            #@TestStep            Check  we can only schedule allowed tasks
+            #@TestPostamble
+            #@TestResult
+            -->
+              
+          <testcase name="getTestCaseName('Control which tasks are allowed')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>   
+              
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'       : 'set-global-configuration-prop',
+                'optionsString'    : '--remove allowed-task:org.opends.server.tasks.ExportTask',
+                'expectedRC'       : 0
+                }
+              </call>           
+              
+              <!-- the export task is not allowed. the task must be rejected -->
+              
+              <call function="'exportLdif'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'ldifFile'            : '%s/tasks/export_asynchronous' % remote.data,
+                'startTask'           : '0',
+                'backEnd'             : DIRECTORY_INSTANCE_BE,
+                'expectedRC'          : 1}
+              </call>
+  
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'       : 'set-global-configuration-prop',
+                'optionsString'    : '--add allowed-task:org.opends.server.tasks.ExportTask',
+                'expectedRC'       : 0
+                }
+              </call>                       
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+        </sequence>
+        <finally>
           <sequence>
-            <call function="'testCase_Preamble'"/>   
-            
-            <call function="'dsconfig'">
-              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
-              'subcommand'       : 'set-global-configuration-prop',
-              'optionsString'    : '--remove allowed-task:org.opends.server.tasks.ExportTask',
-              'expectedRC'       : 0
-              }
-            </call>           
-            
-            <!-- the export task is not allowed. the task must be rejected -->
-            
-            <call function="'exportLdif'">
-              { 'location'          : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'            : '%s/tasks/export_asynchronous' % remote.data,
-              'startTask'           : '0',
-              'backEnd'             : DIRECTORY_INSTANCE_BE,
-              'expectedRC'          : 1}
-            </call>
-
-            <call function="'dsconfig'">
-              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
-              'subcommand'       : 'set-global-configuration-prop',
-              'optionsString'    : '--add allowed-task:org.opends.server.tasks.ExportTask',
-              'expectedRC'       : 0
-              }
-            </call>                       
-            <call function="'testCase_Postamble'"/>
+            <!-- Test Suite Cleanup -->
+            <message>'Finally: Tasks Cleanup.'</message>
+            <try>
+              <call function="'common_cleanup'" />
+            <catch exception="'STAFException'">
+              <sequence>
+                <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+              </sequence>
+            </catch>
+            <finally>
+              <call function="'testSuite_Postamble'"/>
+            </finally>
+            </try>
           </sequence>
-        </testcase>
-        
-        
-        <call function="'testSuite_Postamble'" />
-      </sequence>
+        </finally>
+      
+      </try>
+
     </block>      
   </function>
 </stax>

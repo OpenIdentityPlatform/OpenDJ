@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -52,7 +52,7 @@
   </function>
 
   <!-- This function sets up DS using the setup script -->
-  <function name="SetUpDsWithScript">
+  <function name="SetUpDsWithScript" scope="local">
     <function-prolog>
       This function sets up a Directory Server using a script
     </function-prolog>    
@@ -135,6 +135,12 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -197,7 +203,7 @@
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsPath,
-          'expectedRC': 'noCheck',
+          'expectedRC': expectedRC,
           'knownIssue': knownIssue
         }
       </call>
@@ -2893,7 +2899,9 @@
         </script>
         
         <!-- Copy the schema-task ldif to remote host -->
-        <message>'Copy schema task ldif file.'</message>
+        <message>
+          'Copy schema task ldif file %s to %s.' % (tmpTaskLdif,taskLdif)
+        </message>
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
             'srcfile'    : tmpTaskLdif,

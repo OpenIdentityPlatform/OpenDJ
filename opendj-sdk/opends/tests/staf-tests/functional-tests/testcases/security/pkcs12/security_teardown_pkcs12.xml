@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="teardown_pkcs12"/>
+  <defaultcall function="security_teardown_pkcs12"/>
 
-  <function name="teardown_pkcs12">
+  <function name="security_teardown_pkcs12">
 
         <!---
             Place suite-specific test information here.

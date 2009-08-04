@@ -20,15 +20,13 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2009 Sun Microsystems, Inc.
 #
 
 dn: dc=com
 objectclass: top
 objectclass: domain
 dc: com
-aci: (target="ldap:///dc=virtualAttributes,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
- allow (all)(userdn = "ldap:///uid=my_application,dc=virtualAttributes,dc=com");)
 
 dn: dc=virtualAttributes,dc=com
 objectclass: top

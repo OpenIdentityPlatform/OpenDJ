@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="logging_cleanup"/>
@@ -31,9 +31,15 @@
     <sequence>
       <block name="'cleanup'">
         <sequence>
-          <block name="'Block DS Process Stop'">
-          <!--- Stop DS -->
+
+          <call function="'testSuite_Preamble'"/>
+
+          <testcase name="getTestCaseName('Logging Setup')">
+
             <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
               <message>
                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
@@ -47,32 +53,18 @@
                 }
               </call>
               
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-            </sequence>
-            <!--- End Block DS Process Stop -->
-          </block>
-          <block name="'Block Remove DS Topology'">
-          <!-- Remove  the topology created for the test suite -->
-            <sequence>
               <message>
                 'Remove DS topology created for the Test Suite'
               </message>
               
               <call function="'removeTopology'" />
               
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-            
+              <call function="'testCase_Postamble'"/>
+
             </sequence>
-            <!-- End Block Remove DS Topology-->
-          </block>
+
+          </testcase>
+
         </sequence>
       </block>
     </sequence>

@@ -23,77 +23,83 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="client_auth"/>
 
-  <function name="client_auth">
+  <function name="client_auth" scope="local">
 
     <sequence>
 
       <block name="'client_auth'">
-      
-        <sequence>
-  
-          <script>
-            CurrentTestPath['group']='security'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
 
-          <call function="'testSuite_Preamble'"/>
+        <try>      
 
-        <import machine="STAF_LOCAL_HOSTNAME"
-           file="'%s/testcases/security/client_auth/client_auth_lib.xml' % (TESTS_DIR)" />
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>         
-  
-      <!--  client authentication setup -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/client_auth_setup.xml' % (TESTS_DIR)"/>
-          <call function="'client_auth_setup'" />
-
-        
-      <!-- fingerprint certificates mapper -->
-      
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/fingerprint_mapper.xml' % (TESTS_DIR)"/>
-          <call function="'fingerprint_mapper'" />
-
-  
-          <!-- subject DN to user attribut certificate mapper -->
-  
-       <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/subject_dn_mapper.xml' % (TESTS_DIR)"/>
-          <call function="'subject_dn_mapper'" />
-      
-      <!-- subject attribute  to user attribut certificate mapper -->
+          <sequence>
     
-       <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/subject_attribute_mapper.xml' % (TESTS_DIR)"/>
-          <call function="'subject_attribute_mapper'" />
-    
-      <!-- subject equals dn certificate mapper -->    
-       <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/equal_dn_mapper.xml' % (TESTS_DIR)"/>
-          <call function="'equal_dn_mapper'" />
-      
-      <!--  client authentication teardown -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/client_auth_teardown.xml' % (TESTS_DIR)"/>
-          <call function="'client_auth_teardown'" />  
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='client_auth'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <import machine="STAF_LOCAL_HOSTNAME"
+               file="'%s/testcases/%s/%s/client_auth_lib.xml' % (TESTS_DIR,_group,_suite)"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>                      
+            <script>
+              testList = []
+              testList.append('client_auth_setup')
+              testList.append('fingerprint_mapper')
+              testList.append('subject_dn_mapper')
+              testList.append('subject_attribute_mapper')
+              testList.append('equal_dn_mapper')
+              testList.append('client_auth_teardown')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
 
-      
-          <call function="'testSuite_Postamble'"/>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
 
-        </sequence>
+              </sequence>
+            </iterate>
+  
+          </sequence>
+
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Client Auth Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
    
       </block>
    

@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="setup_startTLS"/>
+  <defaultcall function="security_setup_startTLS"/>
 
-  <function name="setup_startTLS">
+  <function name="security_setup_startTLS">
 
       <sequence>
 
