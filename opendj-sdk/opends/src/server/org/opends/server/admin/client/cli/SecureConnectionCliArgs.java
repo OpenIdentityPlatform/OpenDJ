@@ -741,7 +741,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useSSL()
   {
-    if (useSSLArg.isPresent())
+    if (useSSLArg.isPresent() || alwaysSSL())
     {
       return true;
     }

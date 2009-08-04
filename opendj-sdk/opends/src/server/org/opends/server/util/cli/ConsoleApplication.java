@@ -929,11 +929,16 @@ public abstract class ConsoleApplication {
                 }
             }
           }
-          if (e.getRootCause() != null) {
-            if (e.getRootCause().getCause() != null) {
+          if (e.getRootCause() != null)
+          {
+            if (e.getRootCause().getCause() != null &&
+                !ci.isTrustStoreInMemory() &&
+                !ci.isTrustAll())
+            {
               if (((e.getRootCause().getCause()
                 instanceof OpendsCertificateException)) ||
-                (e.getRootCause() instanceof SSLHandshakeException)) {
+                (e.getRootCause() instanceof SSLHandshakeException))
+              {
                 Message message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                   hostName, String.valueOf(portNumber));
@@ -941,7 +946,8 @@ public abstract class ConsoleApplication {
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
-            if (e.getRootCause() instanceof SSLException) {
+            if (e.getRootCause() instanceof SSLException)
+            {
               Message message =
                 ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
                 hostName, String.valueOf(portNumber));
