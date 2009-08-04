@@ -528,7 +528,8 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'aci_cleanup'" />
-      
+
+          <call function="'testSuite_Postamble'"/>      
        
         </sequence>
       

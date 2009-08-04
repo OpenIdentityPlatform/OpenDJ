@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_quickstart"/>
@@ -41,8 +41,8 @@
         
         <!--- Check that DS started -->
         <call function="'isAlive'">
-          { 'noOfLoops'        : 10 ,
-            'noOfMilliSeconds' : 2000 }
+          { 'noOfLoops'        : 100 ,
+            'noOfMilliSeconds' : 3000 }
         </call>
         
         <message>

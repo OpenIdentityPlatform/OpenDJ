@@ -23,69 +23,86 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
-  
-  <defaultcall function="main_security"/>
-  
+  <defaultcall function="main_security" />
   <function name="main_security">
     <function-list-args>
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
-    
-    <sequence>
-      
-      <block name="'security'">
-        
-        <sequence>
 
-          <!--- Load the job environment for the test group execution -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-          <call function="'loadJobEnvironment'">
-               { 'parent' : STAXParentID }
-          </call>
-                    
-          <!--- Test Group information
-            #@TestGroupName          Security tests
-            #@TestGroupPurpose       Test the security.
-          -->
-          <script>
-          CurrentTestPath['group']='security'
-        </script>
-        
-        <call function="'testGroup_Preamble'"/>
-        
-        <script>
-            testList = []
-            testList.append(['client_auth','client_auth'])
-            testList.append(['jks','security_jks'])
-            testList.append(['pkcs12','security_pkcs12'])
-            testList.append(['startTLS','security_startTLS'])
-            testList.append(['sasl','security_sasl'])
-            testList.append(['pwd_policy','security_pwd_policy'])
-            testList.append(['pwd_policy_root','security_pwd_policy_root'])
-            testList.append(['auth_pwd_syntax','security_auth_pwd_syntax'])
-            testList.append(['pwd_validator','security_pwd_validator'])
-            testList.append(['pwd_storage','security_pwd_storage'])
-            testList.append(['bind_no_pwd','security_bind_no_pwd'])
-            testList.append(['account_activation','security_account_activation'])
-        </script>
-        <iterate var="_test" in="testList">
+    <sequence>
+      <try>
+        <block name="'security'">
           <sequence>
+            <!--- Load the job environment for the test group execution -->
             <import machine="STAF_LOCAL_HOSTNAME"
-                    file="'%s/testcases/security/%s/%s.xml' % 
-                    (TESTS_DIR,_test[0],_test[1])"/>
-            <call function="'%s' % _test[1]" />
+                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <call function="'loadJobEnvironment'">
+                 { 'parent' : STAXParentID }
+            </call>
+            <script>
+              CurrentTestPath['group']='security'
+              _group=CurrentTestPath['group']
+            </script>
+            <call function="'testGroup_Preamble'" />
+            <script>
+              suiteList = []
+              suiteList.append(['client_auth','client_auth'])
+              suiteList.append(['jks','security_jks'])
+              suiteList.append(['pkcs12','security_pkcs12'])
+              suiteList.append(['startTLS','security_startTLS'])
+              suiteList.append(['sasl','security_sasl'])
+              suiteList.append(['pwd_policy','security_pwd_policy'])
+              suiteList.append(['pwd_policy_root','security_pwd_policy_root'])
+              suiteList.append(['auth_pwd_syntax','security_auth_pwd_syntax'])
+              suiteList.append(['pwd_validator','security_pwd_validator'])
+              suiteList.append(['pwd_storage','security_pwd_storage'])
+              suiteList.append(['bind_no_pwd','security_bind_no_pwd'])
+              suiteList.append(['account_activation','security_account_activation'])
+            </script>
+    
+            <!-- Run the test suites -->
+            <iterate  var="_suite" in="suiteList">
+              <sequence>              
+                <try>
+                  <sequence>                  
+                    <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/%s/%s/%s.xml' % (TESTS_DIR,_group,_suite[0],_suite[1])"/> 
+                    <call function="'%s' % _suite[1]" />
+                  </sequence>
+                <catch exception="'STAFException.TestSuite.SetupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite[0]</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.MainException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite[0]</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.CleanupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite[0]</message>
+                  </sequence>
+                </catch>
+                </try>
+              </sequence>
+            </iterate>
+                                    
           </sequence>
-        </iterate>
-        
-        
-        <call function="'testGroup_Postamble'"/>
-      
-      </sequence>
-    </block>
-   </sequence>
+        </block>
+        <catch exception="'STAXException.TestGroupException'">
+          <sequence>
+            <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
+          </sequence>
+        </catch>        
+        <finally>
+          <!-- Test Group postamble -->
+          <call function="'testGroup_Postamble'"/>
+        </finally>
+      </try>
+    </sequence>
   </function>
 </stax>

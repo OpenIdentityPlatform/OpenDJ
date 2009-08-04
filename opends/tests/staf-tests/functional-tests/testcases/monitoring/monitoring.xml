@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
 ! -->
 
 <!--
@@ -31,37 +31,74 @@
             #@TestGroupName		Monitoring
             #@TestGroupPurpose		Test the ability of the server to monitor informations
 -->
-
 <stax>
-  <defaultcall function="main_monitoring"/>
+  <defaultcall function="main_monitoring" />
   <function name="main_monitoring">
     <function-list-args>
       <function-required-arg name="STAXParentID"/>
     </function-list-args>
+
     <sequence>
-      <block name="'monitoring'">
-        <sequence>
-          <!--- Load the job environment for the test group execution -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
-          <call function="'loadJobEnvironment'">
-               { 'parent' : STAXParentID }
-          </call>
-          <script>
-            CurrentTestPath['group']='monitoring'
-          </script>
-          
-          <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','provider','componant','cleanup']" >
-            <sequence>
-              <import machine="STAF_LOCAL_HOSTNAME"
-                      file="'%s/testcases/monitoring/monitoring_%s.xml' % (TESTS_DIR,_test)"/>
-              <call function="'monitoring_%s' % _test" />
-            </sequence>
-          </iterate>
-          <call function="'testGroup_Postamble'" />
-        </sequence>
-      </block>
+      <try>
+        <block name="'monitoring'">
+          <sequence>
+            <!--- Load the job environment for the test group execution -->
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <call function="'loadJobEnvironment'">
+                 { 'parent' : STAXParentID }
+            </call>
+            <script>
+              CurrentTestPath['group']='monitoring'
+              _group=CurrentTestPath['group']
+            </script>
+            <call function="'testGroup_Preamble'" />
+            <script>
+              suiteList = []
+              suiteList.append('provider')
+              suiteList.append('componant')
+            </script>
+    
+            <!-- Run the test suites -->
+            <iterate  var="_suite" in="suiteList">
+              <sequence>              
+                <try>
+                  <sequence>                  
+                    <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/%s/%s_%s.xml' % (TESTS_DIR,_group,_group,_suite)"/> 
+                    <call function="'%s_%s' % (_group,_suite)" />
+                  </sequence>
+                <catch exception="'STAFException.TestSuite.SetupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.MainException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                <catch exception="'STAFException.TestSuite.CleanupException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite</message>
+                  </sequence>
+                </catch>
+                </try>
+              </sequence>
+            </iterate>
+                                    
+          </sequence>
+        </block>
+        <catch exception="'STAXException.TestGroupException'">
+          <sequence>
+            <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
+          </sequence>
+        </catch>        
+        <finally>
+          <!-- Test Group postamble -->
+          <call function="'testGroup_Postamble'"/>
+        </finally>
+      </try>
     </sequence>
   </function>
 </stax>

@@ -23,106 +23,89 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_pwd_validator"/>
 
-  <function name="security_pwd_validator">
+  <function name="security_pwd_validator" scope="local">
 
     <sequence>
 
-      <block name="'pwd-validator'">
-      
-        <sequence>
-          
-          
-          <!--- Test Group information
-            #@TestGroupName          Security
-            #@TestGroupPurpose       To test the security functionality.
-            #@TestSubgroupName       Password Validator
-          -->
-          <script>
-            if not CurrentTestPath.has_key('group'):
+      <block name="'pwd_validator'">
+
+        <try>      
+
+          <sequence>
+    
+            <script>
               CurrentTestPath['group']='security'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          
-          <script>
-          securityPath = '%s/testcases/security/pwd_validator' % TESTS_DIR
-          </script>
-          
-        <call function="'testSuite_Preamble'"/>
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='pwd_validator'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
 
+            <script>
+              testList = []
+              testList.append('setup_pwd_validator')
+              testList.append('pwd_length')
+              testList.append('attribute_value')
+              testList.append('character_set')
+              testList.append('history_based')
+              testList.append('similarity_based')
+              testList.append('dictionary')
+              testList.append('unique_chars')
+              testList.append('repeat_chars')
+              testList.append('mult_validators')
+              testList.append('skip_val_for_admins')
+              testList.append('teardown_pwd_validator')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
 
-                                  
+              </sequence>
+            </iterate>
+  
+          </sequence>
 
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_setup_pwd_validator.xml' % securityPath"/>
-        <call function="'setup_pwd_validator'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_pwd_length.xml' % securityPath"/>
-        <call function="'pwd_length'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_attribute_value.xml' % securityPath"/>
-        <call function="'attribute_value'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_character_set.xml' % securityPath"/>
-        <call function="'character_set'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_history_based.xml' % securityPath"/>
-        <call function="'history_based'" />
-        
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_similarity_based.xml' % securityPath"/>
-        <call function="'similarity_based'" />
-        
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_dictionary.xml' % securityPath"/>
-        <call function="'dictionary'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_unique_chars.xml' % securityPath"/>
-        <call function="'unique_chars'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_repeat_chars.xml' % securityPath"/>
-        <call function="'repeat_chars'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_mult_validators.xml' % securityPath"/>
-        <call function="'mult_validators'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_skip_val_for_admins.xml' % securityPath"/>
-        <call function="'skip_val_for_admins'" />
-
-        <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_teardown_pwd_validator.xml' % securityPath"/>
-        <call function="'teardown_pwd_validator'" />
-
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                            
-          <call function="'testSuite_Postamble'"/>
-          
-        </sequence>
-    
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Password Validator Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-    
+   
     </sequence>
 
   </function>

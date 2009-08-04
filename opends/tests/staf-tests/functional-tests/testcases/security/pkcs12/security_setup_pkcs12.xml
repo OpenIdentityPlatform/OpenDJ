@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="setup_pkcs12"/>
+  <defaultcall function="security_setup_pkcs12"/>
 
-  <function name="setup_pkcs12">
+  <function name="security_setup_pkcs12">
       <!---
             Place group-specific test information here.
             #@TestGroupName             Security

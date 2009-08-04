@@ -23,119 +23,96 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_pwd_storage"/>
 
-  <function name="security_pwd_storage">
+  <function name="security_pwd_storage" scope="local">
 
     <sequence>
 
-      <block name="'pwd-storage'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
+      <block name="'pwd_storage'">
 
-          <call function="'testSuite_Preamble'"/>
+        <try>      
 
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-                          
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
-          <call function="'setup_pwd_storage'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SSHA'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SHA.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SHA'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SSHA256.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SSHA256'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SSHA384.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SSHA384'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SSHA512.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SSHA512'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_MD5.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_MD5'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_SMD5'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_BASE64'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_3DES.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_3DES'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_AES.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_AES'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_RC4.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_RC4'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_blowfish.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_BLOWFISH'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_CLEAR'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_pwd_CRYPT.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_CRYPT'" />
-          <!--
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_multiple_schemes.xml' % (TESTS_DIR)"/>
-          <call function="'multiple_schemes'" />
-          -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
-          <call function="'deprecated_schemes'" />
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
-          <call function="'teardown_pwd_storage'" />
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-                    
-
-          <call function="'testSuite_Postamble'"/>
+          <sequence>
     
-        </sequence>
-     
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='pwd_storage'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
+
+            <script>
+              testList = []
+              testList.append('setup_pwd_storage')
+              testList.append('pwd_SSHA')
+              testList.append('pwd_SHA')
+              testList.append('pwd_SSHA256')
+              testList.append('pwd_SSHA384')
+              testList.append('pwd_SSHA512')
+              testList.append('pwd_MD5')
+              testList.append('pwd_SMD5')
+              testList.append('pwd_BASE64')
+              testList.append('pwd_3DES')
+              testList.append('pwd_AES')
+              testList.append('pwd_RC4')
+              testList.append('pwd_BLOWFISH')
+              testList.append('pwd_CLEAR')
+              testList.append('pwd_CRYPT')
+# DISABLED    testList.append('multiple_schemes')
+              testList.append('deprecated_schemes')
+              testList.append('teardown_pwd_storage')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
+
+              </sequence>
+            </iterate>
+  
+          </sequence>
+
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Password Storage Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-     
-     </sequence>
+   
+    </sequence>
 
   </function>
 

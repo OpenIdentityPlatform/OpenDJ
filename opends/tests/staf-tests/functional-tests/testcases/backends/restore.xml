@@ -23,38 +23,40 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_restore"/>
   <function name="main_restore">
     <sequence>
       <block name="'restore'">
-        <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='backends'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          <call function="'testSuite_Preamble'"/>
-          <!--- Test Suite information
-            #@TestSuiteName       Backend Restore Tests
-            #@TestSuitePurpose    Test the restore functionality for OpenDS.
-            #@TestSuiteID         Restore Tests
-            #@TestSuiteGroup      Restore
-            #@TestGroup           Backend
-            #@TestScript          restore.xml
-            #@TestHTMLLink        http://opends.dev.java.net/
-          -->
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
-          <call function="'backend_setup'"> 
-            { 'startDS'     : True,
-              'loadBackend' : True
-            }
-          </call>
+        <try>
           <sequence>
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group']='backends'
+              CurrentTestPath['suite']=STAXCurrentBlock
+            </script>
+            <call function="'testSuite_Preamble'"/>
+            <!--- Test Suite information
+              #@TestSuiteName       Backend Restore Tests
+              #@TestSuitePurpose    Test the restore functionality for OpenDS.
+              #@TestSuiteID         Restore Tests
+              #@TestSuiteGroup      Restore
+              #@TestGroup           Backend
+              #@TestScript          restore.xml
+              #@TestHTMLLink        http://opends.dev.java.net/
+            -->
+            
+            <call function="'common_setup'">
+              {
+                'quickStart'  : False ,
+                'startServer' : False ,
+                'loadData'    : False ,
+                'stopServer'  : False
+              }
+            </call>
+  
             <message>
               'Create a backup of the data in OpenDS to be used in the restore testcase'
             </message>
@@ -67,147 +69,164 @@
                 'result'     : STAXResult
               }
             </call>
+  
+            <!--- Test Case information
+              #@TestMarker          Backend Restore Tests
+              #@TestName            Export: Restore 1
+              #@TestID              Restore1
+              #@TestPurpose         Restore data to OpenDS.
+              #@TestPreamble
+              #@TestSteps           Client calls restore with the parameters
+                                    default backendID, and backupDirectory
+              #@TestPostamble
+              #@TestResult Success if restore returns 0
+            -->
+            <testcase name="getTestCaseName('Test 1')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                  'Backend Restore1: Restore data to OpenDS'
+                </message>
+                
+                <!-- Stop DS -->
+                <call function="'StopDsWithScript'">
+                  { 'location'    : STAF_REMOTE_HOSTNAME,
+                    'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                    'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                    'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                    'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD 
+                  }
+                </call>
+                
+                <call function="'checkRC'">
+                  { 'returncode' : RC,
+                   'result'     : STAXResult
+                  }
+                </call>
+                
+                <call function="'restore'">
+                  { 'backupDir' : '%s/backends/backup1' % remote.data
+                  }
+                </call>
+                
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult
+                  }
+                </call>
+                
+                <!-- Start DS -->
+                <message>
+                  'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+                
+                <call function="'StartDsWithScript'">
+                 { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+                
+                <call function="'checkRC'">
+                  { 'returncode' : RC,
+                    'result'     : STAXResult
+                  }
+                </call>
+                
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+            <!--- Test Case information
+              #@TestMarker          Backend Restore Tests
+              #@TestName            Export: Restore 2
+              #@TestID              Restore2
+              #@TestPurpose         Restore compressed data to OpenDS.
+              #@TestPreamble
+              #@TestSteps           Client calls restore with the parameters
+                                    default backendID, backupDirectory, and uncompress
+                                    is automatically done
+              #@TestPostamble
+              #@TestResult Success if restore returns 0
+            -->
+             <testcase name="getTestCaseName('Test 2')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                  'Backend Restore2: Restore compressed data to OpenDS'
+                </message>
+                
+                <!-- Stop DS -->
+                <call function="'StopDsWithScript'">
+                  { 'location'    : STAF_REMOTE_HOSTNAME,
+                    'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                    'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                    'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                    'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+                  }
+                </call>
+                
+                <call function="'checkRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult
+                  }
+                </call>
+                
+                <call function="'backup'">
+                  { 'backupDir'       : '%s/restore.compressed' % remote.data
+                  }
+                </call>
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult 
+                  }
+                </call>
+                <!-- Start DS -->
+                <message>
+                  'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+                <call function="'StartDsWithScript'">
+                 { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+                <call function="'checkRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult
+                  }
+                </call>
+                
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+                <call function="'testCase_Postamble'" />
+              </sequence>
+            </testcase>
+
           </sequence>
-          <!--- Test Case information
-            #@TestMarker          Backend Restore Tests
-            #@TestName            Export: Restore 1
-            #@TestID              Restore1
-            #@TestPurpose         Restore data to OpenDS.
-            #@TestPreamble
-            #@TestSteps           Client calls restore with the parameters
-                                  default backendID, and backupDirectory
-            #@TestPostamble
-            #@TestResult Success if restore returns 0
-          -->
-          <testcase name="getTestCaseName('Test 1')">
+          <finally>
             <sequence>
-              <call function="'testCase_Preamble'"/>
-              <message>
-                'Backend Restore1: Restore data to OpenDS'
-              </message>
-              
-              <!-- Stop DS -->
-              <call function="'StopDsWithScript'">
-                { 'location'    : STAF_REMOTE_HOSTNAME,
-                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
-                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD 
-                }
-              </call>
-              
-              <call function="'checkRC'">
-                { 'returncode' : RC,
-                 'result'     : STAXResult
-                }
-              </call>
-              
-              <call function="'restore'">
-                { 'backupDir' : '%s/backends/backup1' % remote.data
-                }
-              </call>
-              
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              
-              <!-- Start DS -->
-              <message>
-                'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
-              </message>
-              
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-              
-              <call function="'checkRC'">
-                { 'returncode' : RC,
-                  'result'     : STAXResult
-                }
-              </call>
-              
-              <!--- Check that DS started -->
-              <call function="'isAlive'">
-                { 'noOfLoops'        : 10 ,
-                  'noOfMilliSeconds' : 2000
-                }
-              </call>
-              <call function="'testCase_Postamble'"/>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Backup Cleanup.'</message>
+              <try>
+                <try>
+                  <call function="'common_cleanup'" />
+                <catch exception="'STAFException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                  </sequence>
+                </catch>
+                </try>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-          </testcase>
-          <!--- Test Case information
-            #@TestMarker          Backend Restore Tests
-            #@TestName            Export: Restore 2
-            #@TestID              Restore2
-            #@TestPurpose         Restore compressed data to OpenDS.
-            #@TestPreamble
-            #@TestSteps           Client calls restore with the parameters
-                                  default backendID, backupDirectory, and uncompress
-                                  is automatically done
-            #@TestPostamble
-            #@TestResult Success if restore returns 0
-          -->
-           <testcase name="getTestCaseName('Test 2')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>
-              <message>
-                'Backend Restore2: Restore compressed data to OpenDS'
-              </message>
-              
-              <!-- Stop DS -->
-              <call function="'StopDsWithScript'">
-                { 'location'    : STAF_REMOTE_HOSTNAME,
-                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
-                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
-                }
-              </call>
-              
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              
-              <call function="'backup'">
-                { 'backupDir'       : '%s/restore.compressed' % remote.data
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult 
-                }
-              </call>
-              <!-- Start DS -->
-              <message>
-                'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
-              </message>
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              
-              <!--- Check that DS started -->
-              <call function="'isAlive'">
-                { 'noOfLoops'        : 10 ,
-                  'noOfMilliSeconds' : 2000
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'backend_cleanup'"> { 'stopDS' : True } </call>
-          <call function="'testSuite_Postamble'" />
-        </sequence>
+          </finally>
+        </try>
       </block>
     </sequence>
   </function>

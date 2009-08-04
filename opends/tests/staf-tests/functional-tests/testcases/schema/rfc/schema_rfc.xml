@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_schema_rfc"/>
@@ -53,13 +53,21 @@
 
             <try>
               <sequence> 
+
+                <call function="'common_setup'">
+                  {
+                    'quickStart'    : False ,
+                    'startServer'   : True  ,
+                    'loadData'      : True  ,
+                    'ldifFile'      : '%s/schema/ldifs/schema_start.ldif' % remote.data ,
+                    'stopServer'    : False
+                  }
+                </call>
  
                 <!-- List of Import of Test Functions -->
                 <script>
                   importList=[]
-                  importList.append('schema_setup')
                   importList.append('rfc/schema_rfc_tests')
-                  importList.append('schema_cleanup')
                 </script>
 
                 <!-- Import the files for this test suite -->
@@ -67,9 +75,6 @@
                   <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/%s.xml' % (__groupdir,__import)"/>
                 </iterate>                                                                       
-
-                <!-- Test Suite Setup -->
-                <call function="'%s_setup' % __group"/>
 
                 <!-- Specific to rfc tests -->
                 <script>
@@ -148,12 +153,21 @@
           <finally>
             <sequence>
               <!-- Test Suite Cleanup -->
-              <message>'Finally: Example Cleanup.'</message>
-              <call function="'%s_cleanup' % __group"/>
-              <call function="'testSuite_Postamble'"/>
+              <message>'Finally: Global Schema Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
           </finally>
- 
+        
         </try>
       </block>
     </sequence>

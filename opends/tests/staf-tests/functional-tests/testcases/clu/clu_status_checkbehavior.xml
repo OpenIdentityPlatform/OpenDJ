@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -34,91 +34,122 @@
     <sequence>
       
       <block name="'clu_status_checkbehavior'">
+
+        <try>
         
-        <sequence>
-          
-          <!--- Test Suite information
-            #@TestSuiteName       status check behavior tests
-            #@TestSuitePurpose    Test the results of the status command.
-            #@TestSuiteGroup      status check behavior tests
-            #@TestScript          clu_status_checkbehavior.xml
-          -->
-          
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group'] = 'clu'              
-            CurrentTestPath['suite'] = STAXCurrentBlock
-          </script>
-          
-          <call function="'testSuite_Preamble'"/>
-
-          <!--- Test Case information
-            #@TestMarker          status check behavior tests
-            #@TestName            status: authenticated mode
-            #@TestIssue           none
-            #@TestPurpose         Test status in authenticated mode.
-            #@TestPreamble        none
-            #@TestStep            Do a status in authenticated mode.
-            #@TestPostamble       none
-            #@TestResult          Success if status returns 0.
-          -->                 
-          <testcase name="getTestCaseName('status: authenticated mode')">
+          <sequence>
             
+            <!--- Test Suite information
+              #@TestSuiteName       status check behavior tests
+              #@TestSuitePurpose    Test the results of the status command.
+              #@TestSuiteGroup      status check behavior tests
+              #@TestScript          clu_status_checkbehavior.xml
+            -->
+            
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group'] = 'clu'              
+              CurrentTestPath['suite'] = STAXCurrentBlock
+            </script>
+            
+            <call function="'testSuite_Preamble'"/>
+            
+            <call function="'common_setup'">
+              {
+                'quickStart'              : False ,
+                'loadData'                : True ,
+                'ldifFile'                : '%s/clu/clu_start.ldif' % remote.data ,
+                'startServer'             : True ,
+                'stopServer'              : False ,
+                'allowPreEncodePassword'  : True
+              }
+            </call>
+  
+            <!--- Test Case information
+              #@TestMarker          status check behavior tests
+              #@TestName            status: authenticated mode
+              #@TestIssue           none
+              #@TestPurpose         Test status in authenticated mode.
+              #@TestPreamble        none
+              #@TestStep            Do a status in authenticated mode.
+              #@TestPostamble       none
+              #@TestResult          Success if status returns 0.
+            -->                 
+            <testcase name="getTestCaseName('status: authenticated mode')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'status: authenticated mode'
+                </message>
+                
+                <call function="'StatusWithScript'">
+                  {
+                  'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
+                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                  }
+                </call>
+                
+                <!-- STAXResult is not always a list-->
+                <script>
+                  try:
+                    RC,Result=STAXResult[0]
+                  except AttributeError,details:
+                    Result='AttributeError: can not parse STAXResult %s' % details
+                    RC='1'                
+                </script>
+                
+                <call function="'checktestRC'">
+                  { 
+                  'returncode' : RC,
+                  'result'     : Result
+                  }
+                </call>     
+  
+                <call function="'checktestString'">
+                  { 
+                  'returnString'     : Result ,
+                  'expectedString'   : 'Administrative Users:     %s' \
+                  % DIRECTORY_INSTANCE_DN 
+                  }
+                </call>
+  
+                <call function="'checktestString'">
+                  { 
+                  'returnString'     : Result ,
+                  'expectedString'   : 'Server Run Status:        Started'
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
+            
+          </sequence>
+
+          <finally>
             <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'status: authenticated mode'
-              </message>
-              
-              <call function="'StatusWithScript'">
-                {
-                'dsBindDN'  : DIRECTORY_INSTANCE_DN ,
-                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
-                }
-              </call>
-              
-              <!-- STAXResult is not always a list-->
-              <script>
-                try:
-                  RC,Result=STAXResult[0]
-                except AttributeError,details:
-                  Result='AttributeError: can not parse STAXResult %s' % details
-                  RC='1'                
-              </script>
-              
-              <call function="'checktestRC'">
-                { 
-                'returncode' : RC,
-                'result'     : Result
-                }
-              </call>     
-
-              <call function="'checktestString'">
-                { 
-                'returnString'     : Result ,
-                'expectedString'   : 'Administrative Users:     %s' \
-                % DIRECTORY_INSTANCE_DN 
-                }
-              </call>
-
-              <call function="'checktestString'">
-                { 
-                'returnString'     : Result ,
-                'expectedString'   : 'Server Run Status:        Started'
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global CLU Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-            
-          </testcase> 
-          
-          <call function="'testSuite_Postamble'"/>
-          
-        </sequence>
+          </finally>
+
+        </try>
         
       </block>
       

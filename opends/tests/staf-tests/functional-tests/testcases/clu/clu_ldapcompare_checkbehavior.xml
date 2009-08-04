@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -34,114 +34,145 @@
     <sequence>
       
       <block name="'clu_ldapcompare_checkbehavior'">
+
+        <try>
         
-        <sequence>
-          
-          <!--- Test Suite information
-            #@TestSuiteName       ldapcompare check behavior tests
-            #@TestSuitePurpose    Test the results of the ldapcompare command.
-            #@TestSuiteGroup      ldapcompare check behavior tests
-            #@TestScript          clu_ldapcompare_checkresults.xml
-          -->
-          
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group'] = 'clu'              
-            CurrentTestPath['suite'] = STAXCurrentBlock
-          </script>
-          
-          <call function="'testSuite_Preamble'"/>
-                    
-          <!--- Define default value for dsdn -->
-          <script>
-            dsdn = 'uid=user.0,ou=ldapcompare,o=clu tests,dc=example,dc=com'
-          </script>
-          
-          <!--- Test Case information
-            #@TestMarker          ldapcompare check behavior tests
-            #@TestName            ldapcompare: comparison successful
-            #@TestIssue           2761
-            #@TestPurpose         Verify that the operation is successful and 
-                                  that the comparison is successful.
-            #@TestPreamble        none
-            #@TestStep            Do an ldapcompare with correct options.
-            #@TestPostamble       none
-            #@TestResult          Success if ldapcompare returns 6.
-          -->
-          <testcase name="getTestCaseName
-          ('ldapcompare: comparison successful')">
+          <sequence>
             
+            <!--- Test Suite information
+              #@TestSuiteName       ldapcompare check behavior tests
+              #@TestSuitePurpose    Test the results of the ldapcompare command.
+              #@TestSuiteGroup      ldapcompare check behavior tests
+              #@TestScript          clu_ldapcompare_checkresults.xml
+            -->
+            
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group'] = 'clu'              
+              CurrentTestPath['suite'] = STAXCurrentBlock
+            </script>
+            
+            <call function="'testSuite_Preamble'"/>
+
+            <call function="'common_setup'">
+              {
+                'quickStart'              : False ,
+                'loadData'                : True ,
+                'ldifFile'                : '%s/clu/clu_start.ldif' % remote.data ,
+                'startServer'             : True ,
+                'stopServer'              : False ,
+                'allowPreEncodePassword'  : True
+              }
+            </call>
+                      
+            <!--- Define default value for dsdn -->
+            <script>
+              dsdn = 'uid=user.0,ou=ldapcompare,o=clu tests,dc=example,dc=com'
+            </script>
+            
+            <!--- Test Case information
+              #@TestMarker          ldapcompare check behavior tests
+              #@TestName            ldapcompare: comparison successful
+              #@TestIssue           2761
+              #@TestPurpose         Verify that the operation is successful and 
+                                    that the comparison is successful.
+              #@TestPreamble        none
+              #@TestStep            Do an ldapcompare with correct options.
+              #@TestPostamble       none
+              #@TestResult          Success if ldapcompare returns 6.
+            -->
+            <testcase name="getTestCaseName
+            ('ldapcompare: comparison successful')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldapcompare: comparison successful'
+                </message>
+                
+                <call function="'ldapCompareWithScript'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsDn'             : ['postalCode:63792' ,
+                                        '%s' % dsdn] ,
+                  'expectedRC'       : 6,
+                  'knownIssue'       : '2761'
+                  }
+                </call>
+  
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
+  
+            <!--- Test Case information
+              #@TestMarker          ldapcompare check behavior tests
+              #@TestName            ldapcompare: comparison unsuccessful
+              #@TestIssue           2761
+              #@TestPurpose         Verify that the operation is successful and 
+                                    that the comparison is unsuccessful.
+              #@TestPreamble        none
+              #@TestStep            Do an ldapcompare with correct options.
+              #@TestPostamble       none
+              #@TestResult          Success if ldapcompare returns 5.
+            -->
+            <testcase name="getTestCaseName
+            ('ldapcompare: comparison unsuccessful')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldapcompare: comparison unsuccessful'
+                </message>
+                
+                <call function="'ldapCompareWithScript'">
+                  { 
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsDn'             : ['postalCode:00000' ,
+                                        '%s' % dsdn] ,
+                  'expectedRC'       : 5,
+                  'knownIssue'       : '2761'
+                  }
+                </call>
+  
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
+            
+          </sequence>
+
+          <finally>
             <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'ldapcompare: comparison successful'
-              </message>
-              
-              <call function="'ldapCompareWithScript'">
-                { 
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsDn'             : ['postalCode:63792' ,
-                                      '%s' % dsdn] ,
-                'expectedRC'       : 6,
-                'knownIssue'       : '2761'
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-              
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global CLU Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-            
-          </testcase> 
+          </finally>
 
-          <!--- Test Case information
-            #@TestMarker          ldapcompare check behavior tests
-            #@TestName            ldapcompare: comparison unsuccessful
-            #@TestIssue           2761
-            #@TestPurpose         Verify that the operation is successful and 
-                                  that the comparison is unsuccessful.
-            #@TestPreamble        none
-            #@TestStep            Do an ldapcompare with correct options.
-            #@TestPostamble       none
-            #@TestResult          Success if ldapcompare returns 5.
-          -->
-          <testcase name="getTestCaseName
-          ('ldapcompare: comparison unsuccessful')">
-            
-            <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'ldapcompare: comparison unsuccessful'
-              </message>
-              
-              <call function="'ldapCompareWithScript'">
-                { 
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsDn'             : ['postalCode:00000' ,
-                                      '%s' % dsdn] ,
-                'expectedRC'       : 5,
-                'knownIssue'       : '2761'
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-              
-            </sequence>
-            
-          </testcase> 
-          
-          <call function="'testSuite_Postamble'"/>
-          
-        </sequence>
+        </try>
         
       </block>
       

@@ -23,53 +23,76 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_jks"/>
 
-  <function name="security_jks">
+  <function name="security_jks" scope="local">
 
     <sequence>
 
       <block name="'jks'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-       
-          <call function="'testSuite_Preamble'"/>
 
+        <try>      
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-
-                              
-     
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/jks/security_bob_jks.xml' % (TESTS_DIR)"/>
-          <call function="'bob_jks'" />
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/jks/security_bob_custom_jks.xml' % (TESTS_DIR)"/>
-          <call function="'bob_custom_jks'" />
-  
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                        
+          <sequence>
     
-          <call function="'testSuite_Postamble'"/>
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='jks'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
 
-        </sequence>
+            <script>
+              testList = []
+              testList.append('security_bob_jks')
+              testList.append('security_bob_custom_jks')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
+
+              </sequence>
+            </iterate>
+  
+          </sequence>
+
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global JKS Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
    
       </block>
    

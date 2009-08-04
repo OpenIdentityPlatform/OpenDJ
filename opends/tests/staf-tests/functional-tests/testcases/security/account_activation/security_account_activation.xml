@@ -23,74 +23,81 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_account_activation"/>
 
-  <function name="security_account_activation">
+  <function name="security_account_activation" scope="local">
 
     <sequence>
 
-      <block name="'account-activation'">
-      
-        <sequence>
-          
-        <!--- Test Group information
-            #@TestGroupName          Security
-            #@TestGroupPurpose       To test the security functionality.
-            #@TestSubgroupName       Account Activation
-        -->
-          <script>
-            securityPath = '%s/testcases/security' % (TESTS_DIR)
-            securityAcc = '%s/account_activation' % securityPath
-          </script>
-          
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                  
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
+      <block name="'account_activation'">
 
-          <call function="'testSuite_Preamble'"/>
+        <try>      
 
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-
-                                  
+          <sequence>
+    
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='account_activation'
+            </script>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_setup_account_activation.xml' % securityAcc"/>
-          <call function="'setup_account_activation'" />
+            <call function="'testSuite_Preamble'"/>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_test_account.xml' % securityAcc"/>
-          <call function="'test_account'" />
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
+
+            <script>
+              testList = []
+              testList.append('setup_account_activation')
+              testList.append('test_account')
+              testList.append('account_expiration')
+              testList.append('teardown_account_activation')
+            </script>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_account_expiration.xml' % securityAcc"/>
-          <call function="'account_expiration'" />
+            <iterate  var="_test" in="testList">
+              <sequence>              
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
+
+              </sequence>
+            </iterate>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/security_teardown_account_activation.xml' % securityAcc"/>
-          <call function="'teardown_account_activation'" />
+          </sequence>
 
-      
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                    
-          <call function="'testSuite_Postamble'"/>
-        
-        </sequence>
-     
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Account Activation Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-     
+   
     </sequence>
 
   </function>

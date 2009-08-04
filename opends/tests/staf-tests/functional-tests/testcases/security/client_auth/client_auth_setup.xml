@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="client_auth_setup"/>
@@ -353,7 +353,7 @@
             listAttr.append('objectclass:person')
             listAttr.append('objectclass:ds-certificate-user')
             listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:  bad_certificate')
+            listAttr.append('userCertificate;binary:: YmFkX2NlcnRpZmljYXRlCgoK')
             listAttr.append('givenname:%s' % USER_1_CERT)
             listAttr.append('sn:%s' % USER_1_CERT)
             listAttr.append('cn:%s' % USER_1_CERT)
@@ -440,7 +440,7 @@
             listAttr.append('objectclass:person')
             listAttr.append('objectclass:ds-certificate-user')        
             listAttr.append('objectclass:strongAuthenticationUser')
-            listAttr.append('userCertificate;binary:  bad_certificate')       
+            listAttr.append('userCertificate;binary:: YmFkX2NlcnRpZmljYXRlCgoK')       
             listAttr.append('givenname:%s' % USER_2_CERT)
             listAttr.append('sn:%s' % USER_2_CERT)
             listAttr.append('cn:%s' % USER_2_CERT)

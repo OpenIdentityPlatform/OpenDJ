@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -34,205 +34,236 @@
     <sequence>
       
       <block name="'clu_ldif-diff_checkbehavior'">
+
+        <try>
         
-        <sequence>
-          
-          <!--- Test Suite information
-            #@TestSuiteName     ldif-diff check behavior tests
-            #@TestSuitePurpose  Test the results of the ldif-diff command.
-            #@TestSuiteGroup    ldif-diff check behavior tests
-            #@TestScript        clu_ldif-diff_checkbehavior.xml
-          -->
-          
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group'] = 'clu'              
-            CurrentTestPath['suite'] = STAXCurrentBlock
-          </script>
-          
-          <call function="'testSuite_Preamble'"/>
-          
-          <!--- Define default value for sourceldif -->
-          <script>
-            sourceldif = '%s/clu/clu_start.ldif' % remote.data
-            targetldif = '%s/clu/ldif-diff_checkbehavior.ldif' \
-                         % remote.data
-          </script>
-          
-          <!--- Test Case information
-            #@TestMarker          ldif-diff check behavior tests
-            #@TestName            ldif-diff: compare ldif files with no diffs
-            #@TestIssue           3111
-            #@TestPurpose         Test ldif-diff to compare ldif files with 
-                                  no diffs
-            #@TestPreamble        none
-            #@TestStep            Do an ldif-diff to compare ldif files with
-                                  no diffs
-            #@TestPostamble       none
-            #@TestResult          Success if ldif-diff returns 0.
-          -->
-          <testcase name="getTestCaseName
-          ('ldif-diff: compare ldif files with no diffs')">
+          <sequence>
             
-            <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'ldif-diff: compare ldif files with no diffs'
-              </message>
-              
-              <call function="'LdifDiffWithScript-new'">
-                {
-                'sourceLdif' : sourceldif ,
-                'targetLdif' : sourceldif ,
-                'outputLdif' : '%s/ldif-diff_nodiffs.out' % remote.temp
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
-            </sequence>
+            <!--- Test Suite information
+              #@TestSuiteName     ldif-diff check behavior tests
+              #@TestSuitePurpose  Test the results of the ldif-diff command.
+              #@TestSuiteGroup    ldif-diff check behavior tests
+              #@TestScript        clu_ldif-diff_checkbehavior.xml
+            -->
             
-          </testcase> 
-          
-          <!--- Test Case information
-            #@TestMarker          ldif-diff check behavior tests
-            #@TestName            ldif-diff: compare ldif files with diffs
-            #@TestIssue           2641
-            #@TestPurpose         Test ldif-diff to compare ldif files with 
-                                  diffs
-            #@TestPreamble        none
-            #@TestStep            Do an ldif-diff to compare ldif files with
-                                  diffs
-            #@TestPostamble       none
-            #@TestResult          Success if ldif-diff returns 1.
-          -->
-          <testcase name="getTestCaseName
-          ('ldif-diff: compare ldif files with diffs')">
+            <script>
+              if not CurrentTestPath.has_key('group'):
+                CurrentTestPath['group'] = 'clu'              
+              CurrentTestPath['suite'] = STAXCurrentBlock
+            </script>
             
-            <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'ldif-diff: compare ldif files with diffs'
-              </message>
-              
-              <call function="'LdifDiffWithScript-new'">
-                {
-                'sourceLdif' : sourceldif ,
-                'targetLdif' : targetldif ,
-                'outputLdif' : '%s/ldif-diff_withdiffs.out' % remote.temp ,
-                'expectedRC' : 1 ,
-                'knownIssue' : '2641'
-                }
-              </call>
-              
-              <call function="'testCase_Postamble'"/>
-              
-            </sequence>
+            <call function="'testSuite_Preamble'"/>
             
-          </testcase> 
-          
-          <!--- Test Case information
-            #@TestMarker          ldif-diff check behavior tests
-            #@TestName            ldif-diff: check diff file
-            #@TestIssue           3111
-            #@TestPurpose         Check ldif file generated by ldif-diff
-            #@TestPreamble        none
-            #@TestStep            Do an ldif-diff to compare ldif files with
-                                  diffs
-            #@TestStep            Check this ldif file using compareFile
-            #@TestPostamble       none
-            #@TestResult          Success if compareFile returns 0.
-          -->
-          <testcase name="getTestCaseName('ldif-diff: check diff file')">
+            <call function="'common_setup'">
+              {
+                'quickStart'              : False ,
+                'loadData'                : True ,
+                'ldifFile'                : '%s/clu/clu_start.ldif' % remote.data ,
+                'startServer'             : True ,
+                'stopServer'              : False ,
+                'allowPreEncodePassword'  : True
+              }
+            </call>
             
-            <sequence>
+            <!--- Define default value for sourceldif -->
+            <script>
+              sourceldif = '%s/clu/clu_start.ldif' % remote.data
+              targetldif = '%s/clu/ldif-diff_checkbehavior.ldif' \
+                           % remote.data
+            </script>
+            
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: compare ldif files with no diffs
+              #@TestIssue           3111
+              #@TestPurpose         Test ldif-diff to compare ldif files with 
+                                    no diffs
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    no diffs
+              #@TestPostamble       none
+              #@TestResult          Success if ldif-diff returns 0.
+            -->
+            <testcase name="getTestCaseName
+            ('ldif-diff: compare ldif files with no diffs')">
               
-              <call function="'testCase_Preamble'"/>
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: compare ldif files with no diffs'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif' : sourceldif ,
+                  'targetLdif' : sourceldif ,
+                  'outputLdif' : '%s/ldif-diff_nodiffs.out' % remote.temp
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
               
-              <message>
-                'ldif-diff: check diff file'
-              </message>
+            </testcase> 
+            
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: compare ldif files with diffs
+              #@TestIssue           2641
+              #@TestPurpose         Test ldif-diff to compare ldif files with 
+                                    diffs
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    diffs
+              #@TestPostamble       none
+              #@TestResult          Success if ldif-diff returns 1.
+            -->
+            <testcase name="getTestCaseName
+            ('ldif-diff: compare ldif files with diffs')">
               
-              <call function="'LdifDiffWithScript-new'">
-                {
-                'sourceLdif' : sourceldif ,
-                'targetLdif' : targetldif ,
-                'outputLdif' : '%s/ldif-diff.out' % remote.temp ,
-                'expectedRC' : 'noCheck'
-                }
-              </call>
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: compare ldif files with diffs'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif' : sourceldif ,
+                  'targetLdif' : targetldif ,
+                  'outputLdif' : '%s/ldif-diff_withdiffs.out' % remote.temp ,
+                  'expectedRC' : 1 ,
+                  'knownIssue' : '2641'
+                  }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
               
-              <call function="'compareFile'">
-                {
-                'outputFile' : 'ldif-diff.out' ,
-                'outputPath' : remote.temp ,
-                'refFile'    : 'ldif-diff.ref',
-                'knownIssue' : '3111'
-                }
-              </call>
+            </testcase> 
+            
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: check diff file
+              #@TestIssue           3111
+              #@TestPurpose         Check ldif file generated by ldif-diff
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    diffs
+              #@TestStep            Check this ldif file using compareFile
+              #@TestPostamble       none
+              #@TestResult          Success if compareFile returns 0.
+            -->
+            <testcase name="getTestCaseName('ldif-diff: check diff file')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: check diff file'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif' : sourceldif ,
+                  'targetLdif' : targetldif ,
+                  'outputLdif' : '%s/ldif-diff.out' % remote.temp ,
+                  'expectedRC' : 'noCheck'
+                  }
+                </call>
+                
+                <call function="'compareFile'">
+                  {
+                  'outputFile' : 'ldif-diff.out' ,
+                  'outputPath' : remote.temp ,
+                  'refFile'    : 'ldif-diff.ref',
+                  'knownIssue' : '3111'
+                  }
+                </call>
+  
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase> 
+            
+            <!--- Test Case information
+              #@TestMarker          ldif-diff check behavior tests
+              #@TestName            ldif-diff: check diff file
+              #@TestIssue           3111
+              #@TestPurpose         Check ldif file generated by ldif-diff
+              #@TestPreamble        none
+              #@TestStep            Do an ldif-diff to compare ldif files with
+                                    diffs
+              #@TestStep            Check this ldif file using compareFile
+              #@TestPostamble       none
+              #@TestResult          Success if compareFile returns 0.
+            -->
+            <testcase name="getTestCaseName
+            ('ldif-diff: check diff files with single value changes')">
+              
+              <sequence>
+                
+                <call function="'testCase_Preamble'"/>
+                
+                <message>
+                  'ldif-diff: check diff file with single value changes'
+                </message>
+                
+                <call function="'LdifDiffWithScript-new'">
+                  {
+                  'sourceLdif'         : sourceldif ,
+                  'targetLdif'         : targetldif ,
+                  'outputLdif'         : '%s/ldif-diff_singlevalue.out' \
+                                         % remote.temp ,
+                  'singleValueChanges' : 'True' ,           
+                  'expectedRC'         : 'noCheck'
+                  }
+                </call>
+                
+                <call function="'compareFile'">
+                  { 
+                  'outputFile' : 'ldif-diff_singlevalue.out' ,
+                  'outputPath' : remote.temp ,
+                  'refFile'    : 'ldif-diff_singlevalue.ref' ,
+                  'knownIssue' : '3111'
+                  }
+                </call>
+  
+                <call function="'testCase_Postamble'"/>
+                
+              </sequence>
+              
+            </testcase>
+            
+          </sequence>
 
-              <call function="'testCase_Postamble'"/>
-              
-            </sequence>
-            
-          </testcase> 
-          
-          <!--- Test Case information
-            #@TestMarker          ldif-diff check behavior tests
-            #@TestName            ldif-diff: check diff file
-            #@TestIssue           3111
-            #@TestPurpose         Check ldif file generated by ldif-diff
-            #@TestPreamble        none
-            #@TestStep            Do an ldif-diff to compare ldif files with
-                                  diffs
-            #@TestStep            Check this ldif file using compareFile
-            #@TestPostamble       none
-            #@TestResult          Success if compareFile returns 0.
-          -->
-          <testcase name="getTestCaseName
-          ('ldif-diff: check diff files with single value changes')">
-            
+          <finally>
             <sequence>
-              
-              <call function="'testCase_Preamble'"/>
-              
-              <message>
-                'ldif-diff: check diff file with single value changes'
-              </message>
-              
-              <call function="'LdifDiffWithScript-new'">
-                {
-                'sourceLdif'         : sourceldif ,
-                'targetLdif'         : targetldif ,
-                'outputLdif'         : '%s/ldif-diff_singlevalue.out' \
-                                       % remote.temp ,
-                'singleValueChanges' : 'True' ,           
-                'expectedRC'         : 'noCheck'
-                }
-              </call>
-              
-              <call function="'compareFile'">
-                { 
-                'outputFile' : 'ldif-diff_singlevalue.out' ,
-                'outputPath' : remote.temp ,
-                'refFile'    : 'ldif-diff_singlevalue.ref' ,
-                'knownIssue' : '3111'
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-              
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global CLU Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
             </sequence>
-            
-          </testcase>
-          
-          <call function="'testSuite_Postamble'"/>
-          
-        </sequence>
+          </finally>
+
+        </try>
         
       </block>
       

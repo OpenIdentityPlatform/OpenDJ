@@ -23,29 +23,37 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="logging_writer"/>
   <function name="logging_writer" scope="local">
-   <block name="STAXCurrentFunction">  
+   <block name="STAXCurrentFunction">
+    <try>  
     <sequence>
       <script>
         CurrentTestPath['suite']=STAXCurrentFunction
       </script>
       <call function="'testSuite_Preamble'"/>
       
-      
+      <call function="'common_setup'">
+        {
+          'quickStart'    : True ,
+          'startServer'   : True  ,
+          'stopServer'    : False
+        }
+      </call>
 
-<!--- Test Suite information
-#@TestSuiteName       Basic tests on logging
-#@TestSuitePurpose    Check the log of information under Access or Debug files is correctly done
-#@TestSuiteID         Logging
-#@TestSuiteGroup      Logging
-#@TestGroup           Logging
-#@TestScript          logging_writer.xml
-#@TestHTMLLink        http://opends.dev.java.net/
--->      
+      <!--- Test Suite information
+        #@TestSuiteName       Basic tests on logging
+        #@TestSuitePurpose    Check the log of information under Access or Debug files is correctly done
+        #@TestSuiteID         Logging
+        #@TestSuiteGroup      Logging
+        #@TestGroup           Logging
+        #@TestScript          logging_writer.xml
+        #@TestHTMLLink        http://opends.dev.java.net/
+      -->      
+
       <!-- #################################### -->
       <!--
         #@TestMarker      Basic tests on logging
@@ -329,8 +337,27 @@
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
-      <call function="'testSuite_Postamble'"/>
+
     </sequence> 
+        <finally>
+          <sequence>
+            <!-- Test Suite Cleanup -->
+            <message>'Finally: Global Log Writer Cleanup.'</message>
+            <try>
+              <call function="'common_cleanup'" />
+            <catch exception="'STAFException'">
+              <sequence>
+                <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+              </sequence>
+            </catch>
+            <finally>
+              <call function="'testSuite_Postamble'"/>
+            </finally>
+            </try>
+          </sequence>
+        </finally>
+      
+      </try>
     </block>     
   </function>
 </stax>

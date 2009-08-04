@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -36,12 +36,6 @@
       <block name="'aci-modify-filter-tests-aci3'">
       
         <sequence>
-  
-          <script>
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-      
-          <call function="'testSuite_Preamble'"/>
           
             <testcase name="getTestCaseName('ACI 3')">
               <sequence>
@@ -264,9 +258,8 @@
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
+
             </testcase>
-     
-          <call function="'testSuite_Postamble'"/>
             
         </sequence>
    

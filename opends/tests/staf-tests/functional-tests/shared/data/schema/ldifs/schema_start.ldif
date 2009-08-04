@@ -20,8 +20,16 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 #
+
+dn: dc=com
+dc: com
+objectclass: domain
+
+dn: dc=example,dc=com
+dc: example
+objectclass: domain
 
 dn: o=extensible object tests,dc=example,dc=com
 o: extensible object tests

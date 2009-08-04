@@ -23,13 +23,13 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
-  <defaultcall function="security_root_auth"/>
+  <defaultcall function="root_auth"/>
 
-  <function name="security_root_auth">
+  <function name="root_auth">
 
     <sequence>
       

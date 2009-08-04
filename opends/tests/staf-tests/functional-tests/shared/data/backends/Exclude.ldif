@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2009 Sun Microsystems, Inc.
 #
 #
 # dc=com sample LDIF file
@@ -37,12 +37,6 @@ dn: dc=com
 objectclass: top
 objectclass: domain
 dc: com
-aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
- "userPassword")(version 3.0;acl "Anonymous read-search access";
- allow (read, search, compare)(userdn = "ldap:///anyone");)
-aci: (target="ldap:///dc=example,dc=com") (targetattr =
-  "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
-  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
 
 dn: dc=example,dc=com
 objectclass: top
@@ -67,26 +61,6 @@ dn: ou=People, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
-aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
- "userpassword || telephonenumber || facsimiletelephonenumber")(version 3.0;
- acl "Allow self entry modification";allow (write)(userdn = "ldap:///self");)
-aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
- "cn || sn || uid")(targetfilter ="(ou=Accounting)")(version 3.0;
- acl "Accounting Managers Group Permissions";allow (write) (groupdn =
-  "ldap:///cn=Accounting Managers,ou=groups,dc=example,dc=com");)
-aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
- "cn || sn || uid")(targetfilter ="(ou=Human Resources)")(version 3.0;
- acl "HR Group Permissions";allow (write)(groupdn = "ldap:///cn=HR Managers,
- ou=groups,dc=example,dc=com
- ");)
-aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
- "cn ||sn || uid")(targetfilter ="(ou=Product Testing)")(version 3.0;
- acl "QA Group Permissions";allow (write)(groupdn = "ldap:///cn=QA Managers,
- ou=groups,dc=example,dc=com");)
-aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr !=
- "cn || sn || uid")(targetfilter ="(ou=Product Development)")(version 3.0;
- acl "Engineering Group Permissions";allow (write)(groupdn = "ldap:///
- cn=PD Managers,ou=groups,dc=example,dc=com");)
 
 dn: ou=Special Users,dc=example,dc=com
 objectclass: top

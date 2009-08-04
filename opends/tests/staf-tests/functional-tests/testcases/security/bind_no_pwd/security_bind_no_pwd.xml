@@ -23,60 +23,81 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_bind_no_pwd"/>
 
-  <function name="security_bind_no_pwd">
+  <function name="security_bind_no_pwd" scope="local">
 
     <sequence>
 
-      <block name="'bind-no-pwd'">
-      
-        <sequence>
+      <block name="'bind_no_pwd'">
+
+        <try>      
+
+          <sequence>
+    
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='bind_no_pwd'
+            </script>
   
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-              
-          <call function="'testSuite_Preamble'"/>
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-
-
-        
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/bind_no_pwd/security_setup_bind_no_pwd.xml' % (TESTS_DIR)"/>
-          <call function="'setup_bind_no_pwd'" />
+            <call function="'testSuite_Preamble'"/>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/bind_no_pwd/security_pwd_null.xml' % (TESTS_DIR)"/>
-          <call function="'pwd_null'" />
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
+
+            <script>
+              testList = []
+              testList.append('setup_bind_no_pwd')
+              testList.append('pwd_null')
+              testList.append('teardown_bind_no_pwd')
+            </script>
   
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/bind_no_pwd/security_teardown_bind_no_pwd.xml' % (TESTS_DIR)"/>
-          <call function="'teardown_bind_no_pwd'" />
+            <iterate  var="_test" in="testList">
+              <sequence>              
 
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
+              </sequence>
+            </iterate>
+  
+          </sequence>
 
-                        
-          <call function="'testSuite_Postamble'"/>
-        
-        </sequence>
-     
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Bind No Password Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-     
-     </sequence>
+   
+    </sequence>
 
   </function>
 

@@ -29,352 +29,377 @@
   <defaultcall function="import-ldif"/>
   <function name="import-ldif" scope="local">
     <block name="STAXCurrentFunction">    
-      <sequence>
-        <script>
-          CurrentTestPath['suite']=STAXCurrentFunction
-        </script>
-        <call function="'testSuite_Preamble'" />
-        
-        
-        <!--- Test Suite information
-          #@TestSuiteName       Import Tasks
-          #@TestSuitePurpose    Validate the Import functionality in mode task
-          #@TestSuiteID         Import Tests
-          #@TestSuiteGroup      Import
-          #@TestGroup           tasks
-          #@TestScript          import_ldif.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
-          -->
-
-                   
-        <!--- Test Case information
-          #@TestMarker           Import Tasks
-          #@TestName             Import task in synchronous mode 
-          #@TestPurpose          Schedule a import in task mode to be executed immedialy in synchronous mode
-          #@TestPreamble
-          #@TestStep             Execute a import-ldif in a task
-          #@TestStep             Execute manage-tasks output and check the Import task is returned
-          #@TestStep             Don't specify the -t option
-          #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the import
-          #@TestPostamble
-          #@TestResult
-          -->
-            
-        <testcase name="getTestCaseName('schedule import-ldif task for immediate execution in synchronous mode')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>              
-            
-            <call function="'ImportLdifWithScript'">
-              { 'location'          : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend'            : ' ',
-              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
-            </call>
-
-            <!-- manage-tasks -->
-            <call function="'manage-tasks'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsQuiet'        : ' '
-              }
-            </call>
+      <try>
+        <sequence>
+          <script>
+            CurrentTestPath['suite']=STAXCurrentFunction
+          </script>
+          <call function="'testSuite_Preamble'" />
+          
+          
+          <!--- Test Suite information
+            #@TestSuiteName       Import Tasks
+            #@TestSuitePurpose    Validate the Import functionality in mode task
+            #@TestSuiteID         Import Tests
+            #@TestSuiteGroup      Import
+            #@TestGroup           tasks
+            #@TestScript          import_ldif.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+            -->
   
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-        
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Import',
-              'expectedResult'	   : '1' }
-            </call>            
-     
-            
-            <!-- Check data are imported -->
-            <call function="'checkImport'">
-              { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
-              'uid=tmorris, dc=example,dc=com'],
-              'startDS'     : 'False'              
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
               }
             </call>
-            
-            <!-- Delete entries -->
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'           : 'uid=scarter,dc=example,dc=com' }
-            </call>
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'          : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'            : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'          : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
-            </call>          
-            
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-        
-        
-        <!--- Test Case information
-
-          #@TestMarker           Import Tasks
-          #@TestName             Import task in asynchronous mode 
-          #@TestPurpose          Schedule a import in task mode to be executed immedialy in asynchronous mode
-          #@TestPreamble
-          #@TestStep             Execute a import-ldif in a task
-          #@TestStep             specify the -t option with the value 0
-          #@TestStep             The task is scheduled for immediate execution
-          @TestStep              The script returns immedialy after scheduling the task                
-          #@TestPostamble        
-       --> 
-            
-        <testcase name="getTestCaseName('schedule import-ldif task for immediate execution in asynchronous mode')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>              
-            
-            <call function="'ImportLdifWithScript'">
-              { 'location'          : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend'            : ' ',
-              'startTask'           : '0',
-              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
-            </call>
-            <call function="'Sleep'">
-              { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  40000 }
-            </call>
-            
-            <!--  Check data are imported -->
-            <call function="'checkImport'">
-              { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
-              'uid=tmorris, dc=example,dc=com'],
-              'startDS'     : 'False'              
-              }
-            </call>
-            
-            <!-- Delete entries -->
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'uid=scarter,dc=example,dc=com' }
-            </call>
-            <call function="'DeleteEntry'">
-              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'         : 'uid=tmorris,dc=example,dc=com' }
-            </call>          
-            
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-        
-        
-     <!--- Test Case information
-
-          #@TestMarker           Import Tasks
-          #@TestName             Schedule a Import task
-          #@TestPurpose          Schedule a import in task mode
-          #@TestPreamble
-          #@TestStep             Execute a import-ldif in a task
-          @TestStep              specify the -t option with the value non null  to schedule an  execution  
-          #@TestPostamble        
-       --> 
-    
-            
-        <testcase name="getTestCaseName('schedule import-ldif task for scheduled execution in asynchronous mode')">
-          <sequence>
-            <call function="'testCase_Preamble'"/>              
-            
-            <call function="'ImportLdifWithScript'">
-              { 'location'          : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
-              'dsAppend'            : ' ',
-              'startTask'           : '20061212000000',
-              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
-            </call>
-
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-
-            <call function="'searchString'">
-              { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
-                'returnString'	 : returnString ,
-                'knownIssue'     : '3909' ,
-                'expectedRC'     : '1' }
-              </call>
-
-            
-            <call function="'testCase_Postamble'"/>
-          </sequence>
-        </testcase>
-
+                     
           <!--- Test Case information
-          #@TestMarker      Import Tasks
-          #@TestName        Schedule a recurring Import task
-          #@TestPurpose     Schedule a recurring Import in task mode
-          #@TestPreamble
-          #@TestStep        Create a recurring Import in task mode
-          #@TestStep        specify the recurringTask option with the value
-          #@TestStep        non null to schedule a recurring execution
-          #@TestPostamble
-          #@TestResult
-          -->
-
-        <testcase name="getTestCaseName('schedule recurring import task')">
+            #@TestMarker           Import Tasks
+            #@TestName             Import task in synchronous mode 
+            #@TestPurpose          Schedule a import in task mode to be executed immedialy in synchronous mode
+            #@TestPreamble
+            #@TestStep             Execute a import-ldif in a task
+            #@TestStep             Execute manage-tasks output and check the Import task is returned
+            #@TestStep             Don't specify the -t option
+            #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the import
+            #@TestPostamble
+            #@TestResult
+            -->
+              
+          <testcase name="getTestCaseName('schedule import-ldif task for immediate execution in synchronous mode')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>              
+              
+              <call function="'ImportLdifWithScript'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+                'dsAppend'            : ' ',
+                'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
+              </call>
+  
+              <!-- manage-tasks -->
+              <call function="'manage-tasks'">
+                { 'location'     : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsQuiet'        : ' '
+                }
+              </call>
+    
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+          
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'Import',
+                'expectedResult'	   : '1' }
+              </call>            
+       
+              
+              <!-- Check data are imported -->
+              <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
+                'uid=tmorris, dc=example,dc=com'],
+                'startDS'     : 'False'              
+                }
+              </call>
+              
+              <!-- Delete entries -->
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'           : 'uid=scarter,dc=example,dc=com' }
+              </call>
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'          : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'            : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'          : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
+              </call>          
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+  
+            #@TestMarker           Import Tasks
+            #@TestName             Import task in asynchronous mode 
+            #@TestPurpose          Schedule a import in task mode to be executed immedialy in asynchronous mode
+            #@TestPreamble
+            #@TestStep             Execute a import-ldif in a task
+            #@TestStep             specify the -t option with the value 0
+            #@TestStep             The task is scheduled for immediate execution
+            @TestStep              The script returns immedialy after scheduling the task                
+            #@TestPostamble        
+         --> 
+              
+          <testcase name="getTestCaseName('schedule import-ldif task for immediate execution in asynchronous mode')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>              
+              
+              <call function="'ImportLdifWithScript'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+                'dsAppend'            : ' ',
+                'startTask'           : '0',
+                'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
+              </call>
+              <call function="'Sleep'">
+                { 'location'  :	 STAF_REMOTE_HOSTNAME,
+                'sleepForMilliSeconds'  :  40000 }
+              </call>
+              
+              <!--  Check data are imported -->
+              <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
+                'uid=tmorris, dc=example,dc=com'],
+                'startDS'     : 'False'              
+                }
+              </call>
+              
+              <!-- Delete entries -->
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=scarter,dc=example,dc=com' }
+              </call>
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=tmorris,dc=example,dc=com' }
+              </call>          
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+       <!--- Test Case information
+  
+            #@TestMarker           Import Tasks
+            #@TestName             Schedule a Import task
+            #@TestPurpose          Schedule a import in task mode
+            #@TestPreamble
+            #@TestStep             Execute a import-ldif in a task
+            @TestStep              specify the -t option with the value non null  to schedule an  execution  
+            #@TestPostamble        
+         --> 
+      
+              
+          <testcase name="getTestCaseName('schedule import-ldif task for scheduled execution in asynchronous mode')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>              
+              
+              <call function="'ImportLdifWithScript'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+                'dsAppend'            : ' ',
+                'startTask'           : '20061212000000',
+                'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
+              </call>
+  
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+  
+              <call function="'searchString'">
+                { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
+                  'returnString'	 : returnString ,
+                  'knownIssue'     : '3909' ,
+                  'expectedRC'     : '1' }
+                </call>
+  
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+  
+            <!--- Test Case information
+            #@TestMarker      Import Tasks
+            #@TestName        Schedule a recurring Import task
+            #@TestPurpose     Schedule a recurring Import in task mode
+            #@TestPreamble
+            #@TestStep        Create a recurring Import in task mode
+            #@TestStep        specify the recurringTask option with the value
+            #@TestStep        non null to schedule a recurring execution
+            #@TestPostamble
+            #@TestResult
+            -->
+  
+          <testcase name="getTestCaseName('schedule recurring import task')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+  
+              <!--- ReStart DS to clear the output of manage-tasks-->
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+              </call>
+  
+              <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+              </call>
+  
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+               { 'noOfLoops'		: 10 ,
+                 'noOfMilliSeconds' : 2000
+               }
+              </call>
+  
+              <call function="'ImportLdifWithScript'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
+                'schedulePattern'     : '"0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *"',
+                'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
+              </call>
+  
+              <!-- manage-tasks -->
+              <call function="'manage-tasks'">
+                { 'location'     : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsQuiet'        : ' '
+                }
+              </call>
+  
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'ImportTask-',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'Waiting on start time',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'Sleep'">
+                { 'location'  :	 STAF_REMOTE_HOSTNAME,
+                'sleepForMilliSeconds'  :  120000 }
+              </call>
+  
+              <!-- manage-tasks -->
+              <call function="'manage-tasks'">
+                { 'location'     : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsQuiet'        : ' '
+                }
+              </call>
+  
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'ImportTask-*',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'Completed successfully',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'Waiting on start time',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <!-- cancel the recurring task ExportTask-* with manage-tasks -->
+              <call function="'manage-tasks'">
+                { 'location'     : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'dsCancel'       : 'ImportTask-*',
+                'dsQuiet'        : ' '
+                }
+              </call>
+  
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'Task ImportTask-',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'searchStringForSubstring'">
+                { 'returnString'	   : returnString,
+                'testString'	   : 'canceled',
+                'expectedResult'	   : '1' }
+              </call>
+  
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+  
+        </sequence>
+        <finally>
           <sequence>
-            <call function="'testCase_Preamble'"/>
-
-            <!--- ReStart DS to clear the output of manage-tasks-->
-            <call function="'StopDsWithScript'">
-              { 'location'  : STAF_REMOTE_HOSTNAME,
-              'dsHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
-              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
-            </call>
-
-            <call function="'StartDsWithScript'">
-              { 'location'  : STAF_REMOTE_HOSTNAME }
-            </call>
-
-            <!--- Check that DS started -->
-            <call function="'isAlive'">
-             { 'noOfLoops'		: 10 ,
-               'noOfMilliSeconds' : 2000
-             }
-            </call>
-
-            <call function="'ImportLdifWithScript'">
-              { 'location'          : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'          : '%s/tasks/import.ldif' % remote.data,
-              'schedulePattern'     : '"0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *"',
-              'dsBackEnd'           : DIRECTORY_INSTANCE_BE}
-            </call>
-
-            <!-- manage-tasks -->
-            <call function="'manage-tasks'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsQuiet'        : ' '
-              }
-            </call>
-
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'ImportTask-',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Waiting on start time',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'Sleep'">
-              { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  120000 }
-            </call>
-
-            <!-- manage-tasks -->
-            <call function="'manage-tasks'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsQuiet'        : ' '
-              }
-            </call>
-
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'ImportTask-*',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Completed successfully',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Waiting on start time',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <!-- cancel the recurring task ExportTask-* with manage-tasks -->
-            <call function="'manage-tasks'">
-              { 'location'     : STAF_REMOTE_HOSTNAME ,
-              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsCancel'       : 'ImportTask-*',
-              'dsQuiet'        : ' '
-              }
-            </call>
-
-            <script>
-              returnString = STAXResult[0][1]
-            </script>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'Task ImportTask-',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'searchStringForSubstring'">
-              { 'returnString'	   : returnString,
-              'testString'	   : 'canceled',
-              'expectedResult'	   : '1' }
-            </call>
-
-            <call function="'testCase_Postamble'"/>
+            <!-- Test Suite Cleanup -->
+            <message>'Finally: Tasks Cleanup.'</message>
+            <try>
+              <call function="'common_cleanup'" />
+            <catch exception="'STAFException'">
+              <sequence>
+                <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+              </sequence>
+            </catch>
+            <finally>
+              <call function="'testSuite_Postamble'"/>
+            </finally>
+            </try>
           </sequence>
-        </testcase>
-
-        
-        <call function="'testSuite_Postamble'" />
-      </sequence>
+        </finally>
+      
+      </try>
     </block>      
   </function>
 </stax>

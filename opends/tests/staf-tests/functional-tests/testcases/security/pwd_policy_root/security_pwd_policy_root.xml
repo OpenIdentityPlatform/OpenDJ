@@ -23,56 +23,79 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
   <defaultcall function="security_pwd_policy_root"/>
 
-  <function name="security_pwd_policy_root">
+  <function name="security_pwd_policy_root" scope="local">
 
     <sequence>
 
-      <block name="'pwd-policy-root'">
-      
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                                          
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-      
-          <call function="'testSuite_Preamble'"/>
+      <block name="'pwd_policy_root'">
 
+        <try>      
 
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
-          <call function="'security_setup'"/>
-
-
-  
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy_root/security_root_user_tests.xml' % (TESTS_DIR)"/>
-          <call function="'root_user_tests'" />
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/pwd_policy_root/security_root_auth.xml' % (TESTS_DIR)"/>
-          <call function="'security_root_auth'" />
-
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'security_cleanup'"/>
-
-                            
-          <call function="'testSuite_Postamble'"/>
+          <sequence>
     
-        </sequence>
-    
+            <script>
+              CurrentTestPath['group']='security'
+              CurrentTestPath['suite']=STAXCurrentBlock
+              _group=CurrentTestPath['group']
+              _suite='pwd_policy_root'
+            </script>
+  
+            <call function="'testSuite_Preamble'"/>
+  
+            <call function="'common_setup'">
+              {
+                'quickStart'    : True ,
+                'startServer'   : True  ,
+                'stopServer'    : False
+              }
+            </call>
+
+            <script>
+              testList = []
+              testList.append('root_user_tests')
+              testList.append('root_auth')
+            </script>
+  
+            <iterate  var="_test" in="testList">
+              <sequence>              
+
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/%s/%s/security_%s.xml' % (TESTS_DIR,_group,_suite,_test)"/> 
+                <call function="'%s' % _test" />
+
+              </sequence>
+            </iterate>
+  
+          </sequence>
+
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Start TLS Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+   
       </block>
-    
+   
     </sequence>
 
   </function>
