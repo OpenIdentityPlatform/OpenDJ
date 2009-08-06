@@ -1892,7 +1892,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {bindPassword2Arg, bindPasswordFile2Arg},
         {replicationPort1Arg, noReplicationServer1Arg},
         {noReplicationServer1Arg, onlyReplicationServer1Arg},
-        {replicationPort2Arg, noReplicationServer1Arg},
+        {replicationPort2Arg, noReplicationServer2Arg},
         {noReplicationServer2Arg, onlyReplicationServer2Arg},
         {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
