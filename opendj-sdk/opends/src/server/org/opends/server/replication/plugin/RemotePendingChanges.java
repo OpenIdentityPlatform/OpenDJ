@@ -265,6 +265,15 @@ public class RemotePendingChanges
           }
         }
       }
+      else
+      {
+        // We reached an operation that is newer than the operation
+        // for which we are doing the dependency check so it is
+        // not possible to find another operation with some dependency.
+        // break the loop to avoid going through the potentially large
+        // list of pending changes.
+        break;
+      }
     }
     return hasDependencies;
   }
@@ -311,6 +320,15 @@ public class RemotePendingChanges
             }
           }
         }
+      }
+      else
+      {
+        // We reached an operation that is newer than the operation
+        // for which we are doing the dependency check so it is
+        // not possible to find another operation with some dependency.
+        // break the loop to avoid going through the potentially large
+        // list of pending changes.
+        break;
       }
     }
     return hasDependencies;
@@ -389,6 +407,15 @@ public class RemotePendingChanges
           }
         }
       }
+      else
+      {
+        // We reached an operation that is newer than the operation
+        // for which we are doing the dependency check so it is
+        // not possible to find another operation with some dependency.
+        // break the loop to avoid going through the potentially large
+        // list of pending changes.
+        break;
+      }
     }
     return hasDependencies;
   }
@@ -464,6 +491,15 @@ public class RemotePendingChanges
             }
           }
         }
+      }
+      else
+      {
+        // We reached an operation that is newer than the operation
+        // for which we are doing the dependency check so it is
+        // not possible to find another operation with some dependency.
+        // break the loop to avoid going through the potentially large
+        // list of pending changes.
+        break;
       }
     }
     return hasDependencies;
