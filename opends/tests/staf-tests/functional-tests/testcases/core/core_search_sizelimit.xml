@@ -165,7 +165,7 @@
             </testcase>
             
             <!--- Test Case : Search Size Limit: Server Wide Size Limit Not Exceeded -->
-            <testcase name="getTestCaseName('Server Wide Size Limit Not Exceeded ')">
+            <testcase name="getTestCaseName('Server Wide Size Limit Not Exceeded')">
               <sequence>
                 <call function="'testCase_Preamble'" />
                 <message>
