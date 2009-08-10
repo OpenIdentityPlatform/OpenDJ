@@ -1320,7 +1320,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Targattrfilter with missing argument for add ')">
+            <testcase name="getTestCaseName('Targattrfilter with missing argument for add')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           

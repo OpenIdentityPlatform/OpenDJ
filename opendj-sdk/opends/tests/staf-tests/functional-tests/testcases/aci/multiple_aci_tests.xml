@@ -3809,7 +3809,7 @@
                                             0 for steps 1, 2, and 3 and
                                             50 for all other steps.
             -->
-            <testcase name="getTestCaseName('Separate targetattrs with deny and targattrfilters ')">
+            <testcase name="getTestCaseName('Separate targetattrs with deny and targattrfilters')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           

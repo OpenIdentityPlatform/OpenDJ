@@ -887,7 +887,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Modify Attribute Value - targetfilter not equals three statements with and, all statements true ')">
+            <testcase name="getTestCaseName('Modify Attribute Value - targetfilter not equals three statements with and, all statements true')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1119,7 +1119,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Modify Attribute Value - multiple ACIs 2, overall allow ')">
+            <testcase name="getTestCaseName('Modify Attribute Value - multiple ACIs 2, overall allow')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1230,7 +1230,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Modify Attribute Value - multiple ACIs 3, mixed allow and deny ')">
+            <testcase name="getTestCaseName('Modify Attribute Value - multiple ACIs 3, mixed allow and deny')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
