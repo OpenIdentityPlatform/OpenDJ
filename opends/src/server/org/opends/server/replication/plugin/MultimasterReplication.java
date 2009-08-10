@@ -836,4 +836,20 @@ public class MultimasterReplication
     return privateDNs;
   }
 
+  /**
+   * Checks if a given serverID is used by a local Replication Domain.
+   *
+   * @param serverId   The serverID that should be checked.
+   * @return           true if the serverID is local, false otherwise.
+   */
+  public static boolean isLocalServerId(Short serverId)
+  {
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      if (domain.getServerId() == serverId)
+        return true;
+    }
+    return false;
+  }
+
 }

@@ -492,7 +492,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     }
     else
     {
-      solveConflictFlag = true;
+      solveConflictFlag = configuration.isSolveConflicts();
     }
 
     Backend backend = retrievesBackend(baseDn);
@@ -4368,6 +4368,22 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     // Read fractional configuration and reconnect if needed
     readFractionalConfig(configuration, true);
+
+    /*
+     * Modify conflicts are solved for all suffixes but the schema suffix
+     * because we don't want to store extra information in the schema
+     * ldif files.
+     * This has no negative impact because the changes on schema should
+     * not produce conflicts.
+     */
+    if (baseDn.compareTo(DirectoryServer.getSchemaDN()) == 0)
+    {
+      solveConflictFlag = false;
+    }
+    else
+    {
+      solveConflictFlag = configuration.isSolveConflicts();
+    }
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }

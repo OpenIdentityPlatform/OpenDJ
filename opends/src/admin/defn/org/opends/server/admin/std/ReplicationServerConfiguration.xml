@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -93,7 +93,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="window-size" advanced="true">
+  <adm:property name="window-size">
     <adm:synopsis>
       Specifies the window size that the
       <adm:user-friendly-name />
@@ -154,7 +154,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="replication-purge-delay" advanced="true">
+  <adm:property name="replication-purge-delay">
     <adm:synopsis>
       The time (in seconds) after which the
       <adm:user-friendly-name />
