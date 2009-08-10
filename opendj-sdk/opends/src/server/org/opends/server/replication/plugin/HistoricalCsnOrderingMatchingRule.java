@@ -136,6 +136,7 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public ByteString normalizeValue(ByteSequence value)
   {
+
     String[] token = value.toString().split(":", 3);
 
     /* Change the format of the value to index and start
@@ -148,7 +149,10 @@ public class HistoricalCsnOrderingMatchingRule
     String serverId = token[1].substring(16,20);
     String seqNumber = token[1].substring(20, 28);
 
-    return ByteString.valueOf(serverId + timestamp + seqNumber);
+    if (MultimasterReplication.isLocalServerId(Short.parseShort(serverId, 16)))
+      return ByteString.valueOf(serverId + timestamp + seqNumber);
+    else
+      return (ByteString.valueOf("0"));
   }
 
   /**

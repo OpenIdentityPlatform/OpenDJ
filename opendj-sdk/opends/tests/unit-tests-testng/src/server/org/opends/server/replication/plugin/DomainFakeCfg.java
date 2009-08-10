@@ -343,4 +343,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return fractionalIncludes;
   }
+
+  public boolean isSolveConflicts()
+  {
+    return true;
+  }
 }

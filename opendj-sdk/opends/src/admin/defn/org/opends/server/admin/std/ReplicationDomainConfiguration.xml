@@ -108,7 +108,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="window-size" advanced="true">
+  <adm:property name="window-size">
     <adm:synopsis>
       Specifies the window size that the Directory Server will use when
       communicating with Replication Servers.
@@ -127,7 +127,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="heartbeat-interval" advanced="true">
+  <adm:property name="heartbeat-interval">
     <adm:synopsis>
       Specifies the heart-beat interval that the Directory Server will
       use when communicating with Replication Servers.
@@ -193,7 +193,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="assured-type" mandatory="false" advanced="true">
+  <adm:property name="assured-type" mandatory="false">
     <adm:synopsis>
       Defines the assured replication mode of the replicated domain.
     </adm:synopsis>
@@ -243,7 +243,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="assured-sd-level" mandatory="false" advanced="true">
+  <adm:property name="assured-sd-level" mandatory="false">
     <adm:synopsis>
       The level of acknowledgment for Safe Data assured sub mode.
     </adm:synopsis>
@@ -267,7 +267,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="assured-timeout" mandatory="false" advanced="true">
+  <adm:property name="assured-timeout" mandatory="false">
     <adm:synopsis>
       The timeout value when waiting for assured replication acknowledgments.
     </adm:synopsis>
@@ -290,7 +290,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="group-id" mandatory="false" advanced="true">
+  <adm:property name="group-id" mandatory="false">
     <adm:synopsis>
       The group ID associated with this replicated domain.
     </adm:synopsis>
@@ -314,8 +314,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="referrals-url" multi-valued="true" mandatory="false"
-  advanced="true">
+  <adm:property name="referrals-url" multi-valued="true" mandatory="false">
     <adm:synopsis>
       The URLs other LDAP servers should use to refer to the local server.
     </adm:synopsis>
@@ -345,8 +344,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="fractional-include" multi-valued="true" mandatory="false"
-  advanced="true">
+  <adm:property name="fractional-include" multi-valued="true" mandatory="false">
     <adm:synopsis>
       Allows to include some attributes to replicate to this server.
     </adm:synopsis>
@@ -392,8 +390,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="fractional-exclude" multi-valued="true" mandatory="false"
-  advanced="true">
+  <adm:property name="fractional-exclude" multi-valued="true" mandatory="false">
     <adm:synopsis>
       Allows to exclude some attributes to replicate to this server.
     </adm:synopsis>
@@ -437,6 +434,32 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-fractional-exclude</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="solve-conflicts" advanced="true">
+    <adm:synopsis>
+      Indicates if this server solves conflict.
+    </adm:synopsis>
+    <adm:description>
+      This boolean indicates if this domain keeps the historical information
+      necessary to solve conflicts.
+      When set to false the server will not maintain historical information 
+      and will therefore not be able to solve conflict. This should therefore
+      be done only if the replication is used in a single master type 
+      of deployment.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-solve-conflicts</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

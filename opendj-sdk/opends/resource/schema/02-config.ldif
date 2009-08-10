@@ -2410,6 +2410,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.589
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
+  
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.592
+  NAME 'ds-cfg-solve-conflicts'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  USAGE directoryOperation
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2969,7 +2975,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
         ds-cfg-group-id $
         ds-cfg-referrals-url $
         ds-cfg-fractional-exclude $
-        ds-cfg-fractional-include)
+        ds-cfg-fractional-include $
+        ds-cfg-solve-conflicts )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.58
   NAME 'ds-cfg-length-based-password-validator'
