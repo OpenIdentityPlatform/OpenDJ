@@ -219,8 +219,7 @@ public class CancelTaskTask extends Task
         arguments.toArray(args);
 
         returnCode = ManageTasks.mainTaskInfo(args, System.in,
-            outPrintStream, errorPrintStream);
-
+            outPrintStream, errorPrintStream, false);
         if (returnCode != 0)
         {
           break;

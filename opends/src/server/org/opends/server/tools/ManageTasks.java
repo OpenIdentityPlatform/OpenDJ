@@ -112,6 +112,27 @@ public class ManageTasks extends ConsoleApplication {
    *                         {@code null} if standard output is not needed.
    * @param err              The output stream to use for standard error, or
    *                         {@code null} if standard error is not needed.
+   * @param initializeServer Indicates whether to initialize the server.
+   * @return int return code
+   */
+  public static int mainTaskInfo(String[] args,
+                                 InputStream in,
+                                 OutputStream out,
+                                 OutputStream err,
+                                 boolean initializeServer) {
+    ManageTasks tool = new ManageTasks(in, out, err);
+    return tool.process(args, initializeServer);
+  }
+
+  /**
+   * Processes the command-line arguments and invokes the export process.
+   *
+   * @param args             The command-line arguments provided to this
+   * @param in               Input stream from which to solicit user input.
+   * @param out              The output stream to use for standard output, or
+   *                         {@code null} if standard output is not needed.
+   * @param err              The output stream to use for standard error, or
+   *                         {@code null} if standard error is not needed.
 
    * @return int return code
    */
@@ -119,8 +140,7 @@ public class ManageTasks extends ConsoleApplication {
                                  InputStream in,
                                  OutputStream out,
                                  OutputStream err) {
-    ManageTasks tool = new ManageTasks(in, out, err);
-    return tool.process(args);
+    return mainTaskInfo(args, in, out, err, true);
   }
 
   private static final int INDENT = 2;
@@ -170,9 +190,25 @@ public class ManageTasks extends ConsoleApplication {
    *                   program.
    * @return The error code.
    */
-  public int process(String[] args) {
+  public int process(String[] args)
+  {
+    return process(args, true);
+  }
 
-    DirectoryServer.bootstrapClient();
+  /**
+   * Processes the command-line arguments and invokes the export process.
+   *
+   * @param args       The command-line arguments provided to this
+   *                   program.
+   * @param initializeServer  Indicates whether to initialize the server.
+   * @return The error code.
+   */
+  public int process(String[] args, boolean initializeServer)
+  {
+    if (initializeServer)
+    {
+      DirectoryServer.bootstrapClient();
+    }
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
