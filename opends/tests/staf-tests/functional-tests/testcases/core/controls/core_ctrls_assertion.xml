@@ -135,17 +135,26 @@
                   'dsBaseDN'         : 'uid=user.1,%s' % peopleDn ,
                   'dsFilter'         : 'objectclass=*' ,
                   'extraParams'      : '--assertionFilter "(objectclass=top)"' ,
-                  'dsAttributes'     : 'uid' ,
-                  'expectedRC'       : 50
+                  'dsAttributes'     : 'uid' 
                 }
                 </call>
                 <!-- ========== -->
+                <!-- Behaviour changed since rev. 5534: access controls relaxed
+                 !   for OID 1.3.6.1.1.12 => ACI is no longer necessary. 
                 <message>'++ Check assertion control id is displayed'</message>
                 <call function="'CheckMatches'">
                 { 
                   'string2find' : '1.3.6.1.1.12' ,
                   'mainString'  : STAXResult[0][1] ,
                   'nbExpected'  : 1
+                }
+                </call>
+                -->
+                <call function="'CheckMatches'">
+                { 
+                  'string2find'   : 'uid=user.1,%s' % peopleDn ,
+                  'mainString'    : STAXResult[0][1] ,
+                  'nbExpected'    : 1 ,
                 }
                 </call>
                 <call function="'testCase_Postamble'"/>
