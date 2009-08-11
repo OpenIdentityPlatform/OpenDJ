@@ -30,4 +30,5 @@ changenumber: 100003
 targetdn: uid=tmorris, ou=People, o=schema tests,dc=example,dc=com
 changetype: modify
 changes: delete: telephonenumber\ntelephonenumber: 9187\n-\nadd telephonenumber\ntelephonenumber: +1 408 555 9187\n-
+changetime: 20090811151059Z
 

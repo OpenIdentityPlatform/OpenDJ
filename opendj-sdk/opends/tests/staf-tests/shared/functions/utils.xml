@@ -1531,6 +1531,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
+      <function-arg-def name="issue" type="optional" default="None">
+        <function-arg-description>
+          Issue id. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
       
     <sequence>
@@ -1559,7 +1565,16 @@
         </sequence>
         <else>
           <sequence>
-            <tcstatus result="'fail'"/>
+            <if expr="issue == None">
+              <tcstatus result="'fail'"/>
+            <else>
+              <sequence>
+                <call function="'setKnownIssue'">
+                  { 'issueId' : issue }
+                </call>
+              </sequence>
+            </else>
+            </if>
             <message log="1" level="'Error'">
               '%s' % myMessage
             </message>
