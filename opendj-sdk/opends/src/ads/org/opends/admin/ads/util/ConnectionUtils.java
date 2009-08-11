@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads.util;
@@ -245,7 +245,6 @@ public class ConnectionUtils
       KeyManager keyManager) throws NamingException
   {
     Hashtable<?, ?> env = ctx.getEnvironment();
-    Hashtable<?, ?> newEnv = new Hashtable<Object, Object>(env);
     Control[] ctls = ctx.getConnectControls();
     Control[] newCtls = null;
     if (ctls != null)
