@@ -3571,7 +3571,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
 
         if (!isInteractive() && !uData.disableReplicationServer() &&
-            !uData.disableAll() && disableAllBaseDns(ctx, uData))
+            !uData.disableAll() && disableAllBaseDns(ctx, uData) &&
+            hasReplicationPort(ctx))
         {
           // Inform the user that the replication server will not be disabled.
           // Inform also of the user of the disableReplicationServerArg
