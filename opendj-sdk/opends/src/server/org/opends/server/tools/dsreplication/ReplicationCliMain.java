@@ -5039,20 +5039,12 @@ public class ReplicationCliMain extends ConsoleApplication
           adsCtx2.readServerRegistry();
         if (registry2.size() <= 1)
         {
-          // Only the server itself registered.
           if (!hasAdministrator(adsCtx1.getDirContext(), uData))
           {
             adsCtx1.createAdministrator(getAdministratorProperties(uData));
           }
-          if (!ADSContext.isRegistered(server2, registry2))
-          {
-            server2.updateAdsPropertiesWithServerProperties();
-            registerServer(adsCtx1, server2.getAdsProperties());
-          }
-          else
-          {
-            registerServer(adsCtx1, registry2.iterator().next());
-          }
+          server2.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx1, server2.getAdsProperties());
           if (!ADSContext.isRegistered(server1, registry1))
           {
             server1.updateAdsPropertiesWithServerProperties();
@@ -5065,20 +5057,13 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (registry1.size() <= 1)
         {
-          // Only the server itself registered.
           if (!hasAdministrator(adsCtx2.getDirContext(), uData))
           {
             adsCtx2.createAdministrator(getAdministratorProperties(uData));
           }
-          if (!ADSContext.isRegistered(server1, registry1))
-          {
-            server1.updateAdsPropertiesWithServerProperties();
-            registerServer(adsCtx2, server1.getAdsProperties());
-          }
-          else
-          {
-            registerServer(adsCtx2, registry1.iterator().next());
-          }
+          server1.updateAdsPropertiesWithServerProperties();
+          registerServer(adsCtx2, server1.getAdsProperties());
+
           if (!ADSContext.isRegistered(server2, registry2))
           {
             server2.updateAdsPropertiesWithServerProperties();
@@ -5109,7 +5094,72 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // They are already replicated: nothing to do in terms of ADS
           // initialization or ADS update data
-          adsAlreadyReplicated = true;
+          adsAlreadyReplicated = isBaseDNReplicated(server1, server2,
+              ADSContext.getAdministrationSuffixDN());
+
+          if (!adsAlreadyReplicated)
+          {
+            // Try to merge if both are replicated
+            boolean isADS1Replicated = isBaseDNReplicated(server1,
+                ADSContext.getAdministrationSuffixDN());
+            boolean isADS2Replicated = isBaseDNReplicated(server2,
+                ADSContext.getAdministrationSuffixDN());
+            if (isADS1Replicated && isADS2Replicated)
+            {
+              // Merge
+              printProgress(formatter.getFormattedDone());
+              printlnProgress();
+
+              boolean isFirstSource = mergeRegistries(adsCtx1, adsCtx2);
+              if (isFirstSource)
+              {
+                ctxSource = ctx1;
+              }
+              else
+              {
+                ctxSource = ctx2;
+              }
+              adsMergeDone = true;
+            }
+            else if (isADS1Replicated || !isADS2Replicated)
+            {
+              // The case where only the first ADS is replicated or none
+              // is replicated.
+              if (!hasAdministrator(adsCtx1.getDirContext(), uData))
+              {
+                adsCtx1.createAdministrator(getAdministratorProperties(uData));
+              }
+              server2.updateAdsPropertiesWithServerProperties();
+              registerServer(adsCtx1, server2.getAdsProperties());
+              if (!ADSContext.isRegistered(server1, registry1))
+              {
+                server1.updateAdsPropertiesWithServerProperties();
+                registerServer(adsCtx1, server1.getAdsProperties());
+              }
+
+              ctxSource = ctx1;
+              ctxDestination = ctx2;
+              adsCtxSource = adsCtx1;
+            }
+            else if (isADS2Replicated)
+            {
+              if (!hasAdministrator(adsCtx2.getDirContext(), uData))
+              {
+                adsCtx2.createAdministrator(getAdministratorProperties(uData));
+              }
+              server1.updateAdsPropertiesWithServerProperties();
+              registerServer(adsCtx2, server1.getAdsProperties());
+              if (!ADSContext.isRegistered(server2, registry2))
+              {
+                server2.updateAdsPropertiesWithServerProperties();
+                registerServer(adsCtx2, server2.getAdsProperties());
+              }
+
+              ctxSource = ctx2;
+              ctxDestination = ctx1;
+              adsCtxSource = adsCtx2;
+            }
+          }
         }
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
@@ -5877,7 +5927,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ADSContextException adce)
       {
-        LOG.log(Level.INFO, "Error unregistering server: "+
+        LOG.log(Level.SEVERE, "Error unregistering server: "+
             server.getAdsProperties(), adce);
         if (adce.getError() != ADSContextException.ErrorType.NOT_YET_REGISTERED)
         {
@@ -6022,28 +6072,6 @@ public class ReplicationCliMain extends ConsoleApplication
         {
         }
       }
-      else if (disableReplicationServer)
-      {
-        for (ServerDescriptor s: serversToUpdate)
-        {
-          try
-          {
-            adsCtx.unregisterServer(s.getAdsProperties());
-          }
-          catch (ADSContextException adce)
-          {
-            LOG.log(Level.WARNING, "Error unregistering server: "+
-                s.getAdsProperties(), adce);
-            if (adce.getError() !=
-              ADSContextException.ErrorType.NOT_YET_REGISTERED)
-            {
-              throw new ReplicationCliException(
-                  ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
-                  ERROR_READING_ADS, adce);
-            }
-          }
-        }
-      }
     }
     if (disableReplicationServer && !replicationServerDisabled)
     {
@@ -6097,6 +6125,34 @@ public class ReplicationCliMain extends ConsoleApplication
         throw new ReplicationCliException(
             ERR_REPLICATION_UPDATING_ADS.get(t.toString()),
             ERROR_UPDATING_ADS, t);
+      }
+    }
+    else if (disableAllBaseDns &&
+        (disableReplicationServer || !server.isReplicationServer()))
+    {
+      // Unregister the servers from the ADS of the local server.
+      try
+      {
+        Set<Map<ADSContext.ServerProperty, Object>> registry =
+          adsCtx.readServerRegistry();
+        for (Map<ADSContext.ServerProperty, Object> s : registry)
+        {
+          adsCtx.unregisterServer(s);
+        }
+        try
+        {
+          // To be sure that the change gets propagated
+          Thread.sleep(2000);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      catch (ADSContextException adce)
+      {
+        // This is not critical, do not send an error
+        LOG.log(Level.WARNING, "Error unregistering server: "+
+            server.getAdsProperties(), adce);
       }
     }
   }
@@ -9969,7 +10025,6 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean mergeRegistries(ADSContext adsCtx1, ADSContext adsCtx2)
   throws ReplicationCliException
   {
-
     PointAdder pointAdder = new PointAdder();
     try
     {
@@ -10309,6 +10364,87 @@ public class ReplicationCliMain extends ConsoleApplication
         dn, pwd, getTrustManager(), cache.getPreferredConnections(),
         filter);
     return loader.createContext();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the provided baseDN is replicated in the
+   * provided server, <CODE>false</CODE> otherwise.
+   * @param server the server.
+   * @param baseDN the base DN.
+   * @return <CODE>true</CODE> if the provided baseDN is replicated in the
+   * provided server, <CODE>false</CODE> otherwise.
+   */
+  private boolean isBaseDNReplicated(ServerDescriptor server, String baseDN)
+  {
+    boolean isReplicated = false;
+    for (ReplicaDescriptor replica : server.getReplicas())
+    {
+      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      {
+        isReplicated = replica.isReplicated();
+        break;
+      }
+    }
+    return isReplicated;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the provided baseDN is replicated between
+   * both servers, <CODE>false</CODE> otherwise.
+   * @param server1 the first server.
+   * @param server2 the second server.
+   * @param baseDN the base DN.
+   * @return <CODE>true</CODE> if the provided baseDN is replicated between
+   * both servers, <CODE>false</CODE> otherwise.
+   */
+  private boolean isBaseDNReplicated(ServerDescriptor server1,
+      ServerDescriptor server2, String baseDN)
+  {
+    boolean isReplicatedInBoth = false;
+    ReplicaDescriptor replica1 = null;
+    ReplicaDescriptor replica2 = null;
+    for (ReplicaDescriptor replica : server1.getReplicas())
+    {
+      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      {
+        replica1 = replica;
+        break;
+      }
+    }
+    if (replica1 != null && replica1.isReplicated())
+    {
+      for (ReplicaDescriptor replica : server2.getReplicas())
+      {
+        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        {
+          replica2 = replica;
+          if (replica2.isReplicated())
+          {
+            Set<String> replServers1 =
+              replica1.getSuffix().getReplicationServers();
+            Set<String> replServers2 =
+              replica1.getSuffix().getReplicationServers();
+            for (String replServer1 : replServers1)
+            {
+              for (String replServer2 : replServers2)
+              {
+                if (replServer1.equalsIgnoreCase(replServer2))
+                {
+                  isReplicatedInBoth = true;
+                  break;
+                }
+              }
+              if (isReplicatedInBoth)
+              {
+                break;
+              }
+            }
+          }
+          break;
+        }
+      }
+    }
+    return isReplicatedInBoth;
   }
 }
 
