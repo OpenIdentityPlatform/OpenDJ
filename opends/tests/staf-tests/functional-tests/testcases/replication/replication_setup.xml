@@ -89,8 +89,9 @@
           </message>
                  
           <call function="'createTopology'">
-            { 'topologyDescFile' : topologyFile,
-              'sharedDataFolder' : 'replication'
+            { 'topologyDescFile'        : topologyFile,
+              'sharedDataFolder'        : 'replication',
+              'splitReplicationServers' : globalSplitServers
             }
           </call>  
       
@@ -156,11 +157,11 @@
                           
           <!-- Start the servers in the topology -->        
           <call function="'startServers'">
-            [_topologyServerList]
+            [_splitServerList]
           </call>            
 
               
-          <iterate var="server" in="consumerList">
+          <iterate var="server" in="_splitServerList[1:]">
             <sequence>
               <!-- Configure replication if required so by the server
                !  (i.e. server is a changelog server and/or has synchronized 
@@ -173,8 +174,23 @@
                   </message>
                     
                   <script>
-                    replicationServer = server.getChangelogServer()
-                    replicatedSuffixList = server.getSynchronizedSuffixList()
+                    if master.isOnlyLdapServer():
+                      masterReplPort = None
+                    else:
+                      masterReplPort = masterReplicationServer.getPort()
+                    
+                    if server.isOnlyLdapServer():
+                      serverReplPort = None
+                    else:
+                      replicationServer = server.getChangelogServer()
+                      serverReplPort = replicationServer.getPort() 
+                      
+                    if server.isOnlyReplServer():
+                      suffixServer = master
+                    else:
+                      suffixServer = server  
+
+                    replicatedSuffixList = suffixServer.getSynchronizedSuffixList()
                     replicatedDnList = []
                     for suffix in replicatedSuffixList:
                       replicatedDnList.append(suffix.getSuffixDn())
@@ -184,26 +200,29 @@
                     'Enable replication for server:\nHost: %s\nLdap port: %s\n\
                     Replication port: %s\nReplicated DN list: %s' \
                       % (server.getHostname(), server.getPort(), 
-                         replicationServer.getPort(), replicatedDnList)
+                         serverReplPort, replicatedDnList)
                   </message>
                                         
                   <call function="'enableReplication'">
                     { 'location'             : clientHost,
                       'dsPath'               : clientPath,
-                      'dsInstanceHost'       : server.getHostname(),
-                      'dsInstanceAdminPort'  : server.getAdminPort(),
-                      'dsInstanceDn'         : server.getRootDn(),
-                      'dsInstancePswd'       : server.getRootPwd(),
-                      'dsReplicationPort'    : replicationServer.getPort(),
-                      'dsSecureReplication'  : secureReplication,
                       'refInstanceHost'      : masterHost,
                       'refInstanceAdminPort' : master.getAdminPort(),
                       'refInstanceDn'        : master.getRootDn(),
                       'refInstancePswd'      : master.getRootPwd(),
-                      'refReplicationPort'  : masterReplicationServer.getPort(),
+                      'refReplicationPort'   : masterReplPort,
                       'refSecureReplication' : secureReplication,
-                      'replicationDnList'    : replicatedDnList,
-                      'useSecondServerAsSchemaSource'  :  True
+                      'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                      'refOnlyReplServer'    : master.isOnlyReplServer(),
+                      'dsInstanceHost'       : server.getHostname(),
+                      'dsInstanceAdminPort'  : server.getAdminPort(),
+                      'dsInstanceDn'         : server.getRootDn(),
+                      'dsInstancePswd'       : server.getRootPwd(),
+                      'dsReplicationPort'    : serverReplPort,
+                      'dsSecureReplication'  : secureReplication,
+                      'dsOnlyLdapServer'     : server.isOnlyLdapServer(),
+                      'dsOnlyReplServer'     : server.isOnlyReplServer(),
+                      'replicationDnList'    : replicatedDnList
                     }                      
                   </call>
                 </sequence>
@@ -218,7 +237,7 @@
              !   Server.
              !   This is used by the Conflict testsuite, in order to be able
              !   to simulate conflict scenarios -->
-            <paralleliterate var="server" in="_topologyServerList">
+            <paralleliterate var="server" in="_topologyServerList" indexvar="i">
               <sequence>
                 <script>
                   ldapServer = '%s:%s' % (server.getHostname(), 
@@ -252,9 +271,16 @@
                 </if>
 
                 <script>
-                  replicationServer = server.getChangelogServer()
-                  replServer = '%s:%s' % (server.getHostname(),
-                                          replicationServer.getPort())
+                  if globalSplitServers:
+                    splitServer = _topologyReplServerList[i]
+                    replicationServer = splitServer.getChangelogServer()
+                    replServer = '%s:%s' % (splitServer.getHostname(),
+                                            replicationServer.getPort())
+                  else:
+                    replicationServer = server.getChangelogServer()
+                    replServer = '%s:%s' % (server.getHostname(),
+                                            replicationServer.getPort())
+                  
                   options = '--domain-name "%s" --set replication-server:%s' \
                             % (domainMap[ldapServer], replServer)
                 </script>

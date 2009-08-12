@@ -80,6 +80,13 @@
             server2DataDir = '%s/%s' % (server2.getDir(),remote.reldatadir)
             server1name = '%s:%s' % (server1Host, server1.getPort())
             server2name = '%s:%s' % (server2Host, server2.getPort())
+            
+            if globalSplitServers:
+              replServer1 = _topologyReplServerList[0]
+              replServer2 = _topologyReplServerList[1]
+            else:
+              replServer1 = server1
+              replServer2 = server2
 
             # Filter used for retrieving conflict counters from cn=monitor              
             filter0 = '(base-dn=%s)' % synchroSuffix
@@ -286,7 +293,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -343,7 +350,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -445,7 +452,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -503,7 +510,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -618,7 +625,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -690,7 +697,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -805,7 +812,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -877,7 +884,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -984,7 +991,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1043,7 +1050,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -1150,7 +1157,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1209,7 +1216,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -1323,7 +1330,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1382,7 +1389,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -1491,7 +1498,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1550,7 +1557,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -1669,7 +1676,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1741,7 +1748,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -1854,7 +1861,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -1913,7 +1920,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -2026,7 +2033,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -2085,7 +2092,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -2202,7 +2209,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -2261,7 +2268,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -2377,7 +2384,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -2436,7 +2443,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -2541,7 +2548,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Add child entry on server2 -->
@@ -2632,7 +2639,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -2809,7 +2816,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Delete parent entry on server1-->
@@ -2900,7 +2907,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -3067,7 +3074,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -3153,7 +3160,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Check conflict is resolved -->
@@ -3316,7 +3323,7 @@
 
               <!-- Disconnect Replication Servers -->
               <call function="'disconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <iterate var="server"
@@ -3402,7 +3409,7 @@
                 
               <!-- Reconnect Replication Servers -->
               <call function="'reconnectReplicationServers'">
-                [ clientHost, clientPath, [server1, server2] ]
+                [ clientHost, clientPath, [replServer1, replServer2] ]
               </call>
 
               <!-- Delete entry on server1-->

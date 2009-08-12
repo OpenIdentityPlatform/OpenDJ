@@ -475,6 +475,14 @@
             </else>
           </if>
         </sequence>
+        <else>
+          <sequence>
+            <message log="1" level="'Error'">
+              'LdifDiffWithScript: command run FAILED.'
+            </message>
+            <return> -1 </return>
+          </sequence>
+        </else>
       </if>
 
       <if expr="diffRC == 0">
