@@ -379,9 +379,6 @@ public class DirectoryServer
   // Indicates whether the server has been bootstrapped.
   private boolean isBootstrapped;
 
-  // Indicates whether the server has been bootstrapped for client use.
-  private boolean isClientBootstrapped;
-
   // Indicates whether the server is currently online.
   private boolean isRunning;
 
@@ -802,7 +799,6 @@ public class DirectoryServer
   {
     environmentConfig        = config;
     isBootstrapped           = false;
-    isClientBootstrapped     = false;
     isRunning                = false;
     shuttingDown             = false;
     lockdownMode             = false;
@@ -905,11 +901,6 @@ public class DirectoryServer
   {
     synchronized (directoryServer)
     {
-      if (directoryServer.isClientBootstrapped)
-      {
-        return;
-      }
-
 
       // Set default values for variables that may be needed during schema
       // processing.
@@ -8425,7 +8416,6 @@ public class DirectoryServer
   {
     checkSchema                   = true;
     isBootstrapped                = false;
-    isClientBootstrapped          = false;
     isRunning                     = false;
     lockdownMode                  = true;
     rejectUnauthenticatedRequests = true;
