@@ -138,20 +138,26 @@
                                 
               <!-- Search changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>                    
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                     
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.0',
                       'dsAttributes'     : 'dn'
@@ -173,12 +179,12 @@
 
                   <!-- Search for entry modify -->
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'l=GEC',
                       'dsAttributes'     : 'dn'
@@ -275,25 +281,32 @@
               <!-- Export changelog in the various replication servers, then
                 check for added entry in the exported files -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
                     
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                    replServerDataDir = '%s/%s' \
+                      % (replServer.getDir(),remote.reldatadir)
                     exportedChangelog = \
                       '%s/replication/changelog_export_online.ldif' \
-                      % serverDataDir                     
+                      % replServerDataDir                     
                   </script>
 
                   <!-- Export changelog data from server -->
                   <call function="'exportLdifTask'">
-                    { 'location'       : server.getHostname(),
-                      'dsPath'         : serverPath,
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
+                    { 'location'       : replServer.getHostname(),
+                      'dsPath'         : replServerPath,
+                      'dsInstanceHost' : replServer.getHostname(),
+                      'dsInstancePort' : replServer.getPort(),
+                      'dsInstanceDn'   : replServer.getRootDn(),
+                      'dsInstancePswd' : replServer.getRootPwd(),
                       'taskID'         : 'changelog export task',
                       'ldifFile'       : exportedChangelog,
                       'backEnd'        : 'replicationChanges'
@@ -303,7 +316,7 @@
                   <!-- Check for the added entry inside the exported file -->
                   <call function="'grep'">
                     {
-                      'location'   : server.getHostname(),
+                      'location'   : replServer.getHostname(),
                       'filename'   : exportedChangelog,
                       'testString' : 'uid=iabizen.2'
                     }
@@ -392,25 +405,37 @@
               </call>
                                 
               <!-- Stop the servers in the topology -->
+              <script>
+                if globalSplitServers:
+                  serverList = _topologyReplServerList
+                else:
+                  serverList = _topologyServerList
+              </script>
               <call function="'stopServers'">
-                [_topologyServerList]
+                [serverList]
               </call>
                                               
-
               <!-- Backup changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>                    
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                    replServerDataDir = '%s/%s' \
+                      % (replServer.getDir(),remote.reldatadir)
                     changelogBackupDir = '%s/replication/changelog_backup' \
-                                         % serverDataDir                     
+                                         % replServerDataDir                     
                   </script>
 
                   <call function="'backup'">
-                    { 'location'  : server.getHostname(),
-                      'dsPath'    : serverPath,
+                    { 'location'  : replServer.getHostname(),
+                      'dsPath'    : replServerPath,
                       'backupDir' : changelogBackupDir,
                       'backEnd'   : 'replicationChanges'
                     }
@@ -419,10 +444,15 @@
               </paralleliterate>
                                         
               <!-- Start the servers in the topology -->
+              <script>
+                if globalSplitServers:
+                  serverList = _topologyReplServerList
+                else:
+                  serverList = _topologyServerList
+              </script>
               <call function="'startServers'">
-                [_topologyServerList]
-              </call>
-                
+                [serverList]
+              </call>                
 
               <!-- Add entry B to "master" server -->
               <script>
@@ -460,7 +490,7 @@
                                 
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
-                [_topologyServerList]
+                [_splitServerList]
               </call>
                                               
 
@@ -472,10 +502,18 @@
                 <sequence>
                     
                   <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                     serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                    replServerDataDir = '%s/%s' \
+                      % (replServer.getDir(),remote.reldatadir)
                     changelogBackupDir = '%s/replication/changelog_backup' \
-                                         % serverDataDir                     
+                                         % replServerDataDir                     
                   </script>
 
                   <!-- Restore master_backup -->  
@@ -516,8 +554,8 @@
                                                             
                   <!-- Restore changelog_backup -->
                   <call function="'restore'">
-                    { 'location'  : server.getHostname(),
-                      'dsPath'    : serverPath,
+                    { 'location'  : replServer.getHostname(),
+                      'dsPath'    : replServerPath,
                       'backupDir' : changelogBackupDir
                     }
                   </call>                    
@@ -526,7 +564,7 @@
                                         
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
-                [_topologyServerList]
+                [_splitServerList]
               </call>                                
 
                 
@@ -534,10 +572,17 @@
               <!-- Search synchroSuffix and changelog in the various servers,
                 looking for entries A (should be there) and B (shouldn't be) -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
-                <sequence>                    
+                               in="_topologyServerList" 
+                               indexvar="i">
+                <sequence>
                   <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)      
                   </script>
 
                   <!-- Search for entry A (should be there) -->
@@ -555,12 +600,12 @@
                     }                
                   </call>                                                        
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.A',
                       'dsAttributes'     : 'dn',
@@ -596,12 +641,12 @@
                     }                
                   </call>                                                        
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.B',
                       'dsAttributes'     : 'dn',
@@ -707,22 +752,30 @@
                 
               <!-- Backup changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>                    
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                    replServerDataDir = '%s/%s' \
+                      % (replServer.getDir(),remote.reldatadir)
                     changelogBackupDir = \
-                      '%s/replication/changelog_backup_online' % serverDataDir                     
+                      '%s/replication/changelog_backup_online' \
+                      % replServerDataDir                     
                   </script>
 
                   <call function="'backupTask'">
-                    { 'location'       : server.getHostname(),
-                      'dsPath'         : serverPath,
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
+                    { 'location'       : replServer.getHostname(),
+                      'dsPath'         : replServerPath,
+                      'dsInstanceHost' : replServer.getHostname(),
+                      'dsInstancePort' : replServer.getPort(),
+                      'dsInstanceDn'   : replServer.getRootDn(),
+                      'dsInstancePswd' : replServer.getRootPwd(),
                       'taskID'         : 'changelog backup task',
                       'backupDir'      : changelogBackupDir,
                       'backEnd'        : 'replicationChanges'
@@ -774,20 +827,29 @@
                 <sequence>
                     
                   <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                     serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                    replServerDataDir = '%s/%s' \
+                      % (replServer.getDir(),remote.reldatadir)
                     changelogBackupDir = \
-                      '%s/replication/changelog_backup_online' % serverDataDir
+                      '%s/replication/changelog_backup_online' \
+                      % replServerDataDir                     
                   </script>
 
                   <!-- Restore changelog_backup -->
                   <call function="'restoreTask'">
-                    { 'location'       : server.getHostname(),
-                      'dsPath'         : serverPath,
-                      'dsInstanceHost' : server.getHostname(),
-                      'dsInstancePort' : server.getPort(),
-                      'dsInstanceDn'   : server.getRootDn(),
-                      'dsInstancePswd' : server.getRootPwd(),
+                    { 'location'       : replServer.getHostname(),
+                      'dsPath'         : replServerPath,
+                      'dsInstanceHost' : replServer.getHostname(),
+                      'dsInstancePort' : replServer.getPort(),
+                      'dsInstanceDn'   : replServer.getRootDn(),
+                      'dsInstancePswd' : replServer.getRootPwd(),
                       'taskID'         : 'changelog restore task',
                       'backupDir'      : changelogBackupDir
                     }
@@ -842,11 +904,19 @@
                 looking for entries AA (should be there) and BB (shouldn't be) 
                 -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>                    
                   <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
+
 
                   <!-- Search for entry AA (should be there) -->
                   <call function="'ldapSearchWithScript'">
@@ -863,12 +933,12 @@
                     }                
                   </call>                                                        
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.AA',
                       'dsAttributes'     : 'dn',
@@ -904,12 +974,12 @@
                     }                
                   </call>                                                        
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.BB',
                       'dsAttributes'     : 'dn',
@@ -1006,20 +1076,27 @@
                 
               <!-- Search changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
                     
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
+
                     
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges' ,
                       'dsFilter'         : 'uid=iabizen.3',
                       'dsAttributes'     : 'dn'
@@ -1059,10 +1136,17 @@
 
               <!-- Search changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
-                <sequence>                    
+                               in="_topologyServerList" 
+                               indexvar="i">
+                <sequence>
                   <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                                                                          
                   <!-- Search for entry in the suffix (should NOT be there) -->
@@ -1082,12 +1166,12 @@
                   <!-- Search for corresponding change in the changelog
                     (should NOT be there) -->                                               
                   <call function="'ldapSearchWithScript'">
-                    { 'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                    { 'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.3',
                       'dsAttributes'     : 'dn',
@@ -1153,19 +1237,30 @@
                 specified in the conf expires'
               </message>
 
+              <script>
+                if globalSplitServers:
+                  masterReplServer = _topologyReplServerList[0]
+                else:
+                  masterReplServer = master
+
+                masterReplServerHost = masterReplServer.getHostname()
+                masterReplServerPath = '%s/%s' % \
+                                       (masterReplServer.getDir(), OPENDSNAME)
+              </script>
+
               <message>
                 'Set purge delay to 20 seconds on server %s:%s' \
-                % (masterHost, master.getPort())
+                % (masterReplServerHost, masterReplServer.getPort())
               </message>
 
               <!-- Set purge delay to 20s on "master" server -->              
               <call function="'dsconfigSet'">
-                { 'location'            : masterHost,
-                  'dsPath'              : masterPath,
-                  'dsInstanceHost'      : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'dsInstanceDn'        : master.getRootDn(),
-                  'dsInstancePswd'      : master.getRootPwd(),
+                { 'location'            : masterReplServerHost,
+                  'dsPath'              : masterReplServerPath,
+                  'dsInstanceHost'      : masterReplServerHost,
+                  'dsInstanceAdminPort' : masterReplServer.getAdminPort(),
+                  'dsInstanceDn'        : masterReplServer.getRootDn(),
+                  'dsInstancePswd'      : masterReplServer.getRootPwd(),
                   'objectName'          : 'replication-server' ,
                   'propertyType'        : 'provider',
                   'propertyName'        : 'Multimaster Synchronization',
@@ -1237,20 +1332,26 @@
                 
               <!-- Search changelog in the various replication servers -->                                                           
               <paralleliterate var="server" 
-                               in="_topologyServerList">
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>                    
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)                    
                   </script>
-                    
+
                   <call function="'ldapSearchWithScript'">
                     {
-                      'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges' ,
                       'dsFilter'         : 'uid=iabizen.X',
                       'dsAttributes'     : 'dn'
@@ -1287,17 +1388,22 @@
                                indexvar="i">
                 <sequence>                    
                   <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)                    
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)                    
                   </script>
                                                                                                                         
                   <call function="'ldapSearchWithScript'">
                     {
-                      'location'         : server.getHostname(),
-                      'dsPath'           : serverPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'location'         : replServer.getHostname(),
+                      'dsPath'           : replServerPath,
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=iabizen.X',
                       'dsAttributes'     : 'dn',
@@ -1310,7 +1416,7 @@
                     resultLength = len(searchResult) > 0
 
                     if i == 0:
-                      # index [0] corresponds to "master" server
+                      # index [0] corresponds to "master" repl server
                       # => purge delay expired => changelog purged
                       # => expect NO entry returned
                       # => len(searchResult) = 0 => resultLength = 0

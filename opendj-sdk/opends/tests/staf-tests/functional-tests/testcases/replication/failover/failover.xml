@@ -160,6 +160,13 @@
                     nextServer = _topologyServerList[(i + 1) % nbOfServers]
                     nextServerPath = '%s/%s' % (nextServer.getDir(), OPENDSNAME)
                     userDn = 'uid=iabizen-%s, ou=People, %s' % (i, synchroSuffix)
+                    
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                     
                   <!-- Stop server (simulate failover?) -->
@@ -172,6 +179,17 @@
                       'dsBindPwd'   :  server.getRootPwd()
                     }
                   </call>
+                  <if expr="globalSplitServers">
+                    <call function="'StopDsWithScript'">
+                      { 'location'    :  replServer.getHostname(),
+                        'dsPath'      :  replServerPath,
+                        'dsHost'      :  replServer.getHostname(),
+                        'dsAdminPort' :  replServer.getAdminPort(),
+                        'dsBindDN'    :  replServer.getRootDn(),
+                        'dsBindPwd'   :  replServer.getRootPwd()
+                      }
+                    </call>
+                  </if>
                     
                   <!-- Add entry to one of the other servers -->
                   <script>
@@ -186,13 +204,13 @@
                   </script>
           
                   <call function="'addAnEntry'">
-                    { 'location'  :  nextServer.getHostname(),
-                      'dsPath'  :  nextServerPath,
-                      'dsInstanceHost'  :  nextServer.getHostname(),
-                      'dsInstancePort'  :  nextServer.getPort(),
-                      'dsInstanceDn'  :  nextServer.getRootDn(),
-                      'dsInstancePswd'  :  nextServer.getRootPwd(),
-                      'DNToAdd'  :  userDn,
+                    { 'location'       :  nextServer.getHostname(),
+                      'dsPath'         :  nextServerPath,
+                      'dsInstanceHost' :  nextServer.getHostname(),
+                      'dsInstancePort' :  nextServer.getPort(),
+                      'dsInstanceDn'   :  nextServer.getRootDn(),
+                      'dsInstancePswd' :  nextServer.getRootPwd(),
+                      'DNToAdd'        :  userDn,
                       'listAttributes' : listAttr,
                       'expectedRC'     :  0
                     }
@@ -203,7 +221,14 @@
                     { 'location'  :  server.getHostname(),
                       'dsPath'    :  serverPath
                     }
-                  </call>                    
+                  </call>
+                  <if expr="globalSplitServers">
+                    <call function="'StartDsWithScript'">
+                      { 'location'    :  replServer.getHostname(),
+                        'dsPath'      :  replServerPath
+                      }
+                    </call>
+                  </if>
                 </sequence>                  
               </iterate>
                                         
@@ -236,10 +261,15 @@
                  'Replication: Failover: All but one servers down (stopped). Check replication when all but one servers are off-line'
               </message>
 
-              <!-- Start the "consumer" servers -->
+              <!-- Stop the "consumer" servers -->
               <call function="'stopServers'">
                 [consumerList]
               </call>
+              <if expr="globalSplitServers">
+                <call function="'stopServers'">
+                  [_topologyReplServerList[1:]]
+                </call>
+              </if>
  
                     
               <!-- Add entry to master servers -->
@@ -257,14 +287,14 @@
               </script>
           
               <call function="'addAnEntry'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath,
-                  'dsInstanceHost'  :  masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'DNToAdd'  :  userDn,
-                  'listAttributes' : listAttr,
+                { 'location'       :  masterHost,
+                  'dsPath'         :  masterPath,
+                  'dsInstanceHost' :  masterHost,
+                  'dsInstancePort' :  master.getPort(),
+                  'dsInstanceDn'   :  master.getRootDn(),
+                  'dsInstancePswd' :  master.getRootPwd(),
+                  'DNToAdd'        :  userDn,
+                  'listAttributes' :  listAttr,
                   'expectedRC'     :  0
                 }
               </call>
@@ -273,6 +303,11 @@
               <call function="'startServers'">
                 [consumerList]
               </call>
+              <if expr="globalSplitServers">
+                <call function="'startServers'">
+                  [_topologyReplServerList[1:]]
+                </call>
+              </if>
                                   
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->          
@@ -314,6 +349,13 @@
                     nextServer = _topologyServerList[(i + 1) % nbOfServers]
                     nextServerPath = '%s/%s' % (nextServer.getDir(), OPENDSNAME)
                     userDn = 'uid=ideiturak-%s, ou=People, %s' % (i, synchroSuffix)
+                    
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                     
                   <!-- Kill server (simulate failover?) -->
@@ -322,6 +364,13 @@
                       'dsPath'    :  serverPath
                     }
                   </call>
+                  <if expr="globalSplitServers">
+                    <call function="'killDs'">
+                      { 'location'  :  replServer.getHostname(),
+                        'dsPath'    :  replServerPath
+                      }
+                    </call>
+                  </if>
                     
                   <!-- Add entry to one of the other servers -->
                   <script>
@@ -336,13 +385,13 @@
                   </script>
           
                   <call function="'addAnEntry'">
-                    { 'location'  :  nextServer.getHostname(),
-                      'dsPath'  :  nextServerPath,
-                      'dsInstanceHost'  :  nextServer.getHostname(),
-                      'dsInstancePort'  :  nextServer.getPort(),
-                      'dsInstanceDn'  :  nextServer.getRootDn(),
-                      'dsInstancePswd'  :  nextServer.getRootPwd(),
-                      'DNToAdd'  :  userDn,
+                    { 'location'       :  nextServer.getHostname(),
+                      'dsPath'         :  nextServerPath,
+                      'dsInstanceHost' :  nextServer.getHostname(),
+                      'dsInstancePort' :  nextServer.getPort(),
+                      'dsInstanceDn'   :  nextServer.getRootDn(),
+                      'dsInstancePswd' :  nextServer.getRootPwd(),
+                      'DNToAdd'        :  userDn,
                       'listAttributes' : listAttr,
                       'expectedRC'     :  0
                     }
@@ -353,7 +402,15 @@
                     { 'location'  :  server.getHostname(),
                       'dsPath'    :  serverPath
                     }
-                  </call>                    
+                  </call>
+                  <if expr="globalSplitServers">
+                    <call function="'StartDsWithScript'">
+                      { 'location'    :  replServer.getHostname(),
+                        'dsPath'      :  replServerPath
+                      }
+                    </call>
+                  </if>
+                  
                 </sequence>                  
               </iterate>
                                         
@@ -386,10 +443,17 @@
                  'Replication: Failover: All but one servers down (killed). Check replication when all but one servers fail'
               </message>
                  
-              <paralleliterate var="server" in="consumerList">
+              <paralleliterate var="server" in="consumerList" indexvar="i">
                 <sequence>
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i+1]
+                    else:
+                      replServer = server
+
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                     
                   <!-- Kill server (simulate failover?) -->
@@ -397,7 +461,14 @@
                     { 'location'  :  server.getHostname(),
                       'dsPath'    :  serverPath
                     }
-                  </call>                    
+                  </call>
+                  <if expr="globalSplitServers">
+                    <call function="'killDs'">
+                      { 'location'  :  replServer.getHostname(),
+                        'dsPath'    :  replServerPath
+                      }
+                    </call>
+                  </if>
                 </sequence>
               </paralleliterate>
  
@@ -417,13 +488,13 @@
               </script>
           
               <call function="'addAnEntry'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath,
-                  'dsInstanceHost'  :  masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'DNToAdd'  :  userDn,
+                { 'location'       :  masterHost,
+                  'dsPath'         :  masterPath,
+                  'dsInstanceHost' :  masterHost,
+                  'dsInstancePort' :  master.getPort(),
+                  'dsInstanceDn'   :  master.getRootDn(),
+                  'dsInstancePswd' :  master.getRootPwd(),
+                  'DNToAdd'        :  userDn,
                   'listAttributes' : listAttr,
                   'expectedRC'     :  0
                 }
@@ -433,6 +504,11 @@
               <call function="'startServers'">
                 [consumerList]
               </call>
+              <if expr="globalSplitServers">
+                <call function="'startServers'">
+                  [_topologyReplServerList[1:]]
+                </call>
+              </if>
                                         
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->          

@@ -56,12 +56,25 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="splitReplicationServers" 
+                        type="optional" 
+                        default="False">
+        <function-arg-description>
+          Specifies whether the replication servers should be split from the
+          ldap servers and be configured on separate instances.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
       <script>
         if not sharedDataFolder and CurrentTestPath.has_key('group'):
           sharedDataFolder=CurrentTestPath['group']
+        
+        _topologyServerList = []
+        _topologyReplServerList = []
+        _splitServerList = []
       </script>
       
       <call function="'prepareInstanceCreation'">
@@ -100,12 +113,34 @@
               { 'file' : topologyDescFile }
             </call>
             
+            <if expr="splitReplicationServers">
+              <sequence>
+                <message>
+                  'Replication servers will be splitted from ldap servers.'
+                </message>
+                <iterate var="server" in="_topologyServerList" indexvar="i">
+                  <sequence>
+                    <script>
+                      _topologyReplServerList.append(server.splitReplServer())
+                      _splitServerList.append(server)
+                      _splitServerList.append(_topologyReplServerList[i])
+                    </script>
+                  </sequence>
+                </iterate>
+              </sequence>
+              <else>
+                <script>
+                  _splitServerList = _topologyServerList
+                </script>
+              </else>
+            </if>
+            
             <message>
               'Number of server instances required by the deployment: %s' \
-              % len(_topologyServerList)
+              % len(_splitServerList)
             </message>
          
-            <iterate var="server" in="_topologyServerList">
+            <iterate var="server" in="_splitServerList">
               <sequence>
                 <!-- Create the instance-->
                 <call function="'createInstance'">
@@ -1031,8 +1066,26 @@
           Encrypt communications over dsReplicationPort (secure replication)
         </function-arg-description>
         <function-arg-property name="type" value="boolean" />
-      </function-arg-def>                        
-        
+      </function-arg-def>
+      
+      <function-arg-def name="dsOnlyLdapServer"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Server only to contain replicated data (no Repl server/changelog)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+
+      <function-arg-def name="dsOnlyReplServer"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Server only to contain Repl server/changelog (no replicated data)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+
       <function-arg-def name="refInstanceHost"
                         type="optional"
                         default="STAF_REMOTE_HOSTNAME">
@@ -1079,7 +1132,26 @@
           Encrypt communications over refReplicationPort (secure replication)
         </function-arg-description>
         <function-arg-property name="type" value="boolean" />
-      </function-arg-def>        
+      </function-arg-def>
+      
+      <function-arg-def name="refOnlyLdapServer"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Server only to contain replicated data (no Repl server/changelog)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+
+      <function-arg-def name="refOnlyReplServer"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Server only to contain Repl server/changelog (no replicated data)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+
                         
       <function-arg-def name="replicationDnList" type="required">
         <function-arg-description>
@@ -1089,8 +1161,8 @@
       </function-arg-def>        
         
       <function-arg-def name="adminUID" 
-                                   type="optional"
-                                   default="AdminUID">
+                        type="optional"
+                        default="AdminUID">
         <function-arg-description>
           Global Administrator UID
         </function-arg-description>
@@ -1098,8 +1170,8 @@
       </function-arg-def>
       
       <function-arg-def name="adminPswd" 
-                                   type="optional"
-                                   default="AdminPswd">
+                        type="optional"
+                        default="AdminPswd">
         <function-arg-description>
           Global Administrator password
         </function-arg-description>
@@ -1148,41 +1220,53 @@
         STAFCmdParamsList.append('-Q')
         STAFCmdParamsList.append('-X')
           
-        if dsInstanceHost:
-          STAFCmdParamsList.append('--host1 %s' % dsInstanceHost)
-      
-        if dsInstanceAdminPort:
-          STAFCmdParamsList.append('--port1 %s' % dsInstanceAdminPort)
-      
-        if dsInstanceDn:
-          STAFCmdParamsList.append('--bindDN1 "%s"' % dsInstanceDn)
-      
-        if dsInstancePswd:
-          STAFCmdParamsList.append('--bindPassword1 "%s"' % dsInstancePswd)
-
-        if dsReplicationPort:
-          STAFCmdParamsList.append('--replicationPort1 %s' % dsReplicationPort)                    
-          
-        if dsSecureReplication:
-          STAFCmdParamsList.append('--secureReplication1')          
-
         if refInstanceHost:
-          STAFCmdParamsList.append('--host2 %s' % refInstanceHost)
+          STAFCmdParamsList.append('--host1 %s' % refInstanceHost)
       
         if refInstanceAdminPort:
-          STAFCmdParamsList.append('--port2 %s' % refInstanceAdminPort)
+          STAFCmdParamsList.append('--port1 %s' % refInstanceAdminPort)
       
         if refInstanceDn:
-          STAFCmdParamsList.append('--bindDN2 "%s"' % refInstanceDn)
+          STAFCmdParamsList.append('--bindDN1 "%s"' % refInstanceDn)
       
         if refInstancePswd:
-          STAFCmdParamsList.append('--bindPassword2 "%s"' % refInstancePswd)
+          STAFCmdParamsList.append('--bindPassword1 "%s"' % refInstancePswd)
 
         if refReplicationPort:
-          STAFCmdParamsList.append('--replicationPort2 %s' % refReplicationPort)                    
+          STAFCmdParamsList.append('--replicationPort1 %s' % refReplicationPort)                    
 
         if refSecureReplication:
-          STAFCmdParamsList.append('--secureReplication2') 
+          STAFCmdParamsList.append('--secureReplication1') 
+
+        if refOnlyLdapServer:
+          STAFCmdParamsList.append('--noReplicationServer1')          
+
+        if refOnlyReplServer:
+          STAFCmdParamsList.append('--onlyReplicationServer1')          
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('--host2 %s' % dsInstanceHost)
+      
+        if dsInstanceAdminPort:
+          STAFCmdParamsList.append('--port2 %s' % dsInstanceAdminPort)
+      
+        if dsInstanceDn:
+          STAFCmdParamsList.append('--bindDN2 "%s"' % dsInstanceDn)
+      
+        if dsInstancePswd:
+          STAFCmdParamsList.append('--bindPassword2 "%s"' % dsInstancePswd)
+
+        if dsReplicationPort:
+          STAFCmdParamsList.append('--replicationPort2 %s' % dsReplicationPort)                    
+          
+        if dsSecureReplication:
+          STAFCmdParamsList.append('--secureReplication2')          
+
+        if dsOnlyLdapServer:
+          STAFCmdParamsList.append('--noReplicationServer2')          
+
+        if dsOnlyReplServer:
+          STAFCmdParamsList.append('--onlyReplicationServer2')          
 
         if replicationDnList:
           for dn in replicationDnList:
@@ -1723,7 +1807,7 @@
         <else>
           <!-- MULTIPLE instance deployment: parameters read from
             topologyDescFile -->
-          <iterate var="server" in="_topologyServerList">
+          <iterate var="server" in="_splitServerList">
             <call function="'removeInstance'">
               { 'dsHost' : server.getHostname(),
                 'dsDir'  : server.getDir()

@@ -119,7 +119,7 @@
                     listAttr.append('givenname:Izen-%s' % i)
                     listAttr.append('sn:Abizen-%s' % i)
                     listAttr.append('cn:Izen-%s Abizen-%s' % (i, i))
-                    listAttr.append('l: ICNC')
+                    listAttr.append('l:ICNC')
                   </script>
           
                   <call function="'addAnEntry'">

@@ -48,12 +48,12 @@
                   
           <!-- Stop the servers in the topology -->      
           <call function="'stopServers'">
-            [_topologyServerList]
+            [_splitServerList]
           </call>
           
           <!-- Copy the server logs to the controller machine -->
           <if expr="suiteSuffix != None">
-            <paralleliterate var="server" in="_topologyServerList" indexvar="i">
+            <paralleliterate var="server" in="_splitServerList" indexvar="i">
               <sequence>
                 <script>
                   suffix     = suiteSuffix + '_%s' % (i + 1)

@@ -61,7 +61,6 @@
           
           <script>
             server3            = _topologyServerList[2]
-            replicationServer3 = server3.getChangelogServer()
             
             # Remove 3rd server from replicated servers list until replication
             # is enabled on the 3rd one
@@ -363,16 +362,24 @@
                 Initialise newly added server using on-line backup/restore'
               </message>
 
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -384,7 +391,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
@@ -406,16 +413,24 @@
                 }
               </call>
               
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -427,7 +442,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
@@ -484,16 +499,24 @@
                 }
               </call>
 
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -505,7 +528,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
@@ -524,16 +547,24 @@
                 }
               </call>
               
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -545,7 +576,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
@@ -567,16 +598,24 @@
                 }
               </call>
               
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -588,35 +627,54 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
               
               <!-- Add new server to topology -->
+              <script>
+                if master.isOnlyLdapServer():
+                  masterReplPort = None
+                else:
+                  masterReplPort = masterReplicationServer.getPort()
+                
+                if server3.isOnlyLdapServer():
+                  server3ReplPort = None
+                else:
+                  replicationServer3 = server3.getChangelogServer()
+                  server3ReplPort = replicationServer3.getPort() 
+              </script>
+
               <message>
                 '+++++ resynchronization add server: Enable replication for \
                 server:\nHost: %s\nLdap port: %s\nReplication port: %s\n\
                 Replicated DN list: %s' \
                 % (server3.getHostname(), server3.getPort(), 
-                   replicationServer3.getPort(), [synchroSuffix])
+                   server3ReplPort, [synchroSuffix])
               </message>
+          
               <call function="'enableReplication'">
                 { 'location'             : clientHost,
                   'dsPath'               : clientPath,
-                  'dsInstanceHost'       : server3.getHostname(),
-                  'dsInstanceAdminPort'  : server3.getAdminPort(),
-                  'dsInstanceDn'         : server3.getRootDn(),
-                  'dsInstancePswd'       : server3.getRootPwd(),
-                  'dsReplicationPort'    : replicationServer3.getPort(),
                   'refInstanceHost'      : masterHost,
                   'refInstanceAdminPort' : master.getAdminPort(),
                   'refInstanceDn'        : master.getRootDn(),
                   'refInstancePswd'      : master.getRootPwd(),
-                  'refReplicationPort'   : masterReplicationServer.getPort(),
+                  'refReplicationPort'   : masterReplPort,
+                  'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                  'refOnlyReplServer'    : master.isOnlyReplServer(),
+                  'dsInstanceHost'       : server3.getHostname(),
+                  'dsInstanceAdminPort'  : server3.getAdminPort(),
+                  'dsInstanceDn'         : server3.getRootDn(),
+                  'dsInstancePswd'       : server3.getRootPwd(),
+                  'dsReplicationPort'    : server3ReplPort,
+                  'dsOnlyLdapServer'     : server3.isOnlyLdapServer(),
+                  'dsOnlyReplServer'     : server3.isOnlyReplServer(),
                   'replicationDnList'    : [synchroSuffix]
                 }                      
-              </call>              
+              </call>
+  
 
               <script>
                 # Add 3rd server to replicated servers list now that replication
@@ -625,16 +683,24 @@
                 consumerList = consumerList + [server3]
               </script>                            
               
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -646,7 +712,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>
@@ -680,16 +746,24 @@
                 }
               </call>
               
-              <paralleliterate var="server" in="_topologyServerList">
+              <paralleliterate var="server" 
+                               in="_topologyServerList" 
+                               indexvar="i">
                 <sequence>
+                  <script>
+                    if globalSplitServers:
+                      replServer = _topologyReplServerList[i]
+                    else:
+                      replServer = server
+                  </script>
                   <!-- Search for entry add -->
                   <call function="'ldapSearchWithScript'">
                     { 'location'         : clientHost,
                       'dsPath'           : clientPath,
-                      'dsInstanceHost'   : server.getHostname(),
-                      'dsInstancePort'   : server.getPort(),
-                      'dsInstanceDn'     : server.getRootDn(),
-                      'dsInstancePswd'   : server.getRootPwd(),
+                      'dsInstanceHost'   : replServer.getHostname(),
+                      'dsInstancePort'   : replServer.getPort(),
+                      'dsInstanceDn'     : replServer.getRootDn(),
+                      'dsInstancePswd'   : replServer.getRootPwd(),
                       'dsBaseDN'         : 'dc=replicationChanges',
                       'dsFilter'         : 'uid=*'
                     }                
@@ -701,7 +775,7 @@
                   </script>
                   <message>
                     '==> REPLICATION CHANGES %s:%s : \n%s\n' % \
-                    (server.getHostname(), server.getPort(), searchResult)
+                    (replServer.getHostname(), replServer.getPort(), searchResult)
                   </message>
                 </sequence>
               </paralleliterate>

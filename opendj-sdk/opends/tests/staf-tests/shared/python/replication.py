@@ -90,7 +90,7 @@ class Server:
     self.synchronizedSuffixList = []
 
   def __repr__(self):
-    return "Server: hostname=%s, directory=%s" % (self.hostanme, self.dir)
+    return "Server: hostname=%s, directory=%s" % (self.hostname, self.dir)
 
   def addChangelogServer(self, changelogServer):
     self.changelogServer = changelogServer
@@ -133,6 +133,31 @@ class Server:
     
   def requiresSynchronization(self):
     return (self.changelogServer is not None) or (len(self.synchronizedSuffixList) > 0)
+
+  def isOnlyLdapServer(self):
+    return (self.changelogServer is None) and (len(self.synchronizedSuffixList) > 0)
+
+  def isOnlyReplServer(self):
+    return (self.changelogServer is not None) and (len(self.synchronizedSuffixList) == 0)
+
+  def splitReplServer(self):
+    new_hostname = self.hostname
+    new_dir = '%s-repl-server' % self.dir
+    new_port = str( int(self.port) + 1 )
+    new_adminPort = str( int(self.adminPort) + 1 )
+    new_sslPort = str( int(self.sslPort) + 1 )
+    new_jmxPort = str( int(self.jmxPort) + 1 )
+    new_rootDn = self.rootDn
+    new_rootPwd = self.rootPwd
+    new_baseDn = self.baseDn
+    new_changelogServer = self.changelogServer
+    self.changelogServer = None
+    
+    replServer = Server(new_hostname, new_dir, new_port, new_adminPort, new_sslPort,
+                        new_jmxPort, new_rootDn, new_rootPwd, new_baseDn)
+    replServer.addChangelogServer(new_changelogServer)
+
+    return replServer
 
 
 

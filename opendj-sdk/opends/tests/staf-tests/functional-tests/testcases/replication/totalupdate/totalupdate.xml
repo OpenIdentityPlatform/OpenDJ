@@ -188,10 +188,10 @@
                 listAttr.append('objectclass:organizationalperson')
                 listAttr.append('objectclass:inetorgperson')
                 listAttr.append('objectclass:person')
-                listAttr.append('givenname: Professor Moriarty')
-                listAttr.append('sn: Moriarty')
-                listAttr.append('cn: Professor Moriarty')
-                listAttr.append('l: London')
+                listAttr.append('givenname:Professor Moriarty')
+                listAttr.append('sn:Moriarty')
+                listAttr.append('cn:Professor Moriarty')
+                listAttr.append('l:London')
               </script>
       
               <call function="'addAnEntry'">
@@ -315,19 +315,37 @@
                 
               <!-- Re-enable schema replication on "master" server, and 
                 at the same time initialise the schema across the topology -->
+              <script>
+                if master.isOnlyLdapServer():
+                  masterReplPort = None
+                else:
+                  masterReplPort = masterReplicationServer.getPort()
+                
+                if consumer.isOnlyLdapServer():
+                  consumerReplPort = None
+                else:
+                  replicationServer = consumer.getChangelogServer()
+                  consumerReplPort = replicationServer.getPort() 
+              </script>          
               <call function="'enableReplication'">
                 { 'location'             : clientHost,
                   'dsPath'               : clientPath,
-                  'dsInstanceHost'       : masterHost,
-                  'dsInstanceAdminPort'  : master.getAdminPort(),
-                  'dsInstanceDn'         : master.getRootDn(),
-                  'dsInstancePswd'       : master.getRootPwd(),
-                  'refInstanceHost'      : consumer.getHostname(),
-                  'refInstanceAdminPort' : consumer.getAdminPort(),
-                  'refInstanceDn'        : consumer.getRootDn(),
-                  'refInstancePswd'      : consumer.getRootPwd(),
+                  'refInstanceHost'      : masterHost,
+                  'refInstanceAdminPort' : master.getAdminPort(),
+                  'refInstanceDn'        : master.getRootDn(),
+                  'refInstancePswd'      : master.getRootPwd(),
+                  'refReplicationPort'   : masterReplPort,
+                  'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                  'refOnlyReplServer'    : master.isOnlyReplServer(),
+                  'dsInstanceHost'       : consumer.getHostname(),
+                  'dsInstanceAdminPort'  : consumer.getAdminPort(),
+                  'dsInstanceDn'         : consumer.getRootDn(),
+                  'dsInstancePswd'       : consumer.getRootPwd(),
+                  'dsReplicationPort'    : consumerReplPort,
+                  'dsOnlyLdapServer'     : consumer.isOnlyLdapServer(),
+                  'dsOnlyReplServer'     : consumer.isOnlyReplServer(),
                   'replicationDnList'    : ['cn=schema']
-                }
+                }                      
               </call>
                 
               <!-- Add entry to "consumer" server -->    
@@ -493,10 +511,10 @@
                 listAttr.append('objectclass:organizationalperson')
                 listAttr.append('objectclass:inetorgperson')
                 listAttr.append('objectclass:person')
-                listAttr.append('givenname: Professor Moriarty')
-                listAttr.append('sn: Moriarty')
-                listAttr.append('cn: Professor Moriarty')
-                listAttr.append('l: London')
+                listAttr.append('givenname:Professor Moriarty')
+                listAttr.append('sn:Moriarty')
+                listAttr.append('cn:Professor Moriarty')
+                listAttr.append('l:London')
               </script>
       
               <call function="'addAnEntry'">

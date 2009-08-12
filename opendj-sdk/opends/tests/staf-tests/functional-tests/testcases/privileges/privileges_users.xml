@@ -2653,14 +2653,14 @@
                   <!--
                   <script>
                       listAttr=[]
-                      listAttr.append('objectclass: top')
-                      listAttr.append('objectclass: person')
-                      listAttr.append('objectclass: mozillaobject')
-                      listAttr.append('cn: Salmon Fish')
-                      listAttr.append('sn: Fish')
-                      listAttr.append('givenname: Salmon')
-                      listAttr.append('l: Cupertino')
-                      listAttr.append('uid: sfish')
+                      listAttr.append('objectclass:top')
+                      listAttr.append('objectclass:person')
+                      listAttr.append('objectclass:mozillaobject')
+                      listAttr.append('cn:Salmon Fish')
+                      listAttr.append('sn:Fish')
+                      listAttr.append('givenname:Salmon')
+                      listAttr.append('l:Cupertino')
+                      listAttr.append('uid:sfish')
                   </script>
       
                   <call function="'addAnEntry'">
