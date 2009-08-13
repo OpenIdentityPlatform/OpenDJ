@@ -30,20 +30,20 @@ package org.opends.server.protocols.ldap;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.types.OperationType.*;
 
 import java.util.ArrayList;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValues;
+import org.opends.server.types.OperationType;
 
 
 
@@ -74,87 +74,61 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 {
 
   // The statistics maintained by this class.
-  private long abandonRequests;
-  private long addRequests;
-  private long addResponses;
-  private long bindRequests;
-  private long bindResponses;
-  private long bytesRead;
-  private long bytesWritten;
-  private long compareRequests;
-  private long compareResponses;
-  private long connectionsClosed;
-  private long connectionsEstablished;
-  private long deleteRequests;
-  private long deleteResponses;
-  private long extendedRequests;
-  private long extendedResponses;
-  private long messagesRead;
-  private long messagesWritten;
-  private long modifyRequests;
-  private long modifyResponses;
-  private long modifyDNRequests;
-  private long modifyDNResponses;
-  private long operationsAbandoned;
-  private long operationsCompleted;
-  private long operationsInitiated;
-  private long searchRequests;
-  private long searchResultEntries;
-  private long searchResultReferences;
-  private long searchResultsDone;
-  private long unbindRequests;
+  private AtomicLong abandonRequests = new AtomicLong(0);
+  private AtomicLong addRequests = new AtomicLong(0);
+  private AtomicLong bindRequests = new AtomicLong(0);
+  private AtomicLong addResponses = new AtomicLong(0);
+  private AtomicLong bindResponses = new AtomicLong(0);
+  private AtomicLong bytesRead = new AtomicLong(0);
+  private AtomicLong bytesWritten = new AtomicLong(0);
+  private AtomicLong compareRequests = new AtomicLong(0);
+  private AtomicLong compareResponses = new AtomicLong(0);
+  private AtomicLong connectionsClosed = new AtomicLong(0);
+  private AtomicLong connectionsEstablished = new AtomicLong(0);
+  private AtomicLong deleteRequests = new AtomicLong(0);
+  private AtomicLong deleteResponses = new AtomicLong(0);
+  private AtomicLong extendedRequests = new AtomicLong(0);
+  private AtomicLong extendedResponses = new AtomicLong(0);
+  private AtomicLong messagesRead = new AtomicLong(0);
+  private AtomicLong messagesWritten = new AtomicLong(0);
+  private AtomicLong modifyRequests = new AtomicLong(0);
+  private AtomicLong modifyResponses = new AtomicLong(0);
+  private AtomicLong modifyDNRequests = new AtomicLong(0);
+  private AtomicLong modifyDNResponses = new AtomicLong(0);
+  private AtomicLong operationsAbandoned = new AtomicLong(0);
+  private AtomicLong operationsCompleted = new AtomicLong(0);
+  private AtomicLong operationsInitiated = new AtomicLong(0);
+  private AtomicLong searchRequests = new AtomicLong(0);
+  private AtomicLong searchResultEntries = new AtomicLong(0);
+  private AtomicLong searchResultReferences = new AtomicLong(0);
+  private AtomicLong searchResultsDone = new AtomicLong(0);
+  private AtomicLong unbindRequests = new AtomicLong(0);
 
-  // The parent that should also be updated whenever statistics in this
-  // object are updated.
-  private final LDAPStatistics parent;
-
-  // The locks used to provide threadsafe access to this class. In this
-  // case, read and write refer to the type of LDAP communication, not
-  // access to the protected data.
-  private final Object abandonLock;
-  private final Object connectLock;
-  private final Object disconnectLock;
-  private final Object readLock;
-  private final Object writeLock;
 
   // The instance name for this monitor provider instance.
   private final String instanceName;
 
-  // Monitor Objects : for Operations.
-  private final OperationMonitor addRequestsMonitor =
-      OperationMonitor.getOperationMonitor(ADD);
-  private final OperationMonitor searchRequestsMonitor =
-      OperationMonitor.getOperationMonitor(SEARCH);
-  private final OperationMonitor delRequestsMonitor =
-      OperationMonitor.getOperationMonitor(DELETE);
-  private final OperationMonitor bindRequestsMonitor =
-      OperationMonitor.getOperationMonitor(BIND);
-  private final OperationMonitor unbindRequestsMonitor =
-      OperationMonitor.getOperationMonitor(UNBIND);
-  private final OperationMonitor compareRequestsMonitor =
-      OperationMonitor.getOperationMonitor(COMPARE);
-  private final OperationMonitor modRequestsMonitor =
-      OperationMonitor.getOperationMonitor(MODIFY);
-  private final OperationMonitor moddnRequestsMonitor =
-      OperationMonitor.getOperationMonitor(MODIFY);
-  private final OperationMonitor abandonRequestsMonitor =
-      OperationMonitor.getOperationMonitor(ABANDON);
-  private final OperationMonitor extendedRequestsMonitor =
-      OperationMonitor.getOperationMonitor(EXTENDED);
-
-
-
-  /**
-   * Creates a new instance of this class with no parent.
-   *
-   * @param instanceName
-   *          The name for this monitor provider instance.
-   */
-  public LDAPStatistics(String instanceName)
-  {
-    this(instanceName, null);
-  }
-
+  // Monitor Objects : for Operations (count and time)
+  private AtomicLong addOperationCount = new AtomicLong(0);
+  private AtomicLong addOperationTime = new AtomicLong(0);
+  private AtomicLong searchOperationCount = new AtomicLong(0);
+  private AtomicLong searchOperationTime = new AtomicLong(0);
+  private AtomicLong delOperationCount = new AtomicLong(0);
+  private AtomicLong delOperationTime = new AtomicLong(0);
+  private AtomicLong bindOperationCount = new AtomicLong(0);
+  private AtomicLong bindOperationTime = new AtomicLong(0);
+  private AtomicLong unbindOperationCount = new AtomicLong(0);
+  private AtomicLong unbindOperationTime = new AtomicLong(0);
+  private AtomicLong compOperationCount = new AtomicLong(0);
+  private AtomicLong compOperationTime = new AtomicLong(0);
+  private AtomicLong modOperationCount = new AtomicLong(0);
+  private AtomicLong modOperationTime = new AtomicLong(0);
+  private AtomicLong moddnOperationCount = new AtomicLong(0);
+  private AtomicLong moddnOperationTime = new AtomicLong(0);
+  private AtomicLong abandonOperationCount = new AtomicLong(0);
+  private AtomicLong abandonOperationTime = new AtomicLong(0);
+  private AtomicLong extOperationCount = new AtomicLong(0);
+  private AtomicLong extOperationTime = new AtomicLong(0);
 
 
   /**
@@ -162,53 +136,11 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    *
    * @param instanceName
    *          The name for this monitor provider instance.
-   * @param parent
-   *          The parent object that should also be updated whenever
-   *          this class is updated. It may be null if there should not
-   *          be a parent.
    */
-  public LDAPStatistics(String instanceName, LDAPStatistics parent)
+  public LDAPStatistics(String instanceName)
   {
     super("LDAP Statistics Monitor Provider");
-
     this.instanceName = instanceName;
-    this.parent = parent;
-
-    abandonLock = new Object();
-    connectLock = new Object();
-    disconnectLock = new Object();
-    readLock = new Object();
-    writeLock = new Object();
-
-    abandonRequests = 0;
-    addRequests = 0;
-    addResponses = 0;
-    bindRequests = 0;
-    bindResponses = 0;
-    bytesRead = 0;
-    bytesWritten = 0;
-    compareRequests = 0;
-    compareResponses = 0;
-    connectionsClosed = 0;
-    connectionsEstablished = 0;
-    deleteRequests = 0;
-    deleteResponses = 0;
-    extendedRequests = 0;
-    extendedResponses = 0;
-    messagesRead = 0;
-    messagesWritten = 0;
-    modifyRequests = 0;
-    modifyResponses = 0;
-    modifyDNRequests = 0;
-    modifyDNResponses = 0;
-    operationsAbandoned = 0;
-    operationsCompleted = 0;
-    operationsInitiated = 0;
-    searchRequests = 0;
-    searchResultEntries = 0;
-    searchResultReferences = 0;
-    searchResultsDone = 0;
-    unbindRequests = 0;
   }
 
 
@@ -295,86 +227,59 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(29);
 
-    long tmpAbandonRequests;
-    long tmpAddRequests;
-    long tmpAddResponses;
-    long tmpBindRequests;
-    long tmpBindResponses;
-    long tmpBytesRead;
-    long tmpBytesWritten;
-    long tmpCompareRequests;
-    long tmpCompareResponses;
-    long tmpConnectionsClosed;
-    long tmpConnectionsEstablished;
-    long tmpDeleteRequests;
-    long tmpDeleteResponses;
-    long tmpExtendedRequests;
-    long tmpExtendedResponses;
-    long tmpMessagesRead;
-    long tmpMessagesWritten;
-    long tmpModifyRequests;
-    long tmpModifyResponses;
-    long tmpModifyDNRequests;
-    long tmpModifyDNResponses;
-    long tmpOperationsAbandoned;
-    long tmpOperationsCompleted;
-    long tmpOperationsInitiated;
-    long tmpSearchRequests;
-    long tmpSearchEntries;
-    long tmpSearchReferences;
-    long tmpSearchResultsDone;
-    long tmpUnbindRequests;
+      ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
-    // Quickly grab the locks and store consistent copies of the
-    // information. Note that when grabbing multiple locks, it is
-    // essential that they are all acquired in the same order to prevent
-    // deadlocks.
-    synchronized (abandonLock)
-    {
-      synchronized (connectLock)
-      {
-        synchronized (disconnectLock)
-        {
-          synchronized (writeLock)
-          {
-            synchronized (readLock)
-            {
-              tmpAbandonRequests = abandonRequests;
-              tmpAddRequests = addRequests;
-              tmpAddResponses = addResponses;
-              tmpBindRequests = bindRequests;
-              tmpBindResponses = bindResponses;
-              tmpBytesRead = bytesRead;
-              tmpBytesWritten = bytesWritten;
-              tmpCompareRequests = compareRequests;
-              tmpCompareResponses = compareResponses;
-              tmpConnectionsClosed = connectionsClosed;
-              tmpConnectionsEstablished = connectionsEstablished;
-              tmpDeleteRequests = deleteRequests;
-              tmpDeleteResponses = deleteResponses;
-              tmpExtendedRequests = extendedRequests;
-              tmpExtendedResponses = extendedResponses;
-              tmpMessagesRead = messagesRead;
-              tmpMessagesWritten = messagesWritten;
-              tmpModifyRequests = modifyRequests;
-              tmpModifyResponses = modifyResponses;
-              tmpModifyDNRequests = modifyDNRequests;
-              tmpModifyDNResponses = modifyDNResponses;
-              tmpOperationsAbandoned = operationsAbandoned;
-              tmpOperationsCompleted = operationsCompleted;
-              tmpOperationsInitiated = operationsInitiated;
-              tmpSearchRequests = searchRequests;
-              tmpSearchEntries = searchResultEntries;
-              tmpSearchReferences = searchResultReferences;
-              tmpSearchResultsDone = searchResultsDone;
-              tmpUnbindRequests = unbindRequests;
-            }
-          }
-        }
-      }
-    }
+      long tmpAbandonRequests = abandonRequests.get();
+      long tmpAddRequests = addRequests.get();
+      long tmpAddResponses = addResponses.get();
+      long tmpBindRequests = bindRequests.get();
+      long tmpBindResponses = bindResponses.get();
+      long tmpBytesRead = bytesRead.get();
+      long tmpBytesWritten = bytesWritten.get();
+      long tmpCompareRequests = compareRequests.get();
+      long tmpCompareResponses = compareResponses.get();
+      long tmpConnectionsClosed = connectionsClosed.get();
+      long tmpConnectionsEstablished = connectionsEstablished.get();
+      long tmpDeleteRequests = deleteRequests.get();
+      long tmpDeleteResponses = deleteResponses.get();
+      long tmpExtendedRequests = extendedRequests.get();
+      long tmpExtendedResponses = extendedResponses.get();
+      long tmpMessagesRead = messagesRead.get();
+      long tmpMessagesWritten = messagesWritten.get();
+      long tmpModifyRequests = modifyRequests.get();
+      long tmpModifyResponses = modifyResponses.get();
+      long tmpModifyDNRequests = modifyDNRequests.get();
+      long tmpModifyDNResponses = modifyDNResponses.get();
+      long tmpOperationsAbandoned = operationsAbandoned.get();
+      long tmpOperationsCompleted = operationsCompleted.get();
+      long tmpOperationsInitiated = operationsInitiated.get();
+      long tmpSearchRequests = searchRequests.get();
+      long tmpSearchEntries = searchResultEntries.get();
+      long tmpSearchReferences = searchResultReferences.get();
+      long tmpSearchResultsDone = searchResultsDone.get();
+      long tmpUnbindRequests = unbindRequests.get();
+      long tmpAddOperationCount = addOperationCount.get();
+      long tmpAddOperationTime = addOperationTime.get();
+      long tmpSearchOperationCount = searchOperationCount.get();
+      long tmpSearchOperationTime = searchOperationTime.get();
+      long tmpDelOperationCount = delOperationCount.get();
+      long tmpDelOperationTime = delOperationTime.get();
+      long tmpBindOperationCount = bindOperationCount.get();
+      long tmpBindOperationTime = bindOperationTime.get();
+      long tmpUnbindOperationCount = unbindOperationCount.get();
+      long tmpUnbindOperationTime = unbindOperationTime.get();
+      long tmpCompOperationCount = compOperationCount.get();
+      long tmpCompOperationTime = compOperationTime.get();
+      long tmpModOperationCount = modOperationCount.get();
+      long tmpModOperationTime = modOperationTime.get();
+      long tmpModdnOperationCount = moddnOperationCount.get();
+      long tmpModdnOperationTime = moddnOperationTime.get();
+      long tmpAbandonOperationCount = abandonOperationCount.get();
+      long tmpAbandonOperationTime = abandonOperationTime.get();
+      long tmpExtOperationCount = extOperationCount.get();
+      long tmpExtOperationTime = extOperationTime.get();
+
 
     // Construct the list of attributes to return.
     attrs.add(createAttribute("connectionsEstablished", String
@@ -438,78 +343,76 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
     // adds
     attrs.add(createAttribute("ds-mon-add-operations-total-count",
-        String.valueOf(addRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpAddOperationCount)));
+
     attrs.add(createAttribute(
         "ds-mon-resident-time-add-operations-total-time", String
-            .valueOf(addRequestsMonitor.getTotalTime())));
+            .valueOf(tmpAddOperationTime)));
 
     // search
     attrs.add(createAttribute("ds-mon-search-operations-total-count",
-        String.valueOf(searchRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpSearchOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-search-operations-total-time", String
-            .valueOf(searchRequestsMonitor.getTotalTime())));
+            .valueOf(tmpSearchOperationTime)));
 
     // bind
     attrs.add(createAttribute("ds-mon-bind-operations-total-count",
-        String.valueOf(bindRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpBindOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-bind-operations-total-time", String
-            .valueOf(bindRequestsMonitor.getTotalTime())));
+            .valueOf(tmpBindOperationTime)));
 
     // unbind
     attrs.add(createAttribute("ds-mon-unbind-operations-total-count",
-        String.valueOf(unbindRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpUnbindOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-unbind-operations-total-time", String
-            .valueOf(unbindRequestsMonitor.getTotalTime())));
+            .valueOf(tmpUnbindOperationTime)));
 
     // compare
     attrs
         .add(createAttribute("ds-mon-compare-operations-total-count",
-            String.valueOf(compareRequestsMonitor.getCounter()
-                .getCount())));
+            String.valueOf(tmpCompOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-compare-operations-total-time", String
-            .valueOf(compareRequestsMonitor.getTotalTime())));
+            .valueOf(tmpCompOperationTime)));
     // del
     attrs.add(createAttribute("ds-mon-delete-operations-total-count",
-        String.valueOf(delRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpDelOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-delete-operations-total-time", String
-            .valueOf(delRequestsMonitor.getTotalTime())));
+            .valueOf(tmpDelOperationTime)));
 
     // mod
     attrs.add(createAttribute("ds-mon-mod-operations-total-count",
-        String.valueOf(modRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpModOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-mod-operations-total-time", String
-            .valueOf(modRequestsMonitor.getTotalTime())));
+            .valueOf(tmpModOperationTime)));
 
     // moddn
     attrs.add(createAttribute("ds-mon-moddn-operations-total-count",
-        String.valueOf(moddnRequestsMonitor.getCounter().getCount())));
+        String.valueOf(tmpModdnOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-moddn-operations-total-time", String
-            .valueOf(moddnRequestsMonitor.getTotalTime())));
+            .valueOf(tmpModdnOperationTime)));
 
     // abandon
     attrs
         .add(createAttribute("ds-mon-abandon-operations-total-count",
-            String.valueOf(abandonRequestsMonitor.getCounter()
-                .getCount())));
+            String.valueOf(tmpAbandonOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-abandon-operations-total-time", String
-            .valueOf(abandonRequestsMonitor.getTotalTime())));
+            .valueOf(tmpAbandonOperationTime)));
 
     // extended
     attrs
         .add(createAttribute("ds-mon-extended-operations-total-count",
-            String.valueOf(extendedRequestsMonitor.getCounter()
-                .getCount())));
+            String.valueOf(tmpExtOperationCount)));
     attrs.add(createAttribute(
         "ds-mon-resident-time-extended-operations-total-time", String
-            .valueOf(extendedRequestsMonitor.getTotalTime())));
+            .valueOf(tmpExtOperationTime)));
 
     return attrs;
   }
@@ -521,55 +424,58 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void clearStatistics()
   {
-    // Quickly grab the locks and store consistent copies of the
-    // information. Note that when grabbing multiple locks, it is
-    // essential that they are all acquired in the same order to prevent
-    // deadlocks.
-    synchronized (abandonLock)
-    {
-      synchronized (connectLock)
-      {
-        synchronized (disconnectLock)
-        {
-          synchronized (writeLock)
-          {
-            synchronized (readLock)
-            {
-              abandonRequests = 0;
-              addRequests = 0;
-              addResponses = 0;
-              bindRequests = 0;
-              bindResponses = 0;
-              bytesRead = 0;
-              bytesWritten = 0;
-              compareRequests = 0;
-              compareResponses = 0;
-              connectionsClosed = 0;
-              connectionsEstablished = 0;
-              deleteRequests = 0;
-              deleteResponses = 0;
-              extendedRequests = 0;
-              extendedResponses = 0;
-              messagesRead = 0;
-              messagesWritten = 0;
-              modifyRequests = 0;
-              modifyResponses = 0;
-              modifyDNRequests = 0;
-              modifyDNResponses = 0;
-              operationsAbandoned = 0;
-              operationsCompleted = 0;
-              operationsInitiated = 0;
-              searchRequests = 0;
-              searchResultEntries = 0;
-              searchResultReferences = 0;
-              searchResultsDone = 0;
-              unbindRequests = 0;
-            }
-          }
-        }
-      }
-    }
+      abandonRequests.set(0);
+      addRequests.set(0);
+      addResponses.set(0);
+      bindRequests.set(0);
+      bindResponses.set(0);
+      bytesRead.set(0);
+      bytesWritten.set(0);
+      compareRequests.set(0);
+      compareResponses.set(0);
+      connectionsClosed.set(0);
+      connectionsEstablished.set(0);
+      deleteRequests.set(0);
+      deleteResponses.set(0);
+      extendedRequests.set(0);
+      extendedResponses.set(0);
+      messagesRead.set(0);
+      messagesWritten.set(0);
+      modifyRequests.set(0);
+      modifyResponses.set(0);
+      modifyDNRequests.set(0);
+      modifyDNResponses.set(0);
+      operationsAbandoned.set(0);
+      operationsCompleted.set(0);
+      operationsInitiated.set(0);
+      searchRequests.set(0);
+      searchResultEntries.set(0);
+      searchResultReferences.set(0);
+      searchResultsDone.set(0);
+      unbindRequests.set(0);
+
+      addOperationCount.set(0);
+      addOperationTime.set(0);
+      searchOperationCount.set(0);
+      searchOperationTime.set(0);
+      delOperationCount.set(0);
+      delOperationTime.set(0);
+      bindOperationCount.set(0);
+      bindOperationTime.set(0);
+      unbindOperationCount.set(0);
+      unbindOperationTime.set(0);
+      compOperationCount.set(0);
+      compOperationTime.set(0);
+      modOperationCount.set(0);
+      modOperationTime.set(0);
+      moddnOperationCount.set(0);
+      moddnOperationTime.set(0);
+      abandonOperationCount.set(0);
+      abandonOperationTime.set(0);
+      extOperationCount.set(0);
+      extOperationTime.set(0);
   }
+
 
 
 
@@ -579,16 +485,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateConnect()
   {
-    synchronized (connectLock)
-    {
-      connectionsEstablished++;
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateConnect();
-    }
+    connectionsEstablished.getAndIncrement();
   }
 
 
@@ -599,16 +496,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateDisconnect()
   {
-    synchronized (disconnectLock)
-    {
-      connectionsClosed++;
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateDisconnect();
-    }
+      connectionsClosed.getAndIncrement();
   }
 
 
@@ -622,16 +510,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateBytesRead(int bytesRead)
   {
-    synchronized (readLock)
-    {
-      this.bytesRead += bytesRead;
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateBytesRead(bytesRead);
-    }
+     this.bytesRead.getAndAdd(bytesRead);
   }
 
 
@@ -645,51 +524,42 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateMessageRead(LDAPMessage message)
   {
-    synchronized (readLock)
-    {
-      messagesRead++;
-      operationsInitiated++;
+      messagesRead.getAndIncrement();
+      operationsInitiated.getAndIncrement();
 
       switch (message.getProtocolOp().getType())
       {
       case OP_TYPE_ABANDON_REQUEST:
-        abandonRequests++;
+        abandonRequests.getAndIncrement();
         break;
       case OP_TYPE_ADD_REQUEST:
-        addRequests++;
+        addRequests.getAndIncrement();
         break;
       case OP_TYPE_BIND_REQUEST:
-        bindRequests++;
+        bindRequests.getAndIncrement();
         break;
       case OP_TYPE_COMPARE_REQUEST:
-        compareRequests++;
+        compareRequests.getAndIncrement();
         break;
       case OP_TYPE_DELETE_REQUEST:
-        deleteRequests++;
+        deleteRequests.getAndIncrement();
         break;
       case OP_TYPE_EXTENDED_REQUEST:
-        extendedRequests++;
+        extendedRequests.getAndIncrement();
         break;
       case OP_TYPE_MODIFY_REQUEST:
-        modifyRequests++;
+        modifyRequests.getAndIncrement();
         break;
       case OP_TYPE_MODIFY_DN_REQUEST:
-        modifyDNRequests++;
+        modifyDNRequests.getAndIncrement();
         break;
       case OP_TYPE_SEARCH_REQUEST:
-        searchRequests++;
+        searchRequests.getAndIncrement();
         break;
       case OP_TYPE_UNBIND_REQUEST:
-        unbindRequests++;
+        unbindRequests.getAndIncrement();
         break;
       }
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateMessageRead(message);
-    }
   }
 
 
@@ -705,65 +575,56 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateMessageWritten(LDAPMessage message, int bytesWritten)
   {
-    synchronized (writeLock)
-    {
-      this.bytesWritten += bytesWritten;
-      messagesWritten++;
+      this.bytesWritten.getAndAdd(bytesWritten);
+      messagesWritten.getAndIncrement();
 
       switch (message.getProtocolOp().getType())
       {
       case OP_TYPE_ADD_RESPONSE:
-        addResponses++;
-        operationsCompleted++;
+        addResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_BIND_RESPONSE:
-        bindResponses++;
-        operationsCompleted++;
+        bindResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_COMPARE_RESPONSE:
-        compareResponses++;
-        operationsCompleted++;
+        compareResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_DELETE_RESPONSE:
-        deleteResponses++;
-        operationsCompleted++;
+        deleteResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_EXTENDED_RESPONSE:
-        extendedResponses++;
+        extendedResponses.getAndIncrement();
 
         // We don't want to include unsolicited notifications as
         // "completed" operations.
         if (message.getMessageID() > 0)
         {
-          operationsCompleted++;
+          operationsCompleted.getAndIncrement();
         }
         break;
       case OP_TYPE_MODIFY_RESPONSE:
-        modifyResponses++;
-        operationsCompleted++;
+        modifyResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_MODIFY_DN_RESPONSE:
-        modifyDNResponses++;
-        operationsCompleted++;
+        modifyDNResponses.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       case OP_TYPE_SEARCH_RESULT_ENTRY:
-        searchResultEntries++;
+        searchResultEntries.getAndIncrement();
         break;
       case OP_TYPE_SEARCH_RESULT_REFERENCE:
-        searchResultReferences++;
+        searchResultReferences.getAndIncrement();
         break;
       case OP_TYPE_SEARCH_RESULT_DONE:
-        searchResultsDone++;
-        operationsCompleted++;
+        searchResultsDone.getAndIncrement();
+        operationsCompleted.getAndIncrement();
         break;
       }
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateMessageWritten(message, bytesWritten);
-    }
   }
 
 
@@ -774,16 +635,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public void updateAbandonedOperation()
   {
-    synchronized (abandonLock)
-    {
-      operationsAbandoned++;
-    }
-
-    // Update the parent if there is one.
-    if (parent != null)
-    {
-      parent.updateAbandonedOperation();
-    }
+      operationsAbandoned.getAndIncrement();
   }
 
 
@@ -820,10 +672,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsEstablished()
   {
-    synchronized (connectLock)
-    {
-      return connectionsEstablished;
-    }
+   return connectionsEstablished.get();
   }
 
 
@@ -835,10 +684,8 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getConnectionsClosed()
   {
-    synchronized (disconnectLock)
-    {
-      return connectionsClosed;
-    }
+      return connectionsClosed.get();
+
   }
 
 
@@ -850,10 +697,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBytesRead()
   {
-    synchronized (readLock)
-    {
-      return bytesRead;
-    }
+      return bytesRead.get();
   }
 
 
@@ -865,10 +709,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBytesWritten()
   {
-    synchronized (writeLock)
-    {
-      return bytesWritten;
-    }
+      return bytesWritten.get();
   }
 
 
@@ -882,10 +723,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getMessagesRead()
   {
-    synchronized (readLock)
-    {
-      return messagesRead;
-    }
+    return messagesRead.get();
   }
 
 
@@ -899,10 +737,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getMessagesWritten()
   {
-    synchronized (writeLock)
-    {
-      return messagesWritten;
-    }
+   return messagesWritten.get();
   }
 
 
@@ -916,10 +751,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsInitiated()
   {
-    synchronized (readLock)
-    {
-      return operationsInitiated;
-    }
+    return operationsInitiated.get();
   }
 
 
@@ -933,10 +765,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsCompleted()
   {
-    synchronized (writeLock)
-    {
-      return operationsCompleted;
-    }
+      return operationsCompleted.get();
   }
 
 
@@ -950,10 +779,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getOperationsAbandoned()
   {
-    synchronized (abandonLock)
-    {
-      return operationsAbandoned;
-    }
+      return operationsAbandoned.get();
   }
 
 
@@ -965,10 +791,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAbandonRequests()
   {
-    synchronized (readLock)
-    {
-      return abandonRequests;
-    }
+      return abandonRequests.get();
   }
 
 
@@ -980,10 +803,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAddRequests()
   {
-    synchronized (readLock)
-    {
-      return addRequests;
-    }
+      return addRequests.get();
   }
 
 
@@ -995,10 +815,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getAddResponses()
   {
-    synchronized (writeLock)
-    {
-      return addResponses;
-    }
+      return addResponses.get();
   }
 
 
@@ -1010,10 +827,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBindRequests()
   {
-    synchronized (readLock)
-    {
-      return bindRequests;
-    }
+      return bindRequests.get();
   }
 
 
@@ -1025,10 +839,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getBindResponses()
   {
-    synchronized (writeLock)
-    {
-      return bindResponses;
-    }
+      return bindResponses.get();
   }
 
 
@@ -1040,10 +851,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getCompareRequests()
   {
-    synchronized (readLock)
-    {
-      return compareRequests;
-    }
+      return compareRequests.get();
   }
 
 
@@ -1055,10 +863,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getCompareResponses()
   {
-    synchronized (writeLock)
-    {
-      return compareResponses;
-    }
+      return compareResponses.get();
   }
 
 
@@ -1070,10 +875,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getDeleteRequests()
   {
-    synchronized (readLock)
-    {
-      return deleteRequests;
-    }
+      return deleteRequests.get();
   }
 
 
@@ -1085,10 +887,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getDeleteResponses()
   {
-    synchronized (writeLock)
-    {
-      return deleteResponses;
-    }
+      return deleteResponses.get();
   }
 
 
@@ -1100,10 +899,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getExtendedRequests()
   {
-    synchronized (readLock)
-    {
-      return extendedRequests;
-    }
+      return extendedRequests.get();
   }
 
 
@@ -1115,10 +911,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getExtendedResponses()
   {
-    synchronized (writeLock)
-    {
-      return extendedResponses;
-    }
+      return extendedResponses.get();
   }
 
 
@@ -1130,10 +923,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyRequests()
   {
-    synchronized (readLock)
-    {
-      return modifyRequests;
-    }
+      return modifyRequests.get();
   }
 
 
@@ -1145,10 +935,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyResponses()
   {
-    synchronized (writeLock)
-    {
-      return modifyResponses;
-    }
+      return modifyResponses.get();
   }
 
 
@@ -1160,10 +947,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyDNRequests()
   {
-    synchronized (readLock)
-    {
-      return modifyDNRequests;
-    }
+      return modifyDNRequests.get();
   }
 
 
@@ -1175,10 +959,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getModifyDNResponses()
   {
-    synchronized (writeLock)
-    {
-      return modifyDNResponses;
-    }
+      return modifyDNResponses.get();
   }
 
 
@@ -1190,10 +971,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchRequests()
   {
-    synchronized (readLock)
-    {
-      return searchRequests;
-    }
+      return searchRequests.get();
   }
 
 
@@ -1205,10 +983,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultEntries()
   {
-    synchronized (writeLock)
-    {
-      return searchResultEntries;
-    }
+      return searchResultEntries.get();
   }
 
 
@@ -1221,10 +996,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultReferences()
   {
-    synchronized (writeLock)
-    {
-      return searchResultReferences;
-    }
+      return searchResultReferences.get();
   }
 
 
@@ -1238,10 +1010,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getSearchResultsDone()
   {
-    synchronized (writeLock)
-    {
-      return searchResultsDone;
-    }
+      return searchResultsDone.get();
   }
 
 
@@ -1253,78 +1022,56 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public long getUnbindRequests()
   {
-    synchronized (readLock)
-    {
-      return unbindRequests;
-    }
+      return unbindRequests.get();
   }
 
-
-
   /**
-   * Retrieves the parent statistics tracker that will also be updated
-   * whenever this tracker is updated.
-   *
-   * @return The parent statistics tracker, or {@code null} if there is
-   *         none.
+   * Update the operation counters and times depending on the OperationType.
+   * @param type of the operation.
+   * @param time of the operation execution.
    */
-  public LDAPStatistics getParent()
-  {
-    return parent;
-  }
 
-
-
-  /**
-   * Updates the monitor object.
-   *
-   * @param opMonitor
-   *          monitor object.
-   */
-  public void updateMonitor(OperationMonitor opMonitor)
-  {
-    synchronized (readLock)
-    {
-      switch (opMonitor.getType())
-      {
-      case ABANDON:
-        this.abandonRequestsMonitor.add(opMonitor);
-        break;
-      case ADD:
-        this.addRequestsMonitor.add(opMonitor);
-        break;
-      case BIND:
-        this.bindRequestsMonitor.add(opMonitor);
-        break;
-      case COMPARE:
-        this.compareRequestsMonitor.add(opMonitor);
-        break;
-      case DELETE:
-        this.delRequestsMonitor.add(opMonitor);
-        break;
-      case EXTENDED:
-        this.extendedRequestsMonitor.add(opMonitor);
-        break;
-      case MODIFY:
-        this.modRequestsMonitor.add(opMonitor);
-        break;
-      case MODIFY_DN:
-        this.moddnRequestsMonitor.add(opMonitor);
-        break;
-      case SEARCH:
-        this.searchRequestsMonitor.add(opMonitor);
-        break;
-      case UNBIND:
-        this.unbindRequestsMonitor.add(opMonitor);
-        break;
-      default:
+  public void updateOperationMonitoringData(OperationType type, long time) {
+      if (type.equals(OperationType.ADD)) {
+          addOperationCount.getAndIncrement();
+          addOperationTime.getAndAdd(time);
       }
-      if (parent != null)
-      {
-        parent.updateMonitor(opMonitor);
+      else if (type.equals(OperationType.SEARCH)) {
+          searchOperationCount.getAndIncrement();
+          searchOperationTime.getAndAdd(time);
       }
-      opMonitor.reset();
-    }
+      else if (type.equals(OperationType.ABANDON)) {
+          abandonOperationCount.getAndIncrement();
+          abandonOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.BIND)) {
+          bindOperationCount.getAndIncrement();
+          bindOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.UNBIND)) {
+          unbindOperationCount.getAndIncrement();
+          unbindOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.COMPARE)) {
+          compOperationCount.getAndIncrement();
+          compOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.DELETE)) {
+          delOperationCount.getAndIncrement();
+          delOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.EXTENDED)) {
+          extOperationCount.getAndIncrement();
+          extOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.MODIFY)) {
+          modOperationCount.getAndIncrement();
+          modOperationTime.getAndAdd(time);
+      }
+      else if (type.equals(OperationType.MODIFY_DN)) {
+          moddnOperationCount.getAndIncrement();
+          moddnOperationTime.getAndAdd(time);
+      }
   }
 
 }

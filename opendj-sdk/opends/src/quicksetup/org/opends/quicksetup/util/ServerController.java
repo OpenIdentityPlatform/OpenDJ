@@ -141,6 +141,7 @@ public class ServerController {
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
       env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+      env.remove("CLASSPATH");
 
       LOG.log(Level.INFO, "Before calling stop-ds.  Is server running? "+
           installation.getStatus().isServerRunning());
