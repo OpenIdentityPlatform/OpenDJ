@@ -5,8 +5,29 @@ case "`uname`" in
   CYGWIN*) cygwin=true ;;
 esac
 
-SVNKIT_HOME=`dirname $0`
+old_wd=`pwd`
+
+progname=`basename "$0"`
+linkdir=`dirname "$0"`
+
+cd "$linkdir"
+prg="$progname"
+
+while [ -h "$prg" ] ; do
+  ls=`ls -ld "$prg"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '.*/.*' > /dev/null; then
+    prg="$link"
+  else
+    prg="`dirname $prg`/$link"
+  fi
+done
+
+SVNKIT_HOME=`dirname $prg`
 SVNKIT_HOME=`cd "$SVNKIT_HOME" ; pwd`
+
+cd "$old_wd"
+
 SVNKIT_CP="$SVNKIT_HOME/svnkit.jar":"$SVNKIT_HOME/svnkit-cli.jar":"$SVNKIT_HOME/trilead.jar":"$SVNKIT_HOME/jna.jar"
 
 if $cygwin ; then
