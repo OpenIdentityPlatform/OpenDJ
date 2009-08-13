@@ -508,7 +508,7 @@ public abstract class ConsoleApplication {
 
       if ("".equals(response)) {
         if (defaultValue == null) {
-          print(INFO_ERROR_EMPTY_RESPONSE.get());
+          println(INFO_ERROR_EMPTY_RESPONSE.get());
         } else {
           return defaultValue;
         }
