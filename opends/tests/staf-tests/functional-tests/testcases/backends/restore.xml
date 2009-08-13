@@ -51,8 +51,9 @@
             <call function="'common_setup'">
               {
                 'quickStart'  : False ,
-                'startServer' : False ,
-                'loadData'    : False ,
+                'startServer' : True ,
+                'loadData'    : True ,
+                'ldifFile'    : '%s/backends/backend_start.ldif' % remote.data ,
                 'stopServer'  : False
               }
             </call>

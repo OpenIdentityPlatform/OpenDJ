@@ -155,21 +155,14 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'dc=com    dc_com              1048'
+                  'expectedString' : 'dc=com   dc_com              1048'
                   }
                 </call>
                 
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'dc=mycom  dc_mycom            11'
-                  }
-                </call>
-                
-                <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : 'Total: 2'
+                  'expectedString' : 'Total: 1'
                   }
                 </call>
                 
@@ -229,8 +222,8 @@
                 </call>
                 
                 <script>
-                  msg1 = 'st.equality                Index'
-                  msg2 = 'dc_com_st.equality                true'
+                  msg1 = 'mail.substring             Index'
+                  msg2 = 'dc_com_mail.substring             true'
                 </script>
                 
                 <call function="'checktestString'">
@@ -243,7 +236,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total: 20'
+                  'expectedString' : 'Total: 19'
                   }
                 </call>             
              
@@ -316,7 +309,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total: 24'
+                  'expectedString' : 'Total: 23'
                   }
                 </call>
                 
@@ -385,7 +378,7 @@
   
                 <message>
                   'dbtest: dump database container for backend userRoot, \
-                  baseDN dc=com, database st.equality, minSize 176, maxSize 184'
+                  baseDN dc=com, database mail.substring, minSize 176, maxSize 184'
                 </message>
             
                 <call function="'dbtestWithScript'">
@@ -393,9 +386,9 @@
                   'subcommand'     : 'dump-database-container' ,
                   'dsBaseDN'       : 'dc=com' ,
                   'dsBackendID'    : DIRECTORY_INSTANCE_BE ,
-                  'dsDatabaseName' : 'st.equality' ,
-                  'dsMinDataSize'  : 176 ,
-                  'dsMaxDataSize'  : 184
+                  'dsDatabaseName' : 'mail.substring' ,
+                  'dsMinDataSize'  : 30 ,
+                  'dsMaxDataSize'  : 90
                   }
                 </call>
                 
@@ -406,13 +399,13 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total Records: 6'
+                  'expectedString' : 'Total Records: 231'
                   }
                 </call> 
                 
                 <message>
                   'dbtest: dump database container for backend userRoot, \
-                  baseDN dc=com, database st.equality, minKey wv, maxKey wy'
+                  baseDN dc=com, database mail.substring, minKey wv, maxKey wy'
                 </message>
             
                 <call function="'dbtestWithScript'">
@@ -420,9 +413,9 @@
                   'subcommand'     : 'dump-database-container' ,
                   'dsBaseDN'       : 'dc=com' ,
                   'dsBackendID'    : DIRECTORY_INSTANCE_BE ,
-                  'dsDatabaseName' : 'st.equality' ,
-                  'dsMinKeyValue'  : 'wv' ,
-                  'dsMaxKeyValue'  : 'wy'
+                  'dsDatabaseName' : 'mail.substring' ,
+                  'dsMinKeyValue'  : '888@ex' ,
+                  'dsMaxKeyValue'  : '90@exa'
                   }
                 </call>
                 
@@ -433,7 +426,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total Records: 2'
+                  'expectedString' : 'Total Records: 26'
                   }
                 </call>         
                 
