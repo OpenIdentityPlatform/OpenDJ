@@ -72,7 +72,6 @@ import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.monitors.OperationMonitor;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -207,9 +206,8 @@ public class LDAPClientConnection extends ClientConnection implements
 
   // The statistics tracker associated with this client connection.
   private final LDAPStatistics statTracker;
+  private boolean useNanoTime=false;
 
-  // The connectionHandler statistic tracker.
-  private final LDAPStatistics parentTracker;
 
   // The connection ID assigned to this connection.
   private final long connectionID;
@@ -247,19 +245,6 @@ public class LDAPClientConnection extends ClientConnection implements
   private volatile ConnectionSecurityProvider activeProvider = null;
   private volatile ConnectionSecurityProvider tlsPendingProvider = null;
   private volatile ConnectionSecurityProvider saslPendingProvider = null;
-
-  // Statistics for the processed operations
-  private OperationMonitor addMonitor;
-  private OperationMonitor searchMonitor;
-  private OperationMonitor abandonMonitor;
-  private OperationMonitor bindMonitor;
-  private OperationMonitor compareMonitor;
-  private OperationMonitor delMonitor;
-  private OperationMonitor extendedMonitor;
-  private OperationMonitor modMonitor;
-  private OperationMonitor moddnMonitor;
-  private OperationMonitor unbindMonitor;
-
 
 
   /**
@@ -304,15 +289,14 @@ public class LDAPClientConnection extends ClientConnection implements
     serverAddress =
         clientChannel.socket().getLocalAddress().getHostAddress();
     serverPort = clientChannel.socket().getLocalPort();
-    parentTracker = connectionHandler.getStatTracker();
-    String instanceName =
-        parentTracker.getMonitorInstanceName() + " for " + toString();
-    this.initializeOperationMonitors();
-    statTracker = new LDAPStatistics(instanceName, parentTracker);
+
+    statTracker =
+            this.connectionHandler.getStatTracker();
 
     if (keepStats)
     {
       statTracker.updateConnect();
+      this.useNanoTime=DirectoryServer.getUseNanoTime();
     }
 
     tlsChannel =
@@ -330,8 +314,6 @@ public class LDAPClientConnection extends ClientConnection implements
           ERR_LDAP_CONNHANDLER_REJECTED_BY_SERVER.get());
     }
   }
-
-
 
   /**
    * Retrieves the connection ID assigned to this connection.
@@ -545,6 +527,19 @@ public class LDAPClientConnection extends ClientConnection implements
     // can't be canceled after this point, and this will avoid potential
     // race conditions in which the client immediately sends another
     // request with the same message ID as was used for this operation.
+
+    if (keepStats) {
+        long time;
+        if (useNanoTime) {
+            time = operation.getProcessingNanoTime();
+        } else {
+            time = operation.getProcessingTime();
+        }
+        this.statTracker.updateOperationMonitoringData(
+                operation.getOperationType(),
+                time);
+    }
+
     removeOperationInProgress(operation.getMessageID());
 
     LDAPMessage message = operationToResponseLDAPMessage(operation);
@@ -1528,25 +1523,12 @@ public class LDAPClientConnection extends ClientConnection implements
       switch (message.getProtocolOpType())
       {
       case OP_TYPE_ABANDON_REQUEST:
-        if (keepStats) this.abandonMonitor.start();
         result = processAbandonRequest(message, opControls);
-        if (keepStats)
-        {
-          this.abandonMonitor.stop();
-          this.abandonMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_ADD_REQUEST:
-        if (keepStats) this.addMonitor.start();
         result = processAddRequest(message, opControls);
-        if (keepStats)
-        {
-          this.addMonitor.stop();
-          this.addMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_BIND_REQUEST:
-        if (keepStats) this.bindMonitor.start();
         bindOrStartTLSInProgress.set(true);
         if(message.getBindRequestProtocolOp().
             getAuthenticationType() == AuthenticationType.SASL)
@@ -1563,32 +1545,14 @@ public class LDAPClientConnection extends ClientConnection implements
             saslBindInProgress.set(false);
           }
         }
-        if (keepStats)
-        {
-          this.bindMonitor.stop();
-          this.bindMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_COMPARE_REQUEST:
-        if (keepStats) this.compareMonitor.start();
         result = processCompareRequest(message, opControls);
-        if (keepStats)
-        {
-          this.compareMonitor.stop();
-          this.compareMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_DELETE_REQUEST:
-        if (keepStats) this.delMonitor.start();
         result = processDeleteRequest(message, opControls);
-        if (keepStats)
-        {
-          this.delMonitor.stop();
-          this.delMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_EXTENDED_REQUEST:
-        if (keepStats) this.extendedMonitor.start();
         if(message.getExtendedRequestProtocolOp().getOID().equals(
             OID_START_TLS_REQUEST))
         {
@@ -1601,47 +1565,18 @@ public class LDAPClientConnection extends ClientConnection implements
         {
           bindOrStartTLSInProgress.set(false);
         }
-        if (keepStats)
-        {
-          this.extendedMonitor.stop();
-          this.extendedMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_MODIFY_REQUEST:
-        if (keepStats) this.modMonitor.start();
         result = processModifyRequest(message, opControls);
-        if (keepStats)
-        {
-          this.modMonitor.stop();
-          this.modMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_MODIFY_DN_REQUEST:
-        if (keepStats) this.moddnMonitor.start();
         result = processModifyDNRequest(message, opControls);
-        if (keepStats)
-        {
-          this.moddnMonitor.stop();
-          this.moddnMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_SEARCH_REQUEST:
-        if (keepStats) this.searchMonitor.start();
         result = processSearchRequest(message, opControls);
-        if (keepStats)
-        {
-          this.searchMonitor.stop();
-          this.searchMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       case OP_TYPE_UNBIND_REQUEST:
-        if (keepStats) this.unbindMonitor.start();
         result = processUnbindRequest(message, opControls);
-        if (keepStats)
-        {
-          this.unbindMonitor.stop();
-          this.unbindMonitor.updateMonitorProvider(statTracker);
-        }
         return result;
       default:
         Message msg =
@@ -2619,24 +2554,6 @@ public class LDAPClientConnection extends ClientConnection implements
     else
       return APPLICATION_BUFFER_SIZE;
   }
-
-
-
-  private void initializeOperationMonitors()
-  {
-    this.addMonitor = OperationMonitor.getOperationMonitor(ADD);
-    this.searchMonitor = OperationMonitor.getOperationMonitor(SEARCH);
-    this.abandonMonitor = OperationMonitor.getOperationMonitor(ABANDON);
-    this.bindMonitor = OperationMonitor.getOperationMonitor(BIND);
-    this.compareMonitor = OperationMonitor.getOperationMonitor(COMPARE);
-    this.delMonitor = OperationMonitor.getOperationMonitor(DELETE);
-    this.extendedMonitor =
-        OperationMonitor.getOperationMonitor(EXTENDED);
-    this.modMonitor = OperationMonitor.getOperationMonitor(MODIFY);
-    this.moddnMonitor = OperationMonitor.getOperationMonitor(MODIFY_DN);
-    this.unbindMonitor = OperationMonitor.getOperationMonitor(UNBIND);
-  }
-
 
   /**
    * {@inheritDoc}
