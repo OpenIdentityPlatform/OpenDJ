@@ -680,6 +680,7 @@
                 # Add 3rd server to replicated servers list now that replication
                 # has been enabled on the 3rd one
                 _topologyServerList = _topologyServerList + [server3]
+                _splitServerList = _splitServerList + [server3]
                 consumerList = consumerList + [server3]
               </script>                            
               
