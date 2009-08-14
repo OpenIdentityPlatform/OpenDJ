@@ -153,6 +153,30 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+    <adm:property name="changetime-heartbeat-interval" advanced="true">
+    <adm:synopsis>
+      Specifies the heart-beat interval that the Directory Server will
+      use when sending its local change time to the Replication Server.
+    </adm:synopsis>
+    <adm:description>
+      The Directory Server sends a regular heart-beat to the Replication
+      within the specified interval. The heart-beat indicates the 
+      change time of the Directory Server to the Replication Server.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-changetime-heartbeat-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="isolation-policy">
     <adm:synopsis>
       Specifies the behavior of the Directory Server if a write

@@ -2292,13 +2292,16 @@ public abstract class ReplicationDomain
    * @param heartbeatInterval    The heartbeatInterval that should be used
    *                             to check the availability of the replication
    *                             servers.
+   * @param changetimeHeartbeatInterval  The interval used to send change
+   *                             time heartbeat to the replication server.
    *
    * @throws ConfigException     If the DirectoryServer configuration was
    *                             incorrect.
    */
   public void startPublishService(
       Collection<String> replicationServers, int window,
-      long heartbeatInterval) throws ConfigException
+      long heartbeatInterval, long changetimeHeartbeatInterval)
+  throws ConfigException
   {
     if (broker == null)
     {
@@ -2311,7 +2314,8 @@ public abstract class ReplicationDomain
           getGenerationID(),
           heartbeatInterval,
           new ReplSessionSecurity(),
-          getGroupId());
+          getGroupId(),
+          changetimeHeartbeatInterval);
 
       broker.start(replicationServers);
 

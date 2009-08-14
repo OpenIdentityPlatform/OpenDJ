@@ -26,8 +26,15 @@
  */
 package org.opends.server.replication.common;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
+
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 
 /**
@@ -106,7 +113,7 @@ public class MultiDomainServerState implements Iterable<String>
    */
   public void update(String serviceId, ServerState serverState)
   {
-    list.put(serviceId,serverState);
+    list.put(serviceId,serverState.duplicate());
   }
 
   /**
@@ -208,11 +215,59 @@ public class MultiDomainServerState implements Iterable<String>
     {
       ServerState state = list.get(serviceId);
       ServerState coveredState = covered.list.get(serviceId);
-      if ((coveredState == null) || (!state.cover(coveredState)))
+      if ((state==null)||(coveredState == null) || (!state.cover(coveredState)))
       {
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * Splits the provided generalizedServerState being a String with the
+   * following syntax: "domain1:state1;domain2:state2;..."
+   * to a hashmap of (domain DN, domain ServerState).
+   * @param multidomainserverstate the provided state
+   * @exception DirectoryException when an error occurs
+   * @return the splited state.
+   */
+  public static HashMap<String,ServerState> splitGenStateToServerStates(
+      String multidomainserverstate)
+      throws DirectoryException
+  {
+    HashMap<String,ServerState> startStates = new HashMap<String,ServerState>();
+    try
+    {
+      // Split the provided multidomainserverstate into domains
+      String[] domains = multidomainserverstate.split(";");
+      for (String domain : domains)
+      {
+        // For each domain, split the changenumbers by server
+        // and build a server state (SHOULD BE OPTIMIZED)
+        ServerState serverStateByDomain = new ServerState();
+
+        String[] fields = domain.split(":");
+        String domainBaseDN = fields[0];
+        if (fields.length>1)
+        {
+          String strState = fields[1];
+          String[] strCN = strState.split(" ");
+          for (String sr : strCN)
+          {
+            ChangeNumber fromChangeNumber = new ChangeNumber(sr);
+            serverStateByDomain.update(fromChangeNumber);
+          }
+        }
+        startStates.put(domainBaseDN, serverStateByDomain);
+      }
+    }
+    catch(Exception e)
+    {
+      throw new DirectoryException(
+          ResultCode.OPERATIONS_ERROR,
+          Message.raw(Category.SYNC, Severity.INFORMATION,"Exception raised: "),
+          e);
+    }
+    return startStates;
   }
 }

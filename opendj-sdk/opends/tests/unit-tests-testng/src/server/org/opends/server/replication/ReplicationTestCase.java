@@ -221,7 +221,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn.toNormalizedString(), serverId, window_size,
-        generationId, 100000, getReplSessionSecurity(), (byte)1);
+        generationId, 100000, getReplSessionSecurity(), (byte)1, 500);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -381,7 +381,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn.toNormalizedString(), serverId, window_size, generationId,
-        100000, getReplSessionSecurity(), (byte)1);
+        100000, getReplSessionSecurity(), (byte)1, 500);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
@@ -420,7 +420,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDn.toNormalizedString(), serverId, window_size,
-        generationId, 0, getReplSessionSecurity(), (byte)1);
+        generationId, 0, getReplSessionSecurity(), (byte)1, 500);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);

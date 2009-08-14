@@ -46,13 +46,13 @@ import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
-import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.StartMsg;
@@ -389,14 +389,12 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Sends a message containing a generationId to a peer server.
-   * The peer is expected to be a replication server.
-   *
-   * @param  msg         The GenerationIdMessage message to be sent.
+   * Sends a message.
+   * @param  msg         The message to be sent.
    * @throws IOException When it occurs while sending the message,
    *
    */
-  public void forwardGenerationIdToRS(ResetGenerationIdMsg msg)
+  public void send(ReplicationMsg msg)
   throws IOException
   {
     session.publish(msg);
@@ -1352,5 +1350,4 @@ public abstract class ServerHandler extends MessageHandler
           inStartECLSessionMsg.toString());
     }
   }
-
 }

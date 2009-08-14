@@ -324,7 +324,7 @@ public class StateMachineTest extends ReplicationTestCase
   {
     ReplicationBroker broker = new ReplicationBroker(null,
       state, EXAMPLE_DN, dsId, 100, generationId, 0,
-      new ReplSessionSecurity(null, null, null, true), (byte) 1);
+      new ReplSessionSecurity(null, null, null, true), (byte) 1, 500);
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + rs1Port);
     broker.start(servers);

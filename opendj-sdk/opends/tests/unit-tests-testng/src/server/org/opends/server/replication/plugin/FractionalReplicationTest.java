@@ -685,7 +685,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     {
       super(serviceID, serverID);
       generationID = generationId;
-      startPublishService(replicationServers, window, heartbeatInterval);
+      startPublishService(replicationServers, window, heartbeatInterval, 500);
       startListenService();
     }
 

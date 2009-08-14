@@ -125,22 +125,22 @@ public class DeleteMsg extends LDAPUpdateMsg
     if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "DeleteMsg content: " +
-        "\nprotocolVersion: " + protocolVersion +
-        "\ndn: " + dn +
-        "\nchangeNumber: " + changeNumber +
-        "\nuniqueId: " + uniqueId +
-        "\nassuredFlag: " + assuredFlag;
+        " protocolVersion: " + protocolVersion +
+        " dn: " + dn +
+        " changeNumber: " + changeNumber +
+        " uniqueId: " + uniqueId +
+        " assuredFlag: " + assuredFlag;
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "DeleteMsg content: " +
-        "\nprotocolVersion: " + protocolVersion +
-        "\ndn: " + dn +
-        "\nchangeNumber: " + changeNumber +
-        "\nuniqueId: " + uniqueId +
-        "\nassuredFlag: " + assuredFlag +
-        "\nassuredMode: " + assuredMode +
-        "\nsafeDataLevel: " + safeDataLevel;
+        " protocolVersion: " + protocolVersion +
+        " dn: " + dn +
+        " changeNumber: " + changeNumber +
+        " uniqueId: " + uniqueId +
+        " assuredFlag: " + assuredFlag +
+        " assuredMode: " + assuredMode +
+        " safeDataLevel: " + safeDataLevel;
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }

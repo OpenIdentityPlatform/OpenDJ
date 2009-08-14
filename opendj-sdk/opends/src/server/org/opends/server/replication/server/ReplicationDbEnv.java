@@ -534,4 +534,27 @@ public class ReplicationDbEnv
         {}
       }
     }
+
+    /**
+     * Get or create a db to manage integer change  number associated
+     * to multidomain server state.
+     * TODO:ECL how to manage compatibilty of this db with  new domains
+     * added or removed ?
+     * @return the retrieved or created db.
+     * @throws DatabaseException when a problem occurs.
+     */
+    public Database getOrCreateDraftCNDb()
+    throws DatabaseException
+    {
+      String stringId = "draftcndb";
+
+      // Opens the database for seqnum associated to this domain.
+      // Create it if it does not already exist.
+      DatabaseConfig dbConfig = new DatabaseConfig();
+      dbConfig.setAllowCreate(true);
+      dbConfig.setTransactional(true);
+      Database db = dbEnvironment.openDatabase(null, stringId, dbConfig);
+
+      return db;
+    }
 }

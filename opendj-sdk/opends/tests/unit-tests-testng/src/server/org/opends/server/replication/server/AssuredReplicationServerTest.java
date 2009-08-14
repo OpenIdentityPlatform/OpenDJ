@@ -429,7 +429,7 @@ public class AssuredReplicationServerTest
 
       List<String> replicationServers = new ArrayList<String>();
       replicationServers.add("localhost:" + rsPort);
-      fakeReplicationDomain.startPublishService(replicationServers, window, 1000);
+      fakeReplicationDomain.startPublishService(replicationServers, window, 1000, 500);
       if (startListen)
         fakeReplicationDomain.startListenService();
 

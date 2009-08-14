@@ -210,7 +210,10 @@ public class AssuredReplicationPluginTest
       "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n" +
       // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
       // not closed by client
-      "ds-cfg-heartbeat-interval: 600000ms\n";
+      "ds-cfg-heartbeat-interval: 600000ms\n" +
+      // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
+      // not closed by client
+     "ds-cfg-changetime-heartbeat-interval: 0ms\n";
 
     String configEntryLdif = null;
     switch (assuredMode)
@@ -253,7 +256,8 @@ public class AssuredReplicationPluginTest
       "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n" +
       // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
       // not closed by client
-      "ds-cfg-heartbeat-interval: 600000ms\n";
+      "ds-cfg-heartbeat-interval: 600000ms\n" +
+      "ds-cfg-changetime-heartbeat-interval: 0ms\n";
 
     Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 

@@ -42,6 +42,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -67,6 +68,7 @@ import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ExternalChangeLogSession;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
@@ -163,6 +165,13 @@ public class ReplicationServer
   // Number of pending changes for a DS, considered as threshold value to put
   // the DS in DEGRADED_STATUS. If value is 0, status analyzer is disabled
   private int degradedStatusThreshold = 5000;
+
+  // The handler of the draft change numbers database, the database used to
+  // store the relation between a draft change number ('seqnum') and the
+  // associated cookie.
+  private DraftCNDbHandler draftCNDbHandler;
+  // The last value generated of the draft change number.
+  private int lastGeneratedDraftCN = 0;
 
   /**
    * The tracer object for the debug logger.
@@ -1154,7 +1163,7 @@ public class ReplicationServer
    * Returns null if none.
    * @return the iterator.
    */
-  public Iterator<ReplicationServerDomain> getCacheIterator()
+  public Iterator<ReplicationServerDomain> getDomainIterator()
   {
     if (!baseDNs.isEmpty())
       return baseDNs.values().iterator();
@@ -1167,7 +1176,7 @@ public class ReplicationServer
    */
   public void clearDb()
   {
-    Iterator<ReplicationServerDomain> rcachei = getCacheIterator();
+    Iterator<ReplicationServerDomain> rcachei = getDomainIterator();
     if (rcachei != null)
     {
       while (rcachei.hasNext())
@@ -1445,4 +1454,134 @@ public class ReplicationServer
       return false;
     }
   }
+
+  private  ArrayList<String> excludedServiceIDs;
+  /**
+   * Excluded a list of domain from eligibility computation.
+   * @param excludedServiceIDs the provided list of serviceIDs excluded from
+   *                          the computation of eligibleCN.
+   */
+  public void disableEligibility(ArrayList<String> excludedServiceIDs)
+  {
+    this.excludedServiceIDs = excludedServiceIDs;
+  }
+
+  /**
+   * Returns the eligible CN cross domains - relies on the eligible CN from
+   * each domain.
+   * @return the cross domain eligible CN.
+   */
+  public ChangeNumber getEligibleCN()
+  {
+    String debugLog = "";
+
+    // traverse the domains and get the eligible CN from each domain
+    // store the oldest one as the cross domain eligible CN
+    ChangeNumber eligibleCN = null;
+    Iterator<ReplicationServerDomain> rsdi = this.getDomainIterator();
+    if (rsdi != null)
+    {
+      while (rsdi.hasNext())
+      {
+        ReplicationServerDomain domain = rsdi.next();
+
+        if (excludedServiceIDs.contains(domain.getBaseDn()))
+        {
+          continue;
+        }
+
+        ChangeNumber domainEligibleCN = domain.getEligibleCN();
+        String dates = "";
+        if (domainEligibleCN != null)
+        {
+          if ((eligibleCN == null) || (domainEligibleCN.older(eligibleCN)))
+          {
+            eligibleCN = domainEligibleCN;
+          }
+          dates = new Date(domainEligibleCN.getTime()).toString();
+        }
+        debugLog += "[dn=" + domain.getBaseDn()
+             + "] [eligibleCN=" + domainEligibleCN + ", " + dates + "]";
+      }
+    }
+
+    if (eligibleCN==null)
+    {
+      eligibleCN = new ChangeNumber(0,0,(short)0);
+    }
+
+    if (debugEnabled())
+      TRACER.debugInfo("In " + this +
+        " getEligibleCN() ends with " +
+        " the following domainEligibleCN for each domain :" + debugLog +
+        " thus CrossDomainEligibleCN=" + eligibleCN +
+        "  ts=" +
+        (eligibleCN!=null?
+        new Date(eligibleCN.getTime()).toString(): null));
+
+    return eligibleCN;
+  }
+
+  /**
+   * Get or create a handler on a Db on DraftCN for external changelog.
+   * @return the handler.
+   * @throws DirectoryException when needed.
+   */
+  public synchronized DraftCNDbHandler getDraftCNDbHandler()
+  throws DirectoryException
+  {
+    try
+    {
+      if (draftCNDbHandler == null)
+      {
+        draftCNDbHandler = new DraftCNDbHandler(this, this.dbEnv);
+        if (draftCNDbHandler == null)
+          return null;
+        this.lastGeneratedDraftCN = getLastDraftChangeNumber();
+      }
+      return draftCNDbHandler;
+    }
+    catch (Exception e)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_DRAFT_CHANGENUMBER_DATABASE.get(""));
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
+          mb.toMessage(), e);
+    }
+  }
+
+  /**
+   * Get the value of the first draft change number, 0 when db is empty.
+   * @return the first value.
+   */
+  public int getFirstDraftChangeNumber()
+  {
+    int first=0;
+    if (draftCNDbHandler != null)
+      first = draftCNDbHandler.getFirstKey();
+    return first;
+  }
+
+  /**
+   * Get the value of the last draft change number, 0 when db is empty.
+   * @return the last value.
+   */
+  public int getLastDraftChangeNumber()
+  {
+    int last=0;
+    if (draftCNDbHandler != null)
+      last = draftCNDbHandler.getLastKey();
+    return last;
+  }
+
+  /**
+   * Generate a new Draft ChangeNumber.
+   * @return The generated Draft ChangeNUmber
+   */
+  synchronized public int getNewDraftCN()
+  {
+    return ++lastGeneratedDraftCN;
+  }
+
 }

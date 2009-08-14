@@ -629,6 +629,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
+    int draftcn = 21;
 
     String serviceId = "serviceid";
 
@@ -639,9 +640,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
 
     // Constructor test
-    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, serviceId);
+    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, serviceId, draftcn);
     assertTrue(msg1.getCookie().equalsTo(cookie));
     assertTrue(msg1.getServiceId().equalsIgnoreCase(serviceId));
+    assertTrue((msg1.getDraftChangeNumber()==draftcn));
     DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
     assertTrue(delmsg.compareTo(delmsg2)==0);
 
@@ -651,6 +653,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg2.getCookie().equalsTo(cookie));
     assertTrue(msg2.getServiceId().equalsIgnoreCase(msg1.getServiceId()));
     assertTrue(msg2.getServiceId().equalsIgnoreCase(serviceId));
+    assertTrue(msg2.getDraftChangeNumber()==(msg1.getDraftChangeNumber()));
+    assertTrue(msg2.getDraftChangeNumber()==draftcn);
+    
     DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
     delmsg2 = (DeleteMsg)msg2.getUpdateMsg();
     assertTrue(delmsg2.compareTo(delmsg)==0);

@@ -222,7 +222,8 @@ public class ServerState implements Iterable<Short>
       {
         ChangeNumber change = list.get(key);
         Date date = new Date(change.getTime());
-        set.add(change.toString() + " " + date.toString());
+        set.add(change.toString() + " " + date.toString() + " "
+            + change.getTime());
       }
     }
 

@@ -186,6 +186,14 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /**
    * {@inheritDoc}
    */
+  public long getChangetimeHeartbeatInterval()
+  {
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public long getMaxReceiveDelay()
   {
     return 0;
