@@ -100,12 +100,6 @@ public class InstallerHelper {
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
   private static final String DOMAIN_BASE_NAME = "domain ";
 
-  private static final String INITIAL_CLIENT_HEAP_ARG = "-Xms8m";
-
-  private static final String SERVER_HEAP_ARGS = "-Xms128m -Xmx256m";
-
-  private static final long SERVER_MAX_HEAP_BYTES = 256 * 1024 * 1024;
-
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
    * @param args the arguments to be passed to ConfigureDS.configMain.
@@ -877,6 +871,53 @@ public class InstallerHelper {
    */
   public void writeSetOpenDSJavaHome(String installPath) throws IOException
   {
+    final String initialClientHeapArg = "-Xms8m";
+    final String serverHeapArgs = "-Xms128m -Xmx256m";
+    final long serverMaxHeapBytes = 256 * 1024 * 1024;
+    // Scripts to which we will pass -client argument
+    final String[] clientScripts =
+    {
+        "backup.online", "base64", "create-rc-script", "dsconfig",
+        "dsreplication", "dsframework", "export-ldif.online",
+        "import-ldif.online", "ldapcompare", "ldapdelete",
+        "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
+        "manage-account", "manage-tasks", "restore.online", "stop-ds",
+        "status", "control-panel", "uninstall", "setup"
+    };
+
+    // Scripts to which we will pass -server argument
+    final String[] serverScripts =
+    {
+        "backup.offline", "encode-password", "export-ldif.offline",
+        "import-ldif.offline", "ldif-diff", "ldifmodify", "ldifsearch",
+        "make-ldif", "rebuild-index", "restore.offline", "start-ds",
+        "upgrade", "verify-index", "dbtest"
+    };
+    writeSetOpenDSJavaHome(installPath, initialClientHeapArg,
+        serverHeapArgs, serverMaxHeapBytes, clientScripts, serverScripts);
+  }
+
+  /**
+   * Writes the set-java-home file that is used by the scripts to set the
+   * java home and the java arguments.
+   * @param installPath the install path of the server.
+   * @param initialClientHeapArg the argument to be used to set the initial
+   * heap for the client scripts.
+   * @param serverHeapArgs the argument to be used to set the server scripts
+   * heap sizes.
+   * @param serverMaxHeapBytes the maximum size of the heap for the server
+   * scripts.
+   * @param clientScripts the scripts where the client properties are set.
+   * @param serverScripts the scripts where the server properties are set.
+   * @throws IOException if an error occurred writing the file.
+   */
+  public void writeSetOpenDSJavaHome(String installPath,
+      String initialClientHeapArg,
+      String serverHeapArgs,
+      long serverMaxHeapBytes,
+      String[] clientScripts,
+      String[] serverScripts) throws IOException
+  {
     String javaHome = System.getProperty("java.home");
     if ((javaHome == null) || (javaHome.length() == 0))
     {
@@ -931,35 +972,16 @@ public class InstallerHelper {
       boolean supportsServer = supportsServer(javaHome, installPath);
 
       boolean supportsClientInitialHeap =
-        supportsOption(INITIAL_CLIENT_HEAP_ARG, javaHome, installPath);
+        supportsOption(initialClientHeapArg, javaHome, installPath);
       boolean supportsServerInitialHeap = false;
       // If the current max memory is bigger than the max heap we want to set,
       // assume that the JVM ergonomics are going to be able to allocate enough
       // memory.
-      if (Runtime.getRuntime().maxMemory() < SERVER_MAX_HEAP_BYTES)
+      if (Runtime.getRuntime().maxMemory() < serverMaxHeapBytes)
       {
         supportsServerInitialHeap =
-          supportsOption(SERVER_HEAP_ARGS, javaHome, installPath);
+          supportsOption(serverHeapArgs, javaHome, installPath);
       }
-      // Scripts to which we will pass -client argument
-      String[] clientScripts =
-      {
-          "backup.online", "base64", "create-rc-script", "dsconfig",
-          "dsreplication", "dsframework", "export-ldif.online",
-          "import-ldif.online", "ldapcompare", "ldapdelete",
-          "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
-          "manage-account", "manage-tasks", "restore.online", "stop-ds",
-          "status", "control-panel", "uninstall", "setup"
-      };
-
-      // Scripts to which we will pass -server argument
-      String[] serverScripts =
-      {
-          "backup.offline", "encode-password", "export-ldif.offline",
-          "import-ldif.offline", "ldif-diff", "ldifmodify", "ldifsearch",
-          "make-ldif", "rebuild-index", "restore.offline", "start-ds",
-          "upgrade", "verify-index", "dbtest"
-      };
 
       if (supportsServer || supportsServerInitialHeap)
       {
@@ -977,7 +999,7 @@ public class InstallerHelper {
             {
               arg += " ";
             }
-            arg += SERVER_HEAP_ARGS;
+            arg += serverHeapArgs;
           }
           writer.write(serverScripts[i]+".java-args="+arg);
         }
@@ -1007,7 +1029,7 @@ public class InstallerHelper {
             {
               arg += " ";
             }
-            arg += INITIAL_CLIENT_HEAP_ARG;
+            arg += initialClientHeapArg;
           }
           writer.write(clientScripts[i]+".java-args="+arg);
         }
