@@ -647,7 +647,7 @@ public class ECLServerHandler extends ServerHandler
           else
           {
             newDomainCtxt.startState = startStates.remove(rsd.getBaseDn());
-            if ((providedCookie==null)||(providedCookie.isEmpty()))
+            if ((providedCookie==null)||(providedCookie.length()==0))
               newDomainCtxt.startState = new ServerState();
             else
               if (newDomainCtxt.startState == null)
