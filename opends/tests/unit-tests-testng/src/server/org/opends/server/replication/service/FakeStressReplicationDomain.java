@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -63,7 +63,7 @@ public class FakeStressReplicationDomain extends ReplicationDomain
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(serviceID, serverID);
-    startPublishService(replicationServers, window, heartbeatInterval);
+    startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.queue = queue;
   }
@@ -78,7 +78,7 @@ public class FakeStressReplicationDomain extends ReplicationDomain
       StringBuilder importString) throws ConfigException
   {
     super(serviceID, serverID);
-    startPublishService(replicationServers, window, heartbeatInterval);
+    startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.exportString = exportString;
     this.importString = importString;

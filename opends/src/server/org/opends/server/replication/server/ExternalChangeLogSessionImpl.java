@@ -87,7 +87,7 @@ public class ExternalChangeLogSessionImpl
   public ECLUpdateMsg getNextUpdate()
   throws DirectoryException
   {
-    return handler.getnextUpdate();
+    return handler.getNextECLUpdate();
   }
 
   /**
@@ -106,7 +106,7 @@ public class ExternalChangeLogSessionImpl
   {
     MultiDomainServerState result = new MultiDomainServerState();
     // Initialize start state for  all running domains with empty state
-    Iterator<ReplicationServerDomain> rsdk = this.rs.getCacheIterator();
+    Iterator<ReplicationServerDomain> rsdk = rs.getDomainIterator();
     if (rsdk != null)
     {
       while (rsdk.hasNext())
@@ -116,7 +116,8 @@ public class ExternalChangeLogSessionImpl
         if (rsd.getBaseDn().compareToIgnoreCase(
             ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)==0)
           continue;
-        result.update(rsd.getBaseDn(), rsd.getCLElligibleState());
+        result.update(rsd.getBaseDn(), rsd.getEligibleState(
+            rs.getEligibleCN()));
       }
     }
     return result;

@@ -2468,6 +2468,28 @@ ds-cfg-java-class: org.opends.server.replication.common.LastCookieVirtualProvide
 ds-cfg-value: 1
 ds-cfg-filter: (objectClass=ds-root-dse)
 
+dn: cn=External Changelog First Draft Change Number,cn=Virtual Attributes,cn=config
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-user-defined-virtual-attribute
+objectClass: top
+cn: External Changelog First Draft Change Number
+ds-cfg-attribute-type: firstChangeNumber
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.replication.common.FirstChangeNumberVirtualAttributeProvider
+ds-cfg-value: 0
+ds-cfg-filter: (objectClass=ds-root-dse)
+
+dn: cn=External Changelog Last Draft Change Number,cn=Virtual Attributes,cn=config
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-user-defined-virtual-attribute
+objectClass: top
+cn: External Changelog Last Draft Change Number
+ds-cfg-attribute-type: lastChangeNumber
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.replication.common.LastChangeNumberVirtualAttributeProvider
+ds-cfg-value: 0
+ds-cfg-filter: (objectClass=ds-root-dse)
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

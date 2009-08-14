@@ -67,7 +67,7 @@ public class FakeReplicationDomain extends ReplicationDomain
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(serviceID, serverID);
-    startPublishService(replicationServers, window, heartbeatInterval);
+    startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.queue = queue;
   }
@@ -83,7 +83,7 @@ public class FakeReplicationDomain extends ReplicationDomain
       int exportedEntryCount) throws ConfigException
   {
     super(serviceID, serverID);
-    startPublishService(replicationServers, window, heartbeatInterval);
+    startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.exportString = exportString;
     this.importString = importString;

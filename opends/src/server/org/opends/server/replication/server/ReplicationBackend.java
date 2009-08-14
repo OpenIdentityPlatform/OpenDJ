@@ -351,7 +351,7 @@ public class ReplicationBackend
     //This method only returns the number of actual change entries, the
     //domain and any baseDN entries are not counted.
     long retNum=0;
-    Iterator<ReplicationServerDomain> rcachei = server.getCacheIterator();
+    Iterator<ReplicationServerDomain> rcachei = server.getDomainIterator();
     if (rcachei != null)
     {
       while (rcachei.hasNext())
@@ -541,7 +541,7 @@ public class ReplicationBackend
        Message message = ERR_REPLICATONBACKEND_EXPORT_LDIF_FAILED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,message);
     }
-    Iterator<ReplicationServerDomain> rsdi = server.getCacheIterator();
+    Iterator<ReplicationServerDomain> rsdi = server.getDomainIterator();
     if (rsdi != null)
     {
       while (rsdi.hasNext())
@@ -1358,7 +1358,7 @@ public class ReplicationBackend
     }
 
     // Walk through all entries and send the ones that match.
-    Iterator<ReplicationServerDomain> rsdi = server.getCacheIterator();
+    Iterator<ReplicationServerDomain> rsdi = server.getDomainIterator();
     if (rsdi != null)
     {
       while (rsdi.hasNext())

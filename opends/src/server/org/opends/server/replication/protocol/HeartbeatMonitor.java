@@ -74,8 +74,8 @@ public class HeartbeatMonitor extends DirectoryThread
    * Create a heartbeat monitor thread.
    * @param threadName The name of the heartbeat thread.
    * @param session The session on which heartbeats are to be monitored.
-   * @param heartbeatInterval The expected interval between heartbeats in
-   * milliseconds.
+   * @param heartbeatInterval The expected interval between heartbeats received
+   * (in milliseconds).
    */
   public HeartbeatMonitor(String threadName, ProtocolSession session,
                           long heartbeatInterval)
@@ -92,7 +92,6 @@ public class HeartbeatMonitor extends DirectoryThread
   {
     shutdown = true;
   }
-
 
   /**
    * {@inheritDoc}

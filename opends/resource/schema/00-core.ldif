@@ -156,6 +156,10 @@ attributeTypes: ( 2.5.4.50 NAME 'uniqueMember' EQUALITY uniqueMemberMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.34 X-ORIGIN 'RFC 4519' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.585 NAME 'lastExternalChangelogCookie'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.593 NAME 'firstChangeNumber'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.594 NAME 'lastChangeNumber'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 2.5.4.51 NAME 'houseIdentifier' EQUALITY caseIgnoreMatch
   SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768}
   X-ORIGIN 'RFC 4519' )

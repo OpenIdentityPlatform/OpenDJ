@@ -302,6 +302,9 @@ public final class PersistentSearch
     // Make sure that the entry matches the target filter.
     try
     {
+      TRACER.debugInfo(this + " " + entry + " +filter="
+          + filter.matchesEntry(entry));
+
       if (!filter.matchesEntry(entry))
       {
         return;

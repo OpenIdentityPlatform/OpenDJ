@@ -45,18 +45,23 @@ public class ECLUpdateMsg extends ReplicationMsg
   // The value of the cookie updated with the current change
   private MultiDomainServerState cookie;
 
+  // The changenumber as specified by draft-good-ldap-changelog.
+  private int draftChangeNumber;
+
   /**
    * Creates a new message.
    * @param update    The provided update.
    * @param cookie    The provided cookie value
    * @param serviceId The provided serviceId.
+   * @param draftChangeNumber The provided draft change number.
    */
   public ECLUpdateMsg(LDAPUpdateMsg update, MultiDomainServerState cookie,
-      String serviceId)
+      String serviceId, int draftChangeNumber)
   {
     this.cookie = cookie;
     this.serviceId = serviceId;
     this.updateMsg = update;
+    this.draftChangeNumber = draftChangeNumber;
   }
 
   /**
@@ -91,6 +96,12 @@ public class ECLUpdateMsg extends ReplicationMsg
       // Decode the serviceId
       length = getNextLength(in, pos);
       this.serviceId = new String(in, pos, length, "UTF-8");
+      pos += length + 1;
+
+      // Decode the draft changeNumber
+      length = getNextLength(in, pos);
+      this.draftChangeNumber = Integer.valueOf(
+          new String(in, pos, length, "UTF-8"));
       pos += length + 1;
 
       // Decode the msg
@@ -152,9 +163,10 @@ public class ECLUpdateMsg extends ReplicationMsg
   public String toString()
   {
     return "ECLUpdateMsg:[" +
-    "updateMsg: " + updateMsg +
-    "cookie: " + cookie +
-    "serviceId: " + serviceId + "]";
+    " updateMsg: " + updateMsg +
+    " cookie: " + cookie +
+    " draftChangeNumber: " + draftChangeNumber +
+    " serviceId: " + serviceId + "]";
   }
 
   /**
@@ -165,10 +177,13 @@ public class ECLUpdateMsg extends ReplicationMsg
   {
     byte[] byteCookie    = String.valueOf(cookie).getBytes("UTF-8");
     byte[] byteServiceId = String.valueOf(serviceId).getBytes("UTF-8");
+    byte[] byteDraftChangeNumber =
+      Integer.toString(draftChangeNumber).getBytes("UTF-8");
     byte[] byteUpdateMsg = updateMsg.getBytes();
 
     int length = 1 + byteCookie.length +
                  1 + byteServiceId.length +
+                 1 + byteDraftChangeNumber.length +
                  1 + byteUpdateMsg.length + 1;
 
     byte[] resultByteArray = new byte[length];
@@ -183,9 +198,31 @@ public class ECLUpdateMsg extends ReplicationMsg
     // Encode serviceid
     pos = addByteArray(byteServiceId, resultByteArray, pos);
 
+    /* Put the draftChangeNumber */
+    pos = addByteArray(byteDraftChangeNumber, resultByteArray, pos);
+
     // Encode msg
     pos = addByteArray(byteUpdateMsg, resultByteArray, pos);
 
     return resultByteArray;
   }
+
+  /**
+   * Setter for the draftChangeNumber of this change.
+   * @param draftChangeNumber the provided draftChangeNumber for this change.
+   */
+  public void setDraftChangeNumber(int draftChangeNumber)
+  {
+    this.draftChangeNumber = draftChangeNumber;
+  }
+
+  /**
+   * Getter for the draftChangeNumber of this change.
+   * @return the draftChangeNumber of this change.
+   */
+  public int getDraftChangeNumber()
+  {
+    return this.draftChangeNumber;
+  }
+
 }

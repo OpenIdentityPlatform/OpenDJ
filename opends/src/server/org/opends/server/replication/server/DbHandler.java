@@ -28,6 +28,7 @@ package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -46,6 +47,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
@@ -121,6 +123,7 @@ public class DbHandler implements Runnable
    *
    */
   private long trimage;
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * Creates a new dbHandler associated to a given LDAP server.
@@ -291,13 +294,14 @@ public class DbHandler implements Runnable
     ChangeNumber recentChangeNumber = null;
 
     if (changeNumber == null)
+    {
       flush();
-
+    }
     synchronized (msgQueue)
     {
       try
       {
-        UpdateMsg msg = msgQueue.getFirst();
+        UpdateMsg msg = msgQueue.getLast();
         recentChangeNumber = msg.getChangeNumber();
       }
       catch (NoSuchElementException e)
@@ -653,5 +657,15 @@ public class DbHandler implements Runnable
       firstChange = db.readFirstChange();
       lastChange = db.readLastChange();
     }
+  }
+
+  /**
+   * Getter fot the serverID of the server for which this database is managed.
+   *
+   * @return the serverId.
+   */
+  public short getServerId()
+  {
+    return this.serverId;
   }
 }

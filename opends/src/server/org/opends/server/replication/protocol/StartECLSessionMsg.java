@@ -101,7 +101,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   private ChangeNumber changeNumber;
 
   // Specifies whether the search is persistent and changesOnly
-  private short  isPersistent;
+  private short  isPersistent = NON_PERSISTENT;
 
   // A string helping debuging and tracing the client operation related when
   // processing, on the RS side, a request on the ECL.
@@ -203,7 +203,14 @@ public class StartECLSessionMsg extends ReplicationMsg
    */
   public StartECLSessionMsg()
   {
+    eclRequestType = REQUEST_TYPE_FROM_COOKIE;
+    crossDomainServerState = "";
+    firstDraftChangeNumber = -1;
+    lastDraftChangeNumber = -1;
     changeNumber = new ChangeNumber((short)0,0,(short)0);
+    isPersistent = NON_PERSISTENT;
+    operationId = "-1";
+    excludedServiceIDs = new ArrayList<String>();
   }
 
   /**

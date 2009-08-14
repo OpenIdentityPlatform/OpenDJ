@@ -52,6 +52,7 @@ import org.opends.server.replication.protocol.WindowProbeMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
+import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
@@ -127,7 +128,8 @@ public class ServerReader extends DirectoryThread
 
           if (debugEnabled())
           {
-            TRACER.debugInfo(this.getName() + " receives " + msg);
+            TRACER.debugInfo("In " + replicationServerDomain + " " +
+                getName() + " receives " + msg);
           }
 
           if (msg instanceof AckMsg)
@@ -282,6 +284,11 @@ public class ServerReader extends DirectoryThread
           {
             MonitorMsg replServerMonitorMsg = (MonitorMsg) msg;
             handler.process(replServerMonitorMsg);
+          } else if (msg instanceof ChangeTimeHeartbeatMsg)
+          {
+            ChangeTimeHeartbeatMsg cthbMsg = (ChangeTimeHeartbeatMsg) msg;
+            replicationServerDomain.processChangeTimeHeartbeatMsg(handler,
+                cthbMsg);
           } else if (msg == null)
           {
             /*

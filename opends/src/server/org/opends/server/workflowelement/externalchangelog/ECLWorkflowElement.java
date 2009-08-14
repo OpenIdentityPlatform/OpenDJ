@@ -171,12 +171,12 @@ public class ECLWorkflowElement extends
 
   /**
    * Registers the provided persistent search operation with this
-   * local backend workflow element so that it will be notified of any
+   * workflow element so that it will be notified of any
    * add, delete, modify, or modify DN operations that are performed.
    *
    * @param persistentSearch
    *          The persistent search operation to register with this
-   *          local backend workflow element.
+   *          workflow element.
    */
   void registerPersistentSearch(PersistentSearch persistentSearch)
   {
@@ -198,10 +198,10 @@ public class ECLWorkflowElement extends
 
   /**
    * Gets the list of persistent searches currently active against
-   * this local backend workflow element.
+   * this workflow element.
    *
    * @return The list of persistent searches currently active against
-   *         this local backend workflow element.
+   *         this workflow element.
    */
   public List<PersistentSearch> getPersistentSearches()
   {

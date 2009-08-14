@@ -530,7 +530,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
       saveGenerationId(generationId);
     }
 
-    startPublishService(replicationServers, window, heartbeatInterval);
+    startPublishService(replicationServers, window, heartbeatInterval,
+        configuration.getChangetimeHeartbeatInterval());
 
     /*
      * ChangeNumberGenerator is used to create new unique ChangeNumbers

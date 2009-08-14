@@ -37,12 +37,12 @@ import static org.opends.server.util.StaticUtils.needsBase64Encoding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -81,7 +81,6 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -94,6 +93,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.FilterType;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
@@ -107,7 +107,6 @@ import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.TimeThread;
 
 
 
@@ -136,20 +135,10 @@ public class ECLSearchOperation
   // The associated DN.
   private DN rootBaseDN;
 
-  // The cookie received in the ECL request control coming along
-  // with the request.
-  MultiDomainServerState requestCookie = null;
-
   /**
    * The replication server in which the search on ECL is to be performed.
    */
   protected ReplicationServer replicationServer;
-
-  /**
-   * Indicates whether we should actually process the search.  This should
-   * only be false if it's a persistent search with changesOnly=true.
-   */
-  protected boolean changesOnly;
 
   /**
    * The client connection for the search operation.
@@ -177,6 +166,7 @@ public class ECLSearchOperation
   private HashSet<String> supportedControls;
 
   // The set of supported features for this WE
+  // TODO: any special feature to be implemented for an ECL search operation ?
   private HashSet<String> supportedFeatures;
 
   String privateDomainsBaseDN;
@@ -202,11 +192,12 @@ public class ECLSearchOperation
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     eclObjectClasses.put(topOC, OC_TOP);
     ObjectClass eclEntryOC = DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY,
-                                                           true);
+        true);
     eclObjectClasses.put(eclEntryOC, OC_CHANGELOG_ENTRY);
 
 
     // Define an empty sets for the supported controls and features.
+    // FIXME:ECL Decide if ServerSideControl and VLV are supported
     supportedControls = new HashSet<String>(0);
     supportedControls.add(ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
     supportedControls.add(ServerConstants.OID_VLV_REQUEST_CONTROL);
@@ -226,57 +217,79 @@ public class ECLSearchOperation
    *           if this operation should be cancelled
    */
   public void processECLSearch(ECLWorkflowElement wfe)
-      throws CanceledOperationException
+  throws CanceledOperationException
   {
     boolean executePostOpPlugins = false;
-    this.replicationServer = wfe.getReplicationServer();
-
-    clientConnection = getClientConnection();
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
       DirectoryServer.getPluginConfigManager();
-    changesOnly = false;
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-searchProcessing:
+    searchProcessing:
     {
+      replicationServer  = wfe.getReplicationServer();
+      clientConnection   = getClientConnection();
+      startECLSessionMsg = new StartECLSessionMsg();
+
+      // Set default behavior as "from draft change number".
+      // "from cookie" is set only when cookie is provided.
+      startECLSessionMsg.setECLRequestType(
+          StartECLSessionMsg.REQUEST_TYPE_FROM_DRAFT_CHANGE_NUMBER);
+
+      // Set a string operationid that will help correlate any error message
+      // logged for this operation with the 'real' client operation.
+      startECLSessionMsg.setOperationId(this.toString());
+
+      // Set a list of excluded domains (also exclude 'cn=changelog' itself)
+      ArrayList<String> excludedDomains =
+        MultimasterReplication.getPrivateDomains();
+      if (!excludedDomains.contains(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
+        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      startECLSessionMsg.setExcludedDNs(excludedDomains);
+
+      // Test existence of the RS - normally should always be here
+      if (replicationServer == null)
+      {
+        setResultCode(ResultCode.OPERATIONS_ERROR);
+        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
+            String.valueOf(baseDN)));
+        break searchProcessing;
+      }
+
       // Process the search base and filter to convert them from their raw forms
       // as provided by the client to the forms required for the rest of the
       // search processing.
       baseDN = getBaseDN();
       filter = getFilter();
-
       if ((baseDN == null) || (filter == null)){
         break searchProcessing;
       }
 
-      // Check to see if there are any controls in the request.  If so, then
-      // see if there is any special processing required.
+      // Analyse controls - including the cookie control
       try
       {
-        this.requestCookie = null;
         handleRequestControls();
-        if (this.requestCookie == null)
-        {
-          setResponseData(new DirectoryException(
-              ResultCode.OPERATIONS_ERROR,
-              Message.raw(Category.SYNC, Severity.FATAL_ERROR,
-                  "Cookie control expected")));
-          break searchProcessing;
-        }
       }
       catch (DirectoryException de)
       {
         if (debugEnabled())
-        {
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+        setResponseData(de);
+        break searchProcessing;
+      }
 
+      // Process filter - extract draft change number (seqnum) conditions
+      try
+      {
+        evaluateFilter(startECLSessionMsg, this.getFilter());
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         setResponseData(de);
         break searchProcessing;
       }
@@ -287,7 +300,7 @@ searchProcessing:
       // Invoke the pre-operation search plugins.
       executePostOpPlugins = true;
       PluginResult.PreOperation preOpResult =
-          pluginConfigManager.invokePreOperationSearchPlugins(this);
+        pluginConfigManager.invokePreOperationSearchPlugins(this);
       if (!preOpResult.continueProcessing())
       {
         setResultCode(preOpResult.getResultCode());
@@ -297,25 +310,11 @@ searchProcessing:
         break searchProcessing;
       }
 
-
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
-
-      // Test existence of the RS
-      if (replicationServer == null)
-      {
-        setResultCode(ResultCode.OPERATIONS_ERROR);
-        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
-                                String.valueOf(baseDN)));
-        break searchProcessing;
-      }
-
-
-      // We'll set the result code to "success".  If a problem occurs, then it
-      // will be overwritten.
+      // Be optimistic by default.
       setResultCode(ResultCode.SUCCESS);
-
 
       // If there's a persistent search, then register it with the server.
       if (persistentSearch != null)
@@ -332,9 +331,7 @@ searchProcessing:
       catch (DirectoryException de)
       {
         if (debugEnabled())
-        {
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
 
         setResponseData(de);
 
@@ -343,7 +340,6 @@ searchProcessing:
           persistentSearch.cancel();
           setSendResponse(true);
         }
-
         break searchProcessing;
       }
       catch (CanceledOperationException coe)
@@ -353,30 +349,24 @@ searchProcessing:
           persistentSearch.cancel();
           setSendResponse(true);
         }
-
         throw coe;
       }
       catch (Exception e)
       {
         if (debugEnabled())
-        {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
         appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION.get(
-                                getExceptionMessage(e)));
-
+            getExceptionMessage(e)));
         if (persistentSearch != null)
         {
           persistentSearch.cancel();
           setSendResponse(true);
         }
-
         break searchProcessing;
       }
     }
-
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
@@ -385,7 +375,7 @@ searchProcessing:
     if (executePostOpPlugins)
     {
       PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationSearchPlugins(this);
+        pluginConfigManager.invokePostOperationSearchPlugins(this);
       if (!postOpResult.continueProcessing())
       {
         setResultCode(postOpResult.getResultCode());
@@ -398,13 +388,13 @@ searchProcessing:
 
 
   /**
-   * Handles any controls contained in the request.
+   * Handles any controls contained in the request - including the cookie ctrl.
    *
    * @throws  DirectoryException  If there is a problem with any of the request
    *                              controls.
    */
   protected void handleRequestControls()
-          throws DirectoryException
+  throws DirectoryException
   {
     List<Control> requestControls  = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
@@ -414,22 +404,28 @@ searchProcessing:
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
         if (! AccessControlConfigManager.getInstance().
-                   getAccessControlHandler().isAllowed(baseDN, this, c))
+            getAccessControlHandler().isAllowed(baseDN, this, c))
         {
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                         ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
+              ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }
 
         if (oid.equals(OID_ECL_COOKIE_EXCHANGE_CONTROL))
         {
           ExternalChangelogRequestControl eclControl =
             getRequestControl(ExternalChangelogRequestControl.DECODER);
-          this.requestCookie = eclControl.getCookie();
+          MultiDomainServerState cookie = eclControl.getCookie();
+          if (cookie!=null)
+          {
+            startECLSessionMsg.setECLRequestType(
+                StartECLSessionMsg.REQUEST_TYPE_FROM_COOKIE);
+            startECLSessionMsg.setCrossDomainServerState(cookie.toString());
+          }
         }
         else if (oid.equals(OID_LDAP_ASSERTION))
         {
           LDAPAssertionRequestControl assertControl =
-                getRequestControl(LDAPAssertionRequestControl.DECODER);
+            getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           try
           {
@@ -449,20 +445,20 @@ searchProcessing:
               }
 
               throw new DirectoryException(de.getResultCode(),
-                             ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
-                                  de.getMessageObject()));
+                  ERR_SEARCH_CANNOT_GET_ENTRY_FOR_ASSERTION.get(
+                      de.getMessageObject()));
             }
 
             if (entry == null)
             {
               throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                             ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
+                  ERR_SEARCH_NO_SUCH_ENTRY_FOR_ASSERTION.get());
             }
 
             if (! assertionFilter.matchesEntry(entry))
             {
               throw new DirectoryException(ResultCode.ASSERTION_FAILED,
-                                           ERR_SEARCH_ASSERTION_FAILED.get());
+                  ERR_SEARCH_ASSERTION_FAILED.get());
             }
           }
           catch (DirectoryException de)
@@ -478,8 +474,8 @@ searchProcessing:
             }
 
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                           ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                de.getMessageObject()), de);
+                ERR_SEARCH_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    de.getMessageObject()), de);
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
@@ -489,11 +485,11 @@ searchProcessing:
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
+                ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
           ProxiedAuthV1Control proxyControl =
-              getRequestControl(ProxiedAuthV1Control.DECODER);
+            getRequestControl(ProxiedAuthV1Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -513,11 +509,11 @@ searchProcessing:
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
             throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                           ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
+                ERR_PROXYAUTH_INSUFFICIENT_PRIVILEGES.get());
           }
 
           ProxiedAuthV2Control proxyControl =
-              getRequestControl(ProxiedAuthV2Control.DECODER);
+            getRequestControl(ProxiedAuthV2Control.DECODER);
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
@@ -536,15 +532,17 @@ searchProcessing:
             getRequestControl(PersistentSearchControl.DECODER);
 
           persistentSearch = new PersistentSearch(this,
-                                      psearchControl.getChangeTypes(),
-                                      psearchControl.getReturnECs());
+              psearchControl.getChangeTypes(),
+              psearchControl.getReturnECs());
 
           // If we're only interested in changes, then we don't actually want
           // to process the search now.
-          if (psearchControl.getChangesOnly())
-          {
-            changesOnly = true;
-          }
+          if (!psearchControl.getChangesOnly())
+            startECLSessionMsg.setPersistent(
+                StartECLSessionMsg.PERSISTENT);
+          else
+            startECLSessionMsg.setPersistent(
+                StartECLSessionMsg.PERSISTENT_CHANGES_ONLY);
         }
         else if (oid.equals(OID_LDAP_SUBENTRIES))
         {
@@ -553,7 +551,7 @@ searchProcessing:
         else if (oid.equals(OID_MATCHED_VALUES))
         {
           MatchedValuesControl matchedValuesControl =
-                getRequestControl(MatchedValuesControl.DECODER);
+            getRequestControl(MatchedValuesControl.DECODER);
           setMatchedValuesControl(matchedValuesControl);
         }
         else if (oid.equals(OID_ACCOUNT_USABLE_CONTROL))
@@ -569,20 +567,19 @@ searchProcessing:
           setVirtualAttributesOnly(true);
         }
         else if (oid.equals(OID_GET_EFFECTIVE_RIGHTS) &&
-          DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
+            DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
         {
           // Do nothing here and let AciHandler deal with it.
         }
 
-        // NYI -- Add support for additional controls.
-
+        // TODO: Add support for additional controls, including VLV
         else if (c.isCritical())
         {
           if ((replicationServer == null) || (! supportsControl(oid)))
           {
             throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
           }
         }
       }
@@ -592,35 +589,12 @@ searchProcessing:
   private void processSearch()
   throws DirectoryException, CanceledOperationException
   {
-    startECLSessionMsg = new StartECLSessionMsg();
-    startECLSessionMsg.setECLRequestType(
-        StartECLSessionMsg.REQUEST_TYPE_FROM_COOKIE);
-    startECLSessionMsg.setChangeNumber(
-        new ChangeNumber(TimeThread.getTime(),(short)0, (short)0));
-    startECLSessionMsg.setCrossDomainServerState(requestCookie.toString());
+    if (debugEnabled())
+      TRACER.debugInfo(
+        " processSearch toString=[" + toString() + "] opid=["
+        + startECLSessionMsg.getOperationId() + "]");
 
-    if (persistentSearch==null)
-      startECLSessionMsg.setPersistent(StartECLSessionMsg.NON_PERSISTENT);
-    else
-      if (!changesOnly)
-        startECLSessionMsg.setPersistent(StartECLSessionMsg.PERSISTENT);
-      else
-        startECLSessionMsg.setPersistent(
-            StartECLSessionMsg.PERSISTENT_CHANGES_ONLY);
-
-    startECLSessionMsg.setFirstDraftChangeNumber(0);
-    startECLSessionMsg.setLastDraftChangeNumber(0);
-
-    // Help correlate with access log with the format: "conn=x op=y msgID=z"
-    startECLSessionMsg.setOperationId(
-      "conn="+String.valueOf(this.getConnectionID())
-      + " op="+String.valueOf(this.getOperationID())
-      + " msgID="+String.valueOf(getOperationID()));
-
-    startECLSessionMsg.setExcludedDNs(
-        MultimasterReplication.getPrivateDomains());
-
-    // Start session
+    // Start a specific ECL session
     eclSession = replicationServer.createECLSession(startECLSessionMsg);
 
     if (!getScope().equals(SearchScope.SINGLE_LEVEL))
@@ -718,9 +692,9 @@ searchProcessing:
   private boolean matchFilter(Entry entry)
   throws DirectoryException
   {
-    boolean ms = entry.matchesBaseAndScope(getBaseDN(), getScope());
-    boolean mf = getFilter().matchesEntry(entry);
-    return (ms && mf);
+    boolean baseScopeMatch = entry.matchesBaseAndScope(getBaseDN(), getScope());
+    boolean filterMatch = getFilter().matchesEntry(entry);
+    return (baseScopeMatch && filterMatch);
   }
 
   /**
@@ -755,95 +729,99 @@ searchProcessing:
           null, // real time current entry
           null, // real time attrs names
           null, // hist entry attributes
-          -1,    // TODO:ECL G Good changelog draft compat. addMsg.getSeqnum()
+          eclmsg.getDraftChangeNumber(),
       "add");
 
     } else
-    if (msg instanceof ModifyMsg)
-    {
-      ModifyMsg modMsg = (ModifyMsg)msg;
-      InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-      try
+      if (msg instanceof ModifyMsg)
       {
-        // Map the modMsg modifications to an LDIF string
-        // for the 'changes' attribute of the CL entry
-        ModifyOperation modifyOperation =
-          (ModifyOperation)modMsg.createOperation(conn);
-        String LDIFchanges = modToLDIF(modifyOperation.getModifications());
+        ModifyMsg modMsg = (ModifyMsg)msg;
+        InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
+        try
+        {
+          // Map the modMsg modifications to an LDIF string
+          // for the 'changes' attribute of the CL entry
+          ModifyOperation modifyOperation =
+            (ModifyOperation)modMsg.createOperation(conn);
+          String LDIFchanges = modToLDIF(modifyOperation.getModifications());
 
-        // TODO:ECL G Good changelog draft compat. Hist entry attributes
-        // ArrayList<RawAttribute> attributes = modMsg.getEntryAttributes();
+          // TODO:ECL Hist entry attributes
+          // ArrayList<RawAttribute> attributes = modMsg.getEntryAttributes();
+          clEntry = createChangelogEntry(
+              eclmsg.getServiceId(),
+              eclmsg.getCookie().toString(),
+              DN.decode(modMsg.getDn()),
+              modMsg.getChangeNumber(),
+              LDIFchanges,
+              modMsg.getUniqueId(),
+              null, // real time current entry
+              null, // real time attrs names
+              null, // hist entry attributes
+              eclmsg.getDraftChangeNumber(),
+          "modify");
+
+        }
+        catch(Exception e)
+        {
+          // Exceptions raised by createOperation for example
+          throw new DirectoryException(ResultCode.OTHER,
+              Message.raw(Category.SYNC, Severity.NOTICE,
+                  " Server fails to create entry: "),e);
+        }
+      }
+      else if (msg instanceof ModifyDNMsg)
+      {
+        ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
+
         clEntry = createChangelogEntry(
             eclmsg.getServiceId(),
             eclmsg.getCookie().toString(),
-            DN.decode(modMsg.getDn()),
-            modMsg.getChangeNumber(),
-            LDIFchanges,
-            modMsg.getUniqueId(),
+            DN.decode(modDNMsg.getDn()),
+            modDNMsg.getChangeNumber(),
+            null,
+            modDNMsg.getUniqueId(),
             null, // real time current entry
             null, // real time attrs names
             null, // hist entry attributes
-            -1,    // TODO:ECL G Good changelog draft compat. modMsg.getSeqnum()
-        "modify");
+            eclmsg.getDraftChangeNumber(),
+        "modrdn");
+
+        Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
+        clEntry.addAttribute(a, null);
+
+        Attribute b = Attributes.create("newsuperior",
+            modDNMsg.getNewSuperior());
+        clEntry.addAttribute(b, null);
+
+        Attribute c = Attributes.create("deleteoldrdn",
+            String.valueOf(modDNMsg.deleteOldRdn()));
+        clEntry.addAttribute(c, null);
 
       }
-      catch(Exception e)
+      else if (msg instanceof DeleteMsg)
       {
-        // FIXME:ECL Handle error when createOperation raise DataFormatExceptin
+        DeleteMsg delMsg = (DeleteMsg)msg;
+        /* TODO:ECL Entry attributes for DEL op
+        ArrayList<RawAttribute> rattributes = new ArrayList<RawAttribute>();
+        ArrayList<RawAttribute> rattributes = delMsg.getEntryAttributes();
+        // Map the entry attributes of the DelMsg to an LDIF string
+        // for the 'deletedentryattributes' attribute of the CL entry
+        String delAttrs = delMsgToLDIFString(rattributes);
+        */
+        clEntry = createChangelogEntry(
+            eclmsg.getServiceId(),
+            eclmsg.getCookie().toString(),
+            DN.decode(delMsg.getDn()),
+            delMsg.getChangeNumber(),
+            null,
+            delMsg.getUniqueId(),
+            null,
+            null,
+            null, //rattributes,
+            eclmsg.getDraftChangeNumber(),
+        "delete");
       }
-    }
-    else if (msg instanceof ModifyDNMsg)
-    {
-      ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
-
-      clEntry = createChangelogEntry(
-          eclmsg.getServiceId(),
-          eclmsg.getCookie().toString(),
-          DN.decode(modDNMsg.getDn()),
-          modDNMsg.getChangeNumber(),
-          null,
-          modDNMsg.getUniqueId(),
-          null, // real time current entry
-          null, // real time attrs names
-          null, // hist entry attributes
-          -1,    // TODO:ECL G Good changelog draft compat. modDNMsg.getSeqnum()
-          "modrdn");
-
-      Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
-      clEntry.addAttribute(a, null);
-
-      Attribute b = Attributes.create("newsuperior", modDNMsg.getNewSuperior());
-      clEntry.addAttribute(b, null);
-
-      Attribute c = Attributes.create("deleteoldrdn",
-          String.valueOf(modDNMsg.deleteOldRdn()));
-      clEntry.addAttribute(c, null);
-
-    }
-    else if (msg instanceof DeleteMsg)
-    {
-      DeleteMsg delMsg = (DeleteMsg)msg;
-      ArrayList<RawAttribute> rattributes = new ArrayList<RawAttribute>();
-      /* TODO:ECL Entry attributes for DEL op
-      ArrayList<RawAttribute> rattributes = delMsg.getEntryAttributes();
-      // Map the entry attributes of the DelMsg to an LDIF string
-      // for the 'deletedentryattributes' attribute of the CL entry
-      String delAttrs = delMsgToLDIFString(rattributes);
-      */
-      clEntry = createChangelogEntry(
-          eclmsg.getServiceId(),
-          eclmsg.getCookie().toString(),
-          DN.decode(delMsg.getDn()),
-          delMsg.getChangeNumber(),
-          null,
-          delMsg.getUniqueId(),
-          null,
-          null,
-          null, //rattributes,
-          -1, // TODO:ECL G Good changelog draft compat. delMsg.getSeqnum()
-         "delete");
-    }
     return clEntry;
   }
 
@@ -863,20 +841,6 @@ searchProcessing:
     HashMap<AttributeType,List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
-    // Add to the root entry the replication state of each domain
-    // TODO:ECL Put in ECL root entry, the ServerState for each domain
-    AttributeType descType = DirectoryServer.getAttributeType("description");
-    List<ReplicationDomain> supportedReplicationDomains
-     = new ArrayList<ReplicationDomain>();
-
-    for (ReplicationDomain domain : supportedReplicationDomains)
-    {
-      //    Crappy stuff to return the server state to the client
-      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
-      attrList.add(Attributes.create("description",
-          domain.getServiceID() + "/" + domain.getServerState().toString()));
-      userAttrs.put(descType, attrList);
-    }
     Entry e = new Entry(this.rootBaseDN, oclasses, userAttrs,
         operationalAttrs);
     return e;
@@ -916,10 +880,19 @@ searchProcessing:
       String changetype)
   throws DirectoryException
   {
-    String dnString = "cn="+ changeNumber +"," +
-      serviceID + "," +
+    String dnString = "";
+    if (draftChangenumber == 0)
+    {
+      // Draft uncompat mode
+      dnString = "cn="+ changeNumber +"," + serviceID + "," +
+        ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
+    }
+    else
+    {
+      // Draft compat mode
+      dnString = "cn="+ draftChangenumber + "," +
       ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
-
+    }
     HashMap<ObjectClass,String> oClasses =
       new LinkedHashMap<ObjectClass,String>(3);
     oClasses.putAll(eclObjectClasses);
@@ -962,7 +935,7 @@ searchProcessing:
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     uAttrs.put(a.getAttributeType(), attrList);
-    */
+     */
 
     //
     a = Attributes.create("changetype", changetype);
@@ -1017,18 +990,21 @@ searchProcessing:
       uAttrs.put(a.getAttributeType(), attrList);
     }
 
-    a = Attributes.create("targetentryuuid", targetUUID);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    operationalAttrs.put(a.getAttributeType(), attrList);
-    if (draftChangenumber>0)
+    if (targetUUID != null)
     {
-      // compat mode
-      a = Attributes.create("targetuniqueid",
-          ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID));
+      a = Attributes.create("targetentryuuid", targetUUID);
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
       operationalAttrs.put(a.getAttributeType(), attrList);
+      if (draftChangenumber>0)
+      {
+        // compat mode
+        a = Attributes.create("targetuniqueid",
+            ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID));
+        attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
+        operationalAttrs.put(a.getAttributeType(), attrList);
+      }
     }
 
     a = Attributes.create("changelogcookie", cookie);
@@ -1061,7 +1037,7 @@ searchProcessing:
         uAttrs.put(a.getAttributeType(), attrList);
       }
     }
-    */
+     */
 
     /*
     if (targetAttrNames != null)
@@ -1082,7 +1058,7 @@ searchProcessing:
         }
       }
     }
-    */
+     */
     /* TODO: Implement entry attributes historical values
     if (histEntryAttributes != null)
     {
@@ -1105,7 +1081,7 @@ searchProcessing:
         }
       }
     }
-    */
+     */
 
     // at the end build the CL entry to be returned
     Entry cle = new Entry(
@@ -1315,7 +1291,7 @@ searchProcessing:
    */
   public CancelResult cancel(CancelRequest cancelRequest)
   {
-    if (eclSession!=null)
+    if (eclSession != null)
     {
       try
       {
@@ -1327,20 +1303,16 @@ searchProcessing:
   }
 
   /**
-  * The unique identifier used in DSEE is named nsUniqueId and its format is
-  * HHHHHHHH-HHHHHHHH-HHHHHHHH-HHHHHHHH where H is a hex digit.
-  * An nsUniqueId value is for example 3970de28-08b311d9-8095b9bf-c4d9231c
-  * The unique identifier used in OpenDS is named entryUUID.
-  * Its value is for example entryUUID: 50dd9673-71e1-4478-b13c-dba387c4d7e1
-  * @param entryUid the OpenDS entry UID
-  * @return the Dsee format for the entry UID
-  */
+   * The unique identifier used in DSEE is named nsUniqueId and its format is
+   * HHHHHHHH-HHHHHHHH-HHHHHHHH-HHHHHHHH where H is a hex digit.
+   * An nsUniqueId value is for example 3970de28-08b311d9-8095b9bf-c4d9231c
+   * The unique identifier used in OpenDS is named entryUUID.
+   * Its value is for example entryUUID: 50dd9673-71e1-4478-b13c-dba387c4d7e1
+   * @param entryUid the OpenDS entry UID
+   * @return the Dsee format for the entry UID
+   */
   private static String openDsToSunDseeNsUniqueId(String entryUid)
   {
-
-    if (entryUid == null)
-      return null;
-
     //  the conversion from one unique identifier to an other is
     //  a question of formating : the last "-" is placed
     StringBuffer buffer = new StringBuffer(entryUid);
@@ -1355,5 +1327,106 @@ searchProcessing:
 
     return buffer.toString();
   }
-}
 
+  /**
+   * Traverse the provided search filter, looking for some conditions
+   * on attributes that can be optimized in the ECL.
+   * When found, populate the provided StartECLSessionMsg.
+   * @param startCLmsg the startCLMsg to be populated.
+   * @param sf the provided search filter.
+   * @throws DirectoryException when an exception occurs.
+   */
+  public static void evaluateFilter(StartECLSessionMsg startCLmsg,
+      SearchFilter sf)
+  throws DirectoryException
+  {
+    StartECLSessionMsg msg = evaluateFilter2(sf);
+    startCLmsg.setFirstDraftChangeNumber(msg.getFirstDraftChangeNumber());
+    startCLmsg.setLastDraftChangeNumber(msg.getLastDraftChangeNumber());
+    startCLmsg.setChangeNumber(msg.getChangeNumber());
+  }
+
+  private static StartECLSessionMsg evaluateFilter2(SearchFilter sf)
+  throws DirectoryException
+  {
+    StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
+    startCLmsg.setFirstDraftChangeNumber(-1);
+    startCLmsg.setLastDraftChangeNumber(-1);
+    startCLmsg.setChangeNumber(new ChangeNumber(0,0,(short)0));
+
+    // Here are the 3 elementary cases we know how to optimize
+    if ((sf != null)
+        && (sf.getFilterType() == FilterType.GREATER_OR_EQUAL)
+        && (sf.getAttributeType() != null)
+        && (sf.getAttributeType().getPrimaryName().
+            equalsIgnoreCase("changeNumber")))
+    {
+      int sn = Integer.decode(
+          sf.getAssertionValue().getNormalizedValue().toString());
+      startCLmsg.setFirstDraftChangeNumber(sn);
+      return startCLmsg;
+    }
+    else if ((sf != null)
+        && (sf.getFilterType() == FilterType.LESS_OR_EQUAL)
+        && (sf.getAttributeType() != null)
+        && (sf.getAttributeType().getPrimaryName().
+            equalsIgnoreCase("changeNumber")))
+    {
+      int sn = Integer.decode(
+          sf.getAssertionValue().getNormalizedValue().toString());
+      startCLmsg.setLastDraftChangeNumber(sn);
+      return startCLmsg;
+    }
+    else if ((sf != null)
+        && (sf.getFilterType() == FilterType.EQUALITY)
+        && (sf.getAttributeType() != null)
+        && (sf.getAttributeType().getPrimaryName().
+            equalsIgnoreCase("replicationcsn")))
+    {
+      // == exact changenumber
+      ChangeNumber cn = new ChangeNumber(sf.getAssertionValue().toString());
+      startCLmsg.setChangeNumber(cn);
+      return startCLmsg;
+    }
+    else if ((sf != null)
+        && (sf.getFilterType() == FilterType.EQUALITY)
+        && (sf.getAttributeType() != null)
+        && (sf.getAttributeType().getPrimaryName().
+            equalsIgnoreCase("changenumber")))
+    {
+      int sn = Integer.decode(
+          sf.getAssertionValue().getNormalizedValue().toString());
+      startCLmsg.setFirstDraftChangeNumber(sn);
+      startCLmsg.setLastDraftChangeNumber(sn);
+      return startCLmsg;
+    }
+    else if ((sf != null)
+        && (sf.getFilterType() == FilterType.AND))
+    {
+      // Here is the only binary operation we know how to optimize
+      Collection<SearchFilter> comps = sf.getFilterComponents();
+      SearchFilter sfs[] = comps.toArray(new SearchFilter[0]);
+      StartECLSessionMsg m1 = evaluateFilter2(sfs[0]);
+      StartECLSessionMsg m2 = evaluateFilter2(sfs[1]);
+
+      int l1 = m1.getLastDraftChangeNumber();
+      int l2 = m2.getLastDraftChangeNumber();
+      if (l1 == -1)
+        startCLmsg.setLastDraftChangeNumber(l2);
+      else
+        if (l2 == -1)
+          startCLmsg.setLastDraftChangeNumber(l1);
+        else
+          startCLmsg.setLastDraftChangeNumber(Math.min(l1,l2));
+
+      int f1 = m1.getFirstDraftChangeNumber();
+      int f2 = m2.getFirstDraftChangeNumber();
+      startCLmsg.setFirstDraftChangeNumber(Math.max(f1,f2));
+      return startCLmsg;
+    }
+    else
+    {
+      return startCLmsg;
+    }
+  }
+}
