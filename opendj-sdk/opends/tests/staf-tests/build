@@ -48,5 +48,7 @@ OPENDS_LIB=`cd ../../lib;pwd`
 ANT_LIB=$OPENDS_LIB/mail.jar:$OPENDS_LIB/activation.jar
 ANT_HOME=`cd ../..;pwd`/ext/ant
 export ANT_HOME
+ANT_OPTS="-Xmx1g"
+export ANT_OPTS
 # Execute the ant script and pass it any additional command-line arguments.
 $ANT_HOME/bin/ant -lib ${ANT_LIB} -f shared/ant/build.xml ${*}

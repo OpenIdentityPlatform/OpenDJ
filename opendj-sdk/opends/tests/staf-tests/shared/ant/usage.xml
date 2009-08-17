@@ -64,6 +64,7 @@
       tests-stress-configure  : configure the stress tests
       tests-run               : run the functional tests
       tests-func-run          : run the functional tests
+      tests-func-coverage     : run the functional tests with code coverage
       tests-stress-run        : run the stress tests
     </echo>
   </target>

@@ -121,13 +121,27 @@
         <sequence>
           <script>
             coverageFiles=''
-            for group in os.listdir('%s/coverage/' % TMPDIR):
-              coverageFiles+='%s/coverage/%s/coverage.ec' % (TMPDIR,group)
+            coveragePath=os.path.join(LOGS_ROOT,'coverage')
+            srcPathPrefix = os.path.join(TMPDIR,"..","..","..","..","..","..","src")
+            srcPaths = [ os.path.join(srcPathPrefix,"server"),
+                         os.path.join(srcPathPrefix,"ads"),
+                         os.path.join(srcPathPrefix,"server","org"),
+                         os.path.join(srcPathPrefix,"admin","defn","org"),
+                         os.path.join(srcPathPrefix,"snmp","src","org"),
+                         os.path.join(srcPathPrefix,"ads","org"),
+                         os.path.join(srcPathPrefix,"dsml","org"),
+                         os.path.join(srcPathPrefix,"messages","src","org")
+                       ]
+            srcArgs = " -sp ".join(srcPaths)
+            for group in os.listdir(coveragePath):
+              coverageGroupPath=os.path.join(coveragePath,group)
+              coverageECs=[os.path.join(coverageGroupPath,ec) for ec in os.listdir(coverageGroupPath) if ec.startswith('coverage') and ec.endswith('.ec')]
+              coverageFiles=','.join(coverageECs)
           </script>
           <call function="'runCommand'">
               { 'name'      : 'Generate global coverage xml report',
                 'command'   : 'java',
-                'arguments' : ' -Xms64M -Xmx1024M -cp %s emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (emmaJar,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
+                'arguments' : '-Xms64M -Xmx2048m -cp %s emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage.xml -Dreport.html.out.file=%s/coverage.html -sp %s' % (emmaJar,coveragePath,coverageFiles,coveragePath,coveragePath,srcArgs),
                 'path'      : TMPDIR
               }
           </call>
