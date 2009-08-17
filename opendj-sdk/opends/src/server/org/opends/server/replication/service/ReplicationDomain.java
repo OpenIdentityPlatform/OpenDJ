@@ -2330,6 +2330,50 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Start the publish mechanism of the Replication Service.
+   * After this method has been called, the publish service can be used
+   * by calling the {@link #publish(UpdateMsg)} method.
+   *
+   * @param replicationServers   The replication servers that should be used.
+   * @param window               The window size of this replication domain.
+   * @param heartbeatInterval    The heartbeatInterval that should be used
+   *                             to check the availability of the replication
+   *                             servers.
+   * @throws ConfigException     If the DirectoryServer configuration was
+   *                             incorrect.
+   */
+  public void startPublishService(
+      Collection<String> replicationServers, int window,
+      long heartbeatInterval)
+  throws ConfigException
+  {
+    if (broker == null)
+    {
+      /*
+       * create the broker object used to publish and receive changes
+       */
+      broker = new ReplicationBroker(
+          this, state, serviceID,
+          serverID, window,
+          getGenerationID(),
+          heartbeatInterval,
+          new ReplSessionSecurity(),
+          getGroupId(),
+          0); // change time heartbeat is disabled
+
+      broker.start(replicationServers);
+
+      /*
+       * Create a replication monitor object responsible for publishing
+       * monitoring information below cn=monitor.
+       */
+      monitor = new ReplicationMonitor(this);
+
+      DirectoryServer.registerMonitorProvider(monitor);
+    }
+  }
+
+  /**
    * Starts the receiver side of the Replication Service.
    * <p>
    * After this method has been called, the Replication Service will start
