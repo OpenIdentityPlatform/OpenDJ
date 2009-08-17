@@ -222,15 +222,45 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="import-queue-size" advanced="true">
+    <adm:synopsis>
+      This parameter has been deprecated in OpenDS 2.1 and will be removed
+      in OpenDS 3.0. It is only being kept for migration ease and is ignored
+      in OpenDS versions after 2.0.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+      This parameter has been deprecated in OpenDS 2.1 and will be removed
+      in OpenDS 3.0. It is only being kept for migration ease and is ignored
+      in OpenDS versions after 2.0.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-import-queue-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="import-thread-count" advanced="true">
     <adm:synopsis>
-      Specifies the number of threads that is used for concurrent
-      processing during an LDIF import.
+      This parameter has been deprecated in OpenDS 2.1 and will be removed
+      in OpenDS 3.0. It is only being kept for migration ease and is ignored
+      in OpenDS versions after 2.0.
     </adm:synopsis>
     <adm:description>
-      This should generally be a small multiple (for example, 2x) of the number
-      of CPUs in the system for a traditional system, or equal to the
-      number of CPU strands for a CMT system.
+        This parameter has been deprecated in OpenDS 2.1 and will be removed
+      in OpenDS 3.0. It is only being kept for migration ease and is ignored
+      in OpenDS versions after 2.0.
     </adm:description>
     <adm:requires-admin-action>
       <adm:none>

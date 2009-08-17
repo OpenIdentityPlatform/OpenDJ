@@ -145,15 +145,14 @@ public class ImportLDIF extends TaskTool {
   }
 
   // Define the command-line arguments that may be used with this program.
- //Append and replace removed for new import.
-//  private BooleanArgument append                  = null;
+  private BooleanArgument append                  = null;
   private BooleanArgument countRejects            = null;
   private BooleanArgument displayUsage            = null;
   private BooleanArgument isCompressed            = null;
   private BooleanArgument isEncrypted             = null;
   private BooleanArgument overwrite               = null;
   private BooleanArgument quietMode               = null;
-//  private BooleanArgument replaceExisting         = null;
+  private BooleanArgument replaceExisting         = null;
   private BooleanArgument skipSchemaValidation    = null;
   private BooleanArgument clearBackend            = null;
   private IntegerArgument randomSeed              = null;
@@ -170,7 +169,8 @@ public class ImportLDIF extends TaskTool {
   private StringArgument  rejectFile              = null;
   private StringArgument  skipFile                = null;
   private StringArgument  templateFile            = null;
-  private BooleanArgument dnCheckPhase2           = null;
+  private BooleanArgument skipDNValidation        = null;
+  private IntegerArgument threadCount             = null;
   private StringArgument  tmpDirectory            = null;
 
   private int process(String[] args, boolean initializeServer,
@@ -242,8 +242,6 @@ public class ImportLDIF extends TaskTool {
                               INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get());
       argParser.addArgument(templateFile);
 
-   /*
-      Append and replace removed for new import.
 
       append =
            new BooleanArgument("append", 'a', "append",
@@ -256,7 +254,7 @@ public class ImportLDIF extends TaskTool {
                    "replaceexisting", 'r', "replaceExisting",
                    INFO_LDIFIMPORT_DESCRIPTION_REPLACE_EXISTING.get());
       argParser.addArgument(replaceExisting);
-   */
+
 
       backendID =
            new StringArgument("backendid", 'n', "backendID", false, false, true,
@@ -357,11 +355,17 @@ public class ImportLDIF extends TaskTool {
       argParser.addArgument(skipSchemaValidation);
 
 
-      dnCheckPhase2 =
-           new BooleanArgument("dnPhase2", null, "dnCheckPhase2",
-                    INFO_LDIFIMPORT_DESCRIPTION_DN_CHECK_PHASE_2.get());
-      argParser.addArgument(dnCheckPhase2);
+      skipDNValidation =
+           new BooleanArgument("skipDNValidation", null, "skipDNValidation",
+                    INFO_LDIFIMPORT_DESCRIPTION_DN_VALIDATION.get());
+      argParser.addArgument(skipDNValidation);
 
+
+      threadCount = new IntegerArgument("threadCount", null, "threadCount",
+              false, true,
+              INFO_LDIFIMPORT_THREAD_COUNT_PLACEHOLDER.get(),
+              INFO_LDIFIMPORT_DESCRIPTION_THREAD_COUNT.get());
+      argParser.addArgument(threadCount);
 
       tmpDirectory =
            new StringArgument("tmpdirectory", null, "tmpdirectory", false,
@@ -546,8 +550,6 @@ public class ImportLDIF extends TaskTool {
     //
     // Optional attributes
     //
-    /*
-    Append and replace removed for new import.
 
     if (append.getValue() != null &&
             !append.getValue().equals(append.getDefaultValue())) {
@@ -563,7 +565,7 @@ public class ImportLDIF extends TaskTool {
       values.add(ByteString.valueOf(replaceExisting.getValue()));
       attributes.add(new LDAPAttribute(ATTR_IMPORT_REPLACE_EXISTING, values));
     }
-    */
+
     if (backendID.getValue() != null &&
             !backendID.getValue().equals(
                     backendID.getDefaultValue())) {
@@ -668,14 +670,24 @@ public class ImportLDIF extends TaskTool {
     }
 
 
-    if (dnCheckPhase2.getValue() != null &&
-            !dnCheckPhase2.getValue().equals(
-                    dnCheckPhase2.getDefaultValue())) {
+    if (skipDNValidation.getValue() != null &&
+            !skipDNValidation.getValue().equals(
+                    skipDNValidation.getDefaultValue())) {
       values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(dnCheckPhase2.getValue()));
+      values.add(ByteString.valueOf(skipDNValidation.getValue()));
       attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_DN_CHECK_PHASE2, values));
+              new LDAPAttribute(ATTR_IMPORT_SKIP_DN_VALIDATION, values));
     }
+
+
+    if (threadCount.getValue() != null &&
+            !threadCount.getValue().equals(
+                    threadCount.getDefaultValue())) {
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(threadCount.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_IMPORT_THREAD_COUNT, values));
+    }
+
 
 
     if (isCompressed.getValue() != null &&
@@ -1199,6 +1211,7 @@ public class ImportLDIF extends TaskTool {
     // baseDNs for the backend being imported.
 
     if(backendID.isPresent() && !includeBranchStrings.isPresent() &&
+       !append.isPresent() &&
         defaultIncludeBranches.size() > 1 &&
         !clearBackend.isPresent())
     {
@@ -1322,11 +1335,26 @@ public class ImportLDIF extends TaskTool {
       importConfig = new LDIFImportConfig(tf);
     }
 
+    int tc = -1;
+    if(threadCount.isPresent())
+    {
+      try
+      {
+        tc = threadCount.getIntValue();
+      }
+      catch(Exception e)
+      {
+        Message msg = ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT.get(
+            threadCount.getValue(), e.getMessage());
+        logError(msg);
+        return 1;
+      }
+    }
 
 
     // Create the LDIF import configuration to use when reading the LDIF.
- //   importConfig.setAppendToExistingData(append.isPresent());
-  //  importConfig.setReplaceExistingEntries(replaceExisting.isPresent());
+    importConfig.setAppendToExistingData(append.isPresent());
+    importConfig.setReplaceExistingEntries(replaceExisting.isPresent());
     importConfig.setCompressed(isCompressed.isPresent());
     importConfig.setClearBackend(clearBackend.isPresent());
     importConfig.setEncrypted(isEncrypted.isPresent());
@@ -1337,8 +1365,9 @@ public class ImportLDIF extends TaskTool {
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation.isPresent());
-    importConfig.setDNCheckPhase2(dnCheckPhase2.isPresent());
+    importConfig.setSkipDNValidation(skipDNValidation.isPresent());
     importConfig.setTmpDirectory(tmpDirectory.getValue());
+    importConfig.setThreadCount(tc);
 
     importConfig.setBufferSize(LDIF_BUFFER_SIZE);
     importConfig.setExcludeAllUserAttributes(
@@ -1460,6 +1489,7 @@ public class ImportLDIF extends TaskTool {
       Message message =
           ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(getExceptionMessage(e));
       logError(message);
+e.printStackTrace();
       retCode = 1;
     }
 

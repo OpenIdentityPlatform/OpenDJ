@@ -33,11 +33,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
-
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 
@@ -47,14 +45,11 @@ import com.sleepycat.je.LockMode;
  */
 public class Suffix
 {
-  private final RootContainer rootContainer;
-  private final LDIFImportConfig config;
-  private final List<DN> includeBranches = new ArrayList<DN>();
-  private final List<DN> excludeBranches = new ArrayList<DN>();
+  private final List<DN> includeBranches;
+  private final List<DN> excludeBranches;
   private final DN baseDN;
-  private EntryContainer srcEntryContainer = null;
+  private final EntryContainer srcEntryContainer;
   private EntryContainer entryContainer;
-  private boolean exclude = false;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_MAP_SIZE = 4096;
 
@@ -66,34 +61,52 @@ public class Suffix
   private DN parentDN;
   private ArrayList<EntryID> IDs;
 
-  private Suffix(EntryContainer entryContainer, LDIFImportConfig config,
-                 RootContainer rootContainer) throws InitializationException,
-          ConfigException
+  private
+  Suffix(EntryContainer entryContainer, EntryContainer srcEntryContainer,
+         List<DN> includeBranches, List<DN> excludeBranches)
+          throws InitializationException, ConfigException
   {
-    this.rootContainer = rootContainer;
     this.entryContainer = entryContainer;
-    this.config = config;
+    this.srcEntryContainer = srcEntryContainer;
     this.baseDN = entryContainer.getBaseDN();
-    init();
+    if (includeBranches == null)
+    {
+      this.includeBranches = new ArrayList<DN>(0);
+    }
+    else
+    {
+      this.includeBranches = includeBranches;
+    }
+    if (excludeBranches == null)
+    {
+      this.excludeBranches = new ArrayList<DN>(0);
+    }
+    else
+    {
+      this.excludeBranches = excludeBranches;
+    }
   }
 
   /**
    * Creates a suffix instance using the specified parameters.
    *
    * @param entryContainer The entry container pertaining to the suffix.
-   * @param config The import config instance.
-   * @param rootContainer The root container.
+   * @param srcEntryContainer The original entry container.
+   * @param includeBranches The include branches.
+   * @param excludeBranches The exclude branches.
    *
    * @return A suffix instance.
    * @throws InitializationException If the suffix cannot be initialized.
    * @throws ConfigException If an error occured reading the configuration.
    */
   public static Suffix
-  createSuffixContext(EntryContainer entryContainer, LDIFImportConfig config,
-        RootContainer rootContainer) throws InitializationException,
-        ConfigException
+  createSuffixContext(EntryContainer entryContainer,
+                      EntryContainer srcEntryContainer,
+        List<DN> includeBranches, List<DN> excludeBranches)
+        throws InitializationException, ConfigException
   {
-    return new Suffix(entryContainer, config, rootContainer);
+    return new Suffix(entryContainer, srcEntryContainer,
+                      includeBranches, excludeBranches);
   }
 
   /**
@@ -139,80 +152,6 @@ public class Suffix
   public EntryContainer getEntryContainer()
   {
     return entryContainer;
-  }
-
-
-  private void init() throws InitializationException, ConfigException
-  {
-    if(!config.appendToExistingData() && !config.clearBackend()) {
-      for(DN dn : config.getExcludeBranches()) {
-        if(baseDN.equals(dn))
-          exclude = true;
-        if(baseDN.isAncestorOf(dn))
-          excludeBranches.add(dn);
-      }
-
-      if(!config.getIncludeBranches().isEmpty()) {
-        for(DN dn : config.getIncludeBranches()) {
-          if(baseDN.isAncestorOf(dn))
-            includeBranches.add(dn);
-        }
-        if(includeBranches.isEmpty())
-          this.exclude = true;
-
-        // Remove any overlapping include branches.
-        Iterator<DN> includeBranchIterator = includeBranches.iterator();
-        while(includeBranchIterator.hasNext()) {
-          DN includeDN = includeBranchIterator.next();
-          boolean keep = true;
-          for(DN dn : includeBranches)  {
-            if(!dn.equals(includeDN) && dn.isAncestorOf(includeDN)) {
-              keep = false;
-              break;
-            }
-          }
-          if(!keep)
-            includeBranchIterator.remove();
-        }
-
-        // Remove any exclude branches that are not are not under a include
-        // branch since they will be migrated as part of the existing entries
-        // outside of the include branches anyways.
-        Iterator<DN> excludeBranchIterator = excludeBranches.iterator();
-        while(excludeBranchIterator.hasNext()) {
-          DN excludeDN = excludeBranchIterator.next();
-          boolean keep = false;
-          for(DN includeDN : includeBranches) {
-            if(includeDN.isAncestorOf(excludeDN)) {
-              keep = true;
-              break;
-            }
-          }
-          if(!keep)
-            excludeBranchIterator.remove();
-        }
-
-        try {
-          if(includeBranches.size() == 1 && excludeBranches.size() == 0 &&
-              includeBranches.get(0).equals(baseDN)) {
-            // This entire base DN is explicitly included in the import with
-            // no exclude branches that we need to migrate. Just clear the entry
-            // container.
-            entryContainer.lock();
-            entryContainer.clear();
-            entryContainer.unlock();
-          } else {
-            // Create a temporary entry container
-            srcEntryContainer = entryContainer;
-            String tmpName = baseDN.toNormalizedString() +"_importTmp";
-            entryContainer = rootContainer.openEntryContainer(baseDN, tmpName);
-          }
-        } catch (DatabaseException e) {
-   //       Message msg = ERR_CONFIG_IMPORT_SUFFIX_ERROR.get(e.getMessage());
-    //      throw new InitializationException(msg);
-        }
-      }
-    }
   }
 
 
@@ -393,5 +332,45 @@ public class Suffix
   public void setIDs(ArrayList<EntryID> IDs)
   {
     this.IDs = IDs;
+  }
+
+  /**
+   * Return a src entry container.
+   *
+   * @return  The src entry container.
+   */
+  public EntryContainer getSrcEntryContainer()
+  {
+    return this.srcEntryContainer;
+  }
+
+  /**
+   * Return include branches.
+   *
+   * @return The include branches.
+   */
+  public List<DN> getIncludeBranches()
+  {
+    return this.includeBranches;
+  }
+
+  /**
+   * Return exclude branches.
+   *
+   * @return the exclude branches.
+   */
+  public List<DN> getExcludeBranches()
+  {
+    return this.excludeBranches;
+  }
+
+  /**
+   * Return base DN.
+   *
+   * @return The base DN.
+   */
+  public DN getBaseDN()
+  {
+    return this.baseDN;
   }
 }

@@ -479,13 +479,14 @@ final class ASN1OutputStreamWriter implements ASN1Writer
     {
       out = streamStack.get(stackDepth);
     }
-
+/*
     if(debugEnabled())
     {
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE,
           String.format("WRITE ASN.1 START SEQUENCE(type=0x%x)",
               type));
     }
+    */
     return this;
   }
 

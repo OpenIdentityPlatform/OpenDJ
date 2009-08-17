@@ -282,7 +282,7 @@ public class TestImportJob extends JebTestCase
     TestCaseUtils.deleteDirectory(tempDir);
   }
 
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void testImportAll() throws Exception
   {
     TestCaseUtils.clearJEBackend(false, beID, null);
@@ -365,8 +365,7 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  //@Test(dependsOnMethods = "testImportAll")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportAll")
   public void testImportPartial() throws Exception
   {
     ArrayList<String> fileList = new ArrayList<String>();
@@ -454,8 +453,7 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  //@Test(dependsOnMethods = "testImportPartial")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -508,8 +506,7 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  //@Test(dependsOnMethods = "testImportReplaceExisting")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportNoParent() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -532,8 +529,7 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
-  //@Test(dependsOnMethods = "testImportReplaceExisting")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName + File.separator + "top.ldif");
@@ -603,8 +599,7 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  //@Test(dependsOnMethods = "testImportPartial")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportNotReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -628,8 +623,7 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
-  //@Test(dependsOnMethods = "testImportPartial")
-  @Test(enabled=false)
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportSkip() throws Exception
   {
     ArrayList<DN> excludeBranches = new ArrayList<DN>();
@@ -655,7 +649,7 @@ public class TestImportJob extends JebTestCase
     assertTrue(skippedEntries.toString().contains("dc=skipped,dc=importtest1,dc=com"));
     assertTrue(skippedEntries.toString().contains("uid=user.446,dc=skipped,dc=importtest1,dc=com"));
   }
-  
+
       /**
      * Builds an entry suitable for using in the verify job to gather statistics about
      * the verify.
