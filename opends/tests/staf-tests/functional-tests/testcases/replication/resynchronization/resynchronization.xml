@@ -75,7 +75,7 @@
               'dsPath'              : clientPath,
               'dsInstanceHost'      : server3.getHostname(),
               'dsInstanceAdminPort' : server3.getAdminPort(),
-              'replicationDnList'   : [synchroSuffix]
+              'disableAll'          : True
             }
           </call>
           

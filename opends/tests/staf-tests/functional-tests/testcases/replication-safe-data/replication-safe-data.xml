@@ -65,6 +65,11 @@
             ownTestList = []
             
             globalAssuredReplication = 'safe-data'
+            
+            if (REPLICATION_SPLIT_SERVERS == 'true'):
+              globalSplitServers = True
+            else:
+              globalSplitServers = None
           </script>
           
           <iterate var="_test" in="commonTestList" >
