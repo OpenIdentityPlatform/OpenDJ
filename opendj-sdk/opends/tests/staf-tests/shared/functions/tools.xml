@@ -669,7 +669,7 @@
       </function-arg-def>
 
     </function-list-args>
-    <sequence>
+    <sequence>      
       <script>
         myRC = 0
         myKnownIssue = knownIssue
@@ -680,7 +680,21 @@
         sampleTree = 'sampleTree.ldif'
         treeDiffs = 'treeDiffs.ldif'
       </script>
-       <message>
+      
+      <!-- Verify the synchronization of the trees among the servers in 
+        the topology -->         
+      <call function="'getReplicationStatus'">
+        { 'location'            : location,
+          'dsPath'              : dsPath,
+          'dsInstanceHost'      : referenceServer.getHostname(),
+          'dsInstanceAdminPort' : referenceServer.getAdminPort(),
+          'replicationDnList'   : [synchroSuffix],
+          'noOfLoops'           : 10, 
+          'noOfMilliSeconds'    : 6000
+        }
+      </call>
+      
+      <message>
         'Verify tree %s taking %s as reference.' \
         % (treeSuffix, referenceServerPath)
       </message>

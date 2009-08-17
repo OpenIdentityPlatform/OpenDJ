@@ -1499,12 +1499,33 @@
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
 
-      <function-arg-def name="replicationDnList" type="required">
+      <function-arg-def name="replicationDnList" 
+                        type="optional" 
+                        default="None">
         <function-arg-description>
           DN of the replicated suffix
         </function-arg-description>
         <function-arg-property name="type" value="DN list" />
-      </function-arg-def>        
+      </function-arg-def>
+      
+      <function-arg-def name="disableReplServer"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Disable replication server (remove configuration, changelot and port)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+      
+      <function-arg-def name="disableAll"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Disable replication completely (domain, repl-server, changelog and
+          admin data).
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
         
       <function-arg-def name="adminUID" 
                                    type="optional"
@@ -1557,6 +1578,12 @@
         if replicationDnList:
           for dn in replicationDnList:
             STAFCmdParamsList.append('-b "%s"' % dn)
+        
+        if disableReplServer:
+          STAFCmdParamsList.append('--disableReplicationServer')
+        
+        if disableAll:
+          STAFCmdParamsList.append('--disableAll')
                     
         if adminUID:
           STAFCmdParamsList.append('-I "%s"' % adminUID)
@@ -2688,8 +2715,8 @@
       </function-arg-def>        
         
       <function-arg-def name="adminUID" 
-                                   type="optional"
-                                   default="AdminUID">
+                        type="optional"
+                        default="AdminUID">
         <function-arg-description>
           Global Administrator UID
         </function-arg-description>
@@ -2697,13 +2724,31 @@
       </function-arg-def>
       
       <function-arg-def name="adminPswd" 
-                                   type="optional"
-                                   default="AdminPswd">
+                        type="optional"
+                        default="AdminPswd">
         <function-arg-description>
           Global Administrator password
         </function-arg-description>
         <function-arg-property name="type" value="string" />
-      </function-arg-def>        
+      </function-arg-def>
+
+      <function-arg-def name="noOfLoops" 
+                        type="optional" 
+                        default="1">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+            
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional" 
+                        default="0">
+        <function-arg-description>
+          Number of milliseconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
       
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
@@ -2753,31 +2798,108 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-      <call function="'runCommand'">
-        { 'name'      : 'Get Replication Status',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
-        }
-      </call>
-
-      <script>
-        commandRC = RC
-        commandResult = STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : commandRC,
-          'result'     : commandResult,
-          'expected'   : expectedRC
-        }
-      </call>
       
-      <script>
-        replStatusRC = commandResult[0][0]
-        replStatusResult = commandResult[0][1]
-        resultLength = len(replStatusResult) > 0
+      <script>       
+        servernameList     = []
+        entriesList        = []
+        missingChangesList = []
+        ageList            = []
+        replStatusRC       = 0
+        resultLength       = 0
+        refNbOfEntries     = 'Unknown'
+        refServername      = 'Unknown'
+        
+        myLoop             = 0
+        missingRC          = True
       </script>
-      
+      <loop from="1" to="noOfLoops" while="missingRC == True">
+        <sequence>
+          <script>
+            myLoop    = myLoop + 1
+            missingRC = False
+          </script>
+              
+          <call function="'runCommand'">
+            { 'name'      : 'Get Replication Status',
+              'location'  : location,
+              'command'   : STAFCmd,
+              'arguments' : STAFCmdParams
+            }
+          </call>
+    
+          <script>
+            commandRC     = RC
+            commandResult = STAXResult
+          </script>
+          <call function="'checktestRC'">
+            { 'returncode' : commandRC,
+              'result'     : commandResult,
+              'expected'   : expectedRC
+            }
+          </call>
+          <if expr="commandRC != expectedRC">
+            <return> commandResult </return>
+          </if>
+          
+          <script>
+            replStatusRC     = commandResult[0][0]
+            replStatusResult = commandResult[0][1]
+            resultLength     = len(replStatusResult) > 0
+          </script>
+          
+          <if expr="(replStatusRC == 0) and (resultLength != 0)">
+            <sequence>
+              <script>
+                servernameList     = []
+                entriesList        = []
+                missingChangesList = []
+                ageList            = []
+                
+                for line in replStatusResult.splitlines():
+                  if line.startswith('Server:'):
+                    server = line[line.find('Server:') + 7:].strip()
+                    servernameList.append(server)
+                  elif line.startswith('Entries:'):
+                    entries = line[line.find('Entries:') + 8:].strip()
+                    entriesList.append(entries)
+                  elif line.startswith('Missing Changes:'):
+                    missingChanges = line[line.find('Missing') + 16:].strip()
+                    missingChangesList.append(missingChanges)
+                  elif line.startswith('Age of oldest missing change:'):
+                    age = line[line.find('Age of') + 29:].strip()
+                    ageList.append(age)
+              </script>
+              
+              <iterate var="missing" in="missingChangesList">
+                <if expr="(missing != '0') and (missing != '--')">
+                  <sequence>
+                    <script>
+                      missingRC = True
+                    </script>
+                    <break/>
+                  </sequence>
+                </if>
+              </iterate>
+    
+              <message>
+                'getReplicationStatus LOOP %s => missingChanges? \
+                (True=1/False=0) : %s' % (myLoop, missingRC)
+              </message>
+    
+              <if expr="missingRC == True">
+                <!-- If there are still missing changes, wait for some more time and
+                 !   give the servers a chance to synchronise -->
+                <call function="'Sleep'">
+                  { 'sleepForMilliSeconds'  : noOfMilliSeconds }
+                </call>
+              </if>
+            </sequence>
+          </if>
+          
+        </sequence>
+      </loop>
+  
+        
       <if expr="(replStatusRC == 0) and (resultLength != 0)">
         <sequence>
           <message>
@@ -2785,37 +2907,32 @@
             %s:%s : \n%s ' % \
             (dsInstanceHost, dsInstanceAdminPort, replStatusResult)
           </message>
-          <script>
-            serverList = []
-            entriesList = []
-            missingChangesList = []
-            ageList = []
+      
+          <iterate var="entries" in="entriesList" indexvar="i">
+            <if expr="entries.startswith('Server') == False">
+              <sequence>
+                <script>
+                  refNbOfEntries = entries
+                  refServername  = servernameList[i]
+                </script>
+                <break/>
+              </sequence>
+            </if>
+          </iterate>
             
-            for line in replStatusResult.splitlines():
-              if line.startswith('Server:'):
-                server = line[line.find('Server:') + 7:].strip()
-                serverList.append(server)
-              elif line.startswith('Entries:'):
-                entries = line[line.find('Entries:') + 8:].strip()
-                entriesList.append(entries)
-              elif line.startswith('Missing Changes:'):
-                missingChanges = line[line.find('Missing') + 16:].strip()
-                missingChangesList.append(missingChanges)
-              elif line.startswith('Age of oldest missing change:'):
-                age = line[line.find('Age of') + 29:].strip()
-                ageList.append(age)
-            
-            refNbOfEntries = entriesList[0]
-          </script>
-          
-          <iterate var="server" in="serverList" indexvar="i">
+          <iterate var="server" in="servernameList" indexvar="i">
             <sequence>
               <script>
-                entries = entriesList[i]
+                entries        = entriesList[i]
                 missingChanges = missingChangesList[i]
-                age = ageList[i]
+                age            = ageList[i]
+                
+                anyMissChg  = (missingChanges != '0' and missingChanges != '--')
+                anyOldAge   = (age != 'N/A' and age != '--')
+                anyEntries  = (entries.startswith('Server') == False)
+                entriesDiff = (entries != refNbOfEntries) 
               </script>
-              <if expr="(missingChanges != '0') or (age != 'N/A')">
+              <if expr="anyMissChg or anyOldAge">
                 <sequence>
                   <message log="1" level="'Error'">
                     'getReplicationStatus: Server %s is missing %s changes. \
@@ -2825,13 +2942,13 @@
                   <tcstatus result="'fail'"/>
                 </sequence>
               </if>
-              <if expr="entries != refNbOfEntries">
+              <if expr="anyEntries and entriesDiff">
                 <sequence>
                   <message log="1" level="'Error'">
                     'getReplicationStatus: Different number of entries.\n\
                       Server %s : %s entries\n\
                       Reference server %s : %s entries\n' % \
-                    (server, entries, serverList[0], refNbOfEntries)
+                    (server, entries, refServername, refNbOfEntries)
                   </message>
                   <tcstatus result="'fail'"/>
                 </sequence>

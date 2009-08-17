@@ -158,8 +158,33 @@
           <!-- Start the servers in the topology -->        
           <call function="'startServers'">
             [_splitServerList]
-          </call>            
-
+          </call>
+          
+          <if expr="len(_topologyReplServerList) != 0">
+            <paralleliterate var="replServer" in="_topologyReplServerList">
+              <!-- Remove userRoot backend from replication servers -->
+              <sequence>
+                <message>
+                  'Remove userRoot backend from replication server %s:%s' % \
+                  (replServer.getHostname(), replServer.getPort())
+                </message>
+  
+                <call function="'dsconfig'">
+                  { 'location'            : replServer.getHostname(),
+                    'dsPath'              : '%s/%s' \
+                                            % (replServer.getDir(),OPENDSNAME),
+                    'dsInstanceHost'      : replServer.getHostname(),
+                    'dsInstanceAdminPort' : replServer.getAdminPort(),
+                    'dsInstanceDn'        : replServer.getRootDn(),
+                    'dsInstancePswd'      : replServer.getRootPwd(),
+                    'subcommand'          : 'delete-backend',
+                    'objectType'          : 'backend-name',
+                    'objectName'          : 'userRoot'
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>
+          </if>
               
           <iterate var="server" in="_splitServerList[1:]">
             <sequence>
