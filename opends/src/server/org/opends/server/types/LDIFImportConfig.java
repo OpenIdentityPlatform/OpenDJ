@@ -165,7 +165,8 @@ public final class LDIFImportConfig extends OperationConfig
   private boolean excludeAllOpAttrs;
 
   private String tmpDirectory;
-  private boolean dnCheckPhase2 = false;
+  private boolean skipDNValidation = false;
+  private int threadCount = -1;
 
 
   /**
@@ -647,9 +648,9 @@ public final class LDIFImportConfig extends OperationConfig
 
       return;
     }
-
     skipWriter =
          new BufferedWriter(new OutputStreamWriter(outputStream));
+    System.out.println("New Skipped: " + skipWriter.toString());
   }
 
   /**
@@ -1411,9 +1412,9 @@ public final class LDIFImportConfig extends OperationConfig
    *
    * @param v The value to set the dn check in phase two boolean to.
    */
-  public void setDNCheckPhase2(boolean v)
+  public void setSkipDNValidation(boolean v)
   {
-    dnCheckPhase2 = v;
+    skipDNValidation = v;
   }
 
   /**
@@ -1421,9 +1422,30 @@ public final class LDIFImportConfig extends OperationConfig
    *
    * @return Return the dn check in phase two boolean value.
    */
-  public boolean getDNCheckPhase2()
+  public boolean getSkipDNValidation()
   {
-    return dnCheckPhase2;
+    return skipDNValidation;
+  }
+
+
+  /**
+   * Set the thread count.
+   *
+   * @param c The thread count value.
+   */
+  public void setThreadCount(int c)
+  {
+    this.threadCount = c;
+  }
+
+  /**
+   * Return the specified thread count.
+   *
+   * @return The thread count.
+   */
+  public int getThreadCount()
+  {
+    return this.threadCount;
   }
 }
 

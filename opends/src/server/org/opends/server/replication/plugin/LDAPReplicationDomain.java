@@ -4129,7 +4129,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         includeBranches.add(this.baseDn);
         importConfig.setIncludeBranches(includeBranches);
         importConfig.setAppendToExistingData(false);
-        importConfig.setDNCheckPhase2(true);
+        importConfig.setSkipDNValidation(true);
         // Allow fractional replication ldif import plugin to be called
         importConfig.setInvokeImportPlugins(true);
         // Reset the follow import flag and message before starting the import

@@ -3834,6 +3834,14 @@ public final class ConfigConstants
   public static final String ATTR_IMPORT_RANDOM_SEED =
        NAME_PREFIX_TASK + "import-random-seed";
 
+
+  /**
+   * The name of the attribute in an import task definition that specifies the
+   * thread count to be used during the import.
+   */
+  public static final String ATTR_IMPORT_THREAD_COUNT =
+       NAME_PREFIX_TASK + "import-thread-count";
+
   /**
    * The name of the attribute in an import task definition that specifies
    * whether the import process should append to the existing database rather
@@ -3984,8 +3992,8 @@ public final class ConfigConstants
    * that minimal DN validation should be done during phase 2.
    */
 
-   public static final String ATTR_IMPORT_DN_CHECK_PHASE2 =
-       NAME_PREFIX_TASK + "import-dn-check-phase2";
+   public static final String ATTR_IMPORT_SKIP_DN_VALIDATION =
+       NAME_PREFIX_TASK + "import-skip-dn-validation";
 
   /**
    * The name of the objectclass that will be used for a Directory Server

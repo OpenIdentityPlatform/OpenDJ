@@ -426,7 +426,6 @@ ds-cfg-db-directory: db_unindexed
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 1
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
 
@@ -657,7 +656,6 @@ ds-cfg-db-directory: db_rebuild
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
 
@@ -828,7 +826,6 @@ ds-cfg-db-directory: db_import_test
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
 
@@ -994,7 +991,6 @@ ds-cfg-db-directory: db_verify
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
 
@@ -1194,7 +1190,6 @@ ds-cfg-db-directory: db_index_test
 ds-cfg-db-directory-permissions: 700
 ds-cfg-index-entry-limit: 13
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
 

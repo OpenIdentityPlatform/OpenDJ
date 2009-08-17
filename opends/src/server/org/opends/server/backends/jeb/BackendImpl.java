@@ -68,13 +68,10 @@ import org.opends.server.types.*;
 
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.DN;
 
-import org.opends.server.api.ExtensibleMatchingRule;
 /**
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
@@ -1133,46 +1130,9 @@ public class BackendImpl
       envConfig.setTxnNoSync(false);
       envConfig.setConfigParam("je.env.isLocking", "true");
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
-      //Loop through local indexes and see if any are substring.
-      boolean hasSubIndex = false;
-      int indexCount = cfg.listLocalDBIndexes().length;
-subIndex:
-      for (String idx : cfg.listLocalDBIndexes()) {
-        final LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
-        Set<org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType>
-                                            indexType = indexCfg.getIndexType();
-        if(indexType.contains(org.opends.server.admin.std.
-                meta.LocalDBIndexCfgDefn.IndexType.SUBSTRING)) {
-          hasSubIndex = true;
-          break;
-        }
-        Set<String> matchingRules =
-                              indexCfg.getIndexExtensibleMatchingRule();
-        for(String ruleName: matchingRules)
-        {
-          ExtensibleMatchingRule rule =
-                  DirectoryServer.getExtensibleMatchingRule(ruleName);
-          if(rule == null)
-          {
-            continue;
-          }
-          for(ExtensibleIndexer indexer: rule.getIndexers(null))
-          {
-            String indexID = indexer.getExtensibleIndexID();
-            if(indexID.equals(EXTENSIBLE_INDEXER_ID_SUBSTRING))
-            {
-              //The ExtensibelMatchingRule is of substring type.
-              hasSubIndex = true;
-              break subIndex;
-            }
-          }
-        }
-      }
-
       Importer importer = new Importer(importConfig, cfg);
       importer.init(envConfig);
       rootContainer = initializeRootContainer(envConfig);
-
       return importer.processImport(rootContainer);
     }
         catch (ExecutionException execEx)
@@ -1213,6 +1173,16 @@ subIndex:
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessageObject());
+    }
+    catch (DatabaseException ex)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
+       Message message = ERR_DATABASE_ERROR.get(ex.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
     }
     catch (InitializationException ie)
     {

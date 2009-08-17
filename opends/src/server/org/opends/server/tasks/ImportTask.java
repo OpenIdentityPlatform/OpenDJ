@@ -170,8 +170,9 @@ public class ImportTask extends Task
   private boolean replaceExisting = false;
   private boolean skipSchemaValidation = false;
   private boolean clearBackend = false;
-  private boolean dnCheckPhase2 = false;
+  private boolean skipDNValidation = false;
   private String tmpDirectory = null;
+  private int threadCount = 0;
   private String backendID = null;
   private String rejectFile = null;
   private String skipFile = null;
@@ -243,6 +244,7 @@ public class ImportTask extends Task
     AttributeType typeIsEncrypted;
     AttributeType typeClearBackend;
     AttributeType typeRandomSeed;
+    AttributeType typeThreadCount;
     AttributeType typeTmpDirectory;
     AttributeType typeDNCheckPhase2;
 
@@ -284,10 +286,12 @@ public class ImportTask extends Task
          getAttributeType(ATTR_IMPORT_CLEAR_BACKEND, true);
     typeRandomSeed =
          getAttributeType(ATTR_IMPORT_RANDOM_SEED, true);
+    typeThreadCount =
+         getAttributeType(ATTR_IMPORT_THREAD_COUNT, true);
     typeTmpDirectory =
          getAttributeType(ATTR_IMPORT_TMP_DIRECTORY, true);
     typeDNCheckPhase2 =
-         getAttributeType(ATTR_IMPORT_DN_CHECK_PHASE2, true);
+         getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION, true);
 
     List<Attribute> attrList;
 
@@ -332,7 +336,7 @@ public class ImportTask extends Task
     append = TaskUtils.getBoolean(attrList, false);
 
     attrList = taskEntry.getAttribute(typeDNCheckPhase2);
-    dnCheckPhase2 = TaskUtils.getBoolean(attrList, true);
+    skipDNValidation = TaskUtils.getBoolean(attrList, true);
 
     attrList = taskEntry.getAttribute(typeTmpDirectory);
     tmpDirectory = TaskUtils.getSingleValueString(attrList);
@@ -384,6 +388,9 @@ public class ImportTask extends Task
 
     attrList = taskEntry.getAttribute(typeRandomSeed);
     randomSeed = TaskUtils.getSingleValueInteger(attrList, 0);
+
+    attrList = taskEntry.getAttribute(typeThreadCount);
+    threadCount = TaskUtils.getSingleValueInteger(attrList, 0);
 
     // Make sure that either the "includeBranchStrings" argument or the
     // "backendID" argument was provided.
@@ -891,8 +898,9 @@ public class ImportTask extends Task
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation);
-    importConfig.setDNCheckPhase2(dnCheckPhase2);
+    importConfig.setSkipDNValidation(skipDNValidation);
     importConfig.setTmpDirectory(tmpDirectory);
+    importConfig.setThreadCount(threadCount);
 
     // FIXME -- Should this be conditional?
     importConfig.setInvokeImportPlugins(true);

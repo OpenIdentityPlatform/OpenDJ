@@ -310,13 +310,39 @@ public class Index extends DatabaseContainer
 
 
   private void
+  deleteKey(DatabaseEntry key, ImportIDSet importIdSet,
+         DatabaseEntry data) throws DatabaseException {
+
+
+    OperationStatus status  = read(null, key, data, LockMode.RMW);
+    if(status == OperationStatus.SUCCESS) {
+      ImportIDSet newImportIDSet = new ImportIDSet(data.getData().length/8,
+                                                indexEntryLimit, maintainCount);
+      newImportIDSet.remove(data.getData(), importIdSet);
+      if(newImportIDSet.isDefined() && (newImportIDSet.size() == 0))
+      {
+        delete(null, key);
+      }
+      else
+      {
+        data.setData(newImportIDSet.toDatabase());
+        put(null, key, data);
+      }
+    } else {
+      //Should never happen -- the keys should always be there.
+      throw new DatabaseException();
+    }
+  }
+
+
+  private void
   insertKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
     OperationStatus status  = read(null, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS) {
-      ImportIDSet newImportIDSet = new ImportIDSet();
-      if (newImportIDSet.merge(data.getData(), importIdSet, indexEntryLimit,
-                               maintainCount))
+      ImportIDSet newImportIDSet = new ImportIDSet(data.getData().length/8,
+                                                indexEntryLimit, maintainCount);
+      if (newImportIDSet.merge(data.getData(), importIdSet))
       {
         entryLimitExceededCount++;
       }
@@ -353,6 +379,28 @@ public class Index extends DatabaseContainer
       curLocal.set(cursor);
     }
     insertKey(key, importIdSet, data);
+  }
+
+
+  /**
+   * Delete the specified import ID set from the import ID set associated with
+   * the key.
+   *
+   * @param key The key to delete the set from.
+   * @param importIdSet The import ID set to delete.
+   * @param data A database entry to use for data.
+   *
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void
+  delete(DatabaseEntry key, ImportIDSet importIdSet,
+         DatabaseEntry data) throws DatabaseException {
+    Cursor cursor = curLocal.get();
+    if(cursor == null) {
+      cursor = openCursor(null, null);
+      curLocal.set(cursor);
+    }
+    deleteKey(key, importIdSet, data);
   }
 
 
@@ -766,7 +814,7 @@ public class Index extends DatabaseContainer
    * @param entryID The entry ID to delete.
    * @throws DatabaseException If a database error occurs.
    */
-  public synchronized
+  public
   void delete(Transaction txn, Set<byte[]> keySet, EntryID entryID)
   throws DatabaseException {
     setTrusted(txn, false);

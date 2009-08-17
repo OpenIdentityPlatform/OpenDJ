@@ -120,9 +120,6 @@ public final class LDIFReader
 
   private RootContainer rootContainer;
 
-  //Temporary until multiple suffixes are supported.
-  private volatile Suffix suffix = null;
-
 
   /**
    * Creates a new LDIF reader that will read information from the specified
@@ -203,36 +200,39 @@ public final class LDIFReader
 
 
   /**
-   * Reads the next entry from the LDIF source. This method will need
-   * to be changed when multiple suffixes is supported.
+   * Reads the next entry from the LDIF source.
    *
    * @return  The next entry read from the LDIF source, or <CODE>null</CODE> if
    *          the end of the LDIF data is reached.
    *
-   * @param map  A
+   * @param map  A map of suffixes instances.
+   *
+   * @param entryInfo A object to hold information about the entry ID and what
+   *                  suffix was selected.
    *
    * @throws  IOException  If an I/O problem occurs while reading from the file.
    *
    * @throws  LDIFException  If the information read cannot be parsed as an LDIF
    *                         entry.
    */
-  public final Entry readEntry(Map<DN, Suffix> map)
+  public final Entry readEntry(Map<DN, Suffix> map,
+                               Importer.EntryInformation entryInfo)
          throws IOException, LDIFException
   {
-    return readEntry(importConfig.validateSchema(), map);
+    return readEntry(importConfig.validateSchema(), map, entryInfo);
   }
 
 
 
-  private final Entry readEntry(boolean checkSchema, Map<DN, Suffix> map)
+  private final Entry readEntry(boolean checkSchema, Map<DN, Suffix> map,
+                                Importer.EntryInformation entryInfo)
           throws IOException, LDIFException
   {
-
     while (true)
     {
       LinkedList<StringBuilder> lines;
       DN entryDN;
-      EntryID entryID;
+      EntryID entryID=null;
       synchronized (this)
       {
         // Read the set of lines that make up the next entry.
@@ -271,12 +271,7 @@ public final class LDIFReader
         }
         entryID = rootContainer.getNextEntryID();
       }
-      //Temporary until multiple suffixes are supported.
-      //getMatchSuffix calls the expensive DN getParentDNInSuffix
-      if(suffix == null)
-      {
-        suffix= Importer.getMatchSuffix(entryDN, map);
-      }
+      Suffix suffix= Importer.getMatchSuffix(entryDN, map);
       if(suffix == null)
       {
         if (debugEnabled())
@@ -398,8 +393,8 @@ public final class LDIFReader
           throw new LDIFException(message, lastEntryLineNumber, true);
         }
       }
-
-      entry.setAttachment(entryID);
+      entryInfo.setEntryID(entryID);
+      entryInfo.setSuffix(suffix);
       // The entry should be included in the import, so return it.
       return entry;
     }

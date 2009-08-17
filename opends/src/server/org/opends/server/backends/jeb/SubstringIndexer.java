@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -297,5 +297,15 @@ public class SubstringIndexer extends Indexer
         modifiedKeys.remove(keyBytes);
       }
     }
+  }
+
+  /**
+   * Return the substring length for an indexer.
+   *
+   * @return  The substring length configured for an sub string indexer.
+   */
+  public int getSubStringLen()
+  {
+    return substrLength;
   }
 }
