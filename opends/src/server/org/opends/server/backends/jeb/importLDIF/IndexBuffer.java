@@ -426,6 +426,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return keyBytes;
   }
 
+
   /**
    * Return the key value part of a record specifed by the index as a string.
    *
