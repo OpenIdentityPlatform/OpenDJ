@@ -1792,7 +1792,6 @@ public class Importer
           {
             long beginOffset = offset;
             long bufLen;
-            /*
             if(!que.isEmpty())
             {
               que.drainTo(l, DRAIN_TO);
@@ -1807,7 +1806,6 @@ public class Importer
             }
             else
             {
-            */
               if(indexBuffer.isPoison())
               {
                 break;
@@ -1815,7 +1813,7 @@ public class Importer
               bufLen = writeIndexBuffer(indexBuffer);
               indexBuffer.reset();
               freeBufQue.add(indexBuffer);
-     //       }
+            }
             offset += bufLen;
             indexMgr.addBuffer(new Buffer(beginOffset, offset, bufCount));
             bufCount++;
