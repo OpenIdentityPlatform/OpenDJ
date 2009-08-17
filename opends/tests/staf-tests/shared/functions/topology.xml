@@ -711,26 +711,29 @@
       
       <!-- configure the coverage dump file -->
       <script>
-        mylog="::coverage - checking for %s/%s/lib/emma.jar\n" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        if os.path.exists('%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
-          mylog+="  ::coverage on\n"
-          if not os.path.exists('%s/coverage' % TMPDIR):
-            os.mkdir('%s/coverage' % TMPDIR)
-            mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
-          if not os.path.exists('%s/coverage/%s' 
-                                % (TMPDIR,CurrentTestPath['group'])):
-            os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
-            mylog+="    ::mkdir %s/coverage/%s on\n" \
-                   % (TMPDIR,CurrentTestPath['group'])
-          mylog+="  ::writing to %s/%s/classes/emma.properties" \
-                 % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-          coveragefh = open( '%s/%s/classes/emma.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME), 'w' )
-          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' \
-                            % (TMPDIR,CurrentTestPath['group']) )
+        mylog="::coverage - checking for %s/%s/lib/emma.jar\n" % (dsDir,OPENDSNAME)
+        if os.path.exists(os.path.join(dsDir,OPENDSNAME,'lib','emma.jar')):
+          mylog+=" ::coverage on\n"
+          coveragePath = os.path.join(LOGS_ROOT,'coverage')
+          if not os.path.exists(coveragePath):
+            os.mkdir(coveragePath)
+            mylog+=" ::mkdir %s on\n" % coveragePath
+            # copying coverage.em in coveragePath
+            import shutil
+            shutil.copy(os.path.join(dsDir,OPENDSNAME,'coverage.em'),coveragePath)
+          coverageGroupPath=os.path.join(coveragePath,CurrentTestPath['group'])
+          if not os.path.exists(coverageGroupPath):
+            os.mkdir(coverageGroupPath)
+            mylog+=" ::mkdir %s on\n" % (coverageGroupPath)
+          mylog+=" ::writing to %s/%s/classes/emma.properties" % (dsDir,OPENDSNAME)
+          existingECs=[cf for cf in os.listdir(coverageGroupPath) if cf.startswith('coverage') and cf.endswith('.ec')]
+          newCoverageEC=os.path.join(coverageGroupPath,'coverage%s.ec' % len(existingECs))
+          coveragefh = open( '%s/%s/classes/emma.properties' % (dsDir,OPENDSNAME), 'w' )
+          coveragefh.write( 'coverage.out.file=%s\n' % (newCoverageEC) )
+          coveragefh.write( 'verbosity.level=silent\n')
+          coveragefh.write( 'coverage.out.merge=true\n')
           coveragefh.close()
-          
       </script>
-
       <message>mylog</message>
       <!--- Set up DS -->
       <message>

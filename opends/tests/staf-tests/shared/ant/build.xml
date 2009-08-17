@@ -418,6 +418,11 @@
     <ant antfile="${antfile.dir}/tests.xml" target="run"/>
   </target>
 
+  <target name="tests-func-coverage"
+          depends="set-func-type,global-init,opends-build,staf-start">
+    <ant antfile="${antfile.dir}/tests.xml" target="testwithcoverage"/>
+  </target>
+
   <!-- Run stress tests -->
   <target name="tests-stress-run"
           depends="set-stress-type,global-init,opends-build,staf-start">

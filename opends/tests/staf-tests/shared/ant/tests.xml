@@ -49,7 +49,6 @@
     <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
     <!-- these will serve for after-the-fact archiving the logs -->
     <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
-    <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
 
     <if>
       <equals arg1="${test.plan.custom}" arg2=""/>
@@ -362,67 +361,57 @@ test.plan.custom=${test.plan.custom}</echo>
   <target name="coverage-instrument" if="coverage.on">
     <delete dir="${tests.tmp.dir}/coverage-instr" />
     <mkdir dir="${tests.tmp.dir}/coverage-instr" />
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage" />
     <!-- unzip the original package in a temporary location to make the
          changes necessary so that the coverage tool is called
      -->
-    <unzip src="${product.package}"
+    <unzip src="${opends.dir}/${opends.name}.zip"
            dest="${tests.tmp.dir}/coverage-instr"/>
 
     <!-- Add emma in the package along with the other librairies
          this has the advantage of being automatically picked up by the scripts
     -->
     <copy file="${project.home}/ext/emma/lib/emma.jar"
-          tofile="${tests.tmp.dir}/coverage-instr/${product.name}/lib/emma.jar"/>
+          tofile="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/emma.jar"/>
 
     <!-- move the original product package to make room for the coverage
          enabled package
      -->
-    <move file="${product.package}" tofile="${product.package}.nocov"/>
+    <move file="${opends.dir}/${opends.name}.zip" tofile="${opends.dir}/${opends.name}.zip.nocov"/>
 
     <!-- intrument the OpenDS java archive to gather coverage -->
-    <java classpath="${tests.tmp.dir}/coverage-instr/${product.name}/lib$/emma.jar"
+    <java classpath="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/emma.jar"
           classname="emma" fork="true">
-      <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/${product.name}/coverage.em" />
-      <arg value="instr" />
-      <arg value="-m" />
-      <arg value="overwrite" />
-      <arg value="-ip" />
-      <arg value="${tests.tmp.dir}/coverage-instr/${product.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/${product.name}/lib/extensions/snmp-mib2605.jar" />
+        <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/${opends.name}/coverage.em" />
+        <arg value="instr" />
+        <arg value="-m" />
+        <arg value="overwrite" />
+        <arg value="-ix" />
+        <arg value="-org.opends.guitools.*" />
+        <arg value="-ix" />
+        <arg value="-org.opends.quicksetup.*" />
+        <arg value="-ix" />
+        <arg value="org.*" />
+        <arg value="-ix" />
+        <arg value="com.*" />
+        <arg value="-ip" />
+        <arg value="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/${opends.name}/lib/extensions/snmp-mib2605.jar" />
     </java>
-    <echo>Writing properties file</echo>
-    <echo file="${tests.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${tests.tmp.dir}/emma.coverage
-    </echo>
+    <copy file="${tests.tmp.dir}/coverage-instr/${opends.name}/coverage.em"
+          tofile="${tests.run.dir}/${tests.run.time}/coverage/coverage.em"/>
+
     <!-- Repackage the product with coverage enabled scripts -->
-    <zip basedir="${tests.tmp.dir}/coverage-instr" destfile="${product.package}">
-      <zipfileset dir="${tests.tmp.dir}/coverage-instr"
-                  includes="${product.name}/setup,${product.name}/uninstall,${product.name}/upgrade,${product.name}/bin/*,${product.name}/lib/*.sh"
-           filemode="755" dirmode="755" />
+    <zip basedir="${tests.tmp.dir}/coverage-instr" destfile="${opends.dir}/${opends.name}.zip">
+    <zipfileset dir="${tests.tmp.dir}/coverage-instr"
+                includes="${opends.name}/setup,${opends.name}/uninstall,${opends.name}/upgrade,${opends.name}/bin/*,${opends.name}/lib/*.sh"
+                filemode="755" dirmode="755" />
     </zip>
     <!-- <delete dir="${tests.tmp.dir}/coverage-instr"/> -->
   </target>
-  <target name="coverage-report" if="coverage.on">
-    <delete dir="${tests.tmp.dir}/coverage/all" />
-    <mkdir dir="${tests.tmp.dir}/coverage/all" />
-    <emma enabled="${coverage.on}" >
-      <report >
-        <infileset dir="${tests.tmp.dir}" includes="**/*.em,**/*.ec" />
-        <sourcepath>
-          <dirset dir="${project.home}" >
-            <include name="src" />
-          </dirset>
-        </sourcepath>
-        <html outfile="${tests.tmp.dir}/coverage/all/index.html"
-              columns="name, method, line"
-              sort="+line, +name"
-              metrics="line:80"
-        />
-      </report>
-    </emma>
-  </target>
   <target name="restore-pkg" if="coverage.on">
-    <delete file="${product.package}"/>
-    <move file="${product.package}.nocov" tofile="${product.package}"/>
+    <delete file="${opends.dir}/${opends.name}.zip"/>
+    <move file="${opends.dir}/${opends.name}.zip.nocov" tofile="${opends.dir}/${opends.name}.zip"/>
   </target>
-  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,restore-pkg,coverage-report"/>
+  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run,restore-pkg"/>
 
 </project>

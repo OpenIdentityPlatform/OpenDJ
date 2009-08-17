@@ -1151,28 +1151,7 @@
           CurrentTestPath['group']='unknown-group'
         
         ThisGroupName=CurrentTestPath['group']
-        
-        # NOTE: the same code lives in topology.xml
-        #       the reason for that is that the topology is created AFTER the
-        #       first test group has started (as part of the first setup)
-        #       the following groups are going to use the same topology
-        mylog="::coverage - checking for %s/%s/lib/emma.jar\n" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        if os.path.exists('%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
-          mylog+="  ::coverage on\n"
-          if not os.path.exists('%s/coverage' % TMPDIR):
-            os.mkdir('%s/coverage' % TMPDIR)
-            mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
-          if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
-            os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
-            mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
-          mylog+="  ::writing to %s/%s/classes/emma.properties" % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-          coveragefh = open( '%s/%s/classes/emma.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME), 'w' )
-          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
-          coveragefh.close()
       </script>
-      <message>
-        mylog
-      </message>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
     </sequence>
   </function>
@@ -1196,20 +1175,35 @@
       <message>'##### %s group postamble #####' % ThisGroupName</message>
 
       <script>
+        coveragePath=os.path.join(LOGS_ROOT,'coverage')
         emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        coverageEm='%s/%s/coverage.em' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        coverageEc='%s/coverage/%s/coverage.ec' % (TMPDIR,CurrentTestPath['group'])
-        coverageXml='%s/coverage/%s/coverage.xml' % (TMPDIR,CurrentTestPath['group'])
-        coverageHtml='%s/coverage/%s/coverage.html' % (TMPDIR,CurrentTestPath['group'])
+        coverageEm=os.path.join(coveragePath,'coverage.em')
+        ecPath=os.path.join(coveragePath,CurrentTestPath['group'])
+        coverageEcs=[ os.path.join(ecPath,ec) for ec in os.listdir(ecPath) if ec.startswith('coverage') and ec.endswith('.ec')]
+        coverageFiles=','.join(coverageEcs)
+        coverageXml=os.path.join(ecPath,'coverage.xml')
+        coverageHtml=os.path.join(ecPath,'coverage.html')
       </script>
-            
       <if expr="os.path.exists(emmaJar)">
         <sequence>
+          <script>
+            srcPathPrefix = os.path.join(TMPDIR,"..","..","..","..","..","..","src")
+            srcPaths = [ os.path.join(srcPathPrefix,"server"),
+                         os.path.join(srcPathPrefix,"ads"),
+                         os.path.join(srcPathPrefix,"server","org"),
+                         os.path.join(srcPathPrefix,"admin","defn","org"),
+                         os.path.join(srcPathPrefix,"snmp","src","org"),
+                         os.path.join(srcPathPrefix,"ads","org"),
+                         os.path.join(srcPathPrefix,"dsml","org"),
+                         os.path.join(srcPathPrefix,"messages","src","org")
+                       ]
+            srcArgs = " -sp ".join(srcPaths)
+          </script>
           <call function="'runCommand'">
-            { 'name'      : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
-              'command'   : 'java',
-              'arguments' : ' -Xms64M -Xmx512M -cp %s emma report -r xml,html -in %s,%s -Dreport.xml.out.file=%s -Dreport.html.out.file=%s -sp %s/../../../src' % (emmaJar,coverageEm,coverageEc,coverageXml,coverageHtml,TMPDIR),
-              'path'      : TMPDIR
+            { 'name' : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
+              'command' : 'java',
+              'arguments' : ' -Xms64M -Xmx1G -cp %s emma report -r html -in %s,%s -Dreport.html.out.file=%s -sp %s' % (emmaJar, coverageEm, coverageFiles, coverageHtml, srcArgs),
+              'path' : TMPDIR
             }
           </call>
           <script>
