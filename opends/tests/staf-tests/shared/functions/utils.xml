@@ -1175,18 +1175,18 @@
       <message>'##### %s group postamble #####' % ThisGroupName</message>
 
       <script>
-        coveragePath=os.path.join(LOGS_ROOT,'coverage')
         emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        coverageEm=os.path.join(coveragePath,'coverage.em')
-        ecPath=os.path.join(coveragePath,CurrentTestPath['group'])
-        coverageEcs=[ os.path.join(ecPath,ec) for ec in os.listdir(ecPath) if ec.startswith('coverage') and ec.endswith('.ec')]
-        coverageFiles=','.join(coverageEcs)
-        coverageXml=os.path.join(ecPath,'coverage.xml')
-        coverageHtml=os.path.join(ecPath,'coverage.html')
       </script>
       <if expr="os.path.exists(emmaJar)">
         <sequence>
           <script>
+            coveragePath=os.path.join(LOGS_ROOT,'coverage')
+            coverageEm=os.path.join(coveragePath,'coverage.em')
+            ecPath=os.path.join(coveragePath,CurrentTestPath['group'])
+            coverageEcs=[ os.path.join(ecPath,ec) for ec in os.listdir(ecPath) if ec.startswith('coverage') and ec.endswith('.ec')]
+            coverageFiles=','.join(coverageEcs)
+            coverageXml=os.path.join(ecPath,'coverage.xml')
+            coverageHtml=os.path.join(ecPath,'coverage.html')
             srcPathPrefix = os.path.join(TMPDIR,"..","..","..","..","..","..","src")
             srcPaths = [ os.path.join(srcPathPrefix,"server"),
                          os.path.join(srcPathPrefix,"ads"),
