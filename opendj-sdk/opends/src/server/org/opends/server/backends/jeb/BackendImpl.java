@@ -1131,7 +1131,7 @@ public class BackendImpl
       envConfig.setConfigParam("je.env.isLocking", "true");
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
       Importer importer = new Importer(importConfig, cfg);
-      importer.init(envConfig);
+      importer.initialize(envConfig);
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
     }

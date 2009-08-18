@@ -31,7 +31,7 @@ import org.opends.server.backends.jeb.JebFormat;
 
 
 /**
- * An import ID set backed by an array of ints.
+ * An import ID set backed by an array of integers.
  */
 public class ImportIDSet {
 
@@ -51,7 +51,7 @@ public class ImportIDSet {
   private boolean isDefined=true;
 
 
-  //Size of the undefines.
+  //Size of the undefined if count is kept.
   private long undefinedSize = 0;
 
   //Key related to an ID set.
@@ -62,11 +62,11 @@ public class ImportIDSet {
 
   /**
    * Create an import ID set of the specified size, index limit and index
-   * maintain count boolean, plus an extra 128 slots.
+   * maintain count, plus an extra 128 slots.
    *
    * @param size The size of the the underlying array, plus some extra space.
    * @param limit The index entry limit.
-   * @param doCount The index maintain count boolean.
+   * @param doCount The index maintain count.
    */
   public ImportIDSet(int size, int limit, boolean doCount)
   {
@@ -121,7 +121,6 @@ public class ImportIDSet {
       {
         undefinedSize += importIDSet.getUndefinedSize();
       }
-      return;
     }
     else if(!isDefined()) //this undefined
     {
@@ -129,7 +128,6 @@ public class ImportIDSet {
       {
           undefinedSize += importIDSet.size();
       }
-      return;
     }
     else if(!importIDSet.isDefined()) //other undefined
     {
@@ -197,7 +195,7 @@ public class ImportIDSet {
 
   private boolean
   mergeCount(byte[] dBbytes, ImportIDSet importIdSet)  {
-    boolean incrLimitCount=false;
+    boolean incrementLimitCount=false;
     boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
 
     if(dbUndefined && (!importIdSet.isDefined()))  {
@@ -213,46 +211,43 @@ public class ImportIDSet {
        int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
        undefinedSize= dbSize + importIdSet.getUndefinedSize();
        isDefined=false;
-       incrLimitCount = true;
+       incrementLimitCount = true;
     } else {
       array = JebFormat.entryIDListFromDatabase(dBbytes);
       if(array.length + importIdSet.size() > limit) {
           undefinedSize = array.length + importIdSet.size();
           importIdSet.setUndefined();
           isDefined=false;
-          incrLimitCount=true;
+          incrementLimitCount=true;
       } else {
         count = array.length;
         addAll(importIdSet);
       }
     }
-    return incrLimitCount;
+    return incrementLimitCount;
   }
 
 
   /**
    * Remove the specified import ID set from the byte array read from the DB.
    *
-   * @param dBbytes The byte array read from JEB.
+   * @param bytes The byte array read from JEB.
    * @param importIdSet The import ID set to delete.
    */
-  public void remove(byte[] dBbytes, ImportIDSet importIdSet)
+  public void remove(byte[] bytes, ImportIDSet importIdSet)
   {
-    boolean incrLimitCount=false;
-    boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+    boolean dbUndefined = ((bytes[0] & 0x80) == 0x80);
     if(dbUndefined) {
       isDefined=false;
       importIdSet.setUndefined();
       undefinedSize = Long.MAX_VALUE;
     } else if(!importIdSet.isDefined()) {
       isDefined=false;
-      incrLimitCount=true;
       undefinedSize = Long.MAX_VALUE;
     } else {
-      array = JebFormat.entryIDListFromDatabase(dBbytes);
+      array = JebFormat.entryIDListFromDatabase(bytes);
       if(array.length - importIdSet.size() > limit) {
         isDefined=false;
-        incrLimitCount=true;
         count = 0;
         importIdSet.setUndefined();
         undefinedSize = Long.MAX_VALUE;
@@ -271,31 +266,31 @@ public class ImportIDSet {
    * ID set. The specified limit and maintain count parameters define
    * if the newly merged set is defined or not.
    *
-   * @param dBbytes The byte array of IDs read from a DB.
+   * @param bytes The byte array of IDs read from a DB.
    * @param importIdSet The import ID set to merge the byte array with.
    * @return <CODE>True</CODE> if the import ID set started keeping a count as
    *         a result of the merge.
    */
-  public boolean merge(byte[] dBbytes, ImportIDSet importIdSet)
+  public boolean merge(byte[] bytes, ImportIDSet importIdSet)
   {
-    boolean incrLimitCount=false;
+    boolean incrementLimitCount=false;
     if(doCount) {
-      incrLimitCount = mergeCount(dBbytes,  importIdSet);
+      incrementLimitCount = mergeCount(bytes,  importIdSet);
     } else {
-      boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+      boolean dbUndefined = ((bytes[0] & 0x80) == 0x80);
       if(dbUndefined) {
         isDefined=false;
         importIdSet.setUndefined();
         undefinedSize = Long.MAX_VALUE;
       } else if(!importIdSet.isDefined()) {
         isDefined=false;
-        incrLimitCount=true;
+        incrementLimitCount=true;
         undefinedSize = Long.MAX_VALUE;
       } else {
-        array = JebFormat.entryIDListFromDatabase(dBbytes);
+        array = JebFormat.entryIDListFromDatabase(bytes);
         if(array.length + importIdSet.size() > limit) {
           isDefined=false;
-          incrLimitCount=true;
+          incrementLimitCount=true;
           count = 0;
           importIdSet.setUndefined();
           undefinedSize = Long.MAX_VALUE;
@@ -305,7 +300,7 @@ public class ImportIDSet {
         }
       }
     }
-    return incrLimitCount;
+    return incrementLimitCount;
   }
 
 
@@ -315,8 +310,7 @@ public class ImportIDSet {
     int c = 0;
     for(int i=0; i < count; i++)
     {
-      int rc = binarySearch(that.array, that.count, array[i]);
-      if(rc < 0)
+      if(binarySearch(that.array, that.count, array[i]) < 0)
       {
         newArray[c++] = array[i];
       }

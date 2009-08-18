@@ -2226,6 +2226,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.460
   NAME 'ds-task-import-random-seed'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.596
+  NAME 'ds-task-import-thread-count'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.461
   NAME 'ds-cfg-allowed-auth-method'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
@@ -3082,6 +3086,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.63
         ds-task-import-is-compressed $
         ds-task-import-is-encrypted $
         ds-task-import-backend-id $
+        ds-task-import-thread-count $
         ds-task-import-clear-backend )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.64

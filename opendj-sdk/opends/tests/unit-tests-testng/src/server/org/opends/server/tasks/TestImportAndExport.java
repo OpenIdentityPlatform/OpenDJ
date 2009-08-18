@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tasks;
@@ -140,7 +140,7 @@ public class TestImportAndExport extends TasksTestCase
   {
     return new Object[][] {
          // A fairly simple, valid import task using backend ID.
-         {
+            {
               TestCaseUtils.makeEntry(
                    "dn: ds-task-id=" + UUID.randomUUID() +
                         ",cn=Scheduled Tasks,cn=Tasks",
@@ -361,7 +361,8 @@ public class TestImportAndExport extends TasksTestCase
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */
-  @Test(dataProvider = "importexport", groups = "slow")
+//  @Test(dataProvider = "importexport", groups = "slow")
+  @Test(enabled=false)
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {

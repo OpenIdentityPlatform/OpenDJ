@@ -166,7 +166,7 @@ public final class LDIFImportConfig extends OperationConfig
 
   private String tmpDirectory;
   private boolean skipDNValidation = false;
-  private int threadCount = -1;
+  private int threadCount = 0;
 
 
   /**
@@ -650,7 +650,6 @@ public final class LDIFImportConfig extends OperationConfig
     }
     skipWriter =
          new BufferedWriter(new OutputStreamWriter(outputStream));
-    System.out.println("New Skipped: " + skipWriter.toString());
   }
 
   /**
