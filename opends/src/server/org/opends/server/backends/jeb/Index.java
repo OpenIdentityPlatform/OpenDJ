@@ -313,10 +313,10 @@ public class Index extends DatabaseContainer
   deleteKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
 
-
+    ImportIDSet newImportIDSet=null;
     OperationStatus status  = read(null, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS) {
-      ImportIDSet newImportIDSet = new ImportIDSet(data.getData().length/8,
+      newImportIDSet = new ImportIDSet(data.getData().length/8,
                                                 indexEntryLimit, maintainCount);
       newImportIDSet.remove(data.getData(), importIdSet);
       if(newImportIDSet.isDefined() && (newImportIDSet.size() == 0))
