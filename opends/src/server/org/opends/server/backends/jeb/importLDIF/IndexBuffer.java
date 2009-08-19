@@ -394,7 +394,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   {
     int recOffset = getIntValue(x * 4);
     int keyLen = getIntValue(recOffset + 4);
-    byte[] keyBytes = indexKey.getKeyBytes(keyLen);
+    byte[] keyBytes = new byte[keyLen];
     System.arraycopy(buffer, recOffset + 8, keyBytes, 0, keyLen);
     return keyBytes;
   }
