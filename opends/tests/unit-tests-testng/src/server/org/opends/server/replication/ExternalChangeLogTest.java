@@ -1303,7 +1303,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
       LDAPWriter w = new LDAPWriter(s);
-      s.setSoTimeout(1500000);
+      s.setSoTimeout(5000);
       bindAsManager(w, r);
 
       // Since we are going to be watching the post-response count, we need to
@@ -1450,7 +1450,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
         r = new org.opends.server.tools.LDAPReader(s);
         w = new LDAPWriter(s);
-        s.setSoTimeout(1500000);
+        s.setSoTimeout(5000);
         bindAsWhoEver(w, r, "toto", "tutu", LDAPResultCode.OPERATIONS_ERROR);
 
         searchRequest =
@@ -1648,21 +1648,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s1 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r1 = new org.opends.server.tools.LDAPReader(s1);
       LDAPWriter w1 = new LDAPWriter(s1);
-      s1.setSoTimeout(1500000);
+      s1.setSoTimeout(5000);
       bindAsManager(w1, r1);
 
       // Connects and bind
       s2 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r2 = new org.opends.server.tools.LDAPReader(s2);
       LDAPWriter w2 = new LDAPWriter(s2);
-      s2.setSoTimeout(1500000);
+      s2.setSoTimeout(5000);
       bindAsManager(w2, r2);
 
       // Connects and bind
       s3 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r3 = new org.opends.server.tools.LDAPReader(s3);
       LDAPWriter w3 = new LDAPWriter(s3);
-      s3.setSoTimeout(1500000);
+      s3.setSoTimeout(5000);
       bindAsManager(w3, r3);
 
       // Since we are going to be watching the post-response count, we need to
