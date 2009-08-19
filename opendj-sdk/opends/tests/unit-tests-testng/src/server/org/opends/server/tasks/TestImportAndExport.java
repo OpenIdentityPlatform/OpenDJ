@@ -361,8 +361,7 @@ public class TestImportAndExport extends TasksTestCase
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */
-//  @Test(dataProvider = "importexport", groups = "slow")
-  @Test(enabled=false)
+  @Test(dataProvider = "importexport", groups = "slow")
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {

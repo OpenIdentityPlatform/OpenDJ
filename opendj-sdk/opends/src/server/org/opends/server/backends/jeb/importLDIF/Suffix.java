@@ -230,12 +230,10 @@ public class Suffix
       try {
         Thread.sleep(50);
         if(i == 10) {
-          System.out.println("Timed out waiting for: " + parentDN.toString());
           return null;
         }
         i++;
       } catch (Exception e) {
-        System.out.println("Exception: " + parentDN.toString());
         return null;
       }
     }
@@ -250,8 +248,6 @@ public class Suffix
         }
         parentIDMap.put(parentDN, parentID);
       }
-    }  else {
-      System.out.println("parent not found: " + parentDN.toString());
     }
     return parentID;
   }

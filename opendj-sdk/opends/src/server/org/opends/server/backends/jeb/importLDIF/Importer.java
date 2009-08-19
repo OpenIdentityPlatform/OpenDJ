@@ -1203,7 +1203,7 @@ public class Importer
         while((nodeID = dn2id.get(null, dn, LockMode.DEFAULT)) == null) {
           try {
             Thread.sleep(50);
-            if(i == 3) {
+            if(i == 10) {
               return null;
             }
             i++;
@@ -2899,34 +2899,6 @@ public class Importer
     {
       return type.getPrimaryName() + "." +
              StaticUtils.toLowerCase(indexType.name());
-    }
-
-    /**
-     * Returns a previously allocated byte array having sub-string length size
-     * if the index key is a sub-string index and the desired size is equal to
-     * sub-string size. This is a performance hack for sub-string indexes only.
-     *
-     * @param size The size of byte array desired.
-     * @return Either a previously allocated byte array, or a freshly created
-     * one using the size parameter.
-     */
-    public byte[] getKeyBytes(int size)
-    {
-      if(keyBytes != null)
-      {
-        if(size == keyBytes.length)
-        {
-          return this.keyBytes;
-        }
-        else
-        {
-          return new byte[size];
-        }
-      }
-      else
-      {
-        return new byte[size];
-      }
     }
   }
 }
