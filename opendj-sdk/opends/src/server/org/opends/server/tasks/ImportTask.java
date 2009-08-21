@@ -336,7 +336,7 @@ public class ImportTask extends Task
     append = TaskUtils.getBoolean(attrList, false);
 
     attrList = taskEntry.getAttribute(typeDNCheckPhase2);
-    skipDNValidation = TaskUtils.getBoolean(attrList, true);
+    skipDNValidation = TaskUtils.getBoolean(attrList, false);
 
     attrList = taskEntry.getAttribute(typeTmpDirectory);
     tmpDirectory = TaskUtils.getSingleValueString(attrList);

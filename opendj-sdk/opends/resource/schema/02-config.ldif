@@ -885,6 +885,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.179
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.598
+  NAME 'ds-task-import-tmp-directory'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.180
   NAME 'ds-task-import-overwrite-rejects'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
@@ -892,6 +897,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.180
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.181
   NAME 'ds-task-import-skip-schema-validation'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.597
+  NAME 'ds-task-import-skip-dn-validation'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -3083,6 +3093,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.63
         ds-task-import-overwrite-rejects $
         ds-task-import-skip-file $
         ds-task-import-skip-schema-validation $
+        ds-task-import-skip-dn-validation $
+        ds-task-import-tmp-directory $
         ds-task-import-is-compressed $
         ds-task-import-is-encrypted $
         ds-task-import-backend-id $

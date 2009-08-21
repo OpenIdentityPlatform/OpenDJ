@@ -1607,7 +1607,6 @@ public class Importer
         dbValue1.setData(v);
         DN dn = DN.decode(ByteString.wrap(dbKey1.getData()));
 
-
         entryID = new EntryID(v1);
         if(parentIDMap.isEmpty())
         {
@@ -1633,16 +1632,17 @@ public class Importer
         }
         else
         {
-          DN pDN = entryContainer.getParentWithinBase(dn);
-          if(parentIDMap.containsKey(pDN)) {
-            DN lastKey = parentIDMap.lastKey();
-            Map<DN, EntryID> subMap = parentIDMap.subMap(pDN, lastKey);
-            for(Map.Entry<DN, EntryID> e : subMap.entrySet())
-            {
-              subMap.remove(e.getKey());
+          DN newParentDN = entryContainer.getParentWithinBase(dn);
+          if(parentIDMap.containsKey(newParentDN))
+          {
+            EntryID newParentID = parentIDMap.get(newParentDN);
+            DN lastDN = parentIDMap.lastKey();
+            while(!newParentDN.equals(lastDN)) {
+              parentIDMap.remove(lastDN);
+              lastDN = parentIDMap.lastKey();
             }
-            parentDN = pDN;
-            parentID = parentIDMap.get(pDN);
+            parentDN = newParentDN;
+            parentID = newParentID;
             lastDN = dn;
             lastID = entryID;
           }
@@ -1659,7 +1659,7 @@ public class Importer
       }
 
 
-    private void id2child(EntryID childID)
+      private void id2child(EntryID childID)
     {
       ImportIDSet idSet;
       if(!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
