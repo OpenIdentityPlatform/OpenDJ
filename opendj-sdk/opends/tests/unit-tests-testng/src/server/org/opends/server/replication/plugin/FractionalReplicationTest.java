@@ -151,7 +151,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   @BeforeClass
   @Override
   public void setUp() throws Exception
-  {    
+  {
     super.setUp();
 
     // Find  a free port for the replicationServer
@@ -1067,7 +1067,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     assertFalse(attrValues.hasNext());
     assertEquals(attrValue.toString(), attributeValue, "Was expecting attribute " +
       attributeName + "=" + attributeValue + " but got value: " + attrValue.toString());
-    
+
   }
 
   /**
@@ -1128,7 +1128,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * but have instead:
    *  [testng] parameter[0]: 6
    *  [testng] parameter[1]: [Ljava.lang.String;@151e824
-   */  
+   */
   private void testInitWithFullUpdateExclude(int testProviderLineId,
     boolean importedDomainIsFractional, String... fractionalConf) throws Exception
   {
@@ -1451,7 +1451,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
         "objectClass: inetOrgPerson\n" +
         "sn: snValue\n" + "cn: cnValue\n" + "uid: 1\n" + "entryUUID: " +
-        ENTRY_UUID + "\n" + OPTIONAL_ATTR + ": " + OPTIONAL_ATTR + "Value\n";      
+        ENTRY_UUID + "\n" + OPTIONAL_ATTR + ": " + OPTIONAL_ATTR + "Value\n";
       //                Add attributes concerned by fractional configuration
       boolean first = true;
       for (String fracCfgValue : fractionalConf)
@@ -1477,7 +1477,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // The domain should go back in normal status
       waitForDomainStatus(fractionalReplicationDomain,
-        ServerStatus.NORMAL_STATUS, 5);
+        ServerStatus.NORMAL_STATUS, 15);
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
