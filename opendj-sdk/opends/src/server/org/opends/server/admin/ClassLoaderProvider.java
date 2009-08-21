@@ -696,8 +696,7 @@ public final class ClassLoaderProvider {
         String[] information = getBuildInformation(jarFile);
         logError(
           INFO_LOG_EXTENSION_INFORMATION.
-            get(jarFile.getName().replace(DirectoryServer.getServerRoot(),
-                                          "$SERVER_ROOT"),
+            get(jarFile.getName(),
                 information[1],
                 information[2]));
       } catch(Exception e) {
