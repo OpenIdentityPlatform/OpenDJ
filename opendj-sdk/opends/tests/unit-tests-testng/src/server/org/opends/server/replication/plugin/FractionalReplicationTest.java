@@ -77,6 +77,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
  * Various tests around fractional replication
@@ -977,7 +978,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     catch(Exception e)
     {
       fail("checkEntryFilteredAfterAdd error: "  +
-        e.getClass().getName() + " :" + e.getMessage());
+        e.getClass().getName() + " :" + e.getMessage() +
+        " " + stackTraceToSingleLineString(e)
+        );
     }
   }
 
