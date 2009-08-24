@@ -467,43 +467,39 @@ public class Importer
           InitializationException, IOException, JebException, DatabaseException,
           InterruptedException, ExecutionException
   {
-    try {
-    this.rootContainer = rootContainer;
-    this.reader = new LDIFReader(importConfiguration, rootContainer,
-            LDIF_READER_BUFFER_SIZE);
-    Message message =
-            NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
-                    BUILD_ID, REVISION_NUMBER);
-    logError(message);
-    message = NOTE_JEB_IMPORT_THREAD_COUNT.get(threadCount);
-    logError(message);
-    RuntimeInformation.logInfo();
-    initializeSuffixes();
-    long startTime = System.currentTimeMillis();
-    processPhaseOne();
-    processPhaseTwo();
-    setIndexesTrusted();
-    switchContainers();
-    tempDir.delete();
-    long finishTime = System.currentTimeMillis();
-    long importTime = (finishTime - startTime);
-    float rate = 0;
-    if (importTime > 0)
-      rate = 1000f * reader.getEntriesRead() / importTime;
-    message = NOTE_JEB_IMPORT_FINAL_STATUS.get(reader.getEntriesRead(),
-            reader.getEntriesRead(), reader.getEntriesIgnored(), reader
-             .getEntriesRejected(), migratedCount, importTime / 1000, rate);
-    logError(message);
-    }
-    catch(Throwable t) {
-        System.out.println("here: " + t.getMessage());
-        t.printStackTrace();
+    try
+    {
+      this.rootContainer = rootContainer;
+      this.reader = new LDIFReader(importConfiguration, rootContainer,
+              LDIF_READER_BUFFER_SIZE);
+      Message message =
+              NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
+                      BUILD_ID, REVISION_NUMBER);
+      logError(message);
+      message = NOTE_JEB_IMPORT_THREAD_COUNT.get(threadCount);
+      logError(message);
+      RuntimeInformation.logInfo();
+      initializeSuffixes();
+      long startTime = System.currentTimeMillis();
+      processPhaseOne();
+      processPhaseTwo();
+      setIndexesTrusted();
+      switchContainers();
+      tempDir.delete();
+      long finishTime = System.currentTimeMillis();
+      long importTime = (finishTime - startTime);
+      float rate = 0;
+      if (importTime > 0)
+        rate = 1000f * reader.getEntriesRead() / importTime;
+      message = NOTE_JEB_IMPORT_FINAL_STATUS.get(reader.getEntriesRead(),
+              reader.getEntriesRead(), reader.getEntriesIgnored(), reader
+                 .getEntriesRejected(), migratedCount, importTime / 1000, rate);
+      logError(message);
     }
     finally
     {
       reader.close();
     }
-
     return new LDIFImportResult(reader.getEntriesRead(), reader
             .getEntriesRejected(), reader.getEntriesIgnored());
   }
@@ -708,7 +704,7 @@ public class Importer
   }
 
 
-    /**
+  /**
    * Task used to migrate excluded branch.
    */
   private final class MigrateExcludedTask extends ImportTask
@@ -743,8 +739,8 @@ public class Importer
                 // This is the base entry for a branch that was excluded in the
                 // import so we must migrate all entries in this branch over to
                 // the new entry container.
-                byte[] end =
-                    StaticUtils.getBytes("," + excludedDN.toNormalizedString());
+                byte[] end = StaticUtils.getBytes("," +
+                                excludedDN.toNormalizedString());
                 end[0] = (byte) (end[0] + 1);
 
                 while(status == OperationStatus.SUCCESS &&
@@ -760,6 +756,13 @@ public class Importer
                 }
               }
             }
+          }
+          catch (Exception e)
+          {
+            message =
+              ERR_JEB_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR.get(e.getMessage());
+            logError(message);
+            throw e;
           }
           finally
           {
@@ -782,65 +785,73 @@ public class Importer
 
     public Void call() throws Exception
     {
-        for(Suffix suffix : dnSuffixMap.values()) {
-          EntryContainer entryContainer = suffix.getSrcEntryContainer();
-          if(entryContainer != null &&
-              !suffix.getIncludeBranches().isEmpty()) {
-            DatabaseEntry key = new DatabaseEntry();
-            DatabaseEntry data = new DatabaseEntry();
-            LockMode lockMode = LockMode.DEFAULT;
-            OperationStatus status;
-            Message message = NOTE_JEB_IMPORT_MIGRATION_START.get(
-                "existing", String.valueOf(suffix.getBaseDN()));
-            logError(message);
-            Cursor cursor =
-                entryContainer.getDN2ID().openCursor(null,
-                                                  null);
-            try {
-              status = cursor.getFirst(key, data, lockMode);
-              while(status == OperationStatus.SUCCESS &&
+      for(Suffix suffix : dnSuffixMap.values()) {
+        EntryContainer entryContainer = suffix.getSrcEntryContainer();
+        if(entryContainer != null &&
+                !suffix.getIncludeBranches().isEmpty()) {
+          DatabaseEntry key = new DatabaseEntry();
+          DatabaseEntry data = new DatabaseEntry();
+          LockMode lockMode = LockMode.DEFAULT;
+          OperationStatus status;
+          Message message = NOTE_JEB_IMPORT_MIGRATION_START.get(
+                  "existing", String.valueOf(suffix.getBaseDN()));
+          logError(message);
+          Cursor cursor =
+                  entryContainer.getDN2ID().openCursor(null,
+                          null);
+          try {
+            status = cursor.getFirst(key, data, lockMode);
+            while(status == OperationStatus.SUCCESS &&
                     !importConfiguration.isCancelled()) {
-                DN dn = DN.decode(ByteString.wrap(key.getData()));
-                if(!suffix.getIncludeBranches().contains(dn)) {
-                  EntryID id = new EntryID(data);
-                  Entry entry =
-                      entryContainer.getID2Entry().get(null,
-                          id, LockMode.DEFAULT);
-                  processEntry(entry, rootContainer.getNextEntryID(),suffix);
-                  migratedCount++;
-                  status = cursor.getNext(key, data, lockMode);
-                }  else {
-                  // This is the base entry for a branch that will be included
-                  // in the import so we don't want to copy the branch to the
-                  //  new entry container.
+              DN dn = DN.decode(ByteString.wrap(key.getData()));
+              if(!suffix.getIncludeBranches().contains(dn)) {
+                EntryID id = new EntryID(data);
+                Entry entry =
+                        entryContainer.getID2Entry().get(null,
+                                id, LockMode.DEFAULT);
+                processEntry(entry, rootContainer.getNextEntryID(),suffix);
+                migratedCount++;
+                status = cursor.getNext(key, data, lockMode);
+              }  else {
+                // This is the base entry for a branch that will be included
+                // in the import so we don't want to copy the branch to the
+                //  new entry container.
 
-                  /**
-                   * Advance the cursor to next entry at the same level in the
-                   * DIT
-                   * skipping all the entries in this branch.
-                   * Set the next starting value to a value of equal length but
-                   * slightly greater than the previous DN. Since keys are
-                   * compared in reverse order we must set the first byte
-                   * (the comma).
-                   * No possibility of overflow here.
-                   */
-                  byte[] begin =
-                      StaticUtils.getBytes("," + dn.toNormalizedString());
-                  begin[0] = (byte) (begin[0] + 1);
-                  key.setData(begin);
-                  status = cursor.getSearchKeyRange(key, data, lockMode);
-                }
+                /**
+                 * Advance the cursor to next entry at the same level in the
+                 * DIT
+                 * skipping all the entries in this branch.
+                 * Set the next starting value to a value of equal length but
+                 * slightly greater than the previous DN. Since keys are
+                 * compared in reverse order we must set the first byte
+                 * (the comma).
+                 * No possibility of overflow here.
+                 */
+                byte[] begin =
+                        StaticUtils.getBytes("," + dn.toNormalizedString());
+                begin[0] = (byte) (begin[0] + 1);
+                key.setData(begin);
+                status = cursor.getSearchKeyRange(key, data, lockMode);
               }
-            } finally {
-              cursor.close();
-              flushIndexBuffers();
-              closeCursors();
             }
           }
+          catch(Exception e)
+          {
+            message =
+              ERR_JEB_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR.get(e.getMessage());
+            logError(message);
+            throw e;
+          }
+          finally
+          {
+            cursor.close();
+            flushIndexBuffers();
+            closeCursors();
+          }
         }
+      }
       return null;
     }
-
   }
 
   /**
@@ -859,26 +870,36 @@ public class Importer
      */
     public Void call() throws Exception
     {
-      while (true)
+      try
       {
-        if (importConfiguration.isCancelled())
+        while (true)
         {
-          IndexBuffer indexBuffer = IndexBuffer.createIndexBuffer(0);
-          freeBufferQueue.add(indexBuffer);
-          return null;
+          if (importConfiguration.isCancelled())
+          {
+            IndexBuffer indexBuffer = IndexBuffer.createIndexBuffer(0);
+            freeBufferQueue.add(indexBuffer);
+            return null;
+          }
+          oldEntry = null;
+          Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
+          if (entry == null)
+          {
+            break;
+          }
+          entryID = entryInfo.getEntryID();
+          Suffix suffix = entryInfo.getSuffix();
+          processEntry(entry, suffix);
         }
-        oldEntry = null;
-        Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
-        if (entry == null)
-        {
-          break;
-        }
-        entryID = entryInfo.getEntryID();
-        Suffix suffix = entryInfo.getSuffix();
-        processEntry(entry, suffix);
+        flushIndexBuffers();
+        closeCursors();
       }
-      flushIndexBuffers();
-      closeCursors();
+      catch(Exception e)
+      {
+        Message message =
+                ERR_JEB_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR.get(e.getMessage());
+        logError(message);
+        throw e;
+      }
       return null;
     }
 
@@ -1040,31 +1061,37 @@ public class Importer
      */
     public Void call() throws Exception
     {
-     try {
-      while (true)
+      try
       {
-        if (importConfiguration.isCancelled())
+        while (true)
         {
-          IndexBuffer indexBuffer = IndexBuffer.createIndexBuffer(0);
-          freeBufferQueue.add(indexBuffer);
-          return null;
-        }
-        Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
+          if (importConfiguration.isCancelled())
+          {
+            IndexBuffer indexBuffer = IndexBuffer.createIndexBuffer(0);
+            freeBufferQueue.add(indexBuffer);
+            return null;
+          }
+          Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
 
-        if (entry == null)
-        {
-          break;
+          if (entry == null)
+          {
+            break;
+          }
+          EntryID entryID = entryInfo.getEntryID();
+          Suffix suffix = entryInfo.getSuffix();
+          processEntry(entry, entryID, suffix);
         }
-        EntryID entryID = entryInfo.getEntryID();
-        Suffix suffix = entryInfo.getSuffix();
-        processEntry(entry, entryID, suffix);
+        flushIndexBuffers();
+        closeCursors();
       }
-      flushIndexBuffers();
-      closeCursors();
-     } catch(Throwable t) {
-         System.out.println(t.getMessage());
-         t.printStackTrace();
-     }
+      catch (Exception e)
+      {
+        Message message =
+                ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR.get(e.getMessage());
+        logError(message);
+        throw e;
+      }
+
       return null;
     }
 
@@ -1424,32 +1451,20 @@ public class Importer
 
     public Void call() throws Exception
     {
-        try {
       byte[] cKey = null;
       ImportIDSet cInsertIDSet = null, cDeleteIDSet = null;
       Integer cIndexID = null;
-      indexMgr.openIndexFile();
-      SortedSet<Buffer> bufferSet = initializeBuffers();
-      while(!bufferSet.isEmpty())
+      try
       {
-        Buffer b;
-        b = bufferSet.first();
-        bufferSet.remove(b);
-        if(cKey == null)
+        indexMgr.openIndexFile();
+        SortedSet<Buffer> bufferSet = initializeBuffers();
+        while(!bufferSet.isEmpty())
         {
-          cIndexID =  b.getIndexID();
-          cKey = b.getKey();
-          cInsertIDSet = b.getInsertIDSet();
-          cDeleteIDSet = b.getDeleteIDSet();
-          cInsertIDSet.setKey(cKey);
-          cDeleteIDSet.setKey(cKey);
-        }
-        else
-        {
-          if(b.compare(cKey, cIndexID) != 0)
+          Buffer b;
+          b = bufferSet.first();
+          bufferSet.remove(b);
+          if(cKey == null)
           {
-            addToDB(cInsertIDSet, cDeleteIDSet, cIndexID);
-            indexMgr.incrementKeyCount();
             cIndexID =  b.getIndexID();
             cKey = b.getKey();
             cInsertIDSet = b.getInsertIDSet();
@@ -1459,25 +1474,43 @@ public class Importer
           }
           else
           {
-            cInsertIDSet.merge(b.getInsertIDSet());
-            cDeleteIDSet.merge(b.getDeleteIDSet());
+            if(b.compare(cKey, cIndexID) != 0)
+            {
+              addToDB(cInsertIDSet, cDeleteIDSet, cIndexID);
+              indexMgr.incrementKeyCount();
+              cIndexID =  b.getIndexID();
+              cKey = b.getKey();
+              cInsertIDSet = b.getInsertIDSet();
+              cDeleteIDSet = b.getDeleteIDSet();
+              cInsertIDSet.setKey(cKey);
+              cDeleteIDSet.setKey(cKey);
+            }
+            else
+            {
+              cInsertIDSet.merge(b.getInsertIDSet());
+              cDeleteIDSet.merge(b.getDeleteIDSet());
+            }
+          }
+          if(b.hasMoreData())
+          {
+            b.getNextRecord();
+            bufferSet.add(b);
           }
         }
-        if(b.hasMoreData())
+        if(cKey != null)
         {
-          b.getNextRecord();
-          bufferSet.add(b);
+          addToDB(cInsertIDSet, cDeleteIDSet, cIndexID);
         }
+        cleanUP();
       }
-      if(cKey != null)
+      catch (Exception e)
       {
-        addToDB(cInsertIDSet, cDeleteIDSet, cIndexID);
+        Message message =
+              ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR.get(indexMgr.getFileName(),
+                        e.getMessage());
+        logError(message);
+        throw e;
       }
-      cleanUP();
-        }     catch(Throwable t) {
-        System.out.println("db here: " + t.getMessage());
-        t.printStackTrace();
-    }
       return null;
     }
 
@@ -1824,7 +1857,8 @@ public class Importer
         dataStream.close();
         indexMgr.setFileLength();
       }
-      catch (IOException e) {
+      catch (IOException e)
+      {
         Message message =
                 ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR.get(file.getName(),
                         e.getMessage());
