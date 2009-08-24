@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -50,6 +50,7 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     ReplicationDbEnv dbEnv = null;
     DbHandler handler = null;
+    ReplicationIterator it = null;
     try
     {
       TestCaseUtils.startServer();
@@ -85,22 +86,145 @@ public class DbHandlerTest extends ReplicationTestCase
       ChangeNumber changeNumber1 = gen.newChangeNumber();
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();
+      ChangeNumber changeNumber4 = gen.newChangeNumber();
+      ChangeNumber changeNumber5 = gen.newChangeNumber();
 
       DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1,
         "uid");
       DeleteMsg update2 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2,
         "uid");
       DeleteMsg update3 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3,
-        "uid");
+      "uid");
+      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber4,
+      "uid");
 
       handler.add(update1);
       handler.add(update2);
       handler.add(update3);
 
-      // The ChangeNumber should not get purged
+      //--
+      // Iterator tests with memory queue only populated
+
+      // verify that memory queue is populated
+      assertEquals(handler.getQueueSize(),3);
+
+      // Iterator from existing CN
+      it = handler.generateIterator(changeNumber1);
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
+          " Actual change number=" + it.getChange().getChangeNumber() +
+          " Expect change number=" + changeNumber2);
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertFalse(it.next());
+      it.releaseCursor();
+      it=null;
+
+      // Iterator from NON existing CN
+      Exception ec = null;
+      try
+      {
+        it = handler.generateIterator(changeNumber5);
+      }
+      catch(Exception e)
+      {
+        ec = e;
+      }
+      assertNotNull(ec);
+      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      
+      //--
+      // Iterator tests with db only populated
+      Thread.sleep(1000); // let the time for flush to happen
+
+      // verify that memory queue is empty (all changes flushed in the db)
+      assertEquals(handler.getQueueSize(),0);
+
+      // Test iterator from existing CN
+      it = handler.generateIterator(changeNumber1);
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertFalse(it.next());
+      it.releaseCursor();
+      it=null;
+
+      // Iterator from NON existing CN
+      ec = null;
+      try
+      {
+        it = handler.generateIterator(changeNumber5);
+      }
+      catch(Exception e)
+      {
+        ec = e;
+      }
+      assertNotNull(ec);
+      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      
+      // Test first and last
       assertEquals(changeNumber1, handler.getFirstChange());
       assertEquals(changeNumber3, handler.getLastChange());
 
+      //--
+      // Iterator tests with db and memory queue populated
+      // all changes in the db - add one in the memory queue
+      handler.add(update4);
+
+      // verify memory queue contains this one
+      assertEquals(handler.getQueueSize(),1);
+
+      // Test iterator from existing CN
+      it = handler.generateIterator(changeNumber1);
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber4)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertFalse(it.next());
+      assertTrue(it.getChange()==null);
+      it.releaseCursor();
+      it=null;
+
+      // Test iterator from existing CN at the limit between queue and db
+      it = handler.generateIterator(changeNumber3);
+      assertTrue(it.next());
+      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber4)==0,
+          " Actual change number=" + it.getChange().getChangeNumber());
+      assertFalse(it.next());
+      assertTrue(it.getChange()==null);
+      it.releaseCursor();
+      it=null;
+
+      // Test iterator from existing CN at the limit between queue and db
+      it = handler.generateIterator(changeNumber4);
+      assertFalse(it.next());
+      assertTrue(it.getChange()==null,
+          " Actual change number=" + it.getChange());
+      it.releaseCursor();
+      it=null;
+
+      // Test iterator from NON existing CN
+      ec = null;
+      try
+      {
+        it = handler.generateIterator(changeNumber5);
+      }
+      catch(Exception e)
+      {
+        ec = e;
+      }
+      assertNotNull(ec);
+      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      
       handler.setPurgeDelay(1);
 
       boolean purged = false;
@@ -109,8 +233,8 @@ public class DbHandlerTest extends ReplicationTestCase
       {
         ChangeNumber firstChange = handler.getFirstChange();
         ChangeNumber lastChange = handler.getLastChange();
-        if ((!firstChange.equals(changeNumber3) ||
-          (!lastChange.equals(changeNumber3))))
+        if ((!firstChange.equals(changeNumber4) ||
+          (!lastChange.equals(changeNumber4))))
         {
           TestCaseUtils.sleep(100);
         } else
@@ -120,6 +244,11 @@ public class DbHandlerTest extends ReplicationTestCase
       }
     } finally
     {
+      if (it != null)
+      {
+        it.releaseCursor();
+        it=null;
+      }
       if (handler != null)
         handler.shutdown();
       if (dbEnv != null)
