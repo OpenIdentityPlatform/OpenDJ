@@ -306,9 +306,18 @@ public final class LDIFReader
       }
       catch (LDIFException e)
       {
-        entriesRejected.incrementAndGet();
-        suffix.removePending(entryDN);
-        throw e;
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Skipping entry %s because the it reading" +
+                    "its attributes failed.", entryDN);
+          }
+          Message message =
+                           ERR_LDIF_READ_ATTR_SKIP.get(String.valueOf(entryDN),
+                                                       e.getMessage());
+          logToSkipWriter(lines, message);
+          entriesIgnored.incrementAndGet();
+          suffix.removePending(entryDN);
+          continue;
       }
 
       // Create the entry and see if it is one that should be included in the
@@ -344,7 +353,10 @@ public final class LDIFReader
         Message message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
             get(String.valueOf(entry.getDN()), lastEntryLineNumber,
                 String.valueOf(e));
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
+                 logToSkipWriter(lines, message);
+          entriesIgnored.incrementAndGet();
+          suffix.removePending(entryDN);
+          continue;
       }
 
 
@@ -390,7 +402,7 @@ public final class LDIFReader
           logToRejectWriter(lines, message);
           entriesRejected.incrementAndGet();
           suffix.removePending(entryDN);
-          throw new LDIFException(message, lastEntryLineNumber, true);
+          continue;
         }
       }
       entryInfo.setEntryID(entryID);
