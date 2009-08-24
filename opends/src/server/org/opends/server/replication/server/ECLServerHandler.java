@@ -105,6 +105,7 @@ public class ECLServerHandler extends ServerHandler
    * Specifies the excluded DNs (like cn=admin, ...).
    */
   public ArrayList<String> excludedServiceIDs = new ArrayList<String>();
+  //HashSet<String> excludedServiceIDs = new HashSet<String>();
 
   /**
    * Eligible changeNumber - only changes older or equal to eligibleCN
@@ -565,7 +566,8 @@ public class ECLServerHandler extends ServerHandler
 
         // Get the draftLimits (from the eligibleCN got at the beginning of
         // the operation.
-        int[] limits = getECLDraftCNLimits(eligibleCN);
+        int[] limits = replicationServer.getECLDraftCNLimits(
+            eligibleCN, excludedServiceIDs);
 
         if (startDraftCN<=limits[1])
         {
@@ -630,7 +632,7 @@ public class ECLServerHandler extends ServerHandler
             continue;
 
           // skip the excluded domains
-          if (isServiceIDExcluded(rsd.getBaseDn()))
+          if (excludedServiceIDs.contains(rsd.getBaseDn()))
             continue;
 
           // Creates the new domain context
@@ -828,11 +830,6 @@ public class ECLServerHandler extends ServerHandler
   public void initialize(StartECLSessionMsg startECLSessionMsg)
   throws DirectoryException
   {
-
-    //
-    //this.following = false; // FIXME:ECL makes no sense for ECLServerHandler ?
-    //this.lateQueue.clear(); // FIXME:ECL makes no sense for ECLServerHandler ?
-    //this.setConsumerActive(true);
 
     this.operationId = startECLSessionMsg.getOperationId();
     this.setName(this.getClass().getCanonicalName()+ " " + operationId);
@@ -1434,126 +1431,4 @@ public class ECLServerHandler extends ServerHandler
     eligibleCN = replicationServer.getEligibleCN();
   }
 
-  /*
-   * Get first and last DraftCN
-   * @param crossDomainEligibleCN
-   * @return
-   */
-  private int[] getECLDraftCNLimits(ChangeNumber crossDomainEligibleCN)
-  throws DirectoryException
-  {
-    /* The content of the DraftCNdb depends on the SEARCH operations done before
-     * requesting the DraftCN. If no operations, DraftCNdb is empty.
-     * The limits we want to get are the "potential" limits if a request was
-     * done, the DraftCNdb is probably not complete to do that.
-     *
-     * The first DraftCN is :
-     *  - the first record from the DraftCNdb
-     *  - if none because DraftCNdb empty,
-     *      then
-     *        if no change in replchangelog then return 0
-     *        else return 1 (DraftCN that WILL be returned to next search)
-     *
-     * The last DraftCN is :
-     *  - initialized with the last record from the DraftCNdb (0 if none)
-     *    and consider the genState associated
-     *  - to the last DraftCN, we add the count of updates in the replchangelog
-     *     FROM that genState TO the crossDomainEligibleCN
-     *     (this diff is done domain by domain)
-     */
-
-    int firstDraftCN;
-    int lastDraftCN;
-    boolean DraftCNdbIsEmpty;
-    DraftCNDbHandler draftCNDbH = replicationServer.getDraftCNDbHandler();
-
-    ReplicationServer rs = replicationServerDomain.getReplicationServer();
-
-    // Get the first DraftCN from the DraftCNdb
-    firstDraftCN = draftCNDbH.getFirstKey();
-    HashMap<String,ServerState> domainsServerStateForLastSeqnum = null;
-    if (firstDraftCN < 1)
-    {
-      DraftCNdbIsEmpty=true;
-      firstDraftCN = 0;
-      lastDraftCN = 0;
-    }
-    else
-    {
-      DraftCNdbIsEmpty=false;
-
-      // Get the last DraftCN from the DraftCNdb
-      lastDraftCN = draftCNDbH.getLastKey();
-
-      // Get the generalized state associated with the current last DraftCN
-      // and initializes from it the startStates table
-      String lastSeqnumGenState = draftCNDbH.getValue(lastDraftCN);
-      if ((lastSeqnumGenState != null) && (lastSeqnumGenState.length()>0))
-      {
-        domainsServerStateForLastSeqnum = MultiDomainServerState.
-          splitGenStateToServerStates(lastSeqnumGenState);
-      }
-    }
-
-    // Domain by domain
-    Iterator<ReplicationServerDomain> rsdi = rs.getDomainIterator();
-    if (rsdi != null)
-    {
-      while (rsdi.hasNext())
-      {
-        // process a domain
-        ReplicationServerDomain rsd = rsdi.next();
-
-        if (isServiceIDExcluded(rsd.getBaseDn()))
-          continue;
-
-        // for this domain, have the state in the replchangelog
-        // where the last DraftCN update is
-        ServerState domainServerStateForLastSeqnum;
-        if ((domainsServerStateForLastSeqnum == null) ||
-            (domainsServerStateForLastSeqnum.get(rsd.getBaseDn())==null))
-        {
-          domainServerStateForLastSeqnum = new ServerState();
-        }
-        else
-        {
-          domainServerStateForLastSeqnum =
-            domainsServerStateForLastSeqnum.get(rsd.getBaseDn());
-        }
-
-        // Count the number of (eligible) changes from this place
-        // to the eligible CN (cross server)
-        long ec = rsd.getEligibleCount(
-            domainServerStateForLastSeqnum, crossDomainEligibleCN);
-
-        // ... hum ...
-        if ((ec>0) && (DraftCNdbIsEmpty==false))
-          ec--;
-
-        // cumulates on domains
-        lastDraftCN += ec;
-
-        // DraftCN is empty and there are eligible updates in the repl changelog
-        // then init first DraftCN
-        if ((ec>0) && (firstDraftCN==0))
-          firstDraftCN = 1;
-      }
-    }
-    return new int[]{firstDraftCN, lastDraftCN};
-  }
-
-  private boolean isServiceIDExcluded(String serviceID)
-  {
-    // skip the excluded domains
-    boolean excluded = false;
-    for(String excludedServiceID : this.excludedServiceIDs)
-    {
-      if (excludedServiceID.equalsIgnoreCase(serviceID))
-      {
-        excluded=true;
-        break;
-      }
-    }
-    return excluded;
-  }
 }

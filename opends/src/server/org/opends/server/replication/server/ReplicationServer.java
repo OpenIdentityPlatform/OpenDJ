@@ -43,6 +43,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -70,6 +71,8 @@ import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ExternalChangeLogSession;
+import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
@@ -1582,6 +1585,118 @@ public class ReplicationServer
   synchronized public int getNewDraftCN()
   {
     return ++lastGeneratedDraftCN;
+  }
+
+  /**
+   * Get first and last DraftCN.
+   * @param crossDomainEligibleCN The provided crossDomainEligibleCN used as
+   *        the upper limit for the lastDraftCN
+   * @param excludedServiceIDs The serviceIDs that are excluded from the ECL.
+   * @return The first and last draftCN.
+   * @throws DirectoryException a.
+   */
+  public int[] getECLDraftCNLimits(
+      ChangeNumber crossDomainEligibleCN,
+      ArrayList<String> excludedServiceIDs)
+  throws DirectoryException
+  {
+    /* The content of the DraftCNdb depends on the SEARCH operations done before
+     * requesting the DraftCN. If no operations, DraftCNdb is empty.
+     * The limits we want to get are the "potential" limits if a request was
+     * done, the DraftCNdb is probably not complete to do that.
+     *
+     * The first DraftCN is :
+     *  - the first record from the DraftCNdb
+     *  - if none because DraftCNdb empty,
+     *      then
+     *        if no change in replchangelog then return 0
+     *        else return 1 (DraftCN that WILL be returned to next search)
+     *
+     * The last DraftCN is :
+     *  - initialized with the last record from the DraftCNdb (0 if none)
+     *    and consider the genState associated
+     *  - to the last DraftCN, we add the count of updates in the replchangelog
+     *     FROM that genState TO the crossDomainEligibleCN
+     *     (this diff is done domain by domain)
+     */
+
+    int firstDraftCN;
+    int lastDraftCN;
+    boolean DraftCNdbIsEmpty;
+    DraftCNDbHandler draftCNDbH = this.getDraftCNDbHandler();
+
+    // Get the first DraftCN from the DraftCNdb
+    firstDraftCN = draftCNDbH.getFirstKey();
+    HashMap<String,ServerState> domainsServerStateForLastSeqnum = null;
+    if (firstDraftCN < 1)
+    {
+      DraftCNdbIsEmpty=true;
+      firstDraftCN = 0;
+      lastDraftCN = 0;
+    }
+    else
+    {
+      DraftCNdbIsEmpty=false;
+
+      // Get the last DraftCN from the DraftCNdb
+      lastDraftCN = draftCNDbH.getLastKey();
+
+      // Get the generalized state associated with the current last DraftCN
+      // and initializes from it the startStates table
+      String lastSeqnumGenState = draftCNDbH.getValue(lastDraftCN);
+      if ((lastSeqnumGenState != null) && (lastSeqnumGenState.length()>0))
+      {
+        domainsServerStateForLastSeqnum = MultiDomainServerState.
+          splitGenStateToServerStates(lastSeqnumGenState);
+      }
+    }
+
+    // Domain by domain
+    Iterator<ReplicationServerDomain> rsdi = this.getDomainIterator();
+    if (rsdi != null)
+    {
+      while (rsdi.hasNext())
+      {
+        // process a domain
+        ReplicationServerDomain rsd = rsdi.next();
+
+        if (excludedServiceIDs.contains(rsd.getBaseDn()))
+          continue;
+
+        // for this domain, have the state in the replchangelog
+        // where the last DraftCN update is
+        ServerState domainServerStateForLastSeqnum;
+        if ((domainsServerStateForLastSeqnum == null) ||
+            (domainsServerStateForLastSeqnum.get(rsd.getBaseDn())==null))
+        {
+          domainServerStateForLastSeqnum = new ServerState();
+        }
+        else
+        {
+          domainServerStateForLastSeqnum =
+            domainsServerStateForLastSeqnum.get(rsd.getBaseDn());
+        }
+
+        // Count the number of (eligible) changes from this place
+        // to the eligible CN (cross server)
+        long ec = rsd.getEligibleCount(
+            domainServerStateForLastSeqnum, crossDomainEligibleCN);
+
+        // the state from which we started is the one BEFORE the lastdraftCN
+        // so we must decrement 1 to the EligibleCount
+        if ((ec>0) && (DraftCNdbIsEmpty==false))
+          ec--;
+
+        // cumulates on domains
+        lastDraftCN += ec;
+
+        // DraftCN Db is empty and there are eligible updates in the replication
+        // changelog then init first DraftCN
+        if ((ec>0) && (firstDraftCN==0))
+          firstDraftCN = 1;
+      }
+    }
+    return new int[]{firstDraftCN, lastDraftCN};
   }
 
 }
