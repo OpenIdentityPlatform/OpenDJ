@@ -200,38 +200,104 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
+    // --
+    // First set of test are in the cookie mode
+    
+    // Test that private backend is excluded from ECL
     ECLOnPrivateBackend();replicationServer.clearDb();
+    
+    // Test remote API (ECL through replication protocol) with empty ECL
     ECLRemoteEmpty();replicationServer.clearDb();
+    
+    // Test with empty changelog
     ECLEmpty();replicationServer.clearDb();
-    ECLAllOps();replicationServer.clearDb();
-    ECLRemoteNonEmpty();replicationServer.clearDb();
-    ECLTwoDomains();replicationServer.clearDb();
-    ECLPsearch(true, false);replicationServer.clearDb();
-    ECLPsearch(false, false);replicationServer.clearDb();
-    ECLSimulPsearches();replicationServer.clearDb();
+    
+    // Test all types of ops.  
+    ECLAllOps(); // Do not clean the db for the next test
 
+    // First and last should be ok whenever a request has been done or not
+    // in compat mode.
+    ECLCompatTestLimits(1,4);replicationServer.clearDb();
+
+    // Test remote API (ECL through replication protocol) with NON empty ECL
+    ECLRemoteNonEmpty();replicationServer.clearDb();
+
+    // Test with a mix of domains, a mix of DSes
+    ECLTwoDomains();replicationServer.clearDb();
+    
+    // Persistent search with changesOnly request
+    ECLPsearch(true, false);replicationServer.clearDb();
+
+    // Persistent search with init values request
+    ECLPsearch(false, false);replicationServer.clearDb();
+    
+    // Simultaneous psearches
+    ECLSimultaneousPsearches();replicationServer.clearDb();
+
+    // Test eligible count method.
+    ECLGetEligibleCountTest();replicationServer.clearDb();
+    
     // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
     // TODO:ECL Test notif control returned contains the cookie
     // TODO:ECL Test the attributes list and values returned in ECL entries
     // TODO:ECL Test search -s base, -s one
+    
+    // Test directly from the java obect that the changeTimeHeartbeatState 
+    // stored are ok.
     ChangeTimeHeartbeatTest();replicationServer.clearDb();
+    
+    // Test the different forms of filter that are parsed in order to
+    // optimize the request.
     ECLFilterTest();
 
+    // --
+    // Second set of test are in the draft compat mode
+    
+    // Empty replication changelog
     ECLCompatEmpty();
+
+    // Request from an invalid draft change number
     ECLCompatBadSeqnum();
-    ECLCompatWriteReadAllOps(1);
-    ECLCompatWriteReadAllOps(5);
+    
+    // Write changes and read ECL from start
+    int ts = ECLCompatWriteReadAllOps(1);
+
+    // Write additional changes and read ECL from a provided draft change number
+    ts = ECLCompatWriteReadAllOps(5);
+    
+    // Test request from a provided change number
     ECLCompatReadFrom(6);
+
+    // Test request from a provided change number interval
     ECLCompatReadFromTo(5,7);
+
+    // Test first and last draft changenumber
     ECLCompatTestLimits(1,8);
+
+    // Test first and last draft changenumber, a dd a new change, do not 
+    // search again the ECL, but search fro first and last
+    ECLCompatTestLimitsAndAdd(1,8, ts);
+
+    // Test DraftCNDb is purged when replication change log is purged
     ECLCompatPurge();
+    
+    // Test first and last are updated
     ECLCompatTestLimits(0,0);
+
+    // Persistent search in changesOnly mode
     ECLPsearch(true, true);replicationServer.clearDb();
+
+    // Persistent search in init + changes mode
     ECLPsearch(false, true);
+    
+    // Test Filter on replication csn
+    // TODO: test with optimization when code done.
     ECLFilterOnReplicationCsn();replicationServer.clearDb();
-    ECLSimulPsearches();replicationServer.clearDb();
+    
+    // Test simultaneous persistent searches in draft compat mode.
+    ECLSimultaneousPsearches();replicationServer.clearDb();
     
   }
 
@@ -592,6 +658,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(entries != null);
       assertTrue(entries.size()==0);
 
+      //
+      // Test lastExternalChangelogCookie attribute of the ECL
+      //
+      /* FIXME: uncomment when fix available
+      ExternalChangeLogSessionImpl session = 
+        new ExternalChangeLogSessionImpl(replicationServer);
+      MultiDomainServerState expectedLastCookie =
+        new MultiDomainServerState("o=test:;");
+      MultiDomainServerState lastCookie = session.getLastCookie();
+      assertTrue(expectedLastCookie.equalsTo(lastCookie),
+          " ExpectedLastCookie=" + expectedLastCookie +
+          " lastCookie=" + lastCookie);
+      assertLastCookieEquals(tn, expectedLastCookie);
+      */
+      
       // Cleaning
       if (domain2 != null)
         MultimasterReplication.deleteDomain(baseDn2);
@@ -917,47 +998,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(expectedLastCookie.equalsTo(lastCookie),
           " ExpectedLastCookie=" + expectedLastCookie +
           " lastCookie=" + lastCookie);
-
-      //
-      LinkedHashSet<String> lastcookieattribute = new LinkedHashSet<String>();
-      lastcookieattribute.add("lastExternalChangelogCookie");
-
-      searchOp = connection.processSearch(
-          ByteString.valueOf(""),
-          SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
-          0, // Size limit
-          0, // Time limit
-          false, // Types only
-          LDAPFilter.decode("(objectclass=*)"),
-          lastcookieattribute,
-          NO_CONTROL,
-          null);
-
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString()
-          + searchOp.getAdditionalLogMessage());
-      cookie = "";
-      entries = searchOp.getSearchEntries();
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          debugInfo(tn, "Result entry=\n" + resultEntry.toLDIFString());
-          ldifWriter.writeEntry(resultEntry);
-          try
-          {
-            List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
-            cookie = l.get(0).iterator().next().toString();
-          }
-          catch(NullPointerException e)
-          {}
-        }
-      }
-
-      assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(cookie)),
-          " Expected last cookie attribute value:" + expectedLastCookie +
-          " Read from server: " + cookie + " are equal :");
+      assertLastCookieEquals(tn, expectedLastCookie);
+      
       s1test.stop();
       s1test2.stop();
       s2test.stop();
@@ -973,6 +1015,61 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
+  private void assertLastCookieEquals(String tn,
+      MultiDomainServerState expectedLastCookie)
+  {
+    String cookie = "";
+    LDIFWriter ldifWriter = getLDIFWriter();
+
+    //
+    LinkedHashSet<String> lastcookieattribute = new LinkedHashSet<String>();
+    lastcookieattribute.add("lastExternalChangelogCookie");
+
+    try
+    {
+    InternalSearchOperation searchOp = 
+     connection.processSearch(
+        ByteString.valueOf(""),
+        SearchScope.BASE_OBJECT,
+        DereferencePolicy.NEVER_DEREF_ALIASES, 
+        0, // Size limit
+        0, // Time limit
+        false, // Types only
+        LDAPFilter.decode("(objectclass=*)"),
+        lastcookieattribute,
+        NO_CONTROL,
+        null);
+
+    assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+        searchOp.getErrorMessage().toString()
+        + searchOp.getAdditionalLogMessage());
+    LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+    if (entries != null)
+    {
+      for (SearchResultEntry resultEntry : entries)
+      {
+        ldifWriter.writeEntry(resultEntry);
+        try
+        {
+          List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
+          cookie = l.get(0).iterator().next().toString();
+        }
+        catch(NullPointerException e)
+        {}
+      }
+      
+    }
+    }
+    catch(Exception e)
+    {
+      fail("Ending test " + tn + " with exception:\n"
+          +  stackTraceToSingleLineString(e));      
+    }
+    assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(cookie)),
+        " Expected last cookie attribute value:" + expectedLastCookie +
+        " Read from server: " + cookie + " are equal :");
+  }
+  
   // simple update to be received
   private void ECLAllOps()
   {
@@ -1516,9 +1613,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Test parallel simultaneous psearch with different filters.
    */
-  private void ECLSimulPsearches()
+  private void ECLSimultaneousPsearches()
   {
-    String tn = "ECLSimulPsearches";
+    String tn = "ECLSimultaneousPsearches";
     debugInfo(tn, "Starting test \n\n");
     Socket s1, s2, s3 = null;
     boolean compatMode = false;
@@ -2304,10 +2401,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
   }
 
-  private void ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
+  private int ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
   {
     String tn = "ECLCompatWriteReadAllOps/" + String.valueOf(firstDraftChangeNumber);
     debugInfo(tn, "Starting test\n\n");
+    int ts = 1;
 
     try
     {
@@ -2318,7 +2416,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
           100, replicationServerPort,
           1000, true);
-      int ts = 1;
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -2583,6 +2680,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));      
     }
     debugInfo(tn, "Ending test with success");
+    return ts;
   }
 
   private void ECLCompatReadFrom(int firstDraftChangeNumber)
@@ -2987,4 +3085,134 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     debugInfo(tn, "Ending test with success");
   }
+
+  private void ECLCompatTestLimitsAndAdd(int expectedFirst, int expectedLast,
+      int ts)
+  {
+    String tn = "ECLCompatTestLimitsAndAdd";
+    debugInfo(tn, "Starting test\n\n");
+    try
+    {
+      ECLCompatTestLimits(expectedFirst, expectedLast);
+     
+      // Creates broker on o=test
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING), (short) 1201,
+          100, replicationServerPort,
+          1000, true);
+
+      String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+
+      // Publish DEL
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      DeleteMsg delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
+            user1entryUUID);
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+     
+      ECLCompatTestLimits(expectedFirst, expectedLast+1);
+      
+      server01.stop();
+    }
+    catch(Exception e)
+    {
+      fail("Ending "+tn+" test with exception:\n"
+          +  stackTraceToSingleLineString(e));
+    }
+    debugInfo(tn, "Ending test with success");
+  }
+
+  private void ECLGetEligibleCountTest()
+  {
+    String tn = "ECLGetEligibleCountTest";
+    debugInfo(tn, "Starting test\n\n");
+    String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+    try
+    {
+      // The replication changelog is empty
+      ReplicationServerDomain rsdtest =
+        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
+      long count = rsdtest.getEligibleCount(
+          new ServerState(), 
+          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+      assertEquals(count, 0);
+      
+      // Creates broker on o=test
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          100, replicationServerPort,
+          1000, true);
+
+      // Publish 1 message
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), 1, (short)1201);
+      DeleteMsg delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, 
+            user1entryUUID);
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+      sleep(300);
+
+      count = rsdtest.getEligibleCount(
+          new ServerState(), 
+          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+      assertEquals(count, 1);
+      
+      // Publish 1 message
+      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 2, (short)1201);
+      delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn2, 
+            user1entryUUID);
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+      sleep(300);
+
+      count = rsdtest.getEligibleCount(
+          new ServerState(), 
+          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+      assertEquals(count, 2);
+
+      count = rsdtest.getEligibleCount(
+          new ServerState(),  cn1);
+      assertEquals(count, 1);
+
+      ServerState ss = new ServerState();
+      ss.update(cn1);
+      count = rsdtest.getEligibleCount(ss, cn1);
+      assertEquals(count, 0);
+
+      count = rsdtest.getEligibleCount(ss, cn2);
+      assertEquals(count, 1);
+      
+      ss.update(cn2);
+      count = rsdtest.getEligibleCount(ss, 
+          new ChangeNumber(TimeThread.getTime(), 4, (short)1201));
+      assertEquals(count, 0);
+
+      // Publish 1 message
+      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 3, (short)1201);
+      delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn3, 
+            user1entryUUID);
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+      sleep(300);
+
+      ss.update(cn2);
+      count = rsdtest.getEligibleCount(ss, 
+          new ChangeNumber(TimeThread.getTime(), 4, (short)1201));
+      assertEquals(count, 1);
+      
+      
+      server01.stop();
+      
+    }
+    catch(Exception e)
+    {
+      fail("Ending "+tn+" test with exception:\n"
+          +  stackTraceToSingleLineString(e));
+    }
+    debugInfo(tn, "Ending test with success");
+  }
+
 }

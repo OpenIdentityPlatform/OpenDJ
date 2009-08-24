@@ -315,28 +315,28 @@ public class ModifyDNMsg extends ModifyCommonMsg
      if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "ModifyDNMsg content: " +
-        "\nprotocolVersion: " + protocolVersion +
-        "\ndn: " + dn +
-        "\nchangeNumber: " + changeNumber +
-        "\nuniqueId: " + uniqueId +
-        "\nassuredFlag: " + assuredFlag +
-        "\nnewRDN: " + newRDN +
-        "\nnewSuperior: " + newSuperior +
-        "\ndeleteOldRdn: " + deleteOldRdn;
+        " protocolVersion: " + protocolVersion +
+        " dn: " + dn +
+        " changeNumber: " + changeNumber +
+        " uniqueId: " + uniqueId +
+        " assuredFlag: " + assuredFlag +
+        " newRDN: " + newRDN +
+        " newSuperior: " + newSuperior +
+        " deleteOldRdn: " + deleteOldRdn;
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
       return "ModifyDNMsg content: " +
-        "\nprotocolVersion: " + protocolVersion +
-        "\ndn: " + dn +
-        "\nchangeNumber: " + changeNumber +
-        "\nuniqueId: " + uniqueId +
-        "\nnewRDN: " + newRDN +
-        "\nnewSuperior: " + newSuperior +
-        "\ndeleteOldRdn: " + deleteOldRdn +
-        "\nassuredFlag: " + assuredFlag +
-        "\nassuredMode: " + assuredMode +
-        "\nsafeDataLevel: " + safeDataLevel;
+        " protocolVersion: " + protocolVersion +
+        " dn: " + dn +
+        " changeNumber: " + changeNumber +
+        " uniqueId: " + uniqueId +
+        " newRDN: " + newRDN +
+        " newSuperior: " + newSuperior +
+        " deleteOldRdn: " + deleteOldRdn +
+        " assuredFlag: " + assuredFlag +
+        " assuredMode: " + assuredMode +
+        " safeDataLevel: " + safeDataLevel;
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }

@@ -212,6 +212,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void put(UpdateMsg update, ServerHandler sourceHandler)
     throws IOException
   {
+
     ChangeNumber cn = update.getChangeNumber();
     short id = cn.getServerId();
     sourceHandler.updateServerState(update);
@@ -3089,8 +3090,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * This methods count the changes, server by server :
-   * - from a start point (cn taken from the provided startState)
-   * - to an end point (the provided endCN).
+   * - from a serverState start point
+   * - to (inclusive) an end point (the provided endCN).
    * @param startState The provided start server state.
    * @param endCN The provided end change number.
    * @return The number of changes between startState and endCN.
@@ -3116,12 +3117,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         try
         {
           ri = h.generateIterator(startState.getMaxChangeNumber(sid));
-          startCN = ri.getChange().getChangeNumber();
+          if (ri.next()==true)
+          {
+            startCN = ri.getChange().getChangeNumber();
+          }
         }
         catch(Exception e)
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          // no change found (purge from CL)
           startCN = null;
         }
         finally
@@ -3136,19 +3139,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         if (startCN != null)
         {
           // Set on the change related to the endCN
-          ChangeNumber upperCN;
+          ChangeNumber upperCN = null;
           try
           {
             // Build a changenumber for this very server, with the timestamp
             // of the endCN
             ChangeNumber f = new ChangeNumber(endCN.getTime(), 0, sid);
             ri = h.generateIterator(f);
-            upperCN = ri.getChange().getChangeNumber();
+            if (ri.next()==true)
+            {
+              upperCN = ri.getChange().getChangeNumber();
+            }
           }
           catch(Exception e)
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            // no new change
             upperCN = h.getLastChange();
           }
           finally

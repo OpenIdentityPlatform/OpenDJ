@@ -43,7 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.server.DraftCNDB.*;
+import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
@@ -81,7 +81,6 @@ public class DraftCNDbHandler implements Runnable
   private boolean shutdown = false;
   private boolean trimDone = false;
   private DirectoryThread thread = null;
-  private final Object flushLock = new Object();
   private ReplicationServer replicationServer;
 
   // The maximum number of retries in case of DatabaseDeadlock Exception.
@@ -142,7 +141,8 @@ public class DraftCNDbHandler implements Runnable
     db.addEntry(key, value, serviceID, cn);
 
     if (debugEnabled())
-      TRACER.debugInfo("In DraftCNDbhandler.add, added: "
+      TRACER.debugInfo(
+          "In DraftCNDbhandler.add, added: "
         + " key=" + key
         + " value=" + value
         + " serviceID=" + serviceID

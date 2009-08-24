@@ -25,8 +25,8 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +39,8 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
@@ -48,6 +49,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 
@@ -63,7 +65,6 @@ public class FirstChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  private static final DebugTracer TRACER = getTracer();
   // The current configuration for this virtual attribute provider.
   private UserDefinedVirtualAttributeCfg currentConfig;
 
@@ -137,8 +138,19 @@ public class FirstChangeNumberVirtualAttributeProvider
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
       if (eclwe!=null)
       {
-        first = String.valueOf(
-            eclwe.getReplicationServer().getFirstDraftChangeNumber());
+        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
+        ArrayList<String> excludedDomains =
+          MultimasterReplication.getPrivateDomains();
+        if (!excludedDomains.contains(
+            ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
+          excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+
+        ReplicationServer rs = eclwe.getReplicationServer();
+        int[] limits = rs.getECLDraftCNLimits(
+            rs.getEligibleCN(), excludedDomains);
+
+        first = String.valueOf(limits[0]);
+
       }
     }
     catch(Exception e)
