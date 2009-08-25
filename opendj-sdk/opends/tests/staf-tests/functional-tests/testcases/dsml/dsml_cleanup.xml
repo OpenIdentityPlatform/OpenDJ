@@ -114,6 +114,22 @@
               { 'location'   : STAF_REMOTE_HOSTNAME ,
               'wcPath' : '%s/%s-%s' % (WC_DIRECTORY,WC_TYPE,WC_VERSION) }
             </call>
+            <message>'getting the list of generic known Issues spanning multiple tests'</message>
+            <call function="'runSTAFCommand'">
+              { 'name'      :  'backup tomcat log files',
+                'location'  :  STAXServiceMachine,
+                'service'   :  'FS',
+                'request'   :  'COPY ',
+                'arguments' :  'DIRECTORY %s/%s-%s/logs TODIRECTORY %s/tomcatLogBackup RECURSE' % (WC_DIRECTORY, WC_TYPE, WC_VERSION, local.temp)
+              }
+            </call>
+
+            <if expr="RC != 0">
+              <sequence>
+                <message>'Failed to backup tomcat log file'</message>
+                <return>0</return>
+              </sequence>
+            </if>
 
             <call function="'testCase_Postamble'"/>
           </sequence>
