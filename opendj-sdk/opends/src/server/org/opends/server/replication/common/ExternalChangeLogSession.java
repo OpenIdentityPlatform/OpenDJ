@@ -50,10 +50,4 @@ public interface ExternalChangeLogSession
   public abstract void close()
   throws DirectoryException;
 
-  /**
-   * Returns the last (newest) cookie value.
-   * @return the last cookie value.
-   */
-  public abstract MultiDomainServerState getLastCookie();
-
 }

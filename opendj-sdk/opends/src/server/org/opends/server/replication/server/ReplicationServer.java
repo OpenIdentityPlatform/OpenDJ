@@ -1699,4 +1699,32 @@ public class ReplicationServer
     return new int[]{firstDraftCN, lastDraftCN};
   }
 
+  /**
+   * Returns the last (newest) cookie value.
+   * @param excludedServiceIDs The list of serviceIDs excluded from ECL.
+   * @return the last cookie value.
+   */
+  public MultiDomainServerState getLastECLCookie(
+    ArrayList<String> excludedServiceIDs)
+  {
+    MultiDomainServerState result = new MultiDomainServerState();
+    // Initialize start state for  all running domains with empty state
+    Iterator<ReplicationServerDomain> rsdk = this.getDomainIterator();
+    if (rsdk != null)
+    {
+      while (rsdk.hasNext())
+      {
+        // process a domain
+        ReplicationServerDomain rsd = rsdk.next();
+
+        if ((excludedServiceIDs!=null)
+            && (excludedServiceIDs.contains(rsd.getBaseDn())))
+          continue;
+
+        result.update(rsd.getBaseDn(), rsd.getEligibleState(
+            getEligibleCN()));
+      }
+    }
+    return result;
+  }
 }

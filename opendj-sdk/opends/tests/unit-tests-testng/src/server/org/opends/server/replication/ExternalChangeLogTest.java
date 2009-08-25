@@ -578,6 +578,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test");
     try
     {
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          100, replicationServerPort,
+          1000, true);
+
+      // create and publish 1 change on each suffix
+      long time = TimeThread.getTime();
+      int ts = 1;
+      ChangeNumber cn1 = new ChangeNumber(time, ts++, (short)1201);
+      DeleteMsg delMsg1 =
+        new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, cn1, "ECLBasicMsg1uid");
+      server01.publish(delMsg1);
+      debugInfo(tn, "publishes:" + delMsg1);
+
       // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
@@ -628,9 +642,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         for (SearchResultEntry resultEntry : entries)
         {
           // Expect 
-          debugInfo(tn, "Entry returned=" + resultEntry.toLDIFString());
+          debugInfo(tn, "Entry returned when test2 is public =" +
+              resultEntry.toLDIFString());
         }
-      assertEquals(entries.size(),1, "Entries number returned by search");
+      assertEquals(entries.size(),2, "Entries number returned by search");
 
       //
       // Set the backend private and do again a search on ECL that should
@@ -651,27 +666,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           controls,
           null);
       
-      // Expect success but no entry returned
+      // Expect success and only entry from o=test returned
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
           searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
       entries = searchOp.getSearchEntries();
       assertTrue(entries != null);
-      assertTrue(entries.size()==0);
+      assertTrue(entries.size()==1);
+      if (entries != null)
+        for (SearchResultEntry resultEntry : entries)
+        {
+          // Expect 
+          debugInfo(tn, "Entry returned when test2 is private ="
+              + resultEntry.toLDIFString());
+        }
 
       //
       // Test lastExternalChangelogCookie attribute of the ECL
-      //
-      /* FIXME: uncomment when fix available
-      ExternalChangeLogSessionImpl session = 
-        new ExternalChangeLogSessionImpl(replicationServer);
+      // (does only refer to non private backend)
       MultiDomainServerState expectedLastCookie =
-        new MultiDomainServerState("o=test:;");
-      MultiDomainServerState lastCookie = session.getLastCookie();
-      assertTrue(expectedLastCookie.equalsTo(lastCookie),
-          " ExpectedLastCookie=" + expectedLastCookie +
-          " lastCookie=" + lastCookie);
+        new MultiDomainServerState("o=test:"+cn1+";");
       assertLastCookieEquals(tn, expectedLastCookie);
-      */
       
       // Cleaning
       if (domain2 != null)
@@ -679,6 +693,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       if (replicationPlugin != null)
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
       removeTestBackend2(backend2);
+      
+      server01.stop();
     }
     catch(Exception e)
     {
@@ -990,14 +1006,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //
       // Test lastExternalChangelogCookie attribute of the ECL
       //
-      ExternalChangeLogSessionImpl session = 
-        new ExternalChangeLogSessionImpl(replicationServer);
       MultiDomainServerState expectedLastCookie =
         new MultiDomainServerState("o=test:"+cn5+" "+cn9+";o=test2:"+cn3+" "+cn8+";");
-      MultiDomainServerState lastCookie = session.getLastCookie();
-      assertTrue(expectedLastCookie.equalsTo(lastCookie),
-          " ExpectedLastCookie=" + expectedLastCookie +
-          " lastCookie=" + lastCookie);
       assertLastCookieEquals(tn, expectedLastCookie);
       
       s1test.stop();
@@ -1745,21 +1755,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s1 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r1 = new org.opends.server.tools.LDAPReader(s1);
       LDAPWriter w1 = new LDAPWriter(s1);
-      s1.setSoTimeout(5000);
+      s1.setSoTimeout(15000);
       bindAsManager(w1, r1);
 
       // Connects and bind
       s2 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r2 = new org.opends.server.tools.LDAPReader(s2);
       LDAPWriter w2 = new LDAPWriter(s2);
-      s2.setSoTimeout(5000);
+      s2.setSoTimeout(15000);
       bindAsManager(w2, r2);
 
       // Connects and bind
       s3 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r3 = new org.opends.server.tools.LDAPReader(s3);
       LDAPWriter w3 = new LDAPWriter(s3);
-      s3.setSoTimeout(5000);
+      s3.setSoTimeout(15000);
       bindAsManager(w3, r3);
 
       // Since we are going to be watching the post-response count, we need to

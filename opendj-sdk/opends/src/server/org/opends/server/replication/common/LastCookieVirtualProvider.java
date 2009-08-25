@@ -27,6 +27,7 @@
 
 package org.opends.server.replication.common;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +40,8 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.replication.server.ExternalChangeLogSessionImpl;
+import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
@@ -48,6 +50,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 /**
@@ -133,15 +136,21 @@ public class LastCookieVirtualProvider
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
       if (eclwe!=null)
       {
-        ExternalChangeLogSessionImpl eclsession =
-          new ExternalChangeLogSessionImpl(eclwe.getReplicationServer());
+        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
+        ArrayList<String> excludedDomains =
+          MultimasterReplication.getPrivateDomains();
+        if (!excludedDomains.contains(
+            ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
+          excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
-        String lastCookie = eclsession.getLastCookie().toString();
+        ReplicationServer rs = eclwe.getReplicationServer();
+        MultiDomainServerState lastCookie =
+          rs.getLastECLCookie(excludedDomains);
 
         AttributeValue value =
           AttributeValues.create(
-              ByteString.valueOf(lastCookie),
-              ByteString.valueOf(lastCookie));
+              ByteString.valueOf(lastCookie.toString()),
+              ByteString.valueOf(lastCookie.toString()));
         values=Collections.singleton(value);
       }
       return values;
