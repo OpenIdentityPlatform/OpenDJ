@@ -111,7 +111,7 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.util.cli.CommandBuilder;
 
 /**
- * The clss that appears when the user clicks on 'New Base DN'.
+ * The class that appears when the user clicks on 'New Base DN'.
  *
  */
 public class NewBaseDNPanel extends StatusGenericPanel
@@ -625,11 +625,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       if (errors.isEmpty())
       {
-        // TODO: delete this check
-        if (!continueToOverwriteBackend())
-        {
-          return;
-        }
         launchOperation(newTask,
             INFO_CTRL_PANEL_CREATING_BASE_DN_SUMMARY.get(dn),
             INFO_CTRL_PANEL_CREATING_BASE_DN_COMPLETE.get(),
@@ -648,38 +643,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       displayErrorDialog(errors);
     }
-  }
-
-  /**
-   * TODO: once the append is supported in the import-ldif, delete this method.
-   * @return <CODE>true</CODE> if the user accepted to overwrite the backend
-   * contents and <CODE>false</CODE> otherwise.
-   */
-  private boolean continueToOverwriteBackend()
-  {
-    boolean userConfirmed = true;
-    if (!isNewBackend() && isServerRunning())
-    {
-      String backendName = getBackendName();
-      for (BackendDescriptor bck :
-        getInfo().getServerDescriptor().getBackends())
-      {
-        if (bck.getBackendID().equalsIgnoreCase(backendName))
-        {
-          if (bck.getEntries() > 0)
-          {
-            // Ask confirmation: append is not supported and we are going to
-            // overwrite the contents of the backend.
-            userConfirmed = displayConfirmationDialog(
-                INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
-                INFO_CTRL_PANEL_CONFIRMATION_IMPORT_LDIF_DETAILS.get(
-                    backendName));
-          }
-          break;
-        }
-      }
-    }
-    return userConfirmed;
   }
 
   private String getBackendName()
@@ -866,8 +829,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           }
           args.add("--backendID");
           args.add(getBackendName());
-          // TODO: uncomment this line once import supports append again
-          // args.add("--append");
+          args.add("--append");
         }
         else
         {
