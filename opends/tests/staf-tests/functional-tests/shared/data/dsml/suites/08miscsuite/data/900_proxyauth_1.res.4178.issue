@@ -1,0 +1,7 @@
+HTTP1.1 200 OK
+Date: Wed, 19 Aug 2009 11:53:46 GMT
+Server: Apache-Coyote/1.1
+Content-Type: text/xml
+Connection: close
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body><batchResponse xmlns="urn:oasis:names:tc:DSML:2:0:core"><modifyResponse><resultCode code="32"/><errorMessage>Entry cn=paul cezanne,ou=americas,ou=search,o=imc,c=us cannot be modified because no such entry exists in the server</errorMessage></modifyResponse></batchResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

@@ -51,7 +51,7 @@
               suiteList = []
               suiteList.append('dsml_test')
             </script>
-    
+
             <!-- Run the test suites -->
             <iterate  var="_suite" in="suiteList">
               <sequence>              

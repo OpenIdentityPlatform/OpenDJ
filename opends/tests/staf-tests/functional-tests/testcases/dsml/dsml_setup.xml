@@ -51,7 +51,7 @@
               </message>
               <call function="'prepareInstanceCreation'">
                 { 'groupDataDir' : 'dsml',
-                  'fileExtensions' : ['dat','res'] }
+                  'fileExtensions' : ['dat','res','issue'] }
               </call>
               <call function="'checktestRC'">
                 {
@@ -132,9 +132,9 @@
               </message>
               <script>
                 dsmlBaseDNs = {
-                  'o=dsmlfe.com'      : ('dsmlfe.ldif', 'dsmlfe_BE'),
-                  'dc=example,dc=com' : ('oasis.ldif', 'oasis_BE'),
-                  'o=IMC, c=US'       : ('search.ldif', 'example_BE')
+                  'o=dsmlfe.com'      : ('dsmlfe.ldif', 'dsmlfe_BE', 160),
+                  'dc=example,dc=com' : ('oasis.ldif', 'oasis_BE', 160),
+                  'o=IMC, c=US'       : ('search.ldif', 'example_BE', 1084),
                 }
               </script>
               <iterate var="baseDN" in="dsmlBaseDNs.keys()">
@@ -180,6 +180,34 @@
                       'backEnd' : '%s' % dsmlBaseDNs.get(baseDN)[1]
                     }
                   </call>
+                  <script>
+                    nbEntriesExpected = dsmlBaseDNs.get(baseDN)[2]
+                  </script>
+                  <call function="'ldapSearchWithScript'">
+                    {
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                    'dsCountEntries' : 'True' ,
+                    'dsBaseDN'       : baseDN,
+                    'dsFilter'       : 'objectclass=*' ,
+                    'expectedRC'     : 'noCheck'
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'checktestString'">
+                    {
+                    'returnString'     : returnString ,
+                    'expectedString'   : 'Total number of matching entries: %s' % nbEntriesExpected,
+                    'issue'            : '4178'
+                    }
+                  </call>
+
                   <call function="'checkRC'">
                     { 'returncode' : RC ,
                       'result'     : STAXResult }

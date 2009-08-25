@@ -1,18 +1,7 @@
-HTTP/1.1 200 OK
-X-Powered-By: Servlet/2.5
-Server: Sun Java System Application Server 9.1
+HTTP1.1 200 OK
+Date: Wed, 19 Aug 2009 11:49:52 GMT
+Server: Apache-Coyote/1.1
 Content-Type: text/xml
-Date: Thu, 29 Nov 2007 15:25:35 GMT
 Connection: close
 
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-<SOAP-ENV:Body>
-<dsml:batchResponse xmlns:dsml="urn:oasis:names:tc:DSML:2:0:core" requestID="Mandatory attribute [newrdn] of [modDNRequest] element is empty">
-<dsml:modDNResponse>
-<dsml:resultCode code="32"/>
-<dsml:errorMessage>
-The modify DN operation for entry uid=abergin,ou=People,dc=siroe,dc=com cannot be performed because no backend is registered to handle that DN</dsml:errorMessage>
-</dsml:modDNResponse>
-</dsml:batchResponse>
-</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body><batchResponse xmlns="urn:oasis:names:tc:DSML:2:0:core" requestID="Mandatory attribute [newrdn] of [modDNRequest] element is empty"><modDNResponse><resultCode code="34"/><errorMessage>Unable to decode the provided string as a relative distinguished name because the provided string was empty or null</errorMessage></modDNResponse></batchResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

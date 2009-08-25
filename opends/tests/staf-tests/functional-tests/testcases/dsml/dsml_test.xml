@@ -91,6 +91,10 @@
               # The subversion folder could be present, if so remove it
               if familyList.count != 0:
                 try:
+                  familyList.remove('genericIssues')
+                except ValueError:
+                  print "List element genericIssues does not exist"
+                try:
                   familyList.remove('.svn')
                 except ValueError:
                   print "List element .svn does not exist"
@@ -104,6 +108,31 @@
                 'SSL'   : 'https://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_SSL_PORT) \
               }
             </script>
+            <message>'dsml list of suites %s' % familyList</message>
+            <message>'getting the list of generic known Issues spanning multiple tests'</message>
+            <call function="'runSTAFCommand'">
+              { 'name'      :  'list known generic issues',
+                'location'  :  STAXServiceMachine,
+                'service'   :  'FS',
+                'request'   :  'LIST DIRECTORY',
+                'arguments' :  '%s/dsml/suites/genericIssues EXT issue RECURSE' % (local.data)
+              }
+            </call>
+
+            <if expr="RC != 0">
+              <sequence>
+                <message>
+                  'Failed to get known generic issues from %s/dsml/suites/genericIssues' % (local.data)
+                </message>
+                <return>0</return>
+              </sequence>
+              <else>
+                <script>
+                  genericIssues = STAFResult
+                </script>
+              </else>
+            </if>
+            
             <message>'DSML familyList = %s' % familyList</message>
             <iterate var="family" in="familyList">
               <sequence>
@@ -136,7 +165,7 @@
                 <script>
                   familyExpected = STAFResult
                 </script>
-    
+
                 <iterate var="test" in="familyInput">
                   <testcase name="getTestCaseName('%s-%s' % (family,test))">
                     <sequence>
@@ -250,7 +279,110 @@
                                   'arguments' :  '%s EXP_FILE %s' %(runFilePath, expectedFilePath)
                                 }
                               </call>
-        
+                              <if expr="RC != 0">
+                                <!-- list the known issue for the TC -->
+                              <sequence>
+
+
+                                <message>"check against test's known issues"</message>
+
+                                <call function="'runSTAFCommand'">
+                                  { 'name'      :  'list known issues for the test',
+                                    'location'  :  STAXServiceMachine,
+                                    'service'   :  'FS',
+                                    'request'   :  'LIST DIRECTORY',
+                                    'arguments' :  '%s/dsml/suites/%s/data NAME %s* EXT issue RECURSE' % (local.data,family,expectedFileName)
+                                  }
+                                </call>
+
+                                <if expr="RC != 0">
+                                  <sequence>
+                                    <message>
+                                      'Failed to get known issues for %s/dsml/suites/%s/data/%s ' % (local.data,family,expectedFileName)
+                                    </message>
+                                    <return>0</return>
+                                  </sequence>
+                                  <else>
+                                    <try>
+                                      <sequence>
+                                        <script>
+                                          knownTestIssues = STAFResult
+                                        </script>
+                                        <message >'known Test Issues %s' % knownTestIssues</message>
+                                        <if expr="len(knownTestIssues) > 0">
+                                          <iterate var="issueFile" in="knownTestIssues">
+                                            <sequence>
+                                              <script>
+                                                  # the issue number is the before last element of the '.' splited path
+                                                  issue=issueFile.split('.')[-2]
+                                                  issueFilePath = '%s/dsml/suites/%s/data/%s' % (local.data,family,issueFile)
+                                              </script>
+                                              <call function="'runSTAFCommand'">
+                                                { 'name'      :  'check if known issue %s' % issue,
+                                                  'location'  :  STAXServiceMachine,
+                                                  'service'   :  'DSML',
+                                                  'request'   :  'COMPARE',
+                                                  'arguments' :  'FILE %s EXP_FILE %s' %(runFilePath, issueFilePath)
+
+                                                }
+                                              </call>
+                                              <if expr="RC == 0">
+                                                <sequence>
+                                                  <!-- this is a known issue -->
+                                                  <call function="'setKnownIssue'">
+                                                    { 'issueId' : issue }
+                                                  </call>
+                                                  <break/>
+                                                </sequence>
+                                              </if>
+                                            </sequence>
+                                          </iterate>
+                                        </if>
+                                        <if expr="len(genericIssues) > 0">
+                                          <iterate var="issueFile" in="genericIssues">
+                                            <sequence>
+                                              <script>
+                                                  # the issue number is the before last element of the '.' splited path
+                                                  issue=issueFile.split('.')[-2]
+                                                  issueFilePath = '%s/dsml/suites/genericIssues/%s' % (local.data,issueFile)
+                                              </script>
+                                              <call function="'runSTAFCommand'">
+                                                { 'name'      :  'check if known generic issue %s' % issue,
+                                                  'location'  :  STAXServiceMachine,
+                                                  'service'   :  'DSML',
+                                                  'request'   :  'COMPARE',
+                                                  'arguments' :  'FILE %s EXP_FILE %s' %(runFilePath, issueFilePath)
+
+                                                }
+                                              </call>
+                                              <if expr="RC == 0">
+                                                <sequence>
+                                                  <!-- this is a known issue -->
+                                                  <call function="'setKnownIssue'">
+                                                    { 'issueId' : issue }
+                                                  </call>
+                                                  <break/>
+                                                </sequence>
+                                              </if>
+                                            </sequence>
+                                          </iterate>
+                                        </if>
+                                      </sequence>
+                                      <catch exception="'...'" typevar="eType" var="eInfo">
+                                        <sequence>
+                                          <message log="1" level="'fatal'">
+                                            'Test case (%s) failed. eType(%s),eInfo(%s)' % (STAXCurrentTestcase,eType,eInfo)
+                                          </message>
+                                          <tcstatus result="'fail'"/>
+                                        </sequence>
+                                      </catch>
+                                    </try>
+                                  </else>
+                                </if>
+
+                              </sequence>
+
+                              </if>
                               <call function="'checktestRC'">
                                 {
                                 'returncode' : RC ,
