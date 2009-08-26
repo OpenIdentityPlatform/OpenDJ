@@ -47,7 +47,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.authorization.dseecompat.AciProvider
+          org.opends.server.authorization.dseecompat.AciHandler
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
