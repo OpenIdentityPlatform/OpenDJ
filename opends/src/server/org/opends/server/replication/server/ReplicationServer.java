@@ -737,12 +737,13 @@ public class ReplicationServer
       replicationServerDomain.shutdown();
     }
 
+    shutdownECL();
+
     if (dbEnv != null)
     {
       dbEnv.shutdown();
     }
 
-    shutdownECL();
 }
 
 
