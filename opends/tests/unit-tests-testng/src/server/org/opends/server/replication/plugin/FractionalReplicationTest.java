@@ -1241,7 +1241,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // The domain should go back in normal status
       waitForDomainStatus(fractionalReplicationDomain,
-        ServerStatus.NORMAL_STATUS, 5);
+        ServerStatus.NORMAL_STATUS, 15);
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
