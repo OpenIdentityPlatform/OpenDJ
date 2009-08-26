@@ -36,7 +36,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 
 import com.sleepycat.je.Cursor;
@@ -59,7 +58,6 @@ public class DraftCNDB
   private Database db = null;
   private ReplicationDbEnv dbenv = null;
   private ReplicationServer replicationServer;
-  private DN baseDn;
 
   // The maximum number of retries in case of DatabaseDeadlock Exception.
   private static final int DEADLOCK_RETRIES = 10;
@@ -407,7 +405,7 @@ public class DraftCNDB
   @Override
   public String toString()
   {
-    return "DraftCNDB:" + baseDn.toString();
+    return "DraftCNDB";
   }
 
   /**
@@ -677,8 +675,8 @@ public class DraftCNDB
     }
 
     /**
-     * a.
-     * @return a.
+     * Go to the next record on the cursor.
+     * @return the next record on this cursor.
      * @throws DatabaseException a.
      */
     public boolean next() throws DatabaseException
