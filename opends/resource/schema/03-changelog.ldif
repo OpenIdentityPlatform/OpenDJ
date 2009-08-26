@@ -69,21 +69,25 @@ attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.724 NAME 'replicaIdentifier'
   DESC 'the OpenDS replication domain server identifier for the change'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
+  USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.725 NAME 'replicationCSN'
   DESC 'The OpenDS replication change number for the change'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
+  USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.590 NAME 'targetEntryUUID'
   DESC 'The OpenDS unique id of the entry targeted by the change'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
+  USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.591 NAME 'changeLogCookie'
   DESC 'The OpenDS opaque cookie for the External Changelog'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
+  USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 2.16.840.1.113730.3.2.1 NAME 'changeLogEntry' SUP top
   STRUCTURAL 

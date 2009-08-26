@@ -880,6 +880,8 @@ public class ECLSearchOperation
       String changetype)
   throws DirectoryException
   {
+    AttributeType attributeType;
+
     String dnString = "";
     if (draftChangenumber == 0)
     {
@@ -909,25 +911,38 @@ public class ECLSearchOperation
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
 
-    // MUST attributes
+    // REQUIRED attributes
 
     // ECL Changelog draft change number
+    if((attributeType =
+      DirectoryServer.getAttributeType("changenumber")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("changenumber");
     Attribute a = Attributes.create("changenumber",
         String.valueOf(draftChangenumber));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     //
+    if((attributeType =
+      DirectoryServer.getAttributeType("changetime")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("changetime");
     SimpleDateFormat dateFormat;
     dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
-    a = Attributes.create(
-        DirectoryServer.getAttributeType("changetime", true),
+    a = Attributes.create(attributeType,
         dateFormat.format(new Date(changeNumber.getTime())));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     /* Change time in a friendly format
     Date date = new Date(changeNumber.getTime());
@@ -938,32 +953,59 @@ public class ECLSearchOperation
      */
 
     //
-    a = Attributes.create("changetype", changetype);
+    if((attributeType =
+      DirectoryServer.getAttributeType("changetype")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("changetype");
+    a = Attributes.create(attributeType, changetype);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     //
-    a = Attributes.create(
-        DirectoryServer.getAttributeType("targetdn", true),
+    if((attributeType =
+      DirectoryServer.getAttributeType("targetdn")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("targetdn");
+    a = Attributes.create(attributeType,
         targetDN.toNormalizedString());
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
-    // MAY attributes
+    // NON REQUESTED attributes
 
-    a = Attributes.create("replicationcsn", changeNumber.toString());
+    if((attributeType =
+            DirectoryServer.getAttributeType("replicationcsn")) == null)
+        attributeType =
+                DirectoryServer.getDefaultAttributeType("replicationcsn");
+    a = Attributes.create(attributeType, changeNumber.toString());
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    operationalAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     //
-    a = Attributes.create("replicaidentifier",
+    if((attributeType =
+      DirectoryServer.getAttributeType("replicaidentifier")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("replicaidentifier");
+    a = Attributes.create(attributeType,
         Short.toString(changeNumber.getServerId()));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    operationalAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     if (clearLDIFchanges != null)
     {
@@ -982,35 +1024,64 @@ public class ECLSearchOperation
       }
       else
       {
-        AttributeType at = DirectoryServer.getAttributeType("changes");
-        a = Attributes.create(at, clearLDIFchanges + "\n"); // force base64
+        if((attributeType =
+          DirectoryServer.getAttributeType("changes")) == null)
+          attributeType =
+              DirectoryServer.getDefaultAttributeType("changes");
+        a = Attributes.create(attributeType, clearLDIFchanges + "\n");
+        // force base64
       }
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
-      uAttrs.put(a.getAttributeType(), attrList);
+      if(attributeType.isOperational())
+        operationalAttrs.put(attributeType, attrList);
+      else
+        uAttrs.put(attributeType, attrList);
     }
 
     if (targetUUID != null)
     {
-      a = Attributes.create("targetentryuuid", targetUUID);
+      if((attributeType =
+        DirectoryServer.getAttributeType("targetentryuuid")) == null)
+        attributeType =
+            DirectoryServer.getDefaultAttributeType("targetentryuuid");
+      a = Attributes.create(attributeType, targetUUID);
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
-      operationalAttrs.put(a.getAttributeType(), attrList);
+      if(attributeType.isOperational())
+        operationalAttrs.put(attributeType, attrList);
+      else
+        uAttrs.put(attributeType, attrList);
+
       if (draftChangenumber>0)
       {
         // compat mode
-        a = Attributes.create("targetuniqueid",
+        if((attributeType =
+          DirectoryServer.getAttributeType("targetuniqueid")) == null)
+          attributeType =
+              DirectoryServer.getDefaultAttributeType("targetuniqueid");
+        a = Attributes.create(attributeType,
             ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID));
         attrList = new ArrayList<Attribute>(1);
         attrList.add(a);
-        operationalAttrs.put(a.getAttributeType(), attrList);
+        if(attributeType.isOperational())
+          operationalAttrs.put(attributeType, attrList);
+        else
+          uAttrs.put(attributeType, attrList);
       }
     }
 
-    a = Attributes.create("changelogcookie", cookie);
+    if((attributeType =
+      DirectoryServer.getAttributeType("changelogcookie")) == null)
+      attributeType =
+          DirectoryServer.getDefaultAttributeType("changelogcookie");
+    a = Attributes.create(attributeType, cookie);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
-    operationalAttrs.put(a.getAttributeType(), attrList);
+    if(attributeType.isOperational())
+      operationalAttrs.put(attributeType, attrList);
+    else
+      uAttrs.put(attributeType, attrList);
 
     // entryAttribute version
     /*
