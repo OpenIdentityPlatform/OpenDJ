@@ -628,7 +628,7 @@ public class ReplicationServer
 
 }
 
-  private void finalizeECL()
+  private void shutdownECL()
   {
     WorkflowImpl eclwf =
       (WorkflowImpl)WorkflowImpl.getWorkflow(externalChangeLogWorkflowID);
@@ -662,7 +662,9 @@ public class ReplicationServer
       eclwe.finalizeWorkflowElement();
     }
 
-}
+    if (draftCNDbHandler != null)
+      draftCNDbHandler.shutdown();
+  }
 
   /**
    * Get the ReplicationServerDomain associated to the base DN given in
@@ -740,7 +742,7 @@ public class ReplicationServer
       dbEnv.shutdown();
     }
 
-    finalizeECL();
+    shutdownECL();
 }
 
 
