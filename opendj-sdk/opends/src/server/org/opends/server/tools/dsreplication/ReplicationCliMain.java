@@ -2267,11 +2267,29 @@ public class ReplicationCliMain extends ConsoleApplication
         hostDestination = ci.getHostName();
         portDestination = ci.getPortNumber();
 
-        ctxDestination = createInitialLdapContextInteracting(ci);
-
-        if (ctxDestination == null)
+        boolean error = false;
+        if (hostSource.equalsIgnoreCase(hostDestination))
         {
-          cancelled = true;
+          if (portSource == portDestination)
+          {
+            portDestination = -1;
+            Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
+                hostSource, String.valueOf(portSource));
+            println();
+            println(message);
+            println();
+            error = true;
+          }
+        }
+
+        if (!error)
+        {
+          ctxDestination = createInitialLdapContextInteracting(ci);
+
+          if (ctxDestination == null)
+          {
+            cancelled = true;
+          }
         }
       }
       catch (ClientException ce)
