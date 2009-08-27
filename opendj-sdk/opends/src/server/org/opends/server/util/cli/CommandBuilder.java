@@ -51,10 +51,12 @@ public class CommandBuilder
   private ArrayList<Argument> args = new ArrayList<Argument>();
   private HashSet<Argument> obfuscatedArgs = new HashSet<Argument>();
 
-  // The value used to display arguments that must be obfuscated (such as
-  // passwords).  This does not require localization (since the output of
-  // command builder by its nature is not localized).
-  private final static String OBFUSCATED_VALUE = "******";
+  /**
+   * The value used to display arguments that must be obfuscated (such as
+   * passwords).  This does not require localization (since the output of
+   * command builder by its nature is not localized).
+   */
+  public final static String OBFUSCATED_VALUE = "******";
 
   /**
    * The constructor for the CommandBuilder.

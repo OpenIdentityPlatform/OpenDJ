@@ -1783,6 +1783,8 @@ public class ArgumentParser
               OPTION_LONG_CERT_NICKNAME.equals(longId) ||
               OPTION_LONG_REFERENCED_HOST_NAME.equals(longId) ||
               OPTION_LONG_ADMIN_UID.equals(longId) ||
+              OPTION_LONG_ADMIN_PWD.equals(longId) ||
+              OPTION_LONG_ADMIN_PWD_FILE.equals(longId) ||
               OPTION_LONG_REPORT_AUTHZ_ID.equals(longId) ||
               OPTION_LONG_USE_PW_POLICY_CTL.equals(longId) ||
               OPTION_LONG_USE_SASL_EXTERNAL.equals(longId) ||
