@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="main_import-tasks"/>
+  <function name="main_import-tasks" scope="local">
+    <sequence>
+      <block name="'main_import-tasks'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group']='backends'        
+              CurrentTestPath['suite']='import-tasks'
+              
+              __group=CurrentTestPath['group']
+              __groupdir='%s/testcases/%s' % (TESTS_DIR,__group)
+            </script>
+
+            <!--- Test Suite information
+            #@TestSuiteName       Backend Import Tests
+            #@TestSuitePurpose    Verify that the basic import task functionality is working in the Directory Server.
+            #@TestSuiteID         Import Task Tests
+            #@TestSuiteGroup      Import Task
+            #@TestGroup           Backend
+            #@TestScript          import.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+            -->
+
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              <sequence> 
+
+                <call function="'common_setup'">
+                  {
+                    'quickStart'  : False ,
+                    'startServer' : True ,
+                    'loadData'    : False ,
+                    'stopServer'  : False
+                  }
+                </call>
+ 
+                <!-- List of Import of Test Functions -->
+                <script>
+                  importList=[]
+                  importList.append('import-tasks/import-tasks_tests')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="__import" in="importList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (__groupdir,__import)"/>
+                </iterate>                                                                       
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('backends_import_tasks_001')
+                  testsList.append('backends_import_tasks_002')
+                  testsList.append('backends_import_tasks_003')
+                  testsList.append('backends_import_tasks_004')
+                  testsList.append('backends_import_tasks_005')
+                  testsList.append('backends_import_tasks_006')
+                  testsList.append('backends_import_tasks_007')
+                  testsList.append('backends_import_tasks_008')
+                  testsList.append('backends_import_tasks_009')
+                  testsList.append('backends_import_tasks_010')
+                  testsList.append('backends_import_tasks_011')
+                  testsList.append('backends_import_tasks_012')
+                  testsList.append('backends_import_tasks_013')
+                  testsList.append('backends_import_tasks_014')
+                  testsList.append('backends_import_tasks_015')
+                  testsList.append('backends_import_tasks_016')
+                  testsList.append('backends_import_tasks_017')
+                  testsList.append('backends_import_tasks_018')
+                  testsList.append('backends_import_tasks_019')
+                  testsList.append('backends_import_tasks_020')
+                  testsList.append('backends_import_tasks_021')
+                  testsList.append('backends_import_tasks_022')
+                  testsList.append('backends_import_tasks_023')
+                  testsList.append('backends_import_tasks_024')
+                  testsList.append('backends_import_tasks_025')
+                  testsList.append('backends_import_tasks_026')
+                  testsList.append('backends_import_tasks_027')
+                  testsList.append('backends_import_tasks_028')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
+                                
+              </sequence>
+            <catch exception="'STAFException.TestSuite.SetupException'">
+              <sequence>
+                <message log="1" level="'fatal'">
+                  'Setup of test suite failed.'
+                </message>
+                <rethrow/>
+              </sequence>
+            </catch>
+
+            <finally>
+              <message>'Test Cases Completed.'</message>
+            </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Schema Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+      </block>
+    </sequence>
+  </function>
+</stax>

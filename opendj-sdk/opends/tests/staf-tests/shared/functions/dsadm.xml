@@ -863,19 +863,19 @@
                   
         if dsIncludeBranch:
           for InBranch in dsIncludeBranch:
-            STAFCmdParamsList.append('-b %s ' % InBranch) 
+            STAFCmdParamsList.append('-b "%s" ' % InBranch) 
           
         if dsExcludeBranch:
           for ExBranch in dsExcludeBranch:
-            STAFCmdParamsList.append('-B %s ' % ExBranch) 
+            STAFCmdParamsList.append('-B "%s" ' % ExBranch) 
           
         if dsIncludeAttribute:
           for InAttr in dsIncludeAttribute:
-            STAFCmdParamsList.append('-i %s ' % InAttr)
+            STAFCmdParamsList.append('-i "%s" ' % InAttr)
           
         if dsExcludeAttribute:
           for ExAttr in dsExcludeAttribute:
-            STAFCmdParamsList.append('-e %s ' % ExAttr)
+            STAFCmdParamsList.append('-e "%s" ' % ExAttr)
           
         if dsIncludeFilter:
           for InFilter in dsIncludeFilter:
@@ -1396,7 +1396,9 @@
               'dsInstanceDn'   : mydn ,
               'dsInstancePswd' : mypswd ,
               'dsBaseDN'       : '%s' % expectedEntry ,
-              'dsFilter'       : 'objectclass=*' 
+              'dsScope'        : 'base' ,
+              'dsFilter'       : 'objectclass=*',
+              'attributes'     : 'dn'
             }
           </call>
           <call function="'checktestRC'">
@@ -1420,7 +1422,9 @@
              'dsInstanceDn'   : mydn ,
              'dsInstancePswd' : mypswd ,
              'dsBaseDN'       : '%s' % missingEntry ,
+             'dsScope'        : 'base' ,
              'dsFilter'       : 'objectclass=*' ,
+             'attributes'     : 'dn' ,
              'expectedRC'     : 32
             }
           </call>
