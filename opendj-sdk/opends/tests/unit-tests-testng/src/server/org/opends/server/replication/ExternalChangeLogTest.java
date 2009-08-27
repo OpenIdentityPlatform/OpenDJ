@@ -28,6 +28,7 @@ package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
 import static org.opends.server.util.StaticUtils.createEntry;
@@ -37,11 +38,14 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -104,6 +108,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
@@ -128,6 +133,7 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -1199,6 +1205,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
           searchOp.getErrorMessage().toString());
       // test 4 entries returned
+      String cookie1 = "o=test:"+cn1.toString()+";o=test2:;";
+      String cookie2 = "o=test:"+cn2.toString()+";o=test2:;";
+      String cookie3 = "o=test:"+cn3.toString()+";o=test2:;";
+      String cookie4 = "o=test:"+cn4.toString()+";o=test2:;";
+      
       assertEquals(searchOp.getSearchEntries().size(), 4);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       if (entries != null)
@@ -1218,7 +1229,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","delete");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie",cookie1);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid1");
             checkValue(resultEntry,"changenumber","0");
           } else if (i==2)
@@ -1235,7 +1246,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","add");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn2.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie",cookie2);
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber","0");
           } else if (i==3)
@@ -1250,7 +1261,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modify");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie",cookie3);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid3");
             checkValue(resultEntry,"changenumber","0");
           } else if (i==4)
@@ -1262,7 +1273,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modrdn");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie",cookie4);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid4");
             checkValue(resultEntry,"newrdn","uid=ECLAllOpsnew4");            
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
@@ -1271,6 +1282,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           }
         }
       }
+      
+      // Test the response control with ldapsearch tool
+      String result = ldapsearch("cn=changelog");
+      debugInfo(tn, "Entries:" + result);
+
+      ArrayList<String> ctrlList = getControls(result);
+      assertTrue(ctrlList.get(0).equals(cookie1));
+      assertTrue(ctrlList.get(1).equals(cookie2));
+      assertTrue(ctrlList.get(2).equals(cookie3));
+      assertTrue(ctrlList.get(3).equals(cookie4));
+      
       server01.stop();
       if (server02 != null)
         server02.stop();
@@ -1281,6 +1303,56 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));      
     }
     debugInfo(tn, "Ending test with success");
+  }
+
+  protected ArrayList<String> getControls(String resultString)
+  {
+    StringReader r=new StringReader(resultString);
+    BufferedReader br=new BufferedReader(r);
+    ArrayList<String> ctrlList = new ArrayList<String>();
+    try {
+      while(true) {
+        String s = br.readLine();
+        if(s == null)
+          break;
+        if(!s.startsWith("#"))
+          continue;
+        String[] a=s.split(": ");
+        if(a.length != 2)
+          break;
+        ctrlList.add(a[1]);
+      }
+    } catch (IOException e) {
+      Assert.assertEquals(0, 1,  e.getMessage());
+    }
+    return ctrlList;
+  }
+
+  private static final ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+  private static final ByteArrayOutputStream eStream = new ByteArrayOutputStream();
+
+  private String ldapsearch(String baseDN)
+  {
+    // test search as directory manager returns content
+    String[] args3 =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-Z", "-X",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", baseDN,
+      "-s", "sub",
+      "--control", "1.3.6.1.4.1.26027.1.5.4:false:;",
+      "(objectclass=*)"
+    };
+
+    oStream.reset();
+    eStream.reset();
+    int retVal =
+      LDAPSearch.mainSearch(args3, false, oStream, eStream);
+    Assert.assertEquals(0, retVal,  "Returned error: " + eStream.toString());
+    return oStream.toString();
   }
 
   private static void checkValue(Entry entry, String attrName, String expectedValue)

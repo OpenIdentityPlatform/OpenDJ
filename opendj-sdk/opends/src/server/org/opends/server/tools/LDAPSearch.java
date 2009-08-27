@@ -274,6 +274,25 @@ public class LDAPSearch
                       }
                     } catch (Exception e) {}
                   }
+                  else if (c.getOID().equals(OID_ECL_COOKIE_EXCHANGE_CONTROL))
+                  {
+                    try
+                    {
+                      EntryChangelogNotificationControl ctrl =
+                        EntryChangelogNotificationControl.DECODER.decode(
+                          c.isCritical(), ((LDAPControl) c).getValue());
+                      out.println(
+                          INFO_LDAPSEARCH_PUBLIC_CHANGELOG_COOKIE_EXC.get(
+                            c.getOID(), ctrl.getCookie()));
+                    }
+                    catch (Exception e)
+                    {
+                      if (debugEnabled())
+                      {
+                        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                      }
+                    }
+                  }
                 }
 
                 SearchResultEntryProtocolOp searchEntryOp =

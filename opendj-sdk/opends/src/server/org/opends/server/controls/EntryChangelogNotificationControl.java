@@ -25,8 +25,8 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
-import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ECN_NO_CONTROL_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_ECLN_CANNOT_DECODE_VALUE;
+import static org.opends.messages.ProtocolMessages.ERR_ECLN_NO_CONTROL_VALUE;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -72,12 +72,12 @@ public class EntryChangelogNotificationControl
      * {@inheritDoc}
      */
     public EntryChangelogNotificationControl decode(
-        boolean isCritical, ByteString value) throws DirectoryException
-        {
+        boolean isCritical, ByteString value)
+    throws DirectoryException
+    {
       if (value == null)
       {
-        // FIXME:ECL Create error messages dedicated to this control
-        Message message = ERR_ECN_NO_CONTROL_VALUE.get();
+        Message message = ERR_ECLN_NO_CONTROL_VALUE.get();
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
       }
 
@@ -97,11 +97,11 @@ public class EntryChangelogNotificationControl
         }
 
         Message message =
-          ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
+          ERR_ECLN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
       }
       return new EntryChangelogNotificationControl(isCritical, cookie);
-        }
+    }
 
     public String getOID()
     {
@@ -141,8 +141,11 @@ public class EntryChangelogNotificationControl
    */
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence();
     writer.writeOctetString(cookie.toString());
     writer.writeEndSequence();
+    writer.writeEndSequence();
+    writer.flush();
   }
 
 
