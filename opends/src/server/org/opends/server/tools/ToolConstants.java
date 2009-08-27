@@ -635,6 +635,15 @@ public class ToolConstants
    */
   public static final String OPTION_LONG_ADMIN_UID = "adminUID";
 
+  /**
+   * Long form of admin password.
+   */
+  public static final String OPTION_LONG_ADMIN_PWD = "adminPassword";
+
+  /**
+   * Long form of admin password file.
+   */
+  public static final String OPTION_LONG_ADMIN_PWD_FILE = "adminPasswordFile";
 
   /**
    * Long form of report authorization ID connection option.

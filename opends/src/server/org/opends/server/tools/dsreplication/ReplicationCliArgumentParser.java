@@ -512,15 +512,16 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.add(index++, secureArgsList.adminUidArg);
 
-    secureArgsList.bindPasswordArg = new StringArgument("adminPassword",
-        OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
+    secureArgsList.bindPasswordArg = new StringArgument(
+        OPTION_LONG_ADMIN_PWD.toLowerCase(),
+        OPTION_SHORT_BINDPWD, OPTION_LONG_ADMIN_PWD, false, false, true,
         INFO_BINDPWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
     defaultArgs.add(index++, secureArgsList.bindPasswordArg);
 
     secureArgsList.bindPasswordFileArg = new FileBasedArgument(
-        "adminPasswordFile",
-        OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
+        OPTION_LONG_ADMIN_PWD_FILE.toLowerCase(),
+        OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_ADMIN_PWD_FILE, false, false,
         INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
     defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
