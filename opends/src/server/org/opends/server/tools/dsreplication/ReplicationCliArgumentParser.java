@@ -1913,7 +1913,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()) &&
         !isInteractive())
     {
-      if (port1Arg.getValue() == port2Arg.getValue())
+      if (port1Arg.getValue().equals(port2Arg.getValue()))
       {
         Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
             hostName1Arg.getValue(), port1Arg.getValue());
@@ -2033,7 +2033,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     if (hostNameSourceArg.getValue().equalsIgnoreCase(
         hostNameDestinationArg.getValue()) && !isInteractive())
     {
-      if (portSourceArg.getValue() == portDestinationArg.getValue())
+      if (portSourceArg.getValue().equals(portDestinationArg.getValue()))
       {
         Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
             hostNameSourceArg.getValue(), portSourceArg.getValue());
