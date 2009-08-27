@@ -59,6 +59,22 @@ public class CommandBuilder
   public final static String OBFUSCATED_VALUE = "******";
 
   /**
+   * The separator used to link the lines of the resulting command-lines.
+   */
+  public final static String LINE_SEPARATOR;
+  static
+  {
+    if (SetupUtils.isWindows())
+    {
+      LINE_SEPARATOR = " ";
+    }
+    else
+    {
+      LINE_SEPARATOR = " \\\n          ";
+    }
+  }
+
+  /**
    * The constructor for the CommandBuilder.
    * @param commandName the command name.
    */
@@ -175,26 +191,17 @@ public class CommandBuilder
       {
         argName = "-"+arg.getShortIdentifier();
       }
-      String separator;
-      if (SetupUtils.isWindows())
-      {
-        separator = " ";
-      }
-      else
-      {
-        separator = " \\\n          ";
-      }
 
       if (arg instanceof BooleanArgument)
       {
-        builder.append(separator+argName);
+        builder.append(LINE_SEPARATOR+argName);
       }
       else if (arg instanceof FileBasedArgument)
       {
         for (String value :
           ((FileBasedArgument)arg).getNameToValueMap().keySet())
         {
-          builder.append(separator+argName+" ");
+          builder.append(LINE_SEPARATOR+argName+" ");
           if (isObfuscated(arg) && !showObfuscated)
           {
             value = OBFUSCATED_VALUE;
@@ -210,7 +217,7 @@ public class CommandBuilder
       {
         for (String value : arg.getValues())
         {
-          builder.append(separator+argName+" ");
+          builder.append(LINE_SEPARATOR+argName+" ");
           if (isObfuscated(arg) && !showObfuscated)
           {
             value = OBFUSCATED_VALUE;
