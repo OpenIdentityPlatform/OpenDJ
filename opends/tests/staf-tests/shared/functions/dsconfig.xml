@@ -405,7 +405,9 @@
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
@@ -421,14 +423,18 @@
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstanceDn" type="required">
+      <function-arg-def name="dsInstanceDn"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePswd" type="required">
+      <function-arg-def name="dsInstancePswd"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
           Bind password
         </function-arg-description>
