@@ -618,7 +618,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         }
         catch (ParseException pe)
         {
-         throw new IllegalStateException("Unexpected error: "+pe, pe);
+         throw new RuntimeException("Unexpected error: "+pe, pe);
         }
       }
       else

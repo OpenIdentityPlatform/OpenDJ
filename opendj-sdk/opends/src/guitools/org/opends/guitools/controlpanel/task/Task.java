@@ -979,7 +979,7 @@ public abstract class Task
         catch (NamingException ne)
         {
           // Bug
-          throw new IllegalStateException(
+          throw new RuntimeException(
               "Unexpected error parsing modifications: "+ne, ne);
         }
       }

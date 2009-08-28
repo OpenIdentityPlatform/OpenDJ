@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -461,7 +461,7 @@ implements EntryReadListener
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Error decoding DNs: "+t, t);
+      throw new RuntimeException("Error decoding DNs: "+t, t);
     }
   }
 
@@ -493,7 +493,7 @@ implements EntryReadListener
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Error decoding DNs: "+t, t);
+      throw new RuntimeException("Error decoding DNs: "+t, t);
     }
     return isReadOnly;
   }
@@ -537,7 +537,7 @@ implements EntryReadListener
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Error decoding DNs: "+t, t);
+      throw new RuntimeException("Error decoding DNs: "+t, t);
     }
     return canDelete;
   }

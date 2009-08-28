@@ -993,7 +993,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         }
         catch (OpenDsException ode)
         {
-          throw new IllegalStateException(
+          throw new RuntimeException(
               "Unexpected error decoding dn. Details: "+ode.getMessageObject(),
               ode);
         }

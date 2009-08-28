@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -370,7 +370,7 @@ public class LDAPConnectionPool {
           ConnectionUtils.getBindPassword(ctx), false);
     }
     catch (NamingException x) {
-      throw new IllegalStateException("Bug");
+      throw new RuntimeException("Bug");
     }
   }
 

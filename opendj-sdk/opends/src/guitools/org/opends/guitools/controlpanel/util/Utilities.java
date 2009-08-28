@@ -1191,7 +1191,7 @@ public class Utilities
             b = (byte) 0xF0;
             break;
           default:
-            throw new IllegalStateException("Unexpected byte: "+escapedByte1);
+            throw new RuntimeException("Unexpected byte: "+escapedByte1);
           }
 
           byte escapedByte2 = stringBytes[++i];
@@ -1251,7 +1251,7 @@ public class Utilities
             b |= 0x0F;
             break;
           default:
-            throw new IllegalStateException("Unexpected byte: "+escapedByte2);
+            throw new RuntimeException("Unexpected byte: "+escapedByte2);
           }
 
           decodedBytes[pos++] = b;
@@ -1265,7 +1265,7 @@ public class Utilities
     catch (UnsupportedEncodingException uee)
     {
 //    This is a bug, UTF-8 should be supported always by the JVM
-      throw new IllegalStateException("UTF-8 encoding not supported", uee);
+      throw new RuntimeException("UTF-8 encoding not supported", uee);
     }
   }
 

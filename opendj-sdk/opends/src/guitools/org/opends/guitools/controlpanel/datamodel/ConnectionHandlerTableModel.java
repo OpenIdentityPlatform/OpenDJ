@@ -337,7 +337,7 @@ implements Comparator<ConnectionHandlerDescriptor>
         break;
 
       default:
-        throw new IllegalStateException("Unknown state: "+desc.getState());
+        throw new RuntimeException("Unknown state: "+desc.getState());
       }
       dataArray.add(s);
     }

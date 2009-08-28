@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -168,7 +168,7 @@ public class IndexTableModel extends AbstractIndexTableModel
         v = INFO_CTRL_PANEL_INDEX_APPROXIMATE.get();
         break;
       default:
-        throw new IllegalStateException("Unknown index type: "+type);
+        throw new RuntimeException("Unknown index type: "+type);
       }
       if (sb.length() > 0)
       {

@@ -1177,7 +1177,7 @@ public class ControlPanelInfo
       }
       break;
     default:
-      throw new IllegalStateException("Unknown policy: "+getConnectionPolicy());
+      throw new RuntimeException("Unknown policy: "+getConnectionPolicy());
     }
     return url;
   }

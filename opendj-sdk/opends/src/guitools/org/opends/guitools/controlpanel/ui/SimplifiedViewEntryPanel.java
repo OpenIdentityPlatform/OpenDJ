@@ -1701,7 +1701,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Unexpected error: "+t, t);
+      throw new RuntimeException("Unexpected error: "+t, t);
     }
     return sb.toString();
   }
@@ -2068,7 +2068,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           }
           catch (ParseException pe)
           {
-            throw new IllegalStateException("Unexpected error: "+pe);
+            throw new RuntimeException("Unexpected error: "+pe);
           }
         }
         else

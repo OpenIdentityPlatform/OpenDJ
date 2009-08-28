@@ -136,7 +136,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Could not decode DNs: "+t, t);
+      throw new RuntimeException("Could not decode DNs: "+t, t);
     }
   }
 

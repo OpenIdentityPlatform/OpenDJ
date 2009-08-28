@@ -331,7 +331,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
         }
         else
         {
-          throw new IllegalStateException("Unexpected component: "+l);
+          throw new RuntimeException("Unexpected component: "+l);
         }
       }
     }
@@ -349,7 +349,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
         }
         else
         {
-          throw new IllegalStateException("Unexpected component: "+l);
+          throw new RuntimeException("Unexpected component: "+l);
         }
       }
     }

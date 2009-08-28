@@ -534,7 +534,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
           entryPane.updateJavaInformation();
           break;
         default:
-          throw new IllegalStateException("Unknown node type: "+type);
+          throw new RuntimeException("Unknown node type: "+type);
         }
       }
       else
@@ -673,7 +673,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       }
       else
       {
-        throw new IllegalStateException("Unexpected tree node: "+value);
+        throw new RuntimeException("Unexpected tree node: "+value);
       }
       return icon;
     }
