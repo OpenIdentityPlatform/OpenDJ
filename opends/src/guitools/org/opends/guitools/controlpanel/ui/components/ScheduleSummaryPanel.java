@@ -160,7 +160,7 @@ public class ScheduleSummaryPanel extends JPanel
     }
     else
     {
-      throw new IllegalStateException("Unknown schedule type: "+type);
+      throw new RuntimeException("Unknown schedule type: "+type);
     }
   }
 

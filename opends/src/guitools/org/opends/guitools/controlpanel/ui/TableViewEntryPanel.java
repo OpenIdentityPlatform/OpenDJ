@@ -403,7 +403,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     }
     catch (Throwable t)
     {
-      throw new IllegalStateException("Unexpected error: "+t, t);
+      throw new RuntimeException("Unexpected error: "+t, t);
     }
     return sb.toString();
   }

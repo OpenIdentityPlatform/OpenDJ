@@ -108,7 +108,7 @@ public class DeleteEntryTask extends Task
       }
       catch (DirectoryException de)
       {
-        throw new IllegalStateException("Unexpected error parsing dn: "+
+        throw new RuntimeException("Unexpected error parsing dn: "+
             node.getDN(), de);
       }
     }
@@ -253,7 +253,7 @@ public class DeleteEntryTask extends Task
         }
         catch (DirectoryException de)
         {
-          throw new IllegalStateException("Unexpected error parsing dn: "+
+          throw new RuntimeException("Unexpected error parsing dn: "+
               node.getDN(), de);
         }
       }

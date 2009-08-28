@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -764,7 +764,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           }
           catch (OpenDsException ode)
           {
-            throw new IllegalStateException("Unexpected error decoding DN: "+
+            throw new RuntimeException("Unexpected error decoding DN: "+
                 member, ode);
           }
         }

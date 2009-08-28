@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -446,7 +446,7 @@ public class AddToGroupPanel extends StatusGenericPanel
       }
       catch (OpenDsException ode)
       {
-        throw new IllegalStateException(
+        throw new RuntimeException(
             "Unexpected error decoding dn. Details: "+ode.getMessageObject(),
             ode);
       }
@@ -475,7 +475,7 @@ public class AddToGroupPanel extends StatusGenericPanel
       catch (Throwable t)
       {
         // Unexpected error: getEntry() should work after calling checkSyntax
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
     if (errors.size() > 0)

@@ -364,7 +364,7 @@ public class NewEntryTask extends Task
       catch (Throwable t)
       {
         // Bug
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
     return parentNode;

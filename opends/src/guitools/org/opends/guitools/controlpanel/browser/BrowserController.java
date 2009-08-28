@@ -1338,7 +1338,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       catch (IOException ioe)
       {
         // Bug
-        throw new IllegalStateException("Unexpected encoding exception: "+ioe,
+        throw new RuntimeException("Unexpected encoding exception: "+ioe,
             ioe);
       }
     }
@@ -1521,7 +1521,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
 
     if (node.isLeaf() && (node.getChildCount() >= 1)) {
-      throw new IllegalStateException("Inconsistent node: " + node.getDN());
+      throw new RuntimeException("Inconsistent node: " + node.getDN());
     }
 
   }

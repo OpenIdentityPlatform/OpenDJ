@@ -1358,7 +1358,7 @@ implements ConfigChangeListener
           }
           catch (Throwable t)
           {
-            throw new IllegalStateException("Unexpected error: "+t, t);
+            throw new RuntimeException("Unexpected error: "+t, t);
           }
         }
         hmBaseDNs.put(backendID, baseDNs);
@@ -1476,7 +1476,7 @@ implements ConfigChangeListener
             }
             catch (Throwable t)
             {
-              throw new IllegalStateException("Unexpected error: "+t, t);
+              throw new RuntimeException("Unexpected error: "+t, t);
             }
             dns.add(dn);
             SortedSet<AbstractIndexDescriptor> indexes =
@@ -1878,7 +1878,7 @@ implements ConfigChangeListener
       int n = Integer.parseInt(stringValue);
       if ((n > maxValue) || (n < minValue))
       {
-        throw new IllegalStateException("Invalid value");
+        throw new RuntimeException("Invalid value");
       }
     }
     catch (Throwable t)

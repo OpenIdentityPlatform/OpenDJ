@@ -122,7 +122,7 @@ public class ModifyEntryTask extends Task
     }
     catch (OpenDsException ode)
     {
-      throw new IllegalStateException("Could not parse DN: "+oldEntry.getDN(),
+      throw new RuntimeException("Could not parse DN: "+oldEntry.getDN(),
           ode);
     }
     modifications = getModifications(newEntry, oldEntry, getInfo());
@@ -314,7 +314,7 @@ public class ModifyEntryTask extends Task
           }
           catch (Throwable t)
           {
-            throw new IllegalStateException("Unexpected error: "+t, t);
+            throw new RuntimeException("Unexpected error: "+t, t);
           }
         }
         else
@@ -343,7 +343,7 @@ public class ModifyEntryTask extends Task
       catch (NamingException ne)
       {
         // This should not happen
-        throw new IllegalStateException("Unexpected exception: "+ne, ne);
+        throw new RuntimeException("Unexpected exception: "+ne, ne);
       }
     }
   }
@@ -549,7 +549,7 @@ public class ModifyEntryTask extends Task
       }
       catch (DirectoryException de)
       {
-        throw new IllegalStateException("Unexpected error parsing DN: "+
+        throw new RuntimeException("Unexpected error parsing DN: "+
             oldEntry.getDN(), de);
       }
       for (int i=0; i<oldRDN.getNumValues(); i++)

@@ -386,7 +386,7 @@ class StatusPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
 
@@ -884,7 +884,7 @@ class StatusPanel extends StatusGenericPanel
       break;
 
     default:
-      throw new IllegalStateException("Unknown status: "+desc.getStatus());
+      throw new RuntimeException("Unknown status: "+desc.getStatus());
     }
     return status.toString();
   }

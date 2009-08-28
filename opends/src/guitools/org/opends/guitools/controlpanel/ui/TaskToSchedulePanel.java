@@ -664,7 +664,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     }
     else
     {
-      throw new IllegalStateException("Unknown schedule type: "+type);
+      throw new RuntimeException("Unknown schedule type: "+type);
     }
     return schedule;
   }

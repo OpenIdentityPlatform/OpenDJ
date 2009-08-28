@@ -199,7 +199,7 @@ public class ScheduleType
       toString = "Schedule Type: periodical schedule "+cronValue;
       break;
       default:
-        throw new IllegalStateException("Invalid type: "+type);
+        throw new RuntimeException("Invalid type: "+type);
     }
     return toString;
   }

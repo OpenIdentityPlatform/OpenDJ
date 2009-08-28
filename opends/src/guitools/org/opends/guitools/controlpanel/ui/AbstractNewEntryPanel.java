@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -168,7 +168,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
       catch (Throwable t)
       {
         // Unexpected error: getEntry() should work after calling checkSyntax
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
       String dn = entry.getDN().toString();
       // Checking for the existence of an entry is fast enough so we can do
@@ -208,7 +208,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
       catch (Throwable t)
       {
         // Unexpected error: getEntry() should work after calling checkSyntax
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
     }
     if (errors.size() > 0)

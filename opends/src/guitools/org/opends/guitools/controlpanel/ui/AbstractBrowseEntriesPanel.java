@@ -448,7 +448,7 @@ implements BackendPopulatedListener
             }
             catch (Throwable t)
             {
-              throw new IllegalStateException("Unexpected error decoding dn "+
+              throw new RuntimeException("Unexpected error decoding dn "+
                   newBaseDn, t);
             }
             if (newElement != null)
@@ -1180,7 +1180,7 @@ implements BackendPopulatedListener
           }
           catch (Throwable t)
           {
-            throw new IllegalStateException("Unexpected error: "+t, t);
+            throw new RuntimeException("Unexpected error: "+t, t);
           }
           if (baseDN.getEntries() > 0)
           {

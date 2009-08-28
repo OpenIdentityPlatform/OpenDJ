@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -681,7 +681,7 @@ class NodeRefresher extends AbstractNodeTask {
       }
       catch (Throwable t)
       {
-        throw new IllegalStateException("Error decoding dn: "+parentDn+" . "+t,
+        throw new RuntimeException("Error decoding dn: "+parentDn+" . "+t,
             t);
       }
       NamingEnumeration<SearchResult> entries = ctx.search(
@@ -714,7 +714,7 @@ class NodeRefresher extends AbstractNodeTask {
           }
           catch (Throwable t)
           {
-            throw new IllegalStateException("Error decoding dns: "+t, t);
+            throw new RuntimeException("Error decoding dns: "+t, t);
           }
 
           if (!add)
@@ -743,7 +743,7 @@ class NodeRefresher extends AbstractNodeTask {
               }
               catch (Throwable t)
               {
-                throw new IllegalStateException("Error decoding dn: "+
+                throw new RuntimeException("Error decoding dn: "+
                     addedEntry.getName()+" . "+t, t);
               }
             }
@@ -771,7 +771,7 @@ class NodeRefresher extends AbstractNodeTask {
                       }
                       catch (Throwable t)
                       {
-                        throw new IllegalStateException("Error decoding dn: "+
+                        throw new RuntimeException("Error decoding dn: "+
                             node.getDN()+" . "+t, t);
                       }
                     }

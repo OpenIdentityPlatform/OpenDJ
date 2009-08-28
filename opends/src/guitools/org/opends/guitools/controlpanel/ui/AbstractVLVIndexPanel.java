@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 
@@ -604,7 +604,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     catch (Throwable t)
     {
       // Bug
-      throw new IllegalStateException("Unexpected error: "+t, t);
+      throw new RuntimeException("Unexpected error: "+t, t);
     }
     return confirm;
   }
@@ -730,7 +730,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        throw new IllegalStateException("Unexpected error: "+t, t);
+        throw new RuntimeException("Unexpected error: "+t, t);
       }
       newElements.add(dn);
     }

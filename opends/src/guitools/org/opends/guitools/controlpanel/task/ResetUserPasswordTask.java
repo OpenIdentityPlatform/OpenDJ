@@ -100,7 +100,7 @@ public class ResetUserPasswordTask extends Task
     }
     catch (OpenDsException ode)
     {
-      throw new IllegalStateException("Could not parse DN: "+node.getDN(), ode);
+      throw new RuntimeException("Could not parse DN: "+node.getDN(), ode);
     }
     try
     {

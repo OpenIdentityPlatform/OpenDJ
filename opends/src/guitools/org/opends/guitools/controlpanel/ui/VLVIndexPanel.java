@@ -930,7 +930,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
       catch (OpenDsException odse)
       {
-        throw new IllegalStateException("Unexpected error parsing DN "+
+        throw new RuntimeException("Unexpected error parsing DN "+
             getBaseDN()+": "+odse, odse);
       }
       if (indexToModify.getScope() != scope)
