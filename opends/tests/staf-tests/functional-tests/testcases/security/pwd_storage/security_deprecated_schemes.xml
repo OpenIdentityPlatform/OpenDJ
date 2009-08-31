@@ -182,7 +182,7 @@
                     'newAttributeValue'      : 'cn=MD5,cn=Password Storage Schemes,cn=config' ,
                     'changetype'             : 'delete' }
             </call>
-            
+                    
             <call function="'testCase_Postamble'"/>
          
           </sequence>
@@ -224,25 +224,25 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Check that MD5 hashed password was deleted from from user's entry-->
+        <!--- Test Case : Check that MD5 hashed password is still present from existing user's entry-->
        <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                Deprecated Schemes
             #@TestName                  Check For MD5 Password Deletion
             #@TestIssue                 323
-            #@TestPurpose               Test to determine if the user password in MD5 scheme was deleted.
+            #@TestPurpose               Test to determine if the user password in MD5 scheme is listed.
             #@TestPreamble              none
             #@TestStep                  Admin retrieves userpassword from user entry.
             #@TestPostamble             none
-            #@TestResult                Success if the prefix string, {MD5}, is not found
-                                        in the userpassword.
+            #@TestResult                Success if the prefix string, {MD5}, is found
+                                        in the userpassword of an already existing user.
         -->
-        <testcase name="getTestCaseName('Deprecated Schemes - Check For Deletion')">
+        <testcase name="getTestCaseName('Deprecated Schemes - Check For MD5 on an existing entry')">
           <sequence>
             <call function="'testCase_Preamble'"/>
              <message>
-               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating'
+               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating - Existing User'
             </message>
 
             <call function="'SearchObject'">
@@ -259,13 +259,84 @@
              returnString = STAXResult[0][1]
             </script> 
 
-            <call function="'checktestStringNotPresent'">
+            <call function="'checktestString'">
                 { 'returnString'       : returnString ,
-                  'testString'         : 'MD5' }
+                  'expectedString'         : 'MD5' }
             </call>
             
             <call function="'testCase_Postamble'"/>
           
+          </sequence>
+        </testcase>
+
+
+        <!--- Test Case : Check that MD5 hashed password is deleted from new user's entry-->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Deprecated Schemes
+            #@TestName                  Check For MD5 Password Deletion
+            #@TestIssue                 323
+            #@TestPurpose               Test to determine if the user password in MD5 scheme is not present.
+            #@TestPreamble              none
+            #@TestStep                  Admin retrieves userpassword from user entry.
+            #@TestPostamble             none
+            #@TestResult                Success if the prefix string, {MD5}, is not found
+                                        in the userpassword for a new entry.
+        -->
+        <testcase name="getTestCaseName('Deprecated Schemes - Check For MD5 not present for a new entry')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+             <message>
+               'Security: Deprecating Pwd Schemes: Checking for MD5 Hashed Pwd After Deprecating - New User'
+            </message>
+
+            <!-- Add an entry -->
+              <script>
+                listAttr = []
+                listAttr.append('objectclass:top')
+                listAttr.append('objectclass:organizationalperson')
+                listAttr.append('objectclass:inetorgperson')
+                listAttr.append('objectclass:person')
+                listAttr.append('givenname:test')
+                listAttr.append('sn:test')
+                listAttr.append('cn:test')
+                listAttr.append('mail:test')
+                listAttr.append('userPassword:usermd5')
+              </script>
+
+            <call function="'addAnEntry'">
+              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'DNToAdd'        : 'uid=test, ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com',
+                'listAttributes' : listAttr
+              }
+            </call>
+
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : 'uid=test, ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com',
+                'dsFilter'         : 'objectclass=*'  ,
+                'attributes'       : 'userpassword' }
+            </call>
+
+            <script>
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'checktestStringNotPresent'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'MD5' }
+            </call>
+
+            <call function="'testCase_Postamble'"/>
+
           </sequence>
         </testcase>
 
