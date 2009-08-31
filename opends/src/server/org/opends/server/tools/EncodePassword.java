@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -36,8 +36,10 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -170,6 +172,7 @@ public class EncodePassword
     BooleanArgument   useCompareResultCode = null;
     BooleanArgument   listSchemes          = null;
     BooleanArgument   showUsage            = null;
+    BooleanArgument   interactivePassword  = null;
     StringArgument    clearPassword        = null;
     FileBasedArgument clearPasswordFile    = null;
     StringArgument    encodedPassword      = null;
@@ -195,6 +198,11 @@ public class EncodePassword
               INFO_ENCPW_DESCRIPTION_LISTSCHEMES.get());
       argParser.addArgument(listSchemes);
 
+      interactivePassword = new BooleanArgument(
+              "interactivePassword", 'i',
+              "interactivePassword",
+              INFO_ENCPW_DESCRIPTION_INPUT_PW.get());
+      argParser.addArgument(interactivePassword);
 
       clearPassword = new StringArgument("clearpw", 'c', "clearPassword", false,
                                          false, true, INFO_CLEAR_PWD.get(),
@@ -315,6 +323,25 @@ public class EncodePassword
       return 1;
     }
 
+    if (clearPassword.isPresent() && interactivePassword.isPresent())
+    {
+      Message message =
+              ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(),
+                  interactivePassword.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    if (clearPasswordFile.isPresent() && interactivePassword.isPresent())
+    {
+      Message message =
+              ERR_TOOL_CONFLICTING_ARGS.get(
+                  clearPasswordFile.getLongIdentifier(),
+                  interactivePassword.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
     if (encodedPassword.isPresent() && encodedPasswordFile.isPresent())
     {
       Message message =
@@ -331,24 +358,6 @@ public class EncodePassword
     ByteString clearPW = null;
     if (! listSchemes.isPresent())
     {
-      if (clearPassword.hasValue())
-      {
-        clearPW = ByteString.valueOf(clearPassword.getValue());
-      }
-      else if (clearPasswordFile.hasValue())
-      {
-        clearPW = ByteString.valueOf(clearPasswordFile.getValue());
-      }
-      else
-      {
-        Message message =
-                ERR_ENCPW_NO_CLEAR_PW.get(clearPassword.getLongIdentifier(),
-                clearPasswordFile.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return 1;
-      }
-
       if ((! encodedPassword.isPresent()) && (! encodedPasswordFile.isPresent())
            && (! schemeName.isPresent()))
       {
@@ -623,6 +632,15 @@ public class EncodePassword
           return 1;
         }
 
+        if (clearPW == null)
+        {
+          clearPW = getClearPW(out, err, argParser, clearPassword,
+              clearPasswordFile, interactivePassword);
+          if (clearPW == null)
+          {
+            return 1;
+          }
+        }
         if (storageScheme.authPasswordMatches(clearPW, authInfo, authValue))
         {
           Message message = INFO_ENCPW_PASSWORDS_MATCH.get();
@@ -711,6 +729,15 @@ public class EncodePassword
           }
         }
 
+        if (clearPW == null)
+        {
+          clearPW = getClearPW(out, err, argParser, clearPassword,
+              clearPasswordFile, interactivePassword);
+          if (clearPW == null)
+          {
+            return 1;
+          }
+        }
         if (storageScheme.passwordMatches(clearPW,
             ByteString.valueOf(encodedPWString)))
         {
@@ -773,6 +800,15 @@ public class EncodePassword
       {
         try
         {
+          if (clearPW == null)
+          {
+            clearPW = getClearPW(out, err, argParser, clearPassword,
+                clearPasswordFile, interactivePassword);
+            if (clearPW == null)
+            {
+              return 1;
+            }
+          }
           encodedPW = storageScheme.encodeAuthPassword(clearPW);
 
           Message message = ERR_ENCPW_ENCODED_PASSWORD.get(
@@ -796,6 +832,15 @@ public class EncodePassword
       {
         try
         {
+          if (clearPW == null)
+          {
+            clearPW = getClearPW(out, err, argParser, clearPassword,
+                clearPasswordFile, interactivePassword);
+            if (clearPW == null)
+            {
+              return 1;
+            }
+          }
           encodedPW = storageScheme.encodePasswordWithScheme(clearPW);
 
           Message message =
@@ -961,5 +1006,204 @@ public class EncodePassword
       }
     }
   }
+
+  /**
+   * Get the clear password.
+   * @param out The output to ask password.
+   * @param err The error output.
+   * @param argParser The argument parser.
+   * @param clearPassword the clear password
+   * @param clearPasswordFile the fil in which the password in stored
+   * @param interactivePassword indicate if the password should be asked
+   *        interactively.
+   * @return the password or null if an error occurs.
+   */
+  private static ByteString getClearPW(PrintStream out, PrintStream err,
+      ArgumentParser argParser, StringArgument clearPassword,
+      FileBasedArgument clearPasswordFile, BooleanArgument interactivePassword)
+  {
+    ByteString clearPW = null;
+    if (clearPassword.hasValue())
+    {
+      clearPW = ByteString.valueOf(clearPassword.getValue());
+    }
+    else if (clearPasswordFile.hasValue())
+    {
+      clearPW = ByteString.valueOf(clearPasswordFile.getValue());
+    }
+    else if (interactivePassword.isPresent())
+    {
+      EncodePassword encodePassword = new EncodePassword() ;
+      try
+      {
+        String pwd1, pwd2;
+        Message msg = INFO_ENCPW_INPUT_PWD_1.get();
+        pwd1 = encodePassword.getPassword(out, msg.toString());
+
+        msg = INFO_ENCPW_INPUT_PWD_2.get();
+        pwd2 = encodePassword.getPassword(out,msg.toString());
+        if (pwd1.equals(pwd2))
+        {
+          clearPW = ByteString.valueOf(pwd1);
+        }
+        else
+        {
+          Message message = ERR_ENCPW_NOT_SAME_PW.get();
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return null;
+        }
+      }
+      catch (IOException e)
+      {
+        Message message = ERR_ENCPW_CANNOT_READ_PW.get(e.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return null;
+      }
+
+    }
+    else
+    {
+      Message message = ERR_ENCPW_NO_CLEAR_PW.get(clearPassword
+          .getLongIdentifier(), clearPasswordFile.getLongIdentifier(),
+          interactivePassword.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
+      return null;
+    }
+    return clearPW;
+  }
+
+  /**
+   * Get the password from JDK6 console or from masked password.
+   * @param out The output
+   * @param prompt The message to print out.
+   * @return the password
+   * @throws IOException if an issue occurs when reading the password
+   *         from the input
+   */
+  private String getPassword(PrintStream out, String prompt)
+      throws IOException
+  {
+    String password;
+    try // JDK 6 console
+    {
+      // get the Console (class the constructor)
+      Method constructor =
+        System.class.getDeclaredMethod("console",new Class[0]);
+      Object console = constructor.invoke(null, new Object[0]);
+
+      if (console != null)
+      {
+        // class to method
+        Class<?> c = Class.forName("java.io.Console");
+        Object[] args = new Object[] { prompt, new Object[0] };
+        Method m = c.getDeclaredMethod("readPassword",
+            new Class[] { String.class, args.getClass() });
+        password = new String((char[]) m.invoke(console, args));
+      }
+      else
+      {
+        throw new IOException("No console");
+      }
+
+    }
+    catch (Exception e)
+    {
+      // Try the fallback to the old trick method.
+      // Create the thread that will erase chars
+      ErasingThread erasingThread = new ErasingThread(out, prompt);
+      erasingThread.start();
+
+      password = "";
+
+      // block until enter is pressed
+      while (true)
+      {
+        char c = (char) System.in.read();
+        // assume enter pressed, stop masking
+        erasingThread.stopMasking();
+        if (c == '\r')
+        {
+          c = (char) System.in.read();
+          if (c == '\n')
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (c == '\n')
+        {
+          break;
+        }
+        else
+        {
+          // store the password
+          password += c;
+        }
+      }
+    }
+    return password;
+  }
+
+
+  /**
+   * Thread that mask user input.
+   *
+   */
+  private class ErasingThread extends Thread
+  {
+
+    private boolean stop = false;
+    private String prompt;
+
+    /**
+     * The class will mask the user input.
+     * @param out
+     *          the output
+     * @param prompt
+     *          The prompt displayed to the user
+     */
+    public ErasingThread(PrintStream out, String prompt)
+    {
+      this.prompt = prompt;
+    }
+
+    /**
+     * Begin masking until asked to stop.
+     */
+    public void run()
+    {
+      while (!stop)
+      {
+        try
+        {
+          // attempt masking at this rate
+          this.sleep(1);
+        }
+        catch (InterruptedException iex)
+        {
+          iex.printStackTrace();
+        }
+        if (!stop)
+        {
+          System.out.print("\r" + prompt + " \r" + prompt);
+        }
+        System.out.flush();
+      }
+    }
+
+    /**
+     * Instruct the thread to stop masking.
+     */
+    public void stopMasking()
+    {
+      this.stop = true;
+    }
+
+  }
+
 }
 
