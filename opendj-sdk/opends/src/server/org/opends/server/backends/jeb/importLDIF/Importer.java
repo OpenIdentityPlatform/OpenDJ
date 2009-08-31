@@ -80,6 +80,7 @@ public class Importer
           new IndexBuffer.IndexComparator();
 
   private final AtomicInteger bufferCount = new AtomicInteger(0);
+  private final AtomicLong importCount = new AtomicLong(0);
   private final File tempDir;
   private final int indexCount, threadCount;
   private final boolean skipDNValidation;
@@ -492,7 +493,7 @@ public class Importer
       if (importTime > 0)
         rate = 1000f * reader.getEntriesRead() / importTime;
       message = NOTE_JEB_IMPORT_FINAL_STATUS.get(reader.getEntriesRead(),
-              reader.getEntriesRead(), reader.getEntriesIgnored(), reader
+              importCount.get(), reader.getEntriesIgnored(), reader
                  .getEntriesRejected(), migratedCount, importTime / 1000, rate);
       logError(message);
     }
@@ -1080,6 +1081,7 @@ public class Importer
           EntryID entryID = entryInfo.getEntryID();
           Suffix suffix = entryInfo.getSuffix();
           processEntry(entry, entryID, suffix);
+          importCount.getAndIncrement();
         }
         flushIndexBuffers();
         closeCursors();
