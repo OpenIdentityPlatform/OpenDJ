@@ -689,12 +689,6 @@
       Sleep for number of milliseconds
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
-        <function-arg-description>
-          Location of target host
-      </function-arg-description>
-      <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>    
       <function-arg-def name="sleepForMilliSeconds" type="required">
         <function-arg-description>
           Number of milliseconds to sleep
@@ -705,7 +699,7 @@
     
     <sequence>
       <stafcmd name="'STAF Command: Delay'">
-        <location>'%s' % location</location>
+        <location>STAXServiceMachine</location>
         <service>'delay'</service>
         <request>
           'delay %i' % sleepForMilliSeconds

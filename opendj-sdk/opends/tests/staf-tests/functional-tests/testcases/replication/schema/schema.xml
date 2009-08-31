@@ -480,9 +480,7 @@
               </call>                                                                  
 
               <call function="'Sleep'">
-                { 'location'  :  masterHost,
-                  'sleepForMilliSeconds'  :  1000
-                }
+                { 'sleepForMilliSeconds'  :  1000 }
               </call>
                 
               <!-- Add entry to "consumer" server -->                       
@@ -573,9 +571,7 @@
               </call>                                                                                                     
 
               <call function="'Sleep'">
-                { 'location'  :  masterHost,
-                  'sleepForMilliSeconds'  :  1000
-                }
+                { 'sleepForMilliSeconds'  :  1000 }
               </call>
                                 
               <!-- Add entry to "consumer" server -->                       
@@ -682,9 +678,7 @@
               </call>
                                 
               <call function="'Sleep'">
-                { 'location'  :  masterHost,
-                  'sleepForMilliSeconds'  :  1000
-                }
+                { 'sleepForMilliSeconds'  :  1000 }
               </call>
                                 
               <!-- Try to add entry to servers; should be rejected with error 65
@@ -785,9 +779,7 @@
               </call>                     
 
               <call function="'Sleep'">
-                { 'location'  :  masterHost,
-                  'sleepForMilliSeconds'  :  1000 
-                }
+                { 'sleepForMilliSeconds'  :  1000 }
               </call>
                                                                                                                                 
               <!-- Try to add entry to servers; should be rejected with error 65

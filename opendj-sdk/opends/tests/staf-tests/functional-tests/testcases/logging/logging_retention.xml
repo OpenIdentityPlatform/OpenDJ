@@ -228,8 +228,7 @@
                   </call>
   
                   <call function="'Sleep'">
-                    { 'location'             : STAF_REMOTE_HOSTNAME,
-                      'sleepForMilliSeconds' : 5000 }
+                    { 'sleepForMilliSeconds' : 5000 }
                   </call>
   
                   <call function="'listFolder'">
