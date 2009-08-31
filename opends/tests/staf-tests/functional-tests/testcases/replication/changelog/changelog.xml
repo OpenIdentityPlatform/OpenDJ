@@ -131,9 +131,7 @@
 
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                                 
               <!-- Search changelog in the various replication servers -->                                                           
@@ -273,9 +271,7 @@
                                               
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                               
               <!-- Export changelog in the various replication servers, then
@@ -399,9 +395,7 @@
 
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                                 
               <!-- Stop the servers in the topology -->
@@ -483,9 +477,7 @@
 
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                                 
               <!-- Stop the servers in the topology -->
@@ -745,12 +737,10 @@
 
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>                
                 
-              <!-- Backup changelog in the various replication servers -->                                                           
+              <!-- Backup changelog in the various replication servers -->
               <paralleliterate var="server" 
                                in="_topologyServerList" 
                                indexvar="i">
@@ -814,13 +804,11 @@
 
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>                                                              
 
               <!-- Restore changelog_backup_online in the various replication 
-                servers, then restore master_backup in every server -->                                                           
+                servers, then restore master_backup in every server -->
               <paralleliterate var="server" 
                                in="_topologyServerList" 
                                indexvar="i">
@@ -1069,9 +1057,7 @@
                                           
               <!-- Let some time for the change to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                 
               <!-- Search changelog in the various replication servers -->                                                           
@@ -1325,12 +1311,10 @@
                                                   
               <!-- Let some time for the changes to propagate -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  2000
-                }
+                { 'sleepForMilliSeconds' :  2000 }
               </call>
                 
-              <!-- Search changelog in the various replication servers -->                                                           
+              <!-- Search changelog in the various replication servers -->
               <paralleliterate var="server" 
                                in="_topologyServerList" 
                                indexvar="i">
@@ -1377,9 +1361,7 @@
 
               <!-- Let the purge delay expire: sleep for 60s -->
               <call function="'Sleep'">
-                { 'location'             :  masterHost,
-                  'sleepForMilliSeconds' :  60000
-                }
+                { 'sleepForMilliSeconds' :  60000 }
               </call>
                 
               <!-- Search changelog in the various replication servers -->                                                           

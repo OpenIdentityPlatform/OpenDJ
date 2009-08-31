@@ -129,8 +129,7 @@
               </call>
   
               <call function="'Sleep'">
-                { 'location'  :	 STAF_REMOTE_HOSTNAME,
-                'sleepForMilliSeconds'  :  120000 }
+                { 'sleepForMilliSeconds'  :  120000 }
               </call>
   
               <!-- manage-tasks -->
@@ -460,8 +459,7 @@
               </call>
   
               <call function="'Sleep'">
-                { 'location'  :	 STAF_REMOTE_HOSTNAME,
-                'sleepForMilliSeconds'  :  120000 }
+                { 'sleepForMilliSeconds'  :  120000 }
               </call>
   
               <!-- manage-tasks -->
