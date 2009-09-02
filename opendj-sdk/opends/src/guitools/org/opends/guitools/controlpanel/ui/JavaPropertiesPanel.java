@@ -667,15 +667,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       {
         if (t == null)
         {
-          javaHome.setText(readJavaHome);
-          useOpenDSJavaHome.setSelected(readUseOpenDSJavaHome);
-          useSpecifiedJavaHome.setSelected(!readUseOpenDSJavaHome);
-          useOpenDSJavaArgs.setSelected(readUseOpenDSJavaArgs);
-          useSpecifiedJavaArgs.setSelected(!readUseOpenDSJavaArgs);
-          currentJavaArguments.clear();
-          currentJavaArguments.addAll(readJavaArguments);
-          argumentsTableModel.setData(
-              filterJavaArguments(currentJavaArguments));
+          updateContentsOfPanelWithReadValues();
           Utilities.updateTableSizes(argumentsTable, 7);
         }
         else
@@ -735,6 +727,16 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     lInitContents.setVisible(false);
     argumentsScroll.setVisible(true);
     setEnabledOK(true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void cancelClicked()
+  {
+    updateContentsOfPanelWithReadValues();
+    super.cancelClicked();
   }
 
   /**
@@ -1017,6 +1019,26 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       Utilities.getInstanceRootDirectory(installPath).getAbsolutePath(),
       Installation.RELATIVE_JAVA_PROPERTIES_FILE);
     return propertiesFile;
+  }
+
+  private void updateContentsOfPanelWithReadValues()
+  {
+    if (readJavaHome != null)
+    {
+      javaHome.setText(readJavaHome);
+    }
+    else
+    {
+      javaHome.setText("");
+    }
+    useOpenDSJavaHome.setSelected(readUseOpenDSJavaHome);
+    useSpecifiedJavaHome.setSelected(!readUseOpenDSJavaHome);
+    useOpenDSJavaArgs.setSelected(readUseOpenDSJavaArgs);
+    useSpecifiedJavaArgs.setSelected(!readUseOpenDSJavaArgs);
+    currentJavaArguments.clear();
+    currentJavaArguments.addAll(readJavaArguments);
+    argumentsTableModel.setData(
+        filterJavaArguments(currentJavaArguments));
   }
 
   /**
