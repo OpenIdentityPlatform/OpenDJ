@@ -56,6 +56,7 @@
             suiteList.append('import-tasks')
             suiteList.append('export')
             suiteList.append('export-tasks')
+            suiteList.append('backup')
           </script>
 
           <!-- Run the test suites -->
@@ -89,7 +90,6 @@
           <!-- List of backends test suites to run -->
           <script>
             suiteList = []
-            suiteList.append('backup')
             suiteList.append('backup-tasks')
             suiteList.append('restore')
             suiteList.append('restore-tasks')
