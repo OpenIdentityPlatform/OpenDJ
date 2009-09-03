@@ -156,6 +156,7 @@
   <property name="snmp.mib.dir"      location="src/snmp/resource/mib" />
   <property name="snmp.security.dir" location="src/snmp/resource/security" />
   <property name="snmp.config.dir"   location="src/snmp/resource/config" />
+  <property name="snmp.resource.dir" location="src/snmp/resource" />
   <property name="snmp.gen.dir"      location="src/snmp/generated" />
   <property name="snmp.src.dir"      location="src/snmp/src" />
 
@@ -2543,6 +2544,12 @@
         <attribute name="Implementation-Version" value="${VERSION_NUMBER_STRING}"/>
         <attribute name="Revision-Number" value="${REVISION_NUMBER}"/>
       </manifest>
+    </jar>
+    <!-- Add admin/extension.manifest into the extension jar file -->
+    <jar jarfile="${pdir}/lib/extensions/snmp-mib2605.jar"
+         basedir="${snmp.resource.dir}"
+         includes="admin/**"
+         compress="true" index="true" update="yes">
     </jar>
     <echo message="SNMP Extension is built"/>
     <echo message="${pdir}/lib/extensions/snmp-mib2605.jar"/>
