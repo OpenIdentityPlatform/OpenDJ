@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 
@@ -73,8 +73,16 @@ public class ActionButton extends JButton
     int n = b.getIconTextGap() + b.getIcon().getIconWidth() +
     b.getBorder().getBorderInsets(b).left;
     buttonBorder = new EmptyBorder(5, n, 5, 25);
+    Border highlightBorder =
+      UIManager.getBorder("List.focusCellHighlightBorder");
+    if (highlightBorder == null)
+    {
+      highlightBorder =
+        new javax.swing.plaf.BorderUIResource.LineBorderUIResource(
+            ColorAndFontConstants.pressedForeground, 1);
+    }
     focusBorder = BorderFactory.createCompoundBorder(
-        UIManager.getBorder("List.focusCellHighlightBorder"), buttonBorder);
+        highlightBorder, buttonBorder);
   };
 
   private static final Color defaultBackground =
