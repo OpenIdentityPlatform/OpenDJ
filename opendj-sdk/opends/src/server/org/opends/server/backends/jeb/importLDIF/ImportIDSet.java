@@ -205,18 +205,16 @@ public class ImportIDSet {
     } else if(dbUndefined && (importIdSet.isDefined()))  {
        undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
                                                  importIdSet.size();
-       importIdSet.setUndefined();
        isDefined=false;
     } else if(!importIdSet.isDefined()) {
        int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
-       undefinedSize= dbSize + importIdSet.getUndefinedSize();
-       isDefined=false;
+       undefinedSize = dbSize + importIdSet.getUndefinedSize();
+       isDefined = false;
        incrementLimitCount = true;
     } else {
       array = JebFormat.entryIDListFromDatabase(dBbytes);
       if(array.length + importIdSet.size() > limit) {
           undefinedSize = array.length + importIdSet.size();
-          importIdSet.setUndefined();
           isDefined=false;
           incrementLimitCount=true;
       } else {
@@ -282,10 +280,12 @@ public class ImportIDSet {
         isDefined=false;
         importIdSet.setUndefined();
         undefinedSize = Long.MAX_VALUE;
+        count = 0;
       } else if(!importIdSet.isDefined()) {
         isDefined=false;
         incrementLimitCount=true;
         undefinedSize = Long.MAX_VALUE;
+        count = 0;
       } else {
         array = JebFormat.entryIDListFromDatabase(bytes);
         if(array.length + importIdSet.size() > limit) {
