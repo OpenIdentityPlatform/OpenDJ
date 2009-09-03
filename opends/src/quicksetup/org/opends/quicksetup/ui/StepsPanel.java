@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -102,7 +102,7 @@ public class StepsPanel extends QuickSetupPanel
   }
 
   /**
-   * Updates the visiblitiy of the steps depending on the current contents
+   * Updates the visibility of the steps depending on the current contents
    * of the panels (uses the QuickSetup to know what is displayed in the
    * panels).
    *

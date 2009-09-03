@@ -1559,7 +1559,7 @@ public class Utils
   }
 
   /**
-   * Converts existing HTML break tags to native line sparators.
+   * Converts existing HTML break tags to native line separators.
    * @param s string to convert
    * @return converted string
    */
