@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -39,8 +39,6 @@ import javax.swing.*;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ButtonName;
 
@@ -74,22 +72,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
    */
   protected Message getInstructions()
   {
-    /*
-     * We can use org.opends.server.util.DynamicConstants without problems as it
-     * has been added to quicksetup.jar during build time.
-     */
-    Message message;
-    if (Utils.isWebStart())
-    {
-      String cmd = Utils.isWindows()? Installation.WINDOWS_SETUP_FILE_NAME:
-          Installation.UNIX_SETUP_FILE_NAME;
-      message = INFO_LICENSE_PANEL_WEBSTART_INSTRUCTIONS.get();
-    }
-    else
-    {
-      message = INFO_LICENSE_PANEL_OFFLINE_INSTRUCTIONS.get();
-    }
-    return message;
+    return null;
   }
 
   private TextArea detailsTextArea;

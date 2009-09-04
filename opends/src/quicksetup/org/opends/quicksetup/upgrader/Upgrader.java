@@ -836,7 +836,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             // and force to accept it.
             String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
             String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
-            System.out.println(INFO_LICENSE_DETAILS_LABEL.get().toString());
+            System.out.println(INFO_LICENSE_DETAILS_CLI_LABEL.get().toString());
 
             BufferedReader in = new BufferedReader(new InputStreamReader(
                 System.in));

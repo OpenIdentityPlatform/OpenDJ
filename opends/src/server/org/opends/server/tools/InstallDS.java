@@ -432,7 +432,9 @@ public class InstallDS extends ConsoleApplication
         // and force to accept it.
         String yes = INFO_LICENSE_CLI_ACCEPT_YES.get().toString();
         String no = INFO_LICENSE_CLI_ACCEPT_NO.get().toString();
-        println(INFO_LICENSE_DETAILS_LABEL.get());
+        String yesShort = INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString();
+        String noShort = INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString();
+        println(INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
         BufferedReader in = getInputStream();
         while (true)
@@ -442,13 +444,15 @@ public class InstallDS extends ConsoleApplication
           {
             String response = in.readLine();
             if ((response == null)
-                || (response.toLowerCase().equals(no.toLowerCase()))
+                || (response.equalsIgnoreCase(no))
+                || (response.equalsIgnoreCase(noShort))
                 || (response.length() == 0))
             {
               return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
             }
             else
-            if (response.toLowerCase().equals(yes.toLowerCase()))
+            if (response.equalsIgnoreCase(yes)
+                || response.equalsIgnoreCase(yesShort))
             {
               LicenseFile.setApproval(true);
               break ;
