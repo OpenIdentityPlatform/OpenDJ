@@ -30,6 +30,19 @@
     Execute the tests.
   </description>
 
+  <target name="specs">
+    <javac srcdir="${shared.dir}/java/parsingtool"
+           destdir="${shared.dir}/java/parsingtool"/>
+    <delete dir="${logs.dir}/specs" failonerror="false"/>
+    <mkdir dir="${logs.dir}/specs"/>
+    <java classpath="${shared.dir}/java/parsingtool"
+          classname="GenerateOpenDSTestSpecs" fork="true">
+        <arg value="${tests.dir}"/>
+        <arg value="${logs.dir}/specs"/>
+        <arg value="xml" />
+    </java>
+  </target>
+
   <target name="run">
     <tstamp>
       <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
