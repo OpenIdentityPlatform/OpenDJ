@@ -31,9 +31,10 @@ import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Component;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 
 import org.opends.quicksetup.ui.GuiApplication;
@@ -75,7 +76,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     return null;
   }
 
-  private TextArea detailsTextArea;
+  private JTextArea detailsTextArea;
   private JCheckBox acceptCheck;
 
   /**
@@ -101,9 +102,10 @@ public class InstallLicensePanel extends QuickSetupStepPanel
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     gbc.insets = UIFactory.getEmptyInsets();
+    gbc.insets.bottom = 3;
     panel.add(l, gbc);
 
-    detailsTextArea = new TextArea();
+    detailsTextArea = new JTextArea(10, 50);
     detailsTextArea.setBackground(
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
 
@@ -112,7 +114,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weighty = 1.0;
-    panel.add(detailsTextArea, gbc);
+    panel.add(new JScrollPane(detailsTextArea), gbc);
 
     acceptCheck = UIFactory.makeJCheckBox(INFO_LICENSE_CLICK_LABEL.get(),
         null,
@@ -121,6 +123,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     acceptCheck.setSelected(false);
 
     gbc.insets = UIFactory.getEmptyInsets();
+    gbc.insets.top = UIFactory.TOP_INSET_RADIO_SUBORDINATE;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weighty = 0.0;
     panel.add(acceptCheck, gbc);
