@@ -381,6 +381,11 @@
   <!-- ######### -->
   <!-- # TESTS # -->
   <!-- ######### -->
+  <!-- generate tests specs -->
+  <target name="tests-specs"
+          depends="set-func-type,global-init">
+    <ant antfile="${antfile.dir}/tests.xml" target="specs"/>
+  </target>
 
   <target name="set-func-type">
     <property name="tests.type" value="functional-tests"/>

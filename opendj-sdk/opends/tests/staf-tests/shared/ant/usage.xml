@@ -59,6 +59,7 @@
       staf-jvmlogs            : start the STAF jvm log viewer
 
       --tests--
+      tests-specs             : generate the functional tests specs
       tests-configure         : configure the functional tests
       tests-func-configure    : configure the functional tests
       tests-stress-configure  : configure the stress tests
