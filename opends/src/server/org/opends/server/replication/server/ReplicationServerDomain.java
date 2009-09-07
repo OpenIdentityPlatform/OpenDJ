@@ -65,7 +65,11 @@ import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.DoneMsg;
+import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRequestMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
@@ -1529,7 +1533,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // Test the message for which a ReplicationServer is expected
     // to be the destination
-    if (msg.getDestination() == this.replicationServer.getServerId())
+    if (!(msg instanceof InitializeRequestMsg) &&
+        !(msg instanceof InitializeTargetMsg) &&
+        !(msg instanceof EntryMsg) &&
+        !(msg instanceof DoneMsg) &&
+        (msg.getDestination() == this.replicationServer.getServerId()))
     {
       if (msg instanceof ErrorMsg)
       {
@@ -1665,6 +1673,22 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         logError(NOTE_ERR_ROUTING_TO_SERVER.get(
           msg.getClass().getCanonicalName()));
+
+        MessageBuilder mb1 = new MessageBuilder();
+        mb1.append(
+            NOTE_ERR_ROUTING_TO_SERVER.get(msg.getClass().getCanonicalName()));
+        mb1.append("serverID:" + msg.getDestination());
+        ErrorMsg errMsg = new ErrorMsg(
+          msg.getsenderID(), mb1.toMessage());
+        try
+        {
+          senderHandler.send(errMsg);
+        } catch (IOException ioe1)
+        {
+          // an error happened on the sender session trying to recover
+          // from an error on the receiver session.
+          // Not much more we can do at this point.
+        }
       }
       return;
     }

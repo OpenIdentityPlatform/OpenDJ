@@ -1682,6 +1682,19 @@ public abstract class ReplicationDomain
     if (debugEnabled())
       TRACER.debugInfo("Entering initializeFromRemote");
 
+    if (!broker.isConnected())
+    {
+      if (initTask instanceof InitializeTask)
+      {
+        InitializeTask task = (InitializeTask) initTask;
+        task.updateTaskCompletionState(
+            new DirectoryException(
+                ResultCode.OTHER, ERR_INITIALIZATION_FAILED_NOCONN.get(
+                    getServiceID())));
+      }
+      return;
+    }
+
     acquireIEContext(true);
     ieContext.initializeTask = initTask;
 
