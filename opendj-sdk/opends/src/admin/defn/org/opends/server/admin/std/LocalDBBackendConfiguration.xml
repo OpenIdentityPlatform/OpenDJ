@@ -494,7 +494,7 @@
     </adm:synopsis>
     <adm:description>
       If set to "false", then the eviction keeps internal nodes of the underlying
-      Btree in the cache over leaf notes, even if the leaf nodes have
+      Btree in the cache over leaf nodes, even if the leaf nodes have
       been accessed more recently. This may be a better configuration
       for databases in which only a very small portion of the data is
       cached.
