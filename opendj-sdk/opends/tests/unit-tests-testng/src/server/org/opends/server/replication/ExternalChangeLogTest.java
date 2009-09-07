@@ -1265,12 +1265,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " publishes " + modMsg.getChangeNumber());
 
       // Publish modDN
+      DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
       ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
       ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
-          DN.decode(TEST_ROOT_DN_STRING2)); // new superior
+          newSuperior);
       op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, tn+"uuid4",
       "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
@@ -1382,8 +1383,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","modrdn");
             checkValue(resultEntry,"changelogcookie",cookie4);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid4");
-            checkValue(resultEntry,"newrdn","uid=ECLAllOpsnew4");            
-            checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
+            checkValue(resultEntry,"newrdn","uid=ECLAllOpsnew4");
+            if (newSuperior != null)
+              checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
             checkValue(resultEntry,"deleteoldrdn","true");
             checkValue(resultEntry,"changenumber","0");
           }
