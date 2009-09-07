@@ -790,9 +790,12 @@ public class ECLSearchOperation
         Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
         clEntry.addAttribute(a, null);
 
-        Attribute b = Attributes.create("newsuperior",
+        if (modDNMsg.getNewSuperior()!=null)
+        {
+          Attribute b = Attributes.create("newsuperior",
             modDNMsg.getNewSuperior());
-        clEntry.addAttribute(b, null);
+          clEntry.addAttribute(b, null);
+        }
 
         Attribute c = Attributes.create("deleteoldrdn",
             String.valueOf(modDNMsg.deleteOldRdn()));
