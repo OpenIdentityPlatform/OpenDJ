@@ -201,6 +201,7 @@
               'dsFilter'        : 'objectclass=*',
               'dsAttributes'    : 'dn',
               'expectedRC'      : 0,
+              'knownIssue'      : '4212'
             }
           </call>
           
