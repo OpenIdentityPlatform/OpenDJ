@@ -229,7 +229,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();replicationServer.clearDb();
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();replicationServer.clearDb();
+    ECLTwoDomains(); 
+    // changelogDb required NOT empty for the next test
+    
+    // Test ECL after changelog triming
+    ECLAfterChangelogTrim();replicationServer.clearDb();
     
     // Persistent search with changesOnly request
     ECLPsearch(true, false);replicationServer.clearDb();
@@ -287,7 +291,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
     // Test DraftCNDb is purged when replication change log is purged
-    ECLCompatPurge();
+    ECLPurgeDraftCNDbAfterChangelogClear();
     
     // Test first and last are updated
     ECLCompatTestLimits(0,0);
@@ -691,7 +695,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // (does only refer to non private backend)
       MultiDomainServerState expectedLastCookie =
         new MultiDomainServerState("o=test:"+cn1+";");
-      assertLastCookieEquals(tn, expectedLastCookie);
+
+      String lastCookie = readLastCookie(tn);
+
+      assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
+          " Expected last cookie attribute value:" + expectedLastCookie +
+          " Read from server: " + lastCookie + " are equal :");
       
       // Cleaning
       if (domain2 != null)
@@ -710,9 +719,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  //=======================================================
-  // From embebbded ECL
-  // Search ECL with 4 messages on 2 suffixes from 2 brokers
+  /**
+   * From embebbded ECL
+   * Search ECL with 4 messages on 2 suffixes from 2 brokers
+   * 
+   */
   private void ECLTwoDomains()
   {
     String tn = "ECLTwoDomains";
@@ -1014,14 +1025,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //
       MultiDomainServerState expectedLastCookie =
         new MultiDomainServerState("o=test:"+cn5+" "+cn9+";o=test2:"+cn3+" "+cn8+";");
-      assertLastCookieEquals(tn, expectedLastCookie);
+
+      String lastCookie = readLastCookie(tn);
+
+      assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
+          " Expected last cookie attribute value:" + expectedLastCookie +
+          " Read from server: " + lastCookie + " are equal :");
       
       s1test.stop();
       s1test2.stop();
       s2test.stop();
       s2test2.stop();
 
-      removeTestBackend2(backend2);
+      // removeTestBackend2(backend2);
     }
     catch(Exception e)
     {
@@ -1031,8 +1047,101 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private void assertLastCookieEquals(String tn,
-      MultiDomainServerState expectedLastCookie)
+  //=======================================================
+  // Test ECL content after changelog triming
+  private void ECLAfterChangelogTrim()
+  {
+    String tn = "ECLAfterChangelogTrim";
+    debugInfo(tn, "Starting test");
+
+    try
+    {
+      replicationServer.getReplicationServerDomain("o=test", false).setPurgeDelay(1);
+      replicationServer.getReplicationServerDomain("o=test2", false).setPurgeDelay(1);
+      Thread.sleep(1000);
+      //
+      LDIFWriter ldifWriter = getLDIFWriter();
+
+      // Test with empty cookie : from the beginning
+      String cookie= "";
+
+      // search on 'cn=changelog'
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+      attributes.add("+");
+      attributes.add("*");
+
+      debugInfo(tn, "Search with cookie=" + cookie + "\"");
+      InternalSearchOperation searchOp = 
+        connection.processSearch(
+            ByteString.valueOf("cn=changelog"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode("(targetDN=*)"),
+            attributes,
+            createControls(cookie),
+            null);
+
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString());
+      cookie="";
+      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+      if (entries != null)
+      {
+        for (SearchResultEntry entry : entries)
+        {
+          debugInfo(tn, " RESULT entry returned:" + entry.toSingleLineString());
+          ldifWriter.writeEntry(entry);
+        }
+      }
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(searchOp.getSearchEntries().size(), 0);
+
+      // Read last cookie
+      cookie = readLastCookie(tn);
+
+      // Test from last cookie
+      // search on 'cn=changelog'
+      debugInfo(tn, "Search with cookie=" + cookie + "\"");
+      searchOp = 
+        connection.processSearch(
+            ByteString.valueOf("cn=changelog"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode("(targetDN=*)"),
+            attributes,
+            createControls(cookie),
+            null);
+
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString());
+      entries = searchOp.getSearchEntries();
+      if (entries != null)
+      {
+        for (SearchResultEntry entry : entries)
+        {
+          debugInfo(tn, " RESULT entry returned:" + entry.toSingleLineString());
+          ldifWriter.writeEntry(entry);
+        }
+      }
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(searchOp.getSearchEntries().size(), 0);      
+    }
+    catch(Exception e)
+    {
+      fail("Ending test " + tn + "with exception:\n"
+          +  stackTraceToSingleLineString(e));      
+    }
+    debugInfo(tn, "Ending test successfully");
+  }
+
+  
+  private String readLastCookie(String tn)
   {
     String cookie = "";
     LDIFWriter ldifWriter = getLDIFWriter();
@@ -1043,47 +1152,45 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     try
     {
-    InternalSearchOperation searchOp = 
-     connection.processSearch(
-        ByteString.valueOf(""),
-        SearchScope.BASE_OBJECT,
-        DereferencePolicy.NEVER_DEREF_ALIASES, 
-        0, // Size limit
-        0, // Time limit
-        false, // Types only
-        LDAPFilter.decode("(objectclass=*)"),
-        lastcookieattribute,
-        NO_CONTROL,
-        null);
+      InternalSearchOperation searchOp = 
+        connection.processSearch(
+            ByteString.valueOf(""),
+            SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode("(objectclass=*)"),
+            lastcookieattribute,
+            NO_CONTROL,
+            null);
 
-    assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-        searchOp.getErrorMessage().toString()
-        + searchOp.getAdditionalLogMessage());
-    LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
-    if (entries != null)
-    {
-      for (SearchResultEntry resultEntry : entries)
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString()
+          + searchOp.getAdditionalLogMessage());
+      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+      if (entries != null)
       {
-        ldifWriter.writeEntry(resultEntry);
-        try
+        for (SearchResultEntry resultEntry : entries)
         {
-          List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
-          cookie = l.get(0).iterator().next().toString();
+          ldifWriter.writeEntry(resultEntry);
+          try
+          {
+            List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
+            cookie = l.get(0).iterator().next().toString();
+          }
+          catch(NullPointerException e)
+          {}
         }
-        catch(NullPointerException e)
-        {}
+
       }
-      
-    }
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:\n"
           +  stackTraceToSingleLineString(e));      
     }
-    assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(cookie)),
-        " Expected last cookie attribute value:" + expectedLastCookie +
-        " Read from server: " + cookie + " are equal :");
+    return cookie;
   }
   
   // simple update to be received
@@ -3080,10 +3187,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     debugInfo(tn, "Ending test with success");
   }
-
-  private void ECLCompatPurge()
+  
+  /**
+   * Put a short purge delay to the draftCNDB, clear the changelogDB,
+   * expect the draftCNDb to be purged accordingly.
+   */
+  private void ECLPurgeDraftCNDbAfterChangelogClear()
   {
-    String tn = "ECLCompatPurge";
+    String tn = "ECLPurgeDraftCNDbAfterChangelogClear";
     debugInfo(tn, "Starting test\n\n");
     try
     {

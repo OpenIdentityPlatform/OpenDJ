@@ -154,6 +154,7 @@ public class ECLServerHandler extends ServerHandler
     ServerState startState;
     ServerState currentState;
     ServerState stopState;
+    long domainLatestTrimDate;
 
     /**
      * {@inheritDoc}
@@ -230,7 +231,12 @@ public class ECLServerHandler extends ServerHandler
         {
           // Here comes a new message !!!
           // non blocking
-          UpdateMsg newMsg = mh.getnextMessage(false);
+          UpdateMsg newMsg;
+          do {
+            newMsg = mh.getnextMessage(false);
+            // older than latest domain trimdate ?
+          } while ((newMsg!=null) &&
+              (newMsg.getChangeNumber().getTime() < domainLatestTrimDate));
 
           if (debugEnabled())
             TRACER.debugInfo(" In ECLServerHandler, for " + mh.getServiceId() +
@@ -639,6 +645,7 @@ public class ECLServerHandler extends ServerHandler
           DomainContext newDomainCtxt = new DomainContext();
           newDomainCtxt.active = true;
           newDomainCtxt.rsd = rsd;
+          newDomainCtxt.domainLatestTrimDate = rsd.getLatestDomainTrimDate();
 
           // Assign the start state for the domain
           if (isPersistent ==
