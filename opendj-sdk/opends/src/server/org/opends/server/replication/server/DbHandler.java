@@ -113,6 +113,8 @@ public class DbHandler implements Runnable
   // The maximum number of retries in case of DatabaseDeadlock Exception.
   private static final int DEADLOCK_RETRIES = 10;
 
+  private long latestTrimDate = 0;
+
   /**
    *
    * The trim age in milliseconds. Changes record in the change DB that
@@ -393,6 +395,16 @@ public class DbHandler implements Runnable
   }
 
   /**
+   * Retrieves the latest trim date.
+   * @return the latest trim date.
+   */
+  public long getLatestTrimDate()
+  {
+    return latestTrimDate;
+  }
+
+
+  /**
    * Trim old changes from this replicationServer database.
    * @throws DatabaseException In case of database problem.
    */
@@ -403,7 +415,10 @@ public class DbHandler implements Runnable
     int size = 0;
     boolean finished = false;
     boolean done = false;
-    ChangeNumber trimDate = new ChangeNumber(TimeThread.getTime() - trimage,
+
+    latestTrimDate = TimeThread.getTime() - trimage;
+
+    ChangeNumber trimDate = new ChangeNumber(latestTrimDate,
         (short) 0, (short)0);
 
     // In case of deadlock detection by the Database, this thread can

@@ -2615,7 +2615,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *
    * @param delay The new purge delay to use.
    */
-  void setPurgeDelay(long delay)
+  public void setPurgeDelay(long delay)
   {
     for (DbHandler handler : sourceDbHandlers.values())
     {
@@ -3200,5 +3200,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
     return res;
+  }
+
+  /**
+   * Get the latest (more recent) trim date of the changelog dbs associated
+   * to this domain.
+   * @return The latest trim date.
+   */
+  public long getLatestDomainTrimDate()
+  {
+    long latest = 0;
+    for (DbHandler db : sourceDbHandlers.values())
+    {
+      if ((latest==0) || (latest<db.getLatestTrimDate()))
+      {
+        latest = db.getLatestTrimDate();
+      }
+    }
+    return latest;
   }
 }
