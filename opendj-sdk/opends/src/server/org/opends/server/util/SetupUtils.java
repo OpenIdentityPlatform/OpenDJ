@@ -183,9 +183,8 @@ public class SetupUtils
       lines.add("define numusers=" + numEntries);
     }
 
-    for (i=0; i<baseDNs.size(); i++)
+    for (i=1; i<=baseDNs.size(); i++)
     {
-      i++;
       lines.add("");
       lines.add("branch: [suffix"+i+"]");
       lines.add("");
@@ -195,32 +194,36 @@ public class SetupUtils
       {
         lines.add("subordinateTemplate: person:[numusers]");
         lines.add("");
-        lines.add("template: person");
-        lines.add("rdnAttr: uid");
-        lines.add("objectClass: top");
-        lines.add("objectClass: person");
-        lines.add("objectClass: organizationalPerson");
-        lines.add("objectClass: inetOrgPerson");
-        lines.add("givenName: <first>");
-        lines.add("sn: <last>");
-        lines.add("cn: {givenName} {sn}");
-        lines.add("initials: {givenName:1}" +
-        "<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}");
-        lines.add("employeeNumber: <sequential:0>");
-        lines.add("uid: user.{employeeNumber}");
-        lines.add("mail: {uid}@maildomain.net");
-        lines.add("userPassword: password");
-        lines.add("telephoneNumber: <random:telephone>");
-        lines.add("homePhone: <random:telephone>");
-        lines.add("pager: <random:telephone>");
-        lines.add("mobile: <random:telephone>");
-        lines.add("street: <random:numeric:5> <file:streets> Street");
-        lines.add("l: <file:cities>");
-        lines.add("st: <file:states>");
-        lines.add("postalCode: <random:numeric:5>");
-        lines.add("postalAddress: {cn}${street}${l}, {st}  {postalCode}");
-        lines.add("description: This is the description for {cn}.");
       }
+    }
+
+    if (!baseDNs.isEmpty() && (numEntries > 0))
+    {
+      lines.add("template: person");
+      lines.add("rdnAttr: uid");
+      lines.add("objectClass: top");
+      lines.add("objectClass: person");
+      lines.add("objectClass: organizationalPerson");
+      lines.add("objectClass: inetOrgPerson");
+      lines.add("givenName: <first>");
+      lines.add("sn: <last>");
+      lines.add("cn: {givenName} {sn}");
+      lines.add("initials: {givenName:1}" +
+      "<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}");
+      lines.add("employeeNumber: <sequential:0>");
+      lines.add("uid: user.{employeeNumber}");
+      lines.add("mail: {uid}@maildomain.net");
+      lines.add("userPassword: password");
+      lines.add("telephoneNumber: <random:telephone>");
+      lines.add("homePhone: <random:telephone>");
+      lines.add("pager: <random:telephone>");
+      lines.add("mobile: <random:telephone>");
+      lines.add("street: <random:numeric:5> <file:streets> Street");
+      lines.add("l: <file:cities>");
+      lines.add("st: <file:states>");
+      lines.add("postalCode: <random:numeric:5>");
+      lines.add("postalAddress: {cn}${street}${l}, {st}  {postalCode}");
+      lines.add("description: This is the description for {cn}.");
     }
 
     BufferedWriter writer = new BufferedWriter(new FileWriter(templateFile));
