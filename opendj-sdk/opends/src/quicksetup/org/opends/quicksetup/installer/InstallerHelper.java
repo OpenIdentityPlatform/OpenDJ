@@ -154,6 +154,7 @@ public class InstallerHelper {
     Map<String, String> env = pb.environment();
     env.remove(SetupUtils.OPENDS_JAVA_HOME);
     env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+    env.remove("CLASSPATH");
     pb.directory(installPath);
     Process process = null;
     try
