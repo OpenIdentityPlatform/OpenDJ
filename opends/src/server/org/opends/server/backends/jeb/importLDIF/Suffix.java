@@ -36,6 +36,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 
@@ -230,10 +234,18 @@ public class Suffix
       try {
         Thread.sleep(50);
         if(i == 10) {
+          //Temporary message until this code is removed.
+           Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+               "time out in parentID check");
+          logError(message);
           return null;
         }
         i++;
       } catch (Exception e) {
+        //Temporary message until this code is removed.
+         Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+                "Exception thrown in parentID check");
+         logError(message);
         return null;
       }
     }
