@@ -3084,7 +3084,14 @@ public abstract class Installer extends GuiApplication {
         }
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
 
-      } else
+      }
+      else if (adminConnectorPort == port)
+      {
+        errorMsgs.add(INFO_ADMIN_CONNECTOR_VALUE_SEVERAL_TIMES.get());
+        qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
+        qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
+      }
+      else
       {
         getUserData().setAdminConnectorPort(adminConnectorPort);
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, false);
@@ -3127,6 +3134,12 @@ public abstract class Installer extends GuiApplication {
         errorMsgs.add(INFO_EQUAL_PORTS.get());
         qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
+      }
+      else if (adminConnectorPort == securePort)
+      {
+        errorMsgs.add(INFO_ADMIN_CONNECTOR_VALUE_SEVERAL_TIMES.get());
+        qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
+        qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
       }
       else
       {
