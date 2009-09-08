@@ -947,6 +947,7 @@ public class Importer
         suffix.removePending(entryDN);
         entryID = oldID;
       }
+      processDN2URI(suffix, oldEntry, entry);
       suffix.getID2Entry().put(null, entryID, entry);
       if(oldEntry == null)
       {
@@ -1139,6 +1140,7 @@ public class Importer
         processDN2ID(suffix, entryDN, entryID);
         suffix.removePending(entryDN);
       }
+      processDN2URI(suffix, null, entry);
       suffix.getID2Entry().put(null, entryID, entry);
       processIndexes(suffix, entry, entryID);
     }
@@ -1233,10 +1235,20 @@ public class Importer
           try {
             Thread.sleep(50);
             if(i == 10) {
+               //Temporary messages until this code is cleaned up.
+               Message message =
+                   Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+                    "ancestorID check failed");
+              logError(message);
               return null;
             }
             i++;
           } catch (Exception e) {
+               //Temporary messages until this code is cleaned up.
+               Message message =
+                 Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+                "ancestorID exception thrown");
+              logError(message);
             return null;
           }
         }
@@ -1399,6 +1411,20 @@ public class Importer
       int id = processKey(dn2id, dnBytes, entryID, dnComparator,
                  new IndexKey(dnType, IndexType.DN), true);
       idECMap.putIfAbsent(id, suffix.getEntryContainer());
+    }
+
+    void processDN2URI(Suffix suffix, Entry oldEntry, Entry newEntry)
+            throws DatabaseException
+    {
+      DN2URI dn2uri = suffix.getDN2URI();
+      if(oldEntry != null)
+      {
+        dn2uri.replaceEntry(null, oldEntry, newEntry);
+      }
+      else
+      {
+        dn2uri.addEntry(null, newEntry);
+      }
     }
   }
 
