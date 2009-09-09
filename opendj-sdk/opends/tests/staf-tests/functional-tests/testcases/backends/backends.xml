@@ -57,6 +57,7 @@
             suiteList.append('export')
             suiteList.append('export-tasks')
             suiteList.append('backup')
+            suiteList.append('restore')
           </script>
 
           <!-- Run the test suites -->
@@ -91,7 +92,6 @@
           <script>
             suiteList = []
             suiteList.append('backup-tasks')
-            suiteList.append('restore')
             suiteList.append('restore-tasks')
           </script>
 
