@@ -232,7 +232,8 @@ public final class LDIFReader
     {
       LinkedList<StringBuilder> lines;
       DN entryDN;
-      EntryID entryID=null;
+      EntryID entryID = null;
+      Suffix suffix = null;
       synchronized (this)
       {
         // Read the set of lines that make up the next entry.
@@ -270,25 +271,24 @@ public final class LDIFReader
           continue;
         }
         entryID = rootContainer.getNextEntryID();
-      }
-      Suffix suffix= Importer.getMatchSuffix(entryDN, map);
-      if(suffix == null)
-      {
-        if (debugEnabled())
+        suffix = Importer.getMatchSuffix(entryDN, map);
+        if(suffix == null)
         {
-          TRACER.debugInfo("Skipping entry %s because the DN isn't" +
-                  "one that should be included based on a suffix match" +
-                  "check." ,entryDN);
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Skipping entry %s because the DN isn't" +
+                    "one that should be included based on a suffix match" +
+                    "check." ,entryDN);
+          }
+          entriesRead.incrementAndGet();
+          Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
+          logToSkipWriter(lines, message);
+          entriesIgnored.incrementAndGet();
+          continue;
         }
         entriesRead.incrementAndGet();
-        Message message = ERR_LDIF_SKIP.get(String.valueOf(entryDN));
-        logToSkipWriter(lines, message);
-        entriesIgnored.incrementAndGet();
-        continue;
+        suffix.addPending(entryDN);
       }
-      entriesRead.incrementAndGet();
-      suffix.addPending(entryDN);
-
       // Read the set of attributes from the entry.
       HashMap<ObjectClass,String> objectClasses =
               new HashMap<ObjectClass,String>();
