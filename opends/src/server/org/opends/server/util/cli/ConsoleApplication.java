@@ -654,20 +654,10 @@ public abstract class ConsoleApplication {
    * contacting when the NamingException occurred.
    * @return a message object for the given NamingException.
    */
-  protected Message getMessageForException(NamingException ne, String hostPort)
+  protected Message getMessageForException(NamingException ne,
+      String hostPort)
   {
-    Message msg;
-    if (Utils.isCertificateException(ne))
-    {
-      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              hostPort, ne.toString(true));
-    }
-    else
-    {
-       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          hostPort, ne.toString(true));
-    }
-    return msg;
+    return Utils.getMessageForException(ne, hostPort);
   }
 
   /**

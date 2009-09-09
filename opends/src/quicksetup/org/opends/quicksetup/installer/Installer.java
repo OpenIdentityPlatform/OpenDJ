@@ -34,12 +34,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
-import javax.naming.AuthenticationException;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.NoPermissionException;
+import javax.naming.NamingSecurityException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
@@ -2636,40 +2635,21 @@ public abstract class Installer extends GuiApplication {
         }
       }
     }
-    catch (NoPermissionException ne)
-    {
-      if (isRemoteServer)
-      {
-        throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
-                        getHostDisplay(auth)), ne);
-      }
-      else
-      {
-        // TODO: INFO for local PERMISSIONS exception?
-        Message failedMsg = getThrowableMsg(
-                INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
-        throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                failedMsg, ne);
-      }
-    }
     catch (NamingException ne)
     {
+      Message msg;
       if (isRemoteServer)
       {
-        throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                        getHostDisplay(auth), ne.toString(true)), ne);
+        msg = Utils.getMessageForException(ne, getHostDisplay(auth));
       }
       else
       {
-        throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne), ne);
+        msg = Utils.getMessageForException(ne);
       }
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR,
+          msg,
+          ne);
     }
     catch (ADSContextException ace)
     {
@@ -3641,27 +3621,17 @@ public abstract class Installer extends GuiApplication {
                   host+":"+port, t.toString()));
         }
       }
-      else if (t instanceof AuthenticationException)
-      {
-        errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get());
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-      }
-      else if (t instanceof NoPermissionException)
-      {
-        errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(
-                  host+":"+port));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-      }
       else if (t instanceof NamingException)
       {
-        errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                host+":"+port, ((NamingException)t).toString(true)));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+        errorMsgs.add(Utils.getMessageForException((NamingException)t,
+            host+":"+port));
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+        if (!(t instanceof NamingSecurityException))
+        {
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+        }
       }
       else if (t instanceof ADSContextException)
       {

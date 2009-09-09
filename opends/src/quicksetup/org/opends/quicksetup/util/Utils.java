@@ -48,8 +48,12 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.NamingSecurityException;
+import javax.naming.NoPermissionException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -1119,6 +1123,88 @@ public class Utils
   public static boolean isCertificateException(Throwable t)
   {
     return ConnectionUtils.isCertificateException(t);
+  }
+
+  /**
+   * Returns a message object for the given NamingException.
+   * @param ne the NamingException.
+   * @param hostPort the hostPort representation of the server we were
+   * contacting when the NamingException occurred.
+   * @return a message object for the given NamingException.
+   */
+  public static Message getMessageForException(NamingException ne,
+      String hostPort)
+  {
+    Message msg;
+    if (Utils.isCertificateException(ne))
+    {
+      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+              hostPort, ne.toString(true));
+    }
+    else if (ne instanceof AuthenticationException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort,
+          ne.toString(true));
+    }
+    else if (ne instanceof NoPermissionException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
+          ne.toString(true));
+    }
+    else if (ne instanceof NamingSecurityException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
+          ne.toString(true));
+    }
+    else if (ne instanceof CommunicationException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(
+          hostPort, ne.toString(true));
+    }
+    else
+    {
+       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+          hostPort, ne.toString(true));
+    }
+    return msg;
+  }
+
+
+
+  /**
+   * Returns a message object for the given NamingException.  The code assume
+   * that we are trying to connect to the local server.
+   * @param ne the NamingException.
+   * @return a message object for the given NamingException.
+   */
+  public static Message getMessageForException(NamingException ne)
+  {
+    Message msg;
+    if (Utils.isCertificateException(ne))
+    {
+      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(ne.toString(true));
+    }
+    else if (ne instanceof AuthenticationException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_LOCAL_AUTHENTICATION.get(ne.toString(true));
+    }
+    else if (ne instanceof NoPermissionException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_LOCAL_PERMISSIONS.get(ne.toString(true));
+    }
+    else if (ne instanceof NamingSecurityException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_LOCAL_PERMISSIONS.get(ne.toString(true));
+    }
+    else if (ne instanceof CommunicationException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_LOCAL_COMMUNICATION.get(ne.toString(true));
+    }
+    else
+    {
+       msg = ERR_CANNOT_CONNECT_TO_LOCAL_GENERIC.get(ne.toString(true));
+    }
+    return msg;
   }
 
   /**

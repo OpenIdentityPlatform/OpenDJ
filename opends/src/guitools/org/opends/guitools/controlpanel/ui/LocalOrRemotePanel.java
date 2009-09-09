@@ -56,6 +56,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
@@ -556,17 +557,18 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                 }
                 else
                 {
-                  errors.add(ERR_CANNOT_CONNECT_TO_LOGIN_WITHOUT_CAUSE.get());
+                  errors.add(Utils.getMessageForException(
+                      (NamingException)throwable));
                 }
                 localServerErrorConnecting = true;
               }
               else
               {
-                String msg = throwable.toString();
-                errors.add(ERR_CANNOT_CONNECT_TO_REMOTE.get(
+                String hostPort = ServerDescriptor.getServerRepresentation(
                     hostName.getText().trim(),
-                    port.getText().trim(),
-                    msg));
+                    new Integer(port.getText().trim()));
+                NamingException ne = (NamingException)throwable;
+                errors.add(Utils.getMessageForException(ne, hostPort));
                 setPrimaryInvalid(portLabel);
               }
               setPrimaryInvalid(dnLabel);

@@ -533,7 +533,7 @@ public class LoginDialog extends JDialog
             {
               // Generic message
               displayError(
-                  ERR_CANNOT_CONNECT_TO_LOGIN_WITHOUT_CAUSE.get(),
+                  Utils.getMessageForException((NamingException)throwable),
                   INFO_ERROR_TITLE.get());
             }
           }
