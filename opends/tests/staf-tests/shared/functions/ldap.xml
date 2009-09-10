@@ -2821,8 +2821,8 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
-          'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldapjndi' % (dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldapjndi' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC,
           'knownIssue': knownIssue
         }
@@ -3071,8 +3071,8 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
-          'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldapjndi' % (dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldapjndi' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC,
           'knownIssue': knownIssue
         }
@@ -3082,127 +3082,6 @@
       </return>
     </sequence>
   </function>
-  
-  
-  <!-- Modify an attribute -->
-  <function name="modifyDn">
-    <function-prolog>
-      This function rename the rdn
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Directory server hostname or IP address
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstancePort" type="required">
-        <function-arg-description>
-          Directory server port number
-        </function-arg-description>
-        <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceDn" type="required">
-        <function-arg-description>
-          Bind DN
-        </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstancePswd" type="required">
-        <function-arg-description>
-          Bind password
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="DNToModify" type="required">
-        <function-arg-description>
-          DN to modify
-        </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>
-      <function-arg-def name="newRDN" type="optional">
-        <function-arg-description>
-          new rdn name : ie uid=jdoe_bis
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="deleteOldRDN" type="optional">
-        <function-arg-description>
-          1 : delete old rdn, 0 do not delete old rdn, default value is 1
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          Expected return code value. Default value is 0
-          Wildcard 'noCheck' to not check the RC
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-      <function-arg-def name="knownIssue" type="optional" default="None">
-        <function-arg-description>
-          Known issue. Corresponds to an issue number.
-        </function-arg-description>
-        <function-arg-property name="type" value="string" />
-      </function-arg-def>
-    </function-map-args>
-    <sequence>
-    
-      <!-- Local variables -->
-      <script>
-        mylocation=location
-        #Build the Command
-        STAFCmdParamsList=[]
-        STAFCmdParams=''
-        STAFCmd=''
-      </script>
-      
-      <!-- Set common ldap arguments -->      
-      <call function="'_ldapCommonArgs'" />
-      <script>
-        if DNToModify:
-          STAFCmdParamsList.append('-d "%s"' % DNToModify)
-        
-        if newRDN:
-          STAFCmdParamsList.append('-e "%s"' % newRDN)
-        
-        if deleteOldRDN:
-          STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)                        
-        
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-        
-        STAFCmd='modifyDn' 
-      </script>
-      <call function="'runCommand'" >
-        { 'name'      : 'Modify DN',
-          'command'   : '%s/bin/java' % JAVA_HOME,
-          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
-          'location'  : location,
-          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
-          'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
-        }
-      </call>
-      <return>
-        STAXResult
-      </return>
-    </sequence>
-  </function>
-  
-  
   
   <!-- Modify an attribute -->
   <function name="saslSearch">
@@ -3406,8 +3285,8 @@
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
-          'envCmd'    : ['CLASSPATH=%s/../%s/ldap' % (dsPath,remote.reljavadir)],
-          'path'      : '%s/../%s/ldap' % (dsPath,remote.reljavadir),
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldapjndi' % (dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldapjndi' % (dsPath,remote.reljavadir),
           'expectedRC': expectedRC,
           'knownIssue': knownIssue
         }

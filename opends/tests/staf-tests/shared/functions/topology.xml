@@ -298,10 +298,10 @@
             }
           </call>          
           
-          <!-- Archive (ldap/.java) files -->
+          <!-- Archive (ldapjndi/.java) files -->
           <script>
-            javaSharedDir='%s/ldap' % source.java
-            javaLocalDir ='%s/ldap' % local.java
+            javaSharedDir='%s/ldapjndi' % source.java
+            javaLocalDir ='%s/ldapjndi' % local.java
           </script>
           <message>
             'Copy java files locally from %s to %s.' % \
@@ -316,7 +316,7 @@
             }
           </call>
           
-          <!---   Check if ldap java files are already compiled -->
+          <!---   Check if ldapjndi java files are already compiled -->
           <call function="'listFolderByExtension'" >
             { 
             'location'   : STAXServiceMachine,
@@ -326,7 +326,7 @@
           </call>
           <if expr="len(STAXResult) == 0">
             <sequence>
-              <!---   Compile ldap java files on controler host -->
+              <!---   Compile ldapjndi java files on controler host -->
               <message>
                 'Compile Java files under %s on %s' \
                 % (javaLocalDir, STAXServiceMachine)
@@ -339,7 +339,69 @@
               </call>
             </sequence>
           </if>
- 
+
+          <!-- Archive (ldapjdk/.java) files -->
+          <script>
+            javaSharedDir='%s/ldapjdk' % source.java
+            javaLocalDir ='%s/ldapjdk' % local.java
+          </script>
+          <message>
+            'Copy java files locally from %s to %s.' % \
+              (javaSharedDir,javaLocalDir)
+          </message>
+          <call function="'CopyFolderByExtension'">
+            {
+            'location'   : STAXServiceMachine,
+            'srcfolder'  : javaSharedDir,
+            'destfolder' : javaLocalDir,
+            'extension'  : 'java'
+            }
+          </call>
+          <call function="'CopyFolderByExtension'">
+            {
+            'location'   : STAXServiceMachine,
+            'srcfolder'  : javaSharedDir,
+            'destfolder' : javaLocalDir,
+            'extension'  : 'jar'
+            }
+          </call>
+
+          <!---   Check if ldapjdk java files are already compiled -->
+          <call function="'listFolderByExtension'" >
+            {
+            'location'   : STAXServiceMachine,
+            'foldername' : javaLocalDir,
+            'extension'  : 'class'
+            }
+          </call>
+          <if expr="len(STAXResult) == 0">
+            <sequence>
+              <!---   Compile ldapjdk java files on controller host -->
+              <message>
+                'Compile Java files under %s on %s' \
+                % (javaLocalDir, STAXServiceMachine)
+              </message>
+              <script>
+                if is_windows_platform(STAXServiceMachine):
+                  separator=';'
+                  jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
+                else:
+                  separator=':'
+                  jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
+
+                ldapjdk_jarfile='%s/ldapjdk.jar' % javaLocalDir
+              </script>
+              <call function="'compileJava'" >
+                {
+                'location'   : STAXServiceMachine,
+                'foldername' : '%s' % javaLocalDir,
+                'classpath'  : '%s%s%s' \
+                               % (ldapjdk_jarfile,separator,jstaf_jarfile)
+                }
+              </call>
+            </sequence>
+          </if>
+
            <!-- Archive (.security) files -->
           <message>
             'Copy security data files locally from %s to %s.' % \
