@@ -692,7 +692,7 @@
             tcissuesList=eval(tcissues)
             for attr in tcissuesList:
               issue = doc.createElement("issue")
-              issue.setAttribute("id", attr)
+              issue.setAttribute("id", "%s" % attr)
               issues.appendChild(issue)
             case.appendChild(issues)
           suite.appendChild(case)
