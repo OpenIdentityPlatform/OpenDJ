@@ -884,6 +884,9 @@ public class MonitorBackend
                   entryMap.put(providerdn, entry);
               }
             } catch (Exception ex) {
+              if (debugEnabled()) {
+                TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+              }
             }
       }
   }
@@ -916,8 +919,11 @@ public class MonitorBackend
         children.add(child);
         childDNs.put(parentdn, children);
       }
-    } catch (Exception e)
-    {}
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
   }
 
   /**
