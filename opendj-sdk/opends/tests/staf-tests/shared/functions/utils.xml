@@ -1699,9 +1699,6 @@
         _functionRC = int(RC)
         _functionResult = STAXResult
       </script>
-      <message log="1" level="'debug'">
-        'runFunction: %s: returned [%s] with [%s]' % (functionName,RC,STAXResult)
-      </message>
 
       <!-- this section handles the optional case when we need to set the 
            test case status
@@ -1917,15 +1914,6 @@
         cmdResult=STAXResult
       </script>
 
-      <if expr="expectedRC != 'noCheck'">
-        <call function="'checktestRC'">
-          { 'returncode' : cmdRC,
-            'result'     : cmdOutput,
-            'expected'   : expectedRC,
-            'issue'      : knownIssue
-          }
-        </call>
-      </if>
       <script>
         def dig(var):
           try:
@@ -1944,6 +1932,17 @@
         if stripOutput == True:
           cmdResult=dig(cmdResult)
       </script>
+
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : cmdRC,
+            'result'     : cmdResult,
+            'expected'   : expectedRC,
+            'issue'      : knownIssue
+          }
+        </call>
+      </if>
+      
       <return>
         cmdResult
       </return>
@@ -2402,7 +2401,7 @@
       </function-arg-def>      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. 
+          Expected return code value.
           0 for successful grep, 1 for unsuccessful grep. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
@@ -2428,7 +2427,7 @@
           env = ['%s' % cp]        
         else:
           cmd = '%s/bin/javac' % JAVA_HOME
-          env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]          
+          env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
       </script>
 
       <call function="'listFolderByExtension'" >
