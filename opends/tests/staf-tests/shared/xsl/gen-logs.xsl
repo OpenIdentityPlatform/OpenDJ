@@ -29,6 +29,32 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
 
+<xsl:template name="br-replace">
+  <xsl:param name="text"/>
+  <xsl:variable name="cr" select="'\n'"/>
+  <xsl:choose>
+    <!-- If the value of the $text parameter
+            contains a carriage return... -->
+    <xsl:when test="contains($text,$cr)">
+      <!-- Return the substring of $text before the carriage return -->
+      <xsl:value-of select="substring-before($text,$cr)"/>
+      <!-- And construct a <br/> element -->
+      <br/>
+      <!--
+       | Then invoke this same br-replace template again, passing the
+       | substring *after* the carriage return as the new "$text" to
+       | consider for replacement
+       +-->
+      <xsl:call-template name="br-replace">
+        <xsl:with-param name="text" select="substring-after($text,$cr)"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="$text"/>
+    </xsl:otherwise>
+ </xsl:choose>
+</xsl:template>
+
 <xsl:template match="/">
   
   <xsl:element name="html">
@@ -165,7 +191,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:choose>
           </xsl:element>
           <xsl:element name="td">
-            <xsl:value-of select="@message"/>
+            <xsl:call-template name="br-replace">
+              <xsl:with-param name="text" select="@message"/>
+            </xsl:call-template>
           </xsl:element>
         </xsl:element>
 
