@@ -29,6 +29,7 @@ package org.opends.server.core.networkgroups;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -53,18 +54,17 @@ public class NetworkGroupStatistics
   private final String instanceName;
   private final NetworkGroup networkGroup;
 
-  private final Object lock = new Object();
-  private long abandonRequests = 0;
-  private long addRequests = 0;
-  private long bindRequests = 0;
-  private long compareRequests = 0;
-  private long deleteRequests = 0;
-  private long extendedRequests = 0;
-  private long modifyRequests = 0;
-  private long modifyDNRequests = 0;
-  private long searchOneRequests = 0;
-  private long searchSubRequests = 0;
-  private long unbindRequests = 0;
+  private AtomicLong abandonRequests = new AtomicLong(0);
+  private AtomicLong addRequests = new AtomicLong(0);
+  private AtomicLong bindRequests = new AtomicLong(0);
+  private AtomicLong compareRequests = new AtomicLong(0);
+  private AtomicLong deleteRequests = new AtomicLong(0);
+  private AtomicLong extendedRequests = new AtomicLong(0);
+  private AtomicLong modifyRequests = new AtomicLong(0);
+  private AtomicLong modifyDNRequests = new AtomicLong(0);
+  private AtomicLong searchOneRequests = new AtomicLong(0);
+  private AtomicLong searchSubRequests = new AtomicLong(0);
+  private AtomicLong unbindRequests = new AtomicLong(0);
 
   /**
    * Constructor.
@@ -92,47 +92,44 @@ public class NetworkGroupStatistics
    * managed by the network group.
    */
   public void updateMessageRead(LDAPMessage message) {
-    synchronized (lock)
+    switch (message.getProtocolOp().getType())
     {
-      switch (message.getProtocolOp().getType())
-      {
-        case OP_TYPE_ABANDON_REQUEST:
-          abandonRequests++;
-          break;
-        case OP_TYPE_ADD_REQUEST:
-          addRequests++;
-          break;
-        case OP_TYPE_BIND_REQUEST:
-          bindRequests++;
-          break;
-        case OP_TYPE_COMPARE_REQUEST:
-          compareRequests++;
-          break;
-        case OP_TYPE_DELETE_REQUEST:
-          deleteRequests++;
-          break;
-        case OP_TYPE_EXTENDED_REQUEST:
-          extendedRequests++;
-          break;
-        case OP_TYPE_MODIFY_REQUEST:
-          modifyRequests++;
-          break;
-        case OP_TYPE_MODIFY_DN_REQUEST:
-          modifyDNRequests++;
-          break;
-        case OP_TYPE_SEARCH_REQUEST:
-          SearchScope scope = message.getSearchRequestProtocolOp().getScope();
-          if (scope == SearchScope.BASE_OBJECT
-              || scope == SearchScope.SINGLE_LEVEL) {
-            searchOneRequests++;
-          } else {
-            searchSubRequests++;
-          }
-          break;
-        case OP_TYPE_UNBIND_REQUEST:
-          unbindRequests++;
-          break;
-      }
+      case OP_TYPE_ABANDON_REQUEST:
+        abandonRequests.getAndIncrement();
+        break;
+      case OP_TYPE_ADD_REQUEST:
+        addRequests.getAndIncrement();
+        break;
+      case OP_TYPE_BIND_REQUEST:
+        bindRequests.getAndIncrement();
+        break;
+      case OP_TYPE_COMPARE_REQUEST:
+        compareRequests.getAndIncrement();
+        break;
+      case OP_TYPE_DELETE_REQUEST:
+        deleteRequests.getAndIncrement();
+        break;
+      case OP_TYPE_EXTENDED_REQUEST:
+        extendedRequests.getAndIncrement();
+        break;
+      case OP_TYPE_MODIFY_REQUEST:
+        modifyRequests.getAndIncrement();
+        break;
+      case OP_TYPE_MODIFY_DN_REQUEST:
+        modifyDNRequests.getAndIncrement();
+        break;
+      case OP_TYPE_SEARCH_REQUEST:
+        SearchScope scope = message.getSearchRequestProtocolOp().getScope();
+        if (scope == SearchScope.BASE_OBJECT
+            || scope == SearchScope.SINGLE_LEVEL) {
+          searchOneRequests.getAndIncrement();
+        } else {
+          searchSubRequests.getAndIncrement();
+        }
+        break;
+      case OP_TYPE_UNBIND_REQUEST:
+        unbindRequests.getAndIncrement();
+        break;
     }
   }
 
@@ -214,31 +211,29 @@ public class NetworkGroupStatistics
               .valueOf(rlpStatistics.getTotalClientConnections())));
     }
 
-    synchronized(lock) {
-      attrs.add(Attributes.create("ds-mon-abandon-operations-total-count",
-          String.valueOf(abandonRequests)));
-      attrs.add(Attributes.create("ds-mon-add-operations-total-count",
-          String.valueOf(addRequests)));
-      attrs.add(Attributes.create("ds-mon-bind-operations-total-count",
-          String.valueOf(bindRequests)));
-      attrs.add(Attributes.create("ds-mon-compare-operations-total-count",
-          String.valueOf(compareRequests)));
-      attrs.add(Attributes.create("ds-mon-delete-operations-total-count",
-          String.valueOf(deleteRequests)));
-      attrs.add(Attributes.create("ds-mon-extended-operations-total-count",
-          String.valueOf(extendedRequests)));
-      attrs.add(Attributes.create("ds-mon-mod-operations-total-count",
-          String.valueOf(modifyRequests)));
-      attrs.add(Attributes.create("ds-mon-moddn-operations-total-count",
-          String.valueOf(modifyDNRequests)));
-      attrs.add(Attributes.create(
-          "ds-mon-searchonelevel-operations-total-count",
-          String.valueOf(searchOneRequests)));
-      attrs.add(Attributes.create("ds-mon-searchsubtree-operations-total-count",
-          String.valueOf(searchSubRequests)));
-      attrs.add(Attributes.create("ds-mon-unbind-operations-total-count",
-          String.valueOf(unbindRequests)));
-    }
+    attrs.add(Attributes.create("ds-mon-abandon-operations-total-count",
+        String.valueOf(abandonRequests.get())));
+    attrs.add(Attributes.create("ds-mon-add-operations-total-count",
+        String.valueOf(addRequests.get())));
+    attrs.add(Attributes.create("ds-mon-bind-operations-total-count",
+        String.valueOf(bindRequests.get())));
+    attrs.add(Attributes.create("ds-mon-compare-operations-total-count",
+        String.valueOf(compareRequests.get())));
+    attrs.add(Attributes.create("ds-mon-delete-operations-total-count",
+        String.valueOf(deleteRequests.get())));
+    attrs.add(Attributes.create("ds-mon-extended-operations-total-count",
+        String.valueOf(extendedRequests.get())));
+    attrs.add(Attributes.create("ds-mon-mod-operations-total-count",
+        String.valueOf(modifyRequests.get())));
+    attrs.add(Attributes.create("ds-mon-moddn-operations-total-count",
+        String.valueOf(modifyDNRequests.get())));
+    attrs.add(Attributes.create(
+        "ds-mon-searchonelevel-operations-total-count",
+        String.valueOf(searchOneRequests.get())));
+    attrs.add(Attributes.create("ds-mon-searchsubtree-operations-total-count",
+        String.valueOf(searchSubRequests.get())));
+    attrs.add(Attributes.create("ds-mon-unbind-operations-total-count",
+        String.valueOf(unbindRequests.get())));
 
     attrs.add(Attributes.create("ds-mon-discarded-referrals-total-count",
         "Not implemented"));
