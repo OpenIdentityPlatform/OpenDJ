@@ -54,7 +54,37 @@
               'stopServer'    : False
             }
           </call>
-                           
+
+          <!--- Test Case information
+            #@TestMarker          Restore tasks
+            #@TestName            Create backup for the restore testcases
+            #@TestPurpose         Create backup
+            #@TestPreamble
+            #@TestStep            Execute backup in synchronous mode
+            #@TestPostamble
+            #@TestResult
+            -->
+
+          <testcase name="getTestCaseName('Create backup for the restore testcases')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'backup'">
+                { 'location'          : STAF_REMOTE_HOSTNAME ,
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
+                'backupID'            : 'recurring-restore-1',
+                'backEnd'             : DIRECTORY_INSTANCE_BE}
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+            
+          </testcase>
+
           <!--- Test Case information
             #@TestMarker          Restore tasks
             #@TestName            Restore task in asynchronous mode
@@ -68,15 +98,15 @@
               
           <testcase name="getTestCaseName('schedule restore task for immediate execution in asynchronous mode')">
             <sequence>
-              <call function="'testCase_Preamble'"/>              
-              
+              <call function="'testCase_Preamble'"/>
+
               <call function="'restore'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-                'backupDir'           : '%s/tasks/backup_asynchronous' % remote.data,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
                 'startTask'           : '0'}
               </call>
               
@@ -113,26 +143,46 @@
                 'backupDir'           : '%s/tasks/backup_synchronous' % remote.data}
               </call>
   
-              <!-- manage-tasks -->
-              <call function="'manage-tasks'">
-                { 'location'     : STAF_REMOTE_HOSTNAME ,
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsQuiet'        : ' '
+              <script>checkRC=9999</script>
+              <loop from="1" to="10" var="loop" while="checkRC != 0">
+                <sequence>
+                  <message>'LOOP %s' % loop</message>
+                  <!-- manage-tasks -->
+                  <call function="'manage-tasks'">
+                    { 'location'       : STAF_REMOTE_HOSTNAME ,
+                      'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'dsQuiet'        : ' '
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                    currentDate=strftime("%Y%m%d",localtime())
+                  </script>
+
+                  <call function="'searchString'">
+                    { 'expectedString' : '%s.*  Restore  Completed successfully' \
+                                         % currentDate,
+                      'returnString'	 : returnString ,
+                      'expectedRC'     : 'noCheck' }
+                  </call>
+
+                  <script>
+                    checkRC = STAXResult[0]
+                  </script>
+
+                </sequence>
+              </loop>
+
+              <call function="'checktestRC'">
+                { 'returncode' : checkRC ,
+                  'result'     : "Restore fails" ,
+                  'expected'   : 0
                 }
               </call>
-    
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-          
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'Restore',
-                'expectedResult'	   : '1' }
-              </call>                          
-              
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>               
@@ -171,7 +221,7 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'startTask'           : '%s' % mydate,
-                'backupDir'           : '%s/tasks/backup_schedule_asynchronous' % remote.data
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data
                 }
               </call>
       
@@ -224,7 +274,7 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'schedulePattern'     : '"0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *"',
-                'backupDir'           : '%s/tasks/backup_recurring_schedule_asynchronous' % remote.data,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
                 'backupID'            : 'recurring-restore-1'}
               </call>
   
