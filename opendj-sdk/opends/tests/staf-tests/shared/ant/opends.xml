@@ -60,10 +60,25 @@
               </and>
               <then>
                 <echo>Build ${opends.name} with SNMP</echo>
-                <replace file="${project.home}/build.properties"
-                         value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
-                  <replacefilter token="opendmk.lib.dir="/>
-                </replace>
+                <var file="${basedir}/user.properties"/>
+                <if>
+                    <or>
+                      <equals arg1="${opendmk.lib.dir}" arg2=""/>
+                      <not>
+                        <equals arg1="${opendmk.lib.dir}" arg2="${snmp.opendmk.lib.dir}"/>
+                      </not>
+                    </or>
+                    <then>
+                      <replace file="${project.home}/build.properties"
+                               value="opendmk.lib.dir=">
+                        <replacefilter token="opendmk.lib.dir=${opendmk.lib.dir}"/>
+                      </replace>
+                      <replace file="${project.home}/build.properties"
+                               value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
+                        <replacefilter token="opendmk.lib.dir="/>
+                      </replace>
+                    </then>
+                </if>
                 <property name="package.rebuild" value="true"/>
               </then>
               <else>
@@ -83,10 +98,25 @@
               </and>
               <then>
                 <echo>Rebuild ${opends.name} with SNMP</echo>
-                <replace file="${project.home}/build.properties"
-                         value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
-                  <replacefilter token="opendmk.lib.dir="/>
-                </replace>
+                <var file="${basedir}/user.properties"/>
+                <if>
+                    <or>
+                      <equals arg1="${opendmk.lib.dir}" arg2=""/>
+                      <not>
+                        <equals arg1="${opendmk.lib.dir}" arg2="${snmp.opendmk.lib.dir}"/>
+                      </not>
+                    </or>
+                    <then>
+                      <replace file="${project.home}/build.properties"
+                               value="opendmk.lib.dir=">
+                        <replacefilter token="opendmk.lib.dir=${opendmk.lib.dir}"/>
+                      </replace>
+                      <replace file="${project.home}/build.properties"
+                               value="opendmk.lib.dir=${snmp.opendmk.lib.dir}">
+                        <replacefilter token="opendmk.lib.dir="/>
+                      </replace>
+                    </then>
+                </if>
                 <property name="package.rebuild" value="true"/>
               </then>
             </if>

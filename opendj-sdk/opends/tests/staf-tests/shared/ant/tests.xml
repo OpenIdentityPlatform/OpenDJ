@@ -95,17 +95,17 @@
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_${tests.type} SCRIPTFILE ${tests.run.dir}/${tests.run.time}/config/${tests.config.file} WAIT CLEARLOGS"/>
 
     <echo>While the tests are running you may tail the job logs at</echo>
-    <echo>${staf.install.dir}/logs/MACHINE/${host.name}</echo>
+    <echo>${staf.install.dir}/${staf.name}/logs/MACHINE/${host.name}</echo>
     <echo>Running tests. This will take more than a while.</echo>
-    <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+    <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar:."/>
     <exec
       dir="${staf.bin.dir}"
       executable="${staf.executable}"
       >
       <arg line="LOCAL STAX ${tests.request}"/>
-      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar:."/>
       <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
-      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/${staf.name}/codepage"/>
       <env key="STAFCODEPAGE" value="LATIN_1"/>
     </exec>
 
@@ -165,6 +165,10 @@
                defaultvalue="${ldclt.dir}"
                addproperty="ldclt.dir.input"/>
       </then>
+      <else>
+        <property name="client.hostname.input" value="${client.hostname}"/>
+        <property name="ldclt.dir.input" value="${ldclt.dir}"/>
+      </else>
     </if>
 
     <input message="   Enter path to logs directory:"

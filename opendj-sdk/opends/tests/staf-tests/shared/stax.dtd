@@ -27,7 +27,7 @@
 <!--
    STAf eXecution (STAX) Document Type Definition (DTD)
 
-   Generated Date: 20090312-15:22:34
+   Generated Date: 20090818-11:49:53
 
    This DTD module is identified by the SYSTEM identifier:
 
@@ -39,17 +39,17 @@
 
 <!ENTITY % stax-elems 'function | script | signalhandler'>
 
-<!ENTITY % task       'call | terminate | raise | 
-                       block | iterate | throw | 
-                       break | paralleliterate | timer | 
-                       if | loop | import | 
-                       tcstatus | rethrow | parallel | 
-                       hold | return | job | 
-                       call-with-list | script | log | 
-                       stafcmd | nop | testcase | 
-                       message | process | signalhandler | 
-                       call-with-map | sequence | continue | 
-                       release | try'>
+<!ENTITY % task       'timer | parallel | log | 
+                       call | stafcmd | script | 
+                       tcstatus | message | iterate | 
+                       sequence | import | raise | 
+                       job | process | nop | 
+                       try | break | testcase | 
+                       paralleliterate | continue | throw | 
+                       release | signalhandler | rethrow | 
+                       block | hold | terminate | 
+                       return | if | call-with-list | 
+                       loop | call-with-map'>
 
 <!--================= STAX Job Definition ========================== -->
 <!--
@@ -71,6 +71,64 @@
           function     IDREF    #REQUIRED
 >
 
+<!--================= The Timer Element ============================ -->
+<!--
+     The timer element runs a task for a specified duration.
+     If the task is still running at the end of the specified duration,
+     then the RC variable is set to 1, else if the task ended before
+     the specified duration, the RC variable is set to 0, else if the
+     timer could not start due to an invalid duration, the RC variable
+     is set to -1.
+-->
+<!ELEMENT timer     (%task;)>
+<!-- duration is the maximum length of time to run the task.
+       Time can be expressed in milliseconds, seconds, minutes,
+       hours, days, weeks, or years.  It is evaluated via Python.
+         Examples:  duration='50'    (50 milliseconds)
+                    duration='90s'   (90 seconds)
+                    duration='5m'    ( 5 minutes)
+                    duration='36h'   (36 hours)
+                    duration='3d'    ( 3 days)
+                    duration='1w'    ( 1 week)
+                    duration='1y'    ( 1 year)
+-->
+<!ATTLIST timer
+          duration   CDATA        #REQUIRED
+>
+
+<!--================= The Parallel Element ========================= -->
+<!--
+     The parallel element performs one or more tasks in parallel.
+-->
+<!ELEMENT parallel   (%task;)+>
+
+<!--================= The Log Element ============================== -->
+<!--
+     Writes a message and its log level to a STAX Job User Log file.
+     The message must evaluate via Python to a string.
+
+     The log level specified defaults to 'info'.  If specified, it
+     must evaluate via Python to a string containing one of the
+     following STAF Log Service Log levels:
+       fatal, warning, info, trace, trace2, trace3, debug, debug2,
+       debug3, start, stop, pass, fail, status, user1, user2, user3,
+       user4, user5, user6, user7, user8
+     The message attribute is evaluated via Python.  If it evaluates
+     to true, the message text will also be sent to the STAX Job Monitor.
+     The message attribute defaults to the STAXMessageLog variable whose
+     value defaults to 0 (false) but can by changed within the STAX job
+     to turn on messaging.
+
+     If an if attribute is specified and it evaluates via Python to
+     false, then the log element is ignored.
+-->
+<!ELEMENT log         (#PCDATA)>
+<!ATTLIST log
+          level       CDATA       "'info'"
+          message     CDATA       "STAXMessageLog"
+          if          CDATA       "1"
+>
+
 <!--================= The Call Element ============================= -->
 <!--
      Perform a function with the referenced name.
@@ -84,39 +142,84 @@
 >
 
 
-<!--================= The Terminate Element ======================== -->
+<!--================= The STAF Command Element ===================== -->
 <!--
-     The terminate element specifies to terminate a block in the job.
+     Specifies a STAF command to be executed.
+     Its name and all of its element values are evaluated via Python.
+-->
+<!ELEMENT stafcmd    (location, service, request)>
+<!ATTLIST stafcmd
+          name       CDATA   #IMPLIED
+>
+<!ELEMENT service    (#PCDATA)>
+<!ELEMENT request    (#PCDATA)>
+
+<!--================= The Script Element =========================== -->
+<!--
+     Specifies Python code to be executed.
+-->
+<!ELEMENT script     (#PCDATA)>
+
+<!--================= The Testcase Status Element ================== -->
+<!--
+     Marks status result ('pass' or 'fail' or 'info') for a testcase
+     and allows additional information to be specified.  The status
+     result and the additional info is evaluated via Python.
+-->
+<!ELEMENT tcstatus   (#PCDATA)>
+<!ATTLIST tcstatus
+          result     CDATA  #REQUIRED
+>
+
+<!--================= The Message Element ========================== -->
+<!--
+     Generates an event and makes the message value available to the
+     STAX Job Monitor.  The message must evaluate via Python to a string.
+
+     The log attribute is evaluated via Python to a boolean.  If it
+     evaluates to true, the message text will also be logged in the STAX
+     Job User log.  The log attribute defaults to the STAXLogMessage
+     variable whose value defaults to 0 (false) but can by changed within
+     the STAX job to turn on logging.
+
+     The log level is ignored if the log attribute does not evaluate to
+     true.  It defaults to 'info'.  If specified, it must evaluate via
+     Python to a string containing one of the following STAF Log Service
+     logging levels:
+       fatal, warning, info, trace, trace2, trace3, debug, debug2,
+       debug3, start, stop, pass, fail, status, user1, user2, user3,
+       user4, user5, user6, user7, user8
+
      If an if attribute is specified and it evaluates via Python to
-     false, the terminate element is ignored.
+     false, the message element is ignored.
 -->
-<!ELEMENT terminate  EMPTY>
-<!ATTLIST terminate
-          block      CDATA    #IMPLIED
-          if         CDATA    "1"
+<!ELEMENT message     (#PCDATA)>
+<!ATTLIST message
+          log         CDATA       "STAXLogMessage"
+          level       CDATA       "'info'"
+          if          CDATA       "1"
 >
 
-<!--================= The Raise Element ============================ -->
+<!--================= The Iterate Element ========================= -->
 <!--
-     A raise signal element raises a specified signal.
-     Signals can also be raised by the STAX execution engine.
-     The signal attribute value is evaluated via Python.
+     The iterate element iterates through a list of items, performing
+     its contained task while substituting each item in the list.
+     The iterated tasks are performed in sequence.
 -->
-<!ELEMENT raise      EMPTY>
-<!ATTLIST raise
-          signal     CDATA        #REQUIRED
->
-
-<!--================= The Block Element ============================ -->
-<!--
-     Defines a task block that can be held, released, or terminated.
-     Used in conjunction with the hold/terminate/release elements to
-     define a task block that can be held, terminated, or released.
-     The name attribute value is evaluated via Python.
+<!ELEMENT iterate  (%task;)>
+<!-- var      is the name of the variable which will contain the
+              current item in the list or tuple being iterated.
+              It is a literal.
+     in       is the list or tuple to be iterated.  It is evaluated
+              via Python and must evaluate to be a list or tuple.
+     indexvar is the name of a variable which will contain the index of
+              the current item in the list or tuple being iterated.
+              It is a literal.  The value for the first index is 0.
 -->
-<!ELEMENT block      (%task;)>
-<!ATTLIST block
-          name       CDATA    #REQUIRED
+<!ATTLIST iterate
+          var        CDATA    #REQUIRED
+          in         CDATA    #REQUIRED
+          indexvar   CDATA    #IMPLIED
 >
 
 <!--================= The Function Element ========================= -->
@@ -207,143 +310,11 @@
           value        CDATA    #IMPLIED
 >
 
-<!--================= The Iterate Element ========================= -->
+<!--================= The Sequence Element ========================= -->
 <!--
-     The iterate element iterates through a list of items, performing
-     its contained task while substituting each item in the list.
-     The iterated tasks are performed in sequence.
+     The sequence element performs one or more tasks in sequence.
 -->
-<!ELEMENT iterate  (%task;)>
-<!-- var      is the name of the variable which will contain the
-              current item in the list or tuple being iterated.
-              It is a literal.
-     in       is the list or tuple to be iterated.  It is evaluated
-              via Python and must evaluate to be a list or tuple.
-     indexvar is the name of a variable which will contain the index of
-              the current item in the list or tuple being iterated.
-              It is a literal.  The value for the first index is 0.
--->
-<!ATTLIST iterate
-          var        CDATA    #REQUIRED
-          in         CDATA    #REQUIRED
-          indexvar   CDATA    #IMPLIED
->
-
-<!--================= The Throw Element ============================ -->
-<!--
-     The throw element specifies an exception to throw.
-     The exception attribute value and any additional information
-     is evaluated via Python.
--->
-<!ELEMENT throw      (#PCDATA)>
-<!ATTLIST throw
-          exception  CDATA        #REQUIRED
->
-
-<!--================= Break Element ================================ -->
-<!--
-     The break element can be used to break out of a loop or iterate
-     element.
--->
-<!ELEMENT break      EMPTY>
-
-<!--================= The Parallel Iterate Element ================ -->
-<!--
-     The parallel iterate element iterates through a list of items,
-     performing its contained task while substituting each item in
-     the list.  The iterated tasks are performed in parallel.
--->
-<!ELEMENT paralleliterate  (%task;)>
-<!-- var      is the name of a variable which will contain the current
-              item in the list or tuple being iterated.
-              It is a literal.
-     in       is the list or tuple to be iterated.  It is evaluated
-              via Python and must evaluate to be a list or tuple.
-     indexvar is the name of a variable which will contain the index of
-              the current item in the list or tuple being iterated.
-              It is a literal.  The value of the first index is 0.
--->
-<!ATTLIST paralleliterate
-          var        CDATA    #REQUIRED
-          in         CDATA    #REQUIRED
-          indexvar   CDATA    #IMPLIED
->
-
-<!--================= The Timer Element ============================ -->
-<!--
-     The timer element runs a task for a specified duration.
-     If the task is still running at the end of the specified duration,
-     then the RC variable is set to 1, else if the task ended before
-     the specified duration, the RC variable is set to 0, else if the
-     timer could not start due to an invalid duration, the RC variable
-     is set to -1.
--->
-<!ELEMENT timer     (%task;)>
-<!-- duration is the maximum length of time to run the task.
-       Time can be expressed in milliseconds, seconds, minutes,
-       hours, days, weeks, or years.  It is evaluated via Python.
-         Examples:  duration='50'    (50 milliseconds)
-                    duration='90s'   (90 seconds)
-                    duration='5m'    ( 5 minutes)
-                    duration='36h'   (36 hours)
-                    duration='3d'    ( 3 days)
-                    duration='1w'    ( 1 week)
-                    duration='1y'    ( 1 year)
--->
-<!ATTLIST timer
-          duration   CDATA        #REQUIRED
->
-
-<!--================= The Conditional Element (if-then-else) ======= -->
-<!--
-     Allows you to write an if or a case construct with zero or more
-     elseifs and one or no else statements.
-
-     The expr attribute value is evaluated via Python and must evaluate
-     to a boolean value.
--->
-<!ELEMENT if         ((%task;), elseif*, else?)>
-<!ATTLIST if
-          expr       CDATA   #REQUIRED
->
-<!ELEMENT elseif     (%task;)>
-<!ATTLIST elseif
-          expr       CDATA   #REQUIRED
->
-<!ELEMENT else       (%task;)>
-
-<!--================= The Loop Element ============================= -->
-<!--
-     The loop element performs a task a specified number of times,
-     allowing specification of an upper and lower bound with an
-     increment value and where the index counter is available to
-     sub-tasks.  Also, while and/or until expressions can be
-     specified.
--->
-<!ELEMENT loop       (%task;)>
-<!-- var      is the name of a variable which will contain the loop
-              index variable.  It is a literal.
-     from     is the starting value of the loop index variable.
-              It must evaluate to an integer value via Python.
-     to       is the maximum value of the loop index variable
-              It must evaluate to an integer value via Python.
-     by       is the increment value for the loop index variable
-              It must evaluate to an integer value via Python.
-     while    is an expression that must evaluate to a boolean value
-              and is performed at the top of each loop.  If it
-              evaluates to false, it breaks out of the loop.
-     until    is an expression that must evaluate to a boolean value
-              and is performed at the bottom of each loop.  If it
-              evaluates to false, it breaks out of the loop.
--->
-<!ATTLIST loop
-          var        CDATA    #IMPLIED
-          from       CDATA    '1'
-          to         CDATA    #IMPLIED
-          by         CDATA    '1'
-          while      CDATA    #IMPLIED
-          until      CDATA    #IMPLIED
->
+<!ELEMENT sequence   (%task;)+>
 
 <!--================= The Import Element ========================== -->
 <!--
@@ -351,54 +322,24 @@
 -->
 <!ELEMENT import        (import-include?, import-exclude?)?>
 <!ATTLIST import
-          machine     CDATA       #REQUIRED
           file        CDATA       #REQUIRED
-          mode        CDATA         "'error'"
+          machine     CDATA       #IMPLIED
+          mode        CDATA       "'error'"
 >
 <!ELEMENT import-include          (#PCDATA)>
 <!ELEMENT import-exclude          (#PCDATA)>
 
 
-<!--================= The Testcase Status Element ================== -->
+<!--================= The Raise Element ============================ -->
 <!--
-     Marks status result ('pass' or 'fail' or 'info') for a testcase
-     and allows additional information to be specified.  The status
-     result and the additional info is evaluated via Python.
+     A raise signal element raises a specified signal.
+     Signals can also be raised by the STAX execution engine.
+     The signal attribute value is evaluated via Python.
 -->
-<!ELEMENT tcstatus   (#PCDATA)>
-<!ATTLIST tcstatus
-          result     CDATA  #REQUIRED
+<!ELEMENT raise      EMPTY>
+<!ATTLIST raise
+          signal     CDATA        #REQUIRED
 >
-
-<!--================= The Rethrow Element ========================= -->
-<!--
-     The rethrow element specifies to rethrow the current exception.
--->
-<!ELEMENT rethrow      EMPTY>
-
-<!--================= The Parallel Element ========================= -->
-<!--
-     The parallel element performs one or more tasks in parallel.
--->
-<!ELEMENT parallel   (%task;)+>
-
-<!--================= The Hold Element ============================= -->
-<!--
-     The hold element specifies to hold a block in the job.
-     If an if attribute is specified and it evaluates via Python to
-     false, the hold element is ignored.
--->
-<!ELEMENT hold       EMPTY>
-<!ATTLIST hold
-          block      CDATA    #IMPLIED
-          if         CDATA    "1"
->
-
-<!--================= The Return Element =========================== -->
-<!--
-     Specifies a value to return from a function.
--->
-<!ELEMENT return     (#PCDATA)>
 
 <!--================== The STAX Job Element ===================== -->
 <!--
@@ -611,112 +552,6 @@
 <!ELEMENT job-action         (%task;)>
 <!ATTLIST job-action
           if        CDATA    "1"
->
-
-<!--================= The Call-With-List Element =================== -->
-<!--
-     Perform a function with the referenced name with any number of
-     arguments in the form of a list.  The function attribute value
-     and argument values are evaluated via Python.
--->
-<!ELEMENT call-with-list      (call-list-arg*)>
-<!ATTLIST call-with-list
-          function   CDATA    #REQUIRED
->
-
-<!ELEMENT call-list-arg       (#PCDATA)>
-
-
-<!--================= The Script Element =========================== -->
-<!--
-     Specifies Python code to be executed.
--->
-<!ELEMENT script     (#PCDATA)>
-
-<!--================= The Log Element ============================== -->
-<!--
-     Writes a message and its log level to a STAX Job User Log file.
-     The message must evaluate via Python to a string.
-
-     The log level specified defaults to 'info'.  If specified, it
-     must evaluate via Python to a string containing one of the
-     following STAF Log Service Log levels:
-       fatal, warning, info, trace, trace2, trace3, debug, debug2,
-       debug3, start, stop, pass, fail, status, user1, user2, user3,
-       user4, user5, user6, user7, user8
-     The message attribute is evaluated via Python.  If it evaluates
-     to true, the message text will also be sent to the STAX Job Monitor.
-     The message attribute defaults to the STAXMessageLog variable whose
-     value defaults to 0 (false) but can by changed within the STAX job
-     to turn on messaging.
-
-     If an if attribute is specified and it evaluates via Python to
-     false, then the log element is ignored.
--->
-<!ELEMENT log         (#PCDATA)>
-<!ATTLIST log
-          level       CDATA       "'info'"
-          message     CDATA       "STAXMessageLog"
-          if          CDATA       "1"
->
-
-<!--================= The STAF Command Element ===================== -->
-<!--
-     Specifies a STAF command to be executed.
-     Its name and all of its element values are evaluated via Python.
--->
-<!ELEMENT stafcmd    (location, service, request)>
-<!ATTLIST stafcmd
-          name       CDATA   #IMPLIED
->
-<!ELEMENT service    (#PCDATA)>
-<!ELEMENT request    (#PCDATA)>
-
-<!--================= The No Operation Element ===================== -->
-<!--
-     No operation action.
--->
-<!ELEMENT nop        EMPTY>
-
-<!--================= The Testcase Element ========================= -->
-<!--
-     Defines a testcase.  Used in conjunction with the tcstatus
-     element to mark the status for a testcase.
-     The name attribute value is evaluated via Python.
--->
-<!ELEMENT testcase   (%task;)>
-<!ATTLIST testcase
-          name       CDATA    #REQUIRED
-          mode       CDATA    "'default'"
->
-
-<!--================= The Message Element ========================== -->
-<!--
-     Generates an event and makes the message value available to the
-     STAX Job Monitor.  The message must evaluate via Python to a string.
-
-     The log attribute is evaluated via Python to a boolean.  If it
-     evaluates to true, the message text will also be logged in the STAX
-     Job User log.  The log attribute defaults to the STAXLogMessage
-     variable whose value defaults to 0 (false) but can by changed within
-     the STAX job to turn on logging.
-
-     The log level is ignored if the log attribute does not evaluate to
-     true.  It defaults to 'info'.  If specified, it must evaluate via
-     Python to a string containing one of the following STAF Log Service
-     logging levels:
-       fatal, warning, info, trace, trace2, trace3, debug, debug2,
-       debug3, start, stop, pass, fail, status, user1, user2, user3,
-       user4, user5, user6, user7, user8
-
-     If an if attribute is specified and it evaluates via Python to
-     false, the message element is ignored.
--->
-<!ELEMENT message     (#PCDATA)>
-<!ATTLIST message
-          log         CDATA       "STAXLogMessage"
-          level       CDATA       "'info'"
-          if          CDATA       "1"
 >
 
 <!--================= The STAF Process Element ===================== -->
@@ -1112,6 +947,110 @@
           if        CDATA     "1"
 >
 
+<!--================= The No Operation Element ===================== -->
+<!--
+     No operation action.
+-->
+<!ELEMENT nop        EMPTY>
+
+<!--=============== The Try / Catch / Finally Elements ============= --> 
+<!-- 
+     The try element allows you to perform a task and to catch 
+     exceptions that are thrown.  Also, if a finally element is 
+     specified, then the finally task is executed, no matter whether 
+     the try task completes normally or abruptly, and no matter whether 
+     a catch element is first given control. 
+--> 
+<!ELEMENT try        ((%task;), ((catch+) | ((catch*), finally)))> 
+<!-- 
+     The catch element performs a task when the specified exception is 
+     caught.  The var attribute specifies the name of the variable to 
+     receive the data specified within the throw element.  The typevar 
+     attribute specifies the name of the variable to receive the type 
+     of the exception.  The sourcevar attribute specifies the name
+     of the variable to receive the source information for the exception.
+ 
+--> 
+<!ELEMENT catch      (%task;)> 
+<!ATTLIST catch 
+          exception  CDATA        #REQUIRED 
+          var        CDATA        #IMPLIED 
+          typevar    CDATA        #IMPLIED 
+          sourcevar  CDATA        #IMPLIED 
+> 
+<!ELEMENT finally    (%task;)> 
+
+<!--================= Break Element ================================ -->
+<!--
+     The break element can be used to break out of a loop or iterate
+     element.
+-->
+<!ELEMENT break      EMPTY>
+
+<!--================= The Testcase Element ========================= -->
+<!--
+     Defines a testcase.  Used in conjunction with the tcstatus
+     element to mark the status for a testcase.
+     The name attribute value is evaluated via Python.
+-->
+<!ELEMENT testcase   (%task;)>
+<!ATTLIST testcase
+          name       CDATA    #REQUIRED
+          mode       CDATA    "'default'"
+>
+
+<!--================= The Parallel Iterate Element ================ -->
+<!--
+     The parallel iterate element iterates through a list of items,
+     performing its contained task while substituting each item in
+     the list.  The iterated tasks are performed in parallel.
+-->
+<!ELEMENT paralleliterate  (%task;)>
+<!-- var      is the name of a variable which will contain the current
+              item in the list or tuple being iterated.
+              It is a literal.
+     in       is the list or tuple to be iterated.  It is evaluated
+              via Python and must evaluate to be a list or tuple.
+     indexvar is the name of a variable which will contain the index of
+              the current item in the list or tuple being iterated.
+              It is a literal.  The value of the first index is 0.
+-->
+<!ATTLIST paralleliterate
+          var        CDATA    #REQUIRED
+          in         CDATA    #REQUIRED
+          indexvar   CDATA    #IMPLIED
+>
+
+<!--================= Continue Element ============================= -->
+<!--
+     The continue element can be used to continue to the top of a loop
+     or iterate element.
+-->
+<!ELEMENT continue   EMPTY>
+
+<!--================= The Throw Element ============================ -->
+<!--
+     The throw element specifies an exception to throw.
+     The exception attribute value and any additional information
+     is evaluated via Python.
+-->
+<!ELEMENT throw      (#PCDATA)>
+<!ATTLIST throw
+          exception  CDATA        #REQUIRED
+>
+
+<!--================= The Release Element ========================== -->
+<!--
+     The release element specifies to release a block in the job.
+     If an if attribute is specified and it evaluates via Python to
+     false, the release element is ignored.
+-->
+<!ELEMENT release    EMPTY>
+<!ATTLIST release
+          block      CDATA    #IMPLIED
+          if         CDATA    "1"
+>
+
 <!--================= The Signal Handler Element =================== -->
 <!--
      The signalhandler element defines how to handle a specified signal.
@@ -1120,6 +1059,119 @@
 <!ELEMENT signalhandler (%task;)>
 <!ATTLIST signalhandler
           signal     CDATA        #REQUIRED
+>
+
+<!--================= The Rethrow Element ========================= -->
+<!--
+     The rethrow element specifies to rethrow the current exception.
+-->
+<!ELEMENT rethrow      EMPTY>
+
+<!--================= The Block Element ============================ -->
+<!--
+     Defines a task block that can be held, released, or terminated.
+     Used in conjunction with the hold/terminate/release elements to
+     define a task block that can be held, terminated, or released.
+     The name attribute value is evaluated via Python.
+-->
+<!ELEMENT block      (%task;)>
+<!ATTLIST block
+          name       CDATA    #REQUIRED
+>
+
+<!--================= The Hold Element ============================= -->
+<!--
+     The hold element specifies to hold a block in the job.
+     If an if attribute is specified and it evaluates via Python to
+     false, the hold element is ignored.
+-->
+<!ELEMENT hold       EMPTY>
+<!ATTLIST hold
+          block      CDATA    #IMPLIED
+          if         CDATA    "1"
+>
+
+<!--================= The Terminate Element ======================== -->
+<!--
+     The terminate element specifies to terminate a block in the job.
+     If an if attribute is specified and it evaluates via Python to
+     false, the terminate element is ignored.
+-->
+<!ELEMENT terminate  EMPTY>
+<!ATTLIST terminate
+          block      CDATA    #IMPLIED
+          if         CDATA    "1"
+>
+
+<!--================= The Return Element =========================== -->
+<!--
+     Specifies a value to return from a function.
+-->
+<!ELEMENT return     (#PCDATA)>
+
+<!--================= The Conditional Element (if-then-else) ======= -->
+<!--
+     Allows you to write an if or a case construct with zero or more
+     elseifs and one or no else statements.
+
+     The expr attribute value is evaluated via Python and must evaluate
+     to a boolean value.
+-->
+<!ELEMENT if         ((%task;), elseif*, else?)>
+<!ATTLIST if
+          expr       CDATA   #REQUIRED
+>
+<!ELEMENT elseif     (%task;)>
+<!ATTLIST elseif
+          expr       CDATA   #REQUIRED
+>
+<!ELEMENT else       (%task;)>
+
+<!--================= The Call-With-List Element =================== -->
+<!--
+     Perform a function with the referenced name with any number of
+     arguments in the form of a list.  The function attribute value
+     and argument values are evaluated via Python.
+-->
+<!ELEMENT call-with-list      (call-list-arg*)>
+<!ATTLIST call-with-list
+          function   CDATA    #REQUIRED
+>
+
+<!ELEMENT call-list-arg       (#PCDATA)>
+
+
+<!--================= The Loop Element ============================= -->
+<!--
+     The loop element performs a task a specified number of times,
+     allowing specification of an upper and lower bound with an
+     increment value and where the index counter is available to
+     sub-tasks.  Also, while and/or until expressions can be
+     specified.
+-->
+<!ELEMENT loop       (%task;)>
+<!-- var      is the name of a variable which will contain the loop
+              index variable.  It is a literal.
+     from     is the starting value of the loop index variable.
+              It must evaluate to an integer value via Python.
+     to       is the maximum value of the loop index variable
+              It must evaluate to an integer value via Python.
+     by       is the increment value for the loop index variable
+              It must evaluate to an integer value via Python.
+     while    is an expression that must evaluate to a boolean value
+              and is performed at the top of each loop.  If it
+              evaluates to false, it breaks out of the loop.
+     until    is an expression that must evaluate to a boolean value
+              and is performed at the bottom of each loop.  If it
+              evaluates to false, it breaks out of the loop.
+-->
+<!ATTLIST loop
+          var        CDATA    #IMPLIED
+          from       CDATA    '1'
+          to         CDATA    #IMPLIED
+          by         CDATA    '1'
+          while      CDATA    #IMPLIED
+          until      CDATA    #IMPLIED
 >
 
 <!--================= The Call-With-Map Element ==================== -->
@@ -1139,52 +1191,3 @@
           name       CDATA    #REQUIRED
 >
 
-<!--================= The Sequence Element ========================= -->
-<!--
-     The sequence element performs one or more tasks in sequence.
--->
-<!ELEMENT sequence   (%task;)+>
-
-<!--================= Continue Element ============================= -->
-<!--
-     The continue element can be used to continue to the top of a loop
-     or iterate element.
--->
-<!ELEMENT continue   EMPTY>
-
-<!--================= The Release Element ========================== -->
-<!--
-     The release element specifies to release a block in the job.
-     If an if attribute is specified and it evaluates via Python to
-     false, the release element is ignored.
--->
-<!ELEMENT release    EMPTY>
-<!ATTLIST release
-          block      CDATA    #IMPLIED
-          if         CDATA    "1"
->
-
-<!--=============== The Try / Catch / Finally Elements ============= --> 
-<!-- 
-     The try element allows you to perform a task and to catch 
-     exceptions that are thrown.  Also, if a finally element is 
-     specified, then the finally task is executed, no matter whether 
-     the try task completes normally or abruptly, and no matter whether 
-     a catch element is first given control. 
---> 
-<!ELEMENT try        ((%task;), ((catch+) | ((catch*), finally)))> 
-<!-- 
-     The catch element performs a task when the specified exception is 
-     caught.  The var attribute specifies the name of the variable to 
-     receive the data specified within the throw element.  The typevar 
-     attribute specifies the name of the variable to receive the type 
-     of the exception. 
- 
---> 
-<!ELEMENT catch      (%task;)> 
-<!ATTLIST catch 
-          exception  CDATA        #REQUIRED 
-          var        CDATA        #IMPLIED 
-          typevar    CDATA        #IMPLIED 
-> 
-<!ELEMENT finally    (%task;)> 

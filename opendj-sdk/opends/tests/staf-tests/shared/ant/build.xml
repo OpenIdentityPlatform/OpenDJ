@@ -192,7 +192,7 @@
       </else>
     </if>
 
-    <!-- Set value for tests.config.file variable -->
+    <!-- Set value for tests.config.file variable depending on tests.mode -->
     <if>
       <equals arg1="${tests.mode}" arg2="remote"/>
       <then>
@@ -203,17 +203,7 @@
       </else>
     </if>
 
-    <!-- Set value for tests.run.dir variable -->
-    <if>
-      <not>
-        <equals arg1="${logs.dir}" arg2="${basedir}/temp/logs"/>
-      </not>
-      <then>
-        <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
-      </then>
-    </if>
-
-    <!-- Set value for email.subject variable -->
+    <!-- Set value for email.subject variable depending on tests.type -->
     <if>
       <equals arg1="${tests.type}" arg2="functional-tests"/>
       <then>
@@ -226,23 +216,46 @@
       </else>
     </if>
 
+    <!-- Set value for variables which depends on user configuration -->
+    <var name="staf.name" value="STAF-v${staf.version}-${os.myname}"/>
+    <var name="staf.install.dir" value="${repository.dir}/install"/>
+    <var name="staf.config.dir" value="${repository.dir}/configs"/>
+    <var name="staf.config.file" value="${staf.config.dir}/staf-${staf.type}-${host.name}.cfg"/>
+    <var name="staf.bin.dir" value="${staf.install.dir}/${staf.name}/bin"/>
+    <var name="staf.daemon" value="${staf.bin.dir}/STAFProc${extension.binary}"/>
+    <var name="staf.executable" value="${staf.bin.dir}/STAF${extension.binary}"/>
 
-    <!-- Set value for staf.archive and staf.lib.dir variables -->
+    <var name="archives.dir" value="${repository.dir}/archives"/>
+    <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
+    <var name="tests.tmp.dir" value="${logs.dir}/${tests.type}/tmp"/>
+
     <if>
       <equals arg1="${os.family}" arg2="windows"/>
       <then>
         <!-- Windows system -->
         <property name="staf.archive"
                   value="STAF${staf.version}-setup-${os.myname}.exe"/>
-        <property name="staf.lib.dir" value="${staf.install.dir}${file.separator}bin"/>
+        <property name="staf.lib.dir" value="${staf.install.dir}/${staf.name}/bin"/>
       </then>
       <else>
         <!-- Other systems -->
         <property name="staf.archive"
                   value="STAF${staf.version}-${os.myname}.tar.gz"/>
-        <property name="staf.lib.dir" value="${staf.install.dir}${file.separator}lib"/>
+        <property name="staf.lib.dir" value="${staf.install.dir}/${staf.name}/lib"/>
       </else>
     </if>
+    <var name="stax.name" value="STAX-v${stax.version}"/>
+    <var name="stax.archive" value="STAXV${stax.version}.zip"/>
+    <var name="email.name" value="Email-v${email.version}"/>
+    <var name="email.archive" value="EmailV${email.version}.zip"/>
+    <var name="event.name" value="Event-v${event.version}"/>
+    <var name="event.archive" value="EventV${event.version}.zip"/>
+    <var name="eventmanager.name" value="EventManager-v${eventmanager.version}"/>
+    <var name="eventmanager.archive" value="EventManagerV${eventmanager.version}.zip"/>
+    <var name="http.name" value="HTTP-v${http.version}"/>
+    <var name="http.archive" value="HTTPV${http.version}.zip"/>
+    <var name="tomcat.url" value="http://archive.apache.org/dist/tomcat/tomcat-6/v${tomcat.version}/bin"/>
+    <var name="tomcat.archive" value="apache-tomcat-${tomcat.version}.zip"/>
   </target>
 
   <!-- ######### -->

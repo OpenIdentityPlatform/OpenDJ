@@ -42,6 +42,124 @@
               #@TestPostamble       none
               #@TestResult          Success if  returns 0.
           -->
+          <testcase name="getTestCaseName('prepare DSML STAF service')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'createFolder'">
+                {
+                'location'   : STAXServiceMachine,
+                'foldername' : '%s/dsml/STAF-INF/jars' % TMPDIR
+                }
+              </call>
+
+              <call function="'unZipFile'">
+                {
+                'location' : STAXServiceMachine,
+                'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
+                'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
+                'unzipdir' : '%s/dsml' % TMPDIR
+                }
+              </call>
+
+              <call function="'copyFile'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (TMPDIR,OPENDSNAME),
+                'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+              <call function="'unZipFile'">
+                {
+                'location' : STAXServiceMachine,
+                'zipfile'  : DSML_WARPATH,
+                'directory': 'WEB-INF/classes',
+                'unzipdir' : '%s/dsml' % TMPDIR,
+                }
+              </call>
+
+              <call function="'copyFolder'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfolder'  : '%s/dsml/WEB-INF/classes' % TMPDIR,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
+              <script>
+                if is_windows_platform(STAXServiceMachine):
+                  separator=';'
+                else:
+                  separator=':'
+
+                opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR
+                dsmlclasses='%s/dsml/STAF-INF/classes' % TMPDIR
+              </script>
+
+              <call function="'GetVar'">
+                {
+                'location'  : STAXServiceMachine,
+                'type'      : 'system',
+                'variable'  : 'STAF/Env/CLASSPATH'
+                }
+              </call>
+              <script>
+                cp=STAFResult
+              </script>
+
+              <call function="'compileJava'" >
+                {
+                'location'   : STAXServiceMachine,
+                'foldername' : '%s/src' % TESTS_DSML_DIR,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'classpath'  : '%s%s%s%s%s' \
+                               % (opendsjar,separator,dsmlclasses,separator,cp)
+                }
+              </call>
+
+              <call function="'createFolder'">
+                {
+                'location'   : location,
+                'foldername' : '%s/dsml' % local.java
+                }
+              </call>
+              <call function="'createJar'" >
+                {
+                'location'     : STAXServiceMachine,
+                'jarname'      : '%s/dsml/dsmlService.jar' % local.java,
+                'entrypoint'   : 'STAF-INF',
+                'pathfolder'   : '%s/dsml' % TMPDIR,
+                'manifestpath' : '%s/MANIFEST.MF' % TESTS_DSML_DIR
+                }
+              </call>
+
+              <call function="'addSTAFJavaService'" >
+                {
+                'location'    : STAXServiceMachine,
+                'serviceName' : 'Dsml',
+                'serviceJar'  : '%s/dsml/dsmlService.jar' % local.java,
+                'J2'          : '-Xms128m -Xmx512m'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: prepare DSML directory server
+              #@TestIssue           none
+              #@TestPurpose         Prepare the directory server necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestStep            prepare dsml directory server instance
+              #@TestPostamble       none
+              #@TestResult          Success if  returns 0.
+          -->
           <testcase name="getTestCaseName('prepare DSML Directory backend')">
             <sequence>
               <call function="'testCase_Preamble'"/>
