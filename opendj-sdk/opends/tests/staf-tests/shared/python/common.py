@@ -75,8 +75,8 @@ class directory_server_information:
     self.ServerDict={}
     self.SystemDict={}
 
-  def getServerVersion(self,string):
-    return string.replace("OpenDS Directory Server ","")
+  def getServerVersion(self,string,productname):
+    return string.replace("%s " % productname,"")
 
   def getServerBuildId(self,string):
     return string.replace("Build ","")

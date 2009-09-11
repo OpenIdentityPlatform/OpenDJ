@@ -60,6 +60,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
   <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
+  <xsl:variable name="productname"    select="normalize-space($id/productname)"/>
   <xsl:variable name="version"        select="normalize-space($sut[@product='opends']/version)"/>
  
   <xsl:element name="html">
@@ -76,7 +77,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <link rel="stylesheet" href="./opends.css" type="text/css" />
 
     <xsl:element name="title">
-      <xsl:value-of select="concat('Identification for OpenDS ',$version)"/>
+      <xsl:value-of select="concat('Identification for ',$productname,' ',$version)"/>
     </xsl:element>
   
   </xsl:element>
@@ -92,7 +93,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <table class="tertmasttable" width="100%" cellspacing="0">
     <tbody>
       <tr>
-        <td><div class="collectionheader"><xsl:value-of select="concat('Identification for OpenDS ',$version)"/></div></td>
+        <td><div class="collectionheader"><xsl:value-of select="concat('Identification for ',$productname,' ',$version)"/></div></td>
         <td width="10%"><a href="https://opends.dev.java.net/"><img src="./opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
