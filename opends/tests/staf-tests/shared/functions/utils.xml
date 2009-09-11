@@ -2387,9 +2387,15 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="foldername" type="required">
+      <function-arg-def name="foldername" type="optional">
         <function-arg-description>
           Path containing java files to compile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="destfolder" type="optional">
+        <function-arg-description>
+          Path where to place generated class files
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
@@ -2401,8 +2407,7 @@
       </function-arg-def>      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value.
-          0 for successful grep, 1 for unsuccessful grep. Default value is 0.
+          Expected return code value. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>   
@@ -2412,6 +2417,8 @@
 
       <!-- Build the command -->
       <script>
+        cmdOptions = ''
+
         if is_windows_platform(location):
           separator=';'
         else:
@@ -2428,6 +2435,9 @@
         else:
           cmd = '%s/bin/javac' % JAVA_HOME
           env = ['JAVA_HOME=%s' % JAVA_HOME, '%s' % cp]
+
+        if destfolder:
+          cmdOptions = '-d %s' % destfolder
       </script>
 
       <call function="'listFolderByExtension'" >
@@ -2454,10 +2464,102 @@
             { 
             'name'       : 'Compile Java files' ,
             'command'    : cmd ,
-            'arguments'  : '-target 1.5 %s' % list ,
+            'arguments'  : '-target 1.5 %s %s' % (cmdOptions,list) ,
             'location'   : location ,
             'path'       : foldername ,
             'envCmd'     : env ,
+            'expectedRC' : expectedRC
+            }
+          </call>
+        </sequence>
+        <else>
+          <tcstatus result="'fail'"></tcstatus>
+        </else>
+      </if>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
+  <function name="createJar" scope="local">
+    <function-prolog>
+      This function create a jar file.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of remote host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="jarname" type="required">
+        <function-arg-description>
+          Name of the jar file to create
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="entrypoint" type="required">
+        <function-arg-description>
+          Path where to find generated class files
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="pathfolder" type="required">
+        <function-arg-description>
+          Execution path
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="manifestpath" type="optional">
+        <function-arg-description>
+          Path to the manifest file
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+
+      <!-- Build the command -->
+      <script>
+        if location == STAXServiceMachine:
+          cmd = '%s/bin/jar' % LOCAL_JAVA_HOME
+        else:
+          cmd = '%s/bin/jar' % JAVA_HOME
+
+        if manifestpath:
+          cmdOptions = 'cmf %s' % manifestpath
+        else:
+          cmdOptions = 'cf'
+      </script>
+
+      <!-- Check if the classfolder exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : location ,
+        'entry'     : '%s/%s' % (pathfolder,entrypoint) ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <sequence>
+          <call function="'runCommand'" >
+            {
+            'name'       : 'Create Jar file' ,
+            'command'    : cmd ,
+            'arguments'  : '%s %s %s' % (cmdOptions,jarname,entrypoint) ,
+            'location'   : location ,
+            'path'       : pathfolder ,
             'expectedRC' : expectedRC
             }
           </call>

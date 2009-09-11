@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="copyFile">
@@ -73,10 +73,64 @@
       <return>[cmdRC,cmdResult]</return>
     </sequence>
   </function>
-    
+
   <function name="CopyFolderByExtension">
     <function-prolog>
       Copies files by extension from a source to destination folder on host
+    </function-prolog>
+    <function-map-args>
+     <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="remotehost" type="optional" default="location">
+        <function-arg-description>
+          The name of remote host (default same as location)
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="srcfolder" type="required">
+        <function-arg-description>
+          The name of the source folder
+        </function-arg-description>
+        <function-arg-property name="type" value="foldername"/>
+      </function-arg-def>
+      <function-arg-def name="destfolder" type="required">
+        <function-arg-description>
+          The name of the destination file
+        </function-arg-description>
+        <function-arg-property name="type" value="foldername"/>
+      </function-arg-def>
+      <function-arg-def name="extension" type="optional" default="'txt'">
+        <function-arg-description>
+          The name of the file extension (default txt)
+        </function-arg-description>
+        <function-arg-property name="type" value="file extension"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,remotehost,extension) </request>
+      </stafcmd>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : cmdRC ,
+          'result'     : cmdResult }
+      </call>
+      <return>cmdRC</return>
+    </sequence>
+  </function>
+
+  <function name="copyFolder">
+    <function-prolog>
+      Copies folder from a source to destination folder on host
     </function-prolog>
     <function-map-args>
      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
@@ -103,18 +157,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="foldername"/>
       </function-arg-def>
-      <function-arg-def name="extension" type="optional" default="'txt'">
-        <function-arg-description>
-          The name of the file extension (default txt)
-        </function-arg-description>
-        <function-arg-property name="type" value="file extension"/>
-      </function-arg-def>
     </function-map-args>
     <sequence>
-      <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
+      <stafcmd name="'STAF Command: Copy %s folder to %s.' % (srcfolder,destfolder)">
         <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,remotehost,extension) </request>
+        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s RECURSE' % (srcfolder,destfolder,remotehost) </request>
       </stafcmd>
       <script>
         cmdRC=RC
@@ -200,6 +248,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
+      <function-arg-def name="file" type="optional" default="None">
+        <function-arg-description>
+          Name of file to unzip
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="directory" type="optional" default="None">
+        <function-arg-description>
+          Name of directory to unzip
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
       <function-arg-def name="unzipdir" type="required">
         <function-arg-description>
           Name of destination folder to place zip file contents
@@ -209,11 +269,23 @@
     </function-map-args>
 
     <sequence>
+      <script>
+        if file:
+          file='FILE %s' % file
+        else:
+          file=''
+
+        if directory:
+          dir='DIRECTORY %s' % directory
+        else:
+          dir=''
+      </script>
+
       <stafcmd name="'STAF Command: Unzip File'">
         <location>'%s' % location</location>
         <service>'zip'</service>
         <request>
-            'UNZIP ZIPFILE %s TODIRECTORY %s RESTOREPERMISSION REPLACE' % (zipfile,unzipdir)
+            'UNZIP ZIPFILE %s TODIRECTORY %s %s %s RESTOREPERMISSION REPLACE' % (zipfile,unzipdir,file,dir)
         </request>
       </stafcmd>
       <script>
@@ -376,7 +448,7 @@
       </function-arg-def>
       <function-arg-def name="foldername" type="required">
         <function-arg-description>
-          Name of file to be deleted
+          Name of folder to be created
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>      
@@ -714,7 +786,7 @@
       <stafcmd name="'STAF Command: list folder by extension'">
         <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>' LIST DIRECTORY %s EXT %s ' % (foldername,extension)</request>
+        <request>' LIST DIRECTORY %s EXT %s RECURSE' % (foldername,extension)</request>
       </stafcmd>
       
       <script>
@@ -884,5 +956,131 @@
       </stafcmd>
     </sequence>
   </function>
-  
+
+  <!-- Add STAF Java Service -->
+  <function name="addSTAFJavaService" scope="local">
+    <function-prolog>
+      Add STAF Java Service.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="serviceName" type="required">
+        <function-arg-description>
+          Name of the service to add
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="serviceJar" type="required">
+        <function-arg-description>
+          Jar of the service to add
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="JVM" type="optional" default="True">
+        <function-arg-description>
+          JVM path
+        </function-arg-description>
+        <function-arg-property name="type" value="enum"/>
+      </function-arg-def>
+      <function-arg-def name="J2" type="optional">
+        <function-arg-description>
+          JVM options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+
+      <message>
+        'Check if STAF Java Service %s is already started on %s' \
+        % (serviceName, location)
+      </message>
+      <stafcmd name="'STAF Command: Check STAF Java Service.'">
+        <location>'%s' % location</location>
+        <service>'service'</service>
+        <request>'query service %s' % serviceName</request>
+      </stafcmd>
+      <if expr="RC == 48">
+        <sequence>
+          <script>
+            cmdOptions = 'ADD SERVICE %s LIBRARY JSTAF' % serviceName
+            cmdOptions += ' EXECUTE %s' % serviceJar
+
+            if JVM:
+              cmdOptions += ' OPTION JVMNAME=%sJVM-%s' % (serviceName,location)
+
+              if location == STAXServiceMachine:
+                cmdOptions += ' OPTION JVM=%s/bin/java' % LOCAL_JAVA_HOME
+              else:
+                cmdOptions += ' OPTION JVM=%s/bin/java' % JAVA_HOME
+
+              if J2:
+                cmdOptions += ' OPTION J2="%s"' % J2
+          </script>
+
+          <message>
+            'Add STAF Java Service %s on %s' % (serviceName, location)
+          </message>
+          <message>'service %s' % cmdOptions</message>
+          <stafcmd name="'STAF Command: Add STAF Java Service.'">
+            <location>'%s' % location</location>
+            <service>'service'</service>
+            <request>'%s' % cmdOptions</request>
+          </stafcmd>
+        </sequence>
+        <else>
+          <message>
+            'STAF Java Service %s is already started on %s' \
+            % (serviceName, location)
+          </message>
+        </else>
+      </if>
+    </sequence>
+  </function>
+
+  <!-- Remove STAF Java Service -->
+  <function name="removeSTAFJavaService" scope="local">
+    <function-prolog>
+      Remove STAF Java Service.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="serviceName" type="required">
+        <function-arg-description>
+          Name of the service to add
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        cmdOptions = 'REMOVE SERVICE %s ' % serviceName
+      </script>
+
+      <message>
+        'Remove STAF Java Service %s on %s' % (serviceName, location)
+      </message>
+      <stafcmd name="'STAF Command: Remove STAF Java Service.'">
+        <location>'%s' % location</location>
+        <service>'service'</service>
+        <request>'%s' % cmdOptions</request>
+      </stafcmd>
+    </sequence>
+  </function>
 </stax>

@@ -106,7 +106,7 @@
         <call function="'GetEntry'">
           {
           'location'  : STAXServiceMachine,
-          'entry'     : '%s/services/DSML/tomcatCertificate' % LOCAL_STAF_ROOT,
+          'entry'     : '%s/tomcatCertificate' % TMPDIR,
           'attribute' : 'TYPE'
           }
         </call>
@@ -118,9 +118,9 @@
               'command'   : '%s/bin/keytool' % (LOCAL_JAVA_HOME),
               'arguments' : '-genkey -alias tomcat -keyalg rsa \
                              -dname "cn=tomcat,O=Sun Microsystems,C=US" \
-                             -keystore "%s/services/DSML/tomcatCertificate" \
+                             -keystore "%s/tomcatCertificate" \
                              -storepass "changeit" -keypass "changeit" \
-                             -storetype JKS ' % (LOCAL_STAF_ROOT),
+                             -storetype JKS ' % (TMPDIR),
               'path'      : '%s/bin' % (LOCAL_JAVA_HOME),
               'expectedRC': 0
             }
@@ -129,7 +129,7 @@
 
         <call function="'copyFile'">
           { 'location'   : STAXServiceMachine,
-            'srcfile'    : '%s/services/DSML/tomcatCertificate' % (LOCAL_STAF_ROOT),
+            'srcfile'    : '%s/tomcatCertificate' % (TMPDIR),
             'destfile'   : '%s/%s-%s/conf/tomcatCertificate' % (wcPath, WC_TYPE, WC_VERSION),
             'remotehost' : mylocation
           }

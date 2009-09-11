@@ -44,47 +44,39 @@
         <var name="ext" unset="true"/>
         <var name="url" unset="true"/>
 
-        <if>
-          <not>
-            <available file="${staf.install.dir}/bin/STAF.cfg"/>
-          </not>
-          <then>
-            <trycatch property="error" reference="referror">
-              <try>
-                <propertyregex property="ext"
-                               input="@{archive}"
-                               regexp=".*\.(.*)"
-                               select="\1"
-                               casesensitive="false"/>
+        <trycatch property="error" reference="referror">
+          <try>
+            <propertyregex property="ext"
+                           input="@{archive}"
+                           regexp=".*\.(.*)"
+                           select="\1"
+                           casesensitive="false"/>
 
-                <echo>Checking @{archive} archive...</echo>
-                <switch value="${ext}">
-                  <case value="gz">
-                    <!-- gz files -->
-                    <gunzip src="${archives.dir}/@{archive}"
-                            dest="${tmp.dir}"/>
-                  </case>
-                  <case value="zip">
-                    <!-- zip files -->
-                    <unzip src="${archives.dir}/@{archive}"
-                           dest="${tmp.dir}"/>
-                  </case>
-                  <default>
-                  </default>
-                </switch>
+            <echo>Checking @{archive} archive...</echo>
+            <switch value="${ext}">
+              <case value="gz">
+                <!-- gz files -->
+                <gunzip src="${archives.dir}/@{archive}"
+                        dest="${tmp.dir}"/>
+              </case>
+              <case value="zip">
+                <!-- zip files -->
+                <unzip src="${archives.dir}/@{archive}"
+                       dest="${tmp.dir}"/>
+              </case>
+              <default>
+              </default>
+            </switch>
 
-                <var name="rc" value="0"/>
-              </try>
+            <var name="rc" value="0"/>
+          </try>
 
-              <catch>
-                <echo>ERROR: ${error}</echo>
-                <var name="rc" value="-1"/>
-              </catch>
-            </trycatch>
-          </then>
-        </if>
+          <catch>
+            <echo>ERROR: ${error}</echo>
+            <var name="rc" value="-1"/>
+          </catch>
+        </trycatch>
 
-        <var name="rc" value="0"/>
         <if>
           <or>
             <not>
