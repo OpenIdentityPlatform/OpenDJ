@@ -163,7 +163,7 @@
         if ServersInfoDict.has_key(ServerPath):
           ServerInfoDict=ServersInfoDict[ServerPath]
 
-          ServerName=OPENDSNAME
+          ServerName=PRODUCTNAME
 
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):

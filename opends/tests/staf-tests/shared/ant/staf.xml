@@ -130,13 +130,6 @@
       </sequential>
     </for>
 
-    <!-- Add DSML service extension -->
-    <mkdir dir="${staf.install.dir}/DSML"/>
-    <copy todir="${staf.install.dir}/DSML">
-      <fileset dir="${basedir}/../staf-tests/shared/dsml"
-               includes="dsmlService.jar"/>
-    </copy>
-
     <delete includeemptydirs="true">
       <fileset dir="${tmp.dir}" includes="**/*"/>
     </delete>

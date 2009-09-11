@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="GetDirectoryServerVars">
@@ -74,7 +74,7 @@
             <script>
               DSInfo.SystemList=STAXResult[0][1].split('\n')
               DSInfo.ServerDict['server version']= \
-              DSInfo.getServerVersion(DSInfo.SystemList[0])
+              DSInfo.getServerVersion(DSInfo.SystemList[0],PRODUCTNAME)
               
               for DSInfo.line in DSInfo.SystemList:
                 DSInfo.key=DSInfo.line[0:DSInfo.line.find(':')].strip()
