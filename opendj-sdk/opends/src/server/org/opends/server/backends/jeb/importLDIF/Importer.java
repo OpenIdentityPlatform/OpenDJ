@@ -603,6 +603,7 @@ public class Importer
     {
       result.get();
     }
+    indexWriterList.clear();
     execService.shutdown();
     freeBufferQueue.clear();
     sortService.shutdown();
