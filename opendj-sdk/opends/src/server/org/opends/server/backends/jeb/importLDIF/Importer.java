@@ -604,6 +604,8 @@ public class Importer
       result.get();
     }
     indexWriterList.clear();
+    indexWriterFutures.clear();
+    indexKeyQueMap.clear();
     execService.shutdown();
     freeBufferQueue.clear();
     sortService.shutdown();
