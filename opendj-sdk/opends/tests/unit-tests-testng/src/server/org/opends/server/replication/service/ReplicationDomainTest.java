@@ -107,9 +107,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
+      ArrayList<String> servers2 = new ArrayList<String>(1);
+      servers2.add("localhost:" + replServerPort2);
+
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
-          testService, domain2ServerId, servers, 100, 1000, rcvQueue2);
+          testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
 
       /*
        * Publish a message from domain1,
