@@ -185,6 +185,9 @@ public class ReplicationServer
   ECLWorkflowElement eclwe;
   private static HashSet<Integer> localPorts = new HashSet<Integer>();
 
+  // used to synchronize the domain creation with the connect thread.
+  final private Object domainMonitor = new Object();
+
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
@@ -436,6 +439,10 @@ public class ReplicationServer
       }
       try
       {
+        synchronized(domainMonitor)
+        {
+          domainMonitor.notifyAll();
+        }
         synchronized (this)
         {
           /* check if we are connected every second */
@@ -689,6 +696,22 @@ public class ReplicationServer
       {
         replicationServerDomain = new ReplicationServerDomain(baseDn, this);
         baseDNs.put(baseDn, replicationServerDomain);
+        synchronized (domainMonitor)
+        {
+          synchronized (this)
+          {
+            // kick up the connect thread so that this new domain
+            // gets connected to all the Replication Servers.
+            this.notify();
+          }
+          try
+          {
+            // wait for the connect thread to signal that it finished its job
+            domainMonitor.wait(500);
+          } catch (InterruptedException e)
+          {
+          }
+        }
       }
     }
 
