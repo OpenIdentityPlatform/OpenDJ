@@ -349,6 +349,7 @@ public class ECLSearchOperation
           persistentSearch.cancel();
           setSendResponse(true);
         }
+        this.abort(null);
         throw coe;
       }
       catch (Exception e)
@@ -1365,6 +1366,8 @@ public class ECLSearchOperation
    */
   public CancelResult cancel(CancelRequest cancelRequest)
   {
+    if (debugEnabled())
+      TRACER.debugInfo(this + " cancel() " + eclSession);
     if (eclSession != null)
     {
       try
@@ -1374,6 +1377,23 @@ public class ECLSearchOperation
       catch(Exception e){}
     }
     return super.cancel(cancelRequest);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void abort(CancelRequest cancelRequest)
+  {
+    if (debugEnabled())
+      TRACER.debugInfo(this + " abort() " + eclSession);
+    if (eclSession != null)
+    {
+      try
+      {
+        eclSession.close();
+      }
+      catch(Exception e){}
+    }
   }
 
   /**
