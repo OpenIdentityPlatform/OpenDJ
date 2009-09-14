@@ -41,6 +41,7 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -203,7 +204,8 @@ public class UninstallLauncher extends Launcher {
    */
   protected Message getFrameTitle() {
     Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
-        INFO_FRAME_UNINSTALL_TITLE.get(), Message.class);
+        INFO_FRAME_UNINSTALL_TITLE.get(
+        DynamicConstants.PRODUCT_NAME), Message.class);
     return title;
   }
 

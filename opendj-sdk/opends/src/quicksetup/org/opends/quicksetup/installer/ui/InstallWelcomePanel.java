@@ -93,8 +93,10 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
       message = Utils.getCustomizedObject(
           "INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS",
           INFO_WELCOME_PANEL_OFFLINE_INSTRUCTIONS.get(
-              DynamicConstants.COMPACT_VERSION_STRING,
-              DynamicConstants.BUILD_ID),
+              DynamicConstants.SHORT_NAME,
+              DynamicConstants.SHORT_NAME,
+              DynamicConstants.DOC_REFERENCE_WIKI,
+              DynamicConstants.SHORT_NAME),
           Message.class);
     }
     return message;

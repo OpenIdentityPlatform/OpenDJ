@@ -13,6 +13,21 @@ MINOR_VERSION=1
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
 
+# The product reference site
+DOC_REFERENCE_HOME=http://opends.org
+
+# The product documentation set reference
+DOC_REFERENCE_WIKI=https://docs.opends.org/2.2/page/Main
+
+# The setup document reference site
+DOC_REFERENCE_SETUP=https://docs.opends.org/2.2/page/InstallationGuide
+
+# The Quick reference guide documentation set reference
+DOC_QUICK_REFERENCE_GUIDE=https://docs.opends.org/2.2/page/AdministrationGuide
+
+# The Administration Guide reference
+ADMINISTRATION_GUIDE_URL=https://docs.opends.org/2.2/page/AdministrationGuide
+
 # The version qualifier string for the Directory Server.  It should be blank
 # for the first official release with a new major, minor, and point version
 # number but may include additional text like "BETA1" or "HOTFIX2" for updates

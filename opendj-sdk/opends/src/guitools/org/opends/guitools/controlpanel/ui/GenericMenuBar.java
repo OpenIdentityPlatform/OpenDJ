@@ -44,6 +44,7 @@ import org.opends.quicksetup.ui.WebBrowserErrorDialog;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.WebBrowserException;
 import org.opends.quicksetup.util.WebBrowserLauncher;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * An abstract class that the different menu bars in the Control Panel extend.
@@ -59,14 +60,14 @@ public abstract class GenericMenuBar extends JMenuBar
    */
   protected final String ADMINISTRATION_GUIDE_URL =
     Utils.getCustomizedObject("ADMINISTRATION_GUIDE_URL",
-        "https://www.opends.org/wiki/page/AdministrationGuide", String.class);
+        DynamicConstants.ADMINISTRATION_GUIDE_URL, String.class);
 
   /**
    * The URL to the wiki main page.
    */
-  protected final String WIKI_MAIN_PAGE_URL =
-    Utils.getCustomizedObject("WIKI_MAIN_PAGE_URL",
-        "https://www.opends.org/wiki/page/Main", String.class);
+  protected final String DOC_REFERENCE_WIKI =
+    Utils.getCustomizedObject("DOC_REFERENCE_WIKI",
+        DynamicConstants.DOC_REFERENCE_WIKI, String.class);
 
   /**
    * Constructor of the menu bar.
@@ -111,7 +112,7 @@ public abstract class GenericMenuBar extends JMenuBar
     {
       public void actionPerformed(ActionEvent ev)
       {
-        displayURL(WIKI_MAIN_PAGE_URL);
+        displayURL(DOC_REFERENCE_WIKI);
       }
     });
     menu.add(menuItem);

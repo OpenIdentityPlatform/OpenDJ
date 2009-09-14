@@ -64,6 +64,7 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.guitools.controlpanel.ui.GenericDialog.ButtonType;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * The generic frame of the Control Panel.  It contains a StatusGenericPanel.
@@ -258,6 +259,7 @@ public class GenericFrame extends JFrame
     if (panel.getTitle() != null)
     {
       setTitle(INFO_CTRL_PANEL_GENERIC_TITLE.get(
+              DynamicConstants.PRODUCT_NAME,
               panel.getTitle().toString()).toString());
     }
   }

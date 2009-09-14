@@ -61,6 +61,7 @@ import org.opends.quicksetup.upgrader.UpgradeWizardStep;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * Application that allows to upgrade or install OpenDS.
@@ -133,7 +134,8 @@ public class InstallAndUpgrader extends GuiApplication
    */
   public Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
-        INFO_FRAME_INSTALL_TITLE.get(), Message.class);
+        INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
   }
 
   /**

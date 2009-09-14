@@ -64,6 +64,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * The generic dialog of the Control Panel.  It contains a StatusGenericPanel.
@@ -283,6 +284,7 @@ public class GenericDialog extends JDialog
     if (panel.getTitle() != null)
     {
       setTitle(INFO_CTRL_PANEL_GENERIC_TITLE.get(
+              DynamicConstants.PRODUCT_NAME,
               panel.getTitle().toString()).toString());
     }
   }

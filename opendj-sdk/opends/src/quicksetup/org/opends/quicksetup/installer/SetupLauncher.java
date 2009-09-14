@@ -45,6 +45,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.messages.Message;
 import org.opends.server.tools.InstallDS;
 import org.opends.server.tools.InstallDSArgumentParser;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -218,7 +219,8 @@ public class SetupLauncher extends Launcher {
    */
   protected Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
-        INFO_FRAME_INSTALL_TITLE.get(), Message.class);
+        INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
   }
 
   /**

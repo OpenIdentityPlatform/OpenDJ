@@ -48,6 +48,7 @@ import org.opends.server.util.args.StringArgument;
 
 import java.util.logging.Logger;
 import java.io.File;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * This class is called by the upgrade and upgrade.bat
@@ -118,7 +119,8 @@ public class UpgradeLauncher extends Launcher {
    */
   protected Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_UPGRADE_TITLE",
-        INFO_FRAME_UPGRADE_TITLE.get(), Message.class);
+        INFO_FRAME_UPGRADE_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
   }
 
   /**
