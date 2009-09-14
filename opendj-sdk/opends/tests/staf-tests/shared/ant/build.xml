@@ -54,7 +54,7 @@
 
     <!-- Default value for product.name variable -->
     <property file="${project.home}/PRODUCT"/>
-    <property name="product.name"
+    <property name="product.short.name"
       value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
 
     <!-- Define antfile.dir variable -->
@@ -227,8 +227,8 @@
 
     <var name="archives.dir" value="${repository.dir}/archives"/>
     <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
-    <var name="tests.tmp.dir" value="${logs.dir}/${tests.type}/tmp"/>
 
+<echo>${tests.tmp.dir}</echo>
     <if>
       <equals arg1="${os.family}" arg2="windows"/>
       <then>
