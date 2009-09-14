@@ -58,6 +58,7 @@
             testList.append('encryption')
             testList.append('changelog')
             testList.append('conflict')
+            testList.append('externalchangelog')
             
             globalAssuredReplication = None
             

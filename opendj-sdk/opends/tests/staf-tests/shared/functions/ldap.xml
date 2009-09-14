@@ -3083,6 +3083,151 @@
     </sequence>
   </function>
   
+  
+  <!-- Rename an entry -->
+  <function name="modifyDn">
+    <function-prolog>
+      This function renames an entry, either by a modRDN or by a modDN
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="DNToModify" type="required">
+        <function-arg-description>
+          DN to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="newRDN" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          New rdn name : ie uid=jdoe_bis. If not passed, the newRDN will be the
+          same old rdn
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="deleteOldRDN" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          1 : delete old rdn, 0 do not delete old rdn, default value is 1
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="newSuperior" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          New parent entry for the entry
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        #Build the Command
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        STAFCmd=''
+      </script>
+      
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />
+      <script>
+        if DNToModify:
+          STAFCmdParamsList.append('-d "%s"' % DNToModify)
+        
+        if newRDN:
+          STAFCmdParamsList.append('-e "%s"' % newRDN)
+        
+        if deleteOldRDN == 0:
+          STAFCmdParamsList.append('-f "false"')
+        elif deleteOldRDN == 1:
+          STAFCmdParamsList.append('-f "true"')
+
+        if newSuperior:
+          STAFCmdParamsList.append('-g "%s"' % newSuperior)
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+        STAFCmd='modifyDn' 
+      </script>
+      <call function="'runCommand'" >
+        { 'name'      : 'Modify DN',
+          'command'   : '%s/bin/java' % JAVA_HOME,
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldapjndi' % (dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldapjndi' % (dsPath,remote.reljavadir),
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+  
+  
+  
   <!-- Modify an attribute -->
   <function name="saslSearch">
     <function-prolog>
@@ -3298,5 +3443,183 @@
     </sequence>
     
   </function>  
+
+
+
+  <function name="SearchExternalChangelog">
+    <function-prolog>
+      This function searches the external changelog
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsScope" type="optional">
+        <function-arg-description>
+          The scope of the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>        
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilter" type="required">
+        <function-arg-description>
+          The filter for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="attributes" type="optional">
+        <function-arg-description>
+          Optional Attributes to return
+        </function-arg-description>
+        <function-arg-property name="type" value="attributes"/>
+      </function-arg-def>
+      <function-arg-def name="changelogCookie" 
+                        type="optional" 
+                        default="None">
+        <function-arg-description>
+          Changelog cookie of the last change retrieved.
+          (OpenDS external changelog => non draft-compatible mode)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>      
+      </function-arg-def>
+      <function-arg-def name="changeNumberFilter" 
+                        type="optional" 
+                        default="None">
+        <function-arg-description>
+          Changenumber corresponding to the last change retrieved.
+          (Changelog draft-compatible mode)
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>      
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      </script>
+
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapsearch%s' % (dsBinPath,fileExt)
+
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'"/>
+      
+      <script>
+        if changelogCookie:
+          control = '1.3.6.1.4.1.26027.1.5.4:false:%s' % changelogCookie
+          STAFCmdParamsList.append('--control "%s"' % control)
+        
+        if dsScope:          
+          STAFCmdParamsList.append('-s %s' % dsScope)
+          
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)          
+          
+        if dsFilter:
+          if changeNumberFilter:
+            searchFilter = '&amp;%s%s' % (changeNumberFilter, dsFilter)
+          else:
+            searchFilter = dsFilter
+          STAFCmdParamsList.append('"%s"' % searchFilter)
+        else:
+          if changeNumberFilter:
+            STAFCmdParamsList.append('"%s"' % changeNumberFilter)
+          
+        if attributes:
+          STAFCmdParamsList.append('%s' % attributes)
+        else:
+          STAFCmdParamsList.append('@changeLogEntry')  
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      
+      <call function="'runCommand'">
+        { 'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location,
+          'name'      : 'ldapsearch',
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+
+  </function>
   
 </stax>

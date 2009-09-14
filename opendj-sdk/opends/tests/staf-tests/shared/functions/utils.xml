@@ -242,6 +242,15 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="searchType" 
+                        type="optional" 
+                        default="'substring'">
+        <function-arg-description>
+          the type of the search: substring, exact-case-insensitive or
+          exact-case-sensitive
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -279,13 +288,22 @@
           <return>[myRC, myReason]</return>
         </sequence>
       </if>
+      
+      <script>
+        if searchType == 'substring':
+          searchResult = (re.search(searchre, returnString) != None)
+        elif searchType == 'exact-case-sensitive':
+          searchResult = (expectedString == returnString)
+        elif searchType == 'exact-case-insensitive':
+          searchResult = (expectedString.lower() == returnString.lower())
+      </script>
 
       <!-- Search for the expectedString -->
-      <if expr='re.search(searchre, returnString) != None'>
+      <if expr='searchResult'>
         <sequence>
           <message log="1">
-            'Found substring, %s, in the return string' \
-            % (expectedString)
+            'Search type: %s  Found substring, %s, in the return string' \
+            % (searchType, expectedString)
           </message>
           <script>
             myRC = 0
@@ -295,8 +313,8 @@
         <else>
           <sequence>
             <message log="1">
-              'Did not find substring, %s, in the return string, %s' \
-              % (expectedString, returnString)
+              'Search type: %s  Did not find substring, %s, in the return \
+              string, %s' % (searchType, expectedString, returnString)
             </message>
             <script>
               myRC = 1
@@ -2938,5 +2956,635 @@
 
     </sequence>
   </function>
+  
+  
+  <!-- This function parses an ldif entry -->
+  <function name="parseLdifEntry">
+    <function-prolog>
+      This function parses an ldif entry and returns a dictionary, e.g.:
+      {'dn':['o=example'],'objectclass':['top','organization'],'o':['example']} 
+    </function-prolog>
 
+    <function-map-args>
+      <function-arg-def name="ldifEntry" type="required">
+        <function-arg-description>
+          Ldif entry to parse (single string).
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        parsedEntry = {}
+        prevAttr    = None
+        prevVal     = None
+        
+        for line in ldifEntry.splitlines():
+          notBlank = (len(line.strip()) != 0)
+          if notBlank and (not line.startswith(' ')):
+            # line corresponds to an attr:val
+            attr = line[:line.find(':')].strip().lower()
+            val  = line[line.find(':') + 1:].lstrip()
+            if val.startswith(':'):
+              val = val[1:].lstrip()
+            if attr == 'objectclass':
+              val = val.lower()
+        
+            if not (attr in parsedEntry.keys()):
+              # This is the first occurrence of this attr
+              parsedEntry[attr] = [val]
+            else:
+              # There is already some value for this attr
+              parsedEntry[attr].append(val)
+            
+            prevAttr = attr
+            prevVal  = val
+          elif notBlank:
+            # line corresponds to a trailing value
+            parsedEntry[prevAttr].remove(prevVal)
+            val = prevVal + line.lstrip()
+            parsedEntry[prevAttr].append(val)
+            prevVal = val
+      </script>
+
+      <return> parsedEntry </return>      
+    </sequence>
+  </function>
+
+  
+
+  <!-- This function parses an ldif change -->
+  <function name="parseLdifChange">
+    <function-prolog>
+      This function parses an ldif change and returns a list, e.g.:
+      [ ['replace','l','London'], ['add','description','This is a test'] ] 
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="ldifChange" type="required">
+        <function-arg-description>
+          Ldif change to parse (single string).
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        parsedChange = []
+        mod          = []
+        prevAttr     = None
+        prevVal      = None
+        
+        for line in ldifChange.splitlines():
+          notBlank = (len(line.strip()) != 0)
+          if notBlank and (not line.startswith(' ')) and (not line.startswith('-')):
+            # line corresponds to an attr:val
+            attr = line[:line.find(':')].strip().lower()
+            val  = line[line.find(':') + 1:].lstrip()
+
+            if val.startswith(':'):
+              val = val[1:].lstrip()
+                             
+            if attr == 'objectclass':
+              val = val.lower()
+        
+            if (prevVal != None) and (attr == prevVal.lower()):
+              # attr represents indeed an attribute type, so we may assume the
+              # mod already has [mod_type,attr_type]
+              mod.append(val)
+            else:
+              # attr represents the mod_type, and val the attr_type
+              mod.append(attr)
+              mod.append(val.lower())
+            
+            prevAttr = attr
+            prevVal  = val
+          elif notBlank and line.startswith(' '):
+            # line corresponds to a trailing value
+            mod.remove(prevVal)
+            val = prevVal + line.lstrip()
+            mod.append(val)
+            prevVal = val
+          else:
+            # line is empty or line starts with '-'; this means that
+            # the mod is complete, so we can add it to the parsedChange list
+            parsedChange.append(mod)
+            mod = []
+        
+        if len(mod) != 0:
+          # add the trailing mod to the parsedChange list
+          parsedChange.append(mod)
+      </script>
+
+      <return> parsedChange </return>      
+    </sequence>
+  </function>
+  
+  <!-- This function checks the content of an external changelog entry -->
+  <function name="checkChangelogEntry">
+    <function-prolog>
+      This function checks the content of an external changelog entry
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="changelogEntry" type="required">
+        <function-arg-description>
+          External changelog entry (as an output of parseLdifEntry)
+        </function-arg-description>
+        <function-arg-property name="type" value="dictionary"/>
+      </function-arg-def>
+      <function-arg-def name="targetDN" type="required">
+        <function-arg-description>
+          DN of the target entry for the change
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="changeType" type="required">
+        <function-arg-description>
+          Change type (e.g. add, delete, modify)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="changeTime" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Change time
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="changeNumber" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Changenumber (only for changelog draft-compatible mode)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="replicationCSN" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Replication CSN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="targetEntryUUID" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Target entry uuid
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="replicaIdentifier" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Replica Identifier
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="newRDN" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          NewRDN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="deleteOldRDN" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          DeleteOldRDN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="newSuperior" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          NewSuperior
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="changes" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Changes. If changetype == add, changes should be a map, e.g.:
+          {'dn':['o=example'],'objectclass':['top','organization'],'o':['example']} 
+          If changetype == modify, changes should be a list, e.g.:
+          [ ['replace','l','London'], ['add','description','This is a test'] ]
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        myLocation            = location
+        myPath                = dsPath
+        
+        # Mandatory attributes in a changeLogEntry
+        ecl_DN                = changelogEntry['dn'][0]
+        ecl_targetDN          = changelogEntry['targetdn'][0]
+        ecl_changeType        = changelogEntry['changetype'][0]
+        ecl_changeTime        = changelogEntry['changetime'][0]
+        ecl_changeNumber      = changelogEntry['changenumber'][0]
+        
+        # Optional attributes
+        ecl_replicationCSN    = None
+        ecl_replicaIdentifier = None
+        ecl_targetEntryUUID   = None
+        ecl_newRDN            = None
+        ecl_deleteOldRDN      = None
+        ecl_newSuperior       = None
+        ecl_changes           = None         
+                
+        if 'replicationcsn' in changelogEntry.keys():
+          ecl_replicationCSN = changelogEntry['replicationcsn'][0]
+        if 'replicaidentifier' in changelogEntry.keys():
+          ecl_replicaIdentifier = changelogEntry['replicaidentifier'][0]
+        if 'targetentryuuid' in changelogEntry.keys():
+          ecl_targetEntryUUID = changelogEntry['targetentryuuid'][0]
+        if 'newrdn' in changelogEntry.keys():
+          ecl_newRDN = changelogEntry['newrdn'][0]
+        if 'deleteoldrdn' in changelogEntry.keys():
+          ecl_deleteOldRDN = changelogEntry['deleteoldrdn'][0]
+        if 'newsuperior' in changelogEntry.keys():
+          ecl_newSuperior = changelogEntry['newsuperior'][0]
+        if 'changes' in changelogEntry.keys():
+          ecl_changes = changelogEntry['changes'][0]
+      </script>
+      
+      <message>
+        'checkChangelogEntry: Checking changelog entry %s against expected \
+        values' % ecl_DN
+      </message>
+
+      <message>
+        'checkChangelogEntry: Checking targetDN'
+      </message>
+      <call function="'searchString'">
+        { 'returnString'   : ecl_targetDN,
+          'expectedString' : targetDN,
+          'searchType'     : 'exact-case-insensitive'
+        }
+      </call>
+
+      <message>
+        'checkChangelogEntry: Checking changeType'
+      </message>
+      <call function="'searchString'">
+        { 'returnString'   : ecl_changeType,
+          'expectedString' : changeType,
+          'searchType'     : 'exact-case-insensitive'
+        }
+      </call>
+
+      <if expr="changeTime">
+        <sequence>
+          <message>
+            'checkChangelogEntry: Checking changeTime'
+          </message>
+          <call function="'searchString'">
+            { 'returnString'   : ecl_changeTime,
+              'expectedString' : changeTime,
+              'searchType'     : 'exact-case-insensitive'
+            }
+          </call>
+        </sequence>
+      </if>
+
+      <if expr="changeNumber">
+        <sequence>
+          <message>
+            'checkChangelogEntry: Checking changeNumber'
+          </message>
+          <call function="'searchString'">
+            { 'returnString'   : ecl_changeNumber,
+              'expectedString' : changeNumber,
+              'searchType'     : 'exact-case-sensitive'
+            }
+          </call>
+        </sequence>
+      </if>
+      
+      <if expr="replicationCSN">
+        <if expr="ecl_replicationCSN">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking replicationCSN'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_replicationCSN,
+                'expectedString' : replicationCSN,
+                'searchType'     : 'exact-case-insensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No replicationCSN could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+
+      <if expr="replicaIdentifier">
+        <if expr="ecl_replicaIdentifier">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking replicaIdentifier'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_replicaIdentifier,
+                'expectedString' : replicaIdentifier,
+                'searchType'     : 'exact-case-sensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No replicaIdentifier could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+      
+      <if expr="targetEntryUUID">
+        <if expr="ecl_targetEntryUUID">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking targetEntryUUID'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_targetEntryUUID,
+                'expectedString' : targetEntryUUID,
+                'searchType'     : 'exact-case-insensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No targetEntryUUID could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+      
+      <if expr="newRDN">
+        <if expr="ecl_newRDN">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking newRDN'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_newRDN,
+                'expectedString' : newRDN,
+                'searchType'     : 'exact-case-insensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No newRDN could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+
+      <if expr="deleteOldRDN">
+        <if expr="ecl_deleteOldRDN">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking deleteOldRDN'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_deleteOldRDN,
+                'expectedString' : deleteOldRDN,
+                'searchType'     : 'exact-case-sensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No deleteOldRDN could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+      
+      <if expr="newSuperior">
+        <if expr="ecl_newSuperior">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking newSuperior'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : ecl_newSuperior,
+                'expectedString' : newSuperior,
+                'searchType'     : 'exact-case-insensitive'
+              }
+            </call>
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No newSuperior could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+
+      <if expr="changes">
+        <if expr="ecl_changes">
+          <sequence>
+            <!-- Decode the changes that are encoded in base64 -->
+            <message>
+              'checkChangelogEntry: Decode external changelog entry changes'
+            </message>
+            <call function="'Base64WithScript'">
+              { 'location'    : myLocation,
+                'dsPath'      : myPath,
+                'subcommand'  : 'decode',
+                'encodedData' : ecl_changes
+              }
+            </call>
+            <!-- STAXResult is not always a list-->
+            <script>
+              try:
+                decodeRC, decodedChanges = STAXResult[0]
+              except AttributeError, details:
+                decodedChanges = 'AttributeError: can not parse STAXResult %s' \
+                                 % details
+                decodeRC = '1'                
+            </script>
+            <message>
+              'checkChangelogEntry: Decoded changes:\n%s' % decodedChanges
+            </message>
+            
+            <message>
+              'checkChangelogEntry: Checking changes'
+            </message>
+            <if expr="decodeRC == 0 and changeType == 'add'">
+              <!-- If changetype:add, the changes look like a sequence of
+               !   attribute:value, so we may parse them as an ldif entry -->
+              <sequence>
+                <call function="'parseLdifEntry'">
+                  { 'ldifEntry' : decodedChanges }
+                </call>
+                <script>
+                  ecl_changesMap = STAXResult
+                </script>
+                <message>
+                  'Parsed changelog entry changes:  \n%s' % ecl_changesMap
+                </message>
+                <iterate var="attr" in="changes.keys()">
+                  <sequence>
+                    <script>
+                      valueList     = changes[attr]
+                      ecl_valueList = None
+                      
+                      if attr in ecl_changesMap.keys():
+                        ecl_valueList = ecl_changesMap[attr]
+                        ecl_valueList.sort()
+                        valueList.sort()
+                    </script>
+                    <if expr="ecl_valueList != None">
+                      <sequence>
+                        <message>
+                          'checkChangelogEntry: Checking changes: %s' % attr
+                        </message>
+                        <if expr="valueList == ecl_valueList">
+                          <message>
+                            'Found expected values in changes: %s' % valueList
+                          </message>
+                          <else>
+                            <sequence>
+                              <message log="1" level="'Error'">
+                                'Expected values %s could not be found in %s' \
+                                 % (valueList, ecl_valueList) 
+                              </message>
+                              <call function="'testFailed'"/>
+                            </sequence>
+                          </else>
+                        </if>
+                      </sequence>
+                      <else>
+                        <sequence>
+                          <message log="1" level="'Error'">
+                            'No %s could be found in the changes' % attr 
+                          </message>
+                          <call function="'testFailed'"/>
+                        </sequence>
+                      </else>
+                    </if>                    
+                  </sequence>
+                </iterate>
+              </sequence>
+              
+              <elseif expr="decodeRC == 0">
+                <!-- If changetype:modify, the changes look like a sequence of
+                 !     mod_type:attribute
+                 !     attribute:value
+                 !   so we need to treat them differently -->
+                <sequence>
+                  <call function="'parseLdifChange'">
+                    { 'ldifChange' : decodedChanges }
+                  </call>
+                  <script>
+                    ecl_changesList = STAXResult
+                  </script>
+                  <message>
+                    'Parsed changelog entry changes:  \n%s' % ecl_changesList
+                  </message>
+                  <iterate var="mod" in="changes">
+                    <sequence>
+                      <script>
+                        mod_type = mod[0]
+                        mod_attr = mod[1]
+                        mod_val  = None
+                        if len(mod) == 3:
+                          mod_val = mod[2]
+                      </script>
+                      <message>
+                        'checkChangelogEntry: Checking changes: %s' % mod
+                      </message>
+                      <if expr="mod in ecl_changesList">
+                        <message>
+                          'Found expected change:\n %s: %s\n %s: %s\n' \
+                           % (mod_type, mod_attr, mod_attr, mod_val)
+                        </message>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Expected change %s could not be found in %s'\
+                               % (mod, ecl_changesList) 
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+                    </sequence>
+                  </iterate>
+                </sequence>
+              </elseif>
+            </if>
+            
+          </sequence>
+          <else>
+            <sequence>
+              <message log="1" level="'Error'">
+                'No changes could be found in the changelog entry' 
+              </message>
+              <call function="'testFailed'"/>
+            </sequence>
+          </else>
+        </if>
+      </if>
+      
+    </sequence>
+  </function>
 </stax>
