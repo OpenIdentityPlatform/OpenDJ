@@ -98,6 +98,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import javax.naming.ldap.Rdn;
 import javax.swing.*;
+import org.opends.server.util.DynamicConstants;
 
 
 /**
@@ -607,7 +608,8 @@ public abstract class Installer extends GuiApplication {
    */
   public Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
-        INFO_FRAME_INSTALL_TITLE.get(), Message.class);
+        INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
   }
 
   /** Indicates the current progress step. */
@@ -2053,7 +2055,12 @@ public abstract class Installer extends GuiApplication {
     Message successMessage = Utils.getCustomizedObject(
         "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
         INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
-            formattedPath, INFO_GENERAL_SERVER_STOPPED.get(),
+            DynamicConstants.PRODUCT_NAME,
+            DynamicConstants.PRODUCT_NAME,
+            formattedPath,
+            INFO_GENERAL_SERVER_STOPPED.get(),
+            DynamicConstants.DOC_QUICK_REFERENCE_GUIDE,
+            DynamicConstants.PRODUCT_NAME,
             cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
@@ -2092,9 +2099,14 @@ public abstract class Installer extends GuiApplication {
        60, 5);
    Message successMessage = Utils.getCustomizedObject(
        "INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY",
-       INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(formattedPath,
-           status,
-           cmd), Message.class);
+      INFO_SUMMARY_INSTALL_FINISHED_SUCCESSFULLY.get(
+            DynamicConstants.PRODUCT_NAME,
+            DynamicConstants.PRODUCT_NAME,
+            formattedPath,
+            status,
+            DynamicConstants.DOC_QUICK_REFERENCE_GUIDE,
+            DynamicConstants.PRODUCT_NAME,
+            cmd), Message.class);
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMessage));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,

@@ -85,6 +85,7 @@ import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
@@ -157,7 +158,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public Message getFrameTitle() {
     Message title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
-        INFO_FRAME_UNINSTALL_TITLE.get(), Message.class);
+        INFO_FRAME_UNINSTALL_TITLE.get(
+        DynamicConstants.PRODUCT_NAME), Message.class);
     return title;
   }
 

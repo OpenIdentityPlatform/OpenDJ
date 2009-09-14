@@ -44,6 +44,7 @@ import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
@@ -238,7 +239,8 @@ public class ControlPanelLauncher
   {
 //  Setup MacOSX native menu bar before AWT is loaded.
     Message title = Utils.getCustomizedObject("INFO_CONTROL_PANEL_TITLE",
-        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(), Message.class);
+        AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
+        DynamicConstants.PRODUCT_NAME), Message.class);
     Utils.setMacOSXMenuBar(title);
 
     if (SwingUtilities.isEventDispatchThread())

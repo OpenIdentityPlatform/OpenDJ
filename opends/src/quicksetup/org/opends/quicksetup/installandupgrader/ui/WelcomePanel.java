@@ -148,8 +148,10 @@ public class WelcomePanel extends QuickSetupStepPanel {
     return Utils.getCustomizedObject(
         "INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS",
         INFO_INSTALLANDUPGRADE_WELCOME_PANEL_INSTRUCTIONS.get(
-                    DynamicConstants.COMPACT_VERSION_STRING,
-                    DynamicConstants.BUILD_ID),
+              DynamicConstants.SHORT_NAME,
+              DynamicConstants.SHORT_NAME,
+              DynamicConstants.DOC_REFERENCE_WIKI,
+              DynamicConstants.SHORT_NAME),
         Message.class);
   }
 

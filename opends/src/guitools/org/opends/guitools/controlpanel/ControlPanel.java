@@ -44,6 +44,7 @@ import org.opends.messages.AdminToolMessages;
 import org.opends.quicksetup.Installation;
 import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * The class that is in charge of creating the main dialog of the ControlPanel
@@ -132,7 +133,8 @@ public class ControlPanel
         dlg.setJMenuBar(menuBar);
         String title = Utils.getCustomizedObject(
             "INFO_CONTROL_PANEL_TITLE",
-            AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(),
+            AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
+            DynamicConstants.PRODUCT_NAME),
             Message.class).toString();
         dlg.setTitle(title);
         dlg.setContentPane(controlCenterPane);

@@ -94,6 +94,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.opends.server.util.DynamicConstants;
 
 /**
  * QuickSetup application of upgrading the bits of an installation of
@@ -283,7 +284,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_UPGRADE_TITLE",
-        INFO_FRAME_UPGRADE_TITLE.get(), Message.class);
+        INFO_FRAME_UPGRADE_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
   }
 
   /**
@@ -2021,6 +2023,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
     if (Utils.isCli()) {
       txt = INFO_SUMMARY_UPGRADE_FINISHED_SUCCESSFULLY_CLI.get(
+              DynamicConstants.PRODUCT_NAME,
               formatter.getFormattedText(Message.raw(installPath)),
               newVersion);
     } else {

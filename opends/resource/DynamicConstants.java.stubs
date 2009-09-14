@@ -130,7 +130,31 @@ public final class DynamicConstants
    * The Subversion url repository location on which this build is based.
    */
   public static String URL_REPOSITORY =
-      "${URL_REPOSITORY}";
+     "${URL_REPOSITORY}";
+
+  /**
+   * The documentation home.
+   */
+  public static String DOC_REFERENCE_HOME =
+      "${DOC_REFERENCE_HOME}";
+
+  /**
+   * The documentation url.
+   */
+  public static String DOC_REFERENCE_WIKI =
+      "${DOC_REFERENCE_WIKI}";
+
+  /**
+   * The documentation url.
+   */
+  public static String DOC_QUICK_REFERENCE_GUIDE =
+      "${DOC_QUICK_REFERENCE_GUIDE}";
+
+  /**
+   * The administration guide.
+   */
+   public static String ADMINISTRATION_GUIDE_URL =
+      "${ADMINISTRATION_GUIDE_URL}";
 
   /**
    * Indicates wheater this build includes AspectJ weaving for the debug logging
@@ -144,6 +168,17 @@ public final class DynamicConstants
   public static String VERSION_NUMBER_STRING =
        "${VERSION_NUMBER_STRING}";
 
+  /**
+   * A string representation of the version number.
+   */
+  public static String OPENDS_NUMBER_STRING =
+       "${VERSION_NUMBER_STRING}";
+
+  /**
+   * A string representation of the release version.
+   */
+  public static String RELEASE_VERSION_STRING =
+       OPENDS_NUMBER_STRING;
 
 
   /**
@@ -246,12 +281,33 @@ public final class DynamicConstants
         }
         catch (Exception ex) {}
         try{
+         DOC_REFERENCE_WIKI =
+            (String)c.getField("DOC_REFERENCE_WIKI").get(obj);
+        }
+        catch(Exception ex) {}
+        try{
+         DOC_QUICK_REFERENCE_GUIDE =
+            (String)c.getField("DOC_QUICK_REFERENCE_GUIDE").get(obj);
+        }
+        catch(Exception ex) {}
+        try{
+         ADMINISTRATION_GUIDE_URL =
+           (String)c.getField("ADMINISTRATION_GUIDE_URL").get(obj);
+        }
+        catch(Exception ex) {}
+        try{
          WEAVE_ENABLED = (Boolean)c.getField("WEAVE_ENABLED").get(obj);
         }
         catch (Exception ex) {}
         try{
          VERSION_NUMBER_STRING =
                  (String)c.getField("VERSION_NUMBER_STRING").get(obj);
+        }
+        catch (Exception ex) {}
+        try{
+         RELEASE_VERSION_STRING = VERSION_NUMBER_STRING
+                 + " (OpenDS version = "
+                 + OPENDS_NUMBER_STRING + ")" ;
         }
         catch (Exception ex) {}
       } catch (Exception ex) {
@@ -268,7 +324,7 @@ public final class DynamicConstants
    * A full version string for this product.
    */
   public static String FULL_VERSION_STRING =
-       PRODUCT_NAME + " " + VERSION_NUMBER_STRING +
+       PRODUCT_NAME + " " + RELEASE_VERSION_STRING +
        (((FIX_IDS != null) && (FIX_IDS.length() > 0))
         ? "+" + FIX_IDS
         : "");
