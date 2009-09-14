@@ -41,9 +41,9 @@ def create_table_fromoutput(output):
 
     for line in output.splitlines():
       if line.startswith('ds'):
-        key = line.split(separator)[0].strip()
+        key = line.split(separator,1)[0].strip()
         try:
-          value = line.split(separator)[1].strip()
+          value = line.split(separator,1)[1].strip()
         except IndexError:
           value = '-'
         table[key] = value

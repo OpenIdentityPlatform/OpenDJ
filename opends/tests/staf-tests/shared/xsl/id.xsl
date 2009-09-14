@@ -60,7 +60,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
   <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
-  <xsl:variable name="productname"    select="normalize-space($id/productname)"/>
+  <xsl:variable name="productname"    select="normalize-space($sut[@product='opends']/name)"/>
   <xsl:variable name="version"        select="normalize-space($sut[@product='opends']/version)"/>
  
   <xsl:element name="html">

@@ -60,10 +60,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!--- Test Suites Report Header Variables -->
   <xsl:variable name="id"             select="identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
-  <xsl:variable name="productname"    select="normalize-space($id/productname)"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
   <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
+  <xsl:variable name="productname"    select="normalize-space($sut/name)"/>
   <xsl:variable name="hostname"       select="normalize-space($sut/hostname)"/>
   <xsl:variable name="version"        select="normalize-space($sut/version)"/>
   <xsl:variable name="buildid"        select="normalize-space($sut/buildid)"/>
