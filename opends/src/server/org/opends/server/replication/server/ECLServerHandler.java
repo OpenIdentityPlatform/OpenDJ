@@ -735,6 +735,13 @@ public class ECLServerHandler extends ServerHandler
    */
   public void shutdown()
   {
+    if (debugEnabled())
+      TRACER.debugInfo(this + " shutdown()" + draftCNDbIter);
+    if (this.draftCNDbIter != null)
+    {
+      draftCNDbIter.releaseCursor();
+      draftCNDbIter = null;
+    }
     for (int i=0;i<domainCtxts.length;i++)
     {
       if (!domainCtxts[i].rsd.unRegisterHandler(domainCtxts[i].mh))
