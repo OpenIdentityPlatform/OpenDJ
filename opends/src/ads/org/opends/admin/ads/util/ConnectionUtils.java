@@ -148,6 +148,7 @@ public class ConnectionUtils
         }
       }
     });
+    t.setDaemon(true);
     return getInitialLdapContext(t, pair, timeout);
   }
 
@@ -227,6 +228,7 @@ public class ConnectionUtils
         }
       }
     });
+    t.setDaemon(true);
     return getInitialLdapContext(t, pair, timeout);
   }
 
@@ -400,6 +402,7 @@ public class ConnectionUtils
         }
       }
     });
+    t.setDaemon(true);
     return getInitialLdapContext(t, pair, timeout);
   }
 
