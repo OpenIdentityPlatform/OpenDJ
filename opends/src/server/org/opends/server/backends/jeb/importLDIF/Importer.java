@@ -479,7 +479,6 @@ public class Importer
       logError(message);
       message = NOTE_JEB_IMPORT_THREAD_COUNT.get(threadCount);
       logError(message);
-      RuntimeInformation.logInfo();
       initializeSuffixes();
       long startTime = System.currentTimeMillis();
       processPhaseOne();
