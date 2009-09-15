@@ -1705,6 +1705,7 @@ public class Importer
               parentIDMap.remove(lastDN);
               lastDN = parentIDMap.lastKey();
             }
+            parentIDMap.put(dn, entryID);
             parentDN = newParentDN;
             parentID = newParentID;
             lastDN = dn;
