@@ -56,6 +56,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.util.LDIFException;
+import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.Validator;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1092,6 +1093,8 @@ public class BackendImpl
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
+    RuntimeInformation.logInfo();
+
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
@@ -1130,6 +1133,8 @@ public class BackendImpl
       envConfig.setTxnNoSync(false);
       envConfig.setConfigParam("je.env.isLocking", "true");
       envConfig.setConfigParam("je.env.runCheckpointer", "false");
+      envConfig.setConfigParam("je.evictor.lruOnly", "false");
+      envConfig.setConfigParam("je.evictor.nodesPerScan", "128");
       Importer importer = new Importer(importConfig, cfg);
       importer.initialize(envConfig);
       rootContainer = initializeRootContainer(envConfig);
