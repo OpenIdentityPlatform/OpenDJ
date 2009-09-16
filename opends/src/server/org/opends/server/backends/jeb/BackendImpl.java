@@ -1131,10 +1131,11 @@ public class BackendImpl
       envConfig.setAllowCreate(true);
       envConfig.setTransactional(false);
       envConfig.setTxnNoSync(false);
-      envConfig.setConfigParam("je.env.isLocking", "true");
-      envConfig.setConfigParam("je.env.runCheckpointer", "false");
-      envConfig.setConfigParam("je.evictor.lruOnly", "false");
-      envConfig.setConfigParam("je.evictor.nodesPerScan", "128");
+      envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
+      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
+      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
+      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
+      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
       Importer importer = new Importer(importConfig, cfg);
       importer.initialize(envConfig);
       rootContainer = initializeRootContainer(envConfig);

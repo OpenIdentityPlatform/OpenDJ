@@ -60,7 +60,8 @@ public class Importer
 {
   private final int DRAIN_TO = 3;
   private final int TIMER_INTERVAL = 10000;
-  private final int MB =  (1024 * 1024);
+  private final int KB = 1024;
+  private final int MB =  (KB * KB);
   private final int LDIF_READER_BUFFER_SIZE = 2 * MB;
   private final int MIN_IMPORT_MEMORY_REQUIRED = 16 * MB;
   private final int MAX_BUFFER_SIZE = 48 * MB;
@@ -70,7 +71,8 @@ public class Importer
   private final int MIN_DB_CACHE_SIZE = 16 * MB;
   private final int MAX_DB_LOG_BUFFER_BYTES = 100 * MB;
   private final int MEM_PCT_PHASE_1 = 45;
-  private final int MEM_PCT_PHASE_2 = 50;
+  private final int MEM_PCT_PHASE_2 = 55;
+  private final int DN_STATE_CACHE_SIZE = 32 * KB;
 
   private final String DIRECT_PROPERTY = "import.directphase2";
   private static AttributeType dnType;
@@ -1476,13 +1478,15 @@ public class Importer
         }
         bufferSet.add(b);
       }
+      indexMgr.getBufferList().clear();
       return bufferSet;
     }
 
     public Void call() throws Exception
     {
       byte[] cKey = null;
-      ImportIDSet cInsertIDSet = null, cDeleteIDSet = null;
+      ImportIDSet cInsertIDSet =  new ImportIDSet(),
+                  cDeleteIDSet =  new ImportIDSet();
       Integer cIndexID = null;
       try
       {
@@ -1497,8 +1501,8 @@ public class Importer
           {
             cIndexID =  b.getIndexID();
             cKey = b.getKey();
-            cInsertIDSet = b.getInsertIDSet();
-            cDeleteIDSet = b.getDeleteIDSet();
+            cInsertIDSet.merge(b.getInsertIDSet());
+            cDeleteIDSet.merge(b.getDeleteIDSet());
             cInsertIDSet.setKey(cKey);
             cDeleteIDSet.setKey(cKey);
           }
@@ -1510,8 +1514,10 @@ public class Importer
               indexMgr.incrementKeyCount();
               cIndexID =  b.getIndexID();
               cKey = b.getKey();
-              cInsertIDSet = b.getInsertIDSet();
-              cDeleteIDSet = b.getDeleteIDSet();
+              cInsertIDSet.clear(true);
+              cDeleteIDSet.clear(true);
+              cInsertIDSet.merge(b.getInsertIDSet());
+              cDeleteIDSet.merge(b.getDeleteIDSet());
               cInsertIDSet.setKey(cKey);
               cDeleteIDSet.setKey(cKey);
             }
@@ -1539,6 +1545,7 @@ public class Importer
               ERR_JEB_IMPORT_LDIF_INDEX_WRITE_DB_ERR.get(indexMgr.getFileName(),
                         e.getMessage());
         logError(message);
+        e.printStackTrace();
         throw e;
       }
       return null;
@@ -1635,40 +1642,42 @@ public class Importer
      */
     class DNState
     {
-      //DN related stuff per suffix
-      private final DatabaseEntry dbKey1, dbValue1;
-      private final TreeMap<DN, EntryID> parentIDMap =
-                    new TreeMap<DN, EntryID>();
       private DN parentDN, lastDN;
       private EntryID parentID, lastID, entryID;
+      private final DatabaseEntry DNKey, DNValue;
+      private final TreeMap<DN, EntryID> parentIDMap =
+                    new TreeMap<DN, EntryID>();
       private final EntryContainer entryContainer;
       private final Map<byte[], ImportIDSet> id2childTree;
       private final Map<byte[], ImportIDSet> id2subtreeTree;
-      private final Index childIndex, subIndex;
-      private final DN2ID dn2id;
+      private final int childLimit, subTreeLimit;
+      private final boolean childDoCount, subTreeDoCount;
 
       DNState(EntryContainer entryContainer)
       {
         this.entryContainer = entryContainer;
-        dn2id = entryContainer.getDN2ID();
-        childIndex = entryContainer.getID2Children();
-        subIndex = entryContainer.getID2Subtree();
-        Comparator<byte[]> childComparator = childIndex.getComparator();
-        Comparator<byte[]> subComparator =  subIndex.getComparator();
+        Comparator<byte[]> childComparator =
+                entryContainer.getID2Children().getComparator();
         id2childTree = new TreeMap<byte[], ImportIDSet>(childComparator);
+        childLimit = entryContainer.getID2Children().getIndexEntryLimit();
+        childDoCount = entryContainer.getID2Children().getMaintainCount();
+        Comparator<byte[]> subComparator =
+                entryContainer.getID2Subtree().getComparator();
+        subTreeLimit = entryContainer.getID2Subtree().getIndexEntryLimit();
+        subTreeDoCount = entryContainer.getID2Subtree().getMaintainCount();
         id2subtreeTree =  new TreeMap<byte[], ImportIDSet>(subComparator);
-        this.dbKey1 = new DatabaseEntry();
-        this.dbValue1 = new DatabaseEntry();
+        DNKey = new DatabaseEntry();
+        DNValue = new DatabaseEntry();
       }
 
 
       private boolean checkParent(ImportIDSet record) throws DirectoryException
       {
-        dbKey1.setData(record.getKey());
+        DNKey.setData(record.getKey());
         byte[] v = record.toDatabase();
         long v1 = JebFormat.entryIDFromDatabase(v);
-        dbValue1.setData(v);
-        DN dn = DN.decode(ByteString.wrap(dbKey1.getData()));
+        DNValue.setData(v);
+        DN dn = DN.decode(ByteString.wrap(DNKey.getData()));
 
         entryID = new EntryID(v1);
         if(parentIDMap.isEmpty())
@@ -1724,29 +1733,33 @@ public class Importer
 
 
       private void id2child(EntryID childID)
-    {
-      ImportIDSet idSet;
-      if(!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
+              throws DatabaseException, DirectoryException
       {
-        idSet = new ImportIDSet(1,childIndex.getIndexEntryLimit(),
-                                childIndex.getMaintainCount());
-        id2childTree.put(parentID.getDatabaseEntry().getData(), idSet);
+        ImportIDSet idSet;
+        if(!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
+        {
+          idSet = new ImportIDSet(1,childLimit, childDoCount);
+          id2childTree.put(parentID.getDatabaseEntry().getData(), idSet);
+        }
+        else
+        {
+          idSet = id2childTree.get(parentID.getDatabaseEntry().getData());
+        }
+        idSet.addEntryID(childID);
+        if(id2childTree.size() > DN_STATE_CACHE_SIZE)
+        {
+           flushMapToDB(id2childTree, entryContainer.getID2Children(), true);
+        }
       }
-      else
-      {
-        idSet = id2childTree.get(parentID.getDatabaseEntry().getData());
-      }
-      idSet.addEntryID(childID);
-    }
 
 
-      private void id2SubTree(EntryID childID) throws DatabaseException
+      private void id2SubTree(EntryID childID)
+              throws DatabaseException, DirectoryException
       {
         ImportIDSet idSet;
         if(!id2subtreeTree.containsKey(parentID.getDatabaseEntry().getData()))
         {
-          idSet = new ImportIDSet(1, subIndex.getIndexEntryLimit(),
-                                  subIndex.getMaintainCount());
+          idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
           id2subtreeTree.put(parentID.getDatabaseEntry().getData(), idSet);
         }
         else
@@ -1760,8 +1773,7 @@ public class Importer
           EntryID nodeID = parentIDMap.get(dn);
           if(!id2subtreeTree.containsKey(nodeID.getDatabaseEntry().getData()))
           {
-            idSet = new ImportIDSet(1, subIndex.getIndexEntryLimit(),
-                                    subIndex.getMaintainCount());
+            idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
             id2subtreeTree.put(nodeID.getDatabaseEntry().getData(), idSet);
           }
           else
@@ -1770,41 +1782,46 @@ public class Importer
           }
           idSet.addEntryID(childID);
         }
+        if (id2subtreeTree.size() > DN_STATE_CACHE_SIZE)
+        {
+          flushMapToDB(id2subtreeTree,  entryContainer.getID2Subtree(), true);
+        }
       }
 
 
-     public void writeToDB() throws DatabaseException
-     {
-      dn2id.putRaw(null, dbKey1, dbValue1);
-      indexMgr.addTotDNCount(1);
-      if(parentDN != null)
+      public void writeToDB() throws DatabaseException, DirectoryException
       {
-        id2child(entryID);
-        id2SubTree(entryID);
+        entryContainer.getDN2ID().putRaw(null, DNKey, DNValue);
+        indexMgr.addTotDNCount(1);
+        if(parentDN != null)
+        {
+          id2child(entryID);
+          id2SubTree(entryID);
+        }
       }
-     }
 
+      private void flushMapToDB(Map<byte[], ImportIDSet> map, Index index,
+                                boolean clearMap)
+              throws DatabaseException, DirectoryException
+      {
+        for(Map.Entry<byte[], ImportIDSet> e : map.entrySet())
+        {
+          byte[] key = e.getKey();
+          ImportIDSet idSet = e.getValue();
+          DNKey.setData(key);
+          index.insert(DNKey, idSet, DNValue);
+        }
+        index.closeCursor();
+        if(clearMap)
+        {
+           map.clear();
+        }
+      }
 
       public void flush() throws DatabaseException, DirectoryException
       {
-        Set<Map.Entry<byte[], ImportIDSet>> id2childSet =
-                id2childTree.entrySet();
-        for(Map.Entry<byte[], ImportIDSet> e : id2childSet)
-        {
-          byte[] key = e.getKey();
-          ImportIDSet idSet = e.getValue();
-          dbKey1.setData(key);
-          childIndex.insert(dbKey1, idSet, dbValue1);
-        }
-        childIndex.closeCursor();
-        for(Map.Entry<byte[], ImportIDSet> e : id2subtreeTree.entrySet())
-        {
-          byte[] key = e.getKey();
-          ImportIDSet idSet = e.getValue();
-          dbKey1.setData(key);
-          subIndex.insert(dbKey1, idSet, dbValue1);
-        }
-        subIndex.closeCursor();
+        flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
+        flushMapToDB(id2subtreeTree,  entryContainer.getID2Subtree(), false);
       }
     }
   }
@@ -2112,7 +2129,7 @@ public class Importer
     private ByteBuffer cache;
     private int keyLen, idLen, limit;
     private byte[] key;
-    private ImportIDSet insertIDSet, deleteIDSet;
+    private ImportIDSet insertIDSet = null, deleteIDSet = null;
     private Integer indexID = null;
     private boolean doCount;
     private Comparator<byte[]> comparator;
@@ -2233,10 +2250,20 @@ public class Importer
         limit = index.getIndexEntryLimit();
         doCount = index.getMaintainCount();
         comparator = index.getComparator();
+        if(insertIDSet == null)
+        {
+          insertIDSet = new ImportIDSet(128, limit, doCount);
+          deleteIDSet = new ImportIDSet(128, limit, doCount);
+        }
       }
       else
       {
         comparator = ((DN2ID) idContainerMap.get(indexID)).getComparator();
+        if(insertIDSet == null)
+        {
+            insertIDSet = new ImportIDSet(1, limit, doCount);
+            deleteIDSet = new ImportIDSet(1, limit, doCount);
+        }
       }
     }
 
@@ -2278,11 +2305,11 @@ public class Importer
 
       if(insert)
       {
-         insertIDSet = new ImportIDSet(idCount, limit, doCount);
+         insertIDSet.clear(false);
       }
       else
       {
-          deleteIDSet = new ImportIDSet(idCount, limit, doCount);
+         deleteIDSet.clear(false);
       }
       for(int i = 0; i < idCount; i++)
       {
