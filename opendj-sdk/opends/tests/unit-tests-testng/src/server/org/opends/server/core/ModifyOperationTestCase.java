@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -44,8 +44,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -3403,9 +3401,19 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    Entry e = DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
-    assertTrue(e.hasObjectClass(
-         DirectoryServer.getObjectClass("extensibleobject", true)));
+    Entry e =
+        DirectoryServer.getEntry(DN.decode("uid=test.user," + baseDN));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass(
+        "extensibleobject", true)));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass(
+        "inetOrgPerson", true)));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass(
+        "organizationalPerson", true)));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass(
+        "person", true)));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("top",
+        true)));
+    assertEquals(e.getUserAttributes().size(), 8, "Incorrect number of user attributes");
   }
 
 
