@@ -284,60 +284,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * Fractional replication variables.
    */
 
-  // Return type of the parseFractionalConfig method
-  private static final int NOT_FRACTIONAL = 0;
-  private static final int EXCLUSIVE_FRACTIONAL = 1;
-  private static final int INCLUSIVE_FRACTIONAL = 2;
-
-  /**
-   * Tells if fractional replication is enabled or not (some fractional
-   * constraints have been put in place). If this is true then
-   * fractionalExclusive explains the configuration mode and either
-   * fractionalSpecificClassesAttributes or fractionalAllClassesAttributes or
-   * both should be filled with something.
-   */
-  private boolean fractional = false;
-
-  /**
-   * - If true, tells that the configured fractional replication is exclusive:
-   * Every attributes contained in fractionalSpecificClassesAttributes and
-   * fractionalAllClassesAttributes should be ignored when replaying operation
-   * in local backend.
-   * - If false, tells that the configured fractional replication is inclusive:
-   * Only attributes contained in fractionalSpecificClassesAttributes and
-   * fractionalAllClassesAttributes should be taken into account in local
-   * backend.
-   */
-  private boolean fractionalExclusive = true;
-
-  /**
-   * Used in fractional replication: holds attributes of a specific object
-   * class.
-   * - key = object class (name or OID of the class)
-   * - value = the attributes of that class that should be taken into account
-   * (inclusive or exclusive fractional replication) (name or OID of the
-   * attribute)
-   * When an operation coming from the network is to be locally replayed, if the
-   * concerned entry has an objectClass attribute equals to 'key':
-   * - inclusive mode: only the attributes in 'value' will be added/deleted/
-   * modified
-   * - exclusive mode: the attributes in 'value' will not be added/deleted/
-   * modified
-   */
-  private Map<String, List<String>> fractionalSpecificClassesAttributes =
-    new HashMap<String, List<String>>();
-
-  /**
-   * Used in fractional replication: holds attributes of any object class. When
-   * an operation coming from the network is to be locally replayed:
-   * - inclusive mode: only attributes of the matching entry not present in
-   * fractionalAllClassesAttributes will be added/deleted/modified
-   * - exclusive mode: attributes of the matching entry present in
-   * fractionalAllClassesAttributes will not be added/deleted/modified
-   * The attributes may be in human readable form of OID form.
-   */
-  private List<String> fractionalAllClassesAttributes =
-    new ArrayList<String>();
+  // Holds the fractional configuration for this domain, if any.
+  private FractionalConfig fractionalConfig = null;
 
   /**
    * The list of attributes that cannot be used in fractional replication
@@ -371,7 +319,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   private boolean followImport = true;
 
   /**
-   * This is the message id to be used when an import is stopped with error by
+   * The message id to be used when an import is stopped with error by
    * the fractional replication ldif import plugin.
    */
   private int importErrorMessageId = -1;
@@ -474,6 +422,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     readAssuredConfig(configuration, false);
 
     // Get fractional configuration
+    fractionalConfig = new FractionalConfig(baseDn);
     readFractionalConfig(configuration, false);
 
     setGroupId((byte)configuration.getGroupId());
@@ -628,44 +577,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * Returns true if fractional replication is configured in this domain.
-   * @return True if fractional replication is configured in this domain.
-   */
-  public boolean isFractional()
-  {
-    return fractional;
-  }
-
-  /**
-   * Returns true if the fractional replication configuration is exclusive mode
-   * in this domain, false if inclusive mode.
-   * @return True if the fractional replication configuration is exclusive mode
-   * in this domain, false if inclusive mode.
-   */
-  public boolean isFractionalExclusive()
-  {
-    return fractionalExclusive;
-  }
-
-  /**
-   * Returns the fractional configuration for specific classes.
-   * @return The fractional configuration for specific classes.
-   */
-  public Map<String, List<String>> getFractionalSpecificClassesAttributes()
-  {
-    return fractionalSpecificClassesAttributes;
-  }
-
-  /**
-   * Returns the fractional configuration for all classes.
-   * @return The fractional configuration for all classes.
-   */
-  public List<String> getFractionalAllClassesAttributes()
-  {
-    return fractionalAllClassesAttributes;
-  }
-
-  /**
    * Sets the error message id to be used when online import is stopped with
    * error by the fractional replication ldif import plugin.
    * @param importErrorMessageId The message to use.
@@ -695,34 +606,12 @@ public class LDAPReplicationDomain extends ReplicationDomain
   private void readFractionalConfig(ReplicationDomainCfg configuration,
     boolean allowReconnection)
   {
-    boolean needReconnection = false;
-
-    // Prepare fractional configuration variables to parse
-    Iterator<String> exclIt = null;
-    SortedSet<String> fractionalExclude = configuration.getFractionalExclude();
-    if (fractionalExclude != null)
-    {
-      exclIt = fractionalExclude.iterator();
-    }
-
-    Iterator<String> inclIt = null;
-    SortedSet<String> fractionalInclude = configuration.getFractionalInclude();
-    if (fractionalInclude != null)
-    {
-      inclIt = fractionalInclude.iterator();
-    }
-
-    // Get potentially new fractional configuration
-    Map<String, List<String>> newFractionalSpecificClassesAttributes =
-    new HashMap<String, List<String>>();
-    List<String> newFractionalAllClassesAttributes = new ArrayList<String>();
-
-    int newFractionalMode = NOT_FRACTIONAL;
+    // Read the configuration entry
+    FractionalConfig newFractionalConfig = null;
     try
     {
-      newFractionalMode = parseFractionalConfig(exclIt, inclIt,
-      newFractionalSpecificClassesAttributes,
-      newFractionalAllClassesAttributes);
+      newFractionalConfig = FractionalConfig.toFractionalConfig(
+        configuration);
     }
     catch(ConfigException e)
     {
@@ -738,14 +627,13 @@ public class LDAPReplicationDomain extends ReplicationDomain
     /**
      * Is there any change in fractional configuration ?
      */
+
     // Compute current configuration
-    int fractionalMode = fractionalConfigToInt();
+    boolean needReconnection = false;
      try
     {
-      needReconnection = !isFractionalConfigEquivalent(fractionalMode,
-        fractionalSpecificClassesAttributes, fractionalAllClassesAttributes,
-        newFractionalMode, newFractionalSpecificClassesAttributes,
-        newFractionalAllClassesAttributes);
+      needReconnection = !FractionalConfig.
+        isFractionalConfigEquivalent(fractionalConfig, newFractionalConfig);
     }
     catch  (ConfigException e)
     {
@@ -761,25 +649,28 @@ public class LDAPReplicationDomain extends ReplicationDomain
       disableService();
 
     // Set new configuration
-    fractional = (newFractionalMode != NOT_FRACTIONAL);
-    if (fractional)
+    int newFractionalMode = newFractionalConfig.fractionalConfigToInt();
+    fractionalConfig.setFractional(newFractionalMode !=
+      FractionalConfig.NOT_FRACTIONAL);
+    if (fractionalConfig.isFractional())
     {
       // Set new fractional configuration values
-      if (newFractionalMode == EXCLUSIVE_FRACTIONAL)
-        fractionalExclusive = true;
+      if (newFractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL)
+        fractionalConfig.setFractionalExclusive(true);
       else
-        fractionalExclusive = false;
-      fractionalSpecificClassesAttributes =
-        newFractionalSpecificClassesAttributes;
-      fractionalAllClassesAttributes = newFractionalAllClassesAttributes;
+        fractionalConfig.setFractionalExclusive(false);
+      fractionalConfig.setFractionalSpecificClassesAttributes(
+        newFractionalConfig.getFractionalSpecificClassesAttributes());
+      fractionalConfig.setFractionalAllClassesAttributes(
+        newFractionalConfig.fractionalAllClassesAttributes);
     } else
     {
       // Reset default values
-      fractionalExclusive = true;
-      fractionalSpecificClassesAttributes =
-        new HashMap<String, List<String>>();
-      fractionalAllClassesAttributes =
-        new ArrayList<String>();
+      fractionalConfig.setFractionalExclusive(true);
+      fractionalConfig.setFractionalSpecificClassesAttributes(
+        new HashMap<String, List<String>>());
+      fractionalConfig.setFractionalAllClassesAttributes(
+        new ArrayList<String>());
     }
 
     // Reconnect if required
@@ -873,7 +764,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       // The backend is probably empty: if there is some fractional
       // configuration in memory, we do not let the domain being connected,
       // otherwise, it's ok
-      if (fractional)
+      if (fractionalConfig.isFractional())
       {
         return false;
       }
@@ -916,13 +807,14 @@ public class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Compare backend and local fractional configuration
-    return isFractionalConfigConsistent(exclIt, inclIt);
+    return isFractionalConfigConsistent(fractionalConfig, exclIt, inclIt);
   }
 
   /**
    * Return true if the fractional configuration passed as fractional
    * configuration attribute values is equivalent to the fractional
    * configuration stored in the local variables.
+   * @param fractionalConfig The local fractional configuration
    * @param exclIt Fractional exclude mode configuration attribute values to
    * analyze.
    * @param inclIt Fractional include mode configuration attribute values to
@@ -931,7 +823,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * configuration attribute values is equivalent to the fractional
    * configuration stored in the local variables.
    */
-  public boolean isFractionalConfigConsistent(Iterator<String> exclIt,
+   static boolean isFractionalConfigConsistent(
+    FractionalConfig fractionalConfig, Iterator<String> exclIt,
     Iterator<String> inclIt)
   {
     /*
@@ -943,65 +836,58 @@ public class LDAPReplicationDomain extends ReplicationDomain
       new HashMap<String, List<String>>();
     List<String> storedFractionalAllClassesAttributes = new ArrayList<String>();
 
-    int storedFractionalMode = NOT_FRACTIONAL;
+    int storedFractionalMode = FractionalConfig.NOT_FRACTIONAL;
     try
     {
-      storedFractionalMode = parseFractionalConfig(exclIt, inclIt,
-        storedFractionalSpecificClassesAttributes,
+      storedFractionalMode = FractionalConfig.parseFractionalConfig(exclIt,
+        inclIt, storedFractionalSpecificClassesAttributes,
         storedFractionalAllClassesAttributes);
     } catch (ConfigException e)
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
-      Message message = NOTE_ERR_FRACTIONAL.get(baseDn.toString(),
-        e.getLocalizedMessage());
+      Message message = NOTE_ERR_FRACTIONAL.get(
+        fractionalConfig.getBaseDn().toString(), e.getLocalizedMessage());
       logError(message);
       return false;
     }
+
+    FractionalConfig storedFractionalConfig = new FractionalConfig(
+      fractionalConfig.getBaseDn());
+    storedFractionalConfig.setFractional(storedFractionalMode !=
+      FractionalConfig.NOT_FRACTIONAL);
+    // Set stored fractional configuration values
+    if (storedFractionalConfig.isFractional())
+    {
+      if (storedFractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL)
+        storedFractionalConfig.setFractionalExclusive(true);
+      else
+        storedFractionalConfig.setFractionalExclusive(false);
+    }
+    storedFractionalConfig.setFractionalSpecificClassesAttributes(
+      storedFractionalSpecificClassesAttributes);
+    storedFractionalConfig.setFractionalAllClassesAttributes(
+      storedFractionalAllClassesAttributes);
 
     /*
      * Compare configuration stored in passed fractional configuration
      * attributes with local variable one
      */
 
-    // Compute current configuration from local variables
-    int fractionalMode = fractionalConfigToInt();
     try
     {
-      return isFractionalConfigEquivalent(fractionalMode,
-        fractionalSpecificClassesAttributes, fractionalAllClassesAttributes,
-        storedFractionalMode, storedFractionalSpecificClassesAttributes,
-        storedFractionalAllClassesAttributes);
+      return FractionalConfig.
+        isFractionalConfigEquivalent(fractionalConfig, storedFractionalConfig);
     } catch (ConfigException e)
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables so both should have already
       // been checked
-      Message message = NOTE_ERR_FRACTIONAL.get(baseDn.toString(),
-        e.getLocalizedMessage());
+      Message message = NOTE_ERR_FRACTIONAL.get(
+        fractionalConfig.getBaseDn().toString(), e.getLocalizedMessage());
       logError(message);
       return false;
     }
-  }
-
-  /**
-   * Get an integer representation of the domain fractional configuration.
-   * @return An integer representation of the domain fractional configuration.
-   */
-  public int fractionalConfigToInt()
-  {
-    int fractionalMode = -1;
-    if (fractional)
-    {
-      if (fractionalExclusive)
-        fractionalMode = EXCLUSIVE_FRACTIONAL;
-      else
-        fractionalMode = INCLUSIVE_FRACTIONAL;
-    } else
-    {
-      fractionalMode = NOT_FRACTIONAL;
-    }
-    return fractionalMode;
   }
 
   /**
@@ -1011,7 +897,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
   public static class AttributeValueStringIterator implements Iterator<String>
   {
     private Iterator<AttributeValue> attrValIt = null;
-
 
     /**
      * Creates a new AttributeValueStringIterator object.
@@ -1047,83 +932,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
     {
       attrValIt.remove();
     }
-  }
-
-  /**
-   * Compare 2 fractional replication configurations and returns true if they
-   * are equivalent.
-   * @param mode1 Fractional mode 1
-   * @param specificClassesAttributes1 Specific classes attributes 1
-   * @param allClassesAttributes1 All classes attributes 1
-   * @param mode2 Fractional mode 1
-   * @param specificClassesAttributes2 Specific classes attributes 2
-   * @param allClassesAttributes2 Fractional mode 2
-   * @return True if both configurations are equivalent.
-   * @throws ConfigException If some classes or attributes could not be
-   * retrieved from the schema.
-   */
-  private static boolean isFractionalConfigEquivalent(int mode1,
-    Map<String, List<String>> specificClassesAttributes1,
-    List<String> allClassesAttributes1, int mode2,
-    Map<String, List<String>> specificClassesAttributes2,
-    List<String> allClassesAttributes2) throws ConfigException
-  {
-    // Compare modes
-    if (mode1 != mode2)
-      return false;
-
-    // Compare all classes attributes
-    if (!isAttributeListEquivalent(allClassesAttributes1,
-      allClassesAttributes2))
-            return false;
-
-    // Compare specific classes attributes
-    if (specificClassesAttributes1.size() != specificClassesAttributes2.size())
-      return false;
-
-    // Check consistency of specific classes attributes
-    /*
-     * For each class in specificClassesAttributes1, check that the attribute
-     * list is equivalent to specificClassesAttributes2 attribute list
-     */
-    Schema schema = DirectoryServer.getSchema();
-    for (String className1 : specificClassesAttributes1.keySet())
-    {
-      // Get class from specificClassesAttributes1
-      ObjectClass objectClass1 = schema.getObjectClass(className1);
-      if (objectClass1 == null)
-      {
-        throw new ConfigException(
-          NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className1));
-      }
-
-      // Look for matching one in specificClassesAttributes2
-      boolean foundClass = false;
-      for (String className2 : specificClassesAttributes2.keySet())
-      {
-        ObjectClass objectClass2 = schema.getObjectClass(className2);
-        if (objectClass2 == null)
-        {
-          throw new ConfigException(
-            NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className2));
-        }
-        if (objectClass1.equals(objectClass2))
-        {
-          foundClass = true;
-          // Now compare the 2 attribute lists
-          List<String> attributes1 = specificClassesAttributes1.get(className1);
-          List<String> attributes2 = specificClassesAttributes2.get(className2);
-          if (!isAttributeListEquivalent(attributes1, attributes2))
-            return false;
-          break;
-        }
-      }
-      // Found matching class ?
-      if (!foundClass)
-        return false;
-    }
-
-    return true;
   }
 
   /**
@@ -1181,112 +989,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
     return true;
   }
 
-
-  /**
-   * Parses a fractional replication configuration, filling the empty passed
-   * variables and returning the used fractional mode. The 2 passed variables to
-   * fill should be initialized (not null) and empty.
-   * @param exclIt The list of fractional exclude configuration values (may be
-   *               null)
-   * @param inclIt The list of fractional include configuration values (may be
-   *               null)
-   * @param fractionalSpecificClassesAttributes An empty map to be filled with
-   *        what is read from the fractional configuration properties.
-   * @param fractionalAllClassesAttributes An empty list to be filled with what
-   *        is read from the fractional configuration properties.
-   * @return the fractional mode deduced from the passed configuration:
-   *         not fractional, exclusive fractional or inclusive fractional modes
-   */
-  private static int parseFractionalConfig (
-    Iterator<String> exclIt, Iterator<String> inclIt,
-    Map<String, List<String>> fractionalSpecificClassesAttributes,
-    List<String> fractionalAllClassesAttributes) throws ConfigException
-  {
-    int fractional_mode = NOT_FRACTIONAL;
-
-    // Determine if fractional-exclude or fractional-include property is used
-    // : only one of them is allowed
-    Iterator<String> fracConfIt = null;
-
-    // Deduce the wished fractional mode
-    if ((exclIt != null) && exclIt.hasNext())
-    {
-      if ((inclIt != null) && inclIt.hasNext())
-      {
-        throw new ConfigException(NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
-      }
-      else
-      {
-        fractional_mode = EXCLUSIVE_FRACTIONAL;
-        fracConfIt = exclIt;
-      }
-    }
-    else
-    {
-      if ((inclIt != null) && inclIt.hasNext())
-      {
-        fractional_mode = INCLUSIVE_FRACTIONAL;
-        fracConfIt = inclIt;
-      }
-      else
-      {
-        return NOT_FRACTIONAL;
-      }
-    }
-
-    while (fracConfIt.hasNext())
-    {
-      // Parse a value with the form class:attr1,attr2...
-      // or *:attr1,attr2...
-      String fractCfgStr = fracConfIt.next();
-      StringTokenizer st = new StringTokenizer(fractCfgStr, ":");
-      int nTokens = st.countTokens();
-      if (nTokens < 2)
-      {
-        throw new ConfigException(NOTE_ERR_FRACTIONAL_CONFIG_WRONG_FORMAT.
-          get(fractCfgStr));
-      }
-      // Get the class name
-      String classNameLower = st.nextToken().toLowerCase();
-      boolean allClasses = classNameLower.equals("*");
-      // Get the attributes
-      String attributes = st.nextToken();
-      st = new StringTokenizer(attributes, ",");
-      while (st.hasMoreTokens())
-      {
-        String attrNameLower = st.nextToken().toLowerCase();
-        // Store attribute in the appropriate variable
-        if (allClasses)
-        {
-          // Avoid duplicate attributes
-          if (!fractionalAllClassesAttributes.contains(attrNameLower))
-          {
-            fractionalAllClassesAttributes.add(attrNameLower);
-          }
-        }
-        else
-        {
-          List<String> attrList =
-            fractionalSpecificClassesAttributes.get(classNameLower);
-          if (attrList != null)
-          {
-            // Avoid duplicate attributes
-            if (!attrList.contains(attrNameLower))
-            {
-              attrList.add(attrNameLower);
-            }
-          } else
-          {
-            attrList = new ArrayList<String>();
-            attrList.add(attrNameLower);
-            fractionalSpecificClassesAttributes.put(classNameLower, attrList);
-          }
-        }
-      }
-    }
-    return fractional_mode;
-  }
-
   /**
    * Check that the passed fractional configuration is acceptable
    * regarding configuration syntax, schema constraints...
@@ -1302,43 +1004,21 @@ public class LDAPReplicationDomain extends ReplicationDomain
      * Parse fractional configuration
      */
 
-    // Prepare fractional configuration variables to parse
-    Iterator<String> exclIt = null;
-    SortedSet<String> fractionalExclude = configuration.getFractionalExclude();
-    if (fractionalExclude != null)
-    {
-      exclIt = fractionalExclude.iterator();
-    }
+    // Read the configuration entry
+    FractionalConfig newFractionalConfig = FractionalConfig.toFractionalConfig(
+        configuration);
 
-    Iterator<String> inclIt = null;
-    SortedSet<String> fractionalInclude = configuration.getFractionalInclude();
-    if (fractionalInclude != null)
+    if (!newFractionalConfig.isFractional())
     {
-      inclIt = fractionalInclude.iterator();
+        // Nothing to check
+        return;
     }
 
     // Prepare variables to be filled with config
     Map<String, List<String>> newFractionalSpecificClassesAttributes =
-    new HashMap<String, List<String>>();
-    List<String> newFractionalAllClassesAttributes = new ArrayList<String>();
-
-    int fractionalMode = parseFractionalConfig(exclIt, inclIt,
-      newFractionalSpecificClassesAttributes,
-      newFractionalAllClassesAttributes);
-
-    switch (fractionalMode)
-    {
-      case NOT_FRACTIONAL:
-        // Nothing to check
-        return;
-      case EXCLUSIVE_FRACTIONAL:
-      case INCLUSIVE_FRACTIONAL:
-        // Ok, checking done out of the switch statement
-        break;
-      default:
-      // Should not happen
-        return;
-    }
+      newFractionalConfig.getFractionalSpecificClassesAttributes();
+    List<String> newFractionalAllClassesAttributes =
+      newFractionalConfig.getFractionalAllClassesAttributes();
 
     /*
      * Check attributes consistency : we only allow to filter MAY (optional)
@@ -1348,6 +1028,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
     // Check consistency of specific classes attributes
     Schema schema = DirectoryServer.getSchema();
+    int fractionalMode = newFractionalConfig.fractionalConfigToInt();
     for (String className : newFractionalSpecificClassesAttributes.keySet())
     {
       // Does the class exist ?
@@ -1381,7 +1062,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           // No more checking for the extensibleObject class
           if (!isExtensibleObjectClass)
           {
-            if (fractionalMode == EXCLUSIVE_FRACTIONAL)
+            if (fractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL)
             {
               // Exclusive mode : the attribute must be optional
               if (!fractionalClass.isOptional(attributeType))
@@ -1455,7 +1136,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   public boolean fractionalFilterOperation(
     PreOperationAddOperation addOperation, boolean performFiltering)
   {
-    return fractionalRemoveAttributesFromEntry(
+    return fractionalRemoveAttributesFromEntry(fractionalConfig,
       addOperation.getEntryDN().getRDN(), addOperation.getObjectClasses(),
       addOperation.getUserAttributes(), performFiltering);
   }
@@ -1494,9 +1175,10 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
     Entry concernedEntry = modifyDNOperation.getOriginalEntry();
     List<String> fractionalConcernedAttributes =
-      createFractionalConcernedAttrList(
+      createFractionalConcernedAttrList(fractionalConfig,
       concernedEntry.getObjectClasses().keySet());
 
+    boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if ( fractionalExclusive && (fractionalConcernedAttributes.size() == 0) )
       // No attributes to filter
       return false;
@@ -1551,10 +1233,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * Remove attributes from an entry, according to the current fractional
+   * Remove attributes from an entry, according to the passed fractional
    * configuration. The entry is represented by the 2 passed parameters.
    * The attributes to be removed are removed using the remove method on the
    * passed iterator for the attributes in the entry.
+   * @param fractionalConfig The fractional configuration to use
    * @param entryRdn The rdn of the entry to add
    * @param classes The object classes representing the entry to modify
    * @param attributesMap The map of attributes/values to be potentially removed
@@ -1565,9 +1248,10 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * @return true if the operation contains some attributes subject to filtering
    * by the fractional configuration
    */
-  public boolean fractionalRemoveAttributesFromEntry(RDN entryRdn,
-    Map<ObjectClass,String> classes, Map<AttributeType, List<Attribute>>
-    attributesMap, boolean performFiltering)
+   static boolean fractionalRemoveAttributesFromEntry(
+    FractionalConfig fractionalConfig, RDN entryRdn,
+    Map<ObjectClass,String> classes, Map<AttributeType,
+    List<Attribute>> attributesMap, boolean performFiltering)
   {
     boolean hasSomeAttributesToFilter = false;
     /*
@@ -1576,7 +1260,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
      */
 
     List<String> fractionalConcernedAttributes =
-      createFractionalConcernedAttrList(classes.keySet());
+      createFractionalConcernedAttrList(fractionalConfig, classes.keySet());
+    boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if ( fractionalExclusive && (fractionalConcernedAttributes.size() == 0) )
       return false; // No attributes to filter
 
@@ -1724,13 +1409,14 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   /**
    * Prepares a list of attributes of interest for the fractional feature.
+   * @param fractionalConfig The fractional configuration to use
    * @param entryObjectClasses The object classes of an entry on which an
    * operation is going to be performed.
    * @return The list of attributes of the entry to be excluded/included
    * when the operation will be performed.
    */
-  private List<String> createFractionalConcernedAttrList(
-    Set<ObjectClass> entryObjectClasses)
+  private static List<String> createFractionalConcernedAttrList(
+    FractionalConfig fractionalConfig, Set<ObjectClass> entryObjectClasses)
   {
     /*
      * Is the concerned entry of a type concerned by fractional replication
@@ -1742,6 +1428,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
     List<String> fractionalConcernedAttributes = new ArrayList<String>();
 
     // Get object classes the entry matches
+    List<String> fractionalAllClassesAttributes =
+      fractionalConfig.getFractionalAllClassesAttributes();
+    Map<String, List<String>> fractionalSpecificClassesAttributes =
+      fractionalConfig.getFractionalSpecificClassesAttributes();
+
     Set<String> fractionalClasses =
         fractionalSpecificClassesAttributes.keySet();
     for (ObjectClass entryObjectClass : entryObjectClasses)
@@ -1803,8 +1494,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
     Entry modifiedEntry = modifyOperation.getCurrentEntry();
     List<String> fractionalConcernedAttributes =
-      createFractionalConcernedAttrList(
+      createFractionalConcernedAttrList(fractionalConfig,
       modifiedEntry.getObjectClasses().keySet());
+    boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if ( fractionalExclusive && (fractionalConcernedAttributes.size() == 0) )
       // No attributes to filter
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
@@ -1959,7 +1651,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   protected void initializeRemote(short target, short requestorID,
     Task initTask) throws DirectoryException
   {
-    if ((target == RoutableMsg.ALL_SERVERS) && fractional)
+    if ((target == RoutableMsg.ALL_SERVERS) && fractionalConfig.isFractional())
     {
       Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
             baseDn.toString(), Short.toString(getServerId()));
@@ -2074,7 +1766,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
-    if (fractional)
+    if (fractionalConfig.isFractional())
     {
       if (addOperation.isSynchronizationOperation())
       {
@@ -2212,7 +1904,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
-    if (fractional)
+    if (fractionalConfig.isFractional())
     {
       if (modifyDNOperation.isSynchronizationOperation())
       {
@@ -2331,7 +2023,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
-    if (fractional)
+    if (fractionalConfig.isFractional())
     {
       if  (modifyOperation.isSynchronizationOperation())
       {
@@ -4796,6 +4488,455 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       throw new DirectoryException(
           resultCode, message);
+    }
+  }
+
+  /**
+   * Gets the fractional configuration of this domain.
+   * @return The fractional configuration of this domain.
+   */
+  FractionalConfig getFractionalConfig()
+  {
+    return fractionalConfig;
+  }
+
+  /**
+   * This bean is a utility class used for holding the parsing
+   * result of a fractional configuration. It also contains some facility
+   * methods like fractional configuration comparison...
+   */
+  static class FractionalConfig
+  {
+    /**
+     * Tells if fractional replication is enabled or not (some fractional
+     * constraints have been put in place). If this is true then
+     * fractionalExclusive explains the configuration mode and either
+     * fractionalSpecificClassesAttributes or fractionalAllClassesAttributes or
+     * both should be filled with something.
+     */
+    private boolean fractional = false;
+
+    /**
+     * - If true, tells that the configured fractional replication is exclusive:
+     * Every attributes contained in fractionalSpecificClassesAttributes and
+     * fractionalAllClassesAttributes should be ignored when replaying operation
+     * in local backend.
+     * - If false, tells that the configured fractional replication is
+     * inclusive:
+     * Only attributes contained in fractionalSpecificClassesAttributes and
+     * fractionalAllClassesAttributes should be taken into account in local
+     * backend.
+     */
+    private boolean fractionalExclusive = true;
+
+    /**
+     * Used in fractional replication: holds attributes of a specific object
+     * class.
+     * - key = object class (name or OID of the class)
+     * - value = the attributes of that class that should be taken into account
+     * (inclusive or exclusive fractional replication) (name or OID of the
+     * attribute)
+     * When an operation coming from the network is to be locally replayed, if
+     * the concerned entry has an objectClass attribute equals to 'key':
+     * - inclusive mode: only the attributes in 'value' will be added/deleted/
+     * modified
+     * - exclusive mode: the attributes in 'value' will not be added/deleted/
+     * modified
+     */
+    private Map<String, List<String>> fractionalSpecificClassesAttributes =
+      new HashMap<String, List<String>>();
+
+    /**
+     * Used in fractional replication: holds attributes of any object class.
+     * When an operation coming from the network is to be locally replayed:
+     * - inclusive mode: only attributes of the matching entry not present in
+     * fractionalAllClassesAttributes will be added/deleted/modified
+     * - exclusive mode: attributes of the matching entry present in
+     * fractionalAllClassesAttributes will not be added/deleted/modified
+     * The attributes may be in human readable form of OID form.
+     */
+    private List<String> fractionalAllClassesAttributes =
+      new ArrayList<String>();
+
+    /**
+     * Base DN the fractional configuration is for.
+     */
+    private DN baseDn = null;
+
+    /**
+     * Constructs a new fractional configuration object.
+     * @param baseDn The base dn the object is for.
+     */
+    FractionalConfig(DN baseDn)
+    {
+      this.baseDn = baseDn;
+    }
+
+    /**
+     * Getter for fractional.
+     * @return True if the configuration has fractional enabled
+     */
+    boolean isFractional()
+    {
+      return fractional;
+    }
+
+    /**
+     * Set the fractional parameter.
+     * @param fractional The fractional parameter
+     */
+    void setFractional(boolean fractional)
+    {
+      this.fractional = fractional;
+    }
+
+    /**
+     * Getter for fractionalExclusive.
+     * @return True if the configuration has fractional exclusive enabled
+     */
+    boolean isFractionalExclusive()
+    {
+      return fractionalExclusive;
+    }
+
+    /**
+     * Set the fractionalExclusive parameter.
+     * @param fractionalExclusive The fractionalExclusive parameter
+     */
+    void setFractionalExclusive(boolean fractionalExclusive)
+    {
+      this.fractionalExclusive = fractionalExclusive;
+    }
+
+    /**
+     * Getter for fractionalSpecificClassesAttributes attribute.
+     * @return The fractionalSpecificClassesAttributes attribute.
+     */
+    Map<String, List<String>> getFractionalSpecificClassesAttributes()
+    {
+      return fractionalSpecificClassesAttributes;
+    }
+
+    /**
+     * Set the fractionalSpecificClassesAttributes parameter.
+     * @param fractionalSpecificClassesAttributes The
+     * fractionalSpecificClassesAttributes parameter to set.
+     */
+    void setFractionalSpecificClassesAttributes(Map<String,
+      List<String>> fractionalSpecificClassesAttributes)
+    {
+      this.fractionalSpecificClassesAttributes =
+        fractionalSpecificClassesAttributes;
+    }
+
+    /**
+     * Getter for fractionalSpecificClassesAttributes attribute.
+     * @return The fractionalSpecificClassesAttributes attribute.
+     */
+    List<String> getFractionalAllClassesAttributes()
+    {
+      return fractionalAllClassesAttributes;
+    }
+
+    /**
+     * Set the fractionalAllClassesAttributes parameter.
+     * @param fractionalAllClassesAttributes The
+     * fractionalSpecificClassesAttributes parameter to set.
+     */
+    void setFractionalAllClassesAttributes(
+      List<String> fractionalAllClassesAttributes)
+    {
+      this.fractionalAllClassesAttributes = fractionalAllClassesAttributes;
+    }
+
+    /**
+     * Getter for the base baseDn.
+     * @return The baseDn attribute.
+     */
+    DN getBaseDn()
+    {
+      return baseDn;
+    }
+
+    /**
+     * Extract the fractional configuration from the passed domain configuration
+     * entry.
+     * @param configuration The configuration object
+     * @return The fractional replication configuration.
+     * @throws ConfigException If an error occurred.
+     */
+    static FractionalConfig toFractionalConfig(
+      ReplicationDomainCfg configuration) throws ConfigException
+    {
+      // Prepare fractional configuration variables to parse
+      Iterator<String> exclIt = null;
+      SortedSet<String> fractionalExclude =
+        configuration.getFractionalExclude();
+      if (fractionalExclude != null)
+      {
+        exclIt = fractionalExclude.iterator();
+      }
+
+      Iterator<String> inclIt = null;
+      SortedSet<String> fractionalInclude =
+        configuration.getFractionalInclude();
+      if (fractionalInclude != null)
+      {
+        inclIt = fractionalInclude.iterator();
+      }
+
+      // Get potentially new fractional configuration
+      Map<String, List<String>> newFractionalSpecificClassesAttributes =
+        new HashMap<String, List<String>>();
+      List<String> newFractionalAllClassesAttributes = new ArrayList<String>();
+
+      int newFractionalMode = parseFractionalConfig(exclIt, inclIt,
+        newFractionalSpecificClassesAttributes,
+        newFractionalAllClassesAttributes);
+
+      // Create matching parsed config object
+      FractionalConfig result = new FractionalConfig(configuration.getBaseDN());
+      switch (newFractionalMode)
+      {
+        case NOT_FRACTIONAL:
+          result.setFractional(false);
+          result.setFractionalExclusive(true);
+          break;
+        case EXCLUSIVE_FRACTIONAL:
+        case INCLUSIVE_FRACTIONAL:
+          result.setFractional(true);
+          if (newFractionalMode == EXCLUSIVE_FRACTIONAL)
+            result.setFractionalExclusive(true);
+          else
+            result.setFractionalExclusive(false);
+          break;
+      }
+      result.setFractionalSpecificClassesAttributes(
+        newFractionalSpecificClassesAttributes);
+      result.setFractionalAllClassesAttributes(
+        newFractionalAllClassesAttributes);
+      return result;
+    }
+
+    /**
+     * Parses a fractional replication configuration, filling the empty passed
+     * variables and returning the used fractional mode. The 2 passed variables
+     * to fill should be initialized (not null) and empty.
+     * @param exclIt The list of fractional exclude configuration values (may be
+     *               null)
+     * @param inclIt The list of fractional include configuration values (may be
+     *               null)
+     * @param fractionalSpecificClassesAttributes An empty map to be filled with
+     *        what is read from the fractional configuration properties.
+     * @param fractionalAllClassesAttributes An empty list to be filled with
+     *        what is read from the fractional configuration properties.
+     * @return the fractional mode deduced from the passed configuration:
+     *         not fractional, exclusive fractional or inclusive fractional
+     *         modes
+     */
+     private static int parseFractionalConfig (
+      Iterator<String> exclIt, Iterator<String> inclIt,
+      Map<String, List<String>> fractionalSpecificClassesAttributes,
+      List<String> fractionalAllClassesAttributes) throws ConfigException
+    {
+      int fractional_mode = NOT_FRACTIONAL;
+
+      // Determine if fractional-exclude or fractional-include property is used
+      // : only one of them is allowed
+      Iterator<String> fracConfIt = null;
+
+      // Deduce the wished fractional mode
+      if ((exclIt != null) && exclIt.hasNext())
+      {
+        if ((inclIt != null) && inclIt.hasNext())
+        {
+          throw new ConfigException(
+            NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
+        }
+        else
+        {
+          fractional_mode = EXCLUSIVE_FRACTIONAL;
+          fracConfIt = exclIt;
+        }
+      }
+      else
+      {
+        if ((inclIt != null) && inclIt.hasNext())
+        {
+          fractional_mode = INCLUSIVE_FRACTIONAL;
+          fracConfIt = inclIt;
+        }
+        else
+        {
+          return NOT_FRACTIONAL;
+        }
+      }
+
+      while (fracConfIt.hasNext())
+      {
+        // Parse a value with the form class:attr1,attr2...
+        // or *:attr1,attr2...
+        String fractCfgStr = fracConfIt.next();
+        StringTokenizer st = new StringTokenizer(fractCfgStr, ":");
+        int nTokens = st.countTokens();
+        if (nTokens < 2)
+        {
+          throw new ConfigException(NOTE_ERR_FRACTIONAL_CONFIG_WRONG_FORMAT.
+            get(fractCfgStr));
+        }
+        // Get the class name
+        String classNameLower = st.nextToken().toLowerCase();
+        boolean allClasses = classNameLower.equals("*");
+        // Get the attributes
+        String attributes = st.nextToken();
+        st = new StringTokenizer(attributes, ",");
+        while (st.hasMoreTokens())
+        {
+          String attrNameLower = st.nextToken().toLowerCase();
+          // Store attribute in the appropriate variable
+          if (allClasses)
+          {
+            // Avoid duplicate attributes
+            if (!fractionalAllClassesAttributes.contains(attrNameLower))
+            {
+              fractionalAllClassesAttributes.add(attrNameLower);
+            }
+          }
+          else
+          {
+            List<String> attrList =
+              fractionalSpecificClassesAttributes.get(classNameLower);
+            if (attrList != null)
+            {
+              // Avoid duplicate attributes
+              if (!attrList.contains(attrNameLower))
+              {
+                attrList.add(attrNameLower);
+              }
+            } else
+            {
+              attrList = new ArrayList<String>();
+              attrList.add(attrNameLower);
+              fractionalSpecificClassesAttributes.put(classNameLower, attrList);
+            }
+          }
+        }
+      }
+      return fractional_mode;
+    }
+
+    // Return type of the parseFractionalConfig method
+    static final int NOT_FRACTIONAL = 0;
+    static final int EXCLUSIVE_FRACTIONAL = 1;
+    static final int INCLUSIVE_FRACTIONAL = 2;
+
+    /**
+     * Get an integer representation of the domain fractional configuration.
+     * @return An integer representation of the domain fractional configuration.
+     */
+    int fractionalConfigToInt()
+    {
+      int fractionalMode = -1;
+      if (fractional)
+      {
+        if (fractionalExclusive)
+          fractionalMode = EXCLUSIVE_FRACTIONAL;
+        else
+          fractionalMode = INCLUSIVE_FRACTIONAL;
+      } else
+      {
+        fractionalMode = NOT_FRACTIONAL;
+      }
+      return fractionalMode;
+    }
+
+    /**
+     * Compare 2 fractional replication configurations and returns true if they
+     * are equivalent.
+     * @param fractionalConfig1 First fractional configuration
+     * @param fractionalConfig2 Second fractional configuration
+     * @return True if both configurations are equivalent.
+     * @throws ConfigException If some classes or attributes could not be
+     * retrieved from the schema.
+     */
+     static boolean isFractionalConfigEquivalent(
+      FractionalConfig fractionalConfig1, FractionalConfig fractionalConfig2)
+      throws ConfigException
+    {
+      // Comapre base DNs just to be consistent
+      if (!fractionalConfig1.getBaseDn().equals(fractionalConfig2.getBaseDn()))
+        return false;
+
+      // Compare modes
+      if ( (fractionalConfig1.isFractional() !=
+        fractionalConfig2.isFractional()) ||
+        (fractionalConfig1.isFractionalExclusive() !=
+        fractionalConfig2.isFractionalExclusive()) )
+        return false;
+
+      // Compare all classes attributes
+      List<String> allClassesAttributes1 =
+        fractionalConfig1.getFractionalAllClassesAttributes();
+      List<String> allClassesAttributes2 =
+        fractionalConfig2.getFractionalAllClassesAttributes();
+      if (!isAttributeListEquivalent(allClassesAttributes1,
+        allClassesAttributes2))
+              return false;
+
+      // Compare specific classes attributes
+      Map<String, List<String>> specificClassesAttributes1 =
+        fractionalConfig1.getFractionalSpecificClassesAttributes();
+      Map<String, List<String>> specificClassesAttributes2 =
+        fractionalConfig2.getFractionalSpecificClassesAttributes();
+      if (specificClassesAttributes1.size() !=
+        specificClassesAttributes2.size())
+        return false;
+
+      // Check consistency of specific classes attributes
+      /*
+       * For each class in specificClassesAttributes1, check that the attribute
+       * list is equivalent to specificClassesAttributes2 attribute list
+       */
+      Schema schema = DirectoryServer.getSchema();
+      for (String className1 : specificClassesAttributes1.keySet())
+      {
+        // Get class from specificClassesAttributes1
+        ObjectClass objectClass1 = schema.getObjectClass(className1);
+        if (objectClass1 == null)
+        {
+          throw new ConfigException(
+            NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className1));
+        }
+
+        // Look for matching one in specificClassesAttributes2
+        boolean foundClass = false;
+        for (String className2 : specificClassesAttributes2.keySet())
+        {
+          ObjectClass objectClass2 = schema.getObjectClass(className2);
+          if (objectClass2 == null)
+          {
+            throw new ConfigException(
+              NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className2));
+          }
+          if (objectClass1.equals(objectClass2))
+          {
+            foundClass = true;
+            // Now compare the 2 attribute lists
+            List<String> attributes1 =
+              specificClassesAttributes1.get(className1);
+            List<String> attributes2 =
+              specificClassesAttributes2.get(className2);
+            if (!isAttributeListEquivalent(attributes1, attributes2))
+              return false;
+            break;
+          }
+        }
+        // Found matching class ?
+        if (!foundClass)
+          return false;
+      }
+
+      return true;
     }
   }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -90,6 +90,7 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] postConnectPlugins;
   private DirectoryServerPlugin[] postDisconnectPlugins;
   private DirectoryServerPlugin[] ldifImportPlugins;
+  private DirectoryServerPlugin[] ldifImportEndPlugins;
   private DirectoryServerPlugin[] ldifExportPlugins;
   private DirectoryServerPlugin[] preParseAbandonPlugins;
   private DirectoryServerPlugin[] preParseAddPlugins;
@@ -174,6 +175,7 @@ public class PluginConfigManager
     postConnectPlugins                 = new DirectoryServerPlugin[0];
     postDisconnectPlugins              = new DirectoryServerPlugin[0];
     ldifImportPlugins                  = new DirectoryServerPlugin[0];
+    ldifImportEndPlugins               = new DirectoryServerPlugin[0];
     ldifExportPlugins                  = new DirectoryServerPlugin[0];
     preParseAbandonPlugins             = new DirectoryServerPlugin[0];
     preParseAddPlugins                 = new DirectoryServerPlugin[0];
@@ -423,6 +425,7 @@ public class PluginConfigManager
       case POSTCONNECT:            return PluginType.POST_CONNECT;
       case POSTDISCONNECT:         return PluginType.POST_DISCONNECT;
       case LDIFIMPORT:             return PluginType.LDIF_IMPORT;
+      case LDIFIMPORTEND:          return PluginType.LDIF_IMPORT_END;
       case LDIFEXPORT:             return PluginType.LDIF_EXPORT;
       case PREPARSEABANDON:        return PluginType.PRE_PARSE_ABANDON;
       case PREPARSEADD:            return PluginType.PRE_PARSE_ADD;
@@ -594,6 +597,11 @@ public class PluginConfigManager
             ldifImportPlugins =
                  addPlugin(ldifImportPlugins, plugin, t,
                            pluginRootConfig.getPluginOrderLDIFImport());
+            break;
+          case LDIF_IMPORT_END:
+            ldifImportEndPlugins =
+                 addPlugin(ldifImportEndPlugins, plugin, t,
+                           pluginRootConfig.getPluginOrderLDIFImportEnd());
             break;
           case LDIF_EXPORT:
             ldifExportPlugins =
@@ -1088,6 +1096,9 @@ public class PluginConfigManager
           case LDIF_IMPORT:
             ldifImportPlugins = removePlugin(ldifImportPlugins, plugin);
             break;
+          case LDIF_IMPORT_END:
+            ldifImportEndPlugins = removePlugin(ldifImportEndPlugins, plugin);
+            break;
           case LDIF_EXPORT:
             ldifExportPlugins = removePlugin(ldifExportPlugins, plugin);
             break;
@@ -1558,7 +1569,7 @@ public class PluginConfigManager
 
 
 
-  /**
+/**
    * Invokes the set of LDIF import plugins that have been configured in the
    * Directory Server.
    *
@@ -1617,6 +1628,24 @@ public class PluginConfigManager
     }
 
     return result;
+  }
+
+
+
+  /**
+   * Invokes the LDIF import session finalization of LDIF import plugins that
+   * have been configured in the Directory Server.
+   *
+   * @param  importConfig  The LDIF import configuration used for the LDIF
+   *                       import session.
+   */
+  public void invokeLDIFImportEndPlugins(
+      LDIFImportConfig importConfig)
+  {
+    for (DirectoryServerPlugin p : ldifImportEndPlugins)
+    {
+      p.doLDIFImportEnd(importConfig);
+    }
   }
 
 

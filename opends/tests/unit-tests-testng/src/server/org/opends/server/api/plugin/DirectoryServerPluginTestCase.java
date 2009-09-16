@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
@@ -222,6 +222,12 @@ import static org.testng.Assert.*;
     sigList.add("org.opends.server.api.plugin.PluginResult$ImportLDIF");
     sigList.add("org.opends.server.types.LDIFImportConfig");
     sigList.add("org.opends.server.types.Entry");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doLDIFImportEnd");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.LDIFImportConfig");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
