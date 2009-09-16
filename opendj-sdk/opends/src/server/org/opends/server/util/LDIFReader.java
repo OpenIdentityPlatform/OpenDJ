@@ -1477,6 +1477,8 @@ public final class LDIFReader
    */
   public void close()
   {
+    // Inform LDIF import plugins that an import session is ending
+    pluginConfigManager.invokeLDIFImportEndPlugins(importConfig);
     importConfig.close();
   }
 

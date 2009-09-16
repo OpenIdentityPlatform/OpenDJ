@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 import org.opends.messages.Message;
@@ -312,7 +312,6 @@ public abstract class DirectoryServerPlugin
   }
 
 
-
   /**
    * Performs any necessary processing that should be done during an
    * LDIF import operation immediately after reading an entry and
@@ -333,7 +332,20 @@ public abstract class DirectoryServerPlugin
     throw new UnsupportedOperationException(message.toString());
   }
 
-
+  /**
+   * Terminates an import session.
+   * Performs any necessary processing that should be done at the end
+   * of an LDIF import session based on the provided configuration.
+   *
+   * @param  importConfig  The configuration used for the LDIF import.
+   */
+  public void doLDIFImportEnd(LDIFImportConfig importConfig)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN),
+        PluginType.LDIF_IMPORT_END.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
 
   /**
    * Performs any necessary processing that should be done during an

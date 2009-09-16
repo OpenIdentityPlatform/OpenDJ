@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.opends.server.admin.std"
@@ -114,6 +114,11 @@
         <adm:value name="ldifimport">
           <adm:synopsis>
             Invoked for each entry read during an LDIF import.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldifimportend">
+          <adm:synopsis>
+            Invoked at the end of an LDIF import session.
           </adm:synopsis>
         </adm:value>
         <adm:value name="ldifexport">

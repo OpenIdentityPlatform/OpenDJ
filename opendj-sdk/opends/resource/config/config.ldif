@@ -1841,6 +1841,7 @@ cn: Fractional Replication LDIF Import
 ds-cfg-java-class: org.opends.server.replication.plugin.FractionalLDIFImportPlugin
 ds-cfg-enabled: true
 ds-cfg-plugin-type: ldifImport
+ds-cfg-plugin-type: ldifImportEnd
 ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Root DNs,cn=config
