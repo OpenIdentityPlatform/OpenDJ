@@ -65,8 +65,8 @@
             lastCookie = ';'
             nextCookie = None
             
-            addOperationalAttrs = """\* creatorsname createtimestamp entryuuid"""
-            modOperationalAttrs = """\* modifiersname modifytimestamp entryuuid"""
+            addOperationalAttrs = """"*" creatorsname createtimestamp entryuuid"""
+            modOperationalAttrs = """"*" modifiersname modifytimestamp entryuuid"""
             
             class Entry:
               def __init__(self, rdn):
