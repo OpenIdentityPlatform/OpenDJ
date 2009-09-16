@@ -239,15 +239,32 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Returns the Replication Server Domain to which belongs this handler.
-   * @param createIfNotExist Creates the domain if it does not exist.
+   *
+   * @param createIfNotExist    Creates the domain if it does not exist.
+   *
    * @return The replication server domain.
    */
   public ReplicationServerDomain getDomain(boolean createIfNotExist)
   {
+    return getDomain(createIfNotExist, false);
+  }
+
+  /**
+   * Returns the Replication Server Domain to which belongs this handler.
+   *
+   * @param createIfNotExist    Creates the domain if it does not exist.
+   * @param waitConnections     Waits for the Connections with other RS to
+   *                            be established before returning.
+   * @return The replication server domain.
+   */
+  public ReplicationServerDomain getDomain(
+      boolean createIfNotExist, boolean waitConnections)
+  {
     if (replicationServerDomain==null)
     {
       replicationServerDomain =
-      replicationServer.getReplicationServerDomain(serviceId,createIfNotExist);
+        replicationServer.getReplicationServerDomain(
+            serviceId, createIfNotExist, waitConnections);
     }
     return replicationServerDomain;
   }

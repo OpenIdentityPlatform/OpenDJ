@@ -3061,24 +3061,21 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     try
     {
       storeReceivedCTHeartbeat(msg.getChangeNumber());
-
-      // If we are the first replication server warned,
-      // then forwards the reset message to the remote replication servers
-      for (ReplicationServerHandler rsHandler : replicationServers.values())
+      if (senderHandler.isDataServer())
       {
-        try
+        // If we are the first replication server warned,
+        // then forwards the reset message to the remote replication servers
+        for (ReplicationServerHandler rsHandler : replicationServers.values())
         {
-          // After we'll have sent the message , the remote RS will adopt
-          // the new genId
-          if (senderHandler.isDataServer())
+          try
           {
             rsHandler.send(msg);
+          } catch (IOException e)
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            logError(ERR_CHANGELOG_ERROR_SENDING_MSG.get(rsHandler.getName()));
+            stopServer(rsHandler);
           }
-        } catch (IOException e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          logError(ERR_CHANGELOG_ERROR_SENDING_MSG.get(rsHandler.getName()));
-          stopServer(rsHandler);
         }
       }
     }

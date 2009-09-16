@@ -475,7 +475,7 @@ public class DataServerHandler extends ServerHandler
         processStartFromRemote(inServerStartMsg);
 
       // Get or Create the ReplicationServerDomain
-      replicationServerDomain = getDomain(true);
+      replicationServerDomain = getDomain(true, true);
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
 
