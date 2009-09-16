@@ -329,21 +329,13 @@
         '%s' % STAFCmd
       </message>
 
-      <!-- On Windows systems, startup command always returns 1 -->
-      <script>
-        if is_windows_platform(location):
-          expectedRC=1
-        else:
-          expectedRC=0
-      </script>
-
       <call function="'runCommand'">
         { 'location' : location,
         'command'    : STAFCmd,
         'envCmd'     : STAFCmdEnv,
         'name'       : STAFCmd,
         'path'       : wcBinPath,
-        'expectedRC' : expectedRC
+        'expectedRC' : 0
         }
       </call>
       

@@ -111,16 +111,16 @@
               'cleanup: stop webcontainer as described in config.py'
             </message>
             <call function="'stopWebcontainerWithScript'">
-              { 'location'   : STAF_REMOTE_HOSTNAME ,
+              { 'location'   : STAF_REMOTE_HOSTNAME,
               'wcPath' : '%s/%s-%s' % (WC_DIRECTORY,WC_TYPE,WC_VERSION) }
             </call>
             <message>'getting the list of generic known Issues spanning multiple tests'</message>
             <call function="'runSTAFCommand'">
               { 'name'      :  'backup tomcat log files',
-                'location'  :  STAXServiceMachine,
+                'location'  :  STAF_REMOTE_HOSTNAME,
                 'service'   :  'FS',
                 'request'   :  'COPY ',
-                'arguments' :  'DIRECTORY %s/%s-%s/logs TODIRECTORY %s/tomcatLogBackup RECURSE' % (WC_DIRECTORY, WC_TYPE, WC_VERSION, local.temp)
+                'arguments' :  'DIRECTORY %s/%s-%s/logs TODIRECTORY %s/tomcatLogBackup TOMACHINE %s RECURSE' % (WC_DIRECTORY, WC_TYPE, WC_VERSION, STAXServiceMachine, local.temp)
               }
             </call>
 
