@@ -687,6 +687,25 @@ public class ReplicationServer
   public ReplicationServerDomain getReplicationServerDomain(String baseDn,
           boolean create)
   {
+    return getReplicationServerDomain(baseDn, create, false);
+  }
+
+  /**
+   * Get the ReplicationServerDomain associated to the base DN given in
+   * parameter.
+   *
+   * @param baseDn The base Dn for which the ReplicationServerDomain must be
+   * returned.
+   * @param create Specifies whether to create the ReplicationServerDomain if
+   *        it does not already exist.
+   * @param waitConnections     Waits for the Connections with other RS to
+   *                            be established before returning.
+   * @return The ReplicationServerDomain associated to the base DN given in
+   *         parameter.
+   */
+  public ReplicationServerDomain getReplicationServerDomain(String baseDn,
+          boolean create, boolean waitConnections)
+  {
     ReplicationServerDomain replicationServerDomain;
 
     synchronized (baseDNs)
@@ -698,18 +717,21 @@ public class ReplicationServer
         baseDNs.put(baseDn, replicationServerDomain);
         synchronized (domainMonitor)
         {
-          synchronized (this)
+          if (waitConnections)
           {
-            // kick up the connect thread so that this new domain
-            // gets connected to all the Replication Servers.
-            this.notify();
-          }
-          try
-          {
-            // wait for the connect thread to signal that it finished its job
-            domainMonitor.wait(500);
-          } catch (InterruptedException e)
-          {
+            synchronized (this)
+            {
+              // kick up the connect thread so that this new domain
+              // gets connected to all the Replication Servers.
+              this.notify();
+            }
+            try
+            {
+              // wait for the connect thread to signal that it finished its job
+              domainMonitor.wait(500);
+            } catch (InterruptedException e)
+            {
+            }
           }
         }
       }

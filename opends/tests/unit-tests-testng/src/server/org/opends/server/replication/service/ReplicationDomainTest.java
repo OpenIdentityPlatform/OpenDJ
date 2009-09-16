@@ -155,7 +155,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       for (DSInfo serverInfo : domain1.getReplicasList())
       {
         if (serverInfo.getDsId() == domain2ServerId)
-          assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
+          assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
         else
         {
           assertTrue(serverInfo.getDsId() == domain1ServerId);
