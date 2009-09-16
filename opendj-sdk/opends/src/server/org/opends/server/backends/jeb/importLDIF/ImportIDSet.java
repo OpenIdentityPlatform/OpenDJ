@@ -56,8 +56,8 @@ public class ImportIDSet {
 
   //Key related to an ID set.
   private byte[] key;
-  private int limit;
-  private boolean doCount;
+  private int limit = -1;
+  private boolean doCount = false;
 
 
   /**
@@ -75,6 +75,32 @@ public class ImportIDSet {
     this.doCount = doCount;
   }
 
+  /**
+   * Create an empty import instance.
+  */
+  public ImportIDSet()
+  {
+
+  }
+
+  /**
+   * Clear the set so it can be reused again. The boolean indexParam specifies
+   * if the index parameters should be cleared also.
+   *
+   * @param indexParams <CODE>true</CODE> if the index parameters should be
+   *                    cleared.
+   */
+  public void clear(boolean indexParams)
+  {
+    undefinedSize = 0;
+    isDefined = true;
+    count = 0;
+    if(indexParams)
+    {
+      doCount = false;
+      limit = -1;
+    }
+  }
 
   /**
    * Return if an import ID set is defined or not.
@@ -115,6 +141,11 @@ public class ImportIDSet {
   public void
   merge(ImportIDSet importIDSet)
   {
+    if(limit == -1)
+    {
+      doCount = importIDSet.doCount;
+      limit = importIDSet.limit;
+    }
     if(!isDefined() && !importIDSet.isDefined()) //both undefined
     {
       if(doCount)

@@ -115,6 +115,8 @@ public class Index extends DatabaseContainer
 
   //Thread local area to store per thread cursors.
   private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
+  private final ImportIDSet newImportIDSet = new ImportIDSet(indexEntryLimit,
+                                                indexEntryLimit, maintainCount);
 
   /**
    * Create a new index object.
@@ -312,12 +314,9 @@ public class Index extends DatabaseContainer
   private void
   deleteKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
-
-    ImportIDSet newImportIDSet=null;
     OperationStatus status  = read(null, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS) {
-      newImportIDSet = new ImportIDSet(data.getData().length/8,
-                                                indexEntryLimit, maintainCount);
+      newImportIDSet.clear(false);
       newImportIDSet.remove(data.getData(), importIdSet);
       if(newImportIDSet.isDefined() && (newImportIDSet.size() == 0))
       {
@@ -340,8 +339,7 @@ public class Index extends DatabaseContainer
          DatabaseEntry data) throws DatabaseException {
     OperationStatus status  = read(null, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS) {
-      ImportIDSet newImportIDSet = new ImportIDSet(data.getData().length/8,
-                                                indexEntryLimit, maintainCount);
+      newImportIDSet.clear(false);
       if (newImportIDSet.merge(data.getData(), importIdSet))
       {
         entryLimitExceededCount++;
