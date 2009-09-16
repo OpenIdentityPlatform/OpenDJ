@@ -4827,8 +4827,7 @@ public class Entry
         }
       }
 
-      // Fall through - search results have an object attribute
-      // as well.
+      return;
     }
 
     List<Attribute> attributes;

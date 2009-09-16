@@ -32,8 +32,8 @@ import org.opends.messages.Message;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -694,6 +694,8 @@ public class SearchOperationBasis
 
     // Make a copy of the entry and pare it down to only include the set
     // of requested attributes.
+
+    // NOTE: that this copy will include the objectClass attribute.
     Entry entryToReturn =
         entry.filterEntry(getAttributes(), typesOnly,
             isVirtualAttributesOnly(), isRealAttributesOnly());
@@ -705,6 +707,9 @@ public class SearchOperationBasis
     if ((matchedValuesControl != null) && (! typesOnly))
     {
       // First, look at the set of objectclasses.
+
+      // NOTE: the objectClass attribute is also present and must be
+      // dealt with later.
       AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
       Iterator<String> ocIterator =
            entryToReturn.getObjectClasses().values().iterator();
@@ -720,15 +725,16 @@ public class SearchOperationBasis
       }
 
 
-      // Build a list of all filtered attributes. These will be
-      // replaced in the entry after processing.
-      List<Attribute> modifiedAttributes = new LinkedList<Attribute>();
-
-
-      // Next, the set of user attributes.
-      for (AttributeType t : entryToReturn.getUserAttributes().keySet())
+      // Next, the set of user attributes (incl. objectClass attribute).
+      for (Map.Entry<AttributeType, List<Attribute>> e : entryToReturn
+          .getUserAttributes().entrySet())
       {
-        for (Attribute a : entryToReturn.getUserAttribute(t))
+        AttributeType t = e.getKey();
+        List<Attribute> oldAttributes = e.getValue();
+        List<Attribute> newAttributes =
+            new ArrayList<Attribute>(oldAttributes.size());
+
+        for (Attribute a : oldAttributes)
         {
           // Assume that the attribute will be either empty or contain
           // very few values.
@@ -740,19 +746,26 @@ public class SearchOperationBasis
               builder.add(v);
             }
           }
-          modifiedAttributes.add(builder.toAttribute());
+          newAttributes.add(builder.toAttribute());
         }
+        e.setValue(newAttributes);
       }
 
 
       // Then the set of operational attributes.
-      for (AttributeType t : entryToReturn.getOperationalAttributes().keySet())
+      for (Map.Entry<AttributeType, List<Attribute>> e : entryToReturn
+          .getOperationalAttributes().entrySet())
       {
-        for (Attribute a : entryToReturn.getUserAttribute(t))
+        AttributeType t = e.getKey();
+        List<Attribute> oldAttributes = e.getValue();
+        List<Attribute> newAttributes =
+            new ArrayList<Attribute>(oldAttributes.size());
+
+        for (Attribute a : oldAttributes)
         {
           // Assume that the attribute will be either empty or contain
           // very few values.
-          AttributeBuilder builder = new AttributeBuilder(a);
+          AttributeBuilder builder = new AttributeBuilder(a, true);
           for (AttributeValue v : a)
           {
             if (matchedValuesControl.valueMatches(t, v))
@@ -760,20 +773,9 @@ public class SearchOperationBasis
               builder.add(v);
             }
           }
-          modifiedAttributes.add(builder.toAttribute());
+          newAttributes.add(builder.toAttribute());
         }
-      }
-
-
-      // Replace any modified attributes.
-      for (Attribute a : modifiedAttributes)
-      {
-        entryToReturn.replaceAttribute(a);
-        if (a.isEmpty())
-        {
-          // Add a place holder.
-          entryToReturn.addAttribute(a, null);
-        }
+        e.setValue(newAttributes);
       }
     }
 
