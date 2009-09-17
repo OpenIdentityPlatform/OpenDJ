@@ -365,7 +365,7 @@ public class ImportLDIF extends TaskTool {
               false, false, true,
               INFO_LDIFIMPORT_THREAD_COUNT_PLACEHOLDER.get(),
               0, null,
-              true, 1, false, Integer.MAX_VALUE,
+              true, 1, true, Integer.MAX_VALUE,
               INFO_LDIFIMPORT_DESCRIPTION_THREAD_COUNT.get());
       argParser.addArgument(threadCount);
 
