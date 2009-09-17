@@ -4192,84 +4192,90 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       ChangeNumber replServerMaxChangeNumber =
         replicationServerState.getMaxChangeNumber(serverId);
 
-      if (replServerMaxChangeNumber == null)
+      // we don't want to update from here (a DS) an empty RS because
+      // normally the RS should have been updated by other RSes except for
+      // very last changes lost if the local connection was broken
+      // ... hence the RS we are connected to should not be empty
+      // ... or if it is empty, it is due to a volontary reset
+      // and we don't want to update it with our changes that could be huge.
+      if ((replServerMaxChangeNumber != null) &&
+          (replServerMaxChangeNumber.getSeqnum()!=0))
       {
-        replServerMaxChangeNumber = new ChangeNumber(0, 0, serverId);
-      }
-      ChangeNumber ourMaxChangeNumber =
-        state.getMaxChangeNumber(serverId);
+        ChangeNumber ourMaxChangeNumber =
+          state.getMaxChangeNumber(serverId);
 
-      if ((ourMaxChangeNumber != null) &&
-          (!ourMaxChangeNumber.olderOrEqual(replServerMaxChangeNumber)))
-      {
-
-        // Replication server is missing some of our changes: let's
-        // send them to him.
-
-        Message message = DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get();
-        logError(message);
-
-        /*
-         * Get all the changes that have not been seen by this
-         * replication server and populate the replayOperations
-         * list.
-         */
-        InternalSearchOperation op = searchForChangedEntries(
-            baseDn, replServerMaxChangeNumber, this);
-        if (op.getResultCode() != ResultCode.SUCCESS)
+        if ((ourMaxChangeNumber != null) &&
+            (!ourMaxChangeNumber.olderOrEqual(replServerMaxChangeNumber)))
         {
-          /*
-           * An error happened trying to search for the updates
-           * This server will start accepting again new updates but
-           * some inconsistencies will stay between servers.
-           * Log an error for the repair tool
-           * that will need to re-synchronize the servers.
-           */
-          message = ERR_CANNOT_RECOVER_CHANGES.get(
-              baseDn.toNormalizedString());
+
+          // Replication server is missing some of our changes: let's
+          // send them to him.
+
+          Message message = DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get();
           logError(message);
-        } else
-        {
-          for (FakeOperation replayOp :
-            replayOperations.tailMap(replServerMaxChangeNumber).values())
-          {
-            ChangeNumber cn = replayOp.getChangeNumber();
-            /*
-             * Because the entry returned by the search operation
-             * can contain old historical information, it is
-             * possible that some of the FakeOperation are
-             * actually older than the last ChangeNumber known by
-             * the Replication Server.
-             * In such case don't send the operation.
-             */
-            if (!cn.newer(replServerMaxChangeNumber))
-            {
-              continue;
-            }
 
+          /*
+           * Get all the changes that have not been seen by this
+           * replication server and populate the replayOperations
+           * list.
+           */
+          InternalSearchOperation op = searchForChangedEntries(
+              baseDn, replServerMaxChangeNumber, this);
+          if (op.getResultCode() != ResultCode.SUCCESS)
+          {
             /*
-             * Check if the DeleteOperation has been abandoned before
-             * being processed. This is necessary because the replayOperation
-             *
+             * An error happened trying to search for the updates
+             * This server will start accepting again new updates but
+             * some inconsistencies will stay between servers.
+             * Log an error for the repair tool
+             * that will need to re-synchronize the servers.
              */
-            if (replayOp instanceof FakeDelOperation)
+            message = ERR_CANNOT_RECOVER_CHANGES.get(
+                baseDn.toNormalizedString());
+            logError(message);
+          } else
+          {
+            for (FakeOperation replayOp :
+              replayOperations.tailMap(replServerMaxChangeNumber).values())
             {
-              FakeDelOperation delOp = (FakeDelOperation) replayOp;
-              if (findEntryDN(delOp.getUUID()) != null)
+              ChangeNumber cn = replayOp.getChangeNumber();
+              /*
+               * Because the entry returned by the search operation
+               * can contain old historical information, it is
+               * possible that some of the FakeOperation are
+               * actually older than the last ChangeNumber known by
+               * the Replication Server.
+               * In such case don't send the operation.
+               */
+              if (!cn.newer(replServerMaxChangeNumber))
               {
                 continue;
               }
+
+              /*
+               * Check if the DeleteOperation has been abandoned before
+               * being processed. This is necessary because the replayOperation
+               *
+               */
+              if (replayOp instanceof FakeDelOperation)
+              {
+                FakeDelOperation delOp = (FakeDelOperation) replayOp;
+                if (findEntryDN(delOp.getUUID()) != null)
+                {
+                  continue;
+                }
+              }
+              message =
+                DEBUG_SENDING_CHANGE.get(
+                    replayOp.getChangeNumber().toString());
+              logError(message);
+              session.publish(replayOp.generateMessage());
             }
-            message =
-              DEBUG_SENDING_CHANGE.get(
-                  replayOp.getChangeNumber().toString());
+            message = DEBUG_CHANGES_SENT.get();
             logError(message);
-            session.publish(replayOp.generateMessage());
           }
-          message = DEBUG_CHANGES_SENT.get();
-          logError(message);
+          replayOperations.clear();
         }
-        replayOperations.clear();
       }
     } catch (Exception e)
     {
