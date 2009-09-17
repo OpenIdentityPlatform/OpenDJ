@@ -1469,10 +1469,10 @@ public class AttributeTypeSyntax
     }
     else if (c == '(')
     {
+      startPos++;
       while (true)
       {
         // Skip over any leading spaces;
-        startPos++;
         while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
@@ -1490,6 +1490,7 @@ public class AttributeTypeSyntax
         if (c == ')')
         {
           // This is the end of the list.
+          startPos++;
           break;
         }
         else if (c == '(')

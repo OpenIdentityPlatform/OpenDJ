@@ -1426,10 +1426,10 @@ public class ObjectClassSyntax
     }
     else if (c == '(')
     {
+      startPos++;
       while (true)
       {
         // Skip over any leading spaces;
-        startPos++;
         while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
@@ -1447,6 +1447,7 @@ public class ObjectClassSyntax
         if (c == ')')
         {
           // This is the end of the list.
+          startPos++;
           break;
         }
         else if (c == '(')
