@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -1371,10 +1371,10 @@ public class DITContentRuleSyntax
     }
     else if (c == '(')
     {
+      startPos++;
       while (true)
       {
         // Skip over any leading spaces;
-        startPos++;
         while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
@@ -1391,6 +1391,7 @@ public class DITContentRuleSyntax
         if (c == ')')
         {
           // This is the end of the list.
+          startPos++;
           break;
         }
         else if (c == '(')
