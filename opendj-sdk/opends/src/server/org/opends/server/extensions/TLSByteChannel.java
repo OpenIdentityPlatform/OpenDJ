@@ -96,9 +96,16 @@ public class TLSByteChannel implements
 
         this.socketChannel = socketChannel;
         this.connection = c;
-        String hostName = socketChannel.socket().getInetAddress().getHostName();
-        int port = socketChannel.socket().getPort();
-        sslEngine = sslContext.createSSLEngine(hostName, port);
+      // getHostName could potentially be very expensive and could block
+      // the connection handler for several minutes. (See issue 4229)
+      // Accepting new connections should be done in a seperate thread to
+      // avoid blocking new connections. Just remove for now to prevent
+      // potential DoS attacks. SSL sessions will not be reused and some
+      // cipher suites (such as Kerberos) will not work.
+      //String hostName = socketChannel.socket().getInetAddress().getHostName();
+      //int port = socketChannel.socket().getPort();
+      //sslEngine = sslContext.createSSLEngine(hostName, port);
+        sslEngine = sslContext.createSSLEngine();
         sslEngine.setUseClientMode(false);
         Set<String> protocols = config.getSSLProtocol();
         if (!protocols.isEmpty())
