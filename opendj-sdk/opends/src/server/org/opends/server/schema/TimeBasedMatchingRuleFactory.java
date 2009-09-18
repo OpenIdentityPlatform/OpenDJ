@@ -53,6 +53,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.IndexConfig;
@@ -95,42 +96,23 @@ public final class TimeBasedMatchingRuleFactory
       TimeZone.getTimeZone(TIME_ZONE_UTC);
 
 
-  //Constants for months.
-  private static final byte[] JAN = {'j','a','n' };
+  //Constants for generating keys.
+  private static final char SECOND = 's';
 
 
-  private static final byte[] FEB = {'f','e','b'};
+  private static final char MINUTE = 'm';
 
 
-  private static final byte[] MAR = {'m','a','r'};
+  private static final char HOUR = 'h';
 
 
-  private static final byte[] APR = {'a','p','r'};
+  private static final char MONTH = 'M';
 
 
-  private static final byte[] MAY = {'m','a','y'};
+  private static final char DATE = 'D';
 
 
-  private static final byte[] JUN = {'j','u','n'};
-
-
-  private static final byte[] JUL = {'j','u','l'};
-
-
-  private static final byte[] AUG = {'a','u','g'};
-
-
-  private static final byte[] SEP = {'s','e','p'};
-
-
-  private static final byte[] OCT = {'o','c','t'};
-
-
-  private static final byte[] NOV = {'n','o','v'};
-
-
-  private static final byte[] DEC = {'d','e','c'};
-
+  private static final char YEAR = 'Y';
 
 
   /**
@@ -793,17 +775,23 @@ public final class TimeBasedMatchingRuleFactory
     {
      /**
       An assertion value may contain one or all of the following:
-      DD = day
-      MM = month
-      YYYY = year
+      D = day
+      M = month
+      Y = year
+      h = hour
+      m = month
+      s = second
 
-      An example assertion is OID:=04MM. In this example we are
+      An example assertion is OID:=04M. In this example we are
       searching for entries corresponding to month of april.
 
       Use this method to parse, validate and normalize the assertion value
       into a format to be recognized by the compare routine. The normalized
-      value is actually the format of : DDMMYYYY.
+      value is actually the format of : smhDMY.
       */
+      int second = -1;
+      int minute = -1;
+      int hour = -1;
       int date = 0;
       int year = 0;
       int number = 0;
@@ -863,16 +851,44 @@ public final class TimeBasedMatchingRuleFactory
           Message message = null;
           switch(value.byteAt(index))
           {
-            case 'D':
-              if(!(index < length-1) || value.byteAt(index+1) !='D')
+            case 's':
+              if(second >0)
               {
-                //the acceptable format is 'DD'.
-                message =
-                        WARN_ATTR_MISSING_CHAR_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value.toString(),
-                        (char)value.byteAt(index),'D',index+1);
+                 message =
+                        WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(
+                        value.toString(),date);
               }
-              else if(number == 0)
+              else
+              {
+                second = number;
+              }
+              break;
+            case 'm':
+              if(minute >0)
+              {
+                 message =
+                        WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(
+                        value.toString(),date);
+              }
+              else
+              {
+                minute = number;
+              }
+              break;
+            case 'h':
+              if(hour >0)
+              {
+                 message =
+                        WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(
+                        value.toString(),date);
+              }
+              else
+              {
+                hour = number;
+              }
+              break;
+            case 'D':
+              if(number == 0)
               {
                 message =
                         WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(
@@ -887,19 +903,10 @@ public final class TimeBasedMatchingRuleFactory
               else
               {
                 date = number;
-                index++;
               }
               break;
             case 'M':
-              if(!(index < length-1) || value.byteAt(index+1)!='M')
-              {
-                //the acceptable value is 'MM'.
-                message =
-                        WARN_ATTR_MISSING_CHAR_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value.toString(),
-                        (char)value.byteAt(index),'M',index+1);
-              }
-              else if(number == 0)
+               if(number == 0)
               {
                 message =
                         WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.
@@ -914,48 +921,23 @@ public final class TimeBasedMatchingRuleFactory
               else
               {
                 month = number;
-                index++;
               }
               break;
             case 'Y':
-              if(!(index < length-3))
+              if(number == 0)
               {
-                //the acceptable value is 'YYYY".
                 message =
-                        WARN_ATTR_MISSING_YEAR_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value.toString());
+                        WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
+                        get(value.toString(),number);
+              }
+              else if(year >0)
+              {
+                message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.
+                        get(value.toString(),year);
               }
               else
               {
-yearLoop: for(int i=index;i<index+3;i++)
-                {
-                  if(value.byteAt(i) !='Y')
-                  {
-                    message =
-                         WARN_ATTR_MISSING_CHAR_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value.toString(),(char)value.byteAt(i),'Y',i);
-                    break yearLoop;
-                  }
-                }
-                if(message == null)
-                {
-                  if(number == 0)
-                  {
-                    message =
-                            WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.
-                            get(value.toString(),number);
-                  }
-                  else if(year >0)
-                  {
-                    message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.
-                            get(value.toString(),year);
-                  }
-                  else
-                  {
-                    year = number;
-                    index+=3;
-                  }
-                }
+                year = number;
               }
               break;
             default:
@@ -976,7 +958,7 @@ yearLoop: for(int i=index;i<index+3;i++)
         }
       }
 
-      //Validate year, month and date in that order.
+      //Validate year, month , date , hour, minute and second in that order.
       if(year < 0)
       {
         //A future date is allowed.
@@ -1072,11 +1054,44 @@ yearLoop: for(int i=index;i<index+3;i++)
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
       }
 
+      if(!(hour >=-1 && hour <=23))
+      {
+         Message message =
+                WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.
+                get(value.toString(),date);
+        logError(message);
+        throw new DirectoryException(
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      }
+
+      if(!(minute >=-1 && minute <=59))
+      {
+           Message message =
+                WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.
+                get(value.toString(),date);
+        logError(message);
+        throw new DirectoryException(
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      }
+
+      if(!(second >=-1 && second <=60)) //Consider leap seconds.
+      {
+         Message message =
+                WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.
+                get(value.toString(),date);
+        logError(message);
+        throw new DirectoryException(
+                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      }
+
       /**
        * Since we reached here we have a valid assertion value. Construct
-       * a normalized value in the order: DATE MONTH YEAR.
+       * a normalized value in the order: SECOND MINUTE HOUR  DATE MONTH YEAR.
        */
-      ByteBuffer bb = ByteBuffer.allocate(3*4);
+      ByteBuffer bb = ByteBuffer.allocate(6*4);
+      bb.putInt(second);
+      bb.putInt(minute);
+      bb.putInt(hour);
       bb.putInt(date);
       bb.putInt(month);
       bb.putInt(year);
@@ -1097,15 +1112,37 @@ yearLoop: for(int i=index;i<index+3;i++)
       GregorianCalendar cal = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
       cal.setLenient(false);
       cal.setTimeInMillis(timeInMS);
+      int second = cal.get(Calendar.SECOND);
+      int minute = cal.get(Calendar.MINUTE);
+      int hour = cal.get(Calendar.HOUR_OF_DAY);
       int date = cal.get(Calendar.DATE);
       int month = cal.get(Calendar.MONTH);
       int year = cal.get(Calendar.YEAR);
 
+
       //Build the information from the assertion value.
       ByteBuffer bb = ByteBuffer.wrap(assertionValue.toByteArray());
-      int assertDate = bb.getInt(0);
-      int assertMonth = bb.getInt(4);
-      int assertYear = bb.getInt(8);
+      int assertSecond = bb.getInt(0);
+      int assertMinute = bb.getInt(4);
+      int assertHour = bb.getInt(8);
+      int assertDate = bb.getInt(12);
+      int assertMonth = bb.getInt(16);
+      int assertYear = bb.getInt(20);
+
+      if(assertSecond != -1 && assertSecond !=second)
+      {
+        return ConditionResult.FALSE;
+      }
+
+      if(assertMinute !=-1 && assertMinute !=minute)
+      {
+        return ConditionResult.FALSE;
+      }
+
+      if(assertHour !=-1 && assertHour !=hour)
+      {
+        return ConditionResult.FALSE;
+      }
 
       //All the non-zero values should match.
       if(assertDate !=0 && assertDate != date)
@@ -1152,30 +1189,54 @@ yearLoop: for(int i=index;i<index+3;i++)
       byte[] arr = normalizeAssertionValue(assertionValue).toByteArray();
       ByteBuffer bb = ByteBuffer.wrap(arr);
 
-      int assertDate = bb.getInt(0);
-      int assertMonth = bb.getInt(4);
-      int assertYear = bb.getInt(8);
+      int assertSecond = bb.getInt(0);
+      int assertMinute = bb.getInt(4);
+      int assertHour = bb.getInt(8);
+      int assertDate = bb.getInt(12);
+      int assertMonth = bb.getInt(16);
+      int assertYear = bb.getInt(20);
       List<T> queries = new ArrayList<T>();
+
+      if(assertSecond >= 0)
+      {
+        queries.add(factory.createExactMatchQuery(
+                indexer.getExtensibleIndexID(),
+               getKey(assertSecond,SECOND)));
+      }
+
+      if(assertMinute >=0)
+      {
+         queries.add(factory.createExactMatchQuery(
+                indexer.getExtensibleIndexID(),
+               getKey(assertMinute,MINUTE)));
+      }
+
+      if(assertHour >=0)
+      {
+         queries.add(factory.createExactMatchQuery(
+                indexer.getExtensibleIndexID(),
+               getKey(assertHour,HOUR)));
+      }
 
       if(assertDate >0)
       {
         queries.add(factory.createExactMatchQuery(
                 indexer.getExtensibleIndexID(),
-                ByteString.valueOf(assertDate)));
+                getKey(assertDate,DATE)));
       }
 
       if(assertMonth >=0)
       {
         queries.add(factory.createExactMatchQuery(
                 indexer.getExtensibleIndexID(),
-                ByteString.wrap(getMonthKey(assertMonth))));
+                getKey(assertMonth,MONTH)));
       }
 
       if(assertYear > 0)
       {
         queries.add(factory.createExactMatchQuery(
                 indexer.getExtensibleIndexID(),
-                ByteString.valueOf(assertYear)));
+                getKey(assertYear,YEAR)));
       }
       return factory.createIntersectionQuery(queries);
     }
@@ -1207,76 +1268,53 @@ yearLoop: for(int i=index;i<index+3;i++)
       //Build the information from the attribute value.
       GregorianCalendar cal = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
       cal.setTimeInMillis(timeInMS);
+      int second = cal.get(Calendar.SECOND);
+      int minute = cal.get(Calendar.MINUTE);
+      int hour = cal.get(Calendar.HOUR_OF_DAY);
       int date = cal.get(Calendar.DATE);
       int month = cal.get(Calendar.MONTH);
       int year = cal.get(Calendar.YEAR);
 
+      if (second >=0)
+      {
+        keys.add(getKey(second,SECOND).toByteArray());
+      }
+
+      if(minute >=0)
+      {
+        keys.add(getKey(minute,MINUTE).toByteArray());
+      }
+
+      if(hour >=0)
+      {
+        keys.add(getKey(hour,HOUR).toByteArray());
+      }
       //Insert date.
       if(date > 0)
       {
-        keys.add(ByteString.valueOf(date).toByteArray());
+        keys.add(getKey(date,DATE).toByteArray());
       }
 
       //Insert month.
       if(month >=0)
       {
-        keys.add(getMonthKey(month));
+        keys.add(getKey(month,MONTH).toByteArray());
       }
 
       if(year > 0)
       {
-        keys.add(ByteString.valueOf(year).toByteArray());
+        keys.add(getKey(year,YEAR).toByteArray());
       }
     }
 
 
 
-    //Returns a byte array of for the corresponding month.
-    private byte[] getMonthKey(int month)
+    private ByteString getKey(int value, char type)
     {
-      byte[] key = null;
-      switch(month)
-      {
-        case Calendar.JANUARY:
-          key = JAN;
-          break;
-        case Calendar.FEBRUARY:
-          key = FEB;
-          break;
-        case Calendar.MARCH:
-          key = MAR;
-          break;
-        case Calendar.APRIL:
-          key = APR;
-          break;
-        case Calendar.MAY:
-          key = MAY;
-          break;
-        case Calendar.JUNE:
-          key = JUN;
-          break;
-        case Calendar.JULY:
-          key = JUL;
-          break;
-        case Calendar.AUGUST:
-          key = AUG;
-          break;
-        case Calendar.SEPTEMBER:
-          key = SEP;
-          break;
-        case Calendar.OCTOBER:
-          key = OCT;
-          break;
-        case Calendar.NOVEMBER:
-          key = NOV;
-          break;
-        case Calendar.DECEMBER:
-          key = DEC;
-          break;
-        default:
-          key = new byte[0];
-       }
-      return key;
+      ByteStringBuilder builder = new ByteStringBuilder();
+      builder.append(type);
+      builder.append(value);
+      return builder.toByteString();
     }
   }
 

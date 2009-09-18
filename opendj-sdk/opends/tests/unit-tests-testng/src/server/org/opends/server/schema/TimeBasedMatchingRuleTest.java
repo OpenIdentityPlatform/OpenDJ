@@ -42,6 +42,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
@@ -285,7 +286,7 @@ public final class TimeBasedMatchingRuleTest
    * Test to search using the partial date and time matching rule for an assertion value.
    */
   @Test()
-  public void testPartialDateNTimeMatchingRule() throws Exception
+  public void testPartialDateNTimeMatchingRuleUsingSearch() throws Exception
   {
     try
     {
@@ -293,7 +294,7 @@ public final class TimeBasedMatchingRuleTest
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       int month = cal.get(Calendar.MONTH)+1; //month starts from 0 in the Calendar.
-      String assertion = cal.get(Calendar.DATE)+"DD"+month+"MM";
+      String assertion = cal.get(Calendar.DATE)+"D"+month+"M";
 
       InternalSearchOperation searchOperation =
            new InternalSearchOperation(
@@ -319,6 +320,21 @@ public final class TimeBasedMatchingRuleTest
     {
       TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
     }
+  }
+
+
+  /**
+   * Test to match the attribute and the assertion values using a partial date and time
+   * matching rule.
+   */
+  @Test(dataProvider="partialDateTimeValues")
+  public void testPartialDateNTimeMatch(long attributeValue,String assertionValue) throws Exception
+  {
+    MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
+            EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
+    ByteString str = partialTimeRule.normalizeAssertionValue(ByteString.valueOf(assertionValue));
+    assertTrue(partialTimeRule.valuesMatch(ByteString.valueOf(attributeValue), str) ==
+            ConditionResult.TRUE);
   }
 
 
@@ -355,7 +371,7 @@ public final class TimeBasedMatchingRuleTest
   /**
    * Tests the assertion syntax of the partial date and time matching rules.
    */
-  @Test(dataProvider= "partialDateTimeValues")
+  @Test(dataProvider= "partialDateTimeSyntaxes")
   public void testPartialDateTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
     MatchingRule partialDTRule =
@@ -403,14 +419,45 @@ public final class TimeBasedMatchingRuleTest
   }
 
 
-
   /**
-   * Generates data for testing partial date and time assertion syntax.
+   * Generates the data for testing partial time date and time values.
    */
   @DataProvider(name="partialDateTimeValues")
   private Object[][] createPartialDateTimeValues()
   {
+    GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    c.setLenient(false);
+    c.clear();
+    c.set(Calendar.HOUR_OF_DAY,23);
+    c.set(Calendar.MINUTE,0);
+    c.set(Calendar.SECOND,0);
+    long time1 = c.getTimeInMillis();
+    c.set(Calendar.HOUR_OF_DAY,00);
+    c.set(Calendar.MINUTE,59);
+    c.set(Calendar.SECOND,59);
+    long time2 = c.getTimeInMillis();
+
+    return new Object[][] {
+      {time1,"0s"},
+      {time1,"0m"},
+      {time1,"23h"},
+      {time2,"59m59s"},
+      {time2,"0h59m59s"}
+    };
+  }
+
+
+
+  /**
+   * Generates data for testing partial date and time assertion syntax.
+   */
+  @DataProvider(name="partialDateTimeSyntaxes")
+  private Object[][] createPartialDateTimeSyntaxes()
+  {
     //Get the date today.
+    int second = cal.get(Calendar.SECOND);
+    int minute = cal.get(Calendar.MINUTE);
+    int hour = cal.get(Calendar.HOUR);
     int date = cal.get(Calendar.DATE);
     int month = cal.get(Calendar.MONTH) + 1;
     int year = cal.get(Calendar.YEAR);
@@ -419,24 +466,36 @@ public final class TimeBasedMatchingRuleTest
       {"20MM30DD1978YY",false},
       {"02MM29DD2009YY",false},
       {"02MM31DD2010YY",false},
-      {"02MM29DD2008YYYY",true},
+      {"-1s",false},
+      {"02M29D2008Y",true},
       {"DDYY",false},
-      {"02DD",true},
-      {"12MM",true},
-      {"1978YYYY",true},
+      {"02D",true},
+      {"12M",true},
+      {"1978Y",true},
       {"0MM",false},
       {"20MM03DD10MM",false},
-      {date+"DD",true},
-      {month+"MM",true},
-      {year+"YYYY",true},
-      {month+"MM"+date+"DD",true},
-      {year+"YYYY"+date+"DD",true},
-      {month+"MM"+year+"YYYY"+date+"DD",true}      
+      {"00s12m13h",true},
+      {"00s12m14h1M3D1978Y",true},
+      {"1s",true},
+      {"12m",true},
+      {"23h",true},
+      {"61s",false},
+      {"60m",false},
+      {"24h",false},
+      {second+"s",true},
+      {minute+"m",true},
+      {hour+"h",true},
+      {date+"D",true},
+      {month+"M",true},
+      {year+"Y",true},
+      {month+"M"+date+"D",true},
+      {year+"Y"+date+"D",true},
+      {month+"M"+year+"Y"+date+"D",true}      
     };
   }
 
 
-
+  
 //validate if the args are found in the entries list.
   private boolean dnFoundInEntryList( List<SearchResultEntry> entries,DN ... dns)
   {
@@ -500,9 +559,9 @@ public final class TimeBasedMatchingRuleTest
       "dn: cn=user5,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
-      "cn: user4",
-      "sn: user4",
+      "cn: user5",
+      "sn: user5",
       "test-time-attribute: " + format(currentTime) // now.
     );
   }
-}
+  }
