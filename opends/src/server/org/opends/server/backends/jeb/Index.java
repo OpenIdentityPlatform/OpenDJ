@@ -115,8 +115,7 @@ public class Index extends DatabaseContainer
 
   //Thread local area to store per thread cursors.
   private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
-  private final ImportIDSet newImportIDSet = new ImportIDSet(indexEntryLimit,
-                                                indexEntryLimit, maintainCount);
+  private final ImportIDSet newImportIDSet;
 
   /**
    * Create a new index object.
@@ -145,7 +144,8 @@ public class Index extends DatabaseContainer
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
-
+    this.newImportIDSet = new ImportIDSet(indexEntryLimit,
+                                          indexEntryLimit, maintainCount);
     DatabaseConfig dbNodupsConfig = new DatabaseConfig();
 
     if(env.getConfig().getReadOnly())
