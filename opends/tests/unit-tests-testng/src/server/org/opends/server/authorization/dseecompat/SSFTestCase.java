@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 /**
@@ -84,7 +84,7 @@ public class SSFTestCase extends AciTestCase {
             "(version 3.0; acl \"NE 56 bit key aci\";" +
             "allow(all) (userdn=\"ldap:///self\" and ssf != \"56\");)";
 
-    
+
     private static final
     String hiStrengthACI = "(targetattr=\"" + "*" + "\")" +
             "(version 3.0; acl \"128 bit key aci\";" +
@@ -99,7 +99,6 @@ public class SSFTestCase extends AciTestCase {
 
     @BeforeClass
     public void setupClass() throws Exception {
-      TestCaseUtils.startServer();
       TestCaseUtils.dsconfig(
               "create-password-policy",
               "--policy-name", pwdPolicy,
@@ -124,10 +123,6 @@ public class SSFTestCase extends AciTestCase {
 
     @AfterClass(alwaysRun = true)
     public void tearDown() throws Exception {
-         String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
-                G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
-                E_EXTEND_OP);
-         LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
          TestCaseUtils.dsconfig(
                  "delete-password-policy",
                  "--policy-name", pwdPolicy

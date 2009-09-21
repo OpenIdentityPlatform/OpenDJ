@@ -22,21 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.Assert;
-import org.opends.server.TestCaseUtils;
 import static org.opends.server.util.ServerConstants.OID_MANAGE_DSAIT_CONTROL;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 
-import java.util.HashMap;
 import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -81,19 +77,8 @@ public class ReferencesTestCase extends AciTestCase{
 
   @BeforeClass
   public void setupClass() throws Exception {
-    TestCaseUtils.restartServer();
     deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
-    TestCaseUtils.clearJEBackend(true,"userRoot", suffix);
     addEntries(suffix);
-  }
-
-  @AfterClass
-  public void tearDown() throws Exception {
-    String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
-            G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
-            E_EXTEND_OP);
-    LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
-    TestCaseUtils.clearJEBackend(false,"userRoot", suffix);
   }
 
 

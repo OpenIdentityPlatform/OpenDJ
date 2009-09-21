@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 
@@ -32,10 +32,8 @@ package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.Assert;
-import org.opends.server.TestCaseUtils;
 import static org.opends.server.config.ConfigConstants.*;
 import java.util.HashMap;
 import static org.opends.server.util.ServerConstants.*;
@@ -70,18 +68,9 @@ public class AlternateRootDN extends AciTestCase {
 
   @BeforeClass
   public void setupClass() throws Exception {
-    TestCaseUtils.startServer();
     deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     addEntries("o=test");
     addRootEntry();
-  }
-
-  @AfterClass(alwaysRun = true)
-  public void tearDown() throws Exception {
-    String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
-            G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
-            E_EXTEND_OP);
-    LDIFAdminModify(aciLdif, DIR_MGR_DN, PWD);
   }
 
 

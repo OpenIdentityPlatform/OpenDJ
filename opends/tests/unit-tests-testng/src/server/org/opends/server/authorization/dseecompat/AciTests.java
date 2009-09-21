@@ -22,11 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.types.LDIFImportConfig;
@@ -81,7 +80,7 @@ import java.text.SimpleDateFormat;
  * the syntax.
  */
 @Test(sequential=true, groups="slow")
-public class AciTests extends DirectoryServerTestCase {
+public class AciTests extends AciTestCase {
 // TODO: test modify use cases
 // TODO: test searches where we expect a subset of attributes and entries
 // TODO: test delete
@@ -544,15 +543,10 @@ public class AciTests extends DirectoryServerTestCase {
 
   @BeforeClass
   public void setupClass() throws Exception {
-    TestCaseUtils.startServer();
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI, true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
   }
 
-   @AfterClass(alwaysRun = true)
-   public void tearDown() throws Exception {
-     modEntries(GLOBAL_DEFAULT_ACIS, DIR_MGR_DN, DIR_MGR_PW);
-  }
+
 
   @BeforeMethod
   public void clearBackend() throws Exception {

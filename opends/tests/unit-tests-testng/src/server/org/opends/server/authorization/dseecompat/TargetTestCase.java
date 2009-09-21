@@ -22,13 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ByteString;
@@ -36,15 +34,9 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
 
-public class TargetTestCase extends DirectoryServerTestCase
+public class TargetTestCase extends AciTestCase
 {
-  @BeforeClass
-  public void startServer() throws Exception
-  {
-    TestCaseUtils.startServer();
-  }
 
 
   @DataProvider
