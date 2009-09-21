@@ -1533,9 +1533,12 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
         if (attr != null)
         {
-          mustAddBrowseButton =
-            attr.getSyntax().getSyntaxName().equalsIgnoreCase(
+          // There is no name for a regex syntax.
+          String syntaxName = attr.getSyntax().getSyntaxName();
+          if (syntaxName!=null) {
+              mustAddBrowseButton=syntaxName.equalsIgnoreCase(
                 SchemaConstants.SYNTAX_DN_NAME);
+          }
         }
       }
     }
