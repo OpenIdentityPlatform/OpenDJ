@@ -53,9 +53,9 @@
           <script>
             suiteList = []
             suiteList.append('import')
-            suiteList.append('import-tasks')
-            suiteList.append('export')
-            suiteList.append('export-tasks')
+#            suiteList.append('import-tasks')
+#            suiteList.append('export')
+#            suiteList.append('export-tasks')
             suiteList.append('backup')
             suiteList.append('restore')
           </script>
