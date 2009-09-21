@@ -22,45 +22,109 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPPasswordModify;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
+
 import static org.opends.server.util.ServerConstants.EOL;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.Reporter;
 
 import java.io.*;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
-import javax.naming.directory.AttributeModificationException;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
-import javax.naming.ldap.StartTlsRequest;
-import javax.naming.ldap.StartTlsResponse;
 
 
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)
 public abstract class  AciTestCase extends DirectoryServerTestCase {
+  private Attribute globalACIAttribute = null;
+
+
+
+  @BeforeClass
+  public void aciTestCaseSetup() throws Exception
+  {
+    Reporter.log("Running aciTestCaseSetup");
+
+    TestCaseUtils.startServer();
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Save Global ACI.
+    Entry e = DirectoryServer.getEntry(DN.decode(ACCESS_HANDLER_DN));
+    List<Attribute> attrs =
+        e.getAttribute(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI);
+    if (attrs != null && !attrs.isEmpty())
+    {
+      Reporter.log("Saved global ACI attribute");
+
+      globalACIAttribute = attrs.iterator().next();
+    }
+  }
+
+
+
+  @AfterClass(alwaysRun = true)
+  public void aciTestCaseTearDown() throws Exception
+  {
+    Reporter.log("Running aciTestCaseTearDown");
+
+    TestCaseUtils.clearJEBackend(false, "userRoot", null);
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Restore Global ACI.
+    if (globalACIAttribute != null)
+    {
+      Reporter.log("Restoring global ACI attribute: " + globalACIAttribute);
+
+      List<Modification> modifications = new ArrayList<Modification>(1);
+      modifications.add(new Modification(ModificationType.REPLACE,
+          globalACIAttribute));
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
+
+      ResultCode rc =
+          conn.processModify(DN.decode(ACCESS_HANDLER_DN),
+              modifications).getResultCode();
+      Assert.assertEquals(rc, ResultCode.SUCCESS,
+          "Unable to restore global ACI");
+    }
+  }
+
+
+
   public static final String DIR_MGR_DN = "cn=Directory Manager";
   public static final String PWD = "password";
   public  static final String filter = "(objectclass=*)";

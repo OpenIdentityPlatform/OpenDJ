@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 /**
@@ -73,7 +73,6 @@ public class ProxyBindTestCase extends AciTestCase {
 
     @BeforeClass
     public void setupClass() throws Exception {
-      TestCaseUtils.startServer();
       TestCaseUtils.dsconfig(
               "set-sasl-mechanism-handler-prop",
               "--handler-name", "DIGEST-MD5",
