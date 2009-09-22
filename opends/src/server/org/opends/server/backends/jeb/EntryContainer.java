@@ -2527,9 +2527,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         }
       }
 
+      MovedEntry head = new MovedEntry(null, null, false);
+      MovedEntry current = head;
       // Move or rename the apex entry.
-      renameApexEntry(txn, buffer, oldSuperiorDN, newSuperiorDN, oldApexID,
-          newApexID, oldApexEntry, entry,isApexEntryMoved, modifyDNOperation);
+      removeApexEntry(txn, buffer, oldSuperiorDN, oldApexID,
+          newApexID, oldApexEntry, entry,isApexEntryMoved, modifyDNOperation,
+          current);
+      current = current.next;
 
       /*
        * We will iterate forwards through a range of the dn2id keys to
@@ -2606,9 +2610,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           }
 
           // Move this entry.
-          renameSubordinateEntry(txn, buffer, oldSuperiorDN, newSuperiorDN,
+          removeSubordinateEntry(txn, buffer, oldSuperiorDN,
               oldID, newID, oldEntry, newDN, isApexEntryMoved,
-              modifyDNOperation);
+              modifyDNOperation, current);
+          current = current.next;
 
           if(modifyDNOperation != null)
           {
@@ -2624,6 +2629,17 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         cursor.close();
       }
 
+      // Set current to the first moved entry and null out the head. This will
+      // allow processed moved entries to be GCed.
+      current = head.next;
+      head = null;
+      while(current != null)
+      {
+        addRenamedEntry(txn, buffer, current.entryID, current.entry,
+                        isApexEntryMoved, current.renumbered,
+                        modifyDNOperation);
+        current = current.next;
+      }
       buffer.flush(txn);
 
       if(modifyDNOperation != null)
@@ -2665,27 +2681,84 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
   }
 
-  private void renameApexEntry(Transaction txn, IndexBuffer buffer,
-      DN oldSuperiorDN, DN newSuperiorDN,
+  /**
+   * Represents an renamed entry that was deleted from JE but yet to be added
+   * back.
+   */
+  private static class MovedEntry
+  {
+    EntryID entryID;
+    Entry entry;
+    MovedEntry next;
+    boolean renumbered;
+
+    private MovedEntry(EntryID entryID, Entry entry, boolean renumbered)
+    {
+      this.entryID = entryID;
+      this.entry = entry;
+      this.renumbered = renumbered;
+    }
+  }
+
+  private void addRenamedEntry(Transaction txn, IndexBuffer buffer,
+                           EntryID newID,
+                           Entry newEntry,
+                           boolean isApexEntryMoved,
+                           boolean renumbered,
+                           ModifyDNOperation modifyDNOperation)
+      throws DirectoryException, DatabaseException
+  {
+    if (!dn2id.insert(txn, newEntry.getDN(), newID))
+    {
+      Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(
+          newEntry.getDN().toString());
+      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
+                                   message);
+    }
+    id2entry.put(txn, newID, newEntry);
+    dn2uri.addEntry(txn, newEntry);
+
+    if (renumbered || modifyDNOperation == null)
+    {
+      // Reindex the entry with the new ID.
+      indexInsertEntry(buffer, newEntry, newID);
+    }
+
+    // Add the new ID to id2children and id2subtree of new apex parent entry.
+    if(isApexEntryMoved)
+    {
+      EntryID parentID;
+      byte[] parentIDKeyBytes;
+      boolean isParent = true;
+      for (DN dn = getParentWithinBase(newEntry.getDN()); dn != null;
+           dn = getParentWithinBase(dn))
+      {
+        parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+        parentIDKeyBytes =
+            JebFormat.entryIDToDatabase(parentID.longValue());
+        if(isParent)
+        {
+          id2children.insertID(buffer, parentIDKeyBytes, newID);
+          isParent = false;
+        }
+        id2subtree.insertID(buffer, parentIDKeyBytes, newID);
+      }
+    }
+  }
+
+  private void removeApexEntry(Transaction txn, IndexBuffer buffer,
+      DN oldSuperiorDN,
       EntryID oldID, EntryID newID,
       Entry oldEntry, Entry newEntry,
       boolean isApexEntryMoved,
-      ModifyDNOperation modifyDNOperation)
+      ModifyDNOperation modifyDNOperation,
+      MovedEntry tail)
   throws DirectoryException, DatabaseException
   {
     DN oldDN = oldEntry.getDN();
-    DN newDN = newEntry.getDN();
 
     // Remove the old DN from dn2id.
     dn2id.remove(txn, oldDN);
-
-    // Put the new DN in dn2id.
-    if (!dn2id.insert(txn, newDN, newID))
-    {
-      Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-          message);
-    }
 
     // Remove old ID from id2entry and put the new entry
     // (old entry with new DN) in id2entry.
@@ -2693,10 +2766,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       id2entry.remove(txn, oldID);
     }
-    id2entry.put(txn, newID, newEntry);
 
     // Update any referral records.
-    dn2uri.replaceEntry(txn, oldEntry, newEntry);
+    dn2uri.deleteEntry(txn, oldEntry);
+
+    tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
 
     // Remove the old ID from id2children and id2subtree of
     // the old apex parent entry.
@@ -2729,33 +2803,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
-      indexInsertEntry(buffer, newEntry, newID);
     }
     else
     {
       // Update the indexes if needed.
       indexModifications(buffer, oldEntry, newEntry, oldID,
           modifyDNOperation.getModifications());
-    }
-
-    // Add the new ID to id2children and id2subtree of new apex parent entry.
-    if(newSuperiorDN != null && isApexEntryMoved)
-    {
-      EntryID parentID;
-      byte[] parentIDKeyBytes;
-      boolean isParent = true;
-      for (DN dn = newSuperiorDN; dn != null; dn = getParentWithinBase(dn))
-      {
-        parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        parentIDKeyBytes =
-          JebFormat.entryIDToDatabase(parentID.longValue());
-        if(isParent)
-        {
-          id2children.insertID(buffer, parentIDKeyBytes, newID);
-          isParent = false;
-        }
-        id2subtree.insertID(buffer, parentIDKeyBytes, newID);
-      }
     }
 
     // Remove the entry from the entry cache.
@@ -2766,12 +2819,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
   }
 
-  private void renameSubordinateEntry(Transaction txn, IndexBuffer buffer,
-      DN oldSuperiorDN, DN newSuperiorDN,
+  private void removeSubordinateEntry(Transaction txn, IndexBuffer buffer,
+      DN oldSuperiorDN,
       EntryID oldID, EntryID newID,
       Entry oldEntry, DN newDN,
       boolean isApexEntryMoved,
-      ModifyDNOperation modifyDNOperation)
+      ModifyDNOperation modifyDNOperation,
+      MovedEntry tail)
   throws DirectoryException, DatabaseException
   {
     DN oldDN = oldEntry.getDN();
@@ -2824,24 +2878,17 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Remove the old DN from dn2id.
     dn2id.remove(txn, oldDN);
 
-    // Put the new DN in dn2id.
-    if (!dn2id.insert(txn, newDN, newID))
-    {
-      Message message = ERR_JEB_MODIFYDN_ALREADY_EXISTS.get(newDN.toString());
-      throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS,
-          message);
-    }
-
     // Remove old ID from id2entry and put the new entry
     // (old entry with new DN) in id2entry.
     if (!newID.equals(oldID))
     {
       id2entry.remove(txn, oldID);
     }
-    id2entry.put(txn, newID, newEntry);
 
     // Update any referral records.
-    dn2uri.replaceEntry(txn, oldEntry, newEntry);
+    dn2uri.deleteEntry(txn, oldEntry);
+
+    tail.next = new MovedEntry(newID, newEntry, !newID.equals(oldID));
 
     if(isApexEntryMoved)
     {
@@ -2863,28 +2910,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 
-      // Add new ID to the id2c and id2s of our new parent and
-      // new ID to id2s up the tree.
-      EntryID newParentID;
-      byte[] parentIDKeyBytes;
-      boolean isParent = true;
-      for (DN superiorDN = newDN; superiorDN != null;
-      superiorDN = getParentWithinBase(superiorDN))
-      {
-        newParentID = dn2id.get(txn, superiorDN, LockMode.DEFAULT);
-        parentIDKeyBytes =
-          JebFormat.entryIDToDatabase(newParentID.longValue());
-        if(isParent)
-        {
-          id2children.insertID(buffer, parentIDKeyBytes, newID);
-          isParent = false;
-        }
-        id2subtree.insertID(buffer, parentIDKeyBytes, newID);
-      }
-
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
-      indexInsertEntry(buffer, newEntry, newID);
     }
     else
     {
@@ -2892,18 +2919,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if(! modifications.isEmpty())
       {
         indexModifications(buffer, oldEntry, newEntry, oldID, modifications);
-      }
-
-      if(isApexEntryMoved)
-      {
-        // Add the new ID to the id2s of new apex superior entries.
-        for(DN dn = newSuperiorDN; dn != null; dn = getParentWithinBase(dn))
-        {
-          EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-          byte[] parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
-          id2subtree.insertID(buffer, parentIDKeyBytes, newID);
-        }
       }
     }
 
