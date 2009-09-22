@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="main_backup-tasks"/>
+  <function name="main_backup-tasks" scope="local">
+    <sequence>
+      <block name="'main_backup-tasks'">
+        <try>
+          <sequence>
+            <script>
+              CurrentTestPath['group']='backends'        
+              CurrentTestPath['suite']='backup-tasks'
+              
+              __group=CurrentTestPath['group']
+              __groupdir='%s/testcases/%s' % (TESTS_DIR,__group)
+            </script>
+
+            <!--- Test Suite information
+            #@TestSuiteName       Backend Backup Tasks Tests
+            #@TestSuitePurpose    Verify that the basic backup task functionality is working in the Directory Server.
+            #@TestSuiteID         Backup Tasks Tests
+            #@TestSuiteGroup      Backup Tasks
+            #@TestGroup           Backend
+            #@TestScript          backup-tasks.xml
+            #@TestHTMLLink        http://opends.dev.java.net/
+            -->
+
+            <call function="'testSuite_Preamble'"/>
+
+            <try>
+              <sequence> 
+
+                <call function="'common_setup'">
+                  {
+                    'quickStart'  : False ,
+                    'startServer' : True ,
+                    'loadData'    : False ,
+                    'stopServer'  : False
+                  }
+                </call>
+ 
+                <!-- List of Backup Tasks of Test Functions -->
+                <script>
+                  backupList=[]
+                  backupList.append('backup-tasks/backup-tasks_tests')
+                </script>
+
+                <!-- Import the files for this test suite -->
+                <iterate var="__backup" in="backupList">
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/%s.xml' % (__groupdir,__backup)"/>
+                </iterate>                                                                       
+                                                    
+                <!-- List of Test Cases -->
+                <script>
+                  testsList=[]
+                  testsList.append('backends_backup_tasks_001')
+                  testsList.append('backends_backup_tasks_002')
+                  testsList.append('backends_backup_tasks_003')
+                </script>
+
+                <!-- Execute the Tests -->
+                <iterate var="__test" in="testsList">
+                  <sequence>
+                    <call function="'%s' % (__test)" />
+                  </sequence>
+                </iterate>                
+                                
+              </sequence>
+            <catch exception="'STAFException.TestSuite.SetupException'">
+              <sequence>
+                <message log="1" level="'fatal'">
+                  'Setup of test suite failed.'
+                </message>
+                <rethrow/>
+              </sequence>
+            </catch>
+
+            <finally>
+              <message>'Test Cases Completed.'</message>
+            </finally>
+
+            </try>
+
+          </sequence>
+          
+          <finally>
+            <sequence>
+              <!-- Test Suite Cleanup -->
+              <message>'Finally: Global Schema Cleanup.'</message>
+              <try>
+                <call function="'common_cleanup'" />
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
+              </try>
+            </sequence>
+          </finally>
+ 
+        </try>
+      </block>
+    </sequence>
+  </function>
+</stax>
