@@ -231,6 +231,12 @@ import static org.testng.Assert.*;
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
+    sigList.add("doLDIFImportBegin");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.LDIFImportConfig");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
     sigList.add("doLDIFExport");
     sigList.add("org.opends.server.api.plugin.PluginResult$ImportLDIF");
     sigList.add("org.opends.server.types.LDIFExportConfig");

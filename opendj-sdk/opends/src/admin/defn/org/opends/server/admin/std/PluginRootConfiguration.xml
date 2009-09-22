@@ -233,6 +233,35 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="plugin-order-ldif-import-begin">
+    <adm:synopsis>
+      Specifies the order in which LDIF import begin plug-ins are to be loaded
+      and invoked.
+    </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which LDIF import begin plug-ins are loaded and invoked
+          is undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-plugin-order-ldif-import-begin</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="plugin-order-ldif-export">
     <adm:synopsis>
       Specifies the order in which LDIF export plug-ins are to be loaded

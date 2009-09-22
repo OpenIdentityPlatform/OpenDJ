@@ -94,6 +94,14 @@ public enum PluginType
 
 
   /**
+   * The plugin type for plugins that are to be invoked for each
+   * import session beginning.
+   */
+  LDIF_IMPORT_BEGIN("ldifimportbegin"),
+
+
+
+  /**
    * The plugin type for plugins that are to be invoked for each entry
    * written during an LDIF export.
    */
