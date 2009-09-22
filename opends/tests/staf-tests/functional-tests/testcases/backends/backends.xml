@@ -58,6 +58,7 @@
 #            suiteList.append('export-tasks')
             suiteList.append('backup')
             suiteList.append('restore')
+            suiteList.append('dbparams')
           </script>
 
           <!-- Run the test suites -->
