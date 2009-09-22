@@ -139,7 +139,7 @@
               <call function="'addSTAFJavaService'" >
                 {
                 'location'    : STAXServiceMachine,
-                'serviceName' : 'Dsml',
+                'serviceName' : 'dsml',
                 'serviceJar'  : '%s/dsml/dsmlService.jar' % local.java,
                 'J2'          : '-Xms128m -Xmx512m'
                 }

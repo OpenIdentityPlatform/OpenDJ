@@ -207,7 +207,7 @@
                 import java.text.SimpleDateFormat
   
                 cal = java.util.Calendar.getInstance()
-                cal.add(java.util.Calendar.SECOND,10)
+                cal.add(java.util.Calendar.SECOND,30)
   
                 dateFormat = java.text.SimpleDateFormat("yyyyMMddHHmmss")
   
@@ -295,12 +295,6 @@
               <call function="'searchStringForSubstring'">
                 { 'returnString'	   : returnString,
                 'testString'	   : 'recurring-restore-1',
-                'expectedResult'	   : '1' }
-              </call>
-  
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'Waiting on start time',
                 'expectedResult'	   : '1' }
               </call>
   
