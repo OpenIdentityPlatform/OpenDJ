@@ -1441,6 +1441,24 @@
         except:
           _message='Unable to generate XML test case report !!!'
         testlogfh.close()
+
+        firstline=0
+        newlines=[]
+        testlogfh=open('%s' % logFile,'r')
+        lines=testlogfh.readlines()
+        
+        for l in lines:
+          if firstline==0:
+            newlines.append('&lt;?xml version="1.0" encoding="ISO-8859-1"?&gt;\n')
+            firstline=1
+          else:
+            newlines.append(l)
+            
+        testlogfh.close()
+        
+        testlogfh=open('%s' % logFile,'w')
+        testlogfh.writelines(newlines)
+        testlogfh.close()
       </script>
 
       <message>_message</message>
