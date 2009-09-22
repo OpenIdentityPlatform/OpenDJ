@@ -499,21 +499,6 @@ public class Index extends DatabaseContainer
     OperationStatus status;
     DatabaseEntry data = new DatabaseEntry();
 
-    // Handle cases where nothing is changed early to avoid
-    // DB access.
-    if(deletedIDs != null && deletedIDs.size() == 0 &&
-        (addedIDs == null || addedIDs.size() == 0))
-    {
-      return;
-    }
-
-    if(addedIDs != null && addedIDs.size() == 0 &&
-        (deletedIDs == null || deletedIDs.size() == 0))
-    {
-      return;
-    }
-
-
     if(deletedIDs == null && addedIDs == null)
     {
       status = delete(txn, key);
@@ -529,6 +514,14 @@ public class Index extends DatabaseContainer
         }
       }
 
+      return;
+    }
+
+    // Handle cases where nothing is changed early to avoid
+    // DB access.
+    if((deletedIDs == null || deletedIDs.size() == 0) &&
+        (addedIDs == null || addedIDs.size() == 0))
+    {
       return;
     }
 
@@ -565,18 +558,22 @@ public class Index extends DatabaseContainer
       }
       else
       {
-        if(rebuildRunning || trusted)
+        if(deletedIDs != null && !rebuildRunning && trusted)
         {
-          if(deletedIDs != null)
+          if(debugEnabled())
           {
-            if(debugEnabled())
-            {
-              StringBuilder builder = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-              TRACER.debugError("The expected key does not exist in the " +
-                  "index %s.\nKey:%s", name, builder.toString());
-            }
+            StringBuilder builder = new StringBuilder();
+            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+            TRACER.debugError("The expected key does not exist in the " +
+                "index %s.\nKey:%s", name, builder.toString());
           }
+
+          setTrusted(txn, false);
+        }
+
+        if((rebuildRunning || trusted) && addedIDs != null &&
+            addedIDs.size() > 0)
+        {
           data.setData(addedIDs.toDatabase());
 
           status = insert(txn, key, data);
@@ -682,25 +679,25 @@ public class Index extends DatabaseContainer
     }
     else
     {
-      if(rebuildRunning || trusted)
+      if(deletedIDs != null && !rebuildRunning && trusted)
       {
-        if(deletedIDs != null)
+        if(debugEnabled())
         {
-          if(debugEnabled())
-          {
-            StringBuilder builder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            TRACER.debugError("The expected key does not exist in the " +
-                "index %s.\nKey:%s", name, builder.toString());
-          }
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          TRACER.debugError("The expected key does not exist in the " +
+              "index %s.\nKey:%s", name, builder.toString());
         }
+
+        setTrusted(txn, false);
+      }
+
+      if((rebuildRunning || trusted) && addedIDs != null && addedIDs.size() > 0)
+      {
         data.setData(addedIDs.toDatabase());
         return insert(txn, key, data);
       }
-      else
-      {
-        return OperationStatus.SUCCESS;
-      }
+      return OperationStatus.SUCCESS;
     }
   }
 
