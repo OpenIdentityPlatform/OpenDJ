@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 001
+  #@TestID              Backup 001
+  #@TestPurpose         Backup the data in OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+                        default backendID, and backupDirectory
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+
+  <function name="backends_backup_001" scope="local">
+    <testcase name="getTestCaseName('Create a backup')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+
+          <message>
+            'Backend Backup 001: Create a backup of the data in OpenDS'
+          </message>
+
+          <call function="'backup'">
+           { 'backupDir'       : '%s/backends/backup1' % remote.data  }
+          </call>
+                
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+                
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 002
+  #@TestID              Backup 002
+  #@TestPurpose         Create an incremental backup of the data in OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+                        default backendID, backupDir, and incremental
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_002" scope="local">
+    <testcase name="getTestCaseName('Create an incremental backup')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 002 Create an incremental backup of the data in OpenDS'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+              'extraParams' : '-i'
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+        <message log="1" level="'fatal'">
+          '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+        </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'" />
+        </finally>
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 003
+  #@TestID              Backup 003
+  #@TestPurpose         Create a backup of the data in OpenDS with a backup id.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+                        default backendID, backupDir, and backupID
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_003" scope="local">
+  <testcase name="getTestCaseName('Create a backup with a backupID')">
+    <try>
+      <sequence>
+        <call function="'testCase_Preamble'"/>
+        <message>
+        'Backend Backup 003: Create a backup of the data in OpenDS with a backup id'
+        </message>
+
+        <call function="'backup'">
+          { 'backupDir'   : '%s/backends/backup2' % remote.data,
+            'extraParams' : '-I 20070714142807Z'
+          }
+        </call>
+        
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+        
+        <finally>
+          <call function="'testCase_Postamble'" />
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 004
+  #@TestID              Backup 004
+  #@TestPurpose         Create an incremental backup of the data in OpenDS with a backup id.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+                        default backendID, backupDir, incremental, and backupID
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_004" scope="local">
+    <testcase name="getTestCaseName('Create an incremental backup with a backupID')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'" />
+          <message>
+            'Backend Backup 004: Create an incremental backup of the data in OpenDS with a backup id'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+              'extraParams' : '-B 20070714142807Z -i'
+            }
+          </call>
+        
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+     </try>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 005
+  #@TestID              Backup 005
+  #@TestPurpose         Create a compressed backup of the data in OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+                        default backendID, backupDir, and compress
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_005" scope="local">
+    <testcase name="getTestCaseName('Create a compressed backup')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 005: Create a compressed backup of the data in OpenDS'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+              'extraParams' : '-c'
+            }
+          </call>
+                    
+          </sequence>
+
+          <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+          </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 006
+  #@TestID              Backup 006
+  #@TestPurpose         Run backupAll with backendID, should fail.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+  #@TestSteps           backUpAll with backendID
+  #@TestPostamble
+  #@TestResult Success if backup returns 1
+  -->
+  <function name="backends_backup_006" scope="local">
+    <testcase name="getTestCaseName('Create a backup with -n and -a')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+          'Backend Backup 006: Create a backup with -n and -a'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+              'extraParams' : '-n dc=com' ,
+              'extraParams' : '-a' ,
+              'expectedRC'  : 1
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+              'returnString'     : returnString ,
+              'expectedString'   : 'The backUpAll and backendID arguments may not be used together'
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+       </try>
+     </testcase>
+   </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 007
+  #@TestID              Backup 007
+  #@TestPurpose         Run backupAll with -A generate a hash of the
+  #@TestPurpose         contents of the backup archive.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameter -A
+  #@TestSteps           Verify with restore -n the archive is valid
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_007" scope="local">
+    <testcase name="getTestCaseName('Create a backup with -A')">
+       <try>
+       <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 007: Create a backup with -A '
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+              'extraParams' : '-A'
+            }
+          </call>
+          
+          <!-- Stop DS -->
+          <call function="'StopDsWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+            }
+          </call>
+
+          <!-- restore with -n to validate the archive -->
+          <call function="'restore'">
+            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+              'extraParams' : '-n'
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 008
+  #@TestID              Backup 008
+  #@TestPurpose         Create a backup with a backup id that exists
+  #@TestPreamble
+  #@TestSteps           backup should fail as backup id already exists
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_008" scope="local">
+    <testcase name="getTestCaseName('Create a backup with an existing backupid')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 008: Create a backup with a backup id'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+              'extraParams' : '-I unique-backupid'
+            }
+          </call>
+          
+          <message>
+            'Backend Backup 008: Create a backup with an existing backup id'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+              'extraParams' : '-I unique-backupid' ,
+              'expectedRC'  : 1
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+              'returnString'     : returnString ,
+              'expectedString'   : 'because another backup already exists with that ID'
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+                
+       </try>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 009
+  #@TestID              Backup 009
+  #@TestPurpose         Run backup with -B but without -i
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameter
+  #@TestSteps           incrementalBaseID but without incremental
+  #@TestPostamble
+  #@TestResult Success if backup returns 1
+  -->
+  <function name="backends_backup_009" scope="local">
+    <testcase name="getTestCaseName('Create a backup with -B but without -i')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 009: Create a backup with -B but without -i '
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+              'extraParams' : '-B 20070714142807Z' ,
+              'expectedRC'  : 1
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+             'returnString'     : returnString ,
+             'expectedString'   : 'The use of the incrementalBaseID argument requires that the incremental'
+            }
+          </call>
+
+          <call function="'testCase_Postamble'" />
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Backup Tests
+  #@TestName            Backup: Backup 010
+  #@TestID              Backup 010
+  #@TestPurpose         Create an incremental backup when the backup dir doesn't exist yet.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters
+  #@TestSteps           incremental and a non existing backup dir
+  #@TestSteps           A full backup should be executed
+  #@TestPostamble
+  #@TestResult Success if backup returns 0
+  -->
+  <function name="backends_backup_010" scope="local">
+    <testcase name="getTestCaseName('Create an incremental backup with a non existing backup dir')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Backend Backup 010: Create an incremental backup with a non existing backup dir'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'   : '%s/backends/backup3' % remote.data,
+              'extraParams' : '-i'
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+             'returnString'     : returnString ,
+             'expectedString'   : 'A full backup will be executed'
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+
+</stax>

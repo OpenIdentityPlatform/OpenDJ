@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <!--- Test Case information
+  #@TestMarker          Backend Restore Tests
+  #@TestName            Export: Restore 001
+  #@TestID              Restore 001
+  #@TestPurpose         Restore data to OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls restore with the parameters
+                        default backendID, and backupDirectory
+  #@TestPostamble
+  #@TestResult Success if restore returns 0
+  -->
+  <function name="backends_restore_001" scope="local">
+    <testcase name="getTestCaseName('Restore data')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+
+          <message>
+            'Backend Restore 001: Create a backup of the data in OpenDS'
+          </message>
+          <call function="'backup'">
+            { 'backupDir' : '%s/backends/backup1' % remote.data
+            }
+          </call>
+          
+          <message>
+            'Backend Restore 001: Restore data to OpenDS'
+          </message>
+                
+          <!-- Stop DS -->
+          <call function="'StopDsWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD 
+            }
+          </call>
+                
+          <call function="'restore'">
+            { 'backupDir' : '%s/backends/backup1' % remote.data
+            }
+          </call>
+
+          <!-- Start DS -->
+          <message>
+            'Backend Restore 001: Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+          </message>
+                
+          <call function="'StartDsWithScript'">
+            { 'location'  : STAF_REMOTE_HOSTNAME }
+          </call>
+                
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case information
+  #@TestMarker          Backend Restore Tests
+  #@TestName            Export: Restore 002
+  #@TestID              Restore 002
+  #@TestPurpose         Restore compressed data to OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls restore with the parameters
+                        default backendID, backupDirectory, and uncompress
+                        is automatically done
+  #@TestPostamble
+  #@TestResult Success if restore returns 0
+  -->
+  <function name="backends_restore_002" scope="local">
+    <testcase name="getTestCaseName('Restore compressed data')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+
+          <message>
+            'Backend Restore 002: Create a compressed backup of the data in OpenDS'
+          </message>
+
+          <call function="'backup'">
+            { 'backupDir'       : '%s/restore.compressed' % remote.data ,
+              'extraParams'        : '-c'
+            }
+          </call>
+          
+          <message>
+            'Backend Restore 002: ldapdelete: delete an entry uid=dcope'
+          </message>
+
+          <call function="'ldapSearchWithScript'">
+            {
+            'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+            'dsCountEntries'   : 'True' ,
+            'dsBaseDN'         : 'dc=com' ,
+            'dsFilter'         : 'uid=dcope' ,
+            'expectedRC'       : 0
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+            'returnString'     : returnString ,
+            'expectedString'   : '# Total number of matching entries: 1'
+            }
+          </call>
+
+          <call function="'ldapDeleteWithScript'">
+            {
+            'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+            'dsDn'             : ['uid=dcope,ou=People,o=backend tests,dc=com'] ,
+            'expectedRC'       : 0
+            }
+          </call>
+         
+          <call function="'ldapSearchWithScript'">
+            {
+            'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+            'dsCountEntries'   : 'True' ,
+            'dsBaseDN'         : 'dc=com' ,
+            'dsFilter'         : 'uid=dcope' ,
+            'expectedRC'       : 0
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+            'returnString'     : returnString ,
+            'expectedString'   : '# Total number of matching entries: 0'
+            }
+          </call>
+               
+          <!-- Stop DS -->
+          <call function="'StopDsWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+            }
+          </call>
+                
+          <call function="'restore'">
+            { 'backupDir'       : '%s/restore.compressed' % remote.data
+            }
+          </call>
+            
+          <!-- Start DS -->
+          <message>
+            'Backend Restore 002: Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+          </message>
+          <call function="'StartDsWithScript'">
+            { 'location'  : STAF_REMOTE_HOSTNAME }
+          </call>
+                            
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+
+          <message>
+            'Backend Restore 002: ldapsearch: check uid=dcope that was deleted is now present'
+          </message>
+
+          <call function="'ldapSearchWithScript'">
+            {
+            'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+            'dsCountEntries'   : 'True' ,
+            'dsBaseDN'         : 'dc=com' ,
+            'dsFilter'         : 'uid=dcope' ,
+            'expectedRC'       : 0
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+            'returnString'     : returnString ,
+            'expectedString'   : '# Total number of matching entries: 1'
+            }
+          </call>
+                
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Backend Restore Tests
+  #@TestName            Export: Restore 003
+  #@TestID              Restore 003
+  #@TestPurpose         Backup and Restore encrypted and hashed data to OpenDS.
+  #@TestPreamble
+  #@TestSteps           Client calls backup with the parameters -y, -A and -s,
+                        restore with -X. Server must be online.
+  #@TestPostamble
+  #@TestResult Success if backup and restore return 0
+  -->
+  <function name="backends_restore_003" scope="local">
+    <testcase name="getTestCaseName('Backup and Restore encrypted, hashed and signhashed data')">
+      <try>
+        <sequence>
+
+          <call function="'testCase_Preamble'"/>
+
+          <message>
+            'Backend Restore 003: Create an encrypted and signhashed backup of the data in OpenDS'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+              'extraParams'         : '-y -s' ,
+              'expectedRC'          : 1
+            }
+          </call>
+
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+            'returnString'     : returnString ,
+            'expectedString'   : 'The use of the signHash argument requires that the hash argument is also'
+            }
+          </call>
+
+          <message>
+            'Backend Restore 003: Create an encrypted, hashed and signhashed backup of the data in OpenDS'
+          </message>
+          <call function="'backup'">
+            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+              'extraParams'         : '-y -A -s'
+            }
+          </call>
+
+          <message>
+            'Backend Restore 003: Check Restore with -l'
+          </message>
+
+          <call function="'restore'">
+            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+              'extraParams'         : '-l' ,
+              'knownIssue'          : '4203'
+            }
+          </call>
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+
+          <call function="'checktestString'">
+            {
+            'returnString'     : returnString ,
+            'expectedString'   : 'Has Signed Hash:    true'
+            }
+          </call>
+
+          <message>
+            'Backend Restore 003: Restore data to OpenDS'
+          </message>
+
+          
+          <call function="'restore'">
+            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+              'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+              'extraParams'         : '-X'
+            }
+          </call>
+
+         
+
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+      </try>
+    </testcase>
+  </function>
+
+
+</stax>
