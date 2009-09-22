@@ -348,6 +348,22 @@ public abstract class DirectoryServerPlugin
   }
 
   /**
+   * Starts an import session.
+   * Performs any necessary processing that should be done at the
+   * beginning of an LDIF import session based on the provided
+   * configuration.
+   *
+   * @param  importConfig  The configuration used for the LDIF import.
+   */
+  public void doLDIFImportBegin(LDIFImportConfig importConfig)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+        String.valueOf(pluginDN),
+        PluginType.LDIF_IMPORT_BEGIN.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+  /**
    * Performs any necessary processing that should be done during an
    * LDIF export operation immediately after determining that the
    * provided entry should be included in the export.

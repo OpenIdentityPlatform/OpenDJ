@@ -2444,6 +2444,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.599
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.600
+  NAME 'ds-cfg-plugin-order-ldif-import-begin'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3502,6 +3507,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.111
         ds-cfg-plugin-order-post-disconnect $
         ds-cfg-plugin-order-ldif-import $
         ds-cfg-plugin-order-ldif-import-end $
+        ds-cfg-plugin-order-ldif-import-begin $
         ds-cfg-plugin-order-ldif-export $
         ds-cfg-plugin-order-pre-parse-abandon $
         ds-cfg-plugin-order-pre-parse-add $

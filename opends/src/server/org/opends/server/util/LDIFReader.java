@@ -144,6 +144,12 @@ public final class LDIFReader
     lastEntryBodyLines   = new LinkedList<StringBuilder>();
     lastEntryHeaderLines = new LinkedList<StringBuilder>();
     pluginConfigManager  = DirectoryServer.getPluginConfigManager();
+    // If we should invoke import plugins, then do so.
+    if (importConfig.invokeImportPlugins())
+    {
+      // Inform LDIF import plugins that an import session is ending
+      pluginConfigManager.invokeLDIFImportBeginPlugins(importConfig);
+    }
   }
 
 
@@ -175,6 +181,12 @@ public final class LDIFReader
     this.pluginConfigManager  = DirectoryServer.getPluginConfigManager();
     this.buffer        = new byte[size];
     this.rootContainer = rootContainer;
+    // If we should invoke import plugins, then do so.
+    if (importConfig.invokeImportPlugins())
+    {
+      // Inform LDIF import plugins that an import session is ending
+      this.pluginConfigManager.invokeLDIFImportBeginPlugins(importConfig);
+    }
   }
 
 
@@ -1477,8 +1489,12 @@ public final class LDIFReader
    */
   public void close()
   {
-    // Inform LDIF import plugins that an import session is ending
-    pluginConfigManager.invokeLDIFImportEndPlugins(importConfig);
+    // If we should invoke import plugins, then do so.
+    if (importConfig.invokeImportPlugins())
+    {
+      // Inform LDIF import plugins that an import session is ending
+      pluginConfigManager.invokeLDIFImportEndPlugins(importConfig);
+    }
     importConfig.close();
   }
 

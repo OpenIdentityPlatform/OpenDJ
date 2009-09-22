@@ -121,6 +121,11 @@
             Invoked at the end of an LDIF import session.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="ldifimportbegin">
+          <adm:synopsis>
+            Invoked at the beginning of an LDIF import session.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="ldifexport">
           <adm:synopsis>
             Invoked for each operation to be written during an LDIF
