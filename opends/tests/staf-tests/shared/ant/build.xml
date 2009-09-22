@@ -228,7 +228,6 @@
     <var name="archives.dir" value="${repository.dir}/archives"/>
     <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
 
-<echo>${tests.tmp.dir}</echo>
     <if>
       <equals arg1="${os.family}" arg2="windows"/>
       <then>
