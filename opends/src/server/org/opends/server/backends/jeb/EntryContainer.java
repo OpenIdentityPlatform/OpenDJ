@@ -2621,6 +2621,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           }
 
           // Get the next DN.
+          data = new DatabaseEntry();
           status = cursor.getNext(key, data, LockMode.DEFAULT);
         }
       }
