@@ -8314,8 +8314,6 @@ public class DirectoryServer
             logError(message);
             // FIXME -- Do we need to send an admin alert?
           }
-
-          serverLocked = false;
         }
         catch (Exception e2)
         {
@@ -8344,30 +8342,6 @@ public class DirectoryServer
     if (ec != null)
     {
       ec.finalizeEntryCache();
-    }
-
-    // Release the exclusive lock for the Directory Server process.
-    String lockFile = LockFileManager.getServerLockFileName();
-    try
-    {
-      StringBuilder failureReason = new StringBuilder();
-      if (! LockFileManager.releaseLock(lockFile, failureReason))
-      {
-        message = WARN_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK.get(
-            lockFile, String.valueOf(failureReason));
-        logError(message);
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      message = WARN_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK.get(
-          lockFile, stackTraceToSingleLineString(e));
-      logError(message);
     }
 
     // Deregister all workflows.
