@@ -318,7 +318,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =
          LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
+    Assert.assertEquals(retVal, rc, "Returned error: " + oStream.toString());
     return oStream.toString();
   }
 
