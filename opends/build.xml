@@ -399,13 +399,6 @@
       </not>
     </condition>
 
-    <condition property="WEAVE_ENABLED" value="false">
-      <not>
-        <isset property="WEAVE_ENABLED" />
-      </not>
-    </condition>
-
-
 
     <!--
      ! For some reason, some Apple VMs put quotes around the value of the
@@ -501,7 +494,7 @@
       PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
       VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
       java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,URL_REPOSITORY,
-      WEAVE_ENABLED, VERSION_NUMBER_STRING
+      VERSION_NUMBER_STRING
       If you change the name of any of those properties in this build.xml
       you'll need to reflect the same change in the .stubs file
     -->
@@ -617,7 +610,7 @@
 
   <!-- Compile the Directory Server source files. -->
   <target name="cleancompile"
-       depends="cleaninit,compilequicksetup,weave"
+       depends="cleaninit,compilequicksetup"
        description="Recompile the Directory Server source files.">
   </target>
 
@@ -655,36 +648,6 @@
       <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
-  </target>
-
-
-
-  <target name="prepweave">
-    <condition property="weave.enabled" value="true">
-        <equals arg1="${WEAVE_ENABLED}" arg2="true" />
-    </condition>
-  </target>
-
-
-
-  <target name="weave" if="weave.enabled" depends="prepweave">
-    <echo message="  Weaving the source code with automatic AspectJ debug logging."/>
-    <echo message="  Build with -DWEAVE_ENABLED=false to turn this off."/>
-    <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
-      <classpath>
-        <pathelement location="${aj.lib.dir}/aspectjtools.jar" />
-      </classpath>
-    </taskdef>
-
-    <iajc inpath="${classes.dir}" destdir="${classes.dir}"
-          debug="true" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
-          deprecation="true" fork="true" maxmem="${MEM}">
-      <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="*.jar" />
-        </fileset>
-      </classpath>
-    </iajc>
   </target>
 
 
@@ -1909,10 +1872,6 @@
     <echo message="  -Dtest.failed=true"/>
     <echo message="      runs only the tests that failed last time"/>
     <echo message=""/>
-    <echo message="  -DWEAVE_ENABLED=false" />
-    <echo message="      builds the server without the debug logging facility." />
-    <echo message="      No debug logging messages will be included on test failures." />
-    <echo message=""/>
     <echo message="  -Dorg.opends.server.debug.target=org.opends.server.core:level=verbose,category=data"/>
     <echo message="      for example only include debug messages in the core"/>
     <echo message="      package that are related to data access and at the" />
@@ -2164,27 +2123,6 @@
     <condition property="test.groups" value="">
       <not>
         <or>
-          <isset property="test.groups" />
-          <isset property="test.packages" />
-          <isset property="test.classes" />
-          <isset property="test.methods" />
-        </or>
-      </not>
-    </condition>
-  </target>
-
-
-
-  <!--
-   ! Previously a dependency of the nightly, all, testall and test targets.
-   ! Weaving is now disabled by default due to the excessive need for memory
-   ! during weaving.
-   ! -->
-  <target name="enableweave">
-    <condition property="WEAVE_ENABLED" value="true">
-      <not>
-        <or>
-          <isset property="WEAVE_ENABLED" />
           <isset property="test.groups" />
           <isset property="test.packages" />
           <isset property="test.classes" />

@@ -157,12 +157,6 @@ public final class DynamicConstants
       "${ADMINISTRATION_GUIDE_URL}";
 
   /**
-   * Indicates wheater this build includes AspectJ weaving for the debug logging
-   * framework.
-   */
-  public static boolean WEAVE_ENABLED = ${WEAVE_ENABLED};
-
-  /**
    * A string representation of the version number.
    */
   public static String VERSION_NUMBER_STRING =
@@ -295,10 +289,6 @@ public final class DynamicConstants
            (String)c.getField("ADMINISTRATION_GUIDE_URL").get(obj);
         }
         catch(Exception ex) {}
-        try{
-         WEAVE_ENABLED = (Boolean)c.getField("WEAVE_ENABLED").get(obj);
-        }
-        catch (Exception ex) {}
         try{
          VERSION_NUMBER_STRING =
                  (String)c.getField("VERSION_NUMBER_STRING").get(obj);
