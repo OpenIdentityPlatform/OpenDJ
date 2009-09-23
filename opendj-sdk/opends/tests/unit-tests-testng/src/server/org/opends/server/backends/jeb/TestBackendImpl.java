@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -1328,9 +1328,11 @@ public class TestBackendImpl extends JebTestCase {
       EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
       assertNotNull(newID);
       assertTrue(newID.compareTo(newSuperiorID) > 0);
-      assertNotNull(backend.getEntry(DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com")));
-      EntryID newSubordinateID = ec.getDN2ID().get(null,
-          DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com"), LockMode.DEFAULT);
+      DN subDN = DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com");
+      Entry subEntry = backend.getEntry(subDN);
+      assertNotNull(subEntry);
+      assertEquals(subDN, subEntry.getDN());
+      EntryID newSubordinateID = ec.getDN2ID().get(null, subDN, LockMode.DEFAULT);
       assertTrue(newSubordinateID.compareTo(newID) > 0);
 
       assertNull(backend.getEntry(DN.decode("ou=People,dc=test,dc=com")));
