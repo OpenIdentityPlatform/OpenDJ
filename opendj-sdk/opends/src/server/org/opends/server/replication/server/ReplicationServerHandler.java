@@ -93,7 +93,7 @@ public class ReplicationServerHandler extends ServerHandler
       serverAddressURL =
         session.getRemoteAddress() + ":" + serverURL.substring(separator +
             1);
-      setServiceIdAndDomain(inReplServerStartMsg.getBaseDn());
+      setServiceIdAndDomain(inReplServerStartMsg.getBaseDn(), false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -156,7 +156,7 @@ public class ReplicationServerHandler extends ServerHandler
     // the encryption we will request to the peer as we are the session creator
     this.initSslEncryption = sslEncryption;
 
-    setServiceIdAndDomain(serviceId);
+    setServiceIdAndDomain(serviceId, false);
 
     localGenerationId = replicationServerDomain.getGenerationId();
     oldGenerationId = localGenerationId;

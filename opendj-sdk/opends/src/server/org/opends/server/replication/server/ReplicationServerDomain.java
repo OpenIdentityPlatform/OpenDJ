@@ -1501,7 +1501,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       } else
       {
         // the targeted server is NOT connected
-        // Let's search for THE changelog server that MAY
+        // Let's search for the replication server that MAY
         // have the targeted server connected.
         if (senderHandler.isDataServer())
         {
