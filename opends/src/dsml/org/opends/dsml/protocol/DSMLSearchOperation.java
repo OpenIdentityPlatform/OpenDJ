@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.dsml.protocol;
 
@@ -280,8 +280,9 @@ public class DSMLSearchOperation
     {
       subAnyElements.add(ByteString.valueOf(s));
     }
-    return LDAPFilter.createSubstringFilter(sf.getName(), ByteString.valueOf(sf
-        .getInitial()), subAnyElements, ByteString.valueOf(sf.getFinal()));
+    return LDAPFilter.createSubstringFilter(sf.getName(), sf.getInitial()==null?
+      null:ByteString.valueOf(sf.getInitial()), subAnyElements,
+      sf.getFinal()==null?null:ByteString.valueOf(sf.getFinal()));
   }
 
 
