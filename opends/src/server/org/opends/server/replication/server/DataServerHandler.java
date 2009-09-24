@@ -418,7 +418,7 @@ public class DataServerHandler extends ServerHandler
     heartbeatInterval = serverStartMsg.getHeartbeatInterval();
 
     // generic stuff
-    setServiceIdAndDomain(serverStartMsg.getBaseDn());
+    setServiceIdAndDomain(serverStartMsg.getBaseDn(), true);
     setInitialServerState(serverStartMsg.getServerState());
     setSendWindowSize(serverStartMsg.getWindowSize());
 
@@ -474,8 +474,6 @@ public class DataServerHandler extends ServerHandler
       boolean sessionInitiatorSSLEncryption =
         processStartFromRemote(inServerStartMsg);
 
-      // Get or Create the ReplicationServerDomain
-      replicationServerDomain = getDomain(true, true);
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
 

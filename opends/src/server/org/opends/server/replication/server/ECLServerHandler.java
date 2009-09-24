@@ -351,7 +351,7 @@ public class ECLServerHandler extends ServerHandler
         replicationServer, rcvWindowSize);
     try
     {
-      setServiceIdAndDomain(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      setServiceIdAndDomain(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT, true);
     }
     catch(DirectoryException de)
     {
@@ -381,7 +381,7 @@ public class ECLServerHandler extends ServerHandler
         replicationServer, 0);
     try
     {
-      setServiceIdAndDomain(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      setServiceIdAndDomain(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT, true);
     }
     catch(DirectoryException de)
     {
@@ -673,7 +673,7 @@ public class ECLServerHandler extends ServerHandler
           // set initial state
           mh.setInitialServerState(newDomainCtxt.startState);
           // set serviceID and domain
-          mh.setServiceIdAndDomain(rsd.getBaseDn());
+          mh.setServiceIdAndDomain(rsd.getBaseDn(), false);
           // register the unconnected into the domain
           rsd.registerHandler(mh);
           newDomainCtxt.mh = mh;

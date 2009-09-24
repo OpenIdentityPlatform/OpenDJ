@@ -717,10 +717,13 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Set the serviceId (usually baseDn) for this handler. Expected to be done
    * once and never changed during the handler life.
-   * @param serviceId The provided serviceId.
+   *
+   * @param serviceId       The provided serviceId.
+   * @param isDataServer    The handler is a dataServer
+   *
    * @exception DirectoryException raised when a problem occurs.
    */
-  protected void setServiceIdAndDomain(String serviceId)
+  protected void setServiceIdAndDomain(String serviceId, boolean isDataServer)
   throws DirectoryException
   {
     if (this.serviceId != null)
@@ -737,7 +740,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     else
     {
       this.serviceId = serviceId;
-      this.replicationServerDomain = getDomain(true);
+      this.replicationServerDomain = getDomain(true, isDataServer);
     }
   }
 

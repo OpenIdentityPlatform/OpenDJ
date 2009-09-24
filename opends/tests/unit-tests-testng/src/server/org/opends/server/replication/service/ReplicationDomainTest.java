@@ -279,8 +279,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
         replServer1.remove();
     }
   }
+
   /**
-   * Test that a ReplicationDomain is able to export and import its database.
+   * Test that a ReplicationDomain is able to export and import its database
+   * When there is only one replication server.
    */
   @Test(enabled=true)
   public void exportAndImport() throws Exception
@@ -359,6 +361,104 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       if (replServer != null)
         replServer.remove();
+    }
+  }
+
+  /**
+   * Test that a ReplicationDomain is able to export and import its database
+   * across 2 replication servers.
+   */
+  @Test(enabled=true)
+  public void exportAndImportAcross2ReplServers() throws Exception
+  {
+    final int ENTRYCOUNT=5000;
+    String testService = "test";
+    ReplicationServer replServer2 = null;
+    ReplicationServer replServer1 = null;
+    int replServerID = 11;
+    int replServerID2 = 12;
+    FakeReplicationDomain domain1 = null;
+    FakeReplicationDomain domain2 = null;
+
+    try
+    {
+      // find  a free port for the replicationServer
+      ServerSocket socket = TestCaseUtils.bindFreePort();
+      int replServerPort1 = socket.getLocalPort();
+      socket.close();
+
+      socket = TestCaseUtils.bindFreePort();
+      int replServerPort2 = socket.getLocalPort();
+      socket.close();
+
+      TreeSet<String> replserver1 = new TreeSet<String>();
+      replserver1.add("localhost:" + replServerPort1);
+
+      TreeSet<String> replserver2 = new TreeSet<String>();
+      replserver2.add("localhost:" + replServerPort2);
+
+      ReplServerFakeConfiguration conf1 =
+        new ReplServerFakeConfiguration(
+            replServerPort1, "ReplicationDomainTestDb",
+            0, replServerID, 0, 100, null);
+
+      ReplServerFakeConfiguration conf2 =
+        new ReplServerFakeConfiguration(
+            replServerPort2, "ReplicationDomainTestDb",
+            0, replServerID2, 0, 100, replserver1);
+
+      replServer1 = new ReplicationServer(conf1);
+      replServer2 = new ReplicationServer(conf2);
+
+      ArrayList<String> servers1 = new ArrayList<String>(1);
+      servers1.add("localhost:" + replServerPort1);
+
+      ArrayList<String> servers2 = new ArrayList<String>(1);
+      servers2.add("localhost:" + replServerPort2);
+
+      StringBuilder exportedDataBuilder = new StringBuilder();
+      for (int i =0; i<ENTRYCOUNT; i++)
+      {
+        exportedDataBuilder.append("key : value"+i+"\n\n");
+      }
+      String exportedData=exportedDataBuilder.toString();
+      domain1 = new FakeReplicationDomain(
+          testService, (short) 1, servers1,
+          100, 0, exportedData, null, ENTRYCOUNT);
+
+      StringBuilder importedData = new StringBuilder();
+      domain2 = new FakeReplicationDomain(
+          testService, (short) 2, servers2, 100, 0,
+          null, importedData, 0);
+
+      domain2.initializeFromRemote((short)1);
+
+      int count = 0;
+      while ((importedData.length() < exportedData.length()) && (count < 500))
+      {
+        count ++;
+        Thread.sleep(100);
+      }
+      assertTrue(domain2.getLeftEntryCount() == 0,
+          "LeftEntryCount for export is " + domain2.getLeftEntryCount());
+      assertTrue(domain1.getLeftEntryCount() == 0,
+          "LeftEntryCount for import is " + domain1.getLeftEntryCount());
+      assertEquals(importedData.length(), exportedData.length());
+      assertEquals(importedData.toString(), exportedData);
+    }
+    finally
+    {
+      if (domain1 != null)
+        domain1.disableService();
+
+      if (domain2 != null)
+        domain2.disableService();
+
+      if (replServer1 != null)
+        replServer1.remove();
+
+      if (replServer2 != null)
+        replServer2.remove();
     }
   }
 
