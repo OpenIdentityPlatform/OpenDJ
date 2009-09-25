@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -192,7 +192,8 @@ public class AciBody {
             }
             name = bodyMatcher.group(NAME);
         }
-        Pattern bodyPattern1 = Pattern.compile(actionRegex);
+        Pattern bodyPattern1 = Pattern.compile(
+                ACI_STATEMENT_SEPARATOR + actionRegex);
         Matcher bodyMatcher1 = bodyPattern1.matcher(input);
         /*
          * The may be many permission-bind rule pairs.
