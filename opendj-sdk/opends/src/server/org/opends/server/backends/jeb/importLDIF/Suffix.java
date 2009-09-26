@@ -27,16 +27,13 @@
 
 package org.opends.server.backends.jeb.importLDIF;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.util.ServerConstants.*;
 import org.opends.messages.Message;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
@@ -277,7 +274,7 @@ public class Suffix
     entryContainer.getID2Children().setTrusted(null,true);
     entryContainer.getID2Subtree().setTrusted(null, true);
     for(AttributeIndex attributeIndex :
-        entryContainer.getAttributeIndexes()) {
+            entryContainer.getAttributeIndexes()) {
       Index index;
       if((index = attributeIndex.getEqualityIndex()) != null) {
         index.setTrusted(null, true);
@@ -294,9 +291,28 @@ public class Suffix
       if((index=attributeIndex.getApproximateIndex()) != null) {
         index.setTrusted(null, true);
       }
+      Map<String,Collection<Index>> exIndexes =
+              attributeIndex.getExtensibleIndexes();
+      if(!exIndexes.isEmpty())
+      {
+        Collection<Index> subIndexes = attributeIndex.getExtensibleIndexes().
+                get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
+        if(subIndexes != null) {
+          for(Index subIndex : subIndexes) {
+            subIndex.setTrusted(null, true);
+          }
+        }
+        Collection<Index> sharedIndexes = attributeIndex.
+                getExtensibleIndexes().get(EXTENSIBLE_INDEXER_ID_SHARED);
+        if(sharedIndexes !=null) {
+          for(Index sharedIndex : sharedIndexes) {
+            sharedIndex.setTrusted(null, true);
+          }
+        }
+      }
     }
     for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
-        vlvIdx.setTrusted(null, true);
+      vlvIdx.setTrusted(null, true);
     }
   }
 

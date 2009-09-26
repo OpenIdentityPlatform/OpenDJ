@@ -1136,8 +1136,7 @@ public class BackendImpl
       envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
       envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
       envConfig.setConfigParam(EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
-      Importer importer = new Importer(importConfig, cfg);
-      importer.initialize(envConfig);
+      Importer importer = Importer.getInstance(importConfig, cfg, envConfig);
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
     }
@@ -1337,35 +1336,73 @@ public class BackendImpl
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public void rebuildBackend(RebuildConfig rebuildConfig)
-      throws InitializationException, ConfigException, DirectoryException
+          throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
 
-    // If the rootContainer is open, the backend is initialized by something
-    // else.
-    // We can't do any rebuild of system indexes while others are using this
-    // backend. Throw error. TODO: Need to make baseDNs disablable.
+    /*
+      If the rootContainer is open, the backend is initialized by something
+      else. We can't do any rebuild of system indexes while others are using
+      this backend.
+   */
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
       Message message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+              message);
     }
-
+    Importer importer;
     try
     {
+      EnvironmentConfig envConfig =
+              ConfigurableEnvironment.parseConfigEntry(cfg);
+      importer = Importer.getInstance(rebuildConfig, cfg, envConfig);
       if (openRootContainer)
       {
-        EnvironmentConfig envConfig =
-            ConfigurableEnvironment.parseConfigEntry(cfg);
-
         rootContainer = initializeRootContainer(envConfig);
       }
-
-      RebuildJob rebuildJob = new RebuildJob(rebuildConfig);
-      rebuildJob.rebuildBackend(rootContainer);
+      importer.rebuildIndexes(rootContainer);
+    }
+    catch (ExecutionException execEx)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, execEx);
+      }
+      Message message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+    catch (InterruptedException intEx)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, intEx);
+      }
+      Message message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+    catch (IOException ioe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
+      }
+      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              message);
+    }
+    catch (ConfigException ce)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              ce.getMessageObject());
     }
     catch (DatabaseException e)
     {
@@ -1382,7 +1419,7 @@ public class BackendImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
+              e.getMessageObject());
     }
     finally
     {
@@ -1405,7 +1442,6 @@ public class BackendImpl
       }
     }
   }
-
 
 
   /**
@@ -1652,7 +1688,7 @@ public class BackendImpl
    */
   DirectoryException createDirectoryException(DatabaseException e) {
     ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
-    Message message = null;
+    Message message;
     if (e instanceof RunRecoveryException) {
       message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logError(message);

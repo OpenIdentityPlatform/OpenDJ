@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -45,11 +45,9 @@ public class RebuildConfig
    */
   private ArrayList<String> rebuildList;
 
-  /**
-   * The maximum number of rebuild threads to use at one time. An negative
-   * number indicates unlimited max number of threads.
-   */
-  private int maxRebuildThreads = -1;
+  private boolean rebuildAll = false;
+
+  private String tmpDirectory;
 
   /**
    * Create a new rebuild configuraiton.
@@ -173,28 +171,6 @@ public class RebuildConfig
   }
 
   /**
-   * Get the maximum number of rebuild threads to use for the rebuild job
-   * at one time.
-   *
-   * @return The maximum number of rebuild threads.
-   */
-  public int getMaxRebuildThreads()
-  {
-    return maxRebuildThreads;
-  }
-
-  /**
-   * Set the maximum number of rebuild threads to use for the rebuild
-   * job at one time.
-   *
-   * @param maxRebuildThreads The maximum number of rebuild threads.
-   */
-  public void setMaxRebuildThreads(int maxRebuildThreads)
-  {
-    this.maxRebuildThreads = maxRebuildThreads;
-  }
-
-  /**
    * Test if this rebuild config includes any system indexes to rebuild.
    *
    * @return True if rebuilding of system indexes are included. False otherwise.
@@ -215,17 +191,52 @@ public class RebuildConfig
       {
         return true;
       }
-      if(index.equalsIgnoreCase("id2children"))
-      {
-        return true;
-      }
-      if(index.equalsIgnoreCase("id2subtree"))
-      {
-        return true;
-      }
     }
 
     return false;
   }
+
+
+  /**
+   * Set the temporary directory to the specified path.
+   *
+   * @param path The path to set the temporary directory to.
+   */
+  public void setTmpDirectory(String path)
+  {
+    tmpDirectory = path;
+  }
+
+  /**
+   * Return the temporary directory path.
+   *
+   * @return  The temporary directory string.
+   */
+  public String getTmpDirectory()
+  {
+    return tmpDirectory;
+  }
+
+
+  /**
+   * Set the rebuild all boolean to the specified value.
+   *
+   * @param v The value to set the rebuild all boolean to.
+   */
+  public void setRebuildAll(boolean v)
+  {
+    rebuildAll = v;
+  }
+
+  /**
+   * Return the rebuild all boolean value.
+   *
+   * @return Return the rebuild all boolean value.
+   */
+  public boolean isRebuildAll()
+  {
+    return rebuildAll;
+  }
+
 
 }

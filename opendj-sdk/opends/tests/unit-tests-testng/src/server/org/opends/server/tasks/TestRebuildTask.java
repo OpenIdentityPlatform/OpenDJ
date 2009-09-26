@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 
@@ -122,10 +122,7 @@ public class TestRebuildTask extends TasksTestCase
                    "ds-task-rebuild-base-dn: " + suffix,
                    "ds-task-rebuild-index: dn2id",
                    "ds-task-rebuild-index: dn2uri",
-                   "ds-task-rebuild-index: id2children",
-                   "ds-task-rebuild-index: id2subtree",
-                   "ds-task-rebuild-index: mail",
-                   "ds-task-rebuild-max-threads: 3"
+                   "ds-task-rebuild-index: mail"
               ),
               TaskState.COMPLETED_SUCCESSFULLY
          },
@@ -150,6 +147,6 @@ public class TestRebuildTask extends TasksTestCase
   public void testRebuildTask(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
-    testTask(taskEntry, expectedState, 60);    
+    testTask(taskEntry, expectedState, 60);
  }
 }

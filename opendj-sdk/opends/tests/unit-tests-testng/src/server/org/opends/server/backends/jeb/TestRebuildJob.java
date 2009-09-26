@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -32,6 +32,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.tasks.TaskUtils;
 import static org.opends.server.util.ServerConstants.OC_TOP;
 import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
@@ -58,8 +59,6 @@ public class TestRebuildJob extends JebTestCase
   @DataProvider(name = "systemIndexes")
   public Object[][] systemIndexes() {
     return new Object[][] {
-        { "id2subtree" },
-        { "id2children" },
         { "dn2id" },
         { "dn2uri" }
     };
@@ -83,6 +82,8 @@ public class TestRebuildJob extends JebTestCase
     return new Object[][] {
         { "id2entry" },
         { "nonindex" },
+        { "id2subtree" },
+        { "id2children" },
         { "mail.nonindex" }
     };
   }
@@ -221,13 +222,32 @@ public class TestRebuildJob extends JebTestCase
   }
 
   @Test
-  public void testRebuildDependentIndexes() throws Exception
+  public void testRebuildAll() throws Exception
+  {
+    cleanAndLoad(10);
+    RebuildConfig rebuildConfig = new RebuildConfig();
+    rebuildConfig.setBaseDN(baseDNs[0]);
+    rebuildConfig.setRebuildAll(true);
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+
+    TaskUtils.disableBackend(beID);
+
+    be.rebuildBackend(rebuildConfig);
+
+    assertEquals(verifyBackend(null), 0);
+
+    TaskUtils.enableBackend(beID);
+  }
+
+
+  @Test
+  public void testRebuildDN2ID() throws Exception
   {
     cleanAndLoad(10);
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("dn2id");
-    rebuildConfig.addRebuildIndex("id2children");
 
     be=(BackendImpl) DirectoryServer.getBackend(beID);
 

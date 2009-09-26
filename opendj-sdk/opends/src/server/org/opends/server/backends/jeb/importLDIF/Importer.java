@@ -45,6 +45,8 @@ import org.opends.messages.Message;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -54,7 +56,7 @@ import com.sleepycat.je.*;
 
 
 /**
- * Performs a LDIF import.
+ * Performs LDIF import and rebuild of indexes.
  */
 public class Importer
 {
@@ -134,8 +136,9 @@ public class Importer
           new ConcurrentHashMap<Integer, EntryContainer>();
 
   private final Object synObj = new Object();
+  private final RebuildManager rebuildManager;
 
-    static
+  static
   {
     if ((dnType = DirectoryServer.getAttributeType("dn")) == null)
     {
@@ -143,18 +146,79 @@ public class Importer
     }
   }
 
+  private void initialize()
+  {
+
+  }
+
+  private
+  Importer(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg,
+            EnvironmentConfig envConfig) throws IOException,
+          InitializationException, JebException, ConfigException
+  {
+    this.importConfiguration = null;
+    this.threadCount = 1;
+    this.rebuildManager = new RebuildManager(rebuildConfig, cfg);
+    indexCount = rebuildManager.getIndexCount();
+    indexWriterList = new ArrayList<IndexFileWriterTask>(indexCount);
+    indexWriterFutures = new CopyOnWriteArrayList<Future<?>>();
+    File parentDir;
+    if(rebuildConfig.getTmpDirectory() == null)
+    {
+      parentDir = getFileForPath("import-tmp");
+    }
+    else
+    {
+       parentDir = getFileForPath(rebuildConfig.getTmpDirectory());
+    }
+    tempDir = new File(parentDir, cfg.getBackendId());
+    if(!tempDir.exists() && !tempDir.mkdirs())
+    {
+      Message message =
+                ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
+      throw new IOException(message.toString());
+    }
+    if (tempDir.listFiles() != null)
+    {
+      for (File f : tempDir.listFiles())
+      {
+        f.delete();
+      }
+    }
+    skipDNValidation = true;
+    String propString = System.getProperty(DIRECT_PROPERTY);
+    if(propString != null)
+    {
+      int directSize = Integer.valueOf(propString);
+      directBuffer = ByteBuffer.allocateDirect(directSize);
+    }
+    else
+    {
+     directBuffer = null;
+    }
+    if(envConfig != null)
+    {
+      initializeDBEnv(envConfig);
+    }
+  }
+
+
   /**
    * Create a new import job with the specified ldif import config.
    *
    * @param importConfiguration The LDIF import configuration.
-   * @param dbCfg The local DB back-end configuration.
+   * @param localDBBackendCfg The local DB back-end configuration.
+   * @param envConfig The JEB environment config.
    * @throws IOException  If a problem occurs while opening the LDIF file for
    *                      reading.
    * @throws  InitializationException If a problem occurs during initialization.
    */
-  public Importer(LDIFImportConfig importConfiguration, LocalDBBackendCfg dbCfg)
-          throws IOException, InitializationException
+  private Importer(LDIFImportConfig importConfiguration,
+                   LocalDBBackendCfg localDBBackendCfg,
+                   EnvironmentConfig envConfig) throws IOException,
+          InitializationException
   {
+    this.rebuildManager = null;
     this.importConfiguration = importConfiguration;
     if(importConfiguration.getThreadCount() == 0)
     {
@@ -164,7 +228,9 @@ public class Importer
     {
       threadCount = importConfiguration.getThreadCount();
     }
-    indexCount = dbCfg.listLocalDBIndexes().length + 2;
+    indexCount = localDBBackendCfg.listLocalDBIndexes().length + 2;
+
+
     indexWriterList = new ArrayList<IndexFileWriterTask>(indexCount);
     indexWriterFutures = new CopyOnWriteArrayList<Future<?>>();
     File parentDir;
@@ -177,7 +243,7 @@ public class Importer
        parentDir = getFileForPath(importConfiguration.getTmpDirectory());
     }
 
-    tempDir = new File(parentDir, dbCfg.getBackendId());
+    tempDir = new File(parentDir, localDBBackendCfg.getBackendId());
     if(!tempDir.exists() && !tempDir.mkdirs())
     {
       Message message =
@@ -202,9 +268,53 @@ public class Importer
     {
      directBuffer = null;
     }
+    initializeDBEnv(envConfig);
   }
 
-    private void getBufferSizes(long availMem, int buffers)
+  /**
+   * Return and import LDIF instance using the specified arguments.
+   *
+   * @param importCfg The import config to use.
+   * @param localDBBackendCfg The local DB backend config to use.
+   * @param envCfg The JEB environment config to use.
+   * @return A import LDIF instance.
+   *
+   * @throws IOException If an I/O error occurs.
+   * @throws InitializationException If the instance cannot be initialized.
+   */
+  public static
+  Importer getInstance(LDIFImportConfig importCfg,
+                       LocalDBBackendCfg localDBBackendCfg,
+                       EnvironmentConfig envCfg)
+          throws IOException, InitializationException
+  {
+     return  new Importer(importCfg, localDBBackendCfg, envCfg);
+  }
+
+
+  /**
+   * Return an import rebuild index instance using the specified arguments.
+   *
+   * @param rebuildCfg The rebuild config to use.
+   * @param localDBBackendCfg The local DB backend config to use.
+   * @param envCfg The JEB environment config to use.
+   * @return An import rebuild index instance.
+   *
+   * @throws IOException If an I/O error occurs.
+   * @throws InitializationException If the instance cannot be initialized.
+   * @throws JebException If a JEB exception occurs.
+   * @throws ConfigException If the instance cannot be configured.
+   */
+  public static synchronized
+  Importer getInstance(RebuildConfig rebuildCfg,
+                       LocalDBBackendCfg localDBBackendCfg,
+                       EnvironmentConfig envCfg)
+  throws IOException, InitializationException, JebException, ConfigException
+  {
+      return new Importer(rebuildCfg, localDBBackendCfg, envCfg);
+  }
+
+  private void getBufferSizes(long availMem, int buffers)
   {
     long memory = availMem - (MAX_DB_CACHE_SIZE + MAX_DB_LOG_BUFFER_BYTES);
     bufferSize = (int) (memory/buffers);
@@ -240,7 +350,6 @@ public class Importer
     }
   }
 
-
   /**
    * Return the suffix instance in the specified map that matches the specified
    * DN.
@@ -272,7 +381,7 @@ public class Importer
    *
    * @throws InitializationException If a problem occurs during calculation.
    */
-  public void initialize(EnvironmentConfig envConfig)
+  private void initializeDBEnv(EnvironmentConfig envConfig)
           throws InitializationException
   {
       Message message;
@@ -447,6 +556,33 @@ public class Importer
  }
 
 
+  /**
+   * Rebuild the indexes using the specified rootcontainer.
+   *
+   * @param rootContainer The rootcontainer to rebuild indexes in.
+   *
+   * @throws ConfigException If a configuration error occurred.
+   * @throws InitializationException If an initialization error occurred.
+   * @throws IOException If an IO error occurred.
+   * @throws JebException If the JEB database had an error.
+   * @throws DatabaseException If a database error occurred.
+   * @throws InterruptedException If an interrupted error occurred.
+   * @throws ExecutionException If an execution error occurred.
+   */
+  public void
+  rebuildIndexes(RootContainer rootContainer) throws ConfigException,
+          InitializationException, IOException, JebException, DatabaseException,
+          InterruptedException, ExecutionException
+  {
+    this.rootContainer = rootContainer;
+    long startTime = System.currentTimeMillis();
+    rebuildManager.initialize();
+    rebuildManager.printStartMessage();
+    rebuildManager.rebuldIndexes();
+    tempDir.delete();
+    rebuildManager.printStopMessage(startTime);
+  }
+
 
   /**
    * Import a LDIF using the specified root container.
@@ -493,9 +629,10 @@ public class Importer
       float rate = 0;
       if (importTime > 0)
         rate = 1000f * reader.getEntriesRead() / importTime;
-      message = NOTE_JEB_IMPORT_FINAL_STATUS.get(reader.getEntriesRead(),
-              importCount.get(), reader.getEntriesIgnored(), reader
-                 .getEntriesRejected(), migratedCount, importTime / 1000, rate);
+        message = NOTE_JEB_IMPORT_FINAL_STATUS.get(reader.getEntriesRead(),
+                  importCount.get(), reader.getEntriesIgnored(),
+                  reader.getEntriesRejected(), migratedCount,
+                  importTime / 1000, rate);
       logError(message);
     }
     finally
@@ -566,8 +703,11 @@ public class Importer
 
     tasks.add(new MigrateExistingTask());
     List<Future<Void>> results = execService.invokeAll(tasks);
-    for (Future<Void> result : results)
-      assert result.isDone();
+    for (Future<Void> result : results) {
+      if(!result.isDone()) {
+        result.get();
+      }
+    }
     tasks.clear();
     results.clear();
 
@@ -588,21 +728,23 @@ public class Importer
     }
     results = execService.invokeAll(tasks);
     for (Future<Void> result : results)
-      assert result.isDone();
-
-
+      if(!result.isDone()) {
+        result.get();
+      }
     tasks.clear();
     results.clear();
     tasks.add(new MigrateExcludedTask());
     results = execService.invokeAll(tasks);
     for (Future<Void> result : results)
-      assert result.isDone();
-
-
+      if(!result.isDone()) {
+        result.get();
+      }
     stopIndexWriterTasks();
     for (Future<?> result : indexWriterFutures)
     {
-      result.get();
+     if(!result.isDone()) {
+        result.get();
+      }
     }
     indexWriterList.clear();
     indexWriterFutures.clear();
@@ -618,7 +760,7 @@ public class Importer
   private void processPhaseTwo() throws InterruptedException
   {
     SecondPhaseProgressTask progress2Task =
-            new SecondPhaseProgressTask(indexMgrList);
+            new SecondPhaseProgressTask(indexMgrList, reader.getEntriesRead());
     Timer timer2 = new Timer();
     timer2.scheduleAtFixedRate(progress2Task, TIMER_INTERVAL, TIMER_INTERVAL);
     processIndexFiles();
@@ -975,24 +1117,23 @@ public class Importer
           Index index;
           if((index=attributeIndex.getEqualityIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType,IndexType.EQUALITY));
+                      new IndexKey(attributeType, ImportIndexType.EQUALITY));
           }
           if((index=attributeIndex.getPresenceIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.PRESENCE));
+                      new IndexKey(attributeType, ImportIndexType.PRESENCE));
           }
           if((index=attributeIndex.getSubstringIndex()) != null) {
-            int subLen = ((SubstringIndexer)index.indexer).getSubStringLen();
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.SUBSTRING, subLen));
+                new IndexKey(attributeType, ImportIndexType.SUBSTRING));
           }
           if((index=attributeIndex.getOrderingIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.ORDERING));
+                      new IndexKey(attributeType, ImportIndexType.ORDERING));
           }
           if((index=attributeIndex.getApproximateIndex()) != null) {
             processAttribute(index, entry, entryID,
-                       new IndexKey(attributeType,IndexType.APPROXIMATE));
+                      new IndexKey(attributeType, ImportIndexType.APPROXIMATE));
           }
           for(VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes()) {
             Transaction transaction = null;
@@ -1007,7 +1148,7 @@ public class Importer
             if(subIndexes != null) {
               for(Index subIndex: subIndexes) {
                 processAttribute(subIndex, entry, entryID,
-                          new IndexKey(attributeType, IndexType.EX_SUBSTRING));
+                     new IndexKey(attributeType, ImportIndexType.EX_SUBSTRING));
               }
             }
             Collection<Index> sharedIndexes =
@@ -1016,7 +1157,7 @@ public class Importer
             if(sharedIndexes !=null) {
               for(Index sharedIndex:sharedIndexes) {
                 processAttribute(sharedIndex, entry, entryID,
-                          new IndexKey(attributeType, IndexType.EX_SHARED));
+                       new IndexKey(attributeType, ImportIndexType.EX_SHARED));
               }
             }
           }
@@ -1274,24 +1415,23 @@ public class Importer
           Index index;
           if((index=attributeIndex.getEqualityIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType,IndexType.EQUALITY));
+                      new IndexKey(attributeType, ImportIndexType.EQUALITY));
           }
           if((index=attributeIndex.getPresenceIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.PRESENCE));
+                      new IndexKey(attributeType, ImportIndexType.PRESENCE));
           }
           if((index=attributeIndex.getSubstringIndex()) != null) {
-            int subLen = ((SubstringIndexer)index.indexer).getSubStringLen();
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.SUBSTRING, subLen));
+                new IndexKey(attributeType, ImportIndexType.SUBSTRING));
           }
           if((index=attributeIndex.getOrderingIndex()) != null) {
             processAttribute(index, entry, entryID,
-                      new IndexKey(attributeType, IndexType.ORDERING));
+                      new IndexKey(attributeType, ImportIndexType.ORDERING));
           }
           if((index=attributeIndex.getApproximateIndex()) != null) {
             processAttribute(index, entry, entryID,
-                       new IndexKey(attributeType,IndexType.APPROXIMATE));
+                      new IndexKey(attributeType, ImportIndexType.APPROXIMATE));
           }
           for(VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes()) {
             Transaction transaction = null;
@@ -1306,7 +1446,7 @@ public class Importer
             if(subIndexes != null) {
               for(Index subIndex: subIndexes) {
                 processAttribute(subIndex, entry, entryID,
-                          new IndexKey(attributeType, IndexType.EX_SUBSTRING));
+                     new IndexKey(attributeType, ImportIndexType.EX_SUBSTRING));
               }
             }
             Collection<Index> sharedIndexes =
@@ -1315,7 +1455,7 @@ public class Importer
             if(sharedIndexes !=null) {
               for(Index sharedIndex:sharedIndexes) {
                 processAttribute(sharedIndex, entry, entryID,
-                          new IndexKey(attributeType, IndexType.EX_SHARED));
+                        new IndexKey(attributeType, ImportIndexType.EX_SHARED));
               }
             }
           }
@@ -1346,8 +1486,8 @@ public class Importer
         {
           IndexKey indexKey = e.getKey();
           IndexBuffer indexBuffer = e.getValue();
-          IndexType indexType = indexKey.getIndexType();
-          if(indexType.equals(IndexType.DN))
+          ImportIndexType indexType = indexKey.getIndexType();
+          if(indexType.equals(ImportIndexType.DN))
           {
             indexBuffer.setComparator(dnComparator);
           }
@@ -1413,7 +1553,7 @@ public class Importer
       DatabaseContainer dn2id = suffix.getDN2ID();
       byte[] dnBytes = StaticUtils.getBytes(dn.toNormalizedString());
       int id = processKey(dn2id, dnBytes, entryID, dnComparator,
-                 new IndexKey(dnType, IndexType.DN), true);
+                 new IndexKey(dnType, ImportIndexType.DN), true);
       idECMap.putIfAbsent(id, suffix.getEntryContainer());
     }
 
@@ -2070,7 +2210,8 @@ public class Importer
      */
     public Void call() throws Exception
     {
-      if (importConfiguration.isCancelled())
+      if (importConfiguration != null &&
+          importConfiguration.isCancelled())
       {
         return null;
       }
@@ -2100,7 +2241,7 @@ public class Importer
         {
           return;
         }
-        if(indexKey.getIndexType().equals(IndexType.DN))
+        if(indexKey.getIndexType().equals(ImportIndexType.DN))
         {
           isDN = true;
         }
@@ -2522,6 +2663,837 @@ public class Importer
     }
   }
 
+
+  /**
+   * The rebuild manager handles all rebuild index related tasks.
+   */
+  class RebuildManager extends ImportTask {
+
+   private final RebuildConfig rebuildConfig;
+   private final LocalDBBackendCfg cfg;
+   private final Map<IndexKey, Index> indexMap =
+                          new LinkedHashMap<IndexKey, Index>();
+   private final Map<IndexKey, Collection<Index>> extensibleIndexMap =
+                               new LinkedHashMap<IndexKey, Collection<Index>>();
+   private DN2ID dn2id = null;
+   private DN2URI dn2uri = null;
+   private long totalEntries =0;
+   private final AtomicLong entriesProcessed = new AtomicLong(0);
+   private Suffix suffix = null;
+   private final boolean rebuildAll;
+   private EntryContainer ec;
+
+
+    /**
+     * Create an instance of the rebuild index manager using the specified
+     * parameters.
+     *
+     * @param rebuildConfig  The rebuild configuration to use.
+     * @param cfg The local DB configuration to use.
+     */
+    public RebuildManager(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg)
+    {
+      this.rebuildConfig = rebuildConfig;
+      this.cfg = cfg;
+      this.rebuildAll = rebuildConfig.isRebuildAll();
+    }
+
+    /**
+     * Initialize a rebuild manager to start rebuilding indexes.
+     *
+     * @throws ConfigException If an configuration error occurred.
+     * @throws InitializationException If an initialization error occurred.
+     */
+    public void initialize() throws ConfigException, InitializationException
+    {
+      ec = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
+      suffix = Suffix.createSuffixContext(ec, null, null, null);
+      if(suffix == null)
+      {
+        Message msg = ERR_JEB_REBUILD_SUFFIX_ERROR.get(rebuildConfig.
+                getBaseDN().toString());
+        throw new InitializationException(msg);
+      }
+    }
+
+    /**
+     * Print start message.
+     *
+     * @throws DatabaseException If an database error occurred.
+     */
+    public void printStartMessage() throws DatabaseException
+    {
+      StringBuilder sb = new StringBuilder();
+      List<String> rebuildList = rebuildConfig.getRebuildList();
+      for(String index : rebuildList)
+      {
+        if(sb.length() > 0)
+        {
+          sb.append(", ");
+        }
+        sb.append(index);
+      }
+      totalEntries = suffix.getID2Entry().getRecordCount();
+      Message message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
+      if(rebuildAll) {
+        message = NOTE_JEB_REBUILD_ALL_START.get(totalEntries);
+      }
+      logError(message);
+    }
+
+    /**
+     * Print stop message.
+     *
+     * @param startTime The time the rebuild started.
+     */
+    public void printStopMessage(long startTime)
+   {
+      long finishTime = System.currentTimeMillis();
+      long totalTime = (finishTime - startTime);
+      float rate = 0;
+      if (totalTime > 0)
+      {
+        rate = 1000f* entriesProcessed.get() / totalTime;
+      }
+      Message message =
+                     NOTE_JEB_REBUILD_FINAL_STATUS.get(entriesProcessed.get(),
+                                                       totalTime/1000, rate);
+     logError(message);
+   }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void call() throws Exception
+    {
+      ID2Entry id2entry = ec.getID2Entry();
+      Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
+      DatabaseEntry key = new DatabaseEntry();
+      DatabaseEntry data = new DatabaseEntry();
+      LockMode lockMode = LockMode.DEFAULT;
+      OperationStatus status;
+      try {
+      for (status = cursor.getFirst(key, data, lockMode);
+           status == OperationStatus.SUCCESS;
+           status = cursor.getNext(key, data, lockMode))
+      {
+        EntryID entryID = new EntryID(key);
+        Entry entry = ID2Entry.entryFromDatabase(
+                ByteString.wrap(data.getData()),
+                ec.getRootContainer().getCompressedSchema());
+        processEntry(entry, entryID);
+        entriesProcessed.getAndIncrement();
+      }
+      flushIndexBuffers();
+      cursor.close();
+      } catch (Exception e) {
+        System.out.println("here");
+        e.printStackTrace();
+      }
+      return null;
+  }
+
+    /**
+     * Perform the index rebuild.
+     *
+     * @throws DatabaseException If an database error occurred.
+     * @throws InterruptedException If an interrupted error occurred.
+     * @throws ExecutionException If an Excecution error occurred.
+     * @throws JebException If an JEB error occurred.
+     */
+    public void rebuldIndexes() throws DatabaseException, InterruptedException,
+                                      ExecutionException, JebException
+   {
+     processPhaseOne();
+     processPhaseTwo();
+     setIndexesTrusted();
+   }
+
+   private void setIndexesTrusted() throws JebException
+   {
+     try {
+       suffix.setIndexesTrusted();
+     }
+     catch (DatabaseException ex)
+     {
+       Message message =
+               NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage());
+       throw new JebException(message);
+     }
+   }
+
+   private void processPhaseOne() throws DatabaseException,
+           InterruptedException, ExecutionException {
+     if(rebuildAll)
+     {
+       clearAllIndexes();
+     }
+     else
+     {
+       clearRebuildListIndexes();
+     }
+     initializeIndexBuffers(threadCount);
+     RBFirstPhaseProgressTask progressTask = new RBFirstPhaseProgressTask();
+     Timer timer = new Timer();
+     timer.scheduleAtFixedRate(progressTask, TIMER_INTERVAL, TIMER_INTERVAL);
+     indexProcessService = Executors.newFixedThreadPool(2 * indexCount);
+     sortService = Executors.newFixedThreadPool(threadCount);
+     ExecutorService execService = Executors.newFixedThreadPool(threadCount);
+     List<Callable<Void>> tasks = new ArrayList<Callable<Void>>(threadCount);
+     for (int i = 0; i < threadCount; i++)
+     {
+       tasks.add(this);
+     }
+     List<Future<Void>> results = execService.invokeAll(tasks);
+     for (Future<Void> result : results) {
+       if(!result.isDone()) {
+         result.get();
+       }
+     }
+     stopIndexWriterTasks();
+     for (Future<?> result : indexWriterFutures)
+     {
+       if(!result.isDone()) {
+         result.get();
+       }
+     }
+     tasks.clear();
+     results.clear();
+     execService.shutdown();
+     freeBufferQueue.clear();
+     sortService.shutdown();
+     timer.cancel();
+   }
+
+
+   private void processPhaseTwo() throws InterruptedException
+   {
+     SecondPhaseProgressTask progress2Task =
+            new SecondPhaseProgressTask(indexMgrList, entriesProcessed.get());
+     Timer timer2 = new Timer();
+     timer2.scheduleAtFixedRate(progress2Task, TIMER_INTERVAL, TIMER_INTERVAL);
+     processIndexFiles();
+     timer2.cancel();
+   }
+
+   private int getIndexCount() throws ConfigException, JebException
+   {
+    int indexCount;
+    if(!rebuildAll)
+    {
+      indexCount = getRebuildListIndexCount(cfg);
+    }
+    else
+    {
+      indexCount = getAllIndexesCount(cfg);
+    }
+     return indexCount;
+   }
+
+   private int getAllIndexesCount(LocalDBBackendCfg cfg)
+   {
+     int indexCount = cfg.listLocalDBIndexes().length;
+     indexCount += cfg.listLocalDBVLVIndexes().length;
+     indexCount += 4;
+     return indexCount;
+   }
+
+   private int getRebuildListIndexCount(LocalDBBackendCfg cfg)
+           throws JebException, ConfigException
+   {
+     int indexCount = 0;
+     List<String> rebuildList = rebuildConfig.getRebuildList();
+     if(!rebuildList.isEmpty())
+     {
+       for (String index : rebuildList)
+       {
+         String lowerName = index.toLowerCase();
+         if (lowerName.equals("dn2id"))
+         {
+           indexCount += 3;
+         }
+         else if (lowerName.equals("dn2uri"))
+         {
+           indexCount++;
+         }
+         else if (lowerName.startsWith("vlv."))
+         {
+           if(lowerName.length() < 5)
+           {
+             Message msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
+             throw new JebException(msg);
+           }
+           indexCount++;
+         } else if(lowerName.equals("id2subtree") ||
+                   lowerName.equals("id2children"))
+         {
+             Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+             throw new JebException(msg);
+         }
+         else
+         {
+           String[] attrIndexParts = lowerName.split("\\.");
+           if((attrIndexParts.length <= 0) || (attrIndexParts.length > 3))
+           {
+             Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+             throw new JebException(msg);
+           }
+           AttributeType attrType =
+                   DirectoryServer.getAttributeType(attrIndexParts[0]);
+           if (attrType == null)
+           {
+             Message msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+             throw new JebException(msg);
+           }
+           if(attrIndexParts.length != 1)
+           {
+             if(attrIndexParts.length == 2)
+             {
+               if(attrIndexParts[1].equals("presence"))
+               {
+                 indexCount++;
+               }
+               else if(attrIndexParts[1].equals("equality"))
+               {
+                 indexCount++;
+               }
+               else if(attrIndexParts[1].equals("substring"))
+               {
+                 indexCount++;
+               }
+               else if(attrIndexParts[1].equals("ordering"))
+               {
+                 indexCount++;
+               }
+               else if(attrIndexParts[1].equals("approximate"))
+               {
+                 indexCount++;
+               } else {
+                 Message msg =
+                              ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+                 throw new JebException(msg);
+               }
+             }
+             else
+             {
+               boolean found = false;
+               String s = attrIndexParts[1] + "." + attrIndexParts[2];
+               for (String idx : cfg.listLocalDBIndexes())
+               {
+                 LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+                 if (indexCfg.getIndexType().
+                     contains(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+                 {
+                   Set<String> extensibleRules =
+                           indexCfg.getIndexExtensibleMatchingRule();
+                   for(String exRule : extensibleRules)
+                   {
+                     if(exRule.equalsIgnoreCase(s))
+                     {
+                       found = true;
+                       break;
+                     }
+                   }
+                 }
+                 if(found)
+                 {
+                   break;
+                 }
+               }
+               if(!found) {
+                 Message msg =
+                             ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+                 throw new JebException(msg);
+               }
+               indexCount++;
+             }
+           }
+           else
+           {
+             for (String idx : cfg.listLocalDBIndexes())
+             {
+               if(!idx.equalsIgnoreCase(index))
+               {
+                 continue;
+               }
+               LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+               if(indexCfg.getIndexType().
+                  contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
+               {
+                 indexCount++;
+               }
+               if(indexCfg.getIndexType().
+                  contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
+               {
+                 indexCount++;
+               }
+               if(indexCfg.getIndexType().
+                  contains(LocalDBIndexCfgDefn.IndexType.PRESENCE))
+               {
+                 indexCount++;
+               }
+               if(indexCfg.getIndexType().
+                 contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
+               {
+                 indexCount++;
+               }
+               if(indexCfg.getIndexType().
+                 contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
+               {
+                 indexCount++;
+               }
+               if (indexCfg.getIndexType().
+                   contains(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+               {
+                 Set<String> extensibleRules =
+                         indexCfg.getIndexExtensibleMatchingRule();
+                 boolean shared = false;
+                 for(String exRule : extensibleRules)
+                 {
+                   if(exRule.endsWith(".sub"))
+                   {
+                     indexCount++;
+                   }
+                   else
+                   {
+                     if(!shared)
+                     {
+                       shared=true;
+                       indexCount++;
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+     return indexCount;
+   }
+
+   private void clearRebuildListIndexes() throws DatabaseException
+   {
+     List<String> rebuildList = rebuildConfig.getRebuildList();
+     if(!rebuildList.isEmpty())
+     {
+       for (String index : rebuildList)
+       {
+         String lowerName = index.toLowerCase();
+         if (lowerName.equals("dn2id"))
+         {
+            clearDN2IDIndexes(ec);
+         }
+         else if (lowerName.equals("dn2uri"))
+         {
+           clearDN2URI(ec);
+         }
+         else if (lowerName.startsWith("vlv."))
+         {
+           clearVLVIndex(lowerName.substring(4), ec);
+         }
+         else
+         {
+           String[] attrIndexParts = lowerName.split("\\.");
+           AttributeType attrType =
+                   DirectoryServer.getAttributeType(attrIndexParts[0]);
+           AttributeIndex attrIndex = ec.getAttributeIndex(attrType);
+
+           if(attrIndexParts.length != 1)
+           {
+             Index partialAttrIndex;
+             if(attrIndexParts[1].equals("presence"))
+             {
+               partialAttrIndex = attrIndex.getPresenceIndex();
+               ec.clearDatabase(partialAttrIndex);
+               IndexKey indexKey =
+                       new IndexKey(attrType, ImportIndexType.PRESENCE);
+               indexMap.put(indexKey, partialAttrIndex);
+             }
+             else if(attrIndexParts[1].equals("equality"))
+             {
+               partialAttrIndex = attrIndex.getEqualityIndex();
+               ec.clearDatabase(partialAttrIndex);
+               IndexKey indexKey =
+                       new IndexKey(attrType, ImportIndexType.EQUALITY);
+               indexMap.put(indexKey, partialAttrIndex);
+             }
+             else if(attrIndexParts[1].equals("substring"))
+             {
+               partialAttrIndex = attrIndex.getSubstringIndex();
+               ec.clearDatabase(partialAttrIndex);
+               IndexKey indexKey =
+                       new IndexKey(attrType, ImportIndexType.SUBSTRING);
+               indexMap.put(indexKey, partialAttrIndex);
+             }
+             else if(attrIndexParts[1].equals("ordering"))
+             {
+               partialAttrIndex = attrIndex.getOrderingIndex();
+               ec.clearDatabase(partialAttrIndex);
+               IndexKey indexKey =
+                       new IndexKey(attrType, ImportIndexType.ORDERING);
+               indexMap.put(indexKey, partialAttrIndex);
+             }
+             else if(attrIndexParts[1].equals("approximate"))
+             {
+               partialAttrIndex = attrIndex.getApproximateIndex();
+               ec.clearDatabase(partialAttrIndex);
+               IndexKey indexKey =
+                       new IndexKey(attrType, ImportIndexType.APPROXIMATE);
+               indexMap.put(indexKey, partialAttrIndex);
+             }
+             else
+             {
+               String dbPart = "shared";
+               if(attrIndexParts[2].startsWith("sub"))
+               {
+                 dbPart = "substring";
+               }
+               StringBuilder nameBldr = new StringBuilder();
+               nameBldr.append(ec.getDatabasePrefix());
+               nameBldr.append("_");
+               nameBldr.append(attrIndexParts[0]);
+               nameBldr.append(".");
+               nameBldr.append(attrIndexParts[1]);
+               nameBldr.append(".");
+               nameBldr.append(dbPart);
+               String indexName = nameBldr.toString();
+               Map<String,Collection<Index>> extensibleMap =
+                       attrIndex.getExtensibleIndexes();
+               if(!extensibleMap.isEmpty()) {
+                 Collection<Index> subIndexes =
+                         attrIndex.getExtensibleIndexes().get(
+                                 EXTENSIBLE_INDEXER_ID_SUBSTRING);
+                 if(subIndexes != null) {
+                   for(Index subIndex : subIndexes) {
+                     String name = subIndex.getName();
+                     if(name.equalsIgnoreCase(indexName))
+                     {
+                       ec.clearDatabase(subIndex);
+                       Collection<Index> substring = new ArrayList<Index>();
+                       substring.add(subIndex);
+                       extensibleIndexMap.put(new IndexKey(attrType,
+                               ImportIndexType.EX_SUBSTRING),substring);
+                       break;
+                     }
+                   }
+                   Collection<Index> sharedIndexes = attrIndex.
+                       getExtensibleIndexes().get(EXTENSIBLE_INDEXER_ID_SHARED);
+                   if(sharedIndexes !=null) {
+                     for(Index sharedIndex : sharedIndexes) {
+                       String name = sharedIndex.getName();
+                       if(name.equalsIgnoreCase(indexName))
+                       {
+                         ec.clearDatabase(sharedIndex);
+                         Collection<Index> shared = new ArrayList<Index>();
+                         shared.add(sharedIndex);
+                         extensibleIndexMap.put(new IndexKey(attrType,
+                                            ImportIndexType.EX_SHARED), shared);
+                         break;
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+           else
+           {
+             clearAttributeIndexes(attrIndex, attrType, ec);
+           }
+         }
+       }
+     }
+   }
+
+
+   private void clearAllIndexes() throws DatabaseException
+   {
+     for(Map.Entry<AttributeType, AttributeIndex> mapEntry :
+             suffix.getAttrIndexMap().entrySet()) {
+       AttributeType attributeType = mapEntry.getKey();
+       AttributeIndex attributeIndex = mapEntry.getValue();
+       clearAttributeIndexes(attributeIndex, attributeType, ec);
+     }
+     for(VLVIndex vlvIndex : suffix.getEntryContainer().getVLVIndexes()) {
+       ec.clearDatabase(vlvIndex);
+     }
+     clearDN2IDIndexes(ec);
+     if(ec.getDN2URI() != null)
+     {
+       clearDN2URI(ec);
+     }
+   }
+
+   private void clearVLVIndex(String name, EntryContainer ec)
+           throws DatabaseException
+   {
+     VLVIndex vlvIndex = ec.getVLVIndex(name);
+     ec.clearDatabase(vlvIndex);
+   }
+
+   private void clearDN2URI(EntryContainer ec) throws DatabaseException
+   {
+     ec.clearDatabase(ec.getDN2URI());
+     dn2uri = ec.getDN2URI();
+   }
+
+   private void clearDN2IDIndexes(EntryContainer ec) throws DatabaseException
+   {
+     ec.clearDatabase(ec.getDN2ID());
+     ec.clearDatabase(ec.getID2Children());
+     ec.clearDatabase(ec.getID2Subtree());
+     dn2id = ec.getDN2ID();
+   }
+
+   private void clearAttributeIndexes(AttributeIndex attrIndex,
+                               AttributeType attrType, EntryContainer ec)
+   throws DatabaseException
+   {
+     Index partialAttrIndex;
+     if(attrIndex.getSubstringIndex() != null)
+     {
+       partialAttrIndex = attrIndex.getSubstringIndex();
+       ec.clearDatabase(partialAttrIndex);
+       IndexKey indexKey =
+               new IndexKey(attrType, ImportIndexType.SUBSTRING);
+       indexMap.put(indexKey, partialAttrIndex);
+     }
+     if(attrIndex.getOrderingIndex() != null)
+     {
+       partialAttrIndex = attrIndex.getOrderingIndex();
+       ec.clearDatabase(partialAttrIndex);
+       IndexKey indexKey =
+               new IndexKey(attrType, ImportIndexType.ORDERING);
+       indexMap.put(indexKey, partialAttrIndex);
+     }
+     if(attrIndex.getEqualityIndex() != null)
+     {
+       partialAttrIndex = attrIndex.getEqualityIndex();
+       ec.clearDatabase(partialAttrIndex);
+       IndexKey indexKey =
+               new IndexKey(attrType, ImportIndexType.EQUALITY);
+       indexMap.put(indexKey, partialAttrIndex);
+     }
+     if(attrIndex.getPresenceIndex() != null)
+     {
+       partialAttrIndex = attrIndex.getPresenceIndex();
+       ec.clearDatabase(partialAttrIndex);
+       IndexKey indexKey =
+               new IndexKey(attrType, ImportIndexType.PRESENCE);
+       indexMap.put(indexKey, partialAttrIndex);
+
+     }
+     if(attrIndex.getApproximateIndex() != null)
+     {
+       partialAttrIndex = attrIndex.getApproximateIndex();
+       ec.clearDatabase(partialAttrIndex);
+       IndexKey indexKey =
+               new IndexKey(attrType, ImportIndexType.APPROXIMATE);
+       indexMap.put(indexKey, partialAttrIndex);
+     }
+     Map<String,Collection<Index>> extensibleMap =
+             attrIndex.getExtensibleIndexes();
+     if(!extensibleMap.isEmpty()) {
+       Collection<Index> subIndexes =
+               attrIndex.getExtensibleIndexes().get(
+                       EXTENSIBLE_INDEXER_ID_SUBSTRING);
+       if(subIndexes != null) {
+         for(Index subIndex : subIndexes) {
+           ec.clearDatabase(subIndex);
+         }
+         extensibleIndexMap.put(new IndexKey(attrType,
+                               ImportIndexType.EX_SUBSTRING), subIndexes);
+       }
+       Collection<Index> sharedIndexes =
+             attrIndex.getExtensibleIndexes().get(EXTENSIBLE_INDEXER_ID_SHARED);
+       if(sharedIndexes !=null) {
+         for(Index sharedIndex : sharedIndexes) {
+           ec.clearDatabase(sharedIndex);
+         }
+         extensibleIndexMap.put(new IndexKey(attrType,
+                                     ImportIndexType.EX_SHARED), sharedIndexes);
+       }
+     }
+   }
+
+
+   private
+   void processEntry(Entry entry, EntryID entryID) throws DatabaseException,
+           ConfigException, DirectoryException, JebException
+   {
+     if(dn2id != null)
+     {
+        processDN2ID(suffix, entry.getDN(), entryID);
+     }
+     if(dn2uri != null)
+     {
+        processDN2URI(suffix, null, entry);
+     }
+     processIndexes(entry, entryID);
+     processExtensibleIndexes(entry, entryID);
+     processVLVIndexes(entry, entryID);
+   }
+
+   private void processVLVIndexes(Entry entry, EntryID entryID)
+           throws DatabaseException, JebException, DirectoryException
+   {
+     for(VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes()) {
+       Transaction transaction = null;
+       vlvIdx.addEntry(transaction, entryID, entry);
+     }
+   }
+
+
+   private void processExtensibleIndexes(Entry entry, EntryID entryID) throws
+          DatabaseException, DirectoryException, JebException, ConfigException
+   {
+     for(Map.Entry<IndexKey, Collection<Index>> mapEntry :
+             this.extensibleIndexMap.entrySet()) {
+       IndexKey key = mapEntry.getKey();
+       AttributeType attrType = key.getType();
+       if(entry.hasAttribute(attrType)) {
+         Collection<Index> indexes = mapEntry.getValue();
+         for(Index index : indexes) {
+            processAttribute(index, entry, entryID, key);
+         }
+       }
+     }
+   }
+
+   private void
+   processIndexes(Entry entry, EntryID entryID) throws
+           DatabaseException, DirectoryException, JebException, ConfigException
+   {
+
+     for(Map.Entry<IndexKey, Index> mapEntry :
+             indexMap.entrySet()) {
+       IndexKey key = mapEntry.getKey();
+       AttributeType attrType = key.getType();
+       if(entry.hasAttribute(attrType)) {
+         ImportIndexType indexType = key.getIndexType();
+         Index index = mapEntry.getValue();
+         if(indexType == ImportIndexType.SUBSTRING)
+         {
+           processAttribute(index, entry, entryID,
+                   new IndexKey(attrType, ImportIndexType.SUBSTRING));
+         }
+         else
+         {
+            processAttribute(index, entry, entryID,
+                             new IndexKey(attrType, indexType));
+         }
+       }
+     }
+   }
+
+   /**
+    * Return the number of entries processed by the rebuild manager.
+    *
+    * @return The number of entries processed.
+    */
+   public long getEntriesProcess()
+   {
+     return this.entriesProcessed.get();
+   }
+
+   /**
+    * Return the total number of entries to process by the rebuild manager.
+    *
+    * @return The total number for entries to process.
+    */
+   public long getTotEntries()
+   {
+     return this.totalEntries;
+   }
+  }
+
+  /**
+    * This class reports progress of the rebuild job at fixed intervals.
+    */
+   class RBFirstPhaseProgressTask extends TimerTask
+   {
+     /**
+      * The number of records that had been processed at the time of the
+      * previous progress report.
+      */
+     private long previousProcessed = 0;
+
+     /**
+      * The time in milliseconds of the previous progress report.
+      */
+     private long previousTime;
+
+     /**
+      * The environment statistics at the time of the previous report.
+      */
+     private EnvironmentStats prevEnvStats;
+
+    /**
+      * Create a new verify progress task.
+      * @throws DatabaseException An error occurred while accessing the JE
+      * database.
+      */
+     public RBFirstPhaseProgressTask() throws DatabaseException
+     {
+       previousTime = System.currentTimeMillis();
+       prevEnvStats =
+           rootContainer.getEnvironmentStats(new StatsConfig());
+     }
+
+     /**
+      * The action to be performed by this timer task.
+      */
+     public void run()
+     {
+       long latestTime = System.currentTimeMillis();
+       long deltaTime = latestTime - previousTime;
+
+       if (deltaTime == 0)
+       {
+         return;
+       }
+       long currentRBProcessed = rebuildManager.getEntriesProcess();
+       long deltaCount = (currentRBProcessed - previousProcessed);
+       float rate = 1000f*deltaCount / deltaTime;
+       float completed = 0;
+       if(rebuildManager.getTotEntries() > 0)
+       {
+         completed = 100f*currentRBProcessed / rebuildManager.getTotEntries();
+       }
+       Message message = NOTE_JEB_REBUILD_PROGRESS_REPORT.get(
+           completed, currentRBProcessed, rebuildManager.getTotEntries(), rate);
+       logError(message);
+       try
+       {
+         Runtime runtime = Runtime.getRuntime();
+         long freeMemory = runtime.freeMemory() / MB;
+         EnvironmentStats envStats =
+             rootContainer.getEnvironmentStats(new StatsConfig());
+         long nCacheMiss =
+              envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
+
+         float cacheMissRate = 0;
+         if (deltaCount > 0)
+         {
+           cacheMissRate = nCacheMiss/(float)deltaCount;
+         }
+         message = NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT.get(
+             freeMemory, cacheMissRate);
+         logError(message);
+         prevEnvStats = envStats;
+       }
+       catch (DatabaseException e)
+       {
+
+       }
+       previousProcessed = currentRBProcessed;
+       previousTime = latestTime;
+     }
+   }
+
+
   /**
    * This class reports progress of the import job at fixed intervals.
    */
@@ -2665,7 +3637,7 @@ public class Importer
   /**
    * This class reports progress of the import job at fixed intervals.
    */
-  private final class SecondPhaseProgressTask extends TimerTask
+  class SecondPhaseProgressTask extends TimerTask
   {
     /**
      * The number of entries that had been read at the time of the
@@ -2687,16 +3659,19 @@ public class Importer
     private boolean evicting = false;
 
     private final List<IndexManager> indexMgrList;
-
+    private long latestCount;
 
       /**
      * Create a new import progress task.
      * @param indexMgrList List of index managers.
+     * @param  latestCount The latest count of entries processed in phase one.
      */
-    public SecondPhaseProgressTask (List<IndexManager> indexMgrList)
+    public SecondPhaseProgressTask (List<IndexManager> indexMgrList,
+                                    long latestCount)
     {
       previousTime = System.currentTimeMillis();
       this.indexMgrList = indexMgrList;
+      this.latestCount = latestCount;
       try
       {
         previousStats =
@@ -2715,7 +3690,6 @@ public class Importer
     @Override
     public void run()
     {
-      long latestCount = reader.getEntriesRead() + 0;
       long deltaCount = (latestCount - previousCount);
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
@@ -2847,7 +3821,7 @@ public class Importer
    * This class defines the individual index type available.
    *
    */
-  public enum IndexType {
+  public enum ImportIndexType {
     /**
      * The DN index type.
      **/
@@ -2886,9 +3860,13 @@ public class Importer
     /**
      * The extensible shared index type.
      **/
-    EX_SHARED
-  }
+    EX_SHARED,
 
+    /**
+     * The vlv index type.
+     */
+    VLV
+  }
 
   /**
    * This class is used as an index key for hash maps that need to
@@ -2901,22 +3879,8 @@ public class Importer
   public class IndexKey {
 
     private final AttributeType type;
-    private final IndexType indexType;
-    private byte[] keyBytes = null;
+    private final ImportIndexType indexType;
 
-    /**
-     * Create index key instance using the specified attribute type, index type
-     * and sub-string length. Used only for sub-string indexes.
-     *
-     * @param type The attribute type.
-     * @param indexType The index type.
-     * @param subLen The sub-string length.
-     */
-    IndexKey(AttributeType type, IndexType indexType, int subLen)
-    {
-      this(type, indexType);
-      keyBytes = new byte[subLen];
-    }
 
    /**
      * Create index key instance using the specified attribute type, index type.
@@ -2924,31 +3888,31 @@ public class Importer
      * @param type The attribute type.
      * @param indexType The index type.
      */
-    IndexKey(AttributeType type, IndexType indexType)
+    IndexKey(AttributeType type, ImportIndexType indexType)
     {
       this.type = type;
       this.indexType = indexType;
     }
 
-      /**
-       * An equals method that uses both the attribute type and the index type.
-       *
-       * @param obj the object to compare.
-       * @return <CODE>true</CODE> if the objects are equal.
-       */
-      public boolean equals(Object obj)
-      {
-          boolean returnCode = false;
-          if (obj instanceof IndexKey) {
-              IndexKey oKey = (IndexKey) obj;
-              if(type.equals(oKey.getType()) &&
-                 indexType.equals(oKey.getIndexType()))
-              {
-                  returnCode = true;
-              }
-          }
-          return returnCode;
+    /**
+     * An equals method that uses both the attribute type and the index type.
+     *
+     * @param obj the object to compare.
+     * @return <CODE>true</CODE> if the objects are equal.
+     */
+    public boolean equals(Object obj)
+    {
+      boolean returnCode = false;
+      if (obj instanceof IndexKey) {
+        IndexKey oKey = (IndexKey) obj;
+        if(type.equals(oKey.getType()) &&
+                indexType.equals(oKey.getIndexType()))
+        {
+          returnCode = true;
+        }
       }
+      return returnCode;
+    }
 
     /**
      * A hash code method that adds the hash codes of the attribute type and
@@ -2975,7 +3939,7 @@ public class Importer
      * Return the index type.
      * @return The index type.
      */
-    public IndexType getIndexType()
+    public ImportIndexType getIndexType()
     {
       return indexType;
     }
@@ -2990,7 +3954,7 @@ public class Importer
     public String getName()
     {
       return type.getPrimaryName() + "." +
-             StaticUtils.toLowerCase(indexType.name());
+              StaticUtils.toLowerCase(indexType.name());
     }
   }
 }
