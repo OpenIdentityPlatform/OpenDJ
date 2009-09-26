@@ -52,26 +52,10 @@ import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.TaskMessages.
-    ERR_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
-import static org.opends.messages.ToolMessages.
-    ERR_REBUILDINDEX_ERROR_DURING_REBUILD;
-import static org.opends.messages.ToolMessages.
-    ERR_REBUILDINDEX_WRONG_BACKEND_TYPE;
-import static org.opends.messages.ToolMessages.
-    ERR_NO_BACKENDS_FOR_BASE;
-import static org.opends.messages.ToolMessages.
-    ERR_CANNOT_DECODE_BASE_DN;
-import static org.opends.messages.ToolMessages.
-    ERR_REBUILDINDEX_CANNOT_EXCLUSIVE_LOCK_BACKEND;
-import static org.opends.messages.ToolMessages.
-    WARN_REBUILDINDEX_CANNOT_UNLOCK_BACKEND;
-import static org.opends.server.config.ConfigConstants.
-    ATTR_REBUILD_BASE_DN;
-import static org.opends.server.config.ConfigConstants.
-    ATTR_REBUILD_INDEX;
-import static org.opends.server.config.ConfigConstants.
-    ATTR_REBUILD_MAX_THREADS;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -89,7 +73,8 @@ public class RebuildTask extends Task
 
   String baseDN = null;
   ArrayList<String> indexes = null;
-  int maxThreads = -1;
+  private String tmpDirectory = null;
+  private boolean rebuildAll = false;
 
   /**
    * {@inheritDoc}
@@ -123,14 +108,14 @@ public class RebuildTask extends Task
 
     AttributeType typeBaseDN;
     AttributeType typeIndex;
-    AttributeType typeMaxThreads;
+    AttributeType typeTmpDirectory;
 
     typeBaseDN =
          getAttributeType(ATTR_REBUILD_BASE_DN, true);
     typeIndex =
          getAttributeType(ATTR_REBUILD_INDEX, true);
-    typeMaxThreads =
-         getAttributeType(ATTR_REBUILD_MAX_THREADS, true);
+    typeTmpDirectory =
+         getAttributeType(ATTR_REBUILD_TMP_DIRECTORY, true);
 
     List<Attribute> attrList;
 
@@ -140,9 +125,32 @@ public class RebuildTask extends Task
     attrList = taskEntry.getAttribute(typeIndex);
     indexes = TaskUtils.getMultiValueString(attrList);
 
+    if(isRebuildAll(indexes))
+    {
+      if(indexes.size() != 1)
+      {
+        Message msg = ERR_TASK_INDEXREBUILD_ALL_ERROR.get();
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
+      }
+      rebuildAll = true;
+      indexes.clear();
+    }
 
-    attrList = taskEntry.getAttribute(typeMaxThreads);
-    maxThreads = TaskUtils.getSingleValueInteger(attrList, -1);
+    attrList = taskEntry.getAttribute(typeTmpDirectory);
+    tmpDirectory = TaskUtils.getSingleValueString(attrList);
+
+  }
+
+  private boolean isRebuildAll(List<String> indexList)
+  {
+    for(String s : indexList)
+    {
+      if(s.equalsIgnoreCase(REBUILD_ALL))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -169,7 +177,6 @@ public class RebuildTask extends Task
       rebuildConfig.addRebuildIndex(index);
     }
 
-    rebuildConfig.setMaxRebuildThreads(maxThreads);
 
     Backend backend =
         DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
@@ -228,7 +235,12 @@ public class RebuildTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-
+     if(tmpDirectory == null)
+    {
+      tmpDirectory = "import-tmp";
+    }
+    rebuildConfig.setTmpDirectory(tmpDirectory);
+    rebuildConfig.setRebuildAll(rebuildAll);
     TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
     // Launch the rebuild process.
     try

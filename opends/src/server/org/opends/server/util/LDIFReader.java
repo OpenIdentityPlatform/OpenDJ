@@ -236,7 +236,7 @@ public final class LDIFReader
 
 
 
-  private final Entry readEntry(boolean checkSchema, Map<DN, Suffix> map,
+  private  Entry readEntry(boolean checkSchema, Map<DN, Suffix> map,
                                 Importer.EntryInformation entryInfo)
           throws IOException, LDIFException
   {
@@ -244,8 +244,8 @@ public final class LDIFReader
     {
       LinkedList<StringBuilder> lines;
       DN entryDN;
-      EntryID entryID = null;
-      Suffix suffix = null;
+      EntryID entryID;
+      Suffix suffix;
       synchronized (this)
       {
         // Read the set of lines that make up the next entry.
@@ -260,7 +260,14 @@ public final class LDIFReader
 
         // Read the DN of the entry and see if it is one that should be included
         // in the import.
-        entryDN = readDN(lines);
+
+        try
+        {
+          entryDN = readDN(lines);
+        } catch (LDIFException le) {
+          entriesIgnored.incrementAndGet();
+          continue;
+        }
         if (entryDN == null)
         {
           // This should only happen if the LDIF starts with the "version:" line
@@ -904,7 +911,8 @@ public final class LDIFReader
         // The value did not have a valid base64-encoding.
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugInfo("Base64 decode failed for dn: ",
+                            line.substring(pos));
         }
 
         Message message =
@@ -925,7 +933,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugInfo("DN decode failed for: ", dnStr);
         }
 
         Message message = ERR_LDIF_INVALID_DN.get(
@@ -940,9 +948,8 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugInfo("DN decode failed for: ", dnStr);
         }
-
         Message message = ERR_LDIF_INVALID_DN.get(
                 lastEntryLineNumber, line.toString(),
                 String.valueOf(e));
@@ -972,9 +979,8 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugInfo("DN decode failed for: ", line.substring(pos));
         }
-
         Message message = ERR_LDIF_INVALID_DN.get(
                 lastEntryLineNumber, line.toString(), de.getMessageObject());
 
@@ -986,7 +992,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugInfo("DN decode failed for: ", line.substring(pos));
         }
 
         Message message = ERR_LDIF_INVALID_DN.get(
@@ -1103,9 +1109,7 @@ public final class LDIFReader
         pos++;
       }
 
-      String changeTypeString = line.substring(pos);
-
-      return changeTypeString;
+      return line.substring(pos);
     }
   }
 
@@ -1269,51 +1273,41 @@ public final class LDIFReader
 
       // Check to see if any of the attributes in the list have the same set of
       // options.  If so, then try to add a value to that attribute.
-      for (int i = 0; i < attrList.size(); i++) {
-        AttributeBuilder a = attrList.get(i);
-
-        if (a.optionsEqual(attribute.getOptions()))
-        {
-          if (a.contains(attributeValue))
-          {
-            if (! checkSchema)
-            {
+      for (AttributeBuilder a : attrList) {
+        if (a.optionsEqual(attribute.getOptions())) {
+          if (a.contains(attributeValue)) {
+            if (!checkSchema) {
               // If we're not doing schema checking, then it is possible that
               // the attribute type should use case-sensitive matching and the
               // values differ in capitalization.  Only reject the proposed
               // value if we find another value that is exactly the same as the
               // one that was provided.
-              for (AttributeValue v : a)
-              {
-                if (v.getValue().equals(attributeValue.getValue()))
-                {
+              for (AttributeValue v : a) {
+                if (v.getValue().equals(attributeValue.getValue())) {
                   Message message = WARN_LDIF_DUPLICATE_ATTR.get(
                           String.valueOf(entryDN),
                           lastEntryLineNumber, attrName,
                           value.toString());
                   logToRejectWriter(lines, message);
                   throw new LDIFException(message, lastEntryLineNumber,
-                                          true);
+                          true);
                 }
               }
-            }
-            else
-            {
+            } else {
               Message message = WARN_LDIF_DUPLICATE_ATTR.get(
                       String.valueOf(entryDN),
                       lastEntryLineNumber, attrName,
                       value.toString());
               logToRejectWriter(lines, message);
               throw new LDIFException(message, lastEntryLineNumber,
-                                      true);
+                      true);
             }
           }
 
-          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema)
-          {
+          if (attrType.isSingleValue() && !a.isEmpty() && checkSchema) {
             Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
                     .get(String.valueOf(entryDN),
-                         lastEntryLineNumber, attrName);
+                            lastEntryLineNumber, attrName);
             logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
@@ -1328,7 +1322,6 @@ public final class LDIFReader
       AttributeBuilder builder = new AttributeBuilder(attribute, true);
       builder.add(attributeValue);
       attrList.add(builder);
-      return;
     }
   }
 
@@ -2356,7 +2349,6 @@ public final class LDIFReader
       AttributeBuilder builder = new AttributeBuilder(attribute, true);
       builder.add(attributeValue);
       attrList.add(builder.toAttribute());
-      return;
     }
   }
 }

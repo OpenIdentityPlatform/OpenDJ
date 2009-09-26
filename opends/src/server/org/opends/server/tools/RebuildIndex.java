@@ -80,6 +80,8 @@ public class RebuildIndex extends TaskTool
   private StringArgument  configFile              = null;
   private StringArgument  baseDNString            = null;
   private StringArgument  indexList               = null;
+  private StringArgument  tmpDirectory            = null;
+  private BooleanArgument rebuildAll               = null;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -140,7 +142,7 @@ public class RebuildIndex extends TaskTool
     }
 
     // Define the command-line arguments that may be used with this program.
-    BooleanArgument displayUsage            = null;
+    BooleanArgument displayUsage ;
 
 
     // Create the command-line argument parser for use with this program.
@@ -186,6 +188,19 @@ public class RebuildIndex extends TaskTool
                               INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
       argParser.addArgument(indexList);
 
+
+      rebuildAll =
+           new BooleanArgument("rebuildAll", null, "rebuildAll",
+                    INFO_REBUILDINDEX_DESCRIPTION_REBUILD_ALL.get());
+      argParser.addArgument(rebuildAll);
+
+
+      tmpDirectory =
+           new StringArgument("tmpdirectory", null, "tmpdirectory", false,
+                   false, true, INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get(),
+                   "import-tmp",
+                    null, INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY.get());
+      argParser.addArgument(tmpDirectory);
 
       displayUsage =
            new BooleanArgument("help", 'H', "help",
@@ -236,7 +251,7 @@ public class RebuildIndex extends TaskTool
     }
 
 
-    if (indexList.getValues().size() <= 0)
+    if (indexList.getValues().size() <= 0 && !rebuildAll.isPresent())
     {
       Message message = ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get();
 
@@ -245,6 +260,13 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
+    if(rebuildAll.isPresent() && indexList.isPresent())
+    {
+      Message msg = ERR_REBUILDINDEX_REBUILD_ALL_ERROR.get();
+      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
+      return 1;
+    }
     return process(argParser, initializeServer, out, err);
   }
 
@@ -424,7 +446,7 @@ public class RebuildIndex extends TaskTool
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
-    int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
+    BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
@@ -498,6 +520,9 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
+   rebuildConfig.setRebuildAll(rebuildAll.isPresent());
+   rebuildConfig.setTmpDirectory(tmpDirectory.getValue());
+
     // Launch the rebuild process.
     int returnCode = 0;
     try
@@ -567,6 +592,25 @@ public class RebuildIndex extends TaskTool
       values.add(ByteString.valueOf(s));
     }
     attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+
+
+    if (tmpDirectory.getValue() != null &&
+            !tmpDirectory.getValue().equals(
+                    tmpDirectory.getDefaultValue())) {
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(tmpDirectory.getValue()));
+      attributes.add(new LDAPAttribute(ATTR_REBUILD_TMP_DIRECTORY, values));
+    }
+
+
+    if (rebuildAll.getValue() != null &&
+            !rebuildAll.getValue().equals(
+                    rebuildAll.getDefaultValue())) {
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(REBUILD_ALL));
+      attributes.add(
+              new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+    }
   }
 
   /**

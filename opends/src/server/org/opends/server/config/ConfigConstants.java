@@ -4332,10 +4332,15 @@ public final class ConfigConstants
 
   /**
    * The name of the attribute in an rebuild task definition that specifies the
-   * maximum number of threads.
+   * temporary scratch file.
    */
-  public static final String ATTR_REBUILD_MAX_THREADS =
-       NAME_PREFIX_TASK + "rebuild-max-threads";
+  public static final String ATTR_REBUILD_TMP_DIRECTORY =
+       NAME_PREFIX_TASK + "rebuild-tmp-directory";
+
+  /**
+   * Used to specify that the rebuild all boolean should be set.
+   */
+  public static final String REBUILD_ALL = "rebuildall";
 
   /**
    * The name of the objectclass that will be used for a Directory Server
