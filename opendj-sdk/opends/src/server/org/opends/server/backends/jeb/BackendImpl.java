@@ -1361,6 +1361,17 @@ public class BackendImpl
       importer = Importer.getInstance(rebuildConfig, cfg, envConfig);
       if (openRootContainer)
       {
+        envConfig.setReadOnly(false);
+        envConfig.setAllowCreate(true);
+        envConfig.setTransactional(false);
+        envConfig.setTxnNoSync(false);
+        envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
+        envConfig.setConfigParam(
+                               EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
+        envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
+        envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
+        envConfig.setConfigParam(
+                               EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
         rootContainer = initializeRootContainer(envConfig);
       }
       importer.rebuildIndexes(rootContainer);
