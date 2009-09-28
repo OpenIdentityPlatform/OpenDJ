@@ -234,29 +234,17 @@ public class PluginConfigManager
 
 
   /**
-   * Initializes the configuration associated with the Directory Server plugins.
-   * This should only be called at Directory Server startup.
+   * Initializes this plugin configuration manager. This should only
+   * be called at Directory Server startup and before user plugins are
+   * loaded.
    *
-   * @param  pluginTypes  The set of plugin types for the plugins to initialize,
-   *                      or <CODE>null</CODE> to initialize all types of
-   *                      plugins defined in the server configuration.  In
-   *                      general, this should only be non-null for cases in
-   *                      which the server is running in a special mode that
-   *                      only uses a minimal set of plugins (e.g., LDIF import
-   *                      or export).
-   *
-   * @throws  ConfigException  If a critical configuration problem prevents the
-   *                           plugin initialization from succeeding.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugins that is not related to the
-   *                                   server configuration.
+   * @throws ConfigException
+   *           If a critical configuration problem prevents the plugin
+   *           initialization from succeeding.
    */
-  public void initializePluginConfig(Set<PluginType> pluginTypes)
-         throws ConfigException, InitializationException
+  public void initializePluginConfigManager() throws ConfigException
   {
     registeredPlugins.clear();
-
 
     // Get the root configuration object.
     ServerManagementContext managementContext =
@@ -264,16 +252,40 @@ public class PluginConfigManager
     RootCfg rootConfiguration =
          managementContext.getRootConfiguration();
 
-
     // Get the plugin root configuration and register with it as an add and
     // delete listener so we can be notified if any plugin entries are added or
     // removed.
     pluginRootConfig = rootConfiguration.getPluginRoot();
     pluginRootConfig.addPluginAddListener(this);
     pluginRootConfig.addPluginDeleteListener(this);
+  }
 
 
-    //Initialize the existing plugins.
+
+  /**
+   * Initializes any plugins defined in the directory server
+   * configuration. This should only be called at Directory Server
+   * startup and after this plugin configuration manager has been
+   * initialized.
+   *
+   * @param pluginTypes
+   *          The set of plugin types for the plugins to initialize, or
+   *          <CODE>null</CODE> to initialize all types of plugins
+   *          defined in the server configuration. In general, this
+   *          should only be non-null for cases in which the server is
+   *          running in a special mode that only uses a minimal set of
+   *          plugins (e.g., LDIF import or export).
+   * @throws ConfigException
+   *           If a critical configuration problem prevents the plugin
+   *           initialization from succeeding.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the plugins that
+   *           is not related to the server configuration.
+   */
+  public void initializeUserPlugins(Set<PluginType> pluginTypes)
+         throws ConfigException, InitializationException
+  {
+    //Initialize the user plugins.
     for (String pluginName : pluginRootConfig.listPlugins())
     {
       PluginCfg pluginConfiguration = pluginRootConfig.getPlugin(pluginName);
@@ -360,12 +372,12 @@ public class PluginConfigManager
 
       if (initialize)
       {
-        Method method = plugin.getClass().getMethod("initializeInternal",
-                                                    PluginCfg.class, Set.class);
-        method.invoke(plugin, configuration, pluginTypes);
+        plugin.initializeInternal(configuration.dn(), pluginTypes,
+            configuration.isInvokeForInternalOperations());
 
-        method = plugin.getClass().getMethod("initializePlugin", Set.class,
-            configuration.configurationClass());
+        Method method =
+            plugin.getClass().getMethod("initializePlugin", Set.class,
+                configuration.configurationClass());
         method.invoke(plugin, pluginTypes, configuration);
       }
       else
@@ -553,296 +565,337 @@ public class PluginConfigManager
 
 
   /**
-   * Registers the provided plugin with this plugin config manager and ensures
-   * that it will be invoked in the specified ways.
+   * Registers the provided internal plugin with this plugin config
+   * manager and ensures that it will be invoked in the specified ways.
    *
-   * @param  plugin         The plugin to register with the server.
-   * @param  pluginEntryDN  The DN of the configuration entry for the provided
-   *                        plugin.
-   * @param  pluginTypes    The plugin types that will be used to control the
-   *                        points at which the provided plugin is invoked.
+   * @param plugin
+   *          The internal plugin to register with the server. The
+   *          plugin must specify a configuration entry which is
+   *          guaranteed to be unique.
    */
-  private void registerPlugin(
-                    DirectoryServerPlugin<? extends PluginCfg> plugin,
-                    DN pluginEntryDN, Set<PluginType> pluginTypes)
+  void registerInternalPlugin(InternalDirectoryServerPlugin plugin)
   {
     pluginLock.lock();
-
     try
     {
-      registeredPlugins.put(pluginEntryDN, plugin);
+      registerPlugin0(plugin, plugin.getPluginTypes());
+    }
+    finally
+    {
+      pluginLock.unlock();
+    }
+  }
 
-      for (PluginType t : pluginTypes)
+
+
+  /**
+   * Register a plugin in the appropriate tables.
+   *
+   * @param plugin
+   *          The plugin to register with the server.
+   * @param pluginTypes
+   *          The plugin types that will be used to control the points
+   *          at which the provided plugin is invoked.
+   */
+  private void registerPlugin0(
+      DirectoryServerPlugin<? extends PluginCfg> plugin,
+      Set<PluginType> pluginTypes)
+  {
+    for (PluginType t : pluginTypes)
+    {
+      switch (t)
       {
-        switch (t)
-        {
-          case STARTUP:
-            startupPlugins =
-                 addPlugin(startupPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderStartup());
-            break;
-          case SHUTDOWN:
-            shutdownPlugins =
-                 addPlugin(shutdownPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderShutdown());
-            break;
-          case POST_CONNECT:
-            postConnectPlugins =
-                 addPlugin(postConnectPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostConnect());
-            break;
-          case POST_DISCONNECT:
-            postDisconnectPlugins =
-                 addPlugin(postDisconnectPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostDisconnect());
-            break;
-          case LDIF_IMPORT:
-            ldifImportPlugins =
-                 addPlugin(ldifImportPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderLDIFImport());
-            break;
-          case LDIF_IMPORT_END:
-            ldifImportEndPlugins =
-                 addPlugin(ldifImportEndPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderLDIFImportEnd());
-            break;
-          case LDIF_IMPORT_BEGIN:
-            ldifImportBeginPlugins =
-                 addPlugin(ldifImportBeginPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderLDIFImportBegin());
-            break;
-          case LDIF_EXPORT:
-            ldifExportPlugins =
-                 addPlugin(ldifExportPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderLDIFExport());
-            break;
-          case PRE_PARSE_ABANDON:
-            preParseAbandonPlugins =
-                 addPlugin(preParseAbandonPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseAbandon());
-            break;
-          case PRE_PARSE_ADD:
-            preParseAddPlugins =
-                 addPlugin(preParseAddPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseAdd());
-            break;
-          case PRE_PARSE_BIND:
-            preParseBindPlugins =
-                 addPlugin(preParseBindPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseBind());
-            break;
-          case PRE_PARSE_COMPARE:
-            preParseComparePlugins =
-                 addPlugin(preParseComparePlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseCompare());
-            break;
-          case PRE_PARSE_DELETE:
-            preParseDeletePlugins =
-                 addPlugin(preParseDeletePlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseDelete());
-            break;
-          case PRE_PARSE_EXTENDED:
-            preParseExtendedPlugins =
-                 addPlugin(preParseExtendedPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseExtended());
-            break;
-          case PRE_PARSE_MODIFY:
-            preParseModifyPlugins =
-                 addPlugin(preParseModifyPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseModify());
-            break;
-          case PRE_PARSE_MODIFY_DN:
-            preParseModifyDNPlugins =
-                 addPlugin(preParseModifyDNPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseModifyDN());
-            break;
-          case PRE_PARSE_SEARCH:
-            preParseSearchPlugins =
-                 addPlugin(preParseSearchPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseSearch());
-            break;
-          case PRE_PARSE_UNBIND:
-            preParseUnbindPlugins =
-                 addPlugin(preParseUnbindPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreParseUnbind());
-            break;
-          case PRE_OPERATION_ADD:
-            preOperationAddPlugins =
-                 addPlugin(preOperationAddPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreOperationAdd());
-            break;
-          case PRE_OPERATION_BIND:
-            preOperationBindPlugins =
-                 addPlugin(preOperationBindPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreOperationBind());
-            break;
-          case PRE_OPERATION_COMPARE:
-            preOperationComparePlugins =
-                 addPlugin(preOperationComparePlugins,plugin, t,
-                      pluginRootConfig.getPluginOrderPreOperationCompare());
-            break;
-          case PRE_OPERATION_DELETE:
-            preOperationDeletePlugins =
-                 addPlugin(preOperationDeletePlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreOperationDelete());
-            break;
-          case PRE_OPERATION_EXTENDED:
-            preOperationExtendedPlugins =
-                 addPlugin(preOperationExtendedPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPreOperationExtended());
-            break;
-          case PRE_OPERATION_MODIFY:
-            preOperationModifyPlugins =
-                 addPlugin(preOperationModifyPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreOperationModify());
-            break;
-          case PRE_OPERATION_MODIFY_DN:
-            preOperationModifyDNPlugins =
-                 addPlugin(preOperationModifyDNPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPreOperationModifyDN());
-            break;
-          case PRE_OPERATION_SEARCH:
-            preOperationSearchPlugins =
-                 addPlugin(preOperationSearchPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPreOperationSearch());
-            break;
-          case POST_OPERATION_ABANDON:
-            postOperationAbandonPlugins =
-                 addPlugin(postOperationAbandonPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationAbandon());
-            break;
-          case POST_OPERATION_ADD:
-            postOperationAddPlugins =
-                 addPlugin(postOperationAddPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostOperationAdd());
-            break;
-          case POST_OPERATION_BIND:
-            postOperationBindPlugins =
-                 addPlugin(postOperationBindPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostOperationBind());
-            break;
-          case POST_OPERATION_COMPARE:
-            postOperationComparePlugins =
-                 addPlugin(postOperationComparePlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationCompare());
-            break;
-          case POST_OPERATION_DELETE:
-            postOperationDeletePlugins =
-                 addPlugin(postOperationDeletePlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationDelete());
-            break;
-          case POST_OPERATION_EXTENDED:
-            postOperationExtendedPlugins =
-                 addPlugin(postOperationExtendedPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationExtended());
-            break;
-          case POST_OPERATION_MODIFY:
-            postOperationModifyPlugins =
-                 addPlugin(postOperationModifyPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationModify());
-            break;
-          case POST_OPERATION_MODIFY_DN:
-            postOperationModifyDNPlugins =
-                 addPlugin(postOperationModifyDNPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationModifyDN());
-            break;
-          case POST_OPERATION_SEARCH:
-            postOperationSearchPlugins =
-                 addPlugin(postOperationSearchPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationSearch());
-            break;
-          case POST_OPERATION_UNBIND:
-            postOperationUnbindPlugins =
-                 addPlugin(postOperationUnbindPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostOperationUnbind());
-            break;
-          case POST_RESPONSE_ADD:
-            postResponseAddPlugins =
-                 addPlugin(postResponseAddPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostResponseAdd());
-            break;
-          case POST_RESPONSE_BIND:
-            postResponseBindPlugins =
-                 addPlugin(postResponseBindPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostResponseBind());
-            break;
-          case POST_RESPONSE_COMPARE:
-            postResponseComparePlugins =
-                 addPlugin(postResponseComparePlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostResponseCompare());
-            break;
-          case POST_RESPONSE_DELETE:
-            postResponseDeletePlugins =
-                 addPlugin(postResponseDeletePlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostResponseDelete());
-            break;
-          case POST_RESPONSE_EXTENDED:
-            postResponseExtendedPlugins =
-                 addPlugin(postResponseExtendedPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostResponseExtended());
-            break;
-          case POST_RESPONSE_MODIFY:
-            postResponseModifyPlugins =
-                 addPlugin(postResponseModifyPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostResponseModify());
-            break;
-          case POST_RESPONSE_MODIFY_DN:
-            postResponseModifyDNPlugins =
-                 addPlugin(postResponseModifyDNPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderPostResponseModifyDN());
-            break;
-          case POST_RESPONSE_SEARCH:
-            postResponseSearchPlugins =
-                 addPlugin(postResponseSearchPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderPostResponseSearch());
-            break;
-          case POST_SYNCHRONIZATION_ADD:
-            postSynchronizationAddPlugins =
-                 addPlugin(postSynchronizationAddPlugins, plugin, t,
-                           pluginRootConfig.
-                                getPluginOrderPostSynchronizationAdd());
-            break;
-          case POST_SYNCHRONIZATION_DELETE:
-            postSynchronizationDeletePlugins =
-                 addPlugin(postSynchronizationDeletePlugins, plugin, t,
-                           pluginRootConfig.
-                                getPluginOrderPostSynchronizationDelete());
-            break;
-          case POST_SYNCHRONIZATION_MODIFY:
-            postSynchronizationModifyPlugins =
-                 addPlugin(postSynchronizationModifyPlugins, plugin, t,
-                           pluginRootConfig.
-                                getPluginOrderPostSynchronizationModify());
-            break;
-          case POST_SYNCHRONIZATION_MODIFY_DN:
-            postSynchronizationModifyDNPlugins =
-                 addPlugin(postSynchronizationModifyDNPlugins, plugin, t,
-                           pluginRootConfig.
-                                getPluginOrderPostSynchronizationModifyDN());
-            break;
-          case SEARCH_RESULT_ENTRY:
-            searchResultEntryPlugins =
-                 addPlugin(searchResultEntryPlugins, plugin, t,
-                           pluginRootConfig.getPluginOrderSearchResultEntry());
-            break;
-          case SEARCH_RESULT_REFERENCE:
-            searchResultReferencePlugins =
-                 addPlugin(searchResultReferencePlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderSearchResultReference());
-            break;
-          case SUBORDINATE_MODIFY_DN:
-            subordinateModifyDNPlugins =
-                 addPlugin(subordinateModifyDNPlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderSubordinateModifyDN());
-            break;
-          case INTERMEDIATE_RESPONSE:
-            intermediateResponsePlugins =
-                 addPlugin(intermediateResponsePlugins, plugin, t,
-                      pluginRootConfig.getPluginOrderIntermediateResponse());
-            break;
-          default:
-        }
+      case STARTUP:
+        startupPlugins =
+            addPlugin(startupPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderStartup());
+        break;
+      case SHUTDOWN:
+        shutdownPlugins =
+            addPlugin(shutdownPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderShutdown());
+        break;
+      case POST_CONNECT:
+        postConnectPlugins =
+            addPlugin(postConnectPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderPostConnect());
+        break;
+      case POST_DISCONNECT:
+        postDisconnectPlugins =
+            addPlugin(postDisconnectPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostDisconnect());
+        break;
+      case LDIF_IMPORT:
+        ldifImportPlugins =
+            addPlugin(ldifImportPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderLDIFImport());
+        break;
+      case LDIF_IMPORT_END:
+        ldifImportEndPlugins =
+            addPlugin(ldifImportEndPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderLDIFImportEnd());
+        break;
+      case LDIF_IMPORT_BEGIN:
+        ldifImportBeginPlugins =
+            addPlugin(ldifImportBeginPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderLDIFImportBegin());
+        break;
+      case LDIF_EXPORT:
+        ldifExportPlugins =
+            addPlugin(ldifExportPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderLDIFExport());
+        break;
+      case PRE_PARSE_ABANDON:
+        preParseAbandonPlugins =
+            addPlugin(preParseAbandonPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseAbandon());
+        break;
+      case PRE_PARSE_ADD:
+        preParseAddPlugins =
+            addPlugin(preParseAddPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderPreParseAdd());
+        break;
+      case PRE_PARSE_BIND:
+        preParseBindPlugins =
+            addPlugin(preParseBindPlugins, plugin, t, pluginRootConfig
+                .getPluginOrderPreParseBind());
+        break;
+      case PRE_PARSE_COMPARE:
+        preParseComparePlugins =
+            addPlugin(preParseComparePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseCompare());
+        break;
+      case PRE_PARSE_DELETE:
+        preParseDeletePlugins =
+            addPlugin(preParseDeletePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseDelete());
+        break;
+      case PRE_PARSE_EXTENDED:
+        preParseExtendedPlugins =
+            addPlugin(preParseExtendedPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseExtended());
+        break;
+      case PRE_PARSE_MODIFY:
+        preParseModifyPlugins =
+            addPlugin(preParseModifyPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseModify());
+        break;
+      case PRE_PARSE_MODIFY_DN:
+        preParseModifyDNPlugins =
+            addPlugin(preParseModifyDNPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseModifyDN());
+        break;
+      case PRE_PARSE_SEARCH:
+        preParseSearchPlugins =
+            addPlugin(preParseSearchPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseSearch());
+        break;
+      case PRE_PARSE_UNBIND:
+        preParseUnbindPlugins =
+            addPlugin(preParseUnbindPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreParseUnbind());
+        break;
+      case PRE_OPERATION_ADD:
+        preOperationAddPlugins =
+            addPlugin(preOperationAddPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationAdd());
+        break;
+      case PRE_OPERATION_BIND:
+        preOperationBindPlugins =
+            addPlugin(preOperationBindPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationBind());
+        break;
+      case PRE_OPERATION_COMPARE:
+        preOperationComparePlugins =
+            addPlugin(preOperationComparePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationCompare());
+        break;
+      case PRE_OPERATION_DELETE:
+        preOperationDeletePlugins =
+            addPlugin(preOperationDeletePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationDelete());
+        break;
+      case PRE_OPERATION_EXTENDED:
+        preOperationExtendedPlugins =
+            addPlugin(preOperationExtendedPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationExtended());
+        break;
+      case PRE_OPERATION_MODIFY:
+        preOperationModifyPlugins =
+            addPlugin(preOperationModifyPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationModify());
+        break;
+      case PRE_OPERATION_MODIFY_DN:
+        preOperationModifyDNPlugins =
+            addPlugin(preOperationModifyDNPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationModifyDN());
+        break;
+      case PRE_OPERATION_SEARCH:
+        preOperationSearchPlugins =
+            addPlugin(preOperationSearchPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPreOperationSearch());
+        break;
+      case POST_OPERATION_ABANDON:
+        postOperationAbandonPlugins =
+            addPlugin(postOperationAbandonPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationAbandon());
+        break;
+      case POST_OPERATION_ADD:
+        postOperationAddPlugins =
+            addPlugin(postOperationAddPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationAdd());
+        break;
+      case POST_OPERATION_BIND:
+        postOperationBindPlugins =
+            addPlugin(postOperationBindPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationBind());
+        break;
+      case POST_OPERATION_COMPARE:
+        postOperationComparePlugins =
+            addPlugin(postOperationComparePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationCompare());
+        break;
+      case POST_OPERATION_DELETE:
+        postOperationDeletePlugins =
+            addPlugin(postOperationDeletePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationDelete());
+        break;
+      case POST_OPERATION_EXTENDED:
+        postOperationExtendedPlugins =
+            addPlugin(postOperationExtendedPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationExtended());
+        break;
+      case POST_OPERATION_MODIFY:
+        postOperationModifyPlugins =
+            addPlugin(postOperationModifyPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationModify());
+        break;
+      case POST_OPERATION_MODIFY_DN:
+        postOperationModifyDNPlugins =
+            addPlugin(postOperationModifyDNPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationModifyDN());
+        break;
+      case POST_OPERATION_SEARCH:
+        postOperationSearchPlugins =
+            addPlugin(postOperationSearchPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationSearch());
+        break;
+      case POST_OPERATION_UNBIND:
+        postOperationUnbindPlugins =
+            addPlugin(postOperationUnbindPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostOperationUnbind());
+        break;
+      case POST_RESPONSE_ADD:
+        postResponseAddPlugins =
+            addPlugin(postResponseAddPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseAdd());
+        break;
+      case POST_RESPONSE_BIND:
+        postResponseBindPlugins =
+            addPlugin(postResponseBindPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseBind());
+        break;
+      case POST_RESPONSE_COMPARE:
+        postResponseComparePlugins =
+            addPlugin(postResponseComparePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseCompare());
+        break;
+      case POST_RESPONSE_DELETE:
+        postResponseDeletePlugins =
+            addPlugin(postResponseDeletePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseDelete());
+        break;
+      case POST_RESPONSE_EXTENDED:
+        postResponseExtendedPlugins =
+            addPlugin(postResponseExtendedPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseExtended());
+        break;
+      case POST_RESPONSE_MODIFY:
+        postResponseModifyPlugins =
+            addPlugin(postResponseModifyPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseModify());
+        break;
+      case POST_RESPONSE_MODIFY_DN:
+        postResponseModifyDNPlugins =
+            addPlugin(postResponseModifyDNPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseModifyDN());
+        break;
+      case POST_RESPONSE_SEARCH:
+        postResponseSearchPlugins =
+            addPlugin(postResponseSearchPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostResponseSearch());
+        break;
+      case POST_SYNCHRONIZATION_ADD:
+        postSynchronizationAddPlugins =
+            addPlugin(postSynchronizationAddPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderPostSynchronizationAdd());
+        break;
+      case POST_SYNCHRONIZATION_DELETE:
+        postSynchronizationDeletePlugins =
+            addPlugin(postSynchronizationDeletePlugins, plugin, t,
+                pluginRootConfig
+                    .getPluginOrderPostSynchronizationDelete());
+        break;
+      case POST_SYNCHRONIZATION_MODIFY:
+        postSynchronizationModifyPlugins =
+            addPlugin(postSynchronizationModifyPlugins, plugin, t,
+                pluginRootConfig
+                    .getPluginOrderPostSynchronizationModify());
+        break;
+      case POST_SYNCHRONIZATION_MODIFY_DN:
+        postSynchronizationModifyDNPlugins =
+            addPlugin(postSynchronizationModifyDNPlugins, plugin, t,
+                pluginRootConfig
+                    .getPluginOrderPostSynchronizationModifyDN());
+        break;
+      case SEARCH_RESULT_ENTRY:
+        searchResultEntryPlugins =
+            addPlugin(searchResultEntryPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderSearchResultEntry());
+        break;
+      case SEARCH_RESULT_REFERENCE:
+        searchResultReferencePlugins =
+            addPlugin(searchResultReferencePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderSearchResultReference());
+        break;
+      case SUBORDINATE_MODIFY_DN:
+        subordinateModifyDNPlugins =
+            addPlugin(subordinateModifyDNPlugins, plugin, t,
+                pluginRootConfig.getPluginOrderSubordinateModifyDN());
+        break;
+      case INTERMEDIATE_RESPONSE:
+        intermediateResponsePlugins =
+            addPlugin(intermediateResponsePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderIntermediateResponse());
+        break;
+      default:
       }
+    }
+  }
+
+
+
+  /**
+   * Registers the provided plugin with this plugin config manager and
+   * ensures that it will be invoked in the specified ways.
+   *
+   * @param plugin
+   *          The plugin to register with the server.
+   * @param pluginEntryDN
+   *          The DN of the configuration entry for the provided plugin.
+   * @param pluginTypes
+   *          The plugin types that will be used to control the points
+   *          at which the provided plugin is invoked.
+   */
+  private void registerPlugin(
+      DirectoryServerPlugin<? extends PluginCfg> plugin,
+      DN pluginEntryDN, Set<PluginType> pluginTypes)
+  {
+    pluginLock.lock();
+    registeredPlugins.put(pluginEntryDN, plugin);
+    try
+    {
+      registerPlugin0(plugin, pluginTypes);
     }
     finally
     {
@@ -1067,233 +1120,266 @@ public class PluginConfigManager
 
 
   /**
+   * Deregisters the provided internal plugin.
+   *
+   * @param plugin
+   *          The internal plugin to deregister from the server.
+   */
+  void deregisterInternalPlugin(InternalDirectoryServerPlugin plugin)
+  {
+    pluginLock.lock();
+    try
+    {
+      deregisterPlugin0(plugin);
+      plugin.finalizePlugin();
+    }
+    finally
+    {
+      pluginLock.unlock();
+    }
+  }
+
+
+
+  /**
    * Deregisters the plugin with the provided configuration entry DN.
    *
-   * @param  configEntryDN  The DN of the configuration entry for the plugin to
-   *                        deregister.
+   * @param configEntryDN
+   *          The DN of the configuration entry for the plugin to
+   *          deregister.
    */
   private void deregisterPlugin(DN configEntryDN)
   {
     pluginLock.lock();
-
     DirectoryServerPlugin<? extends PluginCfg> plugin;
     try
     {
       plugin = registeredPlugins.remove(configEntryDN);
-      if (plugin == null)
+      if (plugin != null)
       {
-        return;
-      }
-
-      for (PluginType t : plugin.getPluginTypes())
-      {
-        switch (t)
-        {
-          case STARTUP:
-            startupPlugins = removePlugin(startupPlugins, plugin);
-            break;
-          case SHUTDOWN:
-            shutdownPlugins = removePlugin(shutdownPlugins, plugin);
-            break;
-          case POST_CONNECT:
-            postConnectPlugins = removePlugin(postConnectPlugins, plugin);
-            break;
-          case POST_DISCONNECT:
-            postDisconnectPlugins = removePlugin(postDisconnectPlugins, plugin);
-            break;
-          case LDIF_IMPORT:
-            ldifImportPlugins = removePlugin(ldifImportPlugins, plugin);
-            break;
-          case LDIF_IMPORT_END:
-            ldifImportEndPlugins = removePlugin(ldifImportEndPlugins, plugin);
-            break;
-          case LDIF_IMPORT_BEGIN:
-            ldifImportBeginPlugins =
-              removePlugin(ldifImportBeginPlugins, plugin);
-            break;
-          case LDIF_EXPORT:
-            ldifExportPlugins = removePlugin(ldifExportPlugins, plugin);
-            break;
-          case PRE_PARSE_ABANDON:
-            preParseAbandonPlugins = removePlugin(preParseAbandonPlugins,
-                                                  plugin);
-            break;
-          case PRE_PARSE_ADD:
-            preParseAddPlugins = removePlugin(preParseAddPlugins, plugin);
-            break;
-          case PRE_PARSE_BIND:
-            preParseBindPlugins = removePlugin(preParseBindPlugins, plugin);
-            break;
-          case PRE_PARSE_COMPARE:
-            preParseComparePlugins = removePlugin(preParseComparePlugins,
-                                                  plugin);
-            break;
-          case PRE_PARSE_DELETE:
-            preParseDeletePlugins = removePlugin(preParseDeletePlugins, plugin);
-            break;
-          case PRE_PARSE_EXTENDED:
-            preParseExtendedPlugins = removePlugin(preParseExtendedPlugins,
-                                                   plugin);
-            break;
-          case PRE_PARSE_MODIFY:
-            preParseModifyPlugins = removePlugin(preParseModifyPlugins, plugin);
-            break;
-          case PRE_PARSE_MODIFY_DN:
-            preParseModifyDNPlugins = removePlugin(preParseModifyDNPlugins,
-                                                   plugin);
-            break;
-          case PRE_PARSE_SEARCH:
-            preParseSearchPlugins = removePlugin(preParseSearchPlugins, plugin);
-            break;
-          case PRE_PARSE_UNBIND:
-            preParseUnbindPlugins = removePlugin(preParseUnbindPlugins, plugin);
-            break;
-          case PRE_OPERATION_ADD:
-            preOperationAddPlugins = removePlugin(preOperationAddPlugins,
-                                                  plugin);
-            break;
-          case PRE_OPERATION_BIND:
-            preOperationBindPlugins = removePlugin(preOperationBindPlugins,
-                                                   plugin);
-            break;
-          case PRE_OPERATION_COMPARE:
-            preOperationComparePlugins =
-                 removePlugin(preOperationComparePlugins, plugin);
-            break;
-          case PRE_OPERATION_DELETE:
-            preOperationDeletePlugins = removePlugin(preOperationDeletePlugins,
-                                                     plugin);
-            break;
-          case PRE_OPERATION_EXTENDED:
-            preOperationExtendedPlugins =
-                 removePlugin(preOperationExtendedPlugins, plugin);
-            break;
-          case PRE_OPERATION_MODIFY:
-            preOperationModifyPlugins = removePlugin(preOperationModifyPlugins,
-                                                     plugin);
-            break;
-          case PRE_OPERATION_MODIFY_DN:
-            preOperationModifyDNPlugins =
-                 removePlugin(preOperationModifyDNPlugins, plugin);
-            break;
-          case PRE_OPERATION_SEARCH:
-            preOperationSearchPlugins = removePlugin(preOperationSearchPlugins,
-                                                     plugin);
-            break;
-          case POST_OPERATION_ABANDON:
-            postOperationAbandonPlugins =
-                 removePlugin(postOperationAbandonPlugins, plugin);
-            break;
-          case POST_OPERATION_ADD:
-            postOperationAddPlugins = removePlugin(postOperationAddPlugins,
-                                                   plugin);
-            break;
-          case POST_OPERATION_BIND:
-            postOperationBindPlugins = removePlugin(postOperationBindPlugins,
-                                                    plugin);
-            break;
-          case POST_OPERATION_COMPARE:
-            postOperationComparePlugins =
-                 removePlugin(postOperationComparePlugins, plugin);
-            break;
-          case POST_OPERATION_DELETE:
-            postOperationDeletePlugins =
-                 removePlugin(postOperationDeletePlugins, plugin);
-            break;
-          case POST_OPERATION_EXTENDED:
-            postOperationExtendedPlugins =
-                 removePlugin(postOperationExtendedPlugins, plugin);
-            break;
-          case POST_OPERATION_MODIFY:
-            postOperationModifyPlugins =
-                 removePlugin(postOperationModifyPlugins, plugin);
-            break;
-          case POST_OPERATION_MODIFY_DN:
-            postOperationModifyDNPlugins =
-                 removePlugin(postOperationModifyDNPlugins, plugin);
-            break;
-          case POST_OPERATION_SEARCH:
-            postOperationSearchPlugins =
-                 removePlugin(postOperationSearchPlugins, plugin);
-            break;
-          case POST_OPERATION_UNBIND:
-            postOperationUnbindPlugins =
-                 removePlugin(postOperationUnbindPlugins, plugin);
-            break;
-          case POST_RESPONSE_ADD:
-            postResponseAddPlugins = removePlugin(postResponseAddPlugins,
-                                                  plugin);
-            break;
-          case POST_RESPONSE_BIND:
-            postResponseBindPlugins = removePlugin(postResponseBindPlugins,
-                                                   plugin);
-            break;
-          case POST_RESPONSE_COMPARE:
-            postResponseComparePlugins =
-                 removePlugin(postResponseComparePlugins, plugin);
-            break;
-          case POST_RESPONSE_DELETE:
-            postResponseDeletePlugins = removePlugin(postResponseDeletePlugins,
-                                                     plugin);
-            break;
-          case POST_RESPONSE_EXTENDED:
-            postResponseExtendedPlugins =
-                 removePlugin(postResponseExtendedPlugins, plugin);
-            break;
-          case POST_RESPONSE_MODIFY:
-            postResponseModifyPlugins = removePlugin(postResponseModifyPlugins,
-                                                     plugin);
-            break;
-          case POST_RESPONSE_MODIFY_DN:
-            postResponseModifyDNPlugins =
-                 removePlugin(postResponseModifyDNPlugins, plugin);
-            break;
-          case POST_RESPONSE_SEARCH:
-            postResponseSearchPlugins = removePlugin(postResponseSearchPlugins,
-                                                     plugin);
-            break;
-          case POST_SYNCHRONIZATION_ADD:
-            postSynchronizationAddPlugins =
-                 removePlugin(postSynchronizationAddPlugins, plugin);
-            break;
-          case POST_SYNCHRONIZATION_DELETE:
-            postSynchronizationDeletePlugins =
-                 removePlugin(postSynchronizationDeletePlugins, plugin);
-            break;
-          case POST_SYNCHRONIZATION_MODIFY:
-            postSynchronizationModifyPlugins =
-                 removePlugin(postSynchronizationModifyPlugins, plugin);
-            break;
-          case POST_SYNCHRONIZATION_MODIFY_DN:
-            postSynchronizationModifyDNPlugins =
-                 removePlugin(postSynchronizationModifyDNPlugins, plugin);
-            break;
-          case SEARCH_RESULT_ENTRY:
-            searchResultEntryPlugins = removePlugin(searchResultEntryPlugins,
-                                                    plugin);
-            break;
-          case SEARCH_RESULT_REFERENCE:
-            searchResultReferencePlugins =
-                 removePlugin(searchResultReferencePlugins, plugin);
-            break;
-          case SUBORDINATE_MODIFY_DN:
-            subordinateModifyDNPlugins =
-                 removePlugin(subordinateModifyDNPlugins, plugin);
-            break;
-          case INTERMEDIATE_RESPONSE:
-            intermediateResponsePlugins =
-                 removePlugin(intermediateResponsePlugins, plugin);
-            break;
-          default:
-        }
+        deregisterPlugin0(plugin);
+        plugin.finalizePlugin();
       }
     }
     finally
     {
       pluginLock.unlock();
     }
+  }
 
-    plugin.finalizePlugin();
+
+
+  /**
+   * Deregisters the provided plugin.
+   *
+   * @param plugin
+   *          The plugin to deregister from the server.
+   */
+  private void deregisterPlugin0(
+      DirectoryServerPlugin<? extends PluginCfg> plugin)
+  {
+    for (PluginType t : plugin.getPluginTypes())
+    {
+      switch (t)
+      {
+        case STARTUP:
+          startupPlugins = removePlugin(startupPlugins, plugin);
+          break;
+        case SHUTDOWN:
+          shutdownPlugins = removePlugin(shutdownPlugins, plugin);
+          break;
+        case POST_CONNECT:
+          postConnectPlugins = removePlugin(postConnectPlugins, plugin);
+          break;
+        case POST_DISCONNECT:
+          postDisconnectPlugins = removePlugin(postDisconnectPlugins, plugin);
+          break;
+        case LDIF_IMPORT:
+          ldifImportPlugins = removePlugin(ldifImportPlugins, plugin);
+          break;
+        case LDIF_IMPORT_END:
+          ldifImportEndPlugins = removePlugin(ldifImportEndPlugins, plugin);
+          break;
+        case LDIF_IMPORT_BEGIN:
+          ldifImportBeginPlugins =
+            removePlugin(ldifImportBeginPlugins, plugin);
+          break;
+        case LDIF_EXPORT:
+          ldifExportPlugins = removePlugin(ldifExportPlugins, plugin);
+          break;
+        case PRE_PARSE_ABANDON:
+          preParseAbandonPlugins = removePlugin(preParseAbandonPlugins,
+                                                plugin);
+          break;
+        case PRE_PARSE_ADD:
+          preParseAddPlugins = removePlugin(preParseAddPlugins, plugin);
+          break;
+        case PRE_PARSE_BIND:
+          preParseBindPlugins = removePlugin(preParseBindPlugins, plugin);
+          break;
+        case PRE_PARSE_COMPARE:
+          preParseComparePlugins = removePlugin(preParseComparePlugins,
+                                                plugin);
+          break;
+        case PRE_PARSE_DELETE:
+          preParseDeletePlugins = removePlugin(preParseDeletePlugins, plugin);
+          break;
+        case PRE_PARSE_EXTENDED:
+          preParseExtendedPlugins = removePlugin(preParseExtendedPlugins,
+                                                 plugin);
+          break;
+        case PRE_PARSE_MODIFY:
+          preParseModifyPlugins = removePlugin(preParseModifyPlugins, plugin);
+          break;
+        case PRE_PARSE_MODIFY_DN:
+          preParseModifyDNPlugins = removePlugin(preParseModifyDNPlugins,
+                                                 plugin);
+          break;
+        case PRE_PARSE_SEARCH:
+          preParseSearchPlugins = removePlugin(preParseSearchPlugins, plugin);
+          break;
+        case PRE_PARSE_UNBIND:
+          preParseUnbindPlugins = removePlugin(preParseUnbindPlugins, plugin);
+          break;
+        case PRE_OPERATION_ADD:
+          preOperationAddPlugins = removePlugin(preOperationAddPlugins,
+                                                plugin);
+          break;
+        case PRE_OPERATION_BIND:
+          preOperationBindPlugins = removePlugin(preOperationBindPlugins,
+                                                 plugin);
+          break;
+        case PRE_OPERATION_COMPARE:
+          preOperationComparePlugins =
+               removePlugin(preOperationComparePlugins, plugin);
+          break;
+        case PRE_OPERATION_DELETE:
+          preOperationDeletePlugins = removePlugin(preOperationDeletePlugins,
+                                                   plugin);
+          break;
+        case PRE_OPERATION_EXTENDED:
+          preOperationExtendedPlugins =
+               removePlugin(preOperationExtendedPlugins, plugin);
+          break;
+        case PRE_OPERATION_MODIFY:
+          preOperationModifyPlugins = removePlugin(preOperationModifyPlugins,
+                                                   plugin);
+          break;
+        case PRE_OPERATION_MODIFY_DN:
+          preOperationModifyDNPlugins =
+               removePlugin(preOperationModifyDNPlugins, plugin);
+          break;
+        case PRE_OPERATION_SEARCH:
+          preOperationSearchPlugins = removePlugin(preOperationSearchPlugins,
+                                                   plugin);
+          break;
+        case POST_OPERATION_ABANDON:
+          postOperationAbandonPlugins =
+               removePlugin(postOperationAbandonPlugins, plugin);
+          break;
+        case POST_OPERATION_ADD:
+          postOperationAddPlugins = removePlugin(postOperationAddPlugins,
+                                                 plugin);
+          break;
+        case POST_OPERATION_BIND:
+          postOperationBindPlugins = removePlugin(postOperationBindPlugins,
+                                                  plugin);
+          break;
+        case POST_OPERATION_COMPARE:
+          postOperationComparePlugins =
+               removePlugin(postOperationComparePlugins, plugin);
+          break;
+        case POST_OPERATION_DELETE:
+          postOperationDeletePlugins =
+               removePlugin(postOperationDeletePlugins, plugin);
+          break;
+        case POST_OPERATION_EXTENDED:
+          postOperationExtendedPlugins =
+               removePlugin(postOperationExtendedPlugins, plugin);
+          break;
+        case POST_OPERATION_MODIFY:
+          postOperationModifyPlugins =
+               removePlugin(postOperationModifyPlugins, plugin);
+          break;
+        case POST_OPERATION_MODIFY_DN:
+          postOperationModifyDNPlugins =
+               removePlugin(postOperationModifyDNPlugins, plugin);
+          break;
+        case POST_OPERATION_SEARCH:
+          postOperationSearchPlugins =
+               removePlugin(postOperationSearchPlugins, plugin);
+          break;
+        case POST_OPERATION_UNBIND:
+          postOperationUnbindPlugins =
+               removePlugin(postOperationUnbindPlugins, plugin);
+          break;
+        case POST_RESPONSE_ADD:
+          postResponseAddPlugins = removePlugin(postResponseAddPlugins,
+                                                plugin);
+          break;
+        case POST_RESPONSE_BIND:
+          postResponseBindPlugins = removePlugin(postResponseBindPlugins,
+                                                 plugin);
+          break;
+        case POST_RESPONSE_COMPARE:
+          postResponseComparePlugins =
+               removePlugin(postResponseComparePlugins, plugin);
+          break;
+        case POST_RESPONSE_DELETE:
+          postResponseDeletePlugins = removePlugin(postResponseDeletePlugins,
+                                                   plugin);
+          break;
+        case POST_RESPONSE_EXTENDED:
+          postResponseExtendedPlugins =
+               removePlugin(postResponseExtendedPlugins, plugin);
+          break;
+        case POST_RESPONSE_MODIFY:
+          postResponseModifyPlugins = removePlugin(postResponseModifyPlugins,
+                                                   plugin);
+          break;
+        case POST_RESPONSE_MODIFY_DN:
+          postResponseModifyDNPlugins =
+               removePlugin(postResponseModifyDNPlugins, plugin);
+          break;
+        case POST_RESPONSE_SEARCH:
+          postResponseSearchPlugins = removePlugin(postResponseSearchPlugins,
+                                                   plugin);
+          break;
+        case POST_SYNCHRONIZATION_ADD:
+          postSynchronizationAddPlugins =
+               removePlugin(postSynchronizationAddPlugins, plugin);
+          break;
+        case POST_SYNCHRONIZATION_DELETE:
+          postSynchronizationDeletePlugins =
+               removePlugin(postSynchronizationDeletePlugins, plugin);
+          break;
+        case POST_SYNCHRONIZATION_MODIFY:
+          postSynchronizationModifyPlugins =
+               removePlugin(postSynchronizationModifyPlugins, plugin);
+          break;
+        case POST_SYNCHRONIZATION_MODIFY_DN:
+          postSynchronizationModifyDNPlugins =
+               removePlugin(postSynchronizationModifyDNPlugins, plugin);
+          break;
+        case SEARCH_RESULT_ENTRY:
+          searchResultEntryPlugins = removePlugin(searchResultEntryPlugins,
+                                                  plugin);
+          break;
+        case SEARCH_RESULT_REFERENCE:
+          searchResultReferencePlugins =
+               removePlugin(searchResultReferencePlugins, plugin);
+          break;
+        case SUBORDINATE_MODIFY_DN:
+          subordinateModifyDNPlugins =
+               removePlugin(subordinateModifyDNPlugins, plugin);
+          break;
+        case INTERMEDIATE_RESPONSE:
+          intermediateResponsePlugins =
+               removePlugin(intermediateResponsePlugins, plugin);
+          break;
+        default:
+      }
+    }
   }
 
 

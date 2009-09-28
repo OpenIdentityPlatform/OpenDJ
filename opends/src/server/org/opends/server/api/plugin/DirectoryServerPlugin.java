@@ -111,26 +111,29 @@ public abstract class DirectoryServerPlugin
 
   /**
    * Performs any initialization that should be done for all types of
-   * plugins regardless of type.  This should only be called by the
+   * plugins regardless of type. This should only be called by the
    * core Directory Server code during the course of loading a plugin.
    *
-   * @param  configuration  The configuration for this plugin.
-   * @param  pluginTypes    The set of plugin types for which this
-   *                        plugin is registered.
+   * @param pluginDN
+   *          The configuration entry name of this plugin.
+   * @param pluginTypes
+   *          The set of plugin types for which this plugin is
+   *          registered.
+   * @param invokeForInternalOps
+   *          Indicates whether this plugin should be invoked for
+   *          internal operations.
    */
   @org.opends.server.types.PublicAPI(
        stability=org.opends.server.types.StabilityLevel.PRIVATE,
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  public final void initializeInternal(PluginCfg configuration,
-                                       Set<PluginType> pluginTypes)
+  public final void initializeInternal(DN pluginDN,
+      Set<PluginType> pluginTypes, boolean invokeForInternalOps)
   {
+    this.pluginDN = pluginDN;
     this.pluginTypes = pluginTypes;
-
-    pluginDN = configuration.dn();
-    invokeForInternalOps =
-         configuration.isInvokeForInternalOperations();
+    this.invokeForInternalOps = invokeForInternalOps;
   }
 
 

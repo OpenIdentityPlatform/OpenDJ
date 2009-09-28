@@ -560,8 +560,9 @@ import static org.testng.Assert.*;
     sigList = new LinkedList<String>();
     sigList.add("initializeInternal");
     sigList.add("void");
-    sigList.add("org.opends.server.admin.std.server.PluginCfg");
+    sigList.add("org.opends.server.types.DN");
     sigList.add("java.util.Set");
+    sigList.add("boolean");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -821,7 +822,8 @@ import static org.testng.Assert.*;
       pluginTypes.add(t);
     }
 
-    nullPlugin.initializeInternal(configuration, pluginTypes);
+    nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
+        configuration.isInvokeForInternalOperations());
     assertEquals(nullPlugin.getPluginEntryDN(), pluginEntryDN);
   }
 
@@ -907,7 +909,8 @@ import static org.testng.Assert.*;
       pluginTypes.add(t);
     }
 
-    nullPlugin.initializeInternal(configuration, pluginTypes);
+    nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
+        configuration.isInvokeForInternalOperations());
     assertEquals(nullPlugin.getPluginTypes(), pluginTypes);
   }
 
