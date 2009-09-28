@@ -123,6 +123,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.ExtensibleMatchingRule;
@@ -1341,6 +1342,11 @@ public class DirectoryServer
       initializeSchema();
 
 
+      // Initialize the plugin manager so that internal plugins can be
+      // registered.
+      pluginConfigManager.initializePluginConfigManager();
+
+
       // Initialize all the virtual attribute handlers.
       initializeVirtualAttributes();
 
@@ -1474,9 +1480,8 @@ public class DirectoryServer
       initializePasswordPolicyComponents();
 
 
-      // Load and initialize all the plugins, and then call the registered
-      // startup plugins.
-      initializePlugins();
+      // Load and initialize the user plugins.
+      pluginConfigManager.initializeUserPlugins(null);
 
       // Initialize any synchronization providers that may be defined.
       if (!environmentConfig.disableSynchronization())
@@ -1491,6 +1496,7 @@ public class DirectoryServer
       workQueue = new WorkQueueConfigManager().initializeWorkQueue();
 
 
+      // Invoke the startup plugins.
       PluginResult.Startup startupPluginResult =
            pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueProcessing())
@@ -2906,24 +2912,6 @@ public class DirectoryServer
 
 
   /**
-   * Initializes the set of plugins defined in the Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the Directory Server plugins.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugins that is not related to the
-   *                                   server configuration.
-   */
-  public void initializePlugins()
-         throws ConfigException, InitializationException
-  {
-    pluginConfigManager.initializePluginConfig(null);
-  }
-
-
-
-  /**
    * Initializes the set of plugins defined in the Directory Server.  Only the
    * specified types of plugins will be initialized.
    *
@@ -2941,7 +2929,8 @@ public class DirectoryServer
          throws ConfigException, InitializationException
   {
     pluginConfigManager = new PluginConfigManager();
-    pluginConfigManager.initializePluginConfig(pluginTypes);
+    pluginConfigManager.initializePluginConfigManager();
+    pluginConfigManager.initializeUserPlugins(pluginTypes);
   }
 
 
@@ -3000,6 +2989,37 @@ public class DirectoryServer
   public static PluginConfigManager getPluginConfigManager()
   {
     return directoryServer.pluginConfigManager;
+  }
+
+
+
+  /**
+   * Registers the provided internal plugin with the Directory Server
+   * and ensures that it will be invoked in the specified ways.
+   *
+   * @param plugin
+   *          The internal plugin to register with the Directory Server.
+   *          The plugin must specify a configuration entry which is
+   *          guaranteed to be unique.
+   */
+  public static void registerInternalPlugin(
+      InternalDirectoryServerPlugin plugin)
+  {
+    directoryServer.pluginConfigManager.registerInternalPlugin(plugin);
+  }
+
+
+
+  /**
+   * Deregisters the provided internal plugin with the Directory Server.
+   *
+   * @param plugin
+   *          The internal plugin to deregister from the Directory Server.
+   */
+  public static void deregisterInternalPlugin(
+      InternalDirectoryServerPlugin plugin)
+  {
+    directoryServer.pluginConfigManager.deregisterInternalPlugin(plugin);
   }
 
 
