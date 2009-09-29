@@ -735,7 +735,6 @@
         _message='Generated groups test report.'
         xslfile= '%s/gen-groups-report.xsl' % TESTS_XSL_DIR
         htmlfile= '%s/groups.html' % logsReportDir
-        testslog= '%s/tests-log.xml' % logsTestsDir
         groupsReport=report_generation()
         stringParamsDict={}
 
@@ -812,7 +811,7 @@
                 
                 htmlfile='%s/%s-report.html' % (groupDir,testSuiteShortName)
 
-                stringParamsDict={ 'group' : testGroupName, 'suite' : testSuiteName, 'tests-log' : testslog }
+                stringParamsDict={ 'group' : testGroupName, 'suite' : testSuiteName }
 
                 casesReport=report_generation()
     
@@ -910,7 +909,7 @@
             <location>'%s' % STAF_LOCAL_HOSTNAME </location>
             <service>'email'</service>
             <request>
-              'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,MailSendReport,MailSubject)
+              'send %s contenttype "text/html" file "%s" subject "%s" noheader' % (MailSendTo,MailSendReport,MailSubject)
             </request>
           </stafcmd>
 

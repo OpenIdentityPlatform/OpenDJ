@@ -841,6 +841,16 @@
           numFail=int(STAFResult['numFails'])
         else:
           numFail=int(0)
+
+        if STAFResult.has_key('startedTimestamp'):
+          startTimestamp=STAFResult['startedTimestamp']
+        else:
+          startTimestamp=int(0)
+
+        if STAFResult.has_key('information'):
+          information=STAFResult['information']
+        else:
+          information=''
         
         if numFail == 0:
           if numPass == 0:
@@ -858,6 +868,24 @@
 
       <script>
         testcaseEndTime = strftime("%Y%m%d@%H:%M:%S",localtime())
+
+        testcaseStop=int(time.time())        
+        testcaseDuration=testcaseStop-testcaseStart
+        shortName=get_test_name(STAXCurrentTestcase)
+
+        xml.testcase = doc.createElement("testcase")
+        xml.createAttr(doc,xml.testcase,"name",STAXCurrentTestcase)
+        xml.createAttr(doc,xml.testcase,"duration",testcaseDuration)
+        xml.createAttr(doc,xml.testcase,"group",ThisGroupName)
+        xml.createAttr(doc,xml.testcase,"result",_status)
+        xml.createAttr(doc,xml.testcase,"shortname",shortName.lower())
+        xml.createAttr(doc,xml.testcase,"start",startTimestamp)
+        xml.createAttr(doc,xml.testcase,"stop",testcaseEndTime)
+        xml.createAttr(doc,xml.testcase,"suite",ThisSuiteName)
+        xml.createAttr(doc,xml.testcase,"info",information)
+        xml.testsuite.appendChild(xml.testcase)
+
+        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
       </script>
 
       <call function="'queryLogs'">
@@ -866,203 +894,6 @@
           'startfrom' : testcaseStartTime,
           'endat'     : testcaseEndTime }
       </call>
-      
-      <script>
-        class Test:
-          def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
-            self.message=[]
-            self.log='%s/test.log'      % local.temp
-            self.errors='%s/error.log'   % local.temp
-            self.access='%s/access.log' % local.temp
-            for f in [self.log,self.errors,self.access]:
-              if os.path.exists(local.temp):
-                fh=open(f,'w')
-                fh.write('')
-                fh.close()
-            self.group=group
-            self.suite=suite
-            self.fullname=fullname
-            self.start=start
-            self.stop=stop
-            tmp=fullname.split(":")
-            if len(tmp) > 2:
-              del tmp[0:2]
-              self.name=''.join(tmp)
-            else:
-              self.name=fullname
-            self.duration = duration
-            if failures == 0:
-              if successes == 0:
-                self.result='inconclusive'
-              else:
-                self.result='pass'
-            else:
-              if len(issues) == 0:
-                self.result='fail'
-              else:
-                self.result='known'
-            self.issues=issues
-            
-          def toXML(self):
-            xml  = '      &lt;test&gt;%s' % newLine
-            xml += '        &lt;name&gt;%s&lt;/name&gt;%s'         % (self.name,newLine)
-            xml += '        &lt;group&gt;%s&lt;/group&gt;%s'       % (self.group,newLine)
-            xml += '        &lt;suite&gt;%s&lt;/suite&gt;%s'       % (self.suite,newLine)
-            xml += '        &lt;start&gt;%s&lt;/start&gt;%s'       % (self.start,newLine)
-            xml += '        &lt;stop&gt;%s&lt;/stop&gt;%s'         % (self.stop,newLine)
-            xml += '        &lt;result&gt;%s&lt;/result&gt;%s'     % (self.result,newLine)
-            xml += '        &lt;duration&gt;%d&lt;/duration&gt;%s' % (self.duration,newLine)
-            xml += '        &lt;issues&gt;%s'                      % newLine
-            for issue in self.issues:
-              xml += '          &lt;issue&gt;%s&lt;/issue&gt;%s'   % (issue,newLine)
-            xml += '        &lt;/issues&gt;%s'                     % newLine
-            xml += '        &lt;log&gt;%s'                         % newLine
-            xml += '          &lt;![CDATA[%s'                      % newLine
-            if self.result!='pass':
-              try:
-                fh=open(self.log)
-                xml += fh.read()
-                fh.close()
-              except IOError,details:
-                self.message.append('IOError: Opening %s for reading %s' % (self.log,details.args))              
-            xml += '          ]]&gt;%s'                            % newLine
-            xml += '        &lt;/log&gt;%s'                        % newLine
-            xml += '        &lt;error&gt;%s'                       % newLine
-            xml += '          &lt;![CDATA[%s'                      % newLine
-            if self.result!='pass':
-              try:
-                fh=open(self.errors)
-                xml += fh.read()
-                fh.close()
-              except IOError,details:
-                self.message.append('IOError: Opening %s for reading %s' % (self.errors,details.args))
-            xml += '          ]]&gt;%s'                            % newLine
-            xml += '        &lt;/error&gt;%s'                      % newLine
-            xml += '        &lt;access&gt;%s'                      % newLine
-            xml += '          &lt;![CDATA[%s'                      % newLine
-            if self.result!='pass':
-              try:
-                fh=open(self.access)
-                xml += fh.read()
-                fh.close()
-              except IOError,details:
-                self.message.append('IOError: Opening %s for reading %s' % (self.access,details.args))
-            xml += '          ]]&gt;%s'                            % newLine
-            xml += '        &lt;/access&gt;%s'                     % newLine
-            xml += '      &lt;/test&gt;%s'                         % newLine
-            return xml
-          
-          def appendLog(self, category, log):
-            wrappedLog=''
-            for _line in log.splitlines():
-              _line=_line.strip()
-              _leftPadding=''
-              while len(_line)>100:
-                _logChunk=_line[:100]
-                _line=_line[100:]
-                wrappedLog+='%s%s%s' % (_leftPadding,_logChunk,newLine)
-                _leftPadding='...    '
-              wrappedLog += '%s%s%s' % (_leftPadding,_line,newLine)
-            if category == 'access':
-              try:
-                fh=open(self.access,'a')
-              except IOError,details:
-                self.message.append('IOError: Opening %s for appending %s' % (self.access,details.args))
-            elif category == 'error':
-              try:
-                fh=open(self.errors,'a')
-              except IOError,details:
-                self.message.append('IOError: Opening %s for appending %s' % (self.errors,details.args))              
-            else:
-              try:
-                fh=open(self.log,'a')
-              except IOError,details:
-                self.message.append('IOError: Opening %s for appending %s' % (self.log,details.args))              
-            fh.seek(0,2)
-            fh.write(wrappedLog)
-            fh.close()
-            
-          def getName(self):
-            return self.name
-            
-          def clean(self):
-            for _file in [self.log,self.errors,self.access]:
-              if os.path.exists(_file):
-                os.remove(_file)
-        
-        testcaseStop=int(time.time())
-        testcaseDuration=testcaseStop-testcaseStart
-        thisTest = Test(CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentTestcase, testcaseStartTime,testcaseEndTime,numFail,numPass,issuesList,testcaseDuration)
-        
-        doLog = False
-        
-        # loop through the log lines
-        for element in STAFResult:
-          level=element['level'] 
-          
-          # this test is BEFORE the append so we don't get the
-          # end of testcase banner in the XML but only the relevant data
-          if level == 'Stop':
-            doLog=False
-          
-          # if the current element is actually this test's output then log it
-          if doLog == True:
-            thisTest.appendLog('test',element['message'])
-            
-          # this test is AFTER the append log so we don't get the
-          # "starting testcase ..." header in the XML
-          if level == 'Start':
-            tmp = element['message'].split(':')
-            # this is a verification that we start logging for the right
-            # test case. this is especially useful for tests that execute
-            # within the same second (that is the resolution of the STAF
-            # log facility)
-            if thisTest.getName().startswith(tmp[3]):
-              doLog=True
-        
-        # parse the server's error log
-        # TODO: figure out how to do this for multiple instance for the replication
-        #       tests for example
-        for logType in ['errors','access']:
-          if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
-            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
-            logfile.seek(0,2)
-            logfile.write('End testcase %s\n' % STAXCurrentTestcase)
-            logfile.close()
-            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType), 'r')
-            _log=''
-            _doLog=False
-            while True:
-              line = logfile.readline()
-              if not line:
-                break
-              if line.startswith('End testcase %s' % STAXCurrentTestcase):
-                _doLog=False
-              if _doLog:
-                _log+=line
-              if line.startswith('Begin testcase %s' % STAXCurrentTestcase):
-                _doLog=True
-            logfile.close()
-            thisTest.appendLog(logType, _log)
-        
-        # save to test log
-        testlog=open('%s/tests-log.xml' % logs.tests,'a')
-        testlog.seek(0,2)
-        testlog.write(thisTest.toXML())
-        testlog.close()
-
-        # clean the temporary log files for this test
-        # this MUST be done AFTER the call to toXML or the logs will appear empty
-        thisTest.clean()
-      </script>
-
-      <if expr="thisTest.message">      
-        <iterate in="thisTest.message" var="_message">      
-          <message>'%s' % _message</message>
-        </iterate>
-      </if>
-      
-      <script>thisTest.message=[]</script>
 
     </sequence>
   </function>
@@ -1084,6 +915,15 @@
           
         ThisGroupName=CurrentTestPath['group']  
         ThisSuiteName=CurrentTestPath['suite']
+        
+        #Create testsuite element
+        xml.testsuite = doc.createElement("testsuite")
+        xml.createAttr(doc,xml.testsuite,"name",ThisSuiteName)
+        xml.createAttr(doc,xml.testsuite,"shortname",ThisSuiteName)
+        xml.testgroup.appendChild(xml.testsuite)
+        
+        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+
       </script>
       
       <!-- Start time of test suite -->      
@@ -1163,6 +1003,22 @@
           CurrentTestPath['group']='unknown-group'
         
         ThisGroupName=CurrentTestPath['group']
+
+        xml=xmldoc_service()
+
+        doc = xml.parseXMLfile("%s/results2.xml" % logs.reports)
+        
+        qa = doc.getDocumentElement()
+        ft = qa.getChildNodes().item(1)
+        results = ft.getChildNodes().item(1)
+        
+        #Create testgroup element
+        xml.testgroup = doc.createElement("testgroup")
+        xml.createAttr(doc,xml.testgroup,"name",ThisGroupName)
+        results.appendChild(xml.testgroup)
+        
+        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+        
       </script>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
     </sequence>
@@ -1180,7 +1036,7 @@
           ThisGroupName=CurrentTestPath['group']
         else:
           ThisGroupName='unknown-group'
-        
+                
         coverage='N/A'
       </script>
       
@@ -1189,6 +1045,7 @@
       <script>
         emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
       </script>
+
       <if expr="os.path.exists(emmaJar)">
         <sequence>
           <script>
@@ -1218,56 +1075,8 @@
               'path' : TMPDIR
             }
           </call>
-          <script>
-            from java.io import FileInputStream
-            from javax.xml.transform.stream import StreamSource
-            from javax.xml.transform.stream import StreamResult
-            from javax.xml.parsers import DocumentBuilderFactory
-            from org.w3c.dom import *
-            
-            factory = DocumentBuilderFactory.newInstance() 
-            builder = factory.newDocumentBuilder()
-            
-            input = FileInputStream("%s/coverage/%s/coverage.xml" % (TMPDIR,CurrentTestPath['group']))
-            document = builder.parse(input)
-            dom = document.getDocumentElement()
-            coverageNodes = dom.getElementsByTagName("all").item(0).getChildNodes()
-            for coverageNodeIndex in range(coverageNodes.getLength()):
-              thisNode = coverageNodes.item(coverageNodeIndex)
-              if thisNode.getNodeName() == 'coverage':
-                thisNodeAttributes = thisNode.getAttributes()
-                if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
-                  rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
-                  coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
-            testlog.seek(0,2)
-            testlog.write("      &lt;group&gt;\n")
-            testlog.write("        &lt;name&gt;\n")
-            testlog.write("          %s\n" % CurrentTestPath['group'])
-            testlog.write("        &lt;/name&gt;\n")
-            testlog.write("        &lt;coverage&gt;\n")
-            testlog.write("          %s\n" % coverage)
-            testlog.write("        &lt;/coverage&gt;\n")
-            testlog.write("      &lt;/group&gt;\n")
-            testlog.close()
-          </script>
         </sequence>
-        <else>
-          <script>
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
-            testlog.seek(0,2)
-            testlog.write("      &lt;group&gt;\n")
-            testlog.write("        &lt;name&gt;\n")
-            testlog.write("          %s\n" % CurrentTestPath['group'])
-            testlog.write("        &lt;/name&gt;\n")
-            testlog.write("        &lt;coverage&gt;\n")
-            testlog.write("          N/A\n")
-            testlog.write("        &lt;/coverage&gt;\n")
-            testlog.write("      &lt;/group&gt;\n")
-            testlog.close()
-          </script>
-        </else>
-      </if>
+       </if>
       
       <script>
         if CurrentTestPath.has_key('group'):

@@ -46,7 +46,8 @@ __all__ = [ "format_testcase",
             "dn2list",
             "list2dn",
             "dn2rfcmailaddr",
-            "java_properties" ]
+            "java_properties",
+            "xmldoc_service" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -622,3 +623,60 @@ def java_properties(propFile, toolsName, optionList):
     print "Exception:", sys.exc_info()[0]
 
     return 1
+
+class xmldoc_service:
+
+  def __init__(self):
+    self.testgroup=''
+    self.testsuite=''
+    self.testcase=''
+
+  def createBlankDocument(self):
+    try:
+      import sys, traceback
+      from javax.xml.parsers import DocumentBuilderFactory
+      builderFactory=DocumentBuilderFactory.newInstance()
+      return builderFactory.newDocumentBuilder()
+    except:
+      print "exception: %s" % traceback.format_exception(*sys.exc_info())
+
+  def writeXMLfile(self,doc,xmlfile):
+    try:
+      import sys, traceback
+      from java.io import File
+      from javax.xml.transform import TransformerFactory
+      from javax.xml.transform import OutputKeys
+      from javax.xml.transform.stream import StreamResult
+      from javax.xml.transform.dom import DOMSource
+      tranFactory = TransformerFactory.newInstance();
+      aTransformer = tranFactory.newTransformer();
+      aTransformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1")
+      aTransformer.setOutputProperty(OutputKeys.INDENT, "yes")
+
+      src = DOMSource(doc);
+      dest = StreamResult(File(xmlfile));
+      aTransformer.transform(src, dest);
+    except:
+      print "exception: %s" % traceback.format_exception(*sys.exc_info())
+
+  def parseXMLfile(self,xmlfile):
+    try:
+      import sys, traceback
+      from java.io import FileInputStream
+      self.builder= self.createBlankDocument()
+      self.input = FileInputStream(xmlfile)
+      self.doc = self.builder.parse(self.input)
+      self.input.close()
+      return self.doc
+    except:
+      print "exception: %s" % traceback.format_exception(*sys.exc_info())
+
+  def createAttr(self,doc,tag,attr,value):
+    try:
+      import sys, traceback
+      newAttribute= doc.createAttribute(attr)
+      newAttribute.setValue('%s' % value)
+      tag.setAttributeNode(newAttribute)
+    except:
+      print "exception: %s" % traceback.format_exception(*sys.exc_info())
+                                                         

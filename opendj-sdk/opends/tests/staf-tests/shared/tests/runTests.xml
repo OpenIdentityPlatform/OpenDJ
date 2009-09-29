@@ -39,18 +39,28 @@
       <script>
         listOfChildren=[]
 
+        xml=xmldoc_service()
+        
+        xml.createBlankDocument()
+        
+        builder = xml.createBlankDocument()
+        
+        doc = builder.newDocument()
+        root = doc.createElement("qa")
+        doc.appendChild(root)
+        ft = doc.createElement("%s" % TESTS_TYPE)
+        root.appendChild(ft);
+        results = doc.createElement("results")
+        ft.appendChild(results);
+        
+        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+
         class groupToRun:
           def __init__(self, name):
             self.name = name
 
           def getName(self):
             return self.name
-
-        testlog=open('%s/tests-log.xml' % logs.tests,'w')
-        testlog.write('&lt;qa&gt;\n')
-        testlog.write('  &lt;%s&gt;\n' % TESTS_TYPE)
-        testlog.write('    &lt;results&gt;\n')
-        testlog.close()
 
         groupsToRun = []
         for line in TEST_PLAN_CUSTOM.split(","):
@@ -145,182 +155,13 @@
                 'path'      : TMPDIR
               }
           </call>
-          <script>
-            from java.io import FileInputStream
-            from javax.xml.transform.stream import StreamSource
-            from javax.xml.transform.stream import StreamResult
-            from javax.xml.parsers import DocumentBuilderFactory
-            from org.w3c.dom import *
-
-            factory = DocumentBuilderFactory.newInstance()
-            builder = factory.newDocumentBuilder()
-
-            input = FileInputStream("%s/coverage/coverage.xml" % TMPDIR)
-            document = builder.parse(input)
-            dom = document.getDocumentElement()
-            coverageNodes = dom.getElementsByTagName("all").item(0).getChildNodes()
-            for coverageNodeIndex in range(coverageNodes.getLength()):
-              thisNode = coverageNodes.item(coverageNodeIndex)
-              if thisNode.getNodeName() == 'coverage':
-                thisNodeAttributes = thisNode.getAttributes()
-                if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
-                  rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
-                  coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
-            testlog.seek(0,2)
-            testlog.write("      &lt;all&gt;\n")
-            testlog.write("        &lt;coverage&gt;\n")
-            testlog.write("          %s\n" % coverage)
-            testlog.write("        &lt;/coverage&gt;\n")
-            testlog.write("      &lt;/all&gt;\n")
-            testlog.close()
-          </script>
         </sequence>
-        <else>
-          <script>
-            testlog=open('%s/tests-log.xml' % logs.tests,'a')
-            testlog.seek(0,2)
-            testlog.write("      &lt;all&gt;\n")
-            testlog.write("        &lt;coverage&gt;\n")
-            testlog.write("          N/A\n")
-            testlog.write("        &lt;/coverage&gt;\n")
-            testlog.write("      &lt;/all&gt;\n")
-            testlog.close()
-          </script>
-        </else>
       </if>
-
-      <!-- here goes the section where we get the product's info -->
-      <call function="'GetVar'">
-        { 'location'  : STAF_REMOTE_HOSTNAME,
-          'type'      : 'shared',
-          'variable'  : 'Job%s_ServerInfo' % STAXJobID
-        }
-      </call>
-
-      <if expr="RC != 0">
-        <script>
-          STAFResult='{}'
-        </script>
-      </if>
-
-      <!-- Build the Servers Information Dictionary -->
-      <script>
-        ServersInfoDict=eval(STAFResult)
-
-        ServerVersion='unknown'
-        ServerBuildId='unknown'
-        ServerJavaVersion='unknown'
-        ServerJavaVendor='unknown'
-        ServerJVMVersion='unknown'
-        ServerJVMVendor='unknown'
-        ServerJVMArchitecture='unknown'
-        ServerSystemOS='unknown'
-        ServerSystemName='unknown'
-        ServerSvnRevision='unknown'
-
-        if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
-          ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
-
-          ServerInfoKey='server version'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerVersion=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='server buildid'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerBuildId=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='java version'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJavaVersion=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='java vendor'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJavaVendor=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='jvm version'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMVersion=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='jvm vendor'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMVendor=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='jvm architecture'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerJVMArchitecture=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='system os'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSystemOS=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='system name'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSystemName=ServerInfoDict[ServerInfoKey]
-
-          ServerInfoKey='svn revision'
-          if ServerInfoDict.has_key(ServerInfoKey):
-            ServerSvnRevision=ServerInfoDict[ServerInfoKey]
-
-        else:
-          ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-
-        # Platform and JVM can be overridden from config file
-        try:
-          if TEST_OS_STRING:
-            ServerOsString=TEST_OS_STRING
-          else:
-            ServerOsString=ServerSystemOS
-        except NameError,details:
-            ServerOsString=ServerSystemOS
-
-        try:
-          if TEST_JVM_STRING:
-            ServerJVMString=TEST_JVM_STRING
-          else:
-            ServerJVMString=ServerJVMVersion
-        except NameError,details:
-            ServerJVMString=ServerJVMVersion
-
-        testlog=open('%s/tests-log.xml' % logs.tests,'a')
-        testlog.seek(0,2)
-        testlog.write('    &lt;/results&gt;\n')
-        testlog.write('    &lt;identification&gt;\n')
-        testlog.write('      &lt;version&gt;\n')
-        testlog.write('        %s\n' % ServerVersion)
-        testlog.write('      &lt;/version&gt;\n')
-        testlog.write('      &lt;buildid&gt;\n')
-        testlog.write('        %s\n' % ServerBuildId)
-        testlog.write('      &lt;/buildid&gt;\n')
-        testlog.write('      &lt;revision&gt;\n')
-        testlog.write('        %s\n' % ServerSvnRevision)
-        testlog.write('      &lt;/revision&gt;\n')
-        testlog.write('      &lt;platform&gt;\n')
-        testlog.write('        %s\n' % ServerSystemOS)
-        testlog.write('      &lt;/platform&gt;\n')
-        testlog.write('      &lt;os-label&gt;\n')
-        testlog.write('        %s\n' % ServerOsString)
-        testlog.write('      &lt;/os-label&gt;\n')
-        testlog.write('      &lt;jvm-version&gt;\n')
-        testlog.write('        %s\n' % ServerJVMVersion)
-        testlog.write('      &lt;/jvm-version&gt;\n')
-        testlog.write('      &lt;jvm-label&gt;\n')
-        testlog.write('        %s\n' % ServerJVMString)
-        testlog.write('      &lt;/jvm-label&gt;\n')
-        testlog.write('      &lt;jvm-vendor&gt;\n')
-        testlog.write('        %s\n' % ServerJVMVendor)
-        testlog.write('      &lt;/jvm-vendor&gt;\n')
-        testlog.write('      &lt;tests-dir&gt;\n')
-        testlog.write('        %s\n' % logs.directory)
-        testlog.write('      &lt;/tests-dir&gt;\n')
-        testlog.write('    &lt;/identification&gt;\n')
-        testlog.write('  &lt;/%s&gt;\n' % TESTS_TYPE)
-        testlog.write('&lt;/qa&gt;\n')
-        testlog.close()
-      </script>
 
       <return>listOfChildren</return>
 
     </sequence>
+
   </function>
+
 </stax>
