@@ -120,6 +120,15 @@
                 }
               </call>
 
+              <call function="'copyFile'">
+                {
+                'location'   : STAXServiceMachine,
+                'srcfile'    : '%s/resource/errorStrings.properties' % TESTS_DSML_DIR,
+                'destfile'   : '%s/dsml/STAF-INF/classes/errorStrings.properties' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
+
               <call function="'createFolder'">
                 {
                 'location'   : location,

@@ -367,6 +367,30 @@
                                             </sequence>
                                           </iterate>
                                         </if>
+                                        <message>'checking string marker issues in result'</message>
+                                        <call function="'runSTAFCommand'">
+                                          { 'name'      :  'check if known issue %s' % issue,
+                                            'location'  :  STAXServiceMachine,
+                                            'service'   :  'DSML',
+                                            'request'   :  'CHECK_ERROR_STRINGS',
+                                            'arguments' :  'FILE %s ' %(runFilePath)
+
+                                          }
+                                        </call>
+                                        <if expr="RC >= 100000000">
+                                          <!-- string marked issues start from 100000000 -->
+                                          <sequence>
+                                            <script>
+                                              issue = RC - 100000000
+                                            </script>
+                                            <!-- this is a known issue -->
+                                            <call function="'setKnownIssue'">
+                                              { 'issueId' : issue }
+                                            </call>
+                                            <break/>
+                                          </sequence>
+                                        </if>
+
                                       </sequence>
                                       <catch exception="'...'" typevar="eType" var="eInfo">
                                         <sequence>
