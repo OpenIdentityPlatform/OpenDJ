@@ -524,7 +524,11 @@ public class ReplicationBroker
                  startSameGroupIdPoller();
                 }
                 startRSHeartBeatMonitoring();
-                startChangeTimeHeartBeatPublishing();
+                if (replServerStartMsg.getVersion()
+                    >= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+                {
+                  startChangeTimeHeartBeatPublishing();
+                }
               } else
               {
                 // Detected new RS with our group id: log disconnection to

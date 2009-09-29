@@ -3075,7 +3075,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           try
           {
-            rsHandler.send(msg);
+            if (rsHandler.getProtocolVersion() >=
+              ProtocolVersion.REPLICATION_PROTOCOL_V3)
+            {
+              rsHandler.send(msg);
+            }
           } catch (IOException e)
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
