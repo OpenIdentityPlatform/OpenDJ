@@ -1083,14 +1083,13 @@ public class ControlPanelInfo
       SortedSet<InetAddress> addresses = desc.getAddresses();
       if (addresses.size() == 0) {
         if (port > 0) {
-          url = "ldaps://localhost:" + port;
+          url = ConnectionUtils.getLDAPUrl("localhost", port, true);
         }
       } else {
         if (port > 0) {
           InetAddress address = addresses.first();
-          url = "ldaps://" +
-          ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress()) + ":"
-          + port;
+          String a = address.getHostAddress();
+          url = ConnectionUtils.getLDAPUrl(a, port, true);
         }
       }
     }
