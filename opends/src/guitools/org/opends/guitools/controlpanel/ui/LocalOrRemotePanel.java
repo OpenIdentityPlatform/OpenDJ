@@ -423,8 +423,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             }
             else
             {
-              usedUrl =
-                "ldaps://"+hostName.getText().trim()+":"+port.getText().trim();
+              usedUrl = ConnectionUtils.getLDAPUrl(hostName.getText().trim(),
+                  new Integer(port.getText().trim()), true);
               ctx = Utils.createLdapsContext(usedUrl, dn.getText(),
                   String.valueOf(pwd.getPassword()),
                   Utils.getDefaultLDAPTimeout(), null,
