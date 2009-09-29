@@ -32,11 +32,18 @@
 
   <target name="specs">
     <javac srcdir="${shared.dir}/java/parsingtool"
-           destdir="${shared.dir}/java/parsingtool"/>
+           destdir="${shared.dir}/java/parsingtool"
+           debug="true"
+           debuglevel="lines,vars,source"
+           verbose="yes"
+           />
     <delete dir="${logs.dir}/specs" failonerror="false"/>
     <mkdir dir="${logs.dir}/specs"/>
     <java classpath="${shared.dir}/java/parsingtool"
           classname="GenerateOpenDSTestSpecs" fork="true">
+        <!-- uncomment "agentlib" if need debugger waiting for you
+        <jvmarg value="-agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=7778"/>
+        -->
         <arg value="${tests.dir}"/>
         <arg value="${logs.dir}/specs"/>
         <arg value="xml" />

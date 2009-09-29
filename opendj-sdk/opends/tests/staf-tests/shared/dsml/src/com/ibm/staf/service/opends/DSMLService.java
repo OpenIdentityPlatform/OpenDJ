@@ -30,7 +30,7 @@ import com.ibm.staf.*;
 import com.ibm.staf.wrapper.*;
 import com.ibm.staf.service.*;
 import com.ibm.staf.service.opends.tester.*;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 public class DSMLService implements STAFServiceInterfaceLevel30 {
 
   private static final String OP_COMPARE = "COMPARE";
+  private static final String OP_CHECK_ERROR_STRINGS = "CHECK_ERROR_STRINGS";
   private static final String OP_HELP = "HELP";
   private static final String OP_FILE = "FILE";
   private static final String OP_EXP_FILE = "EXP_FILE";
@@ -55,12 +56,11 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
   private STAFHandle fHandle;
   private String fLocalMachineName = "";
   private STAFLog logger = null;
-
   // Define any error codes unique to this service
   private static final int kDSMLInvalidSomething = 4001;
-
+  private static final int kErrorStringMatchOffset = 100000000;
   // STAFCommandParsers for each request
-  private STAFCommandParser fCompareParser;
+  private STAFCommandParser fParser;
   private String fLineSep;
 
   public STAFResult init(STAFServiceInterfaceLevel30.InitInfo info) {
@@ -75,31 +75,22 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
     }
 
     // COMPARE parser
-    fCompareParser = new STAFCommandParser(0, false);
-    fCompareParser.addOption(OP_COMPARE, 1, STAFCommandParser.VALUENOTALLOWED);
-    fCompareParser.addOption(OP_FILE, 1, STAFCommandParser.VALUEREQUIRED);
-    //fCompareParser.addOption(OP_F_SHORTCUT, 0, STAFCommandParser.VALUEREQUIRED);
-    fCompareParser.addOption(OP_DIR, 1, STAFCommandParser.VALUEREQUIRED);
-    fCompareParser.addOption(OP_EXP_FILE, 1, STAFCommandParser.VALUEREQUIRED);
-    fCompareParser.addOption(OP_EXP_DIR, 1, STAFCommandParser.VALUEREQUIRED);
-    //fCompareParser.addOption(OP_DIR_SHORT, 0, STAFCommandParser.VALUEREQUIRED);
-    //fCompareParser.addOption(OP_D_SHORTCUT, 0, STAFCommandParser.VALUEREQUIRED);
-    // either we compare directory or file
-    //fCompareParser.addOptionGroup(OP_FILE_GROUP, 1, 3);
-    //fCompareParser.addOptionGroup(OP_DIR_GROUP, 1, 3);
-    //TODO.1 not needed per dependency below 
-    //TODO.1 fCompareParser.addOptionGroup(OP_EXPECTED_GROUP, 0, 1);
-    //TODO.1 fCompareParser.addOptionNeed(OP_EXPECTED_RESULT_FILE, OP_RESULT_FILE);
-    //TODO.1 fCompareParser.addOptionNeed(OP_EXPECTED_RESULT_DIR, OP_RESULT_DIR);
+    fParser = new STAFCommandParser(0, false);
+    fParser.addOption(OP_COMPARE, 1, STAFCommandParser.VALUENOTALLOWED);
+    fParser.addOption(OP_FILE, 1, STAFCommandParser.VALUEREQUIRED);
+    fParser.addOption(OP_DIR, 1, STAFCommandParser.VALUEREQUIRED);
+    fParser.addOption(OP_EXP_FILE, 1, STAFCommandParser.VALUEREQUIRED);
+    fParser.addOption(OP_EXP_DIR, 1, STAFCommandParser.VALUEREQUIRED);
 
     // if you specify COMPARE, RESULT_FILE is required
-    fCompareParser.addOptionNeed(OP_FILE, OP_EXP_FILE);
-    fCompareParser.addOptionNeed(OP_EXP_FILE, OP_FILE);
-    fCompareParser.addOptionNeed(OP_DIR, OP_EXP_DIR);
-    fCompareParser.addOptionNeed(OP_EXP_DIR, OP_DIR);
-    fCompareParser.addOptionNeed(OP_COMPARE, OP_FILE + " " + OP_DIR);
-    fCompareParser.addOptionNeed(OP_FILE + " " + OP_DIR, OP_COMPARE);
+    fParser.addOptionNeed(OP_EXP_FILE, OP_FILE);
+    fParser.addOptionNeed(OP_EXP_DIR, OP_DIR);
+    fParser.addOptionNeed(OP_COMPARE, OP_EXP_FILE + " " + OP_EXP_DIR);
+    fParser.addOptionNeed(OP_EXP_FILE + " " + OP_EXP_DIR, OP_COMPARE);
 
+    // CHECK_ERROR_STRINGS parser
+    fParser.addOption(OP_CHECK_ERROR_STRINGS, 1, STAFCommandParser.VALUENOTALLOWED);
+    fParser.addOptionNeed(OP_CHECK_ERROR_STRINGS, OP_FILE);
     STAFResult res = new STAFResult();
 
     // Resolve the line separator variable for the local machine
@@ -122,7 +113,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
 
     // Register Help Data
     registerHelpData(
-            kDSMLInvalidSomething+1,
+            kDSMLInvalidSomething + 1,
             "Invalid input",
             "missing or wrong input files for results or expected results");
 
@@ -130,9 +121,6 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
   }
 
   public STAFResult acceptRequest(STAFServiceInterfaceLevel30.RequestInfo info) {
-    // dumping the RequestInfo
-    //TODO
-
     //delegate the request handling
     StringTokenizer requestTokenizer = new StringTokenizer(info.request);
     String request = requestTokenizer.nextToken().toLowerCase();
@@ -140,6 +128,8 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
     // call the appropriate method to handle the command
     if (request.equalsIgnoreCase(OP_COMPARE)) {
       return handleCompare(info);
+    } else if (request.equalsIgnoreCase(OP_CHECK_ERROR_STRINGS)) {
+      return handleCheckErrorStrings(info);
     } else if (request.equalsIgnoreCase(OP_HELP)) {
       return handleHelp(info);
     } else {
@@ -152,7 +142,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
     try {
       // Un-register Help Data
 
-      unregisterHelpData(kDSMLInvalidSomething+2);
+      unregisterHelpData(kDSMLInvalidSomething + 2);
 
       // Un-register the service handle
 
@@ -165,11 +155,79 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
     return new STAFResult(STAFResult.Ok);
   }
 
+  private STAFResult handleCheckErrorStrings(STAFServiceInterfaceLevel30.RequestInfo info) {
+    STAFResult sr = new STAFResult(0);
+    STAFCommandParseResult parsedRequest = fParser.parse(info.request);
+    if (parsedRequest.rc != STAFResult.Ok) {
+      return new STAFResult(STAFResult.InvalidRequestString,
+              parsedRequest.errorBuffer);
+    }
+    String resultFile = parsedRequest.optionValue(OP_FILE);
+    Properties errProps = new Properties();
+    final String RE = ".r";
+    final String lblMarker = "_";
+    try {
+      ClassLoader cl = this.getClass().getClassLoader();
+      InputStream in = cl.getResourceAsStream("errorStrings.properties");
+      errProps.load(in);
+      in.close();
+      Enumeration errEnum = errProps.propertyNames();
+      while (errEnum.hasMoreElements()) {
+        String k = (String) errEnum.nextElement();
+        String issueID = null;
+        String lbl = null;
+        boolean re = k.endsWith(RE);
+        int lblNdx = k.indexOf(lblMarker);
+        if (lblNdx != -1) {
+          if (re) {
+            lbl = k.substring(lblNdx + 1, k.length() - RE.length());
+          } else {
+            lbl = k.substring(lblNdx + 1);
+          }
+        }
+        if (lblNdx != -1) {
+          issueID = k.substring(0, lblNdx);
+        } else if (re) {
+          issueID = k.substring(0, k.length() - RE.length());
+        } else {
+          issueID = k;
+        }
+        String v = errProps.getProperty(k);
+        BufferedReader rbr = new BufferedReader(new FileReader(resultFile));
+        String line = "";
+        while ((line = rbr.readLine()) != null) {
+          if (re) {
+            if (line.matches(v)) {
+              sr = new STAFResult(kErrorStringMatchOffset + 
+                                  Integer.parseInt(issueID),""+lbl+line);
+            }
+          } else {
+            if (line.indexOf(v) != -1) {
+              sr = new STAFResult(kErrorStringMatchOffset + 
+                                  Integer.parseInt(issueID),""+lbl+line);
+              break;
+            }
+          }
+        }
+      }
+    } catch (FileNotFoundException fnfe) {
+      sr.rc = kDSMLInvalidSomething + 11;
+      sr.result = fnfe.getMessage();
+    } catch (IOException ioe) {
+      sr.rc = kDSMLInvalidSomething + 12;
+      sr.result = ioe.getMessage();
+    } catch (Exception e) {
+      sr.rc = kDSMLInvalidSomething + 13;
+      sr.result = e.getMessage();
+    }
+    return sr;
+  }
+
   private STAFResult handleCompare(STAFServiceInterfaceLevel30.RequestInfo info) {
     STAFResult sr = new STAFResult(0);
 
     //parse the input request 
-    STAFCommandParseResult parsedRequest = fCompareParser.parse(info.request);
+    STAFCommandParseResult parsedRequest = fParser.parse(info.request);
     if (parsedRequest.rc != STAFResult.Ok) {
       return new STAFResult(STAFResult.InvalidRequestString,
               parsedRequest.errorBuffer);
@@ -207,9 +265,9 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
     STAFResult sr = new STAFResult(STAFResult.Ok);
     logger.log(STAFLog.Warning,
             "handle File compare for exp_file=[" + exp_file + "], file=[" + file + "]");
-    if (!(exp_file.endsWith(DSMLFileFilter.EXPECTED_FILE_EXTENSION) || exp_file.endsWith(DSMLFileFilter.ISSUE_FILE_EXTENSION))){
+    if (!(exp_file.endsWith(DSMLFileFilter.EXPECTED_FILE_EXTENSION) || exp_file.endsWith(DSMLFileFilter.ISSUE_FILE_EXTENSION))) {
       sr.rc = STAFResult.FileReadError;
-      sr.result = "invalid input " + exp_file + " should end with " + 
+      sr.result = "invalid input " + exp_file + " should end with " +
               DSMLFileFilter.EXPECTED_FILE_EXTENSION + " or " +
               DSMLFileFilter.ISSUE_FILE_EXTENSION;
     } else if (!file.endsWith(DSMLFileFilter.RUN_FILE_EXTENSION)) {
@@ -255,7 +313,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
         erl.add(expectedContent.toString());
         expectedBufferReader.close();
         if (rl.size() != erl.size()) {
-          sr.rc = kDSMLInvalidSomething+3;//TODO
+          sr.rc = kDSMLInvalidSomething + 3;
           sr.result = "number of results " +
                   resultFile + "[" + rl.size() + "]" +
                   expectedFile + "[" + erl.size() + "]";
@@ -263,34 +321,30 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
           boolean identical = true;
           for (int i = 0; i < rl.size(); i++) {
             //starting from 1, because the first is always empty
-            /*PIERRE choose this one or below
-             identical &= compareResults("HTTP" + erl.get(i),
-                    "HTTP" + rl.get(i));
-             * */
-             identical &= compareResults((String) erl.get(i), (String) rl.get(i));
-             logger.log(STAFLog.Warning, "comparing\n"+(String)erl.get(i)+"\nwith\n"+ (String)rl.get(i));
+            identical &= compareResults((String) erl.get(i), (String) rl.get(i));
+            logger.log(STAFLog.Warning, "comparing\n" + (String) erl.get(i) + "\nwith\n" + (String) rl.get(i));
             if (identical) {
               // success
               sr.rc = STAFResult.Ok;
               sr.result = resultFile + MATCH + expectedFile;
             } else {
-              logger.log(STAFLog.Error, "exp_file=[" + exp_file + "] "+
-                                        "differ from file=[" + file + "]");
+              logger.log(STAFLog.Error, "exp_file=[" + exp_file + "] " +
+                      "differ from file=[" + file + "]");
 
-              sr.rc = kDSMLInvalidSomething+4;
+              sr.rc = kDSMLInvalidSomething + 4;
               sr.result = resultFile + DIFFER + expectedFile;
               break;
             }
           }
         }
       } catch (FileNotFoundException fnfe) {
-        sr.rc = kDSMLInvalidSomething+5;//TODO
+        sr.rc = kDSMLInvalidSomething + 5;
         sr.result = fnfe.getMessage();
       } catch (IOException ioe) {
-        sr.rc = kDSMLInvalidSomething+6;//TODO
+        sr.rc = kDSMLInvalidSomething + 6;
         sr.result = ioe.getMessage();
       } catch (Exception e) {
-        sr.rc = kDSMLInvalidSomething+7;//TODO
+        sr.rc = kDSMLInvalidSomething + 7;
         sr.result = e.getMessage();
       }
     }
@@ -316,7 +370,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
         String eName;
         for (int ei = 0; ei < eFiles.length; ei++) {
           eName = eFiles[ei].getName();
-          eName = eName.substring(0,eName.lastIndexOf(DSMLFileFilter.EXPECTED_FILE_EXTENSION));
+          eName = eName.substring(0, eName.lastIndexOf(DSMLFileFilter.EXPECTED_FILE_EXTENSION));
           ea.add(eName);
         }
         // find all the files with extension ".run"
@@ -325,7 +379,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
         String rName;
         for (int ri = 0; ri < rFiles.length; ri++) {
           rName = rFiles[ri].getName();
-          rName = rName.substring(0,rName.lastIndexOf(DSMLFileFilter.RUN_FILE_EXTENSION));
+          rName = rName.substring(0, rName.lastIndexOf(DSMLFileFilter.RUN_FILE_EXTENSION));
           ra.add(rName);
           if (!ea.contains(rName)) {
             // get a run file not matching expected result
@@ -336,26 +390,26 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
           }
         }
         // find the missing result file and remove from test_a
-        for (int i=0; i< ea.size(); i++) {
+        for (int i = 0; i < ea.size(); i++) {
           String e = (String) ea.get(i);
           if (!ra.contains(e)) {
             missing_r.add(e);
           }
         }
         // loop through the test set test_a and compare the files
-        for (int i=0 ; i < test_a.size(); i++) {
+        for (int i = 0; i < test_a.size(); i++) {
           String tf = (String) test_a.get(i);
           sr = handleCompareFile(
-                  exp_dir+File.separator+tf+DSMLFileFilter.EXPECTED_FILE_EXTENSION,
-                  run_dir+File.separator+tf+DSMLFileFilter.RUN_FILE_EXTENSION);
+                  exp_dir + File.separator + tf + DSMLFileFilter.EXPECTED_FILE_EXTENSION,
+                  run_dir + File.separator + tf + DSMLFileFilter.RUN_FILE_EXTENSION);
         }
       } else {
         logger.log(STAFLog.Warning, "Directory comparaison with invalid input dir : " + exp_dir);
-        sr.rc = kDSMLInvalidSomething+8;
+        sr.rc = kDSMLInvalidSomething + 8;
         sr.result = "Directory comparaison with invalid input dir : " + exp_dir;
       }
     } catch (Exception e) {
-      sr.rc = kDSMLInvalidSomething+9;
+      sr.rc = kDSMLInvalidSomething + 9;
       sr.result = e.getMessage();
     }
     return sr;
@@ -400,7 +454,7 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
 
   private STAFResult handleInvalidRequest(STAFServiceInterfaceLevel30.RequestInfo info) {
     logger.log(STAFLog.Error, "invalid request : [" + info.request + "]");
-    STAFResult sr = new STAFResult(kDSMLInvalidSomething+10);
+    STAFResult sr = new STAFResult(kDSMLInvalidSomething + 10);
     sr.result = info.request;
     return sr;
   }
@@ -422,19 +476,19 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
             "DSML Service Help :" + fLineSep + fLineSep + OP_COMPARE + "(" +
             OP_EXP_FILE + " filename " + OP_FILE + " filename " + " | " +
             OP_EXP_DIR + " dirname " + OP_DIR + " dirname )" +
+            fLineSep + OP_CHECK_ERROR_STRINGS + " " + OP_FILE + " filename " +
             fLineSep + OP_HELP);
   }
-
 
   // Register error codes for the STAX Service with the HELP service
   private void registerHelpData(int errorNumber, String info,
           String description) {
-  //TODO
+    //TODO
   }
 
   // Un-register error codes for the STAX Service with the HELP service
   private void unregisterHelpData(int errorNumber) {
-  //TODO
+    //TODO
   }
 
   private class DSMLFileFilter implements FilenameFilter {
