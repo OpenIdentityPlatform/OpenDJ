@@ -43,6 +43,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
@@ -52,6 +53,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
 import org.opends.server.types.SearchScope;
+import static org.opends.messages.ProtocolMessages.*;
 
 
 
@@ -271,6 +273,7 @@ public class DSMLSearchOperation
    *         information.
    */
   private static LDAPFilter createSubstringFilter(SubstringFilter sf)
+        throws LDAPException
   {
     List<String> anys = sf.getAny();
     ArrayList<ByteString> subAnyElements = new ArrayList<ByteString>(anys
@@ -279,6 +282,12 @@ public class DSMLSearchOperation
     for (String s : anys)
     {
       subAnyElements.add(ByteString.valueOf(s));
+    }
+    if(sf.getInitial() == null && subAnyElements.isEmpty()
+            && sf.getFinal()==null)
+    {
+      Message message = ERR_LDAP_FILTER_DECODE_NULL.get();
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
     }
     return LDAPFilter.createSubstringFilter(sf.getName(), sf.getInitial()==null?
       null:ByteString.valueOf(sf.getInitial()), subAnyElements,
@@ -514,7 +523,22 @@ public class DSMLSearchOperation
         int resultCode = 0;
         Message errorMessage = null;
         LDAPMessage responseMessage = connection.getLDAPReader().readMessage();
-
+        if(responseMessage == null)
+        {
+          //The server disconnected silently. At this point we don't know if it
+          // is a protocol error or anything else. Since we didn't hear from
+          // the server , we have a reason to believe that the server doesn't
+          // want to handle this request. Let us return unavailable error
+          // code to the client to cover possible cases.
+          Message message = ERR_UNEXPECTED_CONNECTION_CLOSURE.get();
+          LDAPResult result = objFactory.createLDAPResult();
+          ResultCode code = objFactory.createResultCode();
+          code.setCode(LDAPResultCode.UNAVAILABLE);
+          result.setResultCode(code);
+          result.setErrorMessage(message.toString());
+          searchResponse.setSearchResultDone(result);
+          return searchResponse;
+        }
         opType = responseMessage.getProtocolOpType();
         switch (opType)
         {
