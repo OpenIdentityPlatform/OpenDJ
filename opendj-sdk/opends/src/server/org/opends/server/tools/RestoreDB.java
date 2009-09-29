@@ -563,7 +563,7 @@ public class RestoreDB extends TaskTool {
         out.println();
       }
 
-      return 1;
+      return 0;
     }
 
 
