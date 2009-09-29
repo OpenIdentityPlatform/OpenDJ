@@ -1835,20 +1835,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     for (DataServerHandler handler : directoryServers.values())
     {
-      if ((notThisOne == null) || // All DSs requested
-        ((notThisOne != null) && (handler != notThisOne)))
-      // All except passed one
+      if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
       {
-        TopologyMsg topoMsg = createTopologyMsgForDS(handler.getServerId());
-        try
+        if ((notThisOne == null) || // All DSs requested
+          ((notThisOne != null) && (handler != notThisOne)))
+        // All except passed one
         {
-          handler.sendTopoInfo(topoMsg);
-        } catch (IOException e)
-        {
-          Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+          TopologyMsg topoMsg = createTopologyMsgForDS(handler.getServerId());
+          try
+          {
+            handler.sendTopoInfo(topoMsg);
+          } catch (IOException e)
+          {
+            Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
             baseDn.toString(),
             "directory", Short.toString(handler.getServerId()), e.getMessage());
-          logError(message);
+            logError(message);
+          }
         }
       }
     }
@@ -1863,16 +1866,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     TopologyMsg topoMsg = createTopologyMsgForRS();
     for (ReplicationServerHandler handler : replicationServers.values())
     {
-      try
+      if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
       {
-        handler.sendTopoInfo(topoMsg);
-      } catch (IOException e)
-      {
-        Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
-          baseDn.toString(),
-          "replication", Short.toString(handler.getServerId()),
-          e.getMessage());
-        logError(message);
+        try
+        {
+          handler.sendTopoInfo(topoMsg);
+        } catch (IOException e)
+        {
+          Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+            baseDn.toString(),
+            "replication", Short.toString(handler.getServerId()),
+            e.getMessage());
+          logError(message);
+        }
       }
     }
   }

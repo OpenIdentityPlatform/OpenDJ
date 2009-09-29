@@ -1938,6 +1938,16 @@ public abstract class ReplicationDomain
       genIdMessage = new ResetGenerationIdMsg(generationIdNewValue);
     }
     broker.publish(genIdMessage);
+
+    // check that at least one ReplicationServer did change its generation-id
+    if (generationIdNewValue == null)
+    {
+      checkGenerationID(this.getGenerationID());
+    }
+    else
+    {
+      checkGenerationID(generationIdNewValue);
+    }
   }
 
 

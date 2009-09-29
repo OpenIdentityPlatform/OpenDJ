@@ -59,6 +59,10 @@ import org.opends.server.types.ResultCode;
  */
 public class DataServerHandler extends ServerHandler
 {
+  // Temporay generationId received in handshake/phase1,
+  // and used after handshake/phase2
+  long tmpGenerationId;
+
   // Status of this DS (only used if this server handler represents a DS)
   private ServerStatus status = ServerStatus.INVALID_STATUS;
 
@@ -409,7 +413,7 @@ public class DataServerHandler extends ServerHandler
   public boolean processStartFromRemote(ServerStartMsg serverStartMsg)
   throws DirectoryException
   {
-    generationId = serverStartMsg.getGenerationId();
+    tmpGenerationId = serverStartMsg.getGenerationId();
     protocolVersion = ProtocolVersion.minWithCurrent(
         serverStartMsg.getVersion());
     serverId = serverStartMsg.getServerId();
@@ -474,6 +478,9 @@ public class DataServerHandler extends ServerHandler
       boolean sessionInitiatorSSLEncryption =
         processStartFromRemote(inServerStartMsg);
 
+      // lock with no timeout
+      lockDomain(false);
+
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
 
@@ -489,9 +496,6 @@ public class DataServerHandler extends ServerHandler
         abortStart(null);
         return;
       }
-
-      // lock with no timeout
-      lockDomain(false);
 
       //
       ReplServerStartMsg outReplServerStartMsg = null;
@@ -652,6 +656,7 @@ public class DataServerHandler extends ServerHandler
      *   (unsaved yet on disk . will be set with the 1rst change
      * received)
      */
+    generationId = tmpGenerationId;
     if (localGenerationId > 0)
     {
       if (generationId != localGenerationId)
