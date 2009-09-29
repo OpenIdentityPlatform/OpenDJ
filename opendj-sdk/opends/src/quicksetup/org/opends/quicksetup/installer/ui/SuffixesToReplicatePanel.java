@@ -77,7 +77,6 @@ implements Comparator<SuffixDescriptor>
     new TreeSet<SuffixDescriptor>(this);
   private HashMap<String, JCheckBox> hmCheckBoxes =
     new HashMap<String, JCheckBox>();
-  private Set<JEditorPane> suffixLabels = new HashSet<JEditorPane>();
   // The display of the server the user provided in the replication options
   // panel
   private String serverToConnectDisplay = null;
@@ -298,7 +297,6 @@ implements Comparator<SuffixDescriptor>
   private void populateCheckBoxPanel()
   {
     checkBoxPanel.removeAll();
-    suffixLabels.clear();
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.BOTH;
     gbc.anchor = GridBagConstraints.NORTH;
@@ -322,7 +320,6 @@ implements Comparator<SuffixDescriptor>
               Message.raw(getSuffixString(suffix)),
               UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       l.setOpaque(false);
-      suffixLabels.add(l);
 
       /* Use a prototype label to get the additional insets */
       JEditorPane proto = UIFactory.makeTextPane(
