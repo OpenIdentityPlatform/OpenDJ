@@ -280,10 +280,10 @@
                                 }
                               </call>
                               <if expr="RC != 0">
-                                <!-- list the known issue for the TC -->
                               <sequence>
-
-
+                                <script>
+                                  foundKnownIssue = False
+                                </script>
                                 <message>"check against test's known issues"</message>
 
                                 <call function="'runSTAFCommand'">
@@ -332,13 +332,16 @@
                                                   <call function="'setKnownIssue'">
                                                     { 'issueId' : issue }
                                                   </call>
+                                                  <script>
+                                                    foundKnownIssue = True
+                                                  </script>
                                                   <break/>
                                                 </sequence>
                                               </if>
                                             </sequence>
                                           </iterate>
                                         </if>
-                                        <if expr="len(genericIssues) > 0">
+                                        <if expr="not foundKnownIssue and len(genericIssues) > 0">
                                           <iterate var="issueFile" in="genericIssues">
                                             <sequence>
                                               <script>
@@ -361,33 +364,43 @@
                                                   <call function="'setKnownIssue'">
                                                     { 'issueId' : issue }
                                                   </call>
+                                                  <script>
+                                                    foundKnownIssue = True
+                                                  </script>
                                                   <break/>
                                                 </sequence>
                                               </if>
                                             </sequence>
                                           </iterate>
                                         </if>
-                                        <message>'checking string marker issues in result'</message>
-                                        <call function="'runSTAFCommand'">
-                                          { 'name'      :  'check if known issue %s' % issue,
-                                            'location'  :  STAXServiceMachine,
-                                            'service'   :  'DSML',
-                                            'request'   :  'CHECK_ERROR_STRINGS',
-                                            'arguments' :  'FILE %s ' %(runFilePath)
-
-                                          }
-                                        </call>
-                                        <if expr="RC >= 100000000">
-                                          <!-- string marked issues start from 100000000 -->
+                                        <if expr="not foundKnownIssue">
                                           <sequence>
-                                            <script>
-                                              issue = RC - 100000000
-                                            </script>
-                                            <!-- this is a known issue -->
-                                            <call function="'setKnownIssue'">
-                                              { 'issueId' : issue }
+                                            <message>'checking string marker issues in result'</message>
+                                            <call function="'runSTAFCommand'">
+                                              { 'name'      :  'check if known issue %s' % issue,
+                                                'location'  :  STAXServiceMachine,
+                                                'service'   :  'DSML',
+                                                'request'   :  'CHECK_ERROR_STRINGS',
+                                                'arguments' :  'FILE %s ' %(runFilePath)
+
+                                              }
                                             </call>
-                                            <break/>
+                                            <if expr="RC >= 100000000">
+                                              <!-- string marked issues start from 100000000 -->
+                                              <sequence>
+                                                <script>
+                                                  issue = RC - 100000000
+                                                </script>
+                                                <!-- this is a known issue -->
+                                                <call function="'setKnownIssue'">
+                                                  { 'issueId' : issue }
+                                                </call>
+                                                <script>
+                                                  foundKnownIssue=True
+                                                </script>
+                                                <break/>
+                                              </sequence>
+                                            </if>
                                           </sequence>
                                         </if>
 
