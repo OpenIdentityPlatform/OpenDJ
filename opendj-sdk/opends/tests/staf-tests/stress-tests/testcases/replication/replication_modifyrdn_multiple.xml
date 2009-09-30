@@ -472,34 +472,6 @@
           
           
           
-          <testcase name="getTestCaseName('Check replication status')">
-
-            <sequence>
-
-              <call function="'testCase_Preamble'"/>
-
-              <message>
-                'replication_modifyrdn_multiple: Check replication status'
-              </message>
-                            
-              <!-- Verify the synchronization of the trees among the servers in 
-                the topology -->         
-              <call function="'getReplicationStatus'">
-                { 'location'            : masterHost,
-                  'dsPath'              : masterPath,
-                  'dsInstanceHost'      : masterHost,
-                  'dsInstanceAdminPort' : master.getAdminPort(),
-                  'replicationDnList'   : [synchroSuffix]
-                }
-              </call>
-
-              <call function="'testCase_Postamble'"/>
-
-            </sequence>
-
-          </testcase>
-          
-          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'replication_cleanup'">
