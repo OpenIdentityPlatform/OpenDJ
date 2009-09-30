@@ -156,7 +156,9 @@ public class DSMLService implements STAFServiceInterfaceLevel30 {
   }
 
   private STAFResult handleCheckErrorStrings(STAFServiceInterfaceLevel30.RequestInfo info) {
-    STAFResult sr = new STAFResult(0);
+    // default return will be kDSMLInvalidSomething + 14 marking that
+    // no known error string match the erroneous expected file content.
+    STAFResult sr = new STAFResult(kDSMLInvalidSomething + 14);
     STAFCommandParseResult parsedRequest = fParser.parse(info.request);
     if (parsedRequest.rc != STAFResult.Ok) {
       return new STAFResult(STAFResult.InvalidRequestString,
