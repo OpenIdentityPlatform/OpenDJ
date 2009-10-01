@@ -276,6 +276,14 @@ public class AciListenerManager implements
     this.configurationDN = cfgDN;
     this.plugin = new AciChangeListenerPlugin();
 
+    // Process ACI from already registered backends.
+    Map<String, Backend> backendMap = DirectoryServer.getBackends();
+    if (backendMap != null) {
+      for (Backend backend : backendMap.values()) {
+        performBackendInitializationProcessing(backend);
+      }
+    }
+
     DirectoryServer.registerInternalPlugin(plugin);
     DirectoryServer.registerBackendInitializationListener(this);
     DirectoryServer.registerAlertGenerator(this);
