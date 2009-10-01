@@ -1136,35 +1136,39 @@ public class Utils
       String hostPort)
   {
     Message msg;
-    if (Utils.isCertificateException(ne))
+    String arg;
+    if (ne.getLocalizedMessage() != null)
     {
-      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              hostPort, ne.toString(true));
-    }
-    else if (ne instanceof AuthenticationException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof NoPermissionException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof NamingSecurityException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort,
-          ne.toString(true));
-    }
-    else if (ne instanceof CommunicationException)
-    {
-      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(
-          hostPort, ne.toString(true));
+      arg = ne.getLocalizedMessage();
     }
     else
     {
-       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          hostPort, ne.toString(true));
+      arg = ne.toString(true);
+    }
+    if (Utils.isCertificateException(ne))
+    {
+      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+          hostPort, arg);
+    }
+    else if (ne instanceof AuthenticationException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
+    }
+    else if (ne instanceof NoPermissionException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+    }
+    else if (ne instanceof NamingSecurityException)
+    {
+      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+    }
+    else if (ne instanceof CommunicationException)
+    {
+      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
+    }
+    else
+    {
+       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
     }
     return msg;
   }
