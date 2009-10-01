@@ -487,7 +487,7 @@ public class OfflineInstaller extends Installer
       }
     }
 
-    if (Utils.isWindows())
+    if (Utils.isWindows() && getUserData().getEnableWindowsService())
     {
       totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
       steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
