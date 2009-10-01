@@ -38,6 +38,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -649,7 +650,16 @@ public class TaskBackend
       if (TaskState.isPending(state))
       {
         if (t.isRecurring()) {
-          taskScheduler.removeRecurringTaskIteration(t.getTaskID());
+          taskScheduler.removePendingTask(t.getTaskID());
+          long scheduledStartTime = t.getScheduledStartTime();
+          long currentSystemTime = System.currentTimeMillis();
+          if (scheduledStartTime < currentSystemTime) {
+            scheduledStartTime = currentSystemTime;
+          }
+          GregorianCalendar calendar = new GregorianCalendar();
+          calendar.setTimeInMillis(scheduledStartTime);
+          taskScheduler.scheduleNextRecurringTaskIteration(t,
+                  calendar);
         } else {
           taskScheduler.removePendingTask(t.getTaskID());
         }
@@ -787,7 +797,15 @@ public class TaskBackend
               TaskState.CANCELED_BEFORE_STARTING)
             {
               taskScheduler.removePendingTask(t.getTaskID());
-              taskScheduler.scheduleTask(newTask, true);
+              long scheduledStartTime = t.getScheduledStartTime();
+              long currentSystemTime = System.currentTimeMillis();
+              if (scheduledStartTime < currentSystemTime) {
+                scheduledStartTime = currentSystemTime;
+              }
+              GregorianCalendar calendar = new GregorianCalendar();
+              calendar.setTimeInMillis(scheduledStartTime);
+              taskScheduler.scheduleNextRecurringTaskIteration(
+                      newTask, calendar);
             }
             else if (newTask.getTaskState() ==
               TaskState.STOPPED_BY_ADMINISTRATOR)
