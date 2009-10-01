@@ -386,17 +386,18 @@ public class RecurringTask
 
   /**
    * Schedules the next iteration of this recurring task for processing.
-   *
+   * @param  calendar date and time to schedule next iteration from.
    * @return The task that has been scheduled for processing.
    * @throws DirectoryException to indicate an error.
    */
-  public Task scheduleNextIteration() throws DirectoryException
+  public Task scheduleNextIteration(GregorianCalendar calendar)
+          throws DirectoryException
   {
     Task nextTask = null;
     Date nextTaskDate = null;
 
     try {
-      nextTaskDate = getNextIteration();
+      nextTaskDate = getNextIteration(calendar);
     } catch (IllegalArgumentException e) {
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
         ERR_RECURRINGTASK_INVALID_TOKENS_COMBO.get(
@@ -596,13 +597,14 @@ public class RecurringTask
 
   /**
    * Get next task iteration date according to recurring schedule.
+   * @param  calendar date and time to schedule from.
    * @return next task iteration date.
    * @throws IllegalArgumentException if recurring schedule is invalid.
    */
-  private Date getNextIteration() throws IllegalArgumentException
+  private Date getNextIteration(GregorianCalendar calendar)
+          throws IllegalArgumentException
   {
     int minute, hour, day, month, weekday;
-    GregorianCalendar calendar = new GregorianCalendar();
     calendar.setFirstDayOfWeek(GregorianCalendar.SUNDAY);
     calendar.add(GregorianCalendar.MINUTE, 1);
     calendar.set(GregorianCalendar.SECOND, 0);

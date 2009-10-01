@@ -38,6 +38,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -199,7 +200,7 @@ public class TaskScheduler
     for (RecurringTask recurringTask : recurringTasks.values()) {
       Task task = null;
       try {
-        task = recurringTask.scheduleNextIteration();
+        task = recurringTask.scheduleNextIteration(new GregorianCalendar());
       } catch (DirectoryException de) {
         logError(de.getMessageObject());
       }
@@ -258,7 +259,8 @@ public class TaskScheduler
 
       if (scheduleIteration)
       {
-        Task task = recurringTask.scheduleNextIteration();
+        Task task = recurringTask.scheduleNextIteration(
+                new GregorianCalendar());
         if (task != null)
         {
           // If there is an existing task with the same id
@@ -311,7 +313,8 @@ public class TaskScheduler
         if ((t.getRecurringTaskID() != null) &&
             (t.getRecurringTaskID().equals(recurringTaskID)))
         {
-          if (!TaskState.isDone(t.getTaskState()))
+          TaskState state = t.getTaskState();
+          if (!TaskState.isDone(state) && !TaskState.isCancelled(state))
           {
             cancelTask(t.getTaskID());
           }
@@ -525,53 +528,6 @@ public class TaskScheduler
 
 
   /**
-   * Removes the specified pending iteration of recurring task. It will
-   * be removed from the task set but still be kept in the pending set.
-   *
-   * @param  taskID  The task ID of the pending iteration to remove.
-   *
-   * @return  The task that was removed.
-   *
-   * @throws  DirectoryException  If the requested task is not in the
-   *                              pending queue.
-   */
-  public Task removeRecurringTaskIteration(String taskID)
-         throws DirectoryException
-  {
-    schedulerLock.lock();
-
-    try
-    {
-      Task t = tasks.get(taskID);
-      if (t == null)
-      {
-        Message message = ERR_TASKSCHED_REMOVE_PENDING_NO_SUCH_TASK.get(
-            String.valueOf(taskID));
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
-      }
-
-      if (TaskState.isPending(t.getTaskState()))
-      {
-        tasks.remove(taskID);
-        writeState();
-        return t;
-      }
-      else
-      {
-        Message message = ERR_TASKSCHED_REMOVE_PENDING_NOT_PENDING.get(
-            String.valueOf(taskID));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-    finally
-    {
-      schedulerLock.unlock();
-    }
-  }
-
-
-
-  /**
    * Removes the specified completed task.
    *
    * @param  taskID  The task ID of the completed task to remove.
@@ -655,54 +611,10 @@ public class TaskScheduler
         return false;
       }
 
-      // See if the task is part of a recurring task.  If so, then schedule the
-      // next iteration.
-      String recurringTaskID = completedTask.getRecurringTaskID();
-      if (recurringTaskID != null)
-      {
-        RecurringTask recurringTask = recurringTasks.get(recurringTaskID);
-        if (recurringTask != null)
-        {
-          Task newIteration = null;
-          try {
-            newIteration = recurringTask.scheduleNextIteration();
-          } catch (DirectoryException de) {
-            logError(de.getMessageObject());
-          }
-          if (newIteration != null)
-          {
-            try
-            {
-              // If there is an existing task with the same id
-              // and it is in completed state, take its place.
-              Task t = tasks.get(newIteration.getTaskID());
-              if ((t != null) && TaskState.isDone(t.getTaskState()))
-              {
-                removeCompletedTask(t.getTaskID());
-              }
-
-              scheduleTask(newIteration, false);
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message message =
-                  ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
-                    get(recurringTaskID, de.getMessageObject());
-              logError(message);
-
-              DirectoryServer.sendAlertNotification(this,
-                   ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
-                      message);
-            }
-          }
-        }
-      }
-
+      // See if the task is part of a recurring task.
+      // If so, then schedule the next iteration.
+      scheduleNextRecurringTaskIteration(completedTask,
+              new GregorianCalendar());
       writeState();
 
       if (isRunning)
@@ -718,6 +630,63 @@ public class TaskScheduler
     finally
     {
       schedulerLock.unlock();
+    }
+  }
+
+
+
+  /**
+   * Check if a given task is a recurring task iteration and re-schedule it.
+   * @param  completedTask  The task for which processing has been completed.
+   * @param  calendar  The calendar date and time to schedule from.
+   */
+  protected void scheduleNextRecurringTaskIteration(Task completedTask,
+          GregorianCalendar calendar)
+  {
+    String recurringTaskID = completedTask.getRecurringTaskID();
+    if (recurringTaskID != null)
+    {
+      RecurringTask recurringTask = recurringTasks.get(recurringTaskID);
+      if (recurringTask != null)
+      {
+        Task newIteration = null;
+        try {
+          newIteration = recurringTask.scheduleNextIteration(calendar);
+        } catch (DirectoryException de) {
+          logError(de.getMessageObject());
+        }
+        if (newIteration != null)
+        {
+          try
+          {
+            // If there is an existing task with the same id
+            // and it is in completed state, take its place.
+            Task t = tasks.get(newIteration.getTaskID());
+            if ((t != null) && TaskState.isDone(t.getTaskState()))
+            {
+              removeCompletedTask(t.getTaskID());
+            }
+
+            scheduleTask(newIteration, false);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            Message message =
+                ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
+                  get(recurringTaskID, de.getMessageObject());
+            logError(message);
+
+            DirectoryServer.sendAlertNotification(this,
+                 ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
+                    message);
+          }
+        }
+      }
     }
   }
 
