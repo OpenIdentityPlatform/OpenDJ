@@ -403,9 +403,11 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             iterator.releaseCursor();
           }
           /*
-           * Check if the first change in the lateQueue is also on the regular
-           * queue
+           * If the late queue is empty then we could not find any
+           * messages in the replication log so the remote serevr is not
+           * late anymore.
            */
+
           if (lateQueue.isEmpty())
           {
             synchronized (msgQueue)
@@ -418,6 +420,11 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             }
           } else
           {
+            /*
+             * if the first change in the lateQueue is also on the regular
+             * queue, we can resume the processing from the regular queue
+             * -> set following to true and empty the lateQueue.
+             */
             msg = lateQueue.first();
             synchronized (msgQueue)
             {
@@ -432,7 +439,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                   msg1 = msgQueue.removeFirst();
                 } while (!msg.getChangeNumber().equals(msg1.getChangeNumber()));
                 this.updateServerState(msg);
-                return msg;
+                return msg1;
               }
             }
           }
