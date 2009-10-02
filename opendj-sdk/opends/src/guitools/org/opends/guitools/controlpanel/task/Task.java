@@ -936,14 +936,13 @@ public abstract class Task
     {
       if (firstChangeType)
       {
-        sb.append("<br>");
+        sb.append("<br>changetype: modify<br>");
       }
       else
       {
         sb.append("-<br>");
       }
       firstChangeType = false;
-      sb.append("changetype: modify<br>");
       Attribute attr = mod.getAttribute();
       String attrName = attr.getID();
       if (mod.getModificationOp() == DirContext.ADD_ATTRIBUTE)
