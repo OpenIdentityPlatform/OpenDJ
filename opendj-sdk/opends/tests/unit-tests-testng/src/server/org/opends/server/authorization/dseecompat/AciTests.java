@@ -589,6 +589,7 @@ public class AciTests extends AciTestCase {
 // <PASSES>
 //    // TARGETS
     buildAciValue("name", "self mod", "allow (write)", BIND_RULE_USERDN_SELF),
+    buildAciValue("name", "parenthesis (dummy) and ( ) and () test", "allow (read)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ target", "target", LDAP_URL_OU_INNER, "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 1 targetattr", "targetattr", "cn", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ 2 targetattr", "targetattr", "cn || sn", "allow (write)", BIND_RULE_USERDN_SELF),
