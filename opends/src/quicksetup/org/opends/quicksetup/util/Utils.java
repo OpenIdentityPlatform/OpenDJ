@@ -1880,15 +1880,15 @@ public class Utils
   }
 
   /**
-   * Tries to find a customized message in the customization class.  If the
+   * Tries to find a customized object in the customization class.  If the
    * customization class does not exist or it does not contain the field
-   * as a message, returns the default message.
+   * as the specified type of the object, returns the default value.
    * @param <T> the type of the customized object.
-   * @param fieldName the name of the field representing a message in the
+   * @param fieldName the name of the field representing an object in the
    * customization class.
    * @param defaultValue the default value.
    * @param valueClass the class of the parametrized value.
-   * @return the customized message.
+   * @return the customized object.
    */
   public static <T> T getCustomizedObject(String fieldName,
       T defaultValue, Class<T> valueClass)
