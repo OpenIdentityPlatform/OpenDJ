@@ -29,6 +29,7 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -616,7 +617,6 @@ public class AssuredReplicationServerTest
 
     private int scenario = -1;
     private long generationId = -1;
-    private ProtocolSession session = null;
 
     private ChangeNumberGenerator gen = null;
 
@@ -624,8 +624,6 @@ public class AssuredReplicationServerTest
     private boolean everyUpdatesAreOk = true;
     // Number of received updates
     private int nReceivedUpdates = 0;
-
-    private boolean sameGidAsRs = true;
 
     private int nWrongReceivedUpdates = 0;
 
@@ -694,7 +692,6 @@ public class AssuredReplicationServerTest
       ProtocolSession session)
     {
       super.sessionInitiated(initStatus, replicationServerState, generationId, session);
-      this.session = session;
     }
 
     @Override
@@ -1273,7 +1270,9 @@ public class AssuredReplicationServerTest
    * All possible combinations tested thanks to the provider
    */
   @Test(dataProvider = "testSafeDataLevelOneProvider", groups = "slow", enabled = true)
-  public void testSafeDataLevelOne(int mainDsGid, boolean otherFakeDS, boolean fakeRS, int otherFakeDsGid, int fakeRsGid) throws Exception
+  public void testSafeDataLevelOne(
+      int mainDsGid, boolean otherFakeDS, boolean fakeRS,
+      int otherFakeDsGid, int fakeRsGid) throws Exception
   {
     String testCase = "testSafeDataLevelOne";
 
@@ -1314,7 +1313,7 @@ public class AssuredReplicationServerTest
         // Timeout scenario used so that no reply is made if however the real RS
         // by mistake sends an assured error and expects an ack from this DS:
         // this would timeout. If main DS group id is not the same as the real RS one,
-        // the update will even not come to real RS as asured
+        // the update will even not come to real RS as assured
         fakeRd2 = createFakeReplicationDomain(FDS2_ID, otherFakeDsGid, RS1_ID,
           DEFAULT_GENID, false, AssuredMode.SAFE_DATA_MODE, 1, LONG_TIMEOUT,
           TIMEOUT_DS_SCENARIO);
@@ -1332,7 +1331,7 @@ public class AssuredReplicationServerTest
         // Timeout scenario used so that no reply is made if however the real RS
         // by mistake sends an assured error and expects an ack from this fake RS:
         // this would timeout. If main DS group id is not the same as the real RS one,
-        // the update will even not come to real RS as asured
+        // the update will even not come to real RS as assured
         fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, RS1_ID,
           DEFAULT_GENID, false, AssuredMode.SAFE_DATA_MODE, 1, new ServerState(), TIMEOUT_RS_SCENARIO);
         assertNotNull(fakeRs1);
@@ -1373,7 +1372,6 @@ public class AssuredReplicationServerTest
       }
 
       // Sanity check
-      sleep(500); // Let time to update to reach other servers
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
       if (otherFakeDS)
