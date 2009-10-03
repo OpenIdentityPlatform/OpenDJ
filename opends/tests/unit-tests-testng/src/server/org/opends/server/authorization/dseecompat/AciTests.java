@@ -2034,6 +2034,44 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     }
   }
 
+  /**
+   * Test online handler re-initialization using selfwrite right test cases.
+   * @throws Throwable If selfwrite tests fail after re-initialization.
+   */
+  @Test()
+  public void testAciHandlerReInit() throws Throwable {
+
+    // Setup using selfwrite test case.
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+
+    // Disable ACI handler.
+    TestCaseUtils.dsconfig("set-access-control-handler-prop",
+            "--set", "enabled:false");
+
+    // Enable ACI handler.
+    TestCaseUtils.dsconfig("set-access-control-handler-prop",
+            "--set", "enabled:true");
+
+    // Test selfwrite right. Attempt to bind as level3 user and remove
+    // level1 user from a group, should fail.
+    try {
+      deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+              LEVEL_3_USER_DN, "pa$$word", false);
+    } catch (Throwable e) {
+      throw e;
+    }
+
+    // Test selfwrite right. Attempt to bind as level1 user and remove
+    // itself from a group, should succeed.
+    try {
+      deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+              LEVEL_1_USER_DN, "pa$$word", true);
+    } catch (Throwable e) {
+      throw e;
+    }
+  }
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
