@@ -2035,14 +2035,16 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   }
 
   /**
-   * Test online handler re-initialization using selfwrite right test cases.
-   * @throws Throwable If selfwrite tests fail after re-initialization.
+   * Test online handler re-initialization using global and selfwrite
+   * right test cases.
+   * @throws Throwable If any test cases fail after re-initialization.
    */
   @Test()
   public void testAciHandlerReInit() throws Throwable {
 
-    // Setup using selfwrite test case.
+    // Setup using global and selfwrite test cases.
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(GLOBAL_MODS, DIR_MGR_DN, DIR_MGR_PW);
     modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
 
     // Disable ACI handler.
@@ -2052,6 +2054,31 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     // Enable ACI handler.
     TestCaseUtils.dsconfig("set-access-control-handler-prop",
             "--set", "enabled:true");
+
+    // Test global ACI. Two ACIs are used, one protecting
+    // "cn=monitor" and the other the test DIT.
+    SingleSearchParams monitorParam =
+            new SingleSearchParams(ADMIN_DN, ADMIN_PW, MONITOR_DN,
+            OBJECTCLASS_STAR, SCOPE_BASE,
+            null, null, null);
+    SingleSearchParams baseParam =
+            new SingleSearchParams(LEVEL_1_USER_DN,
+            "pa$$word", OU_BASE_DN,
+            OBJECTCLASS_STAR, SCOPE_BASE,
+            null, null, null);
+    try {
+      String monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
+      Assert.assertFalse(monitorResults.equals(""));
+      String baseResults = ldapSearch(baseParam.getLdapSearchArgs());
+      Assert.assertFalse(baseResults.equals(""));
+      deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI, true);
+      monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
+      Assert.assertTrue(monitorResults.equals(""));
+      baseResults = ldapSearch(baseParam.getLdapSearchArgs());
+      Assert.assertTrue(baseResults.equals(""));
+    } catch (Throwable e) {
+      throw e;
+    }
 
     // Test selfwrite right. Attempt to bind as level3 user and remove
     // level1 user from a group, should fail.
