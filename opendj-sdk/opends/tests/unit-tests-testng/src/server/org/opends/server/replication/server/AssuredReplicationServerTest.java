@@ -1372,6 +1372,7 @@ public class AssuredReplicationServerTest
       }
 
       // Sanity check
+      sleep(500);           // Let time to update to reach other servers
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
       if (otherFakeDS)
