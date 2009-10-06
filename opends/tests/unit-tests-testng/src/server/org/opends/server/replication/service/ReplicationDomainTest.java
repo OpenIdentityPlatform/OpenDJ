@@ -152,28 +152,45 @@ public class ReplicationDomainTest extends ReplicationTestCase
         assertTrue(replServerInfo.getGenerationId() == 2);
       }
 
-      for (DSInfo serverInfo : domain1.getReplicasList())
+      int sleepTime = 50;
+      while (true)
       {
-        if (serverInfo.getDsId() == domain2ServerId)
-          assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
-        else
+        try
         {
-          assertTrue(serverInfo.getDsId() == domain1ServerId);
-          assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
-        }
-      }
+          for (DSInfo serverInfo : domain1.getReplicasList())
+          {
+            if (serverInfo.getDsId() == domain2ServerId)
+              assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
+            else
+            {
+              assertTrue(serverInfo.getDsId() == domain1ServerId);
+              assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+            }
+          }
 
-      for (DSInfo serverInfo : domain2.getReplicasList())
-      {
-        if (serverInfo.getDsId() == domain2ServerId)
-          assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
-        else
+          for (DSInfo serverInfo : domain2.getReplicasList())
+          {
+            if (serverInfo.getDsId() == domain2ServerId)
+              assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
+            else
+            {
+              assertTrue(serverInfo.getDsId() == domain1ServerId);
+              assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+            }
+          }
+          break;
+        }
+        catch (AssertionError e)
         {
-          assertTrue(serverInfo.getDsId() == domain1ServerId);
-          assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
-        }
+          if (sleepTime < 30000)
+          {
+            Thread.sleep(sleepTime);
+            sleepTime *=2;
+          }
+          else
+            throw e;
+        } 
       }
-
       Map<Short, ServerState> states1 = domain1.getReplicaStates();
       ServerState state2 = states1.get(domain2ServerId);
       assertNotNull(state2, "getReplicaStates is not showing DS2");

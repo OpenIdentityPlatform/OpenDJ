@@ -82,6 +82,7 @@ import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
@@ -720,6 +721,8 @@ public class ECLSearchOperation
       // Map the addMsg to an LDIF string for the 'changes' attribute
       String LDIFchanges = addMsgToLDIFString(addMsg);
 
+      ArrayList<RawAttribute> eclAttributes = addMsg.getEclIncludes();
+
       clEntry = createChangelogEntry(
           eclmsg.getServiceId(),
           eclmsg.getCookie().toString(),
@@ -728,8 +731,7 @@ public class ECLSearchOperation
           LDIFchanges, // entry as created (in LDIF format)
           addMsg.getUniqueId(),
           null, // real time current entry
-          null, // real time attrs names
-          null, // hist entry attributes
+          eclAttributes, // entry attributes
           eclmsg.getDraftChangeNumber(),
       "add");
 
@@ -747,8 +749,8 @@ public class ECLSearchOperation
             (ModifyOperation)modMsg.createOperation(conn);
           String LDIFchanges = modToLDIF(modifyOperation.getModifications());
 
-          // TODO:ECL Hist entry attributes
-          // ArrayList<RawAttribute> attributes = modMsg.getEntryAttributes();
+          ArrayList<RawAttribute> eclAttributes = modMsg.getEclIncludes();
+
           clEntry = createChangelogEntry(
               eclmsg.getServiceId(),
               eclmsg.getCookie().toString(),
@@ -757,10 +759,9 @@ public class ECLSearchOperation
               LDIFchanges,
               modMsg.getUniqueId(),
               null, // real time current entry
-              null, // real time attrs names
-              null, // hist entry attributes
+              eclAttributes, // entry attributes
               eclmsg.getDraftChangeNumber(),
-          "modify");
+              "modify");
 
         }
         catch(Exception e)
@@ -775,6 +776,8 @@ public class ECLSearchOperation
       {
         ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
 
+        ArrayList<RawAttribute> eclAttributes = modDNMsg.getEclIncludes();
+
         clEntry = createChangelogEntry(
             eclmsg.getServiceId(),
             eclmsg.getCookie().toString(),
@@ -783,10 +786,9 @@ public class ECLSearchOperation
             null,
             modDNMsg.getUniqueId(),
             null, // real time current entry
-            null, // real time attrs names
-            null, // hist entry attributes
+            eclAttributes, // entry attributes
             eclmsg.getDraftChangeNumber(),
-        "modrdn");
+           "modrdn");
 
         Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
         clEntry.addAttribute(a, null);
@@ -806,25 +808,20 @@ public class ECLSearchOperation
       else if (msg instanceof DeleteMsg)
       {
         DeleteMsg delMsg = (DeleteMsg)msg;
-        /* TODO:ECL Entry attributes for DEL op
-        ArrayList<RawAttribute> rattributes = new ArrayList<RawAttribute>();
-        ArrayList<RawAttribute> rattributes = delMsg.getEntryAttributes();
-        // Map the entry attributes of the DelMsg to an LDIF string
-        // for the 'deletedentryattributes' attribute of the CL entry
-        String delAttrs = delMsgToLDIFString(rattributes);
-        */
+
+        ArrayList<RawAttribute> eclAttributes = delMsg.getEclIncludes();
+
         clEntry = createChangelogEntry(
             eclmsg.getServiceId(),
             eclmsg.getCookie().toString(),
             DN.decode(delMsg.getDn()),
             delMsg.getChangeNumber(),
-            null,
+            null, // no changes
             delMsg.getUniqueId(),
             null,
-            null,
-            null, //rattributes,
+            eclAttributes, // entry attributes
             eclmsg.getDraftChangeNumber(),
-        "delete");
+           "delete");
       }
     return clEntry;
   }
@@ -861,8 +858,6 @@ public class ECLSearchOperation
    * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
    * @param targetUUID      The provided targetUUID.
    * @param entry           The provided related current entry.
-   * @param targetAttrNames The provided list of attributes names that should
-   *                        be read from the entry (real time values)
    * @param histEntryAttributes TODO:ECL Adress hist entry attributes
    * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
@@ -878,7 +873,6 @@ public class ECLSearchOperation
       String clearLDIFchanges,
       String targetUUID,
       Entry entry,
-      List<String> targetAttrNames,
       List<RawAttribute> histEntryAttributes,
       int draftChangenumber,
       String changetype)
@@ -1013,28 +1007,13 @@ public class ECLSearchOperation
 
     if (clearLDIFchanges != null)
     {
-      if (changetype.equalsIgnoreCase("delete"))
-      {
-        a = Attributes.create("clearDeletedEntryAttrs", clearLDIFchanges);
-      }
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      operationalAttrs.put(a.getAttributeType(), attrList);
+      if((attributeType =
+        DirectoryServer.getAttributeType("changes")) == null)
+        attributeType =
+            DirectoryServer.getDefaultAttributeType("changes");
 
-      if (changetype.equalsIgnoreCase("delete"))
-      {
-        a = Attributes.create("deletedentryattrs",
-            clearLDIFchanges + "\n"); // force base64
-      }
-      else
-      {
-        if((attributeType =
-          DirectoryServer.getAttributeType("changes")) == null)
-          attributeType =
-              DirectoryServer.getDefaultAttributeType("changes");
-        a = Attributes.create(attributeType, clearLDIFchanges + "\n");
-        // force base64
-      }
+      a = Attributes.create(attributeType, clearLDIFchanges + "\n");
+      // force base64
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
       if(attributeType.isOperational())
@@ -1087,68 +1066,21 @@ public class ECLSearchOperation
     else
       uAttrs.put(attributeType, attrList);
 
-    // entryAttribute version
-    /*
-    if (targetAttrNames != null)
-    {
-      String sEntryAttrs = null;
-      for (String attrName : targetAttrNames)
-      {
-        List<Attribute> attrs = entry.getAttribute(attrName);
-        for (Attribute attr : attrs)
-        {
-          if (sEntryAttrs==null)
-            sEntryAttrs="";
-          else
-            sEntryAttrs+=";";
-          sEntryAttrs += attr.toString();
-        }
-      }
-      if (sEntryAttrs!=null)
-      {
-        a = Attributes.create("entryAttributes", sEntryAttrs);
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        uAttrs.put(a.getAttributeType(), attrList);
-      }
-    }
-     */
-
-    /*
-    if (targetAttrNames != null)
-    {
-      for (String attrName : targetAttrNames)
-      {
-        String newName = "target"+attrName;
-        List<Attribute> attrs = entry.getAttribute(attrName);
-        for (Attribute aa : attrs)
-        {
-          AttributeBuilder builder = new AttributeBuilder(
-            DirectoryServer.getDefaultAttributeType(newName));
-          builder.setOptions(aa.getOptions());
-          builder.addAll(aa);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(builder.toAttribute());
-          uAttrs.put(aa.getAttributeType(), attrList);
-        }
-      }
-    }
-     */
-    /* TODO: Implement entry attributes historical values
     if (histEntryAttributes != null)
     {
-      for (RawAttribute rea : histEntryAttributes)
+      for (RawAttribute ra : histEntryAttributes)
       {
-        // uAttrs.put(ea.getAttributeType(), null);
-        // FIXME: ERRONEOUS TYPING !!!!!!!!!!!!!
         try
         {
-          String newName = "target"+rea.getAttributeType();
-          AttributeType nat=DirectoryServer.getDefaultAttributeType(newName);
-          rea.setAttributeType(newName);
+          String eclName = "target" + ra.getAttributeType().toLowerCase();
+          AttributeBuilder builder = new AttributeBuilder(
+              DirectoryServer.getDefaultAttributeType(eclName));
+          AttributeType at = builder.getAttributeType();
+          builder.setOptions(ra.toAttribute().getOptions());
+          builder.addAll(ra.toAttribute());
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(rea.toAttribute());
-          uAttrs.put(nat, attrList);
+          attrList.add(builder.toAttribute());
+          uAttrs.put(at, attrList);
         }
         catch(Exception e)
         {
@@ -1156,7 +1088,6 @@ public class ECLSearchOperation
         }
       }
     }
-     */
 
     // at the end build the CL entry to be returned
     Entry cle = new Entry(

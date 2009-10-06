@@ -22,12 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class holds information about a DS connected to the topology. This
@@ -57,6 +59,8 @@ public class DSInfo
   // Group id
   private byte groupId = (byte) -1;
 
+  private Set<String> eclIncludes = new HashSet<String>();
+
   /**
    * Creates a new instance of DSInfo with every given info.
    *
@@ -69,10 +73,11 @@ public class DSInfo
    * @param safeDataLevel DS safe data level
    * @param groupId DS group id
    * @param refUrls DS exported referrals URLs
+   * @param eclIncludes The list of entry attributes to include in the ECL.
    */
   public DSInfo(short dsId, short rsId, long generationId, ServerStatus status,
     boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
-    byte groupId, List<String> refUrls)
+    byte groupId, List<String> refUrls, Set<String> eclIncludes)
   {
 
     this.dsId = dsId;
@@ -84,6 +89,7 @@ public class DSInfo
     this.safeDataLevel = safeDataLevel;
     this.groupId = groupId;
     this.refUrls = refUrls;
+    this.eclIncludes = eclIncludes;
   }
 
   /**
@@ -168,6 +174,15 @@ public class DSInfo
   }
 
   /**
+   * Get the entry attributes to be included in the ECL.
+   * @return a.
+   */
+  public Set<String> getEclIncludes()
+  {
+    return eclIncludes;
+  }
+
+  /**
    * Test if the passed object is equal to this one.
    * @param obj The object to test
    * @return True if both objects are equal
@@ -190,7 +205,8 @@ public class DSInfo
         (assuredMode == dsInfo.getAssuredMode()) &&
         (safeDataLevel == dsInfo.getSafeDataLevel()) &&
         (groupId == dsInfo.getGroupId()) &&
-        (refUrls.equals(dsInfo.getRefUrls())));
+        (refUrls.equals(dsInfo.getRefUrls())) &&
+        (eclIncludes.equals(dsInfo.getEclIncludes())));
     } else
     {
       return false;
@@ -214,6 +230,7 @@ public class DSInfo
       73 * hash + (this.assuredMode != null ? this.assuredMode.hashCode() : 0);
     hash = 73 * hash + this.safeDataLevel;
     hash = 73 * hash + (this.refUrls != null ? this.refUrls.hashCode() : 0);
+    hash = 73 * hash + (this.eclIncludes != null ? eclIncludes.hashCode() : 0);
     hash = 73 * hash + this.groupId;
     return hash;
   }
@@ -244,6 +261,8 @@ public class DSInfo
     sb.append(groupId);
     sb.append("\nReferral URLs: ");
     sb.append(refUrls);
+    sb.append("\nECL Include: ");
+    sb.append(eclIncludes);
     return sb.toString();
   }
 

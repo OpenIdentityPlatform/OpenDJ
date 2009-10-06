@@ -43,13 +43,22 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V1_REAL = 49;
   /**
    * The constant for the second version of the replication protocol.
+   * Add fields in the header for assured replication.
    */
   public static final short REPLICATION_PROTOCOL_V2 = 2;
 
   /**
    * The constant for the 3rd version of the replication protocol.
+   * Add messages for remote ECL : not used as of today.
    */
   public static final short REPLICATION_PROTOCOL_V3 = 3;
+
+  /**
+   * 4th version of the replication protocol.
+   * Add to the body of the ADD/MOD/MODDN/DEL msgs, a list of attribute for
+   * ECL entry attributes.
+   */
+  public static final short REPLICATION_PROTOCOL_V4 = 4;
 
   /**
    * The replication protocol version used by the instance of RS/DS in this VM.
@@ -86,7 +95,7 @@ public class ProtocolVersion
    */
   public static void resetCurrentVersion()
   {
-    currentVersion = REPLICATION_PROTOCOL_V3;
+    currentVersion = REPLICATION_PROTOCOL_V4;
   }
 
   /**

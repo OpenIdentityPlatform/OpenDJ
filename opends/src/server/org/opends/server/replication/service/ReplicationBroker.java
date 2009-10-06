@@ -1119,6 +1119,8 @@ public class ReplicationBroker
               domain.isAssured(),
               domain.getAssuredMode(),
               domain.getAssuredSdLevel());
+        startSessionMsg.setEclIncludes(
+            domain.getEclInclude());
       } else
       {
         startSessionMsg =
@@ -1943,7 +1945,7 @@ public class ReplicationBroker
 
   private boolean debugEnabled()
   {
-    return false;
+    return true;
   }
 
   private static final void debugInfo(String s)
@@ -2165,8 +2167,22 @@ public class ReplicationBroker
         rsList = topoMsg.getRsList();
       }
     }
+    if (domain != null)
+    {
+      for (DSInfo info : dsList)
+      {
+        for (String attr : info.getEclIncludes())
+        {
+          domain.addEclInclude(attr);
+        }
+      }
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("domain: " + domain.getServiceID() +
+            " EclIncludes" + domain.getEclInclude());
+      }
+    }
   }
-
   /**
    * Check if the broker could not find any Replication Server and therefore
    * connection attempt failed.

@@ -38,19 +38,12 @@ import static org.opends.server.util.StaticUtils.createEntry;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
-
-import org.opends.server.replication.service.ReplicationMonitor;
-
-import java.util.Collection;
-
-import org.opends.server.types.Attributes;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -99,7 +92,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -109,6 +101,8 @@ import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.AddContext;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteContext;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyDnContext;
@@ -117,6 +111,8 @@ import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.service.ReplicationDomain;
+import org.opends.server.replication.service.ReplicationMonitor;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
@@ -124,10 +120,12 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -149,6 +147,10 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
@@ -346,6 +348,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   // The operation should become a no-op
   private static final int FRACTIONAL_BECOME_NO_OP = 3;
 
+
   /**
    * The thread that periodically saves the ServerState of this
    * LDAPReplicationDomain in the database.
@@ -427,6 +430,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
     setGroupId((byte)configuration.getGroupId());
     setURLs(configuration.getReferralsUrl());
+
+    setCfgEclInclude(configuration.getEclInclude());
 
     /*
      * Modify conflicts are solved for all suffixes but the schema suffix
@@ -2200,6 +2205,14 @@ public class LDAPReplicationDomain extends ReplicationDomain
         }
         else
         {
+          try
+          {
+            addEntryAttributesForCL(msg,op);
+          }
+          catch(Exception e)
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
           // If assured replication is configured, this will prepare blocking
           // mechanism. If assured replication is disabled, this returns
           // immediately
@@ -4494,6 +4507,86 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       throw new DirectoryException(
           resultCode, message);
+    }
+  }
+
+  /**
+   * Called by synchronize post op plugin in order to add the entry historized
+   * attributes to the UpdateMsg.
+   * @param msg
+   * @param op
+   * @throws DirectoryException
+   */
+  private void addEntryAttributesForCL(UpdateMsg msg,PostOperationOperation op)
+  throws DirectoryException
+  {
+    String[] entryAttributeNames =
+      getEclInclude().toArray(new String[0]);
+    ArrayList<Attribute> newattrs = new ArrayList<Attribute>();
+
+    if (op instanceof PostOperationDeleteOperation)
+    {
+      Entry entry = null;
+      PostOperationDeleteOperation delOp = (PostOperationDeleteOperation)op;
+      entry = delOp.getEntryToDelete();
+      for (String name : entryAttributeNames)
+      {
+        AttributeType atype = DirectoryServer.getAttributeType(name);
+        List<Attribute> attrs = entry.getAttribute(atype);
+        for (Attribute a : attrs)
+          newattrs.add(a);
+      }
+      ((DeleteMsg)msg).setEclIncludes(newattrs);
+    }
+    else if (op instanceof PostOperationModifyOperation)
+    {
+      Entry entry = null;
+      PostOperationModifyOperation modOp = (PostOperationModifyOperation)op;
+      entry = modOp.getCurrentEntry();
+      for (String name : entryAttributeNames)
+      {
+        AttributeType atype = DirectoryServer.getAttributeType(name);
+        List<Attribute> attrs = entry.getAttribute(atype);
+        for (Attribute a : attrs)
+          newattrs.add(a);
+      }
+      ((ModifyMsg)msg).setEclIncludes(newattrs);
+    }
+    else if (op instanceof PostOperationModifyDNOperation)
+    {
+      Entry entry = null;
+      PostOperationModifyDNOperation modDNOp =
+        (PostOperationModifyDNOperation)op;
+      entry = modDNOp.getOriginalEntry();
+      for (String name : entryAttributeNames)
+      {
+        AttributeType atype = DirectoryServer.getAttributeType(name);
+        List<Attribute> attrs = entry.getAttribute(atype);
+        for (Attribute a : attrs)
+          newattrs.add(a);
+      }
+      ((ModifyDNMsg)msg).setEclIncludes(newattrs);
+    }
+    else if (op instanceof PostOperationAddOperation)
+    {
+      Entry entry = null;
+      PostOperationAddOperation addOp = (PostOperationAddOperation)op;
+      entry = addOp.getEntryToAdd();
+      for (String name : entryAttributeNames)
+      {
+        AttributeType atype = DirectoryServer.getAttributeType(name);
+        List<Attribute> attrs = entry.getAttribute(atype);
+        if (attrs != null)
+        {
+          for (Attribute a : attrs)
+            newattrs.add(a);
+        }
+        else
+        {
+          // FIXME:ECL
+        }
+      }
+      ((AddMsg)msg).setEclIncludes(newattrs);
     }
   }
 

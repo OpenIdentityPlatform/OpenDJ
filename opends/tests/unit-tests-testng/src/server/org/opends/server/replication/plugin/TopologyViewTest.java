@@ -26,17 +26,23 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -54,8 +60,6 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Some tests to know if at any time the view DSs and RSs have of the current
@@ -850,6 +854,7 @@ public class TopologyViewTest extends ReplicationTestCase
     AssuredType assuredType = null;
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
+    SortedSet<String> attrs = null;
 
     switch (dsId)
       {
@@ -904,7 +909,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     return new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
-       (byte)assuredSdLevel, groupId, urls);
+       (byte)assuredSdLevel, groupId, urls, attrs);
   }
 
   /**
@@ -1103,8 +1108,9 @@ public class TopologyViewTest extends ReplicationTestCase
      byte safeDataLevel = rd.getAssuredSdLevel();
      byte groupId = rd.getGroupId();
      List<String> refUrls = rd.getRefUrls();
+     Set<String> eclInclude = rd.getEclInclude();
      DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
-       safeDataLevel, groupId, refUrls);
+       safeDataLevel, groupId, refUrls, eclInclude);
      dsList.add(dsInfo);
 
      TopoView dsTopoView = new TopoView(dsList, rd.getRsList());

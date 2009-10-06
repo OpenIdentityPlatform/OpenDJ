@@ -27,9 +27,8 @@
 package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
 import static org.opends.server.util.StaticUtils.createEntry;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -45,17 +44,16 @@ import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
@@ -66,8 +64,10 @@ import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -103,7 +103,6 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.DraftCNDbHandler;
-import org.opends.server.replication.server.ExternalChangeLogSessionImpl;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -111,6 +110,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
@@ -156,6 +156,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private static final String TEST_ROOT_DN_STRING2 = "o=test2";
   private static final String TEST_BACKEND_ID2 = "test2";
+
+  private static final String TEST_ROOT_DN_STRING3 = "o=test3";
+  private static final String TEST_BACKEND_ID3 = "test3";
 
   // The LDAPStatistics object associated with the LDAP connection handler.
   private LDAPStatistics ldapStatistics;
@@ -206,8 +209,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
-    // --
+    // ***********************************************
     // First set of test are in the cookie mode
+    // ***********************************************
     
     // Test that private backend is excluded from ECL
     ECLOnPrivateBackend();replicationServer.clearDb();
@@ -250,7 +254,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
-    // TODO:ECL Test notif control returned contains the cookie
     // TODO:ECL Test the attributes list and values returned in ECL entries
     // TODO:ECL Test search -s base, -s one
     
@@ -262,8 +265,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // optimize the request.
     ECLFilterTest();
 
-    // --
+    // ***********************************************
     // Second set of test are in the draft compat mode
+    // ***********************************************
     
     // Empty replication changelog
     ECLCompatEmpty();
@@ -309,6 +313,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test simultaneous persistent searches in draft compat mode.
     ECLSimultaneousPsearches();replicationServer.clearDb();
     
+    // ***********************************************
+    // Entry attributes
+    // ***********************************************
+    ECLIncludeAttributes();replicationServer.clearDb();
   }
 
   //=======================================================
@@ -391,7 +399,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server1.stop();
       server2.stop();
       server3.stop();
-      sleep(500);
       debugInfo(tn, "Ending test successfully\n\n");    
     }
     catch(Exception e)
@@ -484,8 +491,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // clean
       serverECL.stop();
       server01.stop();
-      server02.stop();      
-      sleep(2000);
+      server02.stop();
       debugInfo(tn, "Ending test successfully");
     }
     catch(Exception e)
@@ -605,7 +611,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      Backend backend2 = initializeTestBackend2(false);
+      Backend backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
+          TEST_BACKEND_ID2);
       DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
@@ -647,16 +654,25 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
           searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+      assertEquals(entries.size(),2, "Entries number returned by search");
       assertTrue(entries != null);
       if (entries != null)
+      {
+        int i = 0;
         for (SearchResultEntry resultEntry : entries)
         {
+          i++;
           // Expect 
           debugInfo(tn, "Entry returned when test2 is public =" +
               resultEntry.toLDIFString());
+          
+          // Test entry attributes
+          //if (i==2)
+          //{
+          //  checkPossibleValues(resultEntry,"targetobjectclass","top","organization");            
+          //}
         }
-      assertEquals(entries.size(),2, "Entries number returned by search");
-
+      }
       //
       // Set the backend private and do again a search on ECL that should
       // now not return the entry
@@ -732,7 +748,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Initialize a second test backend
-      Backend backend2 = initializeTestBackend2(true);
+      Backend backend2 = initializeTestBackend(true,
+          TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
 
       //
       LDIFWriter ldifWriter = getLDIFWriter();
@@ -1485,6 +1502,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
   }
 
+  private static String getAttributeValue(Entry entry, String attrName)
+  {
+    AttributeValue av = null;
+    try
+    {
+      List<Attribute> attrs = entry.getAttribute(attrName);
+      Attribute a = attrs.iterator().next();
+      av = a.iterator().next();
+      return av.toString();
+    }
+    catch(Exception e)
+    {
+    }
+    return null;
+  }
+
   private static void checkPossibleValues(Entry entry, String attrName, 
       String expectedValue1, String expectedValue2)
   {
@@ -1508,6 +1541,36 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           "In entry " + entry + " attr <" + attrName + "> equals " +
           av + " instead of one of the expected values " + expectedValue1
           + " or " + expectedValue2); 
+    }
+  }
+
+  private static void checkValues(Entry entry, String attrName, 
+      Set<String> expectedValues)
+  {
+    AttributeValue av = null;
+    int i=0;
+    try
+    {
+      List<Attribute> attrs = entry.getAttribute(attrName);
+      Attribute a;
+      Iterator<Attribute> iat = attrs.iterator();
+      while ((a=iat.next())!=null)
+      {
+        Iterator<AttributeValue> iatv = a.iterator();
+        while ((av = iatv.next())!=null)
+        {
+          String encodedValue = av.toString();
+          assertTrue(
+              expectedValues.contains(encodedValue),
+              "In entry " + entry + " attr <" + attrName + "> equals " +
+              av + " instead of one of the expected values " + expectedValues);
+          i++;
+        }
+      }
+    }
+    catch(NoSuchElementException e)
+    {
+      assertTrue(i==expectedValues.size());
     }
   }
 
@@ -2385,23 +2448,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   private void debugInfo(String tn, String s)
   {
-    //if (debugEnabled())
+    if (debugEnabled())
     {
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-          "** TEST " + tn + " ** " + s));
-      //TRACER.debugInfo("** TEST " + tn + " ** " + s);
+//      logError(Message.raw(Category.SYNC, Severity.NOTICE,
+//          "** TEST " + tn + " ** " + s));
+      TRACER.debugInfo("** TEST " + tn + " ** " + s);
     }
   }
 
   /**
    * Utility - create a second backend in order to test ECL with 2 suffixes.
    */
-  private static Backend initializeTestBackend2(boolean createBaseEntry)
+  private static Backend initializeTestBackend(
+      boolean createBaseEntry,
+      String rootDN,
+      String backendId)
   throws IOException, InitializationException, ConfigException,
   DirectoryException
   {
 
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING2);
+    DN baseDN = DN.decode(rootDN);
 
     //  Retrieve backend. Warning: it is important to perform this each time,
     //  because a test may have disabled then enabled the backend (i.e a test
@@ -2410,12 +2476,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     //  to memory backend must be invalidated. So to prevent this problem, we
     //  retrieve the memory backend reference each time before cleaning it.
     MemoryBackend memoryBackend =
-      (MemoryBackend)DirectoryServer.getBackend(TEST_BACKEND_ID2);
+      (MemoryBackend)DirectoryServer.getBackend(backendId);
 
     if (memoryBackend == null)
     {
       memoryBackend = new MemoryBackend();
-      memoryBackend.setBackendID(TEST_BACKEND_ID2);
+      memoryBackend.setBackendID(backendId);
       memoryBackend.setBaseDNs(new DN[] {baseDN});
       memoryBackend.initializeBackend();
       DirectoryServer.registerBackend(memoryBackend);
@@ -2447,7 +2513,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Initialize a second test backend
-      Backend backend2 = initializeTestBackend2(true);
+      Backend backend2 = initializeTestBackend(true, TEST_ROOT_DN_STRING2,
+          TEST_BACKEND_ID2);
 
       // --
       ReplicationBroker s1test = openReplicationSession(
@@ -2862,8 +2929,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
       assertEquals(searchOp.getSearchEntries().size(), 4);
-
-
     }
     catch(Exception e)
     {
@@ -3410,4 +3475,220 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
+  /**
+   * Test ECl entry attributes, and there configuration.
+   *
+   */
+  private void ECLIncludeAttributes()
+  {
+    String tn = "ECLIncludeAttributes";
+    debugInfo(tn, "Starting test\n\n");
+    try
+    {
+      // Initialize a second test backend o=test2, in addtion to o=test
+      // Configure replication on this backend
+      // Add the root entry in the backend
+      Backend backend2 = initializeTestBackend(false,
+          TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
+      DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
+      SortedSet<String> replServers = new TreeSet<String>();
+      replServers.add("localhost:"+replicationServerPort);
+      DomainFakeCfg domainConf =
+        new DomainFakeCfg(baseDn2, (short) 1702, replServers);
+      SortedSet<String> includeAttributes = new TreeSet<String>();
+      includeAttributes.add("sn");
+      domainConf.setEclIncludes(includeAttributes);
+      LDAPReplicationDomain domain2 = MultimasterReplication.createNewDomain(domainConf);
+      SynchronizationProvider replicationPlugin2 = new MultimasterReplication();
+      replicationPlugin2.completeSynchronizationProvider();
+
+      Backend backend3 = initializeTestBackend(false,
+          TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
+      DN baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
+      domainConf =
+        new DomainFakeCfg(baseDn3, (short) 1703, replServers);
+      includeAttributes = new TreeSet<String>();
+      includeAttributes.add("objectclass");
+      domainConf.setEclIncludes(includeAttributes);
+      LDAPReplicationDomain domain3 = MultimasterReplication.createNewDomain(domainConf);
+      SynchronizationProvider replicationPlugin3 = new MultimasterReplication();
+      replicationPlugin3.completeSynchronizationProvider();
+
+      domainConf =
+        new DomainFakeCfg(baseDn2, (short) 1704, replServers);
+      includeAttributes = new TreeSet<String>();
+      includeAttributes.add("cn");
+      domainConf.setEclIncludes(includeAttributes);
+      LDAPReplicationDomain domain21 = MultimasterReplication.createNewDomain(domainConf);
+
+      Set<String> attrList = new HashSet<String>();
+      attrList.add(new String("cn"));
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING2), (short) 1206, 
+          100, replicationServerPort,
+          1000, true, -1 , domain21);
+
+      sleep(1000);
+
+      Entry e2 = createEntry(baseDn2);
+      addEntry(e2);
+
+      Entry e3 = createEntry(baseDn3);
+      addEntry(e3);
+
+      String lentry = new String(
+          "dn: cn=Fiona Jensen," + TEST_ROOT_DN_STRING2 + "\n"
+          + "objectclass: top\n"
+          + "objectclass: person\n"
+          + "objectclass: organizationalPerson\n"
+          + "objectclass: inetOrgPerson\n"
+          + "cn: Fiona Jensen\n"
+          + "sn: Jensen\n"
+          + "uid: fiona\n"
+          + "telephonenumber: 12121212");
+          
+      Entry uentry1 = TestCaseUtils.entryFromLdifString(lentry);
+      addEntry(uentry1);
+
+      lentry = new String(
+          "dn: cn=Robert Hue," + TEST_ROOT_DN_STRING3 + "\n"
+          + "objectclass: top\n"
+          + "objectclass: person\n"
+          + "objectclass: organizationalPerson\n"
+          + "objectclass: inetOrgPerson\n"
+          + "cn: Robert Hue\n"
+          + "sn: Robby\n"
+          + "uid: robert\n"
+          + "telephonenumber: 131313");
+      Entry uentry2 = TestCaseUtils.entryFromLdifString(lentry);
+      addEntry(uentry2);
+
+      AttributeBuilder builder = new AttributeBuilder("sn");
+      builder.add("newsn");
+      Modification mod =
+        new Modification(ModificationType.REPLACE, builder.toAttribute());
+      List<Modification> mods = new ArrayList<Modification>();
+      mods.add(mod);
+
+      ModifyOperationBasis modOpBasis =
+        new ModifyOperationBasis(connection, 1, 1, null, uentry1.getDN(), mods);
+      modOpBasis.run();
+      
+      builder = new AttributeBuilder("telephonenumber");
+      builder.add("555555");
+      mod =
+        new Modification(ModificationType.REPLACE, builder.toAttribute());
+      mods = new ArrayList<Modification>();
+      mods.add(mod);
+
+      modOpBasis =
+        new ModifyOperationBasis(connection, 1, 1, null, uentry2.getDN(), mods);
+      modOpBasis.run();
+      
+      ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
+          InternalClientConnection.nextOperationID(), 
+          InternalClientConnection.nextMessageID(),
+          null,
+          DN.decode("cn=Robert Hue," + TEST_ROOT_DN_STRING3),
+          RDN.decode("cn=Robert Hue2"), true,
+          DN.decode(TEST_ROOT_DN_STRING3));
+      modDNOp.run();
+      assertEquals(modDNOp.getResultCode(), ResultCode.SUCCESS,
+          modDNOp.getErrorMessage().toString() + modDNOp.getAdditionalLogMessage());
+
+      DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
+          InternalClientConnection.nextOperationID(), 
+          InternalClientConnection.nextMessageID(), null, 
+          DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3));
+      delOp.run();
+      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS,
+          delOp.getErrorMessage().toString() + delOp.getAdditionalLogMessage());
+
+      sleep(400);
+
+      // Search on ECL from start on all suffixes
+      String cookie = "";
+      ExternalChangelogRequestControl control =
+        new ExternalChangelogRequestControl(true, 
+            new MultiDomainServerState(cookie));
+      ArrayList<Control> controls = new ArrayList<Control>(0);
+      controls.add(control);
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+      attributes.add("+");
+      attributes.add("*");
+
+
+      debugInfo(tn, "Search with cookie=" + cookie);
+      InternalSearchOperation searchOp = connection.processSearch(
+          ByteString.valueOf("cn=changelog"),
+          SearchScope.WHOLE_SUBTREE,
+          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          0, // Size limit
+          0, // Time limit
+          false, // Types only
+          LDAPFilter.decode("(targetDN=*)"),
+          attributes,
+          controls,
+          null);
+
+      sleep(500);
+
+      // Expect SUCCESS and root entry returned
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+
+
+      assertEquals(entries.size(),8, "Entries number returned by search");
+      assertTrue(entries != null);
+
+      if (entries != null)
+      {
+        for (SearchResultEntry resultEntry : entries)
+        {
+          // Expect 
+          debugInfo(tn, "Entry returned =" +  resultEntry.toLDIFString());
+          
+          String targetdn = getAttributeValue(resultEntry, "targetdn");
+          if ((targetdn.endsWith("cn=robert hue,o=test3"))
+            ||(targetdn.endsWith("cn=robert hue2,o=test3")))
+          {
+            HashSet<String> eoc = new HashSet<String>();
+            eoc.add("person");eoc.add("inetOrgPerson");eoc.add("organizationalPerson");eoc.add("top");
+            checkValues(resultEntry,"targetobjectclass",eoc);
+          }
+          if (targetdn.endsWith("cn=fiona jensen,o=test2"))
+          {
+            checkValue(resultEntry,"targetsn","jensen");
+            checkValue(resultEntry,"targetcn","Fiona Jensen");
+          }
+        }
+      }
+      server01.stop();
+
+      // Cleaning
+      if (domain2 != null)
+        MultimasterReplication.deleteDomain(baseDn2);
+      if (replicationPlugin2 != null)
+        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin2);
+      removeTestBackend2(backend2);
+      
+      if (domain3 != null)
+        MultimasterReplication.deleteDomain(baseDn3);
+      if (replicationPlugin3 != null)
+        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin3);
+      removeTestBackend2(backend3);
+      
+    }
+    catch(Exception e)
+    {
+      fail("Ending "+tn+" test with exception:\n"
+          +  stackTraceToSingleLineString(e));
+    }
+    finally
+    {
+      
+    }
+    debugInfo(tn, "Ending test with success");
+  }  
 }

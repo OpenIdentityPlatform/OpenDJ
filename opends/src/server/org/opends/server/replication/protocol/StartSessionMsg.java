@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -30,10 +30,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.DataFormatException;
+
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.types.ByteSequenceReader;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 
 /**
  * This message is used by DS to confirm a RS he wants to connect to him (open
@@ -62,14 +71,271 @@ public class StartSessionMsg extends ReplicationMsg
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) 1;
 
+  private Set<String> eclIncludes = new HashSet<String>();
+
+  /**
+   * The protocolVersion that should be used when serializing this message.
+   */
+  private final short protocolVersion;
+
   /**
    * Creates a new StartSessionMsg message from its encoded form.
    *
    * @param in The byte array containing the encoded form of the message.
+   * @param version The protocol version to use to decode the msg.
    * @throws java.util.zip.DataFormatException If the byte array does not
    * contain a valid encoded form of the message.
    */
-  public StartSessionMsg(byte[] in) throws DataFormatException
+  public StartSessionMsg(byte[] in, short version) throws DataFormatException
+  {
+    protocolVersion = ProtocolVersion.getCurrentVersion();
+    if (version <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    {
+      decode_V23(in);
+    }
+    else
+    {
+      decode_V4(in);
+    }
+  }
+
+  /**
+   * Creates a new StartSessionMsg message from its encoded form.
+   *
+   * Creates a new  message with the given required parameters.
+   * @param status Status we are starting with
+   * @param referralsURLs Referrals URLs to be used by peer DSs
+   * @param assuredFlag If assured mode is enabled or not
+   * @param assuredMode Assured type
+   * @param safeDataLevel Assured mode safe data level
+   * @param replicationProtocol   The protocol version to use.
+   */
+  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
+      boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
+      short replicationProtocol)
+  {
+    this.referralsURLs = referralsURLs;
+    this.status = status;
+    this.assuredFlag = assuredFlag;
+    this.assuredMode = assuredMode;
+    this.safeDataLevel = safeDataLevel;
+    this.protocolVersion = replicationProtocol;
+  }
+
+  /**
+   * Creates a new  message with the given required parameters.
+   * @param status Status we are starting with
+   * @param referralsURLs Referrals URLs to be used by peer DSs
+   * @param assuredFlag If assured mode is enabled or not
+   * @param assuredMode Assured type
+   * @param safeDataLevel Assured mode safe data level
+   */
+  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
+    boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel)
+  {
+    this.referralsURLs = referralsURLs;
+    this.status = status;
+    this.assuredFlag = assuredFlag;
+    this.assuredMode = assuredMode;
+    this.safeDataLevel = safeDataLevel;
+    this.protocolVersion = ProtocolVersion.getCurrentVersion();
+  }
+
+  /**
+   * Creates a new message with the given required parameters.
+   * Assured mode is false.
+   * @param status Status we are starting with
+   * @param referralsURLs Referrals URLs to be used by peer DSs
+   */
+  public StartSessionMsg(ServerStatus status, List<String> referralsURLs)
+  {
+    this.referralsURLs = referralsURLs;
+    this.status = status;
+    this.assuredFlag = false;
+    this.protocolVersion = ProtocolVersion.getCurrentVersion();
+  }
+
+  /**
+   * Creates a new message with the given required parameters.
+   * Assured mode is false.
+   * @param status Status we are starting with
+   * @param referralsURLs Referrals URLs to be used by peer DSs
+   * @param replicationProtocol The requested protocol version.
+   */
+  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
+    short replicationProtocol)
+  {
+    this.referralsURLs = referralsURLs;
+    this.status = status;
+    this.assuredFlag = false;
+    this.protocolVersion = replicationProtocol;
+  }
+
+  // ============
+  // Msg encoding
+  // ============
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes()
+  throws UnsupportedEncodingException
+  {
+    if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    {
+      return getBytes_V23();
+    }
+    else
+    {
+      return getBytes_V4();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes(short reqProtocolVersion)
+    throws UnsupportedEncodingException
+  {
+    if (reqProtocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    {
+      return getBytes_V23();
+    }
+    else
+    {
+      return getBytes_V4();
+    }
+  }
+
+  private byte[] getBytes_V4()
+  {
+    try
+    {
+      ByteStringBuilder byteBuilder = new ByteStringBuilder();
+      ASN1Writer writer = ASN1.getWriter(byteBuilder);
+
+      byteBuilder.append(MSG_TYPE_START_SESSION);
+      byteBuilder.append(status.getValue());
+      byteBuilder.append(assuredFlag ? (byte) 1 : (byte) 0);
+      byteBuilder.append(assuredMode.getValue());
+      byteBuilder.append(safeDataLevel);
+
+      writer.writeStartSequence();
+      for (String url : referralsURLs)
+        writer.writeOctetString(url);
+      writer.writeEndSequence();
+
+      writer.writeStartSequence();
+      for (String attrDef : eclIncludes)
+        writer.writeOctetString(attrDef);
+      writer.writeEndSequence();
+
+      return byteBuilder.toByteArray();
+    }
+    catch (Exception e)
+    {
+      return null;
+    }
+  }
+
+  private byte[] getBytes_V23()
+  {
+    /*
+     * The message is stored in the form:
+     * <message type><status><assured flag><assured mode><safe data level>
+     * <list of referrals urls>
+     * (each referral url terminates with 0)
+     */
+
+    try
+    {
+      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+
+      /* Put the message type */
+      oStream.write(MSG_TYPE_START_SESSION);
+
+      // Put the status
+      oStream.write(status.getValue());
+
+      // Put the assured flag
+      oStream.write(assuredFlag ? (byte) 1 : (byte) 0);
+
+      // Put assured mode
+      oStream.write(assuredMode.getValue());
+
+      // Put safe data level
+      oStream.write(safeDataLevel);
+
+      // Put the referrals URLs
+      if (referralsURLs.size() >= 1)
+      {
+        for (String url : referralsURLs)
+        {
+          byte[] byteArrayURL = url.getBytes("UTF-8");
+          oStream.write(byteArrayURL);
+          oStream.write(0);
+        }
+      }
+      return oStream.toByteArray();
+    } catch (IOException e)
+    {
+      // never happens
+      return null;
+    }
+  }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  private void decode_V4(byte[] in)
+  throws DataFormatException
+  {
+    ByteSequenceReader reader = ByteString.wrap(in).asReader();
+    try
+    {
+      if (reader.get() != MSG_TYPE_START_SESSION)
+        throw new DataFormatException("input is not a valid " +
+            this.getClass().getCanonicalName());
+
+      /*
+      status = ServerStatus.valueOf(asn1Reader.readOctetString().byteAt(0));
+      assuredFlag = (asn1Reader.readOctetString().byteAt(0) == 1);
+      assuredMode=AssuredMode.valueOf((asn1Reader.readOctetString().byteAt(0)));
+      safeDataLevel = asn1Reader.readOctetString().byteAt(0);
+      */
+      status = ServerStatus.valueOf(reader.get());
+      assuredFlag = (reader.get() == 1);
+      assuredMode = AssuredMode.valueOf(reader.get());
+      safeDataLevel = reader.get();
+
+      ASN1Reader asn1Reader = ASN1.getReader(reader);
+
+      asn1Reader.readStartSequence();
+      while(asn1Reader.hasNextElement())
+      {
+        String s = asn1Reader.readOctetStringAsString();
+        this.referralsURLs.add(s);
+      }
+      asn1Reader.readEndSequence();
+
+      asn1Reader.readStartSequence();
+      while(asn1Reader.hasNextElement())
+      {
+        String s = asn1Reader.readOctetStringAsString();
+        this.eclIncludes.add(s);
+      }
+      asn1Reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+    }
+  }
+
+  private void decode_V23(byte[] in)
+  throws DataFormatException
   {
     /*
      * The message is stored in the form:
@@ -128,88 +394,6 @@ public class StartSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Creates a new StartSessionMsg message with the given required parameters.
-   * @param status Status we are starting with
-   * @param referralsURLs Referrals URLs to be used by peer DSs
-   * @param assuredFlag If assured mode is enabled or not
-   * @param assuredMode Assured type
-   * @param safeDataLevel Assured mode safe data level
-   */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs,
-    boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel)
-  {
-    this.referralsURLs = referralsURLs;
-    this.status = status;
-    this.assuredFlag = assuredFlag;
-    this.assuredMode = assuredMode;
-    this.safeDataLevel = safeDataLevel;
-  }
-
-  /**
-   * Creates a new StartSessionMsg message with the given required parameters.
-   * Assured mode is false.
-   * @param status Status we are starting with
-   * @param referralsURLs Referrals URLs to be used by peer DSs
-   */
-  public StartSessionMsg(ServerStatus status, List<String> referralsURLs)
-  {
-    this.referralsURLs = referralsURLs;
-    this.status = status;
-    this.assuredFlag = false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes()
-  {
-    /*
-     * The message is stored in the form:
-     * <message type><status><assured flag><assured mode><safe data level>
-     * <list of referrals urls>
-     * (each referral url terminates with 0)
-     */
-
-    try
-    {
-      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-
-      /* Put the message type */
-      oStream.write(MSG_TYPE_START_SESSION);
-
-      // Put the status
-      oStream.write(status.getValue());
-
-      // Put the assured flag
-      oStream.write(assuredFlag ? (byte) 1 : (byte) 0);
-
-      // Put assured mode
-      oStream.write(assuredMode.getValue());
-
-      // Put safe data level
-      oStream.write(safeDataLevel);
-
-      // Put the referrals URLs
-      if (referralsURLs.size() >= 1)
-      {
-        for (String url : referralsURLs)
-        {
-          byte[] byteArrayURL = url.getBytes("UTF-8");
-          oStream.write(byteArrayURL);
-          oStream.write(0);
-        }
-      }
-
-      return oStream.toByteArray();
-    } catch (IOException e)
-    {
-      // never happens
-      return null;
-    }
-  }
-
-  /**
    * Get the list of referrals URLs.
    *
    * @return The list of referrals URLs.
@@ -243,7 +427,8 @@ public class StartSessionMsg extends ReplicationMsg
       "\nassuredFlag: " + assuredFlag +
       "\nassuredMode: " + assuredMode +
       "\nsafeDataLevel: " + safeDataLevel +
-      "\nreferralsURLs: " + urls);
+      "\nreferralsURLs: " + urls +
+      "\nEclIncludes: " + eclIncludes);
   }
 
   /**
@@ -271,6 +456,25 @@ public class StartSessionMsg extends ReplicationMsg
   public byte getSafeDataLevel()
   {
     return safeDataLevel;
+  }
+
+  /**
+   * Set the list of entry attributes to include in the ECL.
+   * @param eclIncludes The list of attributes.
+   */
+  public void setEclIncludes(Set<String> eclIncludes)
+  {
+    if (eclIncludes != null)
+      this.eclIncludes = eclIncludes;
+  }
+
+  /**
+   * Get the list of entry attributes to include in the ECL..
+   * @return The list of entry attributes to include in the ECL.
+   */
+  public Set<String> getEclIncludes()
+  {
+    return eclIncludes;
   }
 
 }

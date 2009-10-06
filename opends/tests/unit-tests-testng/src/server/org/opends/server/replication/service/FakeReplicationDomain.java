@@ -123,7 +123,6 @@ public class FakeReplicationDomain extends ReplicationDomain
   protected void importBackend(InputStream input) throws DirectoryException
   {
     byte[] buffer = new byte[1000];
-
     int ret;
     do
     {
@@ -136,7 +135,8 @@ public class FakeReplicationDomain extends ReplicationDomain
             ResultCode.OPERATIONS_ERROR,
             ERR_BACKEND_EXPORT_ENTRY.get("", ""));
       }
-      importString.append(new String(buffer, 0, ret));
+      if (ret>0)
+        importString.append(new String(buffer, 0, ret));
     }
     while (ret >= 0);
   }

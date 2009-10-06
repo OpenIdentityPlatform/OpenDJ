@@ -33,11 +33,8 @@ import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
@@ -68,7 +65,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
         operation.getRawEntryDN().toString());
 
-    encodedMods = modsToByte(operation.getModifications());
+    encodedMods = encodeMods(operation.getModifications());
 
     ModifyDnContext ctx =
       (ModifyDnContext) operation.getAttachment(SYNCHROCONTEXT);
@@ -130,7 +127,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     this(dn, changeNumber, uid, newParentUid, deleteOldRdn, newSuperior,
       newRDN);
-    this.encodedMods = modsToByte(mods);
+    this.encodedMods = encodeMods(mods);
   }
 
   /**
@@ -143,11 +140,273 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public ModifyDNMsg(byte[] in) throws DataFormatException,
                                        UnsupportedEncodingException
   {
+    // Decode header
     byte[] allowedPduTypes = new byte[2];
     allowedPduTypes[0] = MSG_TYPE_MODIFYDN;
     allowedPduTypes[1] = MSG_TYPE_MODIFYDN_V1;
     int pos = decodeHeader(allowedPduTypes, in);
 
+    // protocol version has been read as part of the header
+    if (protocolVersion <= 3)
+      decodeBody_V123(in, pos);
+    else
+    {
+      decodeBody_V4(in, pos);
+    }
+
+    if (protocolVersion==ProtocolVersion.getCurrentVersion())
+    {
+      bytes = in;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AbstractOperation createOperation(
+      InternalClientConnection connection, String newDn)
+  throws LDAPException, ASN1Exception
+  {
+    ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(), null,
+        ByteString.valueOf(newDn), ByteString.valueOf(newRDN),
+        deleteOldRdn,
+        (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
+
+    for (Modification mod : decodeMods(encodedMods))
+    {
+      moddn.addModification(mod);
+    }
+
+    ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),
+        newSuperiorId);
+    moddn.setAttachment(SYNCHROCONTEXT, ctx);
+    return moddn;
+  }
+
+  // ============
+  // Msg Encoding
+  // ============
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+    byte[] byteNewSuperior = null;
+    byte[] byteNewSuperiorId = null;
+
+    // calculate the length necessary to encode the parameters
+    int bodyLength = byteNewRdn.length + 1 + 1;
+    if (newSuperior != null)
+    {
+      byteNewSuperior = newSuperior.getBytes("UTF-8");
+      bodyLength += byteNewSuperior.length + 1;
+    }
+    else
+      bodyLength += 1;
+
+    if (newSuperiorId != null)
+    {
+      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      bodyLength += byteNewSuperiorId.length + 1;
+    }
+    else
+      bodyLength += 1;
+
+    byte[] encodedMsg = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1, bodyLength);
+    int pos = encodedMsg.length - bodyLength;
+
+    /* put the new RDN and a terminating 0 */
+    pos = addByteArray(byteNewRdn, encodedMsg, pos);
+
+    /* put the newsuperior and a terminating 0 */
+    if (newSuperior != null)
+    {
+      pos = addByteArray(byteNewSuperior, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    /* put the newsuperiorId and a terminating 0 */
+    if (newSuperiorId != null)
+    {
+      pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    /* put the deleteoldrdn flag */
+    if (deleteOldRdn)
+      encodedMsg[pos++] = 1;
+    else
+      encodedMsg[pos++] = 0;
+
+    return encodedMsg;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes_V23() throws UnsupportedEncodingException
+  {
+    // Encoding V2 / V3
+
+    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+    byte[] byteNewSuperior = null;
+    byte[] byteNewSuperiorId = null;
+
+    // calculate the length necessary to encode the parameters
+    int length = byteNewRdn.length + 1 + 1;
+    if (newSuperior != null)
+    {
+      byteNewSuperior = newSuperior.getBytes("UTF-8");
+      length += byteNewSuperior.length + 1;
+    }
+    else
+      length += 1;
+
+    if (newSuperiorId != null)
+    {
+      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      length += byteNewSuperiorId.length + 1;
+    }
+    else
+      length += 1;
+
+    length += encodedMods.length + 1;
+
+    /* encode the header in a byte[] large enough to also contain mods.. */
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, length);
+    int pos = encodedMsg.length - length;
+
+    /* put the new RDN and a terminating 0 */
+    pos = addByteArray(byteNewRdn, encodedMsg, pos);
+
+    /* put the newsuperior and a terminating 0 */
+    if (newSuperior != null)
+    {
+      pos = addByteArray(byteNewSuperior, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    /* put the newsuperiorId and a terminating 0 */
+    if (newSuperiorId != null)
+    {
+      pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    /* put the deleteoldrdn flag */
+    if (deleteOldRdn)
+      encodedMsg[pos++] = 1;
+    else
+      encodedMsg[pos++] = 0;
+
+    /* add the mods */
+    if (encodedMods.length > 0)
+    {
+      pos = encodedMsg.length - (encodedMods.length + 1);
+      addByteArray(encodedMods, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    return encodedMsg;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V4() throws UnsupportedEncodingException
+  {
+    int bodyLength = 0;
+    byte[] byteNewSuperior = null;
+    byte[] byteNewSuperiorId = null;
+
+    // calculate the length necessary to encode the parameters
+
+    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+    bodyLength = byteNewRdn.length + 1 + 1;
+
+    if (newSuperior != null)
+    {
+      byteNewSuperior = newSuperior.getBytes("UTF-8");
+      bodyLength += byteNewSuperior.length + 1;
+    }
+    else
+      bodyLength += 1;
+
+    if (newSuperiorId != null)
+    {
+      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      bodyLength += byteNewSuperiorId.length + 1;
+    }
+    else
+      bodyLength += 1;
+
+    byte[] byteModsLen =
+      String.valueOf(encodedMods.length).getBytes("UTF-8");
+    bodyLength += byteModsLen.length + 1;
+    bodyLength += encodedMods.length + 1;
+
+    byte[] byteEntryAttrLen =
+      String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
+    bodyLength += byteEntryAttrLen.length + 1;
+    bodyLength += encodedEclIncludes.length + 1;
+
+    /* encode the header in a byte[] large enough to also contain mods.. */
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, bodyLength);
+
+    int pos = encodedMsg.length - bodyLength;
+
+    /* put the new RDN and a terminating 0 */
+    pos = addByteArray(byteNewRdn, encodedMsg, pos);
+    /* put the newsuperior and a terminating 0 */
+    if (newSuperior != null)
+    {
+      pos = addByteArray(byteNewSuperior, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+    /* put the newsuperiorId and a terminating 0 */
+    if (newSuperiorId != null)
+    {
+      pos = addByteArray(byteNewSuperiorId, encodedMsg, pos);
+    }
+    else
+      encodedMsg[pos++] = 0;
+
+    /* put the deleteoldrdn flag */
+    if (deleteOldRdn)
+      encodedMsg[pos++] = 1;
+    else
+      encodedMsg[pos++] = 0;
+
+    pos = addByteArray(byteModsLen, encodedMsg, pos);
+    pos = addByteArray(encodedMods, encodedMsg, pos);
+
+    pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
+    pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
+
+    return encodedMsg;
+  }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  private void decodeBody_V123(byte[] in, int pos)
+  throws DataFormatException, UnsupportedEncodingException
+  {
     /* read the newRDN
      * first calculate the length then construct the string
      */
@@ -208,102 +467,84 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public AbstractOperation createOperation(
-         InternalClientConnection connection, String newDn)
-         throws LDAPException, ASN1Exception
+  private void decodeBody_V4(byte[] in, int pos)
+  throws DataFormatException, UnsupportedEncodingException
   {
-    ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
-               InternalClientConnection.nextOperationID(),
-               InternalClientConnection.nextMessageID(), null,
-               ByteString.valueOf(newDn), ByteString.valueOf(newRDN),
-               deleteOldRdn,
-               (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
+    /* read the newRDN
+     * first calculate the length then construct the string
+     */
+    int length = getNextLength(in, pos);
+    newRDN = new String(in, pos, length, "UTF-8");
+    pos += length + 1;
 
-    ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
-    while (asn1Reader.hasNextElement())
-    {
-      moddn.addModification(LDAPModification.decode(asn1Reader)
-          .toModification());
-    }
-
-    ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getUniqueId(),
-        newSuperiorId);
-    moddn.setAttachment(SYNCHROCONTEXT, ctx);
-    return moddn;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
-  {
-    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
-    byte[] byteNewSuperior = null;
-    byte[] byteNewSuperiorId = null;
-
-    // calculate the length necessary to encode the parameters
-    int length = byteNewRdn.length + 1 + 1;
-    if (newSuperior != null)
-    {
-      byteNewSuperior = newSuperior.getBytes("UTF-8");
-      length += byteNewSuperior.length + 1;
-    }
+    /* read the newSuperior
+     * first calculate the length then construct the string
+     */
+    length = getNextLength(in, pos);
+    if (length != 0)
+      newSuperior = new String(in, pos, length, "UTF-8");
     else
-      length += 1;
+      newSuperior = null;
+    pos += length + 1;
 
-    if (newSuperiorId != null)
+    /* read the new parent Id
+     */
+    length = getNextLength(in, pos);
+    if (length != 0)
+      newSuperiorId = new String(in, pos, length, "UTF-8");
+    else
+      newSuperiorId = null;
+    pos += length + 1;
+
+    /* get the deleteoldrdn flag */
+    if (in[pos] == 0)
+      deleteOldRdn = false;
+    else
+      deleteOldRdn = true;
+    pos++;
+
+    // Read mods len
+    length = getNextLength(in, pos);
+    int modsLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    pos += length + 1;
+
+    // Read/Don't decode attributes
+    this.encodedMods = new byte[modsLen];
+    try
     {
-      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
-      length += byteNewSuperiorId.length + 1;
-    }
-    else
-      length += 1;
-
-    length += encodedMods.length + 1;
-
-    byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN, length);
-    int pos = resultByteArray.length - length;
-
-    /* put the new RDN and a terminating 0 */
-    pos = addByteArray(byteNewRdn, resultByteArray, pos);
-
-    /* put the newsuperior and a terminating 0 */
-    if (newSuperior != null)
+      System.arraycopy(in, pos, encodedMods, 0, modsLen);
+    } catch (IndexOutOfBoundsException e)
     {
-      pos = addByteArray(byteNewSuperior, resultByteArray, pos);
-    }
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the newsuperiorId and a terminating 0 */
-    if (newSuperiorId != null)
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
     {
-      pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
-    }
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the deleteoldrdn flag */
-    if (deleteOldRdn)
-      resultByteArray[pos++] = 1;
-    else
-      resultByteArray[pos++] = 0;
-
-    /* add the mods */
-    if (encodedMods.length > 0)
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
     {
-      pos = resultByteArray.length - (encodedMods.length + 1);
-      addByteArray(encodedMods, resultByteArray, pos);
+      throw new DataFormatException(e.getMessage());
     }
-    else
-      resultByteArray[pos++] = 0;
+    pos += modsLen + 1;
 
-    return resultByteArray;
+    // Read ecl attr len
+    length = getNextLength(in, pos);
+    int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    pos += length + 1;
+
+    // Read/Don't decode entry attributes
+    encodedEclIncludes = new byte[eclAttrLen];
+    try
+    {
+      System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
+    } catch (IndexOutOfBoundsException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    }
   }
 
   /**
@@ -526,74 +767,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
   @Override
   public int size()
   {
-    // The MODDN message size are mainly dependent on the
-    // size of the DN. let's assume that they average on 100 bytes
-    return encodedMods.length + 100;
+    return encodedMods.length + newRDN.length() +
+      encodedEclIncludes.length + headerSize();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes_V1() throws UnsupportedEncodingException
-  {
-    if (bytes == null)
-    {
-      byte[] byteNewRdn = newRDN.getBytes("UTF-8");
-      byte[] byteNewSuperior = null;
-      byte[] byteNewSuperiorId = null;
-
-      // calculate the length necessary to encode the parameters
-      int length = byteNewRdn.length + 1 + 1;
-      if (newSuperior != null)
-      {
-        byteNewSuperior = newSuperior.getBytes("UTF-8");
-        length += byteNewSuperior.length + 1;
-      }
-      else
-        length += 1;
-
-      if (newSuperiorId != null)
-      {
-        byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
-        length += byteNewSuperiorId.length + 1;
-      }
-      else
-        length += 1;
-
-      byte[] resultByteArray = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1, length);
-      int pos = resultByteArray.length - length;
-
-      /* put the new RDN and a terminating 0 */
-      pos = addByteArray(byteNewRdn, resultByteArray, pos);
-
-      /* put the newsuperior and a terminating 0 */
-      if (newSuperior != null)
-      {
-        pos = addByteArray(byteNewSuperior, resultByteArray, pos);
-      }
-      else
-        resultByteArray[pos++] = 0;
-
-      /* put the newsuperiorId and a terminating 0 */
-      if (newSuperiorId != null)
-      {
-        pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
-      }
-      else
-        resultByteArray[pos++] = 0;
-
-      /* put the deleteoldrdn flag */
-      if (deleteOldRdn)
-        resultByteArray[pos++] = 1;
-      else
-        resultByteArray[pos++] = 0;
-
-      return resultByteArray;
-    }
-    else
-    {
-      return bytes;
-    }
-  }
 }

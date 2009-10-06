@@ -631,7 +631,8 @@ public class ReplicationServerHandler extends ServerHandler
             serverId, dsInfo.getDsId(), dsInfo.getGenerationId(),
             dsInfo.getGroupId(), dsInfo.getStatus(), dsInfo.getRefUrls(),
             dsInfo.isAssured(), dsInfo.getAssuredMode(),
-            dsInfo.getSafeDataLevel());
+            dsInfo.getSafeDataLevel(),
+            dsInfo.getEclIncludes());
         lsh.startHandler();
         remoteDirectoryServers.put(lsh.getServerId(), lsh);
       }

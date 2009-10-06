@@ -63,8 +63,8 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.EntryMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
@@ -3045,6 +3045,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return eligibleCN;
   }
 
+
   /**
    * Processes a ChangeTimeHeartbeatMsg received, by storing the CN (timestamp)
    * value received, and forwarding the message to the other RSes.
@@ -3070,7 +3071,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (senderHandler.isDataServer())
       {
         // If we are the first replication server warned,
-        // then forwards the reset message to the remote replication servers
+        // then forwards the message to the remote replication servers
         for (ReplicationServerHandler rsHandler : replicationServers.values())
         {
           try

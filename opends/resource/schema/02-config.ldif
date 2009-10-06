@@ -2449,6 +2449,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.600
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.601
+  NAME 'ds-cfg-ecl-include'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3011,7 +3015,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
         ds-cfg-fractional-exclude $
         ds-cfg-fractional-include $
         ds-cfg-solve-conflicts $
-        ds-cfg-changetime-heartbeat-interval)
+        ds-cfg-changetime-heartbeat-interval $
+        ds-cfg-ecl-include )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.58
   NAME 'ds-cfg-length-based-password-validator'

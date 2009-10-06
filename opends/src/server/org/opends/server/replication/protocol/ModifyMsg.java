@@ -28,26 +28,22 @@ package org.opends.server.replication.protocol;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.DataFormatException;
+
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.*;
 import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PostOperationModifyOperation;
-
-
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.DataFormatException;
 
 /**
  * Message used to send Modify information.
@@ -63,7 +59,7 @@ public class ModifyMsg extends ModifyCommonMsg
   {
     super((OperationContext) op.getAttachment(OperationContext.SYNCHROCONTEXT),
           op.getRawEntryDN().toString());
-    encodedMods = modsToByte(op.getModifications());
+    encodedMods = encodeMods(op.getModifications());
   }
 
   /**
@@ -80,7 +76,7 @@ public class ModifyMsg extends ModifyCommonMsg
   {
     super(new ModifyContext(changeNumber, entryuuid),
           dn.toNormalizedString());
-    this.encodedMods = modsToByte(mods);
+    this.encodedMods = encodeMods(mods);
   }
 
   /**
@@ -93,30 +89,23 @@ public class ModifyMsg extends ModifyCommonMsg
   public ModifyMsg(byte[] in) throws DataFormatException,
                                      UnsupportedEncodingException
   {
-    bytes = in;
-
     // Decode header
     byte[] allowedPduTypes = new byte[2];
     allowedPduTypes[0] = MSG_TYPE_MODIFY;
     allowedPduTypes[1] = MSG_TYPE_MODIFY_V1;
     int pos = decodeHeader(allowedPduTypes, in);
 
-    /* Read the mods : all the remaining bytes but the terminating 0 */
-    int length = in.length - pos - 1;
-    encodedMods = new byte[length];
-    try
+    // protocol version has been read as part of the header
+    if (protocolVersion <= 3)
+      decodeBody_V123(in, pos);
+    else
+      decodeBody_V4(in, pos);
+
+    if (protocolVersion==ProtocolVersion.getCurrentVersion())
     {
-      System.arraycopy(in, pos, encodedMods, 0, length);
-    } catch (IndexOutOfBoundsException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (ArrayStoreException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (NullPointerException e)
-    {
-      throw new DataFormatException(e.getMessage());
+      bytes = in;
     }
+
   }
 
   /**
@@ -132,6 +121,8 @@ public class ModifyMsg extends ModifyCommonMsg
                                      UnsupportedEncodingException
   {
     ModifyMsg msg = new ModifyMsg(in);
+
+    // bytes is only for current version (of the protocol) bytes !
     msg.bytes = null;
 
     return msg;
@@ -141,52 +132,25 @@ public class ModifyMsg extends ModifyCommonMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
-  {
-    if (bytes == null)
-    {
-      /* encode the header in a byte[] large enough to also contain the mods */
-      byte[] mybytes = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
-
-      /* add the mods */
-      int pos = mybytes.length - (encodedMods.length + 1);
-      addByteArray(encodedMods, mybytes, pos);
-
-      return mybytes;
-    }
-    else
-    {
-      return bytes;
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public AbstractOperation createOperation(InternalClientConnection connection,
-                   String newDn)
-                   throws LDAPException, ASN1Exception, DataFormatException
+      String newDn)
+  throws LDAPException, ASN1Exception, DataFormatException
   {
     if (newDn == null)
       newDn = getDn();
 
-    ArrayList<RawModification> ldapmods = new ArrayList<RawModification>();
-
-    ASN1Reader asn1Reader = ASN1.getReader(encodedMods);
-    while(asn1Reader.hasNextElement())
-    {
-      ldapmods.add(LDAPModification.decode(asn1Reader));
-    }
+    ArrayList<RawModification> ldapmods = decodeRawMods(encodedMods);
 
     ModifyOperationBasis mod = new ModifyOperationBasis(connection,
-                               InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), null,
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn), ldapmods);
     ModifyContext ctx = new ModifyContext(getChangeNumber(), getUniqueId());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
+
   }
+
 
   /**
    * {@inheritDoc}
@@ -224,10 +188,14 @@ public class ModifyMsg extends ModifyCommonMsg
   public int size()
   {
     // The ModifyMsg can be very large when added or deleted attribute
-    // values are very large. We therefore need to count the
-    // whole encoded msg.
-    return encodedMods.length + 100; // 100 let's assume header size is 100
+    // values are very large.
+    // We therefore need to count the whole encoded msg.
+    return encodedMods.length + encodedEclIncludes.length + headerSize();
   }
+
+  // ============
+  // Msg Encoding
+  // ============
 
   /**
    * {@inheritDoc}
@@ -243,5 +211,122 @@ public class ModifyMsg extends ModifyCommonMsg
     addByteArray(encodedMods, encodedMsg, pos);
 
     return encodedMsg;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V23() throws UnsupportedEncodingException
+  {
+    // Encoding V2 / V3
+
+    /* encode the header in a byte[] large enough to also contain mods */
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
+
+    /* add the mods */
+    int pos = encodedMsg.length - (encodedMods.length + 1);
+    addByteArray(encodedMods, encodedMsg, pos);
+
+    return encodedMsg;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V4() throws UnsupportedEncodingException
+  {
+    int bodyLength = 0;
+    byte[] byteModsLen =
+      String.valueOf(encodedMods.length).getBytes("UTF-8");
+    bodyLength += byteModsLen.length + 1;
+    bodyLength += encodedMods.length + 1;
+
+    byte[] byteEntryAttrLen =
+      String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
+    bodyLength += byteEntryAttrLen.length + 1;
+    bodyLength += encodedEclIncludes.length + 1;
+
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte [] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, bodyLength);
+
+    int pos = encodedMsg.length - bodyLength;
+    pos = addByteArray(byteModsLen, encodedMsg, pos);
+    pos = addByteArray(encodedMods, encodedMsg, pos);
+    pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
+    pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
+    return encodedMsg;
+  }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  private void decodeBody_V123(byte[] in, int pos)
+  throws DataFormatException
+  {
+    // Read and store the mods, in encoded form
+    // all the remaining bytes but the terminating 0 */
+    int length = in.length - pos - 1;
+    encodedMods = new byte[length];
+    try
+    {
+      System.arraycopy(in, pos, encodedMods, 0, length);
+    } catch (IndexOutOfBoundsException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    }
+  }
+
+  private void decodeBody_V4(byte[] in, int pos)
+  throws DataFormatException, UnsupportedEncodingException
+  {
+    // Read mods len
+    int length = getNextLength(in, pos);
+    int modsLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    pos += length + 1;
+
+    // Read/Don't decode mods
+    this.encodedMods = new byte[modsLen];
+    try
+    {
+      System.arraycopy(in, pos, encodedMods, 0, modsLen);
+    } catch (IndexOutOfBoundsException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    }
+    pos += modsLen + 1;
+
+    // Read ecl attr len
+    length = getNextLength(in, pos);
+    int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    pos += length + 1;
+
+    // Read/Don't decode entry attributes
+    encodedEclIncludes = new byte[eclAttrLen];
+    try
+    {
+      System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
+    } catch (IndexOutOfBoundsException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    }
   }
 }

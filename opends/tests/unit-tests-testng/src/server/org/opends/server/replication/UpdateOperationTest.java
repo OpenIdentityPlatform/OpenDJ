@@ -1316,7 +1316,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 27, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, (short) 27, 100, replServerPort, 2000, true);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 

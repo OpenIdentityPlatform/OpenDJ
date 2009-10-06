@@ -26,8 +26,9 @@
  */
 package org.opends.server.replication;
 
-import java.io.File;
-import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -36,6 +37,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.io.File;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -48,6 +50,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -58,21 +61,35 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.replication.plugin.MultimasterReplication;
 
 /**
  * An abstract class that all Replication unit test should extend.
@@ -214,12 +231,26 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         long generationId)
   throws Exception, SocketException
   {
+    return openReplicationSession(baseDn, serverId, window_size,
+        port, timeout, emptyOldChanges, generationId, null);
+  }
+
+  /**
+   * Open a replicationServer session to the local ReplicationServer
+   * providing the generationId.
+   */
+  protected ReplicationBroker openReplicationSession(
+        final DN baseDn, short serverId, int window_size,
+        int port, int timeout, boolean emptyOldChanges,
+        long generationId, ReplicationDomain replicationDomain)
+  throws Exception, SocketException
+  {
     ServerState state = new ServerState();
 
     if (emptyOldChanges)
        new PersistentServerState(baseDn, serverId, new ServerState());
 
-    ReplicationBroker broker = new ReplicationBroker(null,
+    ReplicationBroker broker = new ReplicationBroker(replicationDomain,
         state, baseDn.toNormalizedString(), serverId, window_size,
         generationId, 100000, getReplSessionSecurity(), (byte)1, 500);
     ArrayList<String> servers = new ArrayList<String>(1);
