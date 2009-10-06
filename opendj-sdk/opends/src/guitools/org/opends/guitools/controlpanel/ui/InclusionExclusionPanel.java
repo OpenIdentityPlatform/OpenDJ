@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -235,7 +235,6 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
         lInclusionFilter.setVisible(expander.isSelected());
         inclusionFilter.setVisible(expander.isSelected());
         expanderStateChanged(expander, extraComponentLabels, extraComponents);
-        packParentDialog();
       }
     };
     expander.addChangeListener(changeListener);
