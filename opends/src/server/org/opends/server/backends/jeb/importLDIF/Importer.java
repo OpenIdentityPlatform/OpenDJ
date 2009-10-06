@@ -606,11 +606,11 @@ public class Importer
           InitializationException, IOException, JebException, DatabaseException,
           InterruptedException, ExecutionException
   {
+    this.rootContainer = rootContainer;
+    this.reader = new LDIFReader(importConfiguration, rootContainer,
+            LDIF_READER_BUFFER_SIZE);
     try
     {
-      this.rootContainer = rootContainer;
-      this.reader = new LDIFReader(importConfiguration, rootContainer,
-              LDIF_READER_BUFFER_SIZE);
       Message message =
               NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
                       BUILD_ID, REVISION_NUMBER);
@@ -2788,7 +2788,6 @@ public class Importer
       flushIndexBuffers();
       cursor.close();
       } catch (Exception e) {
-        System.out.println("here");
         e.printStackTrace();
       }
       return null;
