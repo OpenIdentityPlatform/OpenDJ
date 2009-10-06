@@ -80,8 +80,10 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JRadioButton append;
   private JCheckBox replaceEntries;
   private JCheckBox rejectNotSchemaCompliant;
+  private JCheckBox doDNValidationAfter;
   private JCheckBox writeRejects;
   private JCheckBox writeSkips;
+  private JTextField threads;
   private JTextField rejectsFile;
   private JTextField skipsFile;
   private JCheckBox overwriteRejectsFile;
@@ -95,6 +97,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JLabel lFile;
   private JLabel lImportType;
   private JLabel lSchemaValidation;
+  private JLabel lDNValidation;
+  private JLabel lThreads;
   private JLabel lRejectsFile;
   private JLabel lSkipsFile;
   private JLabel lRemoteFileHelp;
@@ -303,6 +307,41 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     rejectNotSchemaCompliant.setSelected(true);
     gbc.insets.left = 10;
     add(rejectNotSchemaCompliant, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    lDNValidation = Utilities.createPrimaryLabel(
+        INFO_CTRL_PANEL_DN_VALIDATION_LABEL.get());
+    add(lDNValidation, gbc);
+
+    gbc.gridx = 1;
+    doDNValidationAfter = Utilities.createCheckBox(
+        INFO_CTRL_PANEL_DO_DN_VALIDATION_LATER_LABEL.get());
+    doDNValidationAfter.setSelected(false);
+    gbc.insets.left = 10;
+    add(doDNValidationAfter, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy ++;
+    gbc.insets.left = 0;
+    lThreads = Utilities.createPrimaryLabel(
+        INFO_CTRL_PANEL_IMPORT_THREADS_LABEL.get());
+    add(lThreads, gbc);
+
+    gbc.gridx = 1;
+    threads = Utilities.createShortTextField();
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    threads.setToolTipText(
+        INFO_CTRL_PANEL_IMPORT_THREADS_TOOLTIP.get().toString());
+    gbc.insets.left = 10;
+    add(threads, gbc);
+
+    gbc.insets.top = 3;
+    gbc.gridy ++;
+    add(Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_IMPORT_THREADS_HELP.get()), gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -519,6 +558,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lFile);
     setPrimaryValid(lRejectsFile);
     setPrimaryValid(lSkipsFile);
+    setPrimaryValid(lThreads);
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
 
     String backendName = (String)backends.getSelectedItem();
@@ -537,6 +577,25 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     {
       errors.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
       setPrimaryInvalid(lFile);
+    }
+
+    String sThread = threads.getText().trim();
+    if (sThread.length() > 0)
+    {
+      try
+      {
+        int threads = Integer.parseInt(sThread);
+        if (threads < 1)
+        {
+          errors.add(ERR_IMPORT_THREAD_NUMBER_INVALID.get());
+          setPrimaryInvalid(lThreads);
+        }
+      }
+      catch (Throwable t)
+      {
+        errors.add(ERR_IMPORT_THREAD_NUMBER_INVALID.get());
+        setPrimaryInvalid(lThreads);
+      }
     }
 
     if (writeRejects.isSelected())
@@ -620,6 +679,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     setPrimaryValid(lFile);
     setPrimaryValid(lImportType);
     setPrimaryValid(lSchemaValidation);
+    setPrimaryValid(lDNValidation);
+    setPrimaryValid(lThreads);
     setPrimaryValid(lRejectsFile);
     setPrimaryValid(lSkipsFile);
     super.cancelClicked();
@@ -718,6 +779,17 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       if (!rejectNotSchemaCompliant.isSelected())
       {
         args.add("--skipSchemaValidation");
+      }
+      if (doDNValidationAfter.isSelected())
+      {
+        args.add("--skipDNValidation");
+      }
+
+      String sThread = threads.getText().trim();
+      if (sThread.length() > 0)
+      {
+        args.add("--threadCount");
+        args.add(sThread);
       }
 
       if (writeRejects.isSelected())
