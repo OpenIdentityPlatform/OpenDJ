@@ -26,10 +26,11 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.SortedSet;
-
 import java.util.TreeSet;
+
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
@@ -66,6 +67,8 @@ public class DomainFakeCfg implements ReplicationDomainCfg
 
   private SortedSet<String> fractionalExcludes = new TreeSet<String>();
   private SortedSet<String> fractionalIncludes = new TreeSet<String>();
+
+  private SortedSet<String> eclIncludes = new TreeSet<String>();
 
   /**
    * Creates a new Domain with the provided information
@@ -355,5 +358,15 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public boolean isSolveConflicts()
   {
     return true;
+  }
+  
+  public void setEclIncludes(SortedSet<String> attrs)
+  {
+    this.eclIncludes = attrs;
+  }
+ 
+  public SortedSet<String> getEclInclude()
+  {
+    return this.eclIncludes;
   }
 }

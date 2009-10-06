@@ -47,6 +47,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -62,7 +63,7 @@ import static org.testng.Assert.assertTrue;
  */
 public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
-  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V3;
+  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V4;
   /**
    * Set up the environment for performing the tests in this Class.
    *
@@ -177,16 +178,24 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name = "createAddData")
-  public Object[][] createAddData() {
+  public Object[][] createAddData() 
+  {
+    // Entry attributes
+    Attribute eattr1 = Attributes.create("description", "eav description");
+    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
+    List<Attribute> entryAttrList = new ArrayList<Attribute>();
+    entryAttrList.add(eattr1);
+    entryAttrList.add(eattr2);
+
     return new Object[][] {
-      {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-      {"o=test", true, AssuredMode.SAFE_READ_MODE, (byte)1},
-      {"o=group,dc=example,dc=com", true, AssuredMode.SAFE_READ_MODE, (byte)3}};
+      {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
+      {"o=test", true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
+      {"o=group,dc=example,dc=com", true, AssuredMode.SAFE_READ_MODE, (byte)3, entryAttrList}};
   }
 
   @Test(dataProvider = "createAddData")
   public void addMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel)
+    byte safeDataLevel, List<Attribute> entryAttrList)
          throws Exception
   {
     // TODO: addMsgTest as soon as V3 will have any incompatibility with V2
@@ -194,8 +203,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   @Test(dataProvider = "createAddData")
   public void addMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel)
-         throws Exception
+    byte safeDataLevel, List<Attribute> entryAttrList)
+  throws Exception
   {
     // Create VLAST message
     Attribute objectClass = Attributes.create(DirectoryServer
@@ -228,6 +237,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      msg.setEclIncludes(entryAttrList);
+    }
 
     // Check version of message
     assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -249,7 +263,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getParentUid(), msg.getParentUid());
 
-    //        Create an add operation from each message to compare attributes (kept encoded in messages)
+    // Create an add operation from each message to compare attributes (kept encoded in messages)
     Operation op = msg.createOperation(connection, rawDN);
     Operation generatedOperation = newMsg.createOperation(connection, rawDN);
 
@@ -268,10 +282,15 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
+    assertEquals(newMsg.getEclIncludes().size(), 0);
 
     // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
+    if (entryAttrList != null)
+    {
+      newMsg.setEclIncludes(entryAttrList);
+    }
 
     // Serialize in VLAST msg
     AddMsg vlastMsg = (AddMsg)ReplicationMsg.generateMsg(
@@ -288,6 +307,23 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
+
+    // Get ECL entry attributes
+    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
+    if (entryAttrList==null)
+      assertTrue(genAttrList.size()==0);
+    else
+    {
+      assertTrue(genAttrList.size()==entryAttrList.size());
+      int i=0;
+      for (Attribute eattr : entryAttrList)
+      {
+        assertTrue(eattr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
+        assertTrue(eattr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
+            "Comparing: " + eattr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+        i++;
+      }
+    }
 
     //        Create an add operation from each message to compare attributes (kept encoded in messages)
     op = msg.createOperation(connection, rawDN);
@@ -310,11 +346,19 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * Build some data for the DeleteMsg test below.
    */
   @DataProvider(name = "createDeleteData")
-  public Object[][] createDeleteData() {
+  public Object[][] createDeleteData()
+  {
+    // Entry attributes
+    Attribute eattr1 = Attributes.create("description", "eav description");
+    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
+    List<Attribute> entryAttrList = new ArrayList<Attribute>();
+    entryAttrList.add(eattr1);
+    entryAttrList.add(eattr2);
+    
     return new Object[][] {
-      {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-      {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn", true, AssuredMode.SAFE_READ_MODE, (byte)1},
-      {"o=group,dc=example,dc=com", true, AssuredMode.SAFE_READ_MODE, (byte)3}};
+      {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
+      {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn", true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
+      {"o=group,dc=example,dc=com", true, AssuredMode.SAFE_READ_MODE, (byte)3, entryAttrList}};
   }
 
   /**
@@ -323,7 +367,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(dataProvider = "createDeleteData")
   public void deleteMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel)
+    byte safeDataLevel, List<Attribute> entryAttrList)
          throws Exception
   {
     // TODO: deleteMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
@@ -335,8 +379,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(dataProvider = "createDeleteData")
   public void deleteMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel)
-         throws Exception
+    byte safeDataLevel, List<Attribute> entryAttrList)
+  throws Exception
   {
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
       (short) 123, (short) 45);
@@ -345,6 +389,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
+
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      msg.setEclIncludes(entryAttrList);
+    }
 
     // Check version of message
     assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -368,10 +418,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
     assertEquals(newMsg.getSafeDataLevel(), (byte)1);
+    assertEquals(newMsg.getEclIncludes().size(), 0);
 
     // Set again only VLAST fields
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      newMsg.setEclIncludes(entryAttrList);
+    }
 
     // Serialize in VLAST msg
     DeleteMsg vlastMsg = (DeleteMsg)ReplicationMsg.generateMsg(
@@ -380,13 +436,30 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check original version of message
     assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
-    // Check we retrieve original V2 message (V2 fields)
+    // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
     assertEquals(msg.getDn(), vlastMsg.getDn());
     assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
+    
+    // Get ECL entry attributes
+    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
+    if (entryAttrList==null)
+      assertTrue(genAttrList.size()==0);
+    else
+    {
+      assertTrue(genAttrList.size()==entryAttrList.size());
+      int i=0;
+      for (Attribute attr : entryAttrList)
+      {
+        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
+        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
+            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+        i++;
+      }
+    }
   }
 
   /**
@@ -434,17 +507,24 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     List<Modification> mods5 = new ArrayList<Modification>();
     mods5.add(mod5);
 
+    // Entry attributes
+    Attribute eattr1 = Attributes.create("description", "eav description");
+    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
+    List<Attribute> entryAttrList = new ArrayList<Attribute>();
+    entryAttrList.add(eattr1);
+    entryAttrList.add(eattr2);
+
     return new Object[][] {
-        { cn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-        { cn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1},
+        { cn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
+        { cn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
         { cn2, "dc=test with a much longer dn in case this would "
-               + "make a difference", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3},
-        { cn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, AssuredMode.SAFE_READ_MODE, (byte)5},
-        { cn2, "cn=use\\, backslash", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3},
-        { cn2, "dc=test with several mod", mods2, false, AssuredMode.SAFE_DATA_MODE, (byte)16},
-        { cn2, "dc=test with several values", mods3, false, AssuredMode.SAFE_READ_MODE, (byte)3},
-        { cn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte)120},
-        { cn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte)99},
+               + "make a difference", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
+        { cn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, AssuredMode.SAFE_READ_MODE, (byte)5, entryAttrList},
+        { cn2, "cn=use\\, backslash", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
+        { cn2, "dc=test with several mod", mods2, false, AssuredMode.SAFE_DATA_MODE, (byte)16, entryAttrList},
+        { cn2, "dc=test with several values", mods3, false, AssuredMode.SAFE_READ_MODE, (byte)3, null},
+        { cn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte)120, entryAttrList},
+        { cn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte)99, null},
         };
   }
 
@@ -456,7 +536,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void modifyMsgTestVLASTV2(ChangeNumber changeNumber,
                                String rawdn, List<Modification> mods,
                                boolean isAssured, AssuredMode assuredMode,
-                               byte safeDataLevel)
+                               byte safeDataLevel,
+                               List<Attribute> entryAttrList)
          throws Exception
   {
     // TODO: modifyMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
@@ -470,86 +551,120 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void modifyMsgTestVLASTV1(ChangeNumber changeNumber,
                                String rawdn, List<Modification> mods,
                                boolean isAssured, AssuredMode assuredMode,
-                               byte safeDataLevel)
+                               byte safeDataLevel,
+                               List<Attribute> entryAttrList)
          throws Exception
   {
     // Create VLAST message
     DN dn = DN.decode(rawdn);
-    ModifyMsg msg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
+    ModifyMsg origVlastMsg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
 
-    msg.setAssured(isAssured);
-    msg.setAssuredMode(assuredMode);
-    msg.setSafeDataLevel(safeDataLevel);
+    origVlastMsg.setAssured(isAssured);
+    origVlastMsg.setAssuredMode(assuredMode);
+    origVlastMsg.setSafeDataLevel(safeDataLevel);
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      origVlastMsg.setEclIncludes(entryAttrList);
+    }
 
     // Check version of message
-    assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
+    assertEquals(origVlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Serialize in V1
-    byte[] v1MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
+    byte[] v1MsgBytes = origVlastMsg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Un-serialize V1 message
-    ModifyMsg newMsg = (ModifyMsg)ReplicationMsg.generateMsg(
+    ModifyMsg newv1Msg = (ModifyMsg)ReplicationMsg.generateMsg(
         v1MsgBytes, ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
-    assertEquals(newMsg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
+    assertEquals(newv1Msg.getVersion(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check fields common to both versions
-    assertEquals(newMsg.getUniqueId(), msg.getUniqueId());
-    assertEquals(newMsg.getDn(), msg.getDn());
-    assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
-    assertEquals(newMsg.isAssured(), msg.isAssured());
+    assertEquals(newv1Msg.getUniqueId(), origVlastMsg.getUniqueId());
+    assertEquals(newv1Msg.getDn(), origVlastMsg.getDn());
+    assertEquals(newv1Msg.getChangeNumber(), origVlastMsg.getChangeNumber());
+    assertEquals(newv1Msg.isAssured(), origVlastMsg.isAssured());
 
-    //        Create a modify operation from each message to compare mods (kept encoded in messages)
-    Operation op = msg.createOperation(connection);
-    Operation generatedOperation = newMsg.createOperation(connection);
+    // Create a modify operation from each message to compare mods (kept encoded in messages)
+    Operation opFromOrigVlast = origVlastMsg.createOperation(connection);
+    Operation opFromV1 = newv1Msg.createOperation(connection);
 
-    assertEquals(op.getClass(), ModifyOperationBasis.class);
-    assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
-    ModifyOperationBasis modOpBasis = (ModifyOperationBasis) op;
-    ModifyOperationBasis genModOpBasis = (ModifyOperationBasis) generatedOperation;
+    assertEquals(opFromOrigVlast.getClass(), ModifyOperationBasis.class);
+    assertEquals(opFromV1.getClass(), ModifyOperationBasis.class);
+    
+    ModifyOperationBasis modOpBasisFromOrigVlast = (ModifyOperationBasis) opFromOrigVlast;
+    ModifyOperationBasis genModOpBasisFromV1 = (ModifyOperationBasis) opFromV1;
 
-    assertEquals(modOpBasis.getRawEntryDN(), genModOpBasis.getRawEntryDN());
-    assertEquals( modOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genModOpBasis.getAttachment(SYNCHROCONTEXT));
-    assertEquals(modOpBasis.getModifications(), genModOpBasis.getModifications());
+    assertEquals(modOpBasisFromOrigVlast.getRawEntryDN(), genModOpBasisFromV1.getRawEntryDN());
+    assertEquals( modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
+                  genModOpBasisFromV1.getAttachment(SYNCHROCONTEXT));
+    List<Modification> modsvlast = modOpBasisFromOrigVlast.getModifications();
+    List<Modification> modsv1 = genModOpBasisFromV1.getModifications();
+    
+    assertEquals(modsvlast, modsv1);
 
     // Check default value for only VLAST fields
-    assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
-    assertEquals(newMsg.getSafeDataLevel(), (byte)1);
+    assertEquals(newv1Msg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
+    assertEquals(newv1Msg.getSafeDataLevel(), (byte)1);
 
     // Set again only VLAST fields
-    newMsg.setAssuredMode(assuredMode);
-    newMsg.setSafeDataLevel(safeDataLevel);
-
+    newv1Msg.setAssuredMode(assuredMode);
+    newv1Msg.setSafeDataLevel(safeDataLevel);
+    if (entryAttrList != null)
+    {
+      newv1Msg.setEclIncludes(entryAttrList);
+    }
+    
     // Serialize in VLAST msg
-    ModifyMsg vlastMsg = (ModifyMsg)ReplicationMsg.generateMsg(
-        newMsg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
+    ModifyMsg generatedVlastMsg = (ModifyMsg)ReplicationMsg.generateMsg(
+        newv1Msg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
     // Check original version of message
-    assertEquals(vlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
+    assertEquals(generatedVlastMsg.getVersion(), REPLICATION_PROTOCOL_VLAST);
 
     // Check we retrieve original VLAST message (VLAST fields)
-    assertEquals(msg.getUniqueId(), vlastMsg.getUniqueId());
-    assertEquals(msg.getDn(), vlastMsg.getDn());
-    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
-    assertEquals(msg.isAssured(), vlastMsg.isAssured());
-    assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
-    assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
+    assertEquals(origVlastMsg.getUniqueId(), generatedVlastMsg.getUniqueId());
+    assertEquals(origVlastMsg.getDn(), generatedVlastMsg.getDn());
+    assertEquals(origVlastMsg.getChangeNumber(), generatedVlastMsg.getChangeNumber());
+    assertEquals(origVlastMsg.isAssured(), generatedVlastMsg.isAssured());
+    assertEquals(origVlastMsg.getAssuredMode(), generatedVlastMsg.getAssuredMode());
+    assertEquals(origVlastMsg.getSafeDataLevel(), generatedVlastMsg.getSafeDataLevel());
+    assertEquals(origVlastMsg.getSafeDataLevel(), generatedVlastMsg.getSafeDataLevel());
+    // Get ECL entry attributes
+    ArrayList<RawAttribute> genAttrList = generatedVlastMsg.getEclIncludes();
+    if (entryAttrList==null)
+      assertTrue(genAttrList.size()==0);
+    else
+    {
+      assertTrue(genAttrList.size()==entryAttrList.size());
+      int i=0;
+      for (Attribute attr : entryAttrList)
+      {
+        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
+        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
+            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+        i++;
+      }
+    }
 
-    //        Create a modify operation from each message to compare mods (kept encoded in messages)
-    op = msg.createOperation(connection);
-    generatedOperation = vlastMsg.createOperation(connection);
+    // Create a modify operation from each message to compare mods (kept encoded in messages)
+    opFromOrigVlast = origVlastMsg.createOperation(connection);
+    Operation opFromGeneratedVlastMsg = generatedVlastMsg.createOperation(connection);
 
-    assertEquals(op.getClass(), ModifyOperationBasis.class);
-    assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
-    modOpBasis = (ModifyOperationBasis) op;
-    genModOpBasis = (ModifyOperationBasis) generatedOperation;
+    assertEquals(opFromOrigVlast.getClass(), ModifyOperationBasis.class);
+    assertEquals(opFromGeneratedVlastMsg.getClass(), ModifyOperationBasis.class);
 
-    assertEquals(modOpBasis.getRawEntryDN(), genModOpBasis.getRawEntryDN());
-    assertEquals( modOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genModOpBasis.getAttachment(SYNCHROCONTEXT));
-    assertEquals(modOpBasis.getModifications(), genModOpBasis.getModifications());
+    modOpBasisFromOrigVlast = (ModifyOperationBasis) opFromOrigVlast;
+    ModifyOperationBasis modOpBasisFromGeneratedVlast = (ModifyOperationBasis) opFromGeneratedVlastMsg;
+
+    assertEquals(modOpBasisFromOrigVlast.getRawEntryDN(), 
+        modOpBasisFromGeneratedVlast.getRawEntryDN());
+    assertEquals( modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
+        modOpBasisFromGeneratedVlast.getAttachment(SYNCHROCONTEXT));
+    assertEquals(modOpBasisFromOrigVlast.getModifications(), 
+        modOpBasisFromGeneratedVlast.getModifications());
   }
 
   @DataProvider(name = "createModifyDnData")
@@ -586,12 +701,19 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       mods4.add(mod);
     }
 
+    // Entry attributes
+    Attribute eattr1 = Attributes.create("description", "eav description");
+    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
+    List<Attribute> entryAttrList = new ArrayList<Attribute>();
+    entryAttrList.add(eattr1);
+    entryAttrList.add(eattr2);
+
     return new Object[][] {
-        {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0},
-        {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1},
-        {"dc=test,dc=com", "dc=new", "55555555-5555-5555-5555-555555555555", "66666666-6666-6666-6666-666666666666", false, null, mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3},
+        {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
+        {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
+        {"dc=test,dc=com", "dc=new", "55555555-5555-5555-5555-555555555555", "66666666-6666-6666-6666-666666666666", false, null, mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
-                   "dc=new", "77777777-7777-7777-7777-777777777777", "88888888-8888-8888-8888-888888888888",true, null, mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99},
+                   "dc=new", "77777777-7777-7777-7777-777777777777", "88888888-8888-8888-8888-888888888888",true, null, mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99, entryAttrList},
         };
   }
 
@@ -603,7 +725,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void modifyDnMsgTestVLASTV2(String rawDN, String newRdn, String uid, String newParentUid,
                                    boolean deleteOldRdn, String newSuperior,
                                    List<Modification> mods, boolean isAssured,
-                                   AssuredMode assuredMode, byte safeDataLevel)
+                                   AssuredMode assuredMode, byte safeDataLevel,
+                                   List<Attribute> entryAttrList)
          throws Exception
   {
     // TODO: modifyMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
@@ -617,7 +740,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void modifyDnMsgTestVLASTV1(String rawDN, String newRdn, String uid, String newParentUid,
                                    boolean deleteOldRdn, String newSuperior,
                                    List<Modification> mods, boolean isAssured,
-                                   AssuredMode assuredMode, byte safeDataLevel)
+                                   AssuredMode assuredMode, byte safeDataLevel,
+                                   List<Attribute> entryAttrList)
          throws Exception
   {
     // Create VLAST message
@@ -630,6 +754,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
+
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      msg.setEclIncludes(entryAttrList);
+    }
 
     // Check version of message
     assertEquals(msg.getVersion(), REPLICATION_PROTOCOL_VLAST);
@@ -654,7 +784,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(newMsg.getNewSuperiorId(), msg.getNewSuperiorId());
     assertEquals(newMsg.deleteOldRdn(), msg.deleteOldRdn());
 
-    //        Create a modDn operation from each message to compare fields)
+    // Create a modDn operation from each message to compare fields)
     Operation op = msg.createOperation(connection);
     Operation generatedOperation = newMsg.createOperation(connection);
 
@@ -677,6 +807,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     newMsg.setAssuredMode(assuredMode);
     newMsg.setSafeDataLevel(safeDataLevel);
     newMsg.setMods(mods);
+    // Set ECL entry attributes
+    if (entryAttrList != null)
+    {
+      newMsg.setEclIncludes(entryAttrList);
+    }
 
     // Serialize in VLAST msg
     ModifyDNMsg vlastMsg = (ModifyDNMsg)ReplicationMsg.generateMsg(
@@ -697,7 +832,24 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getNewSuperiorId(), vlastMsg.getNewSuperiorId());
     assertEquals(msg.deleteOldRdn(), vlastMsg.deleteOldRdn());
 
-    //        Create a modDn operation from each message to compare mods (kept encoded in messages)
+    // Get ECL entry attributes
+    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
+    if (entryAttrList==null)
+      assertTrue(genAttrList.size()==0);
+    else
+    {
+      assertTrue(genAttrList.size()==entryAttrList.size());
+      int i=0;
+      for (Attribute attr : entryAttrList)
+      {
+        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
+        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
+            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
+        i++;
+      }
+    }
+     
+    // Create a modDn operation from each message to compare mods (kept encoded in messages)
     op = msg.createOperation(connection);
     generatedOperation = vlastMsg.createOperation(connection);
 

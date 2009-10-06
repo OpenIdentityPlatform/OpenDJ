@@ -24,6 +24,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
+
 package org.opends.server.replication.protocol;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
+import org.opends.server.types.RawModification;
 
 /**
  * This class holds every common code for the modify messages (mod, moddn).
@@ -97,26 +99,12 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    */
   public void setMods(List<Modification> mods)
   {
-    encodedMods = modsToByte(mods);
+    encodedMods = encodeMods(mods);
   }
 
-  /**
-   * Get the Modifications associated to the UpdateMsg to the provided value.
-   * @throws LDAPException In case of LDAP decoding exception
-   * @throws ASN1Exception In case of ASN1 decoding exception
-   * @return the list of modifications
-   */
-  public List<Modification> getMods() throws ASN1Exception, LDAPException
-  {
-    List<Modification> mods = new ArrayList<Modification>();
-
-    ASN1Reader reader = ASN1.getReader(encodedMods);
-
-    while (reader.hasNextElement())
-      mods.add((LDAPModification.decode(reader)).toModification());
-
-    return mods;
-  }
+  // ============
+  // Msg encoding
+  // ============
 
   /**
    * Encode an ArrayList of Modification into a byte[] suitable
@@ -125,7 +113,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * @param mods the ArrayList of Modification to be encoded.
    * @return The encoded modifications.
    */
-  protected byte[] modsToByte(List<Modification> mods)
+  protected byte[] encodeMods(List<Modification> mods)
   {
     if ((mods == null) || (mods.size() == 0))
       return new byte[0];
@@ -161,8 +149,49 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
         }
       }
     }
-
     return byteBuilder.toByteArray();
+  }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  /**
+   * Decode mods from the provided byte array.
+   * @param in The provided byte array.
+   * @throws ASN1Exception when occurs.
+   * @throws LDAPException when occurs.
+   * @return The decoded mods.
+   */
+  protected List<Modification> decodeMods(byte[] in)
+  throws ASN1Exception, LDAPException
+  {
+    List<Modification> mods = new ArrayList<Modification>();
+    ASN1Reader reader = ASN1.getReader(in);
+    while (reader.hasNextElement())
+    {
+      mods.add((LDAPModification.decode(reader)).toModification());
+    }
+    return mods;
+  }
+
+  /**
+   * Decode raw mods from the provided byte array.
+   * @param in The provided byte array.
+   * @return The decoded mods.
+   * @throws ASN1Exception when occurs.
+   * @throws LDAPException when occurs.
+   */
+  protected ArrayList<RawModification> decodeRawMods(byte[] in)
+  throws LDAPException, ASN1Exception
+  {
+    ArrayList<RawModification> ldapmods = new ArrayList<RawModification>();
+    ASN1Reader asn1Reader = ASN1.getReader(in);
+    while(asn1Reader.hasNextElement())
+    {
+      ldapmods.add(LDAPModification.decode(asn1Reader));
+    }
+    return ldapmods;
   }
 
 }

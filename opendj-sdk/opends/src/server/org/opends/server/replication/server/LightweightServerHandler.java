@@ -32,8 +32,10 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -86,6 +88,8 @@ public class LightweightServerHandler
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) -1;
 
+  private Set<String> eclInclude = new HashSet<String>();
+
   /**
    * Creates a new LighweightServerHandler with the provided serverid, connected
    * to the remote Replication Server represented by replServerHandler.
@@ -102,11 +106,12 @@ public class LightweightServerHandler
    * @param assuredFlag The assured flag of the remote DS
    * @param assuredMode The assured mode of the remote DS
    * @param safeDataLevel The safe data level of the remote DS
+   * @param eclInclude The list of entry attributes to be added to the ECL.
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
     short replicationServerId, short serverId, long generationId, byte groupId,
     ServerStatus status, List<String> refUrls, boolean assuredFlag,
-    AssuredMode assuredMode, byte safeDataLevel)
+    AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude)
   {
     super("Server Handler");
     this.replServerHandler = replServerHandler;
@@ -120,6 +125,7 @@ public class LightweightServerHandler
     this.assuredFlag = assuredFlag;
     this.assuredMode = assuredMode;
     this.safeDataLevel = safeDataLevel;
+    this.eclInclude = eclInclude;
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -137,7 +143,8 @@ public class LightweightServerHandler
   public DSInfo toDSInfo()
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
-      status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls);
+      status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
+      eclInclude);
 
     return dsInfo;
   }

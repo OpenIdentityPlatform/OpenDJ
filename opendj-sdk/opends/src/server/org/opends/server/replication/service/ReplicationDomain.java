@@ -64,6 +64,7 @@ import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
@@ -317,6 +318,9 @@ public abstract class ReplicationDomain
    */
   private Map<Short, ServerState> replicaStates =
     new HashMap<Short, ServerState>();
+
+  Set<String> cfgEclIncludes = new HashSet<String>();
+  Set<String>    eClIncludes = new HashSet<String>();
 
   /**
    * Returns the {@link ChangeNumberGenerator} that will be used to
@@ -2922,5 +2926,33 @@ public abstract class ReplicationDomain
       return ieContext.entryCount;
     else
       return 0;
+  }
+
+  /**
+   * Add an attribute to the list of attributes to include in the ECL.
+   * @param attribute The attribute to add.
+   */
+  synchronized public void addEclInclude(String attribute)
+  {
+    eClIncludes.add(attribute);
+  }
+
+  /**
+   * Get the list of attributes to include in the ECL.
+   * @return The list of attributes.
+   */
+  public Set<String> getEclInclude()
+  {
+    return eClIncludes;
+  }
+
+  /**
+   * Set the list of attributes to include in the ECL.
+   * @param eclIncludes The list of attributes.
+   */
+  protected void setCfgEclInclude(Set<String> eclIncludes)
+  {
+    this.cfgEclIncludes = eclIncludes;
+    this.eClIncludes = eclIncludes;
   }
 }

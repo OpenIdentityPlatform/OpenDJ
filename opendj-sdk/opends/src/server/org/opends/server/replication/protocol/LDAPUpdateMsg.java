@@ -27,14 +27,25 @@
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.ByteSequenceReader;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -61,6 +72,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * Encoded form of the LDAPUpdateMsg.
    */
   protected byte[] bytes = null;
+
+  /**
+   * Encoded form of entry attributes.
+   */
+  protected byte[] encodedEclIncludes = new byte[0];
 
   /**
    * Creates a new UpdateMsg.
@@ -164,21 +180,6 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Do all the work necessary for the encoding.
-   *
-   * This is useful in case when one wants to perform this outside
-   * of a synchronized portion of code.
-   *
-   * This method is not synchronized and therefore not MT safe.
-   *
-   * @throws UnsupportedEncodingException when encoding fails.
-   */
-  public void encode() throws UnsupportedEncodingException
-  {
-    bytes = getBytes();
-  }
-
-  /**
    * Create and Operation from the message.
    *
    * @param   conn connection to use when creating the message
@@ -207,6 +208,26 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public abstract AbstractOperation createOperation(
          InternalClientConnection conn, String newDn)
          throws LDAPException, ASN1Exception, DataFormatException;
+
+
+  // ============
+  // Msg encoding
+  // ============
+
+  /**
+   * Do all the work necessary for the encoding.
+   *
+   * This is useful in case when one wants to perform this outside
+   * of a synchronized portion of code.
+   *
+   * This method is not synchronized and therefore not MT safe.
+   *
+   * @throws UnsupportedEncodingException when encoding fails.
+   */
+  public void encode() throws UnsupportedEncodingException
+  {
+    bytes = getBytes();
+  }
 
   /**
    * Encode the common header for all the UpdateMsg. This uses the current
@@ -270,30 +291,6 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
-  {
-    if (reqProtocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
-      return getBytes_V1();
-    else
-      return getBytes();
-  }
-
-  /**
-   * Get the byte array representation of this Message. This uses the version
-   * 1 of the replication protocol (used for compatibility purpose).
-   *
-   * @return The byte array representation of this Message.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
-   */
-  public abstract byte[] getBytes_V1() throws UnsupportedEncodingException;
-
-  /**
    * Encode the common header for all the UpdateMessage. This uses the version
    * 1 of the replication protocol (used for compatibility purpose).
    *
@@ -345,6 +342,111 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes()
+  throws UnsupportedEncodingException
+  {
+    // Encode in the current protocol version
+    if (bytes == null)
+    {
+      // this is the current version of the protocol
+      bytes = getBytes_V4();
+    }
+    return bytes;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes(short reqProtocolVersion)
+    throws UnsupportedEncodingException
+  {
+    if (reqProtocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
+      return getBytes_V1();
+    }
+    else if (reqProtocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    {
+      return getBytes_V23();
+    }
+    else
+    {
+      // Encode in the current protocol version
+      if (bytes == null)
+      {
+        // this is the current version of the protocol
+        bytes = getBytes_V4();
+      }
+      return bytes;
+    }
+  }
+
+  /**
+   * Get the byte array representation of this Message. This uses the version
+   * 1 of the replication protocol (used for compatibility purpose).
+   *
+   * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
+   */
+  public abstract byte[] getBytes_V1() throws UnsupportedEncodingException;
+
+  /**
+   * Get the byte array representation of this Message. This uses the version
+   * 2 of the replication protocol (used for compatibility purpose).
+   *
+   * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
+   */
+  public abstract byte[] getBytes_V23() throws UnsupportedEncodingException;
+
+
+  /**
+   * Get the byte array representation of this Message. This uses the version
+   * 4 of the replication protocol (used for compatibility purpose).
+   *
+   * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
+   */
+  public abstract byte[] getBytes_V4() throws UnsupportedEncodingException;
+
+
+  /**
+   * Encode a list of attributes.
+   */
+   static private byte[] encodeAttributes(List<Attribute> attributes)
+   {
+     if (attributes==null)
+       return new byte[0];
+     try
+     {
+       ByteStringBuilder byteBuilder = new ByteStringBuilder();
+       ASN1Writer writer = ASN1.getWriter(byteBuilder);
+       for (Attribute a : attributes)
+       {
+         new LDAPAttribute(a).write(writer);
+       }
+       return byteBuilder.toByteArray();
+     }
+     catch (Exception e)
+     {
+       return null;
+     }
+   }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  /**
    * Decode the Header part of this Update Message, and check its type.
    *
    * @param types The allowed types of this Update Message.
@@ -353,82 +455,77 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @throws DataFormatException if the encodedMsg does not contain a valid
    *         common header.
    */
-  public int decodeHeader(byte[] types, byte[] encodedMsg)
+   public int decodeHeader(byte[] types, byte[] encodedMsg)
                           throws DataFormatException
-  {
-    /* The message header is stored in the form :
-     * <operation type><protocol version><changenumber><dn><entryuuid><assured>
-     * <assured mode> <safe data level>
-     */
+   {
+     /* first byte is the type */
+     boolean foundMatchingType = false;
+     for (int i = 0; i < types.length; i++)
+     {
+       if (types[i] == encodedMsg[0])
+       {
+         foundMatchingType = true;
+         break;
+       }
+     }
+     if (!foundMatchingType)
+       throw new DataFormatException("byte[] is not a valid update msg: "
+           + encodedMsg[0]);
 
-    /* first byte is the type */
-    boolean foundMatchingType = false;
-    for (int i = 0; i < types.length; i++)
-    {
-      if (types[i] == encodedMsg[0])
-      {
-        foundMatchingType = true;
-        break;
-      }
-    }
-    if (!foundMatchingType)
-      throw new DataFormatException("byte[] is not a valid update msg: "
-        + encodedMsg[0]);
+     /*
+      * For older protocol version PDUs, decode the matching version header
+      * instead.
+      */
+     if ((encodedMsg[0] == MSG_TYPE_ADD_V1) ||
+         (encodedMsg[0] == MSG_TYPE_DELETE_V1) ||
+         (encodedMsg[0] == MSG_TYPE_MODIFYDN_V1) ||
+         (encodedMsg[0] == MSG_TYPE_MODIFY_V1))
+     {
+       return decodeHeader_V1(encodedMsg);
+     }
 
-    /*
-     * For older protocol version PDUs, decode the matching version header
-     * instead.
-     */
-    if ((encodedMsg[0] == MSG_TYPE_ADD_V1) ||
-      (encodedMsg[0] == MSG_TYPE_DELETE_V1) ||
-      (encodedMsg[0] == MSG_TYPE_MODIFYDN_V1) ||
-      (encodedMsg[0] == MSG_TYPE_MODIFY_V1))
-    {
-      return decodeHeader_V1(encodedMsg);
-    }
+     /* read the protocol version */
+     protocolVersion = (short)encodedMsg[1];
 
-    /* read the protocol version */
-    protocolVersion = (short)encodedMsg[1];
+     try
+     {
+       /* Read the changeNumber */
+       int pos = 2;
+       int length = getNextLength(encodedMsg, pos);
+       String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
+       pos += length + 1;
+       changeNumber = new ChangeNumber(changenumberStr);
 
-    try
-    {
-      /* Read the changeNumber */
-      int pos = 2;
-      int length = getNextLength(encodedMsg, pos);
-      String changenumberStr = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length + 1;
-      changeNumber = new ChangeNumber(changenumberStr);
+       /* Read the dn */
+       length = getNextLength(encodedMsg, pos);
+       dn = new String(encodedMsg, pos, length, "UTF-8");
+       pos += length + 1;
 
-      /* Read the dn */
-      length = getNextLength(encodedMsg, pos);
-      dn = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length + 1;
+       /* Read the entryuuid */
+       length = getNextLength(encodedMsg, pos);
+       uniqueId = new String(encodedMsg, pos, length, "UTF-8");
+       pos += length + 1;
 
-      /* Read the entryuuid */
-      length = getNextLength(encodedMsg, pos);
-      uniqueId = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length + 1;
+       /* Read the assured information */
+       if (encodedMsg[pos++] == 1)
+         assuredFlag = true;
+       else
+         assuredFlag = false;
 
-      /* Read the assured information */
-      if (encodedMsg[pos++] == 1)
-        assuredFlag = true;
-      else
-        assuredFlag = false;
+       /* Read the assured mode */
+       assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);
 
-      /* Read the assured mode */
-      assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);
+       /* Read the safe data level */
+       safeDataLevel = encodedMsg[pos++];
 
-      /* Read the safe data level */
-      safeDataLevel = encodedMsg[pos++];
-
-      return pos;
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    } catch (IllegalArgumentException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    }
+       return pos;
+     } catch (UnsupportedEncodingException e)
+     {
+       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+     } catch (IllegalArgumentException e)
+     {
+       throw new DataFormatException(e.getMessage());
+     }
   }
 
   /**
@@ -493,4 +590,96 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @return The number of bytes used by this message.
    */
   public abstract int size();
+
+  /**
+   * Return the number of bytes used by the header.
+   * @return The number of bytes used by the header.
+   */
+  protected int headerSize()
+  {
+    return 100;    // 100 let's assume header size is 100
+  }
+
+  /**
+   * Set a provided list of entry attributes.
+   * @param entryAttrs  The provided list of entry attributes.
+   */
+  public void setEclIncludes(List<Attribute> entryAttrs)
+  {
+    this.encodedEclIncludes = encodeAttributes(entryAttrs);
+  }
+
+  /**
+   * Returns the list of entry attributes.
+   * @return The list of entry attributes.
+   */
+  public ArrayList<RawAttribute> getEclIncludes()
+  {
+    try
+    {
+      return decodeRawAttributes(this.encodedEclIncludes);
+    }
+    catch(Exception e)
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Decode a provided byte array as a list of RawAttribute.
+   * @param in The provided byte array.
+   * @return The list of Rawattribute objects.
+   * @throws LDAPException when it occurs.
+   * @throws ASN1Exception when it occurs.
+   */
+  public ArrayList<RawAttribute> decodeRawAttributes(byte[] in)
+  throws LDAPException, ASN1Exception
+  {
+    ArrayList<RawAttribute> rattr = new ArrayList<RawAttribute>();
+    try
+    {
+      ByteSequenceReader reader =
+        ByteString.wrap(in).asReader();
+      ASN1Reader asn1Reader = ASN1.getReader(reader);
+      // loop on attributes
+      while(asn1Reader.hasNextElement())
+      {
+        rattr.add(LDAPAttribute.decode(asn1Reader));
+      }
+      return rattr;
+    }
+    catch(Exception e)
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Decode a provided byte array as a list of Attribute.
+   * @param in The provided byte array.
+   * @return The list of Attribute objects.
+   * @throws LDAPException when it occurs.
+   * @throws ASN1Exception when it occurs.
+   */
+  public ArrayList<Attribute> decodeAttributes(byte[] in)
+  throws LDAPException, ASN1Exception
+  {
+    ArrayList<Attribute> lattr = new ArrayList<Attribute>();
+    try
+    {
+      ByteSequenceReader reader =
+        ByteString.wrap(in).asReader();
+      ASN1Reader asn1Reader = ASN1.getReader(reader);
+      // loop on attributes
+      while(asn1Reader.hasNextElement())
+      {
+        lattr.add(LDAPAttribute.decode(asn1Reader).toAttribute());
+      }
+      return lattr;
+    }
+    catch(Exception e)
+    {
+      return null;
+    }
+  }
 }

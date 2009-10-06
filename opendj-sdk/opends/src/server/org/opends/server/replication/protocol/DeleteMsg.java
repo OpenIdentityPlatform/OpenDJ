@@ -80,7 +80,11 @@ public class DeleteMsg extends LDAPUpdateMsg
     byte[] allowedPduTypes = new byte[2];
     allowedPduTypes[0] = MSG_TYPE_DELETE;
     allowedPduTypes[1] = MSG_TYPE_DELETE_V1;
-    decodeHeader(allowedPduTypes, in);
+    int pos = decodeHeader(allowedPduTypes, in);
+
+    // protocol version has been read as part of the header
+    if (protocolVersion >= 4)
+      decodeBody_V4(in, pos);
   }
 
 
@@ -92,27 +96,83 @@ public class DeleteMsg extends LDAPUpdateMsg
          InternalClientConnection connection, String newDn)
   {
     DeleteOperationBasis del =  new DeleteOperationBasis(connection,
-                               InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), null,
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn));
     DeleteContext ctx = new DeleteContext(getChangeNumber(), getUniqueId());
     del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;
   }
 
+  // ============
+  // Msg encoding
+  // ============
+
+  /**
+   * {@inheritDoc}
+   */
+  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  {
+    return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes() throws UnsupportedEncodingException
+  public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
-    if (bytes == null)
+    return encodeHeader(MSG_TYPE_DELETE, 0);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes_V4() throws UnsupportedEncodingException
+  {
+    // Put together the different encoded pieces
+    int bodyLength = 0;
+
+    byte[] byteEntryAttrLen =
+      String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
+    bodyLength += byteEntryAttrLen.length + 1;
+    bodyLength += encodedEclIncludes.length + 1;
+
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength);
+    int pos = encodedMsg.length - bodyLength;
+    pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
+    pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
+    return encodedMsg;
+  }
+
+  // ============
+  // Msg decoding
+  // ============
+
+  private void decodeBody_V4(byte[] in, int pos)
+  throws DataFormatException, UnsupportedEncodingException
+  {
+    // Read ecl attr len
+    int length = getNextLength(in, pos);
+    int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    pos += length + 1;
+
+    // Read/Don't decode entry attributes
+    encodedEclIncludes = new byte[eclAttrLen];
+    try
     {
-     return encodeHeader(MSG_TYPE_DELETE, 0);
-    }
-    else
+      System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
+    } catch (IndexOutOfBoundsException e)
     {
-      return bytes;
+      throw new DataFormatException(e.getMessage());
+    } catch (ArrayStoreException e)
+    {
+      throw new DataFormatException(e.getMessage());
+    } catch (NullPointerException e)
+    {
+      throw new DataFormatException(e.getMessage());
     }
   }
 
@@ -151,16 +211,7 @@ public class DeleteMsg extends LDAPUpdateMsg
   @Override
   public int size()
   {
-    // The DeleteMsg size is mostly dependent on the DN and should never
-    // grow very large. It is therefore safe to assume an average of 40 bytes.
-    return 40;
+    return encodedEclIncludes.length + headerSize();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public byte[] getBytes_V1() throws UnsupportedEncodingException
-  {
-    return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);
-  }
 }

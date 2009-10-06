@@ -35,8 +35,10 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.DataFormatException;
 
 import org.opends.messages.Message;
@@ -74,6 +76,7 @@ public class DataServerHandler extends ServerHandler
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) -1;
+  private Set<String> eclIncludes = new HashSet<String>();
 
   /**
    * Creates a new data server handler.
@@ -582,7 +585,8 @@ public class DataServerHandler extends ServerHandler
   public DSInfo toDSInfo()
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
-        status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls);
+      status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
+      eclIncludes);
 
     return dsInfo;
   }
@@ -645,6 +649,7 @@ public class DataServerHandler extends ServerHandler
     this.assuredFlag = startSessionMsg.isAssured();
     this.assuredMode = startSessionMsg.getAssuredMode();
     this.safeDataLevel = startSessionMsg.getSafeDataLevel();
+    this.eclIncludes = startSessionMsg.getEclIncludes();
 
     /*
      * If we have already a generationID set for the domain

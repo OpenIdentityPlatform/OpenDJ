@@ -209,7 +209,7 @@ public abstract class ReplicationMsg
         msg = new WindowProbeMsg(buffer);
       break;
       case MSG_TYPE_TOPOLOGY:
-        msg = new TopologyMsg(buffer);
+        msg = new TopologyMsg(buffer, version);
       break;
       case MSG_TYPE_REPL_SERVER_MONITOR_REQUEST:
         msg = new MonitorRequestMsg(buffer);
@@ -218,7 +218,7 @@ public abstract class ReplicationMsg
         msg = new MonitorMsg(buffer, version);
       break;
       case MSG_TYPE_START_SESSION:
-        msg = new StartSessionMsg(buffer);
+        msg = new StartSessionMsg(buffer, version);
       break;
       case MSG_TYPE_CHANGE_STATUS:
         msg = new ChangeStatusMsg(buffer);

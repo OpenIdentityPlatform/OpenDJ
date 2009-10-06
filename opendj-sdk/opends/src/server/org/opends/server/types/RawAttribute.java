@@ -218,8 +218,8 @@ public abstract class RawAttribute
         stream.writeOctetString(value);
       }
     }
-    stream.writeEndSequence();
 
+    stream.writeEndSet();
     stream.writeEndSequence();
   }
 
