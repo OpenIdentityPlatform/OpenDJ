@@ -499,7 +499,7 @@ public class ECLServerHandler extends ServerHandler
     draftCompat = true;
 
     DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
-    if (startDraftCN < 0)
+    if (startDraftCN <= 1)
     {
       // Request filter does not contain any firstDraftCN
       // So we'll generate from the beginning of what we have stored here.
@@ -579,9 +579,35 @@ public class ECLServerHandler extends ServerHandler
         {
           // startDraftCN is between first and last and has never been
           // returned yet
-          crossDomainStartState = draftCNDb.getValue(draftCNDb.getLastKey());
-          // FIXME:ECL ... ok we'll start from the end of the draftCNDb BUT ...
-          // this is NOT the request of the client !!!!
+          if (draftCNDb.count() == 0)
+          {
+            // db is empty
+            isEndOfDraftCNReached = true;
+            crossDomainStartState = null;
+          }
+          else
+          {
+            crossDomainStartState = draftCNDb.getValue(draftCNDb.getLastKey());
+            try
+            {
+              draftCNDbIter =
+                draftCNDb.generateIterator(draftCNDb.getLastKey());
+            }
+            catch(Exception e)
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+              if (draftCNDbIter != null)
+                draftCNDbIter.releaseCursor();
+
+              throw new DirectoryException(
+                  ResultCode.OPERATIONS_ERROR,
+                  Message.raw(Category.SYNC,
+                      Severity.FATAL_ERROR,e.getLocalizedMessage()));
+            }
+          }
+          // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
+          // this may be very long. Work on perf improvement here.
         }
         else
         {
