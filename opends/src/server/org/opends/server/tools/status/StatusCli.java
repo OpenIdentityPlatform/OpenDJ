@@ -28,7 +28,6 @@
 package org.opends.server.tools.status;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -495,18 +494,7 @@ class StatusCli extends ConsoleApplication
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
-    boolean sameInstallAndInstance = true;
-    try
-    {
-      sameInstallAndInstance = desc.getInstancePath().getCanonicalFile().equals(
-          desc.getInstallPath().getCanonicalFile());
-    }
-    catch (IOException ioe)
-    {
-      // Best effort
-      sameInstallAndInstance = desc.getInstancePath().getAbsoluteFile().equals(
-          desc.getInstallPath().getAbsoluteFile());
-    }
+    boolean sameInstallAndInstance = desc.sameInstallAndInstance();
     if (!sameInstallAndInstance)
     {
       writeInstancePathContents(desc, labelWidth);
@@ -702,9 +690,8 @@ class StatusCli extends ConsoleApplication
   private void writeInstallPathContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    File path = desc.getInstallPath();
     writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
-            Message.raw(path.toString()),
+            Message.raw(desc.getInstallPath()),
             maxLabelWidth);
   }
 
@@ -717,9 +704,8 @@ class StatusCli extends ConsoleApplication
   private void writeInstancePathContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    File path = desc.getInstancePath();
     writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
-            Message.raw(path.toString()),
+            Message.raw(desc.getInstancePath()),
             maxLabelWidth);
   }
 

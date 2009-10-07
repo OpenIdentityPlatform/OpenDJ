@@ -176,6 +176,7 @@ public class Utilities
   {
     JFrame frame = new JFrame();
     frame.setResizable(true);
+    org.opends.quicksetup.ui.Utilities.setFrameIcon(frame);
     return frame;
   }
 

@@ -168,6 +168,7 @@ public class GenericFrame extends JFrame
       }
     });
 
+    org.opends.quicksetup.ui.Utilities.setFrameIcon(this);
     pack();
     if (!SwingUtilities.isEventDispatchThread())
     {

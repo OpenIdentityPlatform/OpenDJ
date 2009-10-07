@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.Schema;
 
 /**
@@ -60,8 +62,8 @@ public class ServerDescriptor
     new HashSet<ConnectionHandlerDescriptor>();
   private ConnectionHandlerDescriptor adminConnector;
   private Set<DN> administrativeUsers = new HashSet<DN>();
-  private File installPath;
-  private File instancePath;
+  private String installPath;
+  private String instancePath;
   private String openDSVersion;
   private String javaVersion;
   private ArrayList<OpenDsException> exceptions =
@@ -185,7 +187,7 @@ public class ServerDescriptor
    * @return the instance path where the server databases and configuration is
    * located
    */
-  public File getInstancePath()
+  public String getInstancePath()
   {
     return instancePath;
   }
@@ -196,7 +198,7 @@ public class ServerDescriptor
    * @param instancePath the instance path where the server databases and
    * configuration is located.
    */
-  public void setInstancePath(File instancePath)
+  public void setInstancePath(String instancePath)
   {
     this.instancePath = instancePath;
   }
@@ -205,7 +207,7 @@ public class ServerDescriptor
    * Return the install path where the server is installed.
    * @return the install path where the server is installed.
    */
-  public File getInstallPath()
+  public String getInstallPath()
   {
     return installPath;
   }
@@ -214,9 +216,46 @@ public class ServerDescriptor
    * Sets the install path where the server is installed.
    * @param installPath the install path where the server is installed.
    */
-  public void setInstallPath(File installPath)
+  public void setInstallPath(String installPath)
   {
     this.installPath = installPath;
+  }
+
+  /**
+   * Returns whether the install and the instance are on the same server
+   * or not.
+   * @return whether the install and the instance are on the same server
+   * or not.
+   */
+  public boolean sameInstallAndInstance()
+  {
+    boolean sameInstallAndInstance;
+    String instance = getInstancePath();
+    String install = getInstallPath();
+    try
+    {
+      if (instance != null)
+      {
+        sameInstallAndInstance = instance.equals(install);
+        if (!sameInstallAndInstance &&
+            (isLocal() || (isWindows() == Utilities.isWindows())))
+        {
+          File f1 = new File(instance);
+          File f2 = new File(install);
+          sameInstallAndInstance =
+            f1.getCanonicalFile().equals(f2.getCanonicalFile());
+        }
+      }
+      else
+      {
+        sameInstallAndInstance = install == null;
+      }
+    }
+    catch (IOException ioe)
+    {
+      sameInstallAndInstance = false;
+    }
+    return sameInstallAndInstance;
   }
 
   /**
@@ -612,6 +651,42 @@ public class ServerDescriptor
   public void setWindowsServiceEnabled(boolean isWindowsServiceEnabled)
   {
     this.isWindowsServiceEnabled = isWindowsServiceEnabled;
+  }
+
+  /**
+   * Returns whether the server is running under a windows system or not.
+   * @return whether the server is running under a windows system or not.
+   */
+  public boolean isWindows()
+  {
+    boolean isWindows;
+    if (isLocal())
+    {
+      isWindows = Utilities.isWindows();
+    }
+    else
+    {
+      CustomSearchResult sr = getSystemInformationMonitor();
+      if (sr == null)
+      {
+        isWindows = false;
+      }
+      else
+      {
+        String os =
+          (String)Utilities.getFirstMonitoringValue(sr, "operatingSystem");
+        if (os == null)
+        {
+          isWindows = false;
+        }
+        else
+        {
+          OperatingSystem oSystem = OperatingSystem.forName(os);
+          isWindows = OperatingSystem.WINDOWS == oSystem;
+        }
+      }
+    }
+    return isWindows;
   }
 
   /**

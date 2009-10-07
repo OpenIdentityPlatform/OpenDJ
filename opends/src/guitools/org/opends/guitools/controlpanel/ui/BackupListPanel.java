@@ -537,16 +537,26 @@ public abstract class BackupListPanel extends StatusGenericPanel
     {
       String path;
 
-      File f = new File(desc.getInstancePath(),
-          org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE);
-      try
+      if (desc.isLocal() || (desc.isWindows() == Utilities.isWindows()))
       {
-        path = f.getCanonicalPath();
+        File f = new File(desc.getInstancePath(),
+            org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE);
+        try
+        {
+          path = f.getCanonicalPath();
+        }
+        catch (Throwable t)
+        {
+          path = f.getAbsolutePath();
+        }
       }
-      catch (Throwable t)
+      else
       {
-        path = f.getAbsolutePath();
+        String separator = desc.isWindows() ? "\\" : "/";
+        path = desc.getInstancePath() + separator +
+        org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE;
       }
+
       final String fPath = path;
       SwingUtilities.invokeLater(new Runnable()
       {
