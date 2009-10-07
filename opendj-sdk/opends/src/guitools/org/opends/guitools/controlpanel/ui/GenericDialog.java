@@ -122,7 +122,7 @@ public class GenericDialog extends JDialog
    */
   public GenericDialog(JFrame parentFrame, StatusGenericPanel panel)
   {
-    super();
+    super(parentFrame);
     this.panel = panel;
     if (panel.requiresBorder())
     {

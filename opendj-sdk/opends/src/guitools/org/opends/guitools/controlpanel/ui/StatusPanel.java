@@ -35,8 +35,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -402,46 +400,29 @@ class StatusPanel extends StatusGenericPanel
       administrativeUsers.setText(
           INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
-    File install = desc.getInstallPath();
+    String install = desc.getInstallPath();
     if (install != null)
     {
-      installPath.setText(install.getAbsolutePath());
+      installPath.setText(install);
     }
     else
     {
       installPath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
 
-    File instance = desc.getInstancePath();
+    String instance = desc.getInstancePath();
 
     if (instance != null)
     {
-      instancePath.setText(instance.getAbsolutePath());
+      instancePath.setText(instance);
     }
     else
     {
       instancePath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
 
-    boolean sameInstallAndInstance;
-    try
-    {
-      if (instance != null)
-      {
-        sameInstallAndInstance = instance.getCanonicalFile().equals(install);
-      }
-      else
-      {
-        sameInstallAndInstance = install == null;
-      }
-    }
-    catch (IOException ioe)
-    {
-      // Best effort
-      sameInstallAndInstance = instance.getAbsoluteFile().equals(install);
-    }
-    instancePath.setVisible(!sameInstallAndInstance);
-    lInstancePath.setVisible(!sameInstallAndInstance);
+    instancePath.setVisible(!desc.sameInstallAndInstance());
+    lInstancePath.setVisible(!desc.sameInstallAndInstance());
 
     if (desc.getOpenDSVersion() != null)
     {

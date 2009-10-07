@@ -237,7 +237,8 @@ public class ControlCenterMainPane extends JPanel
     {
       LocalOrRemotePanel localOrRemotePanel = new LocalOrRemotePanel();
       localOrRemotePanel.setInfo(info);
-      localOrRemoteDlg = new GenericDialog(null, localOrRemotePanel);
+      localOrRemoteDlg = new GenericDialog(Utilities.createFrame(),
+          localOrRemotePanel);
       localOrRemoteDlg.setModal(true);
       localOrRemoteDlg.pack();
     }
@@ -257,7 +258,7 @@ public class ControlCenterMainPane extends JPanel
     if (loginDlg == null)
     {
       LoginPanel loginPanel = new LoginPanel();
-      loginDlg = new GenericDialog(null, loginPanel);
+      loginDlg = new GenericDialog(Utilities.createFrame(), loginPanel);
       loginPanel.setInfo(info);
       loginDlg.setModal(true);
     }

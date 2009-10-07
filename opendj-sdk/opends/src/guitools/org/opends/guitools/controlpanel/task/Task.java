@@ -644,8 +644,8 @@ public abstract class Task
       // comparing ports: we might be running locally on a stopped instance with
       // the same configuration as a "remote" (though located on the same
       // machine) server.
-      File f1 = getServer().getInstancePath();
-      File f2 = task.getServer().getInstancePath();
+      String f1 = getServer().getInstancePath();
+      String f2 = task.getServer().getInstancePath();
 
       String host1 = getServer().getHostname();
       String host2 = task.getServer().getHostname();
