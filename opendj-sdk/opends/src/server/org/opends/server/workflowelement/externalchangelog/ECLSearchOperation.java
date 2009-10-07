@@ -997,7 +997,7 @@ public class ECLSearchOperation
       attributeType =
           DirectoryServer.getDefaultAttributeType("replicaidentifier");
     a = Attributes.create(attributeType,
-        Short.toString(changeNumber.getServerId()));
+        Integer.toString(changeNumber.getServerId()));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     if(attributeType.isOperational())

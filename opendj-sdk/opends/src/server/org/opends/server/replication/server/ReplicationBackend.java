@@ -728,7 +728,7 @@ public class ReplicationBackend
       SearchOperation searchOperation)
   {
     // Walk through the servers
-    for (Short serverId : rsd.getServers())
+    for (int serverId : rsd.getServers())
     {
       if (exportConfig != null && exportConfig.isCancelled())
       {

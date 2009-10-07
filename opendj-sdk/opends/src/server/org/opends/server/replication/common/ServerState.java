@@ -46,9 +46,9 @@ import org.opends.server.types.ByteString;
  * It is exchanged with the replication servers at connection establishment
  * time.
  */
-public class ServerState implements Iterable<Short>
+public class ServerState implements Iterable<Integer>
 {
-  private HashMap<Short, ChangeNumber> list;
+  private HashMap<Integer, ChangeNumber> list;
   private boolean saved = true;
 
   /**
@@ -56,7 +56,7 @@ public class ServerState implements Iterable<Short>
    */
   public ServerState()
   {
-    list = new HashMap<Short, ChangeNumber>();
+    list = new HashMap<Integer, ChangeNumber>();
   }
 
   /**
@@ -88,7 +88,7 @@ public class ServerState implements Iterable<Short>
   {
     try
     {
-      list = new HashMap<Short, ChangeNumber>();
+      list = new HashMap<Integer, ChangeNumber>();
 
       while (endpos > pos)
       {
@@ -97,7 +97,7 @@ public class ServerState implements Iterable<Short>
          */
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
-        short serverId = Short.valueOf(serverIdString);
+        int serverId = Integer.valueOf(serverIdString);
         pos += length +1;
 
         /*
@@ -159,7 +159,7 @@ public class ServerState implements Iterable<Short>
 
     synchronized(list)
     {
-      Short id =  changeNumber.getServerId();
+      int id =  changeNumber.getServerId();
       ChangeNumber oldCN = list.get(id);
       if (oldCN == null || changeNumber.newer(oldCN))
       {
@@ -190,7 +190,7 @@ public class ServerState implements Iterable<Short>
     synchronized (list)
     {
       clear();
-      for (Short id : serverState) {
+      for (Integer id : serverState) {
         ChangeNumber maxChangeNumber = serverState.getMaxChangeNumber(id);
         if (this.update(maxChangeNumber)) {
           result = true;
@@ -218,7 +218,7 @@ public class ServerState implements Iterable<Short>
 
     synchronized (list)
     {
-      for (Short key  : list.keySet())
+      for (int key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
         Date date = new Date(change.getTime());
@@ -242,7 +242,7 @@ public class ServerState implements Iterable<Short>
 
     synchronized (list)
     {
-      for (Short id : list.keySet())
+      for (int id : list.keySet())
       {
         ByteString value = ByteString.valueOf(list.get(id).toString());
         values.add(value);
@@ -260,7 +260,7 @@ public class ServerState implements Iterable<Short>
 
     synchronized (list)
     {
-      for (Short key  : list.keySet())
+      for (int key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
         buffer.append(change.toString());
@@ -276,12 +276,12 @@ public class ServerState implements Iterable<Short>
   /**
    * Get the largest ChangeNumber seen for a given LDAP server ID.
    *
-   * @param serverId : the server ID
+   * @param serverId2 : the server ID
    * @return the largest ChangeNumber seen
    */
-  public ChangeNumber getMaxChangeNumber(short serverId)
+  public ChangeNumber getMaxChangeNumber(int serverId2)
   {
-    return list.get(serverId);
+    return list.get(serverId2);
   }
 
   /**
@@ -309,7 +309,7 @@ public class ServerState implements Iterable<Short>
     {
       int length = 0;
       List<String> idList = new ArrayList<String>(list.size());
-      for (short id : list.keySet())
+      for (int id : list.keySet())
       {
         String temp = String.valueOf(id);
         idList.add(temp);
@@ -339,7 +339,7 @@ public class ServerState implements Iterable<Short>
   /**
    * {@inheritDoc}
    */
-  public Iterator<Short> iterator()
+  public Iterator<Integer> iterator()
   {
     return list.keySet().iterator();
   }
@@ -384,10 +384,10 @@ public class ServerState implements Iterable<Short>
     ServerState newState = new ServerState();
     synchronized (list)
     {
-      for (Short key  : list.keySet())
+      for (Integer key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
-        Short id =  change.getServerId();
+        Integer id =  change.getServerId();
         newState.list.put(id,change);
       }
     }
@@ -410,7 +410,7 @@ public class ServerState implements Iterable<Short>
        throw new IllegalArgumentException("Null server state(s)");
 
      int diff = 0;
-     for (Short serverId : ss1.list.keySet())
+     for (Integer serverId : ss1.list.keySet())
      {
        ChangeNumber cn1 = ss1.list.get(serverId);
        if (cn1 != null)
@@ -422,7 +422,7 @@ public class ServerState implements Iterable<Short>
          } else {
            // ss2 does not have a change for this server id but ss1, so the
            // server holding ss1 has every changes represented in cn1 in advance
-           // compared to server hodling ss2, add this amount
+           // compared to server holding ss2, add this amount
            diff += cn1.getSeqnum();
          }
        }

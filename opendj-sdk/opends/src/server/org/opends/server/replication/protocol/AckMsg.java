@@ -78,7 +78,7 @@ public class AckMsg extends ReplicationMsg
   // The list of server ids that had errors for the sent matching update
   // (corresponding to change number). Each server id of the list had one of the
   // 3 possible errors (timeout/degraded or admin/replay error)
-  private List<Short> failedServers = new ArrayList<Short>();
+  private List<Integer> failedServers = new ArrayList<Integer>();
 
   /**
    * Creates a new AckMsg from a ChangeNumber (no errors).
@@ -100,7 +100,7 @@ public class AckMsg extends ReplicationMsg
    * @param failedServers The list of failed servers
    */
   public AckMsg(ChangeNumber changeNumber, boolean hasTimeout,
-    boolean hasWrongStatus, boolean hasReplayError, List<Short> failedServers)
+    boolean hasWrongStatus, boolean hasReplayError, List<Integer> failedServers)
   {
     this.changeNumber = changeNumber;
     this.hasTimeout = hasTimeout;
@@ -138,11 +138,11 @@ public class AckMsg extends ReplicationMsg
 
   /**
    * Sets the list of failing servers for this message.
-   * @param failedServers The list of failing servers for this message.
+   * @param idList The list of failing servers for this message.
    */
-  public void setFailedServers(List<Short> failedServers)
+  public void setFailedServers(List<Integer> idList)
   {
-    this.failedServers = failedServers;
+    this.failedServers = idList;
   }
 
   /**
@@ -207,7 +207,7 @@ public class AckMsg extends ReplicationMsg
       {
         length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
-        Short serverId = Short.valueOf(serverIdString);
+        Integer serverId = Integer.valueOf(serverIdString);
         failedServers.add(serverId);
         pos += length + 1;
       }
@@ -261,10 +261,9 @@ public class AckMsg extends ReplicationMsg
       oStream.write((hasReplayError ? (byte) 1 : (byte) 0));
 
       /* Put the list of server ids */
-      for (Short sid : failedServers)
+      for (Integer sid : failedServers)
       {
-        byte[] byteServerId =
-          String.valueOf(sid.shortValue()).getBytes("UTF-8");
+        byte[] byteServerId = String.valueOf(sid).getBytes("UTF-8");
         oStream.write(byteServerId);
         oStream.write(0);
       }
@@ -308,7 +307,7 @@ public class AckMsg extends ReplicationMsg
    * Get the list of failed servers.
    * @return the list of failed servers
    */
-  public List<Short> getFailedServers()
+  public List<Integer> getFailedServers()
   {
     return failedServers;
   }

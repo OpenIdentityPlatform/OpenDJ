@@ -56,7 +56,7 @@ public class FakeStressReplicationDomain extends ReplicationDomain
 
   public FakeStressReplicationDomain(
       String serviceID,
-      short serverID,
+      int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,
@@ -70,7 +70,7 @@ public class FakeStressReplicationDomain extends ReplicationDomain
 
   public FakeStressReplicationDomain(
       String serviceID,
-      short serverID,
+      int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,

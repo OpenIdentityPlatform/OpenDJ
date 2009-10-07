@@ -842,7 +842,7 @@ public class MultimasterReplication
    * @param serverId   The serverID that should be checked.
    * @return           true if the serverID is local, false otherwise.
    */
-  public static boolean isLocalServerId(Short serverId)
+  public static boolean isLocalServerId(Integer serverId)
   {
     for (LDAPReplicationDomain domain : domains.values())
     {

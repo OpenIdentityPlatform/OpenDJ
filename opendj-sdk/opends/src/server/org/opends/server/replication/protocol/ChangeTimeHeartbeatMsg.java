@@ -50,7 +50,7 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
    */
   public ChangeTimeHeartbeatMsg()
   {
-    this.changeNumber = new ChangeNumber((long)0,0,(short)0);
+    this.changeNumber = new ChangeNumber((long)0,0,0);
   }
 
   /**

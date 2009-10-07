@@ -68,7 +68,7 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
    */
   public SafeDataExpectedAcksInfo(ChangeNumber changeNumber,
     ServerHandler requesterServerHandler, byte safeDataLevel,
-    List<Short> expectedServers)
+    List<Integer> expectedServers)
   {
     super(changeNumber, requesterServerHandler, AssuredMode.SAFE_DATA_MODE,
       expectedServers);
@@ -95,7 +95,7 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
      }
 
     // Get the ack status for the matching server
-    short ackingServerId = ackingServer.getServerId();
+    int ackingServerId = ackingServer.getServerId();
     boolean ackReceived = expectedServersAckStatus.get(ackingServerId);
     if (ackReceived)
     {
@@ -129,10 +129,10 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
       // Fill collected errors info
       ack.setHasTimeout(true);
       // Tell wich servers did not send an ack in time
-      List<Short> failedServers = new ArrayList<Short>();
-      Set<Short> serverIds = expectedServersAckStatus.keySet();
-      serversInTimeout = new ArrayList<Short>(); // Use next loop to fill it
-      for (Short serverId : serverIds)
+      List<Integer> failedServers = new ArrayList<Integer>();
+      Set<Integer> serverIds = expectedServersAckStatus.keySet();
+      serversInTimeout = new ArrayList<Integer>(); // Use next loop to fill it
+      for (Integer serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);
         if (!ackReceived)

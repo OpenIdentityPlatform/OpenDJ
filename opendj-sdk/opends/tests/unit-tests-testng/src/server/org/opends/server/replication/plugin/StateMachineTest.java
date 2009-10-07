@@ -88,10 +88,10 @@ public class StateMachineTest extends ReplicationTestCase
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";  // Server id definitions
 
-  private static final short DS1_ID = 1;
-  private static final short DS2_ID = 2;
-  private static final short DS3_ID = 3;
-  private static final short RS1_ID = 41;
+  private static final int DS1_ID = 1;
+  private static final int DS2_ID = 2;
+  private static final int DS3_ID = 3;
+  private static final int RS1_ID = 41;
   private int rs1Port = -1;
   private LDAPReplicationDomain ds1 = null;
   private ReplicationBroker ds2 = null;
@@ -178,7 +178,7 @@ public class StateMachineTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, short dsId)
+  private void checkConnection(int secTimeout, int dsId)
   {
 
     ReplicationBroker rb = null;
@@ -283,7 +283,7 @@ public class StateMachineTest extends ReplicationTestCase
    * server
    */
   @SuppressWarnings("unchecked")
-  private LDAPReplicationDomain createReplicationDomain(short dsId)
+  private LDAPReplicationDomain createReplicationDomain(int dsId)
   {
     try
     {
@@ -318,7 +318,7 @@ public class StateMachineTest extends ReplicationTestCase
    * Create and connect a replication broker to the replication server with
    * the given state and generation id (uses passed window for received changes)
    */
-  private ReplicationBroker createReplicationBroker(short dsId,
+  private ReplicationBroker createReplicationBroker(int dsId,
     ServerState state, long generationId, int window)
     throws Exception, SocketException
   {
@@ -336,7 +336,7 @@ public class StateMachineTest extends ReplicationTestCase
    * Create and connect a replication broker to the replication server with
    * the given state and generation id (uses 100 as window for received changes)
    */
-  private ReplicationBroker createReplicationBroker(short dsId,
+  private ReplicationBroker createReplicationBroker(int dsId,
     ServerState state, long generationId)
     throws Exception, SocketException
   {
@@ -878,9 +878,9 @@ public class StateMachineTest extends ReplicationTestCase
   {
 
     private ReplicationBroker rb = null;
-    private short serverId = -1;
+    private int serverId = -1;
     private long userId = 0;
-    private short destId = -1; // Server id of server to initialize
+    private int destId = -1; // Server id of server to initialize
     private long nEntries = -1; // Number of entries to send to dest
     private boolean createReader = false;
 
@@ -896,7 +896,7 @@ public class StateMachineTest extends ReplicationTestCase
     /**
      * Creates a broker initializer with a reader
      */
-    public BrokerInitializer(ReplicationBroker rb, short serverId)
+    public BrokerInitializer(ReplicationBroker rb, int serverId)
     {
       this(rb, serverId, true);
     }
@@ -904,7 +904,7 @@ public class StateMachineTest extends ReplicationTestCase
     /**
      * Creates a broker initializer. Also creates a reader according to request
      */
-    public BrokerInitializer(ReplicationBroker rb, short serverId,
+    public BrokerInitializer(ReplicationBroker rb, int serverId,
       boolean createReader)
     {
       this.rb = rb;
@@ -915,7 +915,7 @@ public class StateMachineTest extends ReplicationTestCase
     /**
      * Initializes a full update session by sending InitializeTargetMsg
      */
-    public void initFullUpdate(short destId, long nEntries)
+    public void initFullUpdate(int destId, long nEntries)
     {
       // Also create reader ?
       if (createReader)
@@ -1012,7 +1012,7 @@ public class StateMachineTest extends ReplicationTestCase
   {
 
     private ReplicationBroker rb = null;
-    private short serverId = -1;
+    private int serverId = -1;
     private long userId = 0;
     private AtomicBoolean shutdown = new AtomicBoolean(false);
     // The writer starts suspended
@@ -1036,13 +1036,13 @@ public class StateMachineTest extends ReplicationTestCase
     private BrokerReader reader = null;
 
     /* Creates a broker writer with a reader */
-    public BrokerWriter(ReplicationBroker rb, short serverId)
+    public BrokerWriter(ReplicationBroker rb, int serverId)
     {
       this(rb, serverId, true);
     }
 
     /* Creates a broker writer. Also creates a reader according to request */
-    public BrokerWriter(ReplicationBroker rb, short serverId,
+    public BrokerWriter(ReplicationBroker rb, int serverId,
       boolean createReader)
     {
       super("BrokerWriter for broker " + serverId);
@@ -1304,11 +1304,11 @@ public class StateMachineTest extends ReplicationTestCase
   {
 
     private ReplicationBroker rb = null;
-    private short serverId = -1;
+    private int serverId = -1;
     private boolean shutdown = false;
     private ReplicationMsg lastMsg = null;
 
-    public BrokerReader(ReplicationBroker rb, short serverId)
+    public BrokerReader(ReplicationBroker rb, int serverId)
     {
       super("BrokerReader for broker " + serverId);
       this.rb = rb;

@@ -246,10 +246,10 @@ public class ReplicationServerTest extends ReplicationTestCase
        * Open a sender session and a receiver session to the replicationServer
        */
       server1 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1, 100, replicationServerPort,
+          DN.decode(TEST_ROOT_DN_STRING),  1, 100, replicationServerPort,
           1000, true);
       server2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 2, 100, replicationServerPort,
+          DN.decode(TEST_ROOT_DN_STRING),  2, 100, replicationServerPort,
           1000, true);
 
       assertTrue(server1.isConnected());
@@ -260,15 +260,15 @@ public class ReplicationServerTest extends ReplicationTestCase
        * with current time  sequence 1 and with current time + 2 sequence 2
        */
       long time = TimeThread.getTime();
-      firstChangeNumberServer1 = new ChangeNumber(time, 1, (short) 1);
-      secondChangeNumberServer1 = new ChangeNumber(time + 2, 2, (short) 1);
+      firstChangeNumberServer1 = new ChangeNumber(time, 1,  1);
+      secondChangeNumberServer1 = new ChangeNumber(time + 2, 2,  1);
 
       /*
        * Create change numbers for the messages sent from server 2
        * with current time  sequence 1 and with current time + 3 sequence 2
        */
-      firstChangeNumberServer2 = new ChangeNumber(time+ 1, 1, (short) 2);
-      secondChangeNumberServer2 = new ChangeNumber(time + 3, 2, (short) 2);
+      firstChangeNumberServer2 = new ChangeNumber(time+ 1, 1,  2);
+      secondChangeNumberServer2 = new ChangeNumber(time + 3, 2,  2);
 
       /*
        * Create a ChangeNumber between firstChangeNumberServer1 and
@@ -278,7 +278,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        * ReplicationServer to make sure that the ReplicationServer is
        * able to accept such clients.
        */
-      unknownChangeNumberServer1 = new ChangeNumber(time+1, 1, (short) 1);
+      unknownChangeNumberServer1 = new ChangeNumber(time+1, 1,  1);
 
       /*
        * Send and receive a Delete Msg from server 1 to server 2
@@ -374,7 +374,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     try {
       broker =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), (short) 3,
+        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
                              100, replicationServerPort, 1000, false);
 
       assertTrue(broker.isConnected());
@@ -415,7 +415,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      */
     try {
       broker =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), (short) 3,
+        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
                              100, replicationServerPort, 5000, state);
 
       assertTrue(broker.isConnected());
@@ -570,7 +570,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     int CLIENT_THREADS = 3;   // number of threads that will try to read
                               // the messages
     ChangeNumberGenerator gen =
-      new ChangeNumberGenerator((short)5 , (long) 0);
+      new ChangeNumberGenerator(5 , (long) 0);
 
     BrokerReader client[] = new BrokerReader[CLIENT_THREADS];
     ReplicationBroker clientBroker[] = new ReplicationBroker[CLIENT_THREADS];
@@ -581,7 +581,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        * Open a sender session
        */
       server = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 5, 100, replicationServerPort,
+          DN.decode(TEST_ROOT_DN_STRING),  5, 100, replicationServerPort,
           100000, 1000, 0, false);
 
       assertTrue(server.isConnected());
@@ -594,7 +594,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i =0; i< CLIENT_THREADS; i++)
       {
         clientBroker[i] = openReplicationSession(
-            DN.decode(TEST_ROOT_DN_STRING), (short) (100+i), 100, replicationServerPort,
+            DN.decode(TEST_ROOT_DN_STRING),  (100+i), 100, replicationServerPort,
             1000, true);
         assertTrue(clientBroker[i].isConnected());
         client[i] = new BrokerReader(clientBroker[i], TOTAL_MSG);
@@ -682,7 +682,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       for (int i = 0; i< THREADS; i++)
       {
-        short serverId = (short) (10+i);
+        int serverId = 10 + i;
         ChangeNumberGenerator gen =
           new ChangeNumberGenerator(serverId , (long) 0);
         broker[i] =
@@ -772,7 +772,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       ReplicationServer[] changelogs = new ReplicationServer[2];
       int[] changelogPorts = new int[2];
       int[] changelogIds = new int[2];
-      short[] brokerIds = new short[2];
+      int[] brokerIds = new int[2];
       ServerSocket socket = null;
 
       // Find 2 free ports
@@ -782,7 +782,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         socket = TestCaseUtils.bindFreePort();
         changelogPorts[i] = socket.getLocalPort();
         changelogIds[i] = i + 80;
-        brokerIds[i] = (short) (100+i);
+        brokerIds[i] = 100 + i;
         if ((itest==0) || (i ==0))
           socket.close();
       }
@@ -999,7 +999,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
       // send a ServerStartMsg with an empty ServerState.
       ServerStartMsg msg =
-        new ServerStartMsg((short) 1723, TEST_ROOT_DN_STRING,
+        new ServerStartMsg( 1723, TEST_ROOT_DN_STRING,
             WINDOW, (long) 5000, new ServerState(),
             ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
@@ -1045,7 +1045,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       // received.
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       msg = new ServerStartMsg(
-          (short) 1724, TEST_ROOT_DN_STRING,
+           1724, TEST_ROOT_DN_STRING,
           WINDOW, (long) 5000, replServerState,
           ProtocolVersion.getCurrentVersion(),
           ReplicationTestCase.getGenerationId(baseDn),
@@ -1262,11 +1262,11 @@ public class ReplicationServerTest extends ReplicationTestCase
       try
       {
         server1 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1, 100,
+          DN.decode(TEST_ROOT_DN_STRING),  1, 100,
           replicationServerPort,
           1000, true);
         server2 = openReplicationSession(
-          DN.decode("dc=domain2,dc=com"), (short) 2, 100,
+          DN.decode("dc=domain2,dc=com"),  2, 100,
           replicationServerPort,
           1000, true);
 
@@ -1274,12 +1274,12 @@ public class ReplicationServerTest extends ReplicationTestCase
         assertTrue(server2.isConnected());
 
         debugInfo("Publish changes");
-        List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, (short) 1);
+        List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING,  1);
         for (UpdateMsg msg : msgs)
         {
           server1.publish(msg);
         }
-        List<UpdateMsg> msgs2 = createChanges("dc=domain2,dc=com", (short) 2);
+        List<UpdateMsg> msgs2 = createChanges("dc=domain2,dc=com",  2);
         for (UpdateMsg msg : msgs2)
         {
           server2.publish(msg);
@@ -1363,7 +1363,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
    }
 
-   private List<UpdateMsg> createChanges(String suffix, short serverId)
+   private List<UpdateMsg> createChanges(String suffix, int serverId)
    {
      List<UpdateMsg> l = new ArrayList<UpdateMsg>();
      long time = TimeThread.getTime();
@@ -1485,13 +1485,13 @@ public class ReplicationServerTest extends ReplicationTestCase
        debugInfo("Create broker");
 
        server1 = openReplicationSession(
-         DN.decode(TEST_ROOT_DN_STRING), (short) 1, 100, replicationServerPort,
+         DN.decode(TEST_ROOT_DN_STRING),  1, 100, replicationServerPort,
          1000, true);
 
        assertTrue(server1.isConnected());
 
        debugInfo("Publish changes");
-       List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, (short)1);
+       List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, 1);
        for(UpdateMsg msg : msgs )
        {
          server1.publish(msg);
@@ -1764,7 +1764,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        ReplicationServer[] changelogs = new ReplicationServer[2];
        int[] changelogPorts = new int[2];
        int[] changelogIds = new int[2];
-       short[] brokerIds = new short[2];
+       int[] brokerIds = new int[2];
        ServerSocket socket = null;
 
        // Find 2 free ports
@@ -1774,7 +1774,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          socket = TestCaseUtils.bindFreePort();
          changelogPorts[i] = socket.getLocalPort();
          changelogIds[i] = i + 90;
-         brokerIds[i] = (short) (100+i);
+         brokerIds[i] = 100+i;
          socket.close();
        }
 

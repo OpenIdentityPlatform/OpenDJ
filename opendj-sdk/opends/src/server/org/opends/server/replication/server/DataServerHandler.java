@@ -91,7 +91,7 @@ public class DataServerHandler extends ServerHandler
       ProtocolSession session,
       int queueSize,
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
@@ -182,10 +182,10 @@ public class DataServerHandler extends ServerHandler
       // Prevent useless error message (full update status cannot lead to bad
       // gen status)
       Message message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
-          Short.toString(replicationServerDomain.
+          Integer.toString(replicationServerDomain.
               getReplicationServer().getServerId()),
               getServiceId().toString(),
-              Short.toString(serverId),
+              Integer.toString(serverId),
               Long.toString(generationId),
               Long.toString(newGenId));
       logError(message);
@@ -197,7 +197,7 @@ public class DataServerHandler extends ServerHandler
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
       Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
-          Short.toString(serverId), status.toString(), event.toString());
+          Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return;
     }
@@ -235,7 +235,7 @@ public class DataServerHandler extends ServerHandler
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
       Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
-          Short.toString(serverId), status.toString(), event.toString());
+          Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       // Status analyzer must only change from NORMAL_STATUS to DEGRADED_STATUS
       // and vice versa. We may are being trying to change the status while for
@@ -387,7 +387,7 @@ public class DataServerHandler extends ServerHandler
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
       Message msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
-          getServiceId().toString(), Short.toString(serverId));
+          getServiceId().toString(), Integer.toString(serverId));
       logError(msg);
       return ServerStatus.INVALID_STATUS;
     }
@@ -397,7 +397,7 @@ public class DataServerHandler extends ServerHandler
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
       Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId().toString(),
-          Short.toString(serverId), status.toString(), event.toString());
+          Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return ServerStatus.INVALID_STATUS;
     }
@@ -443,7 +443,7 @@ public class DataServerHandler extends ServerHandler
   public void registerIntoDomain()
   {
     // All-right, connected with new DS: store handler.
-    Map<Short, DataServerHandler> connectedDSs =
+    Map<Integer, DataServerHandler> connectedDSs =
       replicationServerDomain.getConnectedDSs();
     connectedDSs.put(serverId, this);
 
@@ -642,7 +642,7 @@ public class DataServerHandler extends ServerHandler
       Message message = ERR_RS_INVALID_INIT_STATUS.get(
           this.status.toString(),
           getServiceId().toString(),
-          Short.toString(serverId));
+          Integer.toString(serverId));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     this.refUrls = startSessionMsg.getReferralsURLs();
@@ -668,7 +668,7 @@ public class DataServerHandler extends ServerHandler
       {
         Message message = NOTE_BAD_GENERATION_ID_FROM_DS.get(
             getServiceId(),
-            Short.toString(serverId),
+            Integer.toString(serverId),
             Long.toString(generationId),
             Long.toString(localGenerationId));
         logError(message);
@@ -683,7 +683,7 @@ public class DataServerHandler extends ServerHandler
         // it is not expected to connect to an empty RS
         Message message = NOTE_BAD_GENERATION_ID_FROM_DS.get(
             getServiceId(),
-            Short.toString(serverId),
+            Integer.toString(serverId),
             Long.toString(generationId),
             Long.toString(localGenerationId));
         logError(message);

@@ -122,7 +122,8 @@ public class DeleteMsg extends LDAPUpdateMsg
   @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
-    return encodeHeader(MSG_TYPE_DELETE, 0);
+    return encodeHeader(MSG_TYPE_DELETE, 0,
+        ProtocolVersion.REPLICATION_PROTOCOL_V3);
   }
 
   /**
@@ -140,7 +141,8 @@ public class DeleteMsg extends LDAPUpdateMsg
     bodyLength += encodedEclIncludes.length + 1;
 
     /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength);
+    byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength,
+        ProtocolVersion.REPLICATION_PROTOCOL_V4);
     int pos = encodedMsg.length - bodyLength;
     pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
     pos = addByteArray(encodedEclIncludes, encodedMsg, pos);

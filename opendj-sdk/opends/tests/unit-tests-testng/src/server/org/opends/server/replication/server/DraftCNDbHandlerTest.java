@@ -100,16 +100,16 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       int sn1 = 3;
       int sn2 = 4;
       int sn3 = 5;
-      
+
       String value1 = "value1";
       String value2 = "value2";
       String value3 = "value3";
-      
+
       String serviceID1 = "serviceID1";
       String serviceID2 = "serviceID2";
       String serviceID3 = "serviceID3";
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();
@@ -123,27 +123,27 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       int firstkey = handler.getFirstKey();
       assertEquals(firstkey, sn1);
       assertEquals(handler.getLastKey(), sn3);
-      
+
       DraftCNDBCursor dbc = handler.getReadCursor(firstkey);
       assertEquals(dbc.currentChangeNumber(), changeNumber1);
       assertEquals(dbc.currentServiceID(), serviceID1);
       assertEquals(dbc.currentValue(), value1);
       assertTrue(dbc.toString().length() != 0);
-      
+
       assertTrue(dbc.next());
-      
+
       assertEquals(dbc.currentChangeNumber(), changeNumber2);
       assertEquals(dbc.currentServiceID(), serviceID2);
       assertEquals(dbc.currentValue(), value2);
-      
+
       assertTrue(dbc.next());
-      
+
       assertEquals(dbc.currentChangeNumber(), changeNumber3);
       assertEquals(dbc.currentServiceID(), serviceID3);
       assertEquals(dbc.currentValue(), value3);
-      
+
       assertFalse(dbc.next());
-      
+
       handler.releaseReadCursor(dbc);
 
       handler.setPurgeDelay(100);
@@ -155,8 +155,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       }
       assertEquals(handler.getFirstKey(), 0);
       assertEquals(handler.getLastKey(), 0);
-      
-      
+
+
     } finally
     {
       if (handler != null)
@@ -220,21 +220,21 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
 
       //
       assertTrue(handler.count()==0);
-      
+
       // Prepare data to be stored in the db
       int sn1 = 3;
       int sn2 = 4;
       int sn3 = 5;
-      
+
       String value1 = "value1";
       String value2 = "value2";
       String value3 = "value3";
-      
+
       String serviceID1 = "serviceID1";
       String serviceID2 = "serviceID2";
       String serviceID3 = "serviceID3";
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();
@@ -248,7 +248,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       // Checks
       assertEquals(handler.getFirstKey(), sn1);
       assertEquals(handler.getLastKey(), sn3);
-      
+
       assertEquals(handler.count(), 3, "Db count");
 
       assertEquals(handler.getValue(sn1),value1);

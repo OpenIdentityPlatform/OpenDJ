@@ -212,17 +212,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // ***********************************************
     // First set of test are in the cookie mode
     // ***********************************************
-    
     // Test that private backend is excluded from ECL
     ECLOnPrivateBackend();replicationServer.clearDb();
-    
+
     // Test remote API (ECL through replication protocol) with empty ECL
     ECLRemoteEmpty();replicationServer.clearDb();
-    
+
     // Test with empty changelog
     ECLEmpty();replicationServer.clearDb();
-    
-    // Test all types of ops.  
+
+    // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
     // First and last should be ok whenever a request has been done or not
@@ -233,34 +232,34 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();replicationServer.clearDb();
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains(); 
+    ECLTwoDomains();
     // changelogDb required NOT empty for the next test
-    
+
     // Test ECL after changelog triming
     ECLAfterChangelogTrim();replicationServer.clearDb();
-    
+
     // Persistent search with changesOnly request
     ECLPsearch(true, false);replicationServer.clearDb();
 
     // Persistent search with init values request
     ECLPsearch(false, false);replicationServer.clearDb();
-    
+
     // Simultaneous psearches
     ECLSimultaneousPsearches();replicationServer.clearDb();
 
     // Test eligible count method.
     ECLGetEligibleCountTest();replicationServer.clearDb();
-    
+
     // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
     // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
     // TODO:ECL Test the attributes list and values returned in ECL entries
     // TODO:ECL Test search -s base, -s one
-    
-    // Test directly from the java obect that the changeTimeHeartbeatState 
+
+    // Test directly from the java obect that the changeTimeHeartbeatState
     // stored are ok.
     ChangeTimeHeartbeatTest();replicationServer.clearDb();
-    
+
     // Test the different forms of filter that are parsed in order to
     // optimize the request.
     ECLFilterTest();
@@ -268,19 +267,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // ***********************************************
     // Second set of test are in the draft compat mode
     // ***********************************************
-    
     // Empty replication changelog
     ECLCompatEmpty();
 
     // Request from an invalid draft change number
     ECLCompatBadSeqnum();
-    
+
     // Write changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
     // Write additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);
-    
+
     // Test request from a provided change number
     ECLCompatReadFrom(6);
 
@@ -290,13 +288,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test first and last draft changenumber
     ECLCompatTestLimits(1,8);
 
-    // Test first and last draft changenumber, a dd a new change, do not 
+    // Test first and last draft changenumber, a dd a new change, do not
     // search again the ECL, but search fro first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
     // Test DraftCNDb is purged when replication change log is purged
     ECLPurgeDraftCNDbAfterChangelogClear();
-    
+
     // Test first and last are updated
     ECLCompatTestLimits(0,0);
 
@@ -305,14 +303,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Persistent search in init + changes mode
     ECLPsearch(false, true);
-    
+
     // Test Filter on replication csn
     // TODO: test with optimization when code done.
     ECLFilterOnReplicationCsn();replicationServer.clearDb();
-    
+
     // Test simultaneous persistent searches in draft compat mode.
     ECLSimultaneousPsearches();replicationServer.clearDb();
-    
+
     // ***********************************************
     // Entry attributes
     // ***********************************************
@@ -334,26 +332,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker server2 = null;
     ReplicationBroker server3 = null;
 
-    try 
+    try
     {
       // Create 3 ECL broker
       server1 = openReplicationSession(
-          DN.decode("cn=changelog"), (short)1111,
+          DN.decode("cn=changelog"), 1111,
           100, replicationServerPort, 1000, false);
       assertTrue(server1.isConnected());
       server2 = openReplicationSession(
-          DN.decode("cn=changelog"), (short)2222,
+          DN.decode("cn=changelog"), 2222,
           100, replicationServerPort,1000, false);
       assertTrue(server2.isConnected());
       server3 = openReplicationSession(
-          DN.decode("cn=changelog"), (short)3333,
+          DN.decode("cn=changelog"), 3333,
           100, replicationServerPort,1000, false);
       assertTrue(server3.isConnected());
 
       // Test broker1 receives only Done
       ReplicationMsg msg;
       int msgc=0;
-      do 
+      do
       {
         msg = server1.receive();
         msgc++;
@@ -368,7 +366,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Test broker2 receives only Done
       msgc=0;
-      do 
+      do
       {
         msg = server2.receive();
         msgc++;
@@ -383,7 +381,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Test broker3 receives only Done
       msgc=0;
-      do 
+      do
       {
         msg = server3.receive();
         msgc++;
@@ -399,12 +397,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server1.stop();
       server2.stop();
       server3.stop();
-      debugInfo(tn, "Ending test successfully\n\n");    
+      debugInfo(tn, "Ending test successfully\n\n");
     }
     catch(Exception e)
     {
       fail("Ending test " + tn +  " with exception:"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
   }
 
@@ -426,29 +424,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker server02 = null;
     ReplicationBroker serverECL = null;
 
-    try 
+    try
     {
       // create 2 reguler brokers on the 2 suffixes
       server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1202, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
       int ts = 1;
-      ChangeNumber cn1 = new ChangeNumber(time, ts++, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(time, ts++, 1201);
       DeleteMsg delMsg1 =
         new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, cn1, "ECLBasicMsg1uid");
       server01.publish(delMsg1);
       debugInfo(tn, "publishes:" + delMsg1);
 
-      ChangeNumber cn2 = new ChangeNumber(time, ts++, (short)1202);
+      ChangeNumber cn2 = new ChangeNumber(time, ts++, 1202);
       DeleteMsg delMsg2 =
         new DeleteMsg("o=" + tn + "2," + TEST_ROOT_DN_STRING2, cn2, "ECLBasicMsg2uid");
       server02.publish(delMsg2);
@@ -459,7 +457,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // open ECL broker
       serverECL = openReplicationSession(
-          DN.decode("cn=changelog"), (short)10,
+          DN.decode("cn=changelog"), 10,
           100, replicationServerPort, 1000, false);
       assertTrue(serverECL.isConnected());
 
@@ -497,7 +495,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
   }
 
@@ -536,7 +534,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(LDAPException e)
     {
       fail("Ending test " + tn + " with exception e="
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
   }
 
@@ -548,7 +546,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private ArrayList<Control> createControls(String cookie)
   {
     ExternalChangelogRequestControl control =
-      new ExternalChangelogRequestControl(true, 
+      new ExternalChangelogRequestControl(true,
           new MultiDomainServerState(cookie));
     ArrayList<Control> controls = new ArrayList<Control>(0);
     controls.add(control);
@@ -595,14 +593,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
       int ts = 1;
-      ChangeNumber cn1 = new ChangeNumber(time, ts++, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(time, ts++, 1201);
       DeleteMsg delMsg1 =
         new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, cn1, "ECLBasicMsg1uid");
       server01.publish(delMsg1);
@@ -617,7 +615,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
       DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn2, (short) 1602, replServers);
+        new DomainFakeCfg(baseDn2,  1602, replServers);
       LDAPReplicationDomain domain2 = MultimasterReplication.createNewDomain(domainConf);
       SynchronizationProvider replicationPlugin = new MultimasterReplication();
       replicationPlugin.completeSynchronizationProvider();
@@ -628,7 +626,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Search on ECL from start on all suffixes
       String cookie = "";
       ExternalChangelogRequestControl control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState(cookie));
       ArrayList<Control> controls = new ArrayList<Control>(0);
       controls.add(control);
@@ -641,7 +639,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -662,14 +660,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         for (SearchResultEntry resultEntry : entries)
         {
           i++;
-          // Expect 
+          // Expect
           debugInfo(tn, "Entry returned when test2 is public =" +
               resultEntry.toLDIFString());
-          
+
           // Test entry attributes
           //if (i==2)
           //{
-          //  checkPossibleValues(resultEntry,"targetobjectclass","top","organization");            
+          //  checkPossibleValues(resultEntry,"targetobjectclass","top","organization");
           //}
         }
       }
@@ -683,7 +681,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -691,7 +689,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           attributes,
           controls,
           null);
-      
+
       // Expect success and only entry from o=test returned
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
           searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
@@ -701,7 +699,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       if (entries != null)
         for (SearchResultEntry resultEntry : entries)
         {
-          // Expect 
+          // Expect
           debugInfo(tn, "Entry returned when test2 is private ="
               + resultEntry.toLDIFString());
         }
@@ -717,20 +715,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
-      
+
       // Cleaning
       if (domain2 != null)
         MultimasterReplication.deleteDomain(baseDn2);
       if (replicationPlugin != null)
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
       removeTestBackend2(backend2);
-      
+
       server01.stop();
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -738,7 +736,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * From embebbded ECL
    * Search ECL with 4 messages on 2 suffixes from 2 brokers
-   * 
+   *
    */
   private void ECLTwoDomains()
   {
@@ -756,12 +754,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // --
       ReplicationBroker s1test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       ReplicationBroker s2test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1202, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
       sleep(500);
@@ -796,7 +794,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Changes are :
       //               s1          s2
-      // o=test       msg1/msg4   
+      // o=test       msg1/msg4
       // o=test2                 msg2/msg2
       String cookie= "";
 
@@ -806,11 +804,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("*");
 
       debugInfo(tn, "Search with cookie=" + cookie + "\"");
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -848,7 +846,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("*");
 
       ExternalChangelogRequestControl control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState(cookie));
       ArrayList<Control> controls = new ArrayList<Control>(0);
       controls.add(control);
@@ -857,7 +855,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -903,7 +901,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // o=test2      msg3        msg2
 
       control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState(cookie));
       controls = new ArrayList<Control>(0);
       controls.add(control);
@@ -912,7 +910,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -945,17 +943,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       cookie="";
 
       control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState(cookie));
       controls = new ArrayList<Control>(0);
       controls.add(control);
 
-      debugInfo(tn, "Search with cookie=" + cookie + "\" and filter on domain=" + 
+      debugInfo(tn, "Search with cookie=" + cookie + "\" and filter on domain=" +
           "(targetDN=*direct*,o=test)");
       searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -993,12 +991,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //
       // --
       ReplicationBroker s1test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1203, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
 
       ReplicationBroker s2test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1204, 
+          DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
           1000, true);
       sleep(500);
@@ -1048,7 +1046,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
-      
+
       s1test.stop();
       s1test2.stop();
       s2test.stop();
@@ -1059,7 +1057,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + "with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -1088,11 +1086,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("*");
 
       debugInfo(tn, "Search with cookie=" + cookie + "\"");
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -1122,11 +1120,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Test from last cookie
       // search on 'cn=changelog'
       debugInfo(tn, "Search with cookie=" + cookie + "\"");
-      searchOp = 
+      searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -1147,17 +1145,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
-      assertEquals(searchOp.getSearchEntries().size(), 0);      
+      assertEquals(searchOp.getSearchEntries().size(), 0);
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + "with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test successfully");
   }
 
-  
+
   private String readLastCookie(String tn)
   {
     String cookie = "";
@@ -1169,11 +1167,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     try
     {
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf(""),
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -1205,11 +1203,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     return cookie;
   }
-  
+
   // simple update to be received
   private void ECLAllOps()
   {
@@ -1222,48 +1220,48 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
       int ts = 1;
 
       // Creates broker on o=test2
       ReplicationBroker server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1202, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true); 
+          1000, true);
 
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
 
 
       // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
         new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, tn+"uuid1");
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
 
       // Publish ADD
-      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       String lentry = new String("dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
           + "objectClass: top\n" + "objectClass: domain\n"
           + "entryUUID: "+user1entryUUID+"\n");
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
-          cn2, 
+          cn2,
           "uid="+tn+"2," + TEST_ROOT_DN_STRING,
-          user1entryUUID, 
-          baseUUID, 
-          entry.getObjectClassAttribute(), 
-          entry.getAttributes(), 
+          user1entryUUID,
+          baseUUID,
+          entry.getObjectClassAttribute(),
+          entry.getAttributes(),
           new ArrayList<Attribute>());
       server01.publish(addMsg);
       debugInfo(tn, " publishes " + addMsg.getChangeNumber());
 
       // Publish DEL
       /*
-      ChangeNumber cn12 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1202);
+      ChangeNumber cn12 = new ChangeNumber(TimeThread.getTime(), ts++, 1202);
       DeleteMsg delMsg2 =
         new DeleteMsg("uid="+tn+"12," + TEST_ROOT_DN_STRING2, cn12, tn+"uuid12");
       server02.publish(delMsg2);
@@ -1271,7 +1269,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       */
 
       // Publish MOD
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       Attribute attr1 = Attributes.create("description", "new value");
       Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
       List<Modification> mods = new ArrayList<Modification>();
@@ -1283,7 +1281,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish modDN
       DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
-      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
@@ -1305,18 +1303,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("*");
 
       ExternalChangelogRequestControl control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState());
       ArrayList<Control> controls = new ArrayList<Control>(0);
       controls.add(control);
 
-      debugInfo(tn, "Search with cookie=" + cookie + "\" filter=" + 
+      debugInfo(tn, "Search with cookie=" + cookie + "\" filter=" +
           "(targetdn=*"+tn+"*,o=test)");
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -1334,7 +1332,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String cookie2 = "o=test:"+cn2.toString()+";o=test2:;";
       String cookie3 = "o=test:"+cn3.toString()+";o=test2:;";
       String cookie4 = "o=test:"+cn4.toString()+";o=test2:;";
-      
+
       assertEquals(searchOp.getSearchEntries().size(), 4);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       if (entries != null)
@@ -1408,7 +1406,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           }
         }
       }
-      
+
       // Test the response control with ldapsearch tool
       String result = ldapsearch("cn=changelog");
       debugInfo(tn, "Entries:" + result);
@@ -1418,7 +1416,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(ctrlList.get(1).equals(cookie2));
       assertTrue(ctrlList.get(2).equals(cookie3));
       assertTrue(ctrlList.get(3).equals(cookie4));
-      
+
       server01.stop();
       if (server02 != null)
         server02.stop();
@@ -1426,7 +1424,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
   }
@@ -1492,15 +1490,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String encodedValue = av.toString();
       assertTrue(encodedValue.equalsIgnoreCase(expectedValue),
           "In entry " + entry + " attr <" + attrName + "> equals " +
-          av + " instead of expected value " + expectedValue); 
+          av + " instead of expected value " + expectedValue);
     }
     catch(Exception e)
     {
       assertTrue(false,
           "In entry " + entry + " attr <" + attrName + "> equals " +
-          av + " instead of expected value " + expectedValue);       
+          av + " instead of expected value " + expectedValue);
     }
   }
+
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
@@ -1518,7 +1517,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return null;
   }
 
-  private static void checkPossibleValues(Entry entry, String attrName, 
+  private static void checkPossibleValues(Entry entry, String attrName,
       String expectedValue1, String expectedValue2)
   {
     AttributeValue av = null;
@@ -1533,18 +1532,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               encodedValue.equalsIgnoreCase(expectedValue2)),
               "In entry " + entry + " attr <" + attrName + "> equals " +
               av + " instead of one of the expected values " + expectedValue1
-              + " or " + expectedValue2); 
+              + " or " + expectedValue2);
     }
     catch(Exception e)
     {
       assertTrue(false,
           "In entry " + entry + " attr <" + attrName + "> equals " +
           av + " instead of one of the expected values " + expectedValue1
-          + " or " + expectedValue2); 
+          + " or " + expectedValue2);
     }
   }
 
-  private static void checkValues(Entry entry, String attrName, 
+  private static void checkValues(Entry entry, String attrName,
       Set<String> expectedValues)
   {
     AttributeValue av = null;
@@ -1579,7 +1578,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   private void ECLPsearch(boolean changesOnly, boolean compatMode)
   {
-    String tn = "ECLPsearch_" + String.valueOf(changesOnly) + "_" + 
+    String tn = "ECLPsearch_" + String.valueOf(changesOnly) + "_" +
       String.valueOf(compatMode);
     debugInfo(tn, "Starting test \n\n");
     Socket s =null;
@@ -1602,15 +1601,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       // Create broker on suffix
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
       int ts = 1;
 
       // Produce update on this suffix
-      ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
-        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn, 
+        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn,
             "11111111-1112-1113-1114-111111111114");
       debugInfo(tn, " publishing " + delMsg.getChangeNumber());
       server01.publish(delMsg);
@@ -1690,7 +1689,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         {
           while ((searchEntries<1) && (message = r.readMessage()) != null)
           {
-            debugInfo(tn, "Init search Result=" + 
+            debugInfo(tn, "Init search Result=" +
                 message.getProtocolOpType() + message + " " + searchEntries);
             switch (message.getProtocolOpType())
             {
@@ -1718,14 +1717,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
         catch(Exception e)
         {
-          fail("init search failed with e=" + stackTraceToSingleLineString(e));        
+          fail("init search failed with e=" + stackTraceToSingleLineString(e));
         }
         debugInfo(tn, "INIT search done with success. searchEntries="
             + searchEntries + " #searchesDone="+ searchesDone);
       }
 
       // Produces change 2
-      cn = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      cn = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       String expectedDn = "uid=" + tn + "2," +  TEST_ROOT_DN_STRING;
       delMsg = new DeleteMsg(expectedDn, cn,
          "11111111-1112-1113-1114-111111111115");
@@ -1744,7 +1743,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       message = null;
       while ((searchEntries<1) && (message = r.readMessage()) != null)
       {
-        debugInfo(tn, "psearch search  Result=" + 
+        debugInfo(tn, "psearch search  Result=" +
             message.getProtocolOpType() + message);
         switch (message.getProtocolOpType())
         {
@@ -1825,7 +1824,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         searchResultDone = null;
         while ((searchesDone==0) && (message = r.readMessage()) != null)
         {
-          debugInfo(tn, "ACI test : message returned " + 
+          debugInfo(tn, "ACI test : message returned " +
               message.getProtocolOpType() + message);
           switch (message.getProtocolOpType())
           {
@@ -1841,7 +1840,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
           case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
             searchResultDone = message.getSearchResultDoneProtocolOp();
-            assertEquals(searchResultDone.getResultCode(), 
+            assertEquals(searchResultDone.getResultCode(),
                 ResultCode.SUCCESS.getIntValue());
 //          assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
             searchesDone++;
@@ -1852,7 +1851,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         assertTrue(searchesDone==1);
         // but returning no entry
         assertEquals(searchEntries,0, "Bad search entry# in ACI test of " + tn);
-      }      
+      }
 
       try { s.close(); } catch (Exception e) {};
       sleep(1000);
@@ -1893,42 +1892,42 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       // Create broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
       int ts = 1;
 
       // Create broker on o=test2
       ReplicationBroker server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1202, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
 
       // Produce update 1
-      ChangeNumber cn1 = 
-        new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn1 =
+        new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg1 =
-        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn1, 
+        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn1,
             "11111111-1111-1111-1111-111111111111");
       debugInfo(tn, " publishing " + delMsg1);
       server01.publish(delMsg1);
       this.sleep(500); // let's be sure the message is in the RS
 
       // Produce update 2
-      ChangeNumber cn2 = 
-        new ChangeNumber(TimeThread.getTime(), ts++, (short)1202);
+      ChangeNumber cn2 =
+        new ChangeNumber(TimeThread.getTime(), ts++, 1202);
       DeleteMsg delMsg2 =
-        new DeleteMsg("uid=" + tn + "2," + TEST_ROOT_DN_STRING2, cn2, 
+        new DeleteMsg("uid=" + tn + "2," + TEST_ROOT_DN_STRING2, cn2,
             "22222222-2222-2222-2222-222222222222");
       debugInfo(tn, " publishing " + delMsg2);
       server02.publish(delMsg2);
       this.sleep(500); // let's be sure the message is in the RS
 
       // Produce update 3
-      ChangeNumber cn3 = 
-        new ChangeNumber(TimeThread.getTime(), ts++, (short)1202);
+      ChangeNumber cn3 =
+        new ChangeNumber(TimeThread.getTime(), ts++, 1202);
       DeleteMsg delMsg3 =
-        new DeleteMsg("uid=" + tn + "3," + TEST_ROOT_DN_STRING2, cn3, 
+        new DeleteMsg("uid=" + tn + "3," + TEST_ROOT_DN_STRING2, cn3,
             "33333333-3333-3333-3333-333333333333");
       debugInfo(tn, " publishing " + delMsg3);
       server02.publish(delMsg3);
@@ -2056,7 +2055,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         {
           while ((searchEntries<1) && (message = r1.readMessage()) != null)
           {
-            debugInfo(tn, "Search1 Result=" + 
+            debugInfo(tn, "Search1 Result=" +
                 message.getProtocolOpType() + " " + message);
             switch (message.getProtocolOpType())
             {
@@ -2087,11 +2086,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
         catch(Exception e)
         {
-          fail("Search1 failed with e=" + stackTraceToSingleLineString(e));        
+          fail("Search1 failed with e=" + stackTraceToSingleLineString(e));
         }
         debugInfo(tn, "Search1 done with success. searchEntries="
             + searchEntries + " #searchesDone="+ searchesDone);
-        
+
         searchEntries = 0;
         message = null;
         try
@@ -2100,7 +2099,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               + " expected to return change " + cn2 + " & " + cn3);
           while ((searchEntries<2) && (message = r2.readMessage()) != null)
           {
-            debugInfo(tn, "Search 2 Result=" + 
+            debugInfo(tn, "Search 2 Result=" +
                 message.getProtocolOpType() + message);
             switch (message.getProtocolOpType())
             {
@@ -2127,12 +2126,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
         catch(Exception e)
         {
-          fail("Search2 failed with e=" + stackTraceToSingleLineString(e));        
+          fail("Search2 failed with e=" + stackTraceToSingleLineString(e));
         }
         debugInfo(tn, "Search2 done with success. searchEntries="
             + searchEntries + " #searchesDone="+ searchesDone);
 
-        
+
         searchEntries = 0;
         message = null;
         try
@@ -2141,7 +2140,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               + " expected to return change top + " + cn1 + " & " + cn2 + " & " + cn3);
           while ((searchEntries<4) && (message = r3.readMessage()) != null)
           {
-            debugInfo(tn, "Search3 Result=" + 
+            debugInfo(tn, "Search3 Result=" +
                 message.getProtocolOpType() + " " + message);
 
             switch (message.getProtocolOpType())
@@ -2167,7 +2166,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
         catch(Exception e)
         {
-          fail("Search3 failed with e=" + stackTraceToSingleLineString(e));        
+          fail("Search3 failed with e=" + stackTraceToSingleLineString(e));
         }
         debugInfo(tn, "Search3 done with success. searchEntries="
             + searchEntries + " #searchesDone="+ searchesDone);
@@ -2175,7 +2174,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
 
       // Produces additional change
-      ChangeNumber cn11 = new ChangeNumber(TimeThread.getTime(), 11, (short)1201);
+      ChangeNumber cn11 = new ChangeNumber(TimeThread.getTime(), 11, 1201);
       String expectedDn11 = "uid=" + tn + "11," +  TEST_ROOT_DN_STRING;
       DeleteMsg delMsg11 = new DeleteMsg(expectedDn11, cn11,
          "44444444-4444-4444-4444-444444444444");
@@ -2185,7 +2184,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, delMsg11.getChangeNumber() + " published additionally ");
 
       // Produces additional change
-      ChangeNumber cn12 = new ChangeNumber(TimeThread.getTime(), 12, (short)1202);
+      ChangeNumber cn12 = new ChangeNumber(TimeThread.getTime(), 12, 1202);
       String expectedDn12 = "uid=" + tn + "12," +  TEST_ROOT_DN_STRING2;
       DeleteMsg delMsg12 = new DeleteMsg(expectedDn12, cn12,
          "55555555-5555-5555-5555-555555555555");
@@ -2195,7 +2194,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, delMsg12.getChangeNumber()  + " published additionally ");
 
       // Produces additional change
-      ChangeNumber cn13 = new ChangeNumber(TimeThread.getTime(), 13, (short)1202);
+      ChangeNumber cn13 = new ChangeNumber(TimeThread.getTime(), 13, 1202);
       String expectedDn13 = "uid=" + tn + "13," +  TEST_ROOT_DN_STRING2;
       DeleteMsg delMsg13 = new DeleteMsg(expectedDn13, cn13,
          "66666666-6666-6666-6666-666666666666");
@@ -2211,7 +2210,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       message = null;
       while ((searchEntries<1) && (message = r1.readMessage()) != null)
       {
-        debugInfo(tn, "Search 11 Result=" + 
+        debugInfo(tn, "Search 11 Result=" +
             message.getProtocolOpType() + " " + message);
         switch (message.getProtocolOpType())
         {
@@ -2259,7 +2258,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       message = null;
       while ((searchEntries<2) && (message = r2.readMessage()) != null)
       {
-        debugInfo(tn, "psearch search 12 Result=" + 
+        debugInfo(tn, "psearch search 12 Result=" +
             message.getProtocolOpType() + " " + message);
         switch (message.getProtocolOpType())
         {
@@ -2307,7 +2306,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       message = null;
       while ((searchEntries<3) && (message = r3.readMessage()) != null)
       {
-        debugInfo(tn, "psearch search 13 Result=" + 
+        debugInfo(tn, "psearch search 13 Result=" +
             message.getProtocolOpType() + " " + message);
         switch (message.getProtocolOpType())
         {
@@ -2367,7 +2366,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private void bindAsManager(LDAPWriter w, org.opends.server.tools.LDAPReader r)
   throws IOException, LDAPException, ASN1Exception, InterruptedException
   {
-    bindAsWhoEver(w, r, 
+    bindAsWhoEver(w, r,
         "cn=Directory Manager", "password", LDAPResultCode.SUCCESS);
   }
 
@@ -2443,7 +2442,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Utility - log debug message - highlight it is from the test and not 
+   * Utility - log debug message - highlight it is from the test and not
    * from the server code. Makes easier to observe the test steps.
    */
   private void debugInfo(String tn, String s)
@@ -2518,12 +2517,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // --
       ReplicationBroker s1test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       ReplicationBroker s2test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1202, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
       sleep(500);
@@ -2558,12 +2557,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // --
       ReplicationBroker s1test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1203, 
+          DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
           1000, true, EMPTY_DN_GENID);
 
       ReplicationBroker s2test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1204, 
+          DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
           1000, true);
       sleep(500);
@@ -2619,7 +2618,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test successfully");
   }
@@ -2655,7 +2654,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(LDAPException e)
     {
       fail("Ending test " + tn + " with exception="
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
   }
 
@@ -2671,7 +2670,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
@@ -2680,34 +2679,34 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
 
       // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, 
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
 
       // Publish ADD
-      gblCN = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      gblCN = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       String lentry = new String(
           "dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n" 
+          + "objectClass: top\n"
           + "objectClass: domain\n"
           + "entryUUID: "+user1entryUUID+"\n");
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
-          gblCN, 
+          gblCN,
           "uid="+tn+"2," + TEST_ROOT_DN_STRING,
-          user1entryUUID, 
-          baseUUID, 
-          entry.getObjectClassAttribute(), 
-          entry.getAttributes(), 
+          user1entryUUID,
+          baseUUID,
+          entry.getObjectClassAttribute(),
+          entry.getAttributes(),
           new ArrayList<Attribute>());
       server01.publish(addMsg);
       debugInfo(tn, " publishes " + addMsg.getChangeNumber());
 
       // Publish MOD
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       Attribute attr1 = Attributes.create("description", "new value");
       Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
       List<Modification> mods = new ArrayList<Modification>();
@@ -2718,7 +2717,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " publishes " + modMsg.getChangeNumber());
 
       // Publish modDN
-      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
@@ -2739,11 +2738,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       String filter = "(targetdn=*"+tn.toLowerCase()+"*,o=test)";
       debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -2825,7 +2824,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","modrdn");
             checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";o=test2:;");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-            checkValue(resultEntry,"newrdn","uid="+tn+"new4");            
+            checkValue(resultEntry,"newrdn","uid="+tn+"new4");
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
             checkValue(resultEntry,"deleteoldrdn","true");
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+3));
@@ -2837,11 +2836,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       filter = "(&(targetdn=*"+tn.toLowerCase()+"*,o=test)(&(changenumber>="+
       firstDraftChangeNumber+")(changenumber<="+(firstDraftChangeNumber+3)+")))";
       debugInfo(tn, " Search: " + filter);
-      searchOp = 
+      searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -2921,7 +2920,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changetype","modrdn");
             checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";o=test2:;");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-            checkValue(resultEntry,"newrdn","uid="+tn+"new4");            
+            checkValue(resultEntry,"newrdn","uid="+tn+"new4");
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
             checkValue(resultEntry,"deleteoldrdn","true");
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+3));
@@ -2933,7 +2932,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
     return ts;
@@ -2950,7 +2949,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
@@ -2962,11 +2961,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       String filter = "(changenumber="+firstDraftChangeNumber+")";
       debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -3006,7 +3005,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
   }
@@ -3035,11 +3034,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       String filter = "(&(changenumber>="+firstDraftChangeNumber+")(changenumber<="+lastDraftChangeNumber+"))";
       debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -3051,14 +3050,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // test success
       assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());      
-      assertEquals(searchOp.getSearchEntries().size(), 
+          searchOp.getErrorMessage().toString());
+      assertEquals(searchOp.getSearchEntries().size(),
           lastDraftChangeNumber-firstDraftChangeNumber+1);
     }
     catch(Exception e)
     {
       fail("Ending test " + tn + " with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
   }
@@ -3080,11 +3079,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       String filter = "(changenumber=1000)";
       debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -3095,14 +3094,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
 
       // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS, 
-          searchOp.getErrorMessage().toString());      
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString());
       assertEquals(searchOp.getSearchEntries().size(), 0);
     }
     catch(Exception e)
     {
       fail("Ending test "+tn+" with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
   }
@@ -3126,11 +3125,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       String filter = "(replicationcsn="+this.gblCN+")";
       debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -3141,10 +3140,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
 
       // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS, 
-          searchOp.getErrorMessage().toString());      
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString());
       assertEquals(searchOp.getSearchEntries().size(), 1);
-      
+
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       assertEquals(searchOp.getSearchEntries().size(), 1);
       if (entries != null)
@@ -3165,7 +3164,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Ending test "+tn+" with exception:\n"
-          +  stackTraceToSingleLineString(e));      
+          +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
   }
@@ -3237,15 +3236,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(startCLmsg.getLastDraftChangeNumber(),8);
 
       //
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
-      ChangeNumber changeNumber1 = gen.newChangeNumber();      
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
+      ChangeNumber changeNumber1 = gen.newChangeNumber();
       ECLSearchOperation.evaluateFilter(startCLmsg,
           SearchFilter.createFilterFromString("(replicationcsn="+changeNumber1+")"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getChangeNumber(), changeNumber1);
 
-      
+
     }
     catch(Exception e)
     {
@@ -3254,7 +3253,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     debugInfo(tn, "Ending test with success");
   }
-  
+
   /**
    * Put a short purge delay to the draftCNDB, clear the changelogDB,
    * expect the draftCNDb to be purged accordingly.
@@ -3302,11 +3301,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("+");
 
       debugInfo(tn, " Search: rootDSE");
-      InternalSearchOperation searchOp = 
+      InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf(""),
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 
+            DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -3317,8 +3316,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
 
       // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS, 
-          searchOp.getErrorMessage().toString());      
+      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
+          searchOp.getErrorMessage().toString());
       assertEquals(searchOp.getSearchEntries().size(), 1);
 
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -3331,9 +3330,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           ldifWriter.writeEntry(resultEntry);
-          checkValue(resultEntry,"firstchangenumber", 
+          checkValue(resultEntry,"firstchangenumber",
               String.valueOf(expectedFirst));
-          checkValue(resultEntry,"lastchangenumber", 
+          checkValue(resultEntry,"lastchangenumber",
               String.valueOf(expectedLast));
         }
       }
@@ -3354,25 +3353,25 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       ECLCompatTestLimits(expectedFirst, expectedLast);
-     
+
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201,
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
       // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
         new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
-     
+
       ECLCompatTestLimits(expectedFirst, expectedLast+1);
-      
+
       server01.stop();
     }
     catch(Exception e)
@@ -3394,42 +3393,42 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServerDomain rsdtest =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
       long count = rsdtest.getEligibleCount(
-          new ServerState(), 
-          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+          new ServerState(),
+          new ChangeNumber(TimeThread.getTime(), 1, 1201));
       assertEquals(count, 0);
-      
+
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1201, 
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           1000, true);
 
       // Publish 1 message
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), 1, (short)1201);
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), 1, 1201);
       DeleteMsg delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, 
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
       sleep(300);
 
       count = rsdtest.getEligibleCount(
-          new ServerState(), 
-          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+          new ServerState(),
+          new ChangeNumber(TimeThread.getTime(), 1, 1201));
       assertEquals(count, 1);
-      
+
       // Publish 1 message
-      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 2, (short)1201);
+      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 2, 1201);
       delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn2, 
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn2,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
       sleep(300);
 
       count = rsdtest.getEligibleCount(
-          new ServerState(), 
-          new ChangeNumber(TimeThread.getTime(), 1, (short)1201));
+          new ServerState(),
+          new ChangeNumber(TimeThread.getTime(), 1, 1201));
       assertEquals(count, 2);
 
       count = rsdtest.getEligibleCount(
@@ -3443,29 +3442,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       count = rsdtest.getEligibleCount(ss, cn2);
       assertEquals(count, 1);
-      
+
       ss.update(cn2);
-      count = rsdtest.getEligibleCount(ss, 
-          new ChangeNumber(TimeThread.getTime(), 4, (short)1201));
+      count = rsdtest.getEligibleCount(ss,
+          new ChangeNumber(TimeThread.getTime(), 4, 1201));
       assertEquals(count, 0);
 
       // Publish 1 message
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 3, (short)1201);
+      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 3, 1201);
       delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn3, 
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn3,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
       sleep(300);
 
       ss.update(cn2);
-      count = rsdtest.getEligibleCount(ss, 
-          new ChangeNumber(TimeThread.getTime(), 4, (short)1201));
+      count = rsdtest.getEligibleCount(ss,
+          new ChangeNumber(TimeThread.getTime(), 4, 1201));
       assertEquals(count, 1);
-      
-      
+
+
       server01.stop();
-      
+
     }
     catch(Exception e)
     {
@@ -3524,7 +3523,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Set<String> attrList = new HashSet<String>();
       attrList.add(new String("cn"));
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1206, 
+          DN.decode(TEST_ROOT_DN_STRING2), (short) 1206,
           100, replicationServerPort,
           1000, true, -1 , domain21);
 
@@ -3546,7 +3545,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + "sn: Jensen\n"
           + "uid: fiona\n"
           + "telephonenumber: 12121212");
-          
+
       Entry uentry1 = TestCaseUtils.entryFromLdifString(lentry);
       addEntry(uentry1);
 
@@ -3573,7 +3572,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ModifyOperationBasis modOpBasis =
         new ModifyOperationBasis(connection, 1, 1, null, uentry1.getDN(), mods);
       modOpBasis.run();
-      
+
       builder = new AttributeBuilder("telephonenumber");
       builder.add("555555");
       mod =
@@ -3584,9 +3583,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       modOpBasis =
         new ModifyOperationBasis(connection, 1, 1, null, uentry2.getDN(), mods);
       modOpBasis.run();
-      
+
       ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), 
+          InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           null,
           DN.decode("cn=Robert Hue," + TEST_ROOT_DN_STRING3),
@@ -3597,8 +3596,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           modDNOp.getErrorMessage().toString() + modDNOp.getAdditionalLogMessage());
 
       DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), 
-          InternalClientConnection.nextMessageID(), null, 
+          InternalClientConnection.nextOperationID(),
+          InternalClientConnection.nextMessageID(), null,
           DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3));
       delOp.run();
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS,
@@ -3609,7 +3608,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Search on ECL from start on all suffixes
       String cookie = "";
       ExternalChangelogRequestControl control =
-        new ExternalChangelogRequestControl(true, 
+        new ExternalChangelogRequestControl(true,
             new MultiDomainServerState(cookie));
       ArrayList<Control> controls = new ArrayList<Control>(0);
       controls.add(control);
@@ -3622,7 +3621,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 
+          DereferencePolicy.NEVER_DEREF_ALIASES,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -3646,9 +3645,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       {
         for (SearchResultEntry resultEntry : entries)
         {
-          // Expect 
+          // Expect
           debugInfo(tn, "Entry returned =" +  resultEntry.toLDIFString());
-          
+
           String targetdn = getAttributeValue(resultEntry, "targetdn");
           if ((targetdn.endsWith("cn=robert hue,o=test3"))
             ||(targetdn.endsWith("cn=robert hue2,o=test3")))
@@ -3672,13 +3671,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       if (replicationPlugin2 != null)
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin2);
       removeTestBackend2(backend2);
-      
+
       if (domain3 != null)
         MultimasterReplication.deleteDomain(baseDn3);
       if (replicationPlugin3 != null)
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin3);
       removeTestBackend2(backend3);
-      
+
     }
     catch(Exception e)
     {
@@ -3687,8 +3686,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      
+
     }
     debugInfo(tn, "Ending test with success");
-  }  
+  }
 }

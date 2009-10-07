@@ -207,7 +207,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     crossDomainServerState = "";
     firstDraftChangeNumber = -1;
     lastDraftChangeNumber = -1;
-    changeNumber = new ChangeNumber((short)0,0,(short)0);
+    changeNumber = new ChangeNumber(0,0,0);
     isPersistent = NON_PERSISTENT;
     operationId = "-1";
     excludedServiceIDs = new ArrayList<String>();

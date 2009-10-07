@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -45,22 +45,22 @@ public class InitializeTargetMsg extends RoutableMsg
   // to happen. It allows a server that previously sent an
   // InitializeRequestMessage to know that the current message
   // is related to its own request.
-  private short requestorID;
+  private int requestorID;
 
   /**
    * Creates a InitializeDestinationMessage.
    *
    * @param baseDN The base DN for which the InitializeMessage is created.
-   * @param senderID The serverID of the server that sends this message.
-   * @param destination The destination of this message.
-   * @param requestorID The server that initiates this export.
+   * @param serverID The serverID of the server that sends this message.
+   * @param target The destination of this message.
+   * @param target2 The server that initiates this export.
    * @param entryCount The count of entries that will be sent.
    */
-  public InitializeTargetMsg(String baseDN, short senderID,
-      short destination, short requestorID, long entryCount)
+  public InitializeTargetMsg(String baseDN, int serverID,
+      int target, int target2, long entryCount)
   {
-    super(senderID, destination);
-    this.requestorID = requestorID;
+    super(serverID, target);
+    this.requestorID = target2;
     this.baseDN = baseDN;
     this.entryCount = entryCount;
   }
@@ -85,7 +85,7 @@ public class InitializeTargetMsg extends RoutableMsg
       // destination
       int length = getNextLength(in, pos);
       String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Short.valueOf(destinationString);
+      this.destination = Integer.valueOf(destinationString);
       pos += length +1;
 
       // baseDn
@@ -96,13 +96,13 @@ public class InitializeTargetMsg extends RoutableMsg
       // sender
       length = getNextLength(in, pos);
       String senderString = new String(in, pos, length, "UTF-8");
-      senderID = Short.valueOf(senderString);
+      senderID = Integer.valueOf(senderString);
       pos += length +1;
 
       // requestor
       length = getNextLength(in, pos);
       String requestorString = new String(in, pos, length, "UTF-8");
-      requestorID = Short.valueOf(requestorString);
+      requestorID = Integer.valueOf(requestorString);
       pos += length +1;
 
       // entryCount

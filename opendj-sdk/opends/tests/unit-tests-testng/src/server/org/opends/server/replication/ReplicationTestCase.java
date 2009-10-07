@@ -213,7 +213,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * does not exist, take the 'empty backend' generationID.
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, short serverId, int window_size,
+      final DN baseDn, int serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
   {
@@ -226,7 +226,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(
-        final DN baseDn, short serverId, int window_size,
+        final DN baseDn, int serverId, int window_size,
         int port, int timeout, boolean emptyOldChanges,
         long generationId)
   throws Exception, SocketException
@@ -240,7 +240,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(
-        final DN baseDn, short serverId, int window_size,
+        final DN baseDn, int serverId, int window_size,
         int port, int timeout, boolean emptyOldChanges,
         long generationId, ReplicationDomain replicationDomain)
   throws Exception, SocketException
@@ -292,7 +292,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Open an ECL replicationServer session to the local ReplicationServer 
+   * Open an ECL replicationServer session to the local ReplicationServer
   protected ReplicationBroker openECLReplicationSession(
         int window_size, int port, int timeout, boolean emptyOldChanges,
         Short serverId)
@@ -393,7 +393,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    *
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, short serverId, int window_size,
+      final DN baseDn, int serverId, int window_size,
       int port, int timeout, ServerState state)
     throws Exception, SocketException
   {
@@ -406,7 +406,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * starting with a given ServerState.
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, short serverId, int window_size,
+      final DN baseDn, int serverId, int window_size,
       int port, int timeout, ServerState state, long generationId)
           throws Exception, SocketException
   {
@@ -428,7 +428,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    *
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, short serverId, int window_size,
+      final DN baseDn, int serverId, int window_size,
       int port, int timeout, int maxSendQueue, int maxRcvQueue,
       boolean emptyOldChanges)
       throws Exception, SocketException
@@ -439,7 +439,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, short serverId, int window_size,
+      final DN baseDn, int serverId, int window_size,
         int port, int timeout, int maxSendQueue, int maxRcvQueue,
         boolean emptyOldChanges, long generationId)
             throws Exception, SocketException

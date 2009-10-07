@@ -79,10 +79,10 @@ public class DbHandlerTest extends ReplicationTestCase
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
-      handler = new DbHandler((short) 1, TEST_ROOT_DN_STRING,
+      handler = new DbHandler(1, TEST_ROOT_DN_STRING,
         replicationServer, dbEnv, 5000);
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();
@@ -133,7 +133,7 @@ public class DbHandlerTest extends ReplicationTestCase
       }
       assertNotNull(ec);
       assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
-      
+
       //--
       // Iterator tests with db only populated
       Thread.sleep(1000); // let the time for flush to happen
@@ -165,7 +165,7 @@ public class DbHandlerTest extends ReplicationTestCase
       }
       assertNotNull(ec);
       assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
-      
+
       // Test first and last
       assertEquals(changeNumber1, handler.getFirstChange());
       assertEquals(changeNumber3, handler.getLastChange());
@@ -224,7 +224,7 @@ public class DbHandlerTest extends ReplicationTestCase
       }
       assertNotNull(ec);
       assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
-      
+
       handler.setPurgeDelay(1);
 
       boolean purged = false;
@@ -301,11 +301,11 @@ public class DbHandlerTest extends ReplicationTestCase
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
       handler =
-        new DbHandler((short) 1, TEST_ROOT_DN_STRING,
+        new DbHandler( 1, TEST_ROOT_DN_STRING,
         replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 1, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();

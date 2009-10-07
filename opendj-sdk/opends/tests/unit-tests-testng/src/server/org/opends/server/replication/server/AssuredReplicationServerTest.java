@@ -97,26 +97,26 @@ public class AssuredReplicationServerTest
   private int rs2Port = -1;
   private int rs3Port = -1;
   private int rs4Port = -1;
-  private static final short FDS1_ID = 1;
-  private static final short FDS2_ID = 2;
-  private static final short FDS3_ID = 3;
-  private static final short FDS4_ID = 4;
-  private static final short FDS5_ID = 5;
-  private static final short FDS6_ID = 6;
-  private static final short FDS7_ID = 7;
-  private static final short FDS8_ID = 8;
-  private static final short FDS9_ID = 9;
-  private static final short FDS10_ID = 10;
-  private static final short FDS11_ID = 11;
-  private static final short FDS12_ID = 12;
-  private static final short FRS1_ID = 51;
-  private static final short FRS2_ID = 52;
-  private static final short FRS3_ID = 53;
-  private static final short DS_FRS2_ID = FRS2_ID + 10;
-  private static final short RS1_ID = 101;
-  private static final short RS2_ID = 102;
-  private static final short RS3_ID = 103;
-  private static final short RS4_ID = 104;
+  private static final int FDS1_ID = 1;
+  private static final int FDS2_ID = 2;
+  private static final int FDS3_ID = 3;
+  private static final int FDS4_ID = 4;
+  private static final int FDS5_ID = 5;
+  private static final int FDS6_ID = 6;
+  private static final int FDS7_ID = 7;
+  private static final int FDS8_ID = 8;
+  private static final int FDS9_ID = 9;
+  private static final int FDS10_ID = 10;
+  private static final int FDS11_ID = 11;
+  private static final int FDS12_ID = 12;
+  private static final int FRS1_ID = 51;
+  private static final int FRS2_ID = 52;
+  private static final int FRS3_ID = 53;
+  private static final int DS_FRS2_ID = FRS2_ID + 10;
+  private static final int RS1_ID = 101;
+  private static final int RS2_ID = 102;
+  private static final int RS3_ID = 103;
+  private static final int RS4_ID = 104;
   private FakeReplicationDomain fakeRd1 = null;
   private FakeReplicationDomain fakeRd2 = null;
   private FakeReplicationDomain fakeRd3 = null;
@@ -369,8 +369,8 @@ public class AssuredReplicationServerTest
    * Creates and connects a new fake replication domain, using the passed scenario
    * (no server state constructor version)
    */
-  private FakeReplicationDomain createFakeReplicationDomain(short serverId,
-    int groupId, short rsId, long generationId, boolean assured,
+  private FakeReplicationDomain createFakeReplicationDomain(int serverId,
+    int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario)
   {
@@ -381,8 +381,8 @@ public class AssuredReplicationServerTest
   /**
    * Creates and connects a new fake replication domain, using the passed scenario.
    */
-  private FakeReplicationDomain createFakeReplicationDomain(short serverId,
-    int groupId, short rsId, long generationId, boolean assured,
+  private FakeReplicationDomain createFakeReplicationDomain(int serverId,
+    int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario, ServerState serverState)
   {
@@ -396,8 +396,8 @@ public class AssuredReplicationServerTest
    * service uses the default window value. If false, we only start publish
    * service and use the passed window value
    */
-  private FakeReplicationDomain createFakeReplicationDomain(short serverId,
-    int groupId, short rsId, long generationId, boolean assured,
+  private FakeReplicationDomain createFakeReplicationDomain(int serverId,
+    int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
     int scenario, ServerState serverState, boolean startListen, int window)
   {
@@ -463,8 +463,8 @@ public class AssuredReplicationServerTest
   /**
    * Creates and connects a new fake replication server, using the passed scenario.
    */
-  private FakeReplicationServer createFakeReplicationServer(short serverId,
-    int groupId, short rsId, long generationId, boolean assured,
+  private FakeReplicationServer createFakeReplicationServer(int serverId,
+    int groupId, int rsId, long generationId, boolean assured,
     AssuredMode assuredMode, int safeDataLevel, ServerState serverState, int scenario)
   {
     try
@@ -507,7 +507,7 @@ public class AssuredReplicationServerTest
   /**
    * Creates a new real replication server (one which is to be tested).
    */
-  private ReplicationServer createReplicationServer(short serverId,
+  private ReplicationServer createReplicationServer(int serverId,
     int groupId, long assuredTimeout, String testCase)
   {
     SortedSet<String> replServers = new TreeSet<String>();
@@ -644,7 +644,7 @@ public class AssuredReplicationServerTest
      */
     public FakeReplicationDomain(
       String serviceID,
-      short serverID,
+      int serverID,
       long generationId,
       byte groupId,
       boolean assured,
@@ -835,7 +835,7 @@ public class AssuredReplicationServerTest
 
     // Parameters given at constructor time
     private int port;
-    private short serverId = -1;
+    private int serverId = -1;
     boolean isAssured = false; // Default value for config
     AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
     byte safeDataLevel = (byte) 1; // Default value for config
@@ -868,7 +868,7 @@ public class AssuredReplicationServerTest
      * @param baseDn the basedn we connect with, to the real RS
      * @param generationId the generation id we use at connection to real RS
      */
-    public FakeReplicationServer(int port, short serverId, boolean assured,
+    public FakeReplicationServer(int port, int serverId, boolean assured,
       AssuredMode assuredMode, int safeDataLevel,
       byte groupId, String baseDn, long generationId)
     {
@@ -881,7 +881,7 @@ public class AssuredReplicationServerTest
       this.assuredMode = assuredMode;
       this.safeDataLevel = (byte) safeDataLevel;
 
-      gen = new ChangeNumberGenerator((short)(serverId + 10), 0L);
+      gen = new ChangeNumberGenerator(serverId + 10, 0L);
     }
 
     /*
@@ -1055,8 +1055,8 @@ public class AssuredReplicationServerTest
                   // Send the ack with timeout error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
                   ackMsg.setHasTimeout(true);
-                  List<Short> failedServers = new ArrayList<Short>();
-                  failedServers.add((short)(serverId + 10));
+                  List<Integer> failedServers = new ArrayList<Integer>();
+                  failedServers.add(serverId + 10);
                   ackMsg.setFailedServers(failedServers);
                   session.publish(ackMsg);
                   ackReplied = true;
@@ -1068,8 +1068,8 @@ public class AssuredReplicationServerTest
                   // Send the ack with wrong status error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
                   ackMsg.setHasWrongStatus(true);
-                  List<Short> failedServers = new ArrayList<Short>();
-                  failedServers.add((short)(serverId + 10));
+                  List<Integer> failedServers = new ArrayList<Integer>();
+                  failedServers.add((serverId + 10));
                   ackMsg.setFailedServers(failedServers);
                   session.publish(ackMsg);
                   ackReplied = true;
@@ -1081,8 +1081,8 @@ public class AssuredReplicationServerTest
                   // Send the ack with replay error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
                   ackMsg.setHasReplayError(true);
-                  List<Short> failedServers = new ArrayList<Short>();
-                  failedServers.add((short)(serverId + 10));
+                  List<Integer> failedServers = new ArrayList<Integer>();
+                  failedServers.add((serverId + 10));
                   ackMsg.setFailedServers(failedServers);
                   session.publish(ackMsg);
                   ackReplied = true;
@@ -1694,11 +1694,11 @@ public class AssuredReplicationServerTest
       // Keep track of monitoring values for incremental test step
       int acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       int timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
-      Map<Short,Integer> serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
+      Map<Integer,Integer> serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
       // Compute the list of servers that are elligible for receiving an assured update
-      List<Short> elligibleServers = computeElligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
+      List<Integer> elligibleServers = computeElligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
       // Compute the list of servers that are elligible for receiving an assured update and that are expected to effectively ack the update
-      List<Short> expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, fakeRs3Gid, fakeRs3GenId, fakeRs3Scen);
+      List<Integer> expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, fakeRs3Gid, fakeRs3GenId, fakeRs3Scen);
 
       // Send update
       long startTime = System.currentTimeMillis();
@@ -1835,7 +1835,7 @@ public class AssuredReplicationServerTest
   // Check that the DSs and the fake RSs of the topology have received/acked what is expected according to the
   // test step (the number of updates)
   // -1 for a gen id means no need to test the matching fake RS
-  private void checkWhatHasBeenReceivedSafeData(int nSentUpdates, boolean otherFakeDS, long otherFakeDsGenId, long fakeRs1GenId, long fakeRs2GenId, long fakeRs3GenId, List<Short> expectedServers)
+  private void checkWhatHasBeenReceivedSafeData(int nSentUpdates, boolean otherFakeDS, long otherFakeDsGenId, long fakeRs1GenId, long fakeRs2GenId, long fakeRs3GenId, List<Integer> expectedServers)
   {
 
     // We should not receive our own update
@@ -1903,8 +1903,8 @@ public class AssuredReplicationServerTest
    * Check the time the sending of the safe data assured update took and the monitoring
    * values according to the test configuration
    */
-  private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates, Map<Short,Integer> prevNServerErrors, long sendUpdateTime,
-    int nWishedServers, List<Short> elligibleServers, List<Short> expectedServers)
+  private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates, Map<Integer,Integer> prevNServerErrors, long sendUpdateTime,
+    int nWishedServers, List<Integer> elligibleServers, List<Integer> expectedServers)
   {
     assertEquals(fakeRd1.getAssuredSdSentUpdates(), nSentUpdates);
     if (elligibleServers.size() >= nWishedServers) // Enough elligible servers
@@ -1927,7 +1927,7 @@ public class AssuredReplicationServerTest
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
         // Check that the servers that are elligible but not expected have been added in the error by server list
-        List<Short> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
+        List<Integer> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
         checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, expectedServersInError);
       }
     } else // Not enough elligible servers
@@ -1952,7 +1952,7 @@ public class AssuredReplicationServerTest
           assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
           // Check that the servers that are elligible but not expected have been added in the error by server list
-          List<Short> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
+          List<Integer> expectedServersInError = computeExpectedServersInError(elligibleServers, expectedServers);
           checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, expectedServersInError);
         }
       } else
@@ -1969,10 +1969,10 @@ public class AssuredReplicationServerTest
 
   // Compute a list of servers that are elligibles but that are not able to return an ack
   // (those in elligibleServers that are not in expectedServers). Result may of course be an empty list
-  private List<Short> computeExpectedServersInError(List<Short> elligibleServers, List<Short> expectedServers)
+  private List<Integer> computeExpectedServersInError(List<Integer> elligibleServers, List<Integer> expectedServers)
   {
-    List<Short> expectedServersInError = new ArrayList<Short>();
-    for (Short serverId : elligibleServers)
+    List<Integer> expectedServersInError = new ArrayList<Integer>();
+    for (Integer serverId : elligibleServers)
     {
       if (!expectedServers.contains(serverId))
         expectedServersInError.add(serverId);
@@ -1984,13 +1984,13 @@ public class AssuredReplicationServerTest
   // - if expectedServersInError is not null and not empty, each server id in measuredServerErrors should have the value it has
   // in prevServerErrors + 1, or 1 if it was not in prevServerErrors
   // - if expectedServersInError is null or empty, both map should be equal
-  private void checkServerErrors(Map<Short,Integer> measuredServerErrors, Map<Short,Integer> prevServerErrors, List<Short> expectedServersInError)
+  private void checkServerErrors(Map<Integer,Integer> measuredServerErrors, Map<Integer,Integer> prevServerErrors, List<Integer> expectedServersInError)
   {
     if (expectedServersInError != null)
     {
       // Adding an error to each server in expectedServersInError, with prevServerErrors as basis, should give the
       // same map as measuredServerErrors
-      for (Short serverId : expectedServersInError)
+      for (Integer serverId : expectedServersInError)
       {
         Integer prevInt = prevServerErrors.get(serverId);
         if (prevInt == null)
@@ -2008,8 +2008,8 @@ public class AssuredReplicationServerTest
 
     // Maps should be the same
     assertEquals(measuredServerErrors.size(), prevServerErrors.size());
-    Set<Short> measuredKeySet = measuredServerErrors.keySet();
-    for (Short serverId : measuredKeySet)
+    Set<Integer> measuredKeySet = measuredServerErrors.keySet();
+    for (Integer serverId : measuredKeySet)
     {
       Integer measuredInt = measuredServerErrors.get(serverId);
       assertNotNull(measuredInt);
@@ -2052,9 +2052,9 @@ public class AssuredReplicationServerTest
 
   // Compute the list of servers that are elligible for receiving a safe data assured update
   // according to their group id and generation id. If -1 is used, the server is out of scope
-  private List<Short> computeElligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
+  private List<Integer> computeElligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
   {
-    List<Short> elligibleServers = new ArrayList<Short>();
+    List<Integer> elligibleServers = new ArrayList<Integer>();
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
     {
       elligibleServers.add(FRS1_ID);
@@ -2082,9 +2082,9 @@ public class AssuredReplicationServerTest
 
   // Compute the list of servers that are elligible for receiving a safe data assured update and that are expected to effectively ack the update
   // If -1 is used, the server is out of scope
-  private List<Short> computeExpectedServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen, int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
+  private List<Integer> computeExpectedServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen, int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
   {
-    List<Short> exptectedServers = new ArrayList<Short>();
+    List<Integer> exptectedServers = new ArrayList<Integer>();
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
     {
       if (fakeRs1Scen == REPLY_OK_RS_SCENARIO)
@@ -2900,7 +2900,7 @@ public class AssuredReplicationServerTest
         assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
 
       // Check for servers in error list
-      Map<Short, Integer> expectedErrors = new HashMap<Short, Integer>();
+      Map<Integer, Integer> expectedErrors = new HashMap<Integer, Integer>();
       if (shouldSeeDsIdInError)
         expectedErrors.put(FDS3_ID, 1);
       if (shouldSeeRsIdInError)
@@ -2995,12 +2995,12 @@ public class AssuredReplicationServerTest
   /**
    * Check that the passed server error lists are equivalent
    */
-  private void checkServerErrorListsAreEqual(Map<Short, Integer> list1, Map<Short, Integer> list2)
+  private void checkServerErrorListsAreEqual(Map<Integer, Integer> list1, Map<Integer, Integer> list2)
   {
     assertNotNull(list1);
     assertNotNull(list2);
     assertEquals(list1.size(), list2.size());
-    for (Short s : list1.keySet())
+    for (int s : list1.keySet())
     {
       assertEquals(list1.get(s), list2.get(s));
     }
@@ -3616,7 +3616,7 @@ public class AssuredReplicationServerTest
             assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 1);
             assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
             assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
-            Map<Short, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+            Map<Integer, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
             assertEquals(failedServer.size(), 1);
             Integer nError = failedServer.get(FDS2_ID);
             assertNotNull(nError);
@@ -3797,7 +3797,7 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSrTimeoutUpdates(), 4);
       assertEquals(fakeRd1.getAssuredSrWrongStatusUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrReplayErrorUpdates(), 0);
-      Map<Short, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
+      Map<Integer, Integer> failedServer = fakeRd1.getAssuredSrServerNotAcknowledgedUpdates();
       assertEquals(failedServer.size(), 1);
       Integer nError = failedServer.get(FDS2_ID);
       assertNotNull(nError);

@@ -94,9 +94,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private FakeReplicationDomain replicationDomain = null;
 
   // Ids of servers
-  private static final short DS1_ID = 1; // fractional domain
-  private static final short DS2_ID = 2; // fake domain
-  private static final short RS_ID = 91; // replication server
+  private static final int DS1_ID = 1; // fractional domain
+  private static final int DS2_ID = 2; // fake domain
+  private static final int RS_ID = 91; // replication server
 
   private final String testName = this.getClass().getSimpleName();
 
@@ -678,7 +678,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
     public FakeReplicationDomain(
       String serviceID,
-      short serverID,
+      int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,

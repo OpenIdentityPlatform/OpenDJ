@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 import org.opends.messages.Message;
@@ -58,7 +58,7 @@ public class ErrorMsg extends RoutableMsg
    * @param destination The destination server or servers of this message.
    * @param details The message containing the details of the error.
    */
-  public ErrorMsg(short sender, short destination,
+  public ErrorMsg(int sender, int destination,
                       Message details)
   {
     super(sender, destination);
@@ -72,12 +72,12 @@ public class ErrorMsg extends RoutableMsg
   /**
    * Creates an ErrorMsg.
    *
-   * @param destination replication server id
+   * @param i replication server id
    * @param details details of the error
    */
-  public ErrorMsg(short destination, Message details)
+  public ErrorMsg(int i, Message details)
   {
-    super((short)-2, destination);
+    super(-2, i);
     this.msgID  = details.getDescriptor().getId();
     this.details = details;
 
@@ -105,13 +105,13 @@ public class ErrorMsg extends RoutableMsg
       // sender
       int length = getNextLength(in, pos);
       String senderString = new String(in, pos, length, "UTF-8");
-      senderID = Short.valueOf(senderString);
+      senderID = Integer.valueOf(senderString);
       pos += length +1;
 
       // destination
       length = getNextLength(in, pos);
       String serverIdString = new String(in, pos, length, "UTF-8");
-      destination = Short.valueOf(serverIdString);
+      destination = Integer.valueOf(serverIdString);
       pos += length +1;
 
       // MsgID

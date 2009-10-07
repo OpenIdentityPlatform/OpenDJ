@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -55,16 +55,13 @@ public class ValueInfoTest extends ReplicationTestCase
     AttributeValue att2 = AttributeValues.create(type, "value");
     AttributeValue att3 = AttributeValues.create(type, "again");
 
-    ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
-    ChangeNumber del2 = new ChangeNumber(1, (short) 1, (short) 1);
-    ChangeNumber del3 = new ChangeNumber(1, (short) 0, (short) 2);
+    ChangeNumber del1 = new ChangeNumber(1,  0,  1);
+    ChangeNumber del2 = new ChangeNumber(1,  1,  1);
+    ChangeNumber del3 = new ChangeNumber(1,  0,  2);
 
-    ChangeNumber upd1 = new ChangeNumber(TimeThread.getTime(),
-                                       (short) 123, (short) 45);
-    ChangeNumber upd2 = new ChangeNumber(TimeThread.getTime()+ 1000,
-        (short) 123, (short) 45);
-    ChangeNumber upd3 = new ChangeNumber(TimeThread.getTime(),
-        (short) 321, (short) 54);
+    ChangeNumber upd1 = new ChangeNumber(TimeThread.getTime(), 123, 45);
+    ChangeNumber upd2 = new ChangeNumber(TimeThread.getTime()+ 1000, 123, 45);
+    ChangeNumber upd3 = new ChangeNumber(TimeThread.getTime(), 321, 54);
 
     return new Object[][] {
         {att1,null,null},

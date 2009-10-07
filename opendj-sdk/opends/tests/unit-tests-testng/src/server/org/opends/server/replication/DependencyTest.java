@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -93,9 +93,9 @@ public class DependencyTest extends ReplicationTestCase
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
-    short brokerId = 2;
-    short serverId = 1;
-    short replServerId = 81;
+    int brokerId = 2;
+    int serverId = 1;
+    int replServerId = 81;
     int AddSequenceLength = 30;
 
 
@@ -258,9 +258,9 @@ public class DependencyTest extends ReplicationTestCase
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
-    short brokerId = 2;
-    short serverId = 1;
-    short replServerId = 82;
+    int brokerId = 2;
+    int serverId = 1;
+    int replServerId = 82;
 
     cleanDB();
 
@@ -416,9 +416,9 @@ public class DependencyTest extends ReplicationTestCase
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
-    short brokerId = 2;
-    short serverId = 1;
-    short replServerId = 83;
+    int brokerId = 2;
+    int serverId = 1;
+    int replServerId = 83;
     int AddSequenceLength = 30;
 
     cleanDB();
@@ -549,9 +549,9 @@ public class DependencyTest extends ReplicationTestCase
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
     SynchronizationProvider replicationPlugin = null;
-    short brokerId = 2;
-    short serverId = 1;
-    short replServerId = 84;
+    int brokerId = 2;
+    int serverId = 1;
+    int replServerId = 84;
     int AddSequenceLength = 30;
 
     cleanDB();

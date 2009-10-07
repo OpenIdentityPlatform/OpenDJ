@@ -123,7 +123,7 @@ public class StatusAnalyzer extends DirectoryThread
         {
           TRACER.debugInfo("Status analyzer for dn " +
             replicationServerDomain.getBaseDn().toString() + " DS " +
-            Short.toString(serverHandler.getServerId()) + " has " + nChanges +
+            Integer.toString(serverHandler.getServerId()) + " has " + nChanges +
             " message(s) in writer queue. This is in RS " +
             replicationServerDomain.getReplicationServer().getServerId());
         }

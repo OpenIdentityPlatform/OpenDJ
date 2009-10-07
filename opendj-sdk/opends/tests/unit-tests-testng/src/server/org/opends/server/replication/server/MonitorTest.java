@@ -77,13 +77,13 @@ public class MonitorTest extends ReplicationTestCase
   private static final String testName = "monitorTest";
 
   private static final int   WINDOW_SIZE = 10;
-  private static final short server1ID = 1;
-  private static final short server2ID = 2;
-  private static final short server3ID = 3;
-  private static final short server4ID = 4;
-  private static final short changelog1ID = 21;
-  private static final short changelog2ID = 22;
-  private static final short changelog3ID = 23;
+  private static final int server1ID = 1;
+  private static final int server2ID = 2;
+  private static final int server3ID = 3;
+  private static final int server4ID = 4;
+  private static final int changelog1ID = 21;
+  private static final int changelog2ID = 22;
+  private static final int changelog3ID = 23;
 
   private DN baseDn;
   private ReplicationBroker broker2 = null;
@@ -180,7 +180,7 @@ public class MonitorTest extends ReplicationTestCase
    *                    server to the other replication servers in the test.
    * @return The new created replication server.
    */
-  private ReplicationServer createReplicationServer(short changelogId,
+  private ReplicationServer createReplicationServer(int changelogId,
       boolean all, String suffix)
   {
     SortedSet<String> servers = null;
@@ -216,7 +216,7 @@ public class MonitorTest extends ReplicationTestCase
    * replication Server ID.
    * @param changelogID
    */
-  private void connectServer1ToChangelog(short changelogID)
+  private void connectServer1ToChangelog(int changelogID)
   {
     // Connect DS to the replicationServer
     try
@@ -258,7 +258,7 @@ public class MonitorTest extends ReplicationTestCase
   /*
    * Disconnect DS from the replicationServer
    */
-  private void disconnectFromReplServer(short changelogID)
+  private void disconnectFromReplServer(int changelogID)
   {
     try
     {
@@ -284,7 +284,7 @@ public class MonitorTest extends ReplicationTestCase
     }
   }
 
-  private int getChangelogPort(short changelogID)
+  private int getChangelogPort(int changelogID)
   {
     if (replServerPort[changelogID] == 0)
     {
@@ -324,7 +324,7 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n");
   }
 
-  static protected ReplicationMsg createAddMsg(short serverId)
+  static protected ReplicationMsg createAddMsg(int serverId)
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;

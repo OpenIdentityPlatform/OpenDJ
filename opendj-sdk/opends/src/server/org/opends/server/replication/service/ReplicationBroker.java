@@ -92,7 +92,7 @@ public class ReplicationBroker
   private ProtocolSession session = null;
   private final ServerState state;
   private final String baseDn;
-  private final short serverId;
+  private final int serverId;
   private Semaphore sendWindow;
   private int maxSendWindow;
   private int rcvWindow = 100;
@@ -106,7 +106,7 @@ public class ReplicationBroker
   // The group id of the RS we are connected to
   private byte rsGroupId = (byte) -1;
   // The server id of the RS we are connected to
-  private short rsServerId = -1;
+  private Integer rsServerId = -1;
   // The server URL of the RS we are connected to
   private String rsServerUrl = null;
   // Our replication domain
@@ -172,7 +172,7 @@ public class ReplicationBroker
    *        when negotiating the session with the replicationServer.
    * @param baseDn The base DN that should be used by this broker
    *        when negotiating the session with the replicationServer.
-   * @param serverId The server ID that should be used by this broker
+   * @param serverID2 The server ID that should be used by this broker
    *        when negotiating the session with the replicationServer.
    * @param window The size of the send and receive window to use.
    * @param generationId The generationId for the server associated to the
@@ -186,14 +186,14 @@ public class ReplicationBroker
    *        or zero if no CN heartbeat shoud be sent.
    */
   public ReplicationBroker(ReplicationDomain replicationDomain,
-    ServerState state, String baseDn, short serverId, int window,
+    ServerState state, String baseDn, int serverID2, int window,
     long generationId, long heartbeatInterval,
     ReplSessionSecurity replSessionSecurity, byte groupId,
     long changeTimeHeartbeatInterval)
   {
     this.domain = replicationDomain;
     this.baseDn = baseDn;
-    this.serverId = serverId;
+    this.serverId = serverID2;
     this.state = state;
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.replSessionSecurity = replSessionSecurity;
@@ -253,7 +253,7 @@ public class ReplicationBroker
    * Gets the server id of the RS we are connected to.
    * @return The server id of the RS we are connected to
    */
-  public short getRsServerId()
+  public Integer getRsServerId()
   {
     return rsServerId;
   }
@@ -262,7 +262,7 @@ public class ReplicationBroker
    * Gets the server id.
    * @return The server id
    */
-  public short getServerId()
+  public int getServerId()
   {
     return serverId;
   }
@@ -517,9 +517,9 @@ public class ReplicationBroker
                  // right group id arrives...
                  Message message =
                    WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID.get(
-                   Byte.toString(groupId),  Short.toString(rsServerId),
+                   Byte.toString(groupId),  Integer.toString(rsServerId),
                    bestServer, Byte.toString(getRsGroupId()),
-                   baseDn.toString(), Short.toString(serverId));
+                   baseDn.toString(), Integer.toString(serverId));
                  logError(message);
                  startSameGroupIdPoller();
                 }
@@ -535,7 +535,7 @@ public class ReplicationBroker
                 // inform administrator
                 Message message = NOTE_NEW_SERVER_WITH_SAME_GROUP_ID.get(
                   Byte.toString(groupId), baseDn.toString(),
-                  Short.toString(serverId));
+                  Integer.toString(serverId));
                 logError(message);
                 // Do not log connection error
                 newServerWithSameGroupId = true;
@@ -590,9 +590,9 @@ public class ReplicationBroker
           Message message =
             NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG.get(
             baseDn.toString(),
-            Short.toString(rsServerId),
+            Integer.toString(rsServerId),
             replicationServer,
-            Short.toString(serverId),
+            Integer.toString(serverId),
             Long.toString(this.getGenerationID()));
           logError(message);
         } else
@@ -672,7 +672,7 @@ public class ReplicationBroker
         if (debugEnabled())
         {
           TRACER.debugInfo("RB for dn " + baseDn +
-            " and with server id " + Short.toString(serverId) + " computed " +
+            " and with server id " + Integer.toString(serverId) + " computed " +
             Integer.toString(nChanges) + " changes late.");
         }
 
@@ -1178,13 +1178,13 @@ public class ReplicationBroker
    * @param myState The local server state.
    * @param rsInfos The list of available replication servers and their
    *                 associated information (choice will be made among them).
-   * @param serverId The server id for the suffix we are working for.
+   * @param serverId2 The server id for the suffix we are working for.
    * @param baseDn The suffix for which we are working for.
    * @param groupId The groupId we prefer being connected to if possible
    * @return The computed best replication server.
    */
   public static String computeBestReplicationServer(ServerState myState,
-    HashMap<String, ServerInfo> rsInfos, short serverId, String baseDn,
+    HashMap<String, ServerInfo> rsInfos, int serverId2, String baseDn,
     byte groupId)
   {
     /*
@@ -1209,11 +1209,11 @@ public class ReplicationBroker
     if (sameGroupIdRsInfos.size() > 0)
     {
       return searchForBestReplicationServer(myState, sameGroupIdRsInfos,
-        serverId, baseDn);
+        serverId2, baseDn);
     } else
     {
       return searchForBestReplicationServer(myState, rsInfos,
-        serverId, baseDn);
+        serverId2, baseDn);
     }
   }
 
@@ -1226,12 +1226,12 @@ public class ReplicationBroker
    * @param myState The local server state.
    * @param rsInfos The list of available replication servers and their
    *                 associated information (choice will be made among them).
-   * @param serverId The server id for the suffix we are working for.
+   * @param serverId2 The server id for the suffix we are working for.
    * @param baseDn The suffix for which we are working for.
    * @return The computed best replication server.
    */
   private static String searchForBestReplicationServer(ServerState myState,
-    HashMap<String, ServerInfo> rsInfos, short serverId, String baseDn)
+    HashMap<String, ServerInfo> rsInfos, int serverId2, String baseDn)
   {
     /*
      * Find replication servers who are up to date (or more up to date than us,
@@ -1268,19 +1268,19 @@ public class ReplicationBroker
     /*
      * Start loop to differenciate up to date servers from late ones.
      */
-    ChangeNumber myChangeNumber = myState.getMaxChangeNumber(serverId);
+    ChangeNumber myChangeNumber = myState.getMaxChangeNumber(serverId2);
     if (myChangeNumber == null)
     {
-      myChangeNumber = new ChangeNumber(0, 0, serverId);
+      myChangeNumber = new ChangeNumber(0, 0, serverId2);
     }
     for (String repServer : rsInfos.keySet())
     {
 
       ServerState rsState = rsInfos.get(repServer).getServerState();
-      ChangeNumber rsChangeNumber = rsState.getMaxChangeNumber(serverId);
+      ChangeNumber rsChangeNumber = rsState.getMaxChangeNumber(serverId2);
       if (rsChangeNumber == null)
       {
-        rsChangeNumber = new ChangeNumber(0, 0, serverId);
+        rsChangeNumber = new ChangeNumber(0, 0, serverId2);
       }
 
       // Store state in right list
@@ -1308,7 +1308,7 @@ public class ReplicationBroker
        */
 
       Message message = NOTE_FOUND_CHANGELOGS_WITH_MY_CHANGES.get(
-        upToDateServers.size(), baseDn, Short.toString(serverId));
+        upToDateServers.size(), baseDn, Integer.toString(serverId2));
       logError(message);
 
       /*
@@ -1344,10 +1344,10 @@ public class ReplicationBroker
       for (ServerState curState : upToDateServers.values())
       {
 
-        Iterator<Short> it = curState.iterator();
+        Iterator<Integer> it = curState.iterator();
         while (it.hasNext())
         {
-          Short sId = it.next();
+          Integer sId = it.next();
           ChangeNumber curSidCn = curState.getMaxChangeNumber(sId);
           if (curSidCn == null)
           {
@@ -1375,10 +1375,10 @@ public class ReplicationBroker
          */
         long shift = -1L;
         ServerState curState = upToDateServers.get(upServer);
-        Iterator<Short> it = curState.iterator();
+        Iterator<Integer> it = curState.iterator();
         while (it.hasNext())
         {
-          Short sId = it.next();
+          Integer sId = it.next();
           ChangeNumber curSidCn = curState.getMaxChangeNumber(sId);
           if (curSidCn == null)
           {
@@ -1425,10 +1425,10 @@ public class ReplicationBroker
          * (this is the most up to date regarding our server id).
          */
         ServerState curState = lateOnes.get(lateServer);
-        ChangeNumber ourSidCn = curState.getMaxChangeNumber(serverId);
+        ChangeNumber ourSidCn = curState.getMaxChangeNumber(serverId2);
         if (ourSidCn == null)
         {
-          ourSidCn = new ChangeNumber(0, 0, serverId);
+          ourSidCn = new ChangeNumber(0, 0, serverId2);
         }
         // Cannot be negative as our Cn for our server id is strictly
         // greater than those of the servers in late server list
@@ -1727,8 +1727,8 @@ public class ReplicationBroker
              */
             Message message =
               NOTE_DISCONNECTED_FROM_CHANGELOG.get(replicationServer,
-                  Short.toString(rsServerId), baseDn.toString(),
-                  Short.toString(serverId));
+                  Integer.toString(rsServerId), baseDn.toString(),
+                  Integer.toString(serverId));
             logError(message);
           }
           this.reStart(failingSession);
@@ -2070,7 +2070,7 @@ public class ReplicationBroker
                   // id.
                   Message message = NOTE_NEW_SERVER_WITH_SAME_GROUP_ID.get(
                     Byte.toString(groupId), baseDn.toString(),
-                    Short.toString(serverId));
+                    Integer.toString(serverId));
                   logError(message);
                   try
                   {
@@ -2115,7 +2115,7 @@ public class ReplicationBroker
     {
       Message message = ERR_EXCEPTION_SENDING_CS.get(
         baseDn,
-        Short.toString(serverId),
+        Integer.toString(serverId),
         ex.getLocalizedMessage() + stackTraceToSingleLineString(ex));
       logError(message);
     }

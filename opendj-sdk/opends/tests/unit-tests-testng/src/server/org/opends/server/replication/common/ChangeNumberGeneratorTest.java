@@ -43,12 +43,12 @@ public class ChangeNumberGeneratorTest extends ReplicationTestCase
   public void adjustTest()
   {
     ChangeNumberGenerator generator =
-      new ChangeNumberGenerator((short)5, TimeThread.getTime());
+      new ChangeNumberGenerator(5, TimeThread.getTime());
 
     ChangeNumber cn = generator.newChangeNumber();
 
     ChangeNumber cn1 =
-      new ChangeNumber(cn.getTime() + 5000, cn.getSeqnum(), (short) 6);
+      new ChangeNumber(cn.getTime() + 5000, cn.getSeqnum(), 6);
     generator.adjust(cn1);
 
     ChangeNumber cn2 = generator.newChangeNumber();
@@ -62,12 +62,12 @@ public class ChangeNumberGeneratorTest extends ReplicationTestCase
   public void adjustSameMilliTest()
   {
     ChangeNumberGenerator generator =
-      new ChangeNumberGenerator((short)5, TimeThread.getTime());
+      new ChangeNumberGenerator(5, TimeThread.getTime());
 
     ChangeNumber cn = generator.newChangeNumber();
 
     ChangeNumber cn1 =
-      new ChangeNumber(cn.getTime(), cn.getSeqnum() + 10, (short) 6);
+      new ChangeNumber(cn.getTime(), cn.getSeqnum() + 10, 6);
     generator.adjust(cn1);
 
     ChangeNumber cn2 = generator.newChangeNumber();
@@ -85,10 +85,10 @@ public class ChangeNumberGeneratorTest extends ReplicationTestCase
   public void adjustRollingSeqnum()
   {
     ServerState state = new ServerState();
-    ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), Integer.MAX_VALUE, (short) 5);
+    ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), Integer.MAX_VALUE, 5);
     state.update(cn1);
 
-    ChangeNumberGenerator generator = new ChangeNumberGenerator((short)5, state);
+    ChangeNumberGenerator generator = new ChangeNumberGenerator(5, state);
 
     ChangeNumber cn2 = generator.newChangeNumber();
 

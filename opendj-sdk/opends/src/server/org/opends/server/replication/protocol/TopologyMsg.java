@@ -65,11 +65,6 @@ public class TopologyMsg extends ReplicationMsg
   private List<RSInfo> rsList = new ArrayList<RSInfo>();
 
   /**
-   * The protocolVersion that should be used when serializing this message.
-   */
-  private final short protocolVersion;
-
-  /**
    * Creates a new changelogInfo message from its encoded form.
    *
    * @param in The byte array containing the encoded form of the message.
@@ -79,24 +74,7 @@ public class TopologyMsg extends ReplicationMsg
    */
   public TopologyMsg(byte[] in, short version) throws DataFormatException
   {
-    protocolVersion = ProtocolVersion.getCurrentVersion();
     decode(in, version);
-  }
-
-  /**
-   * Creates a new  message from a list of the currently connected servers.
-   *
-   * @param dsList The list of currently connected DS servers ID.
-   * @param rsList The list of currently connected RS servers ID.
-   * @param version The protocol version to use to decode the msg.
-   */
-  public TopologyMsg(List<DSInfo> dsList, List<RSInfo> rsList, short version)
-  {
-    if (dsList != null) // null means no info, let empty list from init time
-      this.dsList = dsList;
-    if (rsList != null) // null means no info, let empty list from init time
-      this.rsList = rsList;
-    this.protocolVersion = version;
   }
 
   /**
@@ -111,7 +89,6 @@ public class TopologyMsg extends ReplicationMsg
       this.dsList = dsList;
     if (rsList != null) // null means no info, let empty list from init time
       this.rsList = rsList;
-    this.protocolVersion = ProtocolVersion.getCurrentVersion();
   }
 
   // ============
@@ -123,6 +100,16 @@ public class TopologyMsg extends ReplicationMsg
    */
   @Override
   public byte[] getBytes()
+  throws UnsupportedEncodingException
+  {
+    return getBytes(ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes(short version)
   throws UnsupportedEncodingException
   {
     try
@@ -178,7 +165,7 @@ public class TopologyMsg extends ReplicationMsg
           oStream.write(0);
         }
 
-        if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
           Set<String> attrs = dsInfo.getEclIncludes();
           oStream.write(attrs.size());
@@ -246,7 +233,7 @@ public class TopologyMsg extends ReplicationMsg
         /* Read DS id */
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
-        short dsId = Short.valueOf(serverIdString);
+        int dsId = Integer.valueOf(serverIdString);
         pos +=
           length + 1;
 
@@ -255,7 +242,7 @@ public class TopologyMsg extends ReplicationMsg
           getNextLength(in, pos);
         serverIdString =
           new String(in, pos, length, "UTF-8");
-        short rsId = Short.valueOf(serverIdString);
+        int rsId = Integer.valueOf(serverIdString);
         pos +=
           length + 1;
 
@@ -344,7 +331,7 @@ public class TopologyMsg extends ReplicationMsg
         /* Read RS id */
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
-        short id = Short.valueOf(serverIdString);
+        int id = Integer.valueOf(serverIdString);
         pos +=
           length + 1;
 

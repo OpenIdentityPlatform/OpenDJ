@@ -283,7 +283,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
     length += encodedMods.length + 1;
 
     /* encode the header in a byte[] large enough to also contain mods.. */
-    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, length);
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, length,
+        ProtocolVersion.REPLICATION_PROTOCOL_V3);
     int pos = encodedMsg.length - length;
 
     /* put the new RDN and a terminating 0 */
@@ -364,7 +365,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
     bodyLength += encodedEclIncludes.length + 1;
 
     /* encode the header in a byte[] large enough to also contain mods.. */
-    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, bodyLength);
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFYDN, bodyLength,
+        ProtocolVersion.REPLICATION_PROTOCOL_V4);
 
     int pos = encodedMsg.length - bodyLength;
 

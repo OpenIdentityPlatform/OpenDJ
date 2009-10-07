@@ -394,7 +394,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
    * {@inheritDoc}
    */
   @Override
-  protected byte[] encodeHeader(byte type, int additionalLength)
+  protected byte[] encodeHeader(byte type, int additionalLength, short version)
     throws UnsupportedEncodingException
   {
     // Not called as only used by constructors using bytes

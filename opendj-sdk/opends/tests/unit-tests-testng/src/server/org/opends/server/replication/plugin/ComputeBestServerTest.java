@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -75,9 +75,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
 
     // definitions for server names
     final String WINNER = "winner";
@@ -119,9 +119,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
 
@@ -165,9 +165,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
 
     // definitions for server names
     final String WINNER = "winner";
@@ -211,9 +211,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
 
@@ -258,9 +258,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -316,9 +316,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -376,9 +376,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -434,9 +434,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -503,9 +503,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -574,9 +574,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
 
@@ -621,9 +621,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -679,9 +679,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
     // definitions for server names
     final String WINNER = "winner";
     final String LOOSER1 = "looser1";
@@ -748,9 +748,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
     debugInfo("Starting " + testCase);
 
     // definitions for server ids
-    short myId1 = 1;
-    short myId2 = 2;
-    short myId3 = 3;
+    int myId1 = 1;
+    int myId2 = 2;
+    int myId3 = 3;
 
     // definitions for server names
     final String WINNER = "winner";

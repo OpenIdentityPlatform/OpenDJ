@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -35,7 +35,7 @@ package org.opends.server.replication.common;
 public class RSInfo
 {
   // Server id of the RS
-  private short id = -1;
+  private int id = -1;
   // Generation Id of the RS
   private long generationId = -1;
   // Group id of the RS
@@ -48,7 +48,7 @@ public class RSInfo
    * @param generationId The generation id the RS is using
    * @param groupId RS group id
    */
-  public RSInfo(short id, long generationId, byte groupId)
+  public RSInfo(int id, long generationId, byte groupId)
   {
     this.id = id;
     this.generationId = generationId;
@@ -59,7 +59,7 @@ public class RSInfo
    * Get the RS id.
    * @return the RS id
    */
-  public short getId()
+  public int getId()
   {
     return id;
   }
@@ -130,9 +130,9 @@ public class RSInfo
     StringBuffer sb = new StringBuffer();
     sb.append("Id: ");
     sb.append(id);
-    sb.append("\nGeneration id: ");
+    sb.append(" Generation id: ");
     sb.append(generationId);
-    sb.append("\nGroup id: ");
+    sb.append(" Group id: ");
     sb.append(groupId);
     return sb.toString();
   }

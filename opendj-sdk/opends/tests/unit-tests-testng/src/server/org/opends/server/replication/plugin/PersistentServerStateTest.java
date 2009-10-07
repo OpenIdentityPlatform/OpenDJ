@@ -81,11 +81,11 @@ public class PersistentServerStateTest extends ReplicationTestCase
     DN baseDn = DN.decode(dn);
     ServerState origState = new ServerState();
     PersistentServerState state =
-      new PersistentServerState(baseDn, (short) 1, origState);
+      new PersistentServerState(baseDn,  1, origState);
     ChangeNumberGenerator gen1 =
-      new ChangeNumberGenerator((short) 1, origState);
+      new ChangeNumberGenerator( 1, origState);
     ChangeNumberGenerator gen2 =
-      new ChangeNumberGenerator((short) 2, origState);
+      new ChangeNumberGenerator( 2, origState);
 
     ChangeNumber cn1 = gen1.newChangeNumber();
     ChangeNumber cn2 = gen2.newChangeNumber();
@@ -95,9 +95,9 @@ public class PersistentServerStateTest extends ReplicationTestCase
 
     state.save();
 
-    PersistentServerState stateSaved = new PersistentServerState(baseDn, (short) 1);
-    ChangeNumber cn1Saved = stateSaved.getMaxChangeNumber((short) 1);
-    ChangeNumber cn2Saved = stateSaved.getMaxChangeNumber((short) 2);
+    PersistentServerState stateSaved = new PersistentServerState(baseDn,  1);
+    ChangeNumber cn1Saved = stateSaved.getMaxChangeNumber( 1);
+    ChangeNumber cn2Saved = stateSaved.getMaxChangeNumber( 2);
 
     assertEquals(cn1Saved, cn1,
         "cn1 has not been saved or loaded correctly for " + dn);
@@ -105,8 +105,8 @@ public class PersistentServerStateTest extends ReplicationTestCase
         "cn2 has not been saved or loaded correctly for " + dn);
 
     state.clear();
-    stateSaved = new PersistentServerState(baseDn, (short) 1);
-    cn1Saved = stateSaved.getMaxChangeNumber((short) 1);
+    stateSaved = new PersistentServerState(baseDn,  1);
+    cn1Saved = stateSaved.getMaxChangeNumber( 1);
     assertEquals(cn1Saved, null,
         "cn1 has not been saved after clear for " + dn);
 
@@ -165,9 +165,9 @@ public class PersistentServerStateTest extends ReplicationTestCase
       assertTrue(replDomain.getGenerationID() == 1225361491);
 
       ServerState state = replDomain.getServerState();
-      assertTrue(state.getMaxChangeNumber((short) 1).
+      assertTrue(state.getMaxChangeNumber( 1).
           compareTo(new ChangeNumber("0000011d4d42b240000100000000")) == 0);
-      assertTrue(state.getMaxChangeNumber((short) 3).
+      assertTrue(state.getMaxChangeNumber( 3).
           compareTo(new ChangeNumber("0000011d9a991110000300000000")) == 0);
 
     }

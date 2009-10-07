@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.plugin;
@@ -222,7 +222,7 @@ public class HistoricalTest
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
 
     // Clear the backend and create top entrye
@@ -264,10 +264,10 @@ public class HistoricalTest
          attrs.get(0).iterator().next().getValue().toString();
 
     // A change on a first server.
-    ChangeNumber t1 = new ChangeNumber(1, (short) 0, (short) 3);
+    ChangeNumber t1 = new ChangeNumber(1,  0,  3);
 
     // A change on a second server.
-    ChangeNumber t2 = new ChangeNumber(2, (short) 0, (short) 4);
+    ChangeNumber t2 = new ChangeNumber(2,  0,  4);
 
     // Simulate the ordering t1:add:A followed by t2:add:B that would
     // happen on one server.
@@ -294,8 +294,8 @@ public class HistoricalTest
     // Simulate the reverse ordering t2:add:B followed by t1:add:A that
     // would happen on the other server.
 
-    t1 = new ChangeNumber(3, (short) 0, (short) 3);
-    t2 = new ChangeNumber(4, (short) 0, (short) 4);
+    t1 = new ChangeNumber(3,  0,  3);
+    t2 = new ChangeNumber(4,  0,  4);
 
     // Replay an add of a value B at time t2 on a second server.
     attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");

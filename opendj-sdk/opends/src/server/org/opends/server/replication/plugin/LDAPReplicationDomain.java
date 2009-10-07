@@ -223,7 +223,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    */
   private final RemotePendingChanges remotePendingChanges;
 
-  private final short serverId;
+  private final int serverId;
 
   private final DN baseDn;
 
@@ -403,7 +403,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     throws ConfigException
   {
     super(configuration.getBaseDN().toNormalizedString(),
-        (short) configuration.getServerId());
+          configuration.getServerId());
 
     /**
      * The time in milliseconds between heartbeats from the replication
@@ -413,7 +413,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
     // Read the configuration parameters.
     Set<String> replicationServers = configuration.getReplicationServer();
-    serverId = (short) configuration.getServerId();
+    serverId = configuration.getServerId();
     baseDn = configuration.getBaseDN();
     int window  = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
@@ -1631,11 +1631,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
       {
         case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
           msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-            baseDn.toString(), Short.toString(ieContext.getImportSource()));
+            baseDn.toString(), Integer.toString(ieContext.getImportSource()));
           break;
         case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
           msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-            baseDn.toString(), Short.toString(ieContext.getImportSource()));
+            baseDn.toString(), Integer.toString(ieContext.getImportSource()));
           break;
       }
       ieContext.setException(
@@ -1653,13 +1653,13 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * {@inheritDoc}
    */
   @Override
-  protected void initializeRemote(short target, short requestorID,
+  protected void initializeRemote(int target, int requestorID,
     Task initTask) throws DirectoryException
   {
     if ((target == RoutableMsg.ALL_SERVERS) && fractionalConfig.isFractional())
     {
       Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
-            baseDn.toString(), Short.toString(getServerId()));
+            baseDn.toString(), Integer.toString(getServerId()));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     } else
     {
@@ -4318,7 +4318,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
-    Short serverId = fromChangeNumber.getServerId();
+    Integer serverId = fromChangeNumber.getServerId();
 
     String maxValueForId = "ffffffffffffffff" +
       String.format("%04x", serverId) + "ffffffff";
@@ -4475,14 +4475,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return The source as a short value
    * @throws DirectoryException if the string is not valid
    */
-  public short decodeSource(String sourceString)
+  public int decodeSource(String sourceString)
   throws DirectoryException
   {
-    short  source = 0;
+    int  source = 0;
     Throwable cause = null;
     try
     {
-      source = Integer.decode(sourceString).shortValue();
+      source = Integer.decode(sourceString);
       if ((source >= -1) && (source != serverId))
       {
         // TODO Verifies serverID is in the domain

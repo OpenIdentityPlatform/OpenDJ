@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -57,10 +57,10 @@ import static org.opends.server.TestCaseUtils.*;
 @Test(sequential = true)
 public class ReplicationServerFailoverTest extends ReplicationTestCase
 {
-  private static final short DS1_ID = 1;
-  private static final short DS2_ID = 2;
-  private static final short RS1_ID = 31;
-  private static final short RS2_ID = 32;
+  private static final int DS1_ID = 1;
+  private static final int DS2_ID = 2;
+  private static final int RS1_ID = 31;
+  private static final int RS2_ID = 32;
   private int rs1Port = -1;
   private int rs2Port = -1;
   private LDAPReplicationDomain rd1 = null;
@@ -160,7 +160,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       // Start DS1
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       rd1 = createReplicationDomain(baseDn, DS1_ID);
-      
+
       // Wait a bit so that connections are performed
       sleep(2000);
 
@@ -231,7 +231,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd1 = createReplicationDomain(baseDn, DS1_ID);
       // Start DS2
       rd2 = createReplicationDomain(baseDn, DS2_ID);
-      
+
       // Wait a bit so that connections are performed
       sleep(3000);
 
@@ -294,7 +294,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, short dsId, short rsId, String msg)
+  private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
   {
 
     int rsPort = -1;
@@ -402,7 +402,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationServer.
    */
-  private ReplicationServer createReplicationServer(short serverId,
+  private ReplicationServer createReplicationServer(int serverId,
     String suffix)
   {
     SortedSet<String> replServers = new TreeSet<String>();
@@ -439,7 +439,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationDomain.
    */
-  private LDAPReplicationDomain createReplicationDomain(DN baseDn, short serverId)
+  private LDAPReplicationDomain createReplicationDomain(DN baseDn, int serverId)
   {
 
     SortedSet<String> replServers = new TreeSet<String>();

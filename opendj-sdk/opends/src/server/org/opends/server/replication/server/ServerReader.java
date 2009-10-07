@@ -57,7 +57,7 @@ public class ServerReader extends DirectoryThread
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  private short serverId;
+  private int serverId;
   private ProtocolSession session;
   private ServerHandler handler;
   private ReplicationServerDomain replicationServerDomain;
@@ -71,7 +71,7 @@ public class ServerReader extends DirectoryThread
    * @param replicationServerDomain The ReplicationServerDomain for this server
    *        reader.
    */
-  public ServerReader(ProtocolSession session, short serverId,
+  public ServerReader(ProtocolSession session, int serverId,
     ServerHandler handler,
     ReplicationServerDomain replicationServerDomain)
   {
@@ -145,20 +145,20 @@ public class ServerReader extends DirectoryThread
                   replicationServerDomain.getGenerationId();
                 if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
                   logError(ERR_IGNORING_UPDATE_FROM_DS_BADGENID.get(
-                    Short.toString(replicationServerDomain.
+                    Integer.toString(replicationServerDomain.
                     getReplicationServer().getServerId()),
                     replicationServerDomain.getBaseDn(),
                     ((UpdateMsg) msg).getChangeNumber().toString(),
-                    Short.toString(handler.getServerId()),
+                    Integer.toString(handler.getServerId()),
                     Long.toString(referenceGenerationId),
                     Long.toString(handler.getGenerationId())));
                 if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
                   logError(ERR_IGNORING_UPDATE_FROM_DS_FULLUP.get(
-                    Short.toString(replicationServerDomain.
+                    Integer.toString(replicationServerDomain.
                     getReplicationServer().getServerId()),
                     replicationServerDomain.getBaseDn(),
                     ((UpdateMsg) msg).getChangeNumber().toString(),
-                    Short.toString(handler.getServerId())));
+                    Integer.toString(handler.getServerId())));
                 filtered = true;
               }
             } else
@@ -172,14 +172,16 @@ public class ServerReader extends DirectoryThread
               if ((referenceGenerationId > 0) &&
                 (referenceGenerationId != handler.getGenerationId()))
               {
-                logError(ERR_IGNORING_UPDATE_FROM_RS.get(
-                  Short.toString(replicationServerDomain.getReplicationServer().
-                  getServerId()),
-                  replicationServerDomain.getBaseDn(),
-                  ((UpdateMsg) msg).getChangeNumber().toString(),
-                  Short.toString(handler.getServerId()),
-                  Long.toString(referenceGenerationId),
-                  Long.toString(handler.getGenerationId())));
+                logError(
+                    ERR_IGNORING_UPDATE_FROM_RS.get(
+                        Integer.toString(
+                            replicationServerDomain.getReplicationServer().
+                            getServerId()),
+                        replicationServerDomain.getBaseDn(),
+                        ((UpdateMsg) msg).getChangeNumber().toString(),
+                        Integer.toString(handler.getServerId()),
+                        Long.toString(referenceGenerationId),
+                        Long.toString(handler.getGenerationId())));
                 filtered = true;
               }
             }
@@ -252,7 +254,7 @@ public class ServerReader extends DirectoryThread
               errMessage =
                 ERR_RECEIVED_CHANGE_STATUS_NOT_FROM_DS.get(
                     replicationServerDomain.getBaseDn(),
-                    Short.toString(handler.getServerId()),
+                    Integer.toString(handler.getServerId()),
                     csMsg.toString());
               logError(errMessage);
             }
@@ -307,7 +309,7 @@ public class ServerReader extends DirectoryThread
           this + " " +
           stackTraceToSingleLineString(e) + " " + e.getLocalizedMessage());
       errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
-        Short.toString(replicationServerDomain.
+        Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
     }

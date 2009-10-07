@@ -37,7 +37,7 @@ public class ChangeNumber implements java.io.Serializable,
   private static final long serialVersionUID = -8802722277749190740L;
   private final long timeStamp;
   private final int seqnum;
-  private final short serverId;
+  private final int serverId;
 
   // A String representation of the ChangeNumber suitable for network
   // transmission.
@@ -54,7 +54,7 @@ public class ChangeNumber implements java.io.Serializable,
     timeStamp = Long.parseLong(temp, 16);
 
     temp = str.substring(16, 20);
-    serverId = Short.parseShort(temp, 16);
+    serverId = Integer.parseInt(temp, 16);
 
     temp = str.substring(20, 28);
     seqnum = Integer.parseInt(temp, 16);
@@ -67,11 +67,11 @@ public class ChangeNumber implements java.io.Serializable,
    *
    * @param time time for the ChangeNumber
    * @param seq sequence number
-   * @param id identity of server
+   * @param serverId2 identity of server
    */
-  public ChangeNumber(long time, int seq, short id)
+  public ChangeNumber(long time, int seq, int serverId2)
   {
-    serverId = id;
+    serverId = serverId2;
     timeStamp = time;
     seqnum = seq;
   }
@@ -107,7 +107,7 @@ public class ChangeNumber implements java.io.Serializable,
    * Getter for the server ID.
    * @return the server ID
    */
-  public short getServerId()
+  public int getServerId()
   {
     return serverId;
   }

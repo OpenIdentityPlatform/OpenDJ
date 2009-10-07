@@ -71,7 +71,7 @@ public class ServerWriter extends DirectoryThread
    * @param replicationServerDomain The ReplicationServerDomain of this
    *        ServerWriter.
    */
-  public ServerWriter(ProtocolSession session, short serverId,
+  public ServerWriter(ProtocolSession session, int serverId,
                       ServerHandler handler,
                       ReplicationServerDomain replicationServerDomain)
   {
@@ -133,20 +133,20 @@ public class ServerWriter extends DirectoryThread
               replicationServerDomain.getGenerationId();
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
               logError(ERR_IGNORING_UPDATE_TO_DS_BADGENID.get(
-                Short.toString(replicationServerDomain.getReplicationServer().
+                Integer.toString(replicationServerDomain.getReplicationServer().
                 getServerId()),
                 replicationServerDomain.getBaseDn(),
                 update.getChangeNumber().toString(),
-                Short.toString(handler.getServerId()),
+                Integer.toString(handler.getServerId()),
                 Long.toString(handler.getGenerationId()),
                 Long.toString(referenceGenerationId)));
             if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
               logError(ERR_IGNORING_UPDATE_TO_DS_FULLUP.get(
-                Short.toString(replicationServerDomain.getReplicationServer().
+                Integer.toString(replicationServerDomain.getReplicationServer().
                 getServerId()),
                 replicationServerDomain.getBaseDn(),
                 update.getChangeNumber().toString(),
-                Short.toString(handler.getServerId())));
+                Integer.toString(handler.getServerId())));
             continue;
           }
         } else
@@ -161,11 +161,11 @@ public class ServerWriter extends DirectoryThread
             (referenceGenerationId == -1) || (handler.getGenerationId() == -1))
           {
             logError(ERR_IGNORING_UPDATE_TO_RS.get(
-              Short.toString(replicationServerDomain.getReplicationServer().
+              Integer.toString(replicationServerDomain.getReplicationServer().
               getServerId()),
               replicationServerDomain.getBaseDn(),
               update.getChangeNumber().toString(),
-              Short.toString(handler.getServerId()),
+              Integer.toString(handler.getServerId()),
               Long.toString(handler.getGenerationId()),
               Long.toString(referenceGenerationId)));
             continue;
@@ -199,7 +199,7 @@ public class ServerWriter extends DirectoryThread
        * be removed, just ignore the exception and let the thread die as well
        */
       errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
-        Short.toString(replicationServerDomain.
+        Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
     }
@@ -210,7 +210,7 @@ public class ServerWriter extends DirectoryThread
        * be removed, just ignore the exception and let the thread die as well
        */
       errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
-        Short.toString(replicationServerDomain.
+        Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
     }

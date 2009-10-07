@@ -86,7 +86,7 @@ public class MultiDomainServerState implements Iterable<String>
 
     synchronized(this)
     {
-      Short serverId =  changeNumber.getServerId();
+      int serverId =  changeNumber.getServerId();
       ServerState oldServerState = list.get(serviceId);
       if (oldServerState == null)
         oldServerState = new ServerState();

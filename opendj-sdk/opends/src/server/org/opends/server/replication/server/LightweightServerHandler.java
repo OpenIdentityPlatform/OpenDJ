@@ -69,10 +69,10 @@ public class LightweightServerHandler
   private ReplicationServerHandler replServerHandler;
   private ReplicationServerDomain rsDomain;
   // The id of the RS this DS is connected to
-  private short replicationServerId = -1;
+  private int replicationServerId = -1;
 
   // Server id of this DS
-  private short serverId = -1;
+  private int serverId = -1;
   // Generation id of this DS
   private long generationId = -1;
   // Group id of the DS;
@@ -109,7 +109,7 @@ public class LightweightServerHandler
    * @param eclInclude The list of entry attributes to be added to the ECL.
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
-    short replicationServerId, short serverId, long generationId, byte groupId,
+    int replicationServerId, int serverId, long generationId, byte groupId,
     ServerStatus status, List<String> refUrls, boolean assuredFlag,
     AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude)
   {
@@ -153,9 +153,9 @@ public class LightweightServerHandler
    * Get the serverID associated with this LDAP server.
    * @return The serverId.
    */
-  public short getServerId()
+  public int getServerId()
   {
-    return Short.valueOf(serverId);
+    return serverId;
   }
 
   /**

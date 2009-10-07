@@ -81,7 +81,7 @@ public class NamingConflictTest extends ReplicationTestCase
        * Create a Change number generator to generate new ChangeNumbers
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 201, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
 
       String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
 
