@@ -199,11 +199,11 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     final String ATTR_ASS_SR_SRV = "assured-sr-server-not-acknowledged-updates";
     type = DirectoryServer.getDefaultAttributeType(ATTR_ASS_SR_SRV);
     builder = new AttributeBuilder(type, ATTR_ASS_SR_SRV);
-    Map<Short, Integer> srSrvNotAckUps =
+    Map<Integer, Integer> srSrvNotAckUps =
       domain.getAssuredSrServerNotAcknowledgedUpdates();
     if (srSrvNotAckUps.size() > 0)
     {
-      for (Short serverId : srSrvNotAckUps.keySet())
+      for (Integer serverId : srSrvNotAckUps.keySet())
       {
         String str = serverId + ":" + srSrvNotAckUps.get(serverId);
         builder.add(AttributeValues.create(type, str));
@@ -232,11 +232,11 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     final String ATTR_ASS_SD_SRV = "assured-sd-server-timeout-updates";
     type = DirectoryServer.getDefaultAttributeType(ATTR_ASS_SD_SRV);
     builder = new AttributeBuilder(type, ATTR_ASS_SD_SRV);
-    Map<Short, Integer> sdSrvTimUps =
+    Map<Integer, Integer> sdSrvTimUps =
       domain.getAssuredSdServerTimeoutUpdates();
     if (sdSrvTimUps.size() > 0)
     {
-      for (Short serverId : sdSrvTimUps.keySet())
+      for (Integer serverId : sdSrvTimUps.keySet())
       {
         String str = serverId + ":" + sdSrvTimUps.get(serverId);
         builder.add(AttributeValues.create(type, str));

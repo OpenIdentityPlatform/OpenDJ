@@ -250,7 +250,8 @@ public class AddMsg extends LDAPUpdateMsg
     }
 
     /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, bodyLength);
+    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, bodyLength,
+          ProtocolVersion.REPLICATION_PROTOCOL_V3);
 
     int pos = resultByteArray.length - bodyLength;
 
@@ -300,7 +301,8 @@ public class AddMsg extends LDAPUpdateMsg
     bodyLength += encodedEclIncludes.length + 1;
 
     /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] encodedMsg = encodeHeader(MSG_TYPE_ADD, bodyLength);
+    byte [] encodedMsg = encodeHeader(MSG_TYPE_ADD, bodyLength,
+        ProtocolVersion.REPLICATION_PROTOCOL_V4);
 
     int pos = encodedMsg.length - bodyLength;
     if (byteParentId != null)

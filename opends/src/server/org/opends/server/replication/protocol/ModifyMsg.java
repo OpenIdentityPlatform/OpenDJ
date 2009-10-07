@@ -221,7 +221,8 @@ public class ModifyMsg extends ModifyCommonMsg
     // Encoding V2 / V3
 
     /* encode the header in a byte[] large enough to also contain mods */
-    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1);
+    byte[] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, encodedMods.length + 1,
+        ProtocolVersion.REPLICATION_PROTOCOL_V3);
 
     /* add the mods */
     int pos = encodedMsg.length - (encodedMods.length + 1);
@@ -247,7 +248,8 @@ public class ModifyMsg extends ModifyCommonMsg
     bodyLength += encodedEclIncludes.length + 1;
 
     /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, bodyLength);
+    byte [] encodedMsg = encodeHeader(MSG_TYPE_MODIFY, bodyLength,
+        ProtocolVersion.REPLICATION_PROTOCOL_V4);
 
     int pos = encodedMsg.length - bodyLength;
     pos = addByteArray(byteModsLen, encodedMsg, pos);

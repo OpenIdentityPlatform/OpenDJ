@@ -103,12 +103,12 @@ public class GenerationIdTest extends ReplicationTestCase
   private static final String testName = "generationIdTest";
 
   private static final int   WINDOW_SIZE = 10;
-  private static final short server1ID = 1;
-  private static final short server2ID = 2;
-  private static final short server3ID = 3;
-  private static final short changelog1ID = 11;
-  private static final short changelog2ID = 12;
-  private static final short changelog3ID = 13;
+  private static final int server1ID = 1;
+  private static final int server2ID = 2;
+  private static final int server3ID = 3;
+  private static final int changelog1ID = 11;
+  private static final int changelog2ID = 12;
+  private static final int changelog3ID = 13;
 
   private DN baseDn;
   private ReplicationBroker broker2 = null;
@@ -306,7 +306,7 @@ public class GenerationIdTest extends ReplicationTestCase
     return entries;
   }
 
-  private int receiveImport(ReplicationBroker broker, short serverID,
+  private int receiveImport(ReplicationBroker broker, int serverID,
       String[] updatedEntries)
   {
     // Expect the broker to receive the entries
@@ -373,7 +373,7 @@ public class GenerationIdTest extends ReplicationTestCase
    *                    server to the other replication servers in the test.
    * @return The new created replication server.
    */
-  private ReplicationServer createReplicationServer(short changelogId,
+  private ReplicationServer createReplicationServer(int changelogId,
       boolean all, String testCase)
   {
     SortedSet<String> servers = null;
@@ -412,7 +412,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * replication Server ID.
    * @param changelogID
    */
-  private void connectServer1ToChangelog(short changelogID)
+  private void connectServer1ToChangelog(int changelogID)
   {
     // Connect DS to the replicationServer
     try
@@ -458,7 +458,7 @@ public class GenerationIdTest extends ReplicationTestCase
   /*
    * Disconnect DS from the replicationServer
    */
-  private void disconnectFromReplServer(short changelogID)
+  private void disconnectFromReplServer(int changelogID)
   {
     try
     {
@@ -484,7 +484,7 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  private int getChangelogPort(short changelogID)
+  private int getChangelogPort(int changelogID)
   {
     if (replServerPort[changelogID] == 0)
     {
@@ -605,7 +605,7 @@ public class GenerationIdTest extends ReplicationTestCase
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
 
     user1entryUUID = "33333333-3333-3333-3333-333333333333";
     user1dn = "uid=user1,ou=People," + baseDnStr;

@@ -86,7 +86,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * The serverID of the hosting replication server.
    */
-  protected short replicationServerId;
+  protected int replicationServerId;
   /**
    * Specifies the related replication server domain based on serviceId(baseDn).
    */
@@ -141,7 +141,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   public MessageHandler(
       int queueSize,
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer)
   {
     super("Message Handler");
@@ -363,7 +363,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           SortedSet<ReplicationIterator> iteratorSortedSet =
             new TreeSet<ReplicationIterator>(comparator);
           /* fill the lateQueue */
-          for (short serverId : replicationServerDomain.getServers())
+          for (int serverId : replicationServerDomain.getServers())
           {
             ChangeNumber lastCsn = serverState.getMaxChangeNumber(serverId);
             ReplicationIterator iterator =
@@ -529,7 +529,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           try
           {
             // Build a list of candidates iterator (i.e. db i.e. server)
-            for (short serverId : replicationServerDomain.getServers())
+            for (int serverId : replicationServerDomain.getServers())
             {
               // get the last already sent CN from that server
               ChangeNumber lastCsn = serverState.getMaxChangeNumber(serverId);

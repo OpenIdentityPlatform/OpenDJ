@@ -62,7 +62,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   // The list of server ids that had errors for the sent matching update
   // Each server id of the list had one of the
   // 3 possible errors (timeout, wrong status or replay error)
-  private List<Short> failedServers = new ArrayList<Short>();
+  private List<Integer> failedServers = new ArrayList<Integer>();
 
   /**
    * Number of servers we want an ack from and from which we received the ack.
@@ -85,8 +85,8 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
    * returning ack we gonna compute
    */
   public SafeReadExpectedAcksInfo(ChangeNumber changeNumber,
-    ServerHandler requesterServerHandler, List<Short> expectedServers,
-    List<Short> wrongStatusServers)
+    ServerHandler requesterServerHandler, List<Integer> expectedServers,
+    List<Integer> wrongStatusServers)
   {
     super(changeNumber, requesterServerHandler, AssuredMode.SAFE_READ_MODE,
       expectedServers);
@@ -159,7 +159,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   public boolean processReceivedAck(ServerHandler ackingServer, AckMsg ackMsg)
   {
     // Get the ack status for the matching server
-    short ackingServerId = ackingServer.getServerId();
+    int ackingServerId = ackingServer.getServerId();
     boolean ackReceived = expectedServersAckStatus.get(ackingServerId);
     if (ackReceived)
     {
@@ -219,9 +219,9 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
       ack.setHasTimeout(true);
 
       // Add servers that did not respond in time
-      Set<Short> serverIds = expectedServersAckStatus.keySet();
-      serversInTimeout = new ArrayList<Short>(); // Use next loop to fill it
-      for (Short serverId : serverIds)
+      Set<Integer> serverIds = expectedServersAckStatus.keySet();
+      serversInTimeout = new ArrayList<Integer>(); // Use next loop to fill it
+      for (int serverId : serverIds)
       {
         boolean ackReceived = expectedServersAckStatus.get(serverId);
         if (!ackReceived)

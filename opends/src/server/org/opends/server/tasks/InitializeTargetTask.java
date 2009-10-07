@@ -62,7 +62,7 @@ public class InitializeTargetTask extends Task
   // Config properties
   private String  domainString            = null;
   private LDAPReplicationDomain domain = null;
-  private short target;
+  private int target;
   private long total;
 
   /**

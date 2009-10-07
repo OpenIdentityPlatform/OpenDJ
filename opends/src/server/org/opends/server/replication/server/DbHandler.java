@@ -101,7 +101,7 @@ public class DbHandler implements Runnable
   private ReplicationDB db;
   private ChangeNumber firstChange = null;
   private ChangeNumber lastChange = null;
-  private short serverId;
+  private int serverId;
   private String baseDn;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
@@ -135,7 +135,7 @@ public class DbHandler implements Runnable
    * @throws DatabaseException If a database problem happened
    */
   public DbHandler(
-      short id, String baseDn, ReplicationServer replicationServer,
+      int id, String baseDn, ReplicationServer replicationServer,
       ReplicationDbEnv dbenv, int queueSize)
          throws DatabaseException
   {
@@ -418,8 +418,7 @@ public class DbHandler implements Runnable
 
     latestTrimDate = TimeThread.getTime() - trimage;
 
-    ChangeNumber trimDate = new ChangeNumber(latestTrimDate,
-        (short) 0, (short)0);
+    ChangeNumber trimDate = new ChangeNumber(latestTrimDate, 0, 0);
 
     // In case of deadlock detection by the Database, this thread can
     // by aborted by a DeadlockException. This is a transient error and
@@ -646,7 +645,7 @@ public class DbHandler implements Runnable
    *
    * @return the serverId.
    */
-  public short getServerId()
+  public int getServerId()
   {
     return this.serverId;
   }

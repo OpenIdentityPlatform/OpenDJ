@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -42,34 +42,34 @@ public abstract class RoutableMsg extends ReplicationMsg
   /**
    *  Specifies that no server is identified.
    */
-  public static final short UNKNOWN_SERVER      = -1;
+  public static final int UNKNOWN_SERVER      = -1;
   /**
    * Specifies all servers in the replication domain.
    */
-  public static final short ALL_SERVERS         = -2;
+  public static final int ALL_SERVERS         = -2;
   /**
    * Inside a topology of servers in the same domain, it specifies
    * the server that is the "closest" to the sender.
    */
-  public static final short THE_CLOSEST_SERVER  = -3;
+  public static final int THE_CLOSEST_SERVER  = -3;
 
   /**
    * The destination server or servers of this message.
    */
-  protected short destination = UNKNOWN_SERVER;
+  protected int destination = UNKNOWN_SERVER;
   /**
    * The serverID of the server that sends this message.
    */
-  protected short senderID = UNKNOWN_SERVER;
+  protected int senderID = UNKNOWN_SERVER;
 
   /**
    * Creates a routable message.
-   * @param senderID replication server id
+   * @param serverID replication server id
    * @param destination replication server id
    */
-  public RoutableMsg(short senderID, short destination)
+  public RoutableMsg(int serverID, int destination)
   {
-    this.senderID = senderID;
+    this.senderID = serverID;
     this.destination = destination;
   }
 
@@ -84,7 +84,7 @@ public abstract class RoutableMsg extends ReplicationMsg
    * Get the destination.
    * @return the destination
    */
-  public short getDestination()
+  public int getDestination()
   {
     return this.destination;
   }
@@ -93,7 +93,7 @@ public abstract class RoutableMsg extends ReplicationMsg
    * Get the server ID of the server that sent this message.
    * @return the server id
    */
-  public short getsenderID()
+  public int getsenderID()
   {
     return this.senderID;
   }

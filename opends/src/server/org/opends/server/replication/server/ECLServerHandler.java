@@ -343,7 +343,7 @@ public class ECLServerHandler extends ServerHandler
       ProtocolSession session,
       int queueSize,
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
@@ -371,7 +371,7 @@ public class ECLServerHandler extends ServerHandler
    */
   public ECLServerHandler(
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer,
       StartECLSessionMsg startECLSessionMsg)
   throws DirectoryException

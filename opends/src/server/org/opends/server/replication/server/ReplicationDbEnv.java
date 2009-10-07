@@ -218,11 +218,11 @@ public class ReplicationDbEnv
         String[] str = stringData.split(FIELD_SEPARATOR, 2);
         if (!str[0].equals(GENERATION_ID_TAG))
         {
-          short serverId = -1;
+          int serverId = -1;
           try
           {
             // <serverId>
-            serverId = new Short(str[0]);
+            serverId = new Integer(str[0]);
           } catch (NumberFormatException e)
           {
             // should never happen
@@ -272,7 +272,7 @@ public class ReplicationDbEnv
      * @return the Database.
      * @throws DatabaseException in case of underlying Exception.
      */
-    public Database getOrAddDb(Short serverId, String baseDn, Long generationId)
+    public Database getOrAddDb(int serverId, String baseDn, Long generationId)
     throws DatabaseException
     {
       if (debugEnabled())
@@ -280,7 +280,7 @@ public class ReplicationDbEnv
           serverId + " " + baseDn + " " + generationId);
       try
       {
-        String stringId = serverId.toString() + FIELD_SEPARATOR + baseDn;
+        String stringId = serverId + FIELD_SEPARATOR + baseDn;
 
         // Opens the database for the changes received from this server
         // on this domain. Create it if it does not already exist.
@@ -452,7 +452,7 @@ public class ReplicationDbEnv
      * @param serverId The serverId to remove from the Db.
      *
      */
-    public void clearServerId(String baseDn, Short serverId)
+    public void clearServerId(String baseDn, int serverId)
     {
       if (debugEnabled())
         TRACER.debugInfo(
@@ -460,7 +460,7 @@ public class ReplicationDbEnv
             "clearServerId(baseDN=" + baseDn + ", serverId=" + serverId);
       try
       {
-        String stringId = serverId.toString() + FIELD_SEPARATOR + baseDn;
+        String stringId = serverId + FIELD_SEPARATOR + baseDn;
 
         // Deletes the record serverId/domain base Dn in the stateDb
         byte[] byteId;

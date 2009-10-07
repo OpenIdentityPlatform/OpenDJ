@@ -49,8 +49,8 @@ public class ServerStateTest extends ReplicationTestCase
   @DataProvider(name = "changeNumberData")
   public Object[][] createChangeNumberData() {
     return new Object[][] {
-       {new ChangeNumber(1, (short) 0, (short) 1)},
-       {new ChangeNumber(TimeThread.getTime(), (short) 123, (short) 45)}
+       {new ChangeNumber(1, 0, 1)},
+       {new ChangeNumber(TimeThread.getTime(),  123,  45)}
     };
   }
 
@@ -75,7 +75,7 @@ public class ServerStateTest extends ReplicationTestCase
     ChangeNumber cn1, cn2, cn3;
     cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
     cn2 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum()+1,cn1.getServerId());
-    cn3 = new ChangeNumber(cn2.getTime(),cn2.getSeqnum(),(short)(cn2.getServerId()+1));
+    cn3 = new ChangeNumber(cn2.getTime(),cn2.getSeqnum(),(cn2.getServerId()+1));
 
     assertTrue(serverState.update(cn1)) ;
     assertTrue(serverState.update(cn2)) ;
@@ -115,7 +115,7 @@ public class ServerStateTest extends ReplicationTestCase
   {
     ChangeNumber cn1, cn3;
     cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
-    cn3 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum(),(short)(cn1.getServerId()+1));
+    cn3 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum(),(cn1.getServerId()+1));
 
     ServerState state1 = new ServerState();
     state1.update(cn1);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -81,7 +81,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       replicationServer.applyConfigurationChange(newconf);
 
       ReplicationBroker broker = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), (short) 1, 10, newReplicationServerPort,
+          DN.decode(TEST_ROOT_DN_STRING), 1, 10, newReplicationServerPort,
           1000, false);
 
       // check that the sendWindow is not null to make sure that the

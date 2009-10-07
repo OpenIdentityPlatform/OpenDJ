@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -41,12 +41,12 @@ public class MonitorRequestMsg extends RoutableMsg
   /**
    * Creates a message.
    *
-   * @param sender The sender server of this message.
+   * @param serverID The sender server of this message.
    * @param destination The server or servers targetted by this message.
    */
-  public MonitorRequestMsg(short sender, short destination)
+  public MonitorRequestMsg(int serverID, int destination)
   {
-    super(sender, destination);
+    super(serverID, destination);
   }
 
   /**
@@ -69,13 +69,13 @@ public class MonitorRequestMsg extends RoutableMsg
       // sender
       int length = getNextLength(in, pos);
       String senderString = new String(in, pos, length, "UTF-8");
-      this.senderID = Short.valueOf(senderString);
+      this.senderID = Integer.valueOf(senderString);
       pos += length +1;
 
       // destination
       length = getNextLength(in, pos);
       String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Short.valueOf(destinationString);
+      this.destination = Integer.valueOf(destinationString);
       pos += length +1;
 
     } catch (UnsupportedEncodingException e)

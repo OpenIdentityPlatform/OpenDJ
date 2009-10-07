@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -62,9 +62,8 @@ public class UpdateComparatorTest extends ReplicationTestCase
   @DataProvider(name = "updateMessageData")
   public Object[][] createUpdateMessageData() {
 
-    ChangeNumber cn1 = new ChangeNumber(1, (short) 0, (short) 1);
-    ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(),
-                                       (short) 123, (short) 45);
+    ChangeNumber cn1 = new ChangeNumber(1,  0,  1);
+    ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 123,  45);
 
     //
     // Create the update message

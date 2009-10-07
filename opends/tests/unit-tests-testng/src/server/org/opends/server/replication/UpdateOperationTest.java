@@ -38,7 +38,6 @@ import static org.testng.Assert.fail;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
@@ -112,7 +111,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private Entry domain2;
   private Entry domain3;
 
-  Short domainSid = 55;
+  int domainSid = 55;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -308,14 +307,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
 
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
 
 
     // Disable the directory server receive status.
@@ -387,14 +386,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
 
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operation messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
 
 
     // Create and publish an update message to add an entry.
@@ -489,7 +488,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
     // Add the first test entry.
     TestCaseUtils.addEntry(
@@ -510,10 +509,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
          attrs.get(0).iterator().next().getValue().toString();
 
     // A change on a first server.
-    ChangeNumber t1 = new ChangeNumber(1, (short) 0, (short) 3);
+    ChangeNumber t1 = new ChangeNumber(1,  0,  3);
 
     // A change on a second server.
-    ChangeNumber t2 = new ChangeNumber(2, (short) 0, (short) 4);
+    ChangeNumber t2 = new ChangeNumber(2,  0,  4);
 
     // Simulate the ordering t2:replace:B followed by t1:add:A that
     updateMonitorCount(baseDn, monitorAttr);
@@ -551,10 +550,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Simulate the ordering t2:delete:displayname followed by
     // t1:replace:displayname
     // A change on a first server.
-    t1 = new ChangeNumber(3, (short) 0, (short) 3);
+    t1 = new ChangeNumber(3,  0,  3);
 
     // A change on a second server.
-    t2 = new ChangeNumber(4, (short) 0, (short) 4);
+    t2 = new ChangeNumber(4,  0,  4);
 
     // Simulate the ordering t2:delete:displayname followed by t1:replace:A
     updateMonitorCount(baseDn, monitorAttr);
@@ -616,13 +615,13 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * This must use a serverId different from the LDAP server ID
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short)2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operations messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
 
     /*
      * Test that the conflict resolution code is able to find entries
@@ -1316,9 +1315,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 27, 100, replServerPort, 2000, true);
+      openReplicationSession(baseDn,  27, 100, replServerPort, 2000, true);
+
     try {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 27, 0);
 
       /*
        * Test that operations done on this server are sent to the
@@ -1537,10 +1537,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     Thread.sleep(2000);
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 11, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDn,  11, 100, replServerPort, 1000, true);
     try
     {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 11, 0);
 
       // Create a test entry.
       String personLdif = "dn: uid=user.2,ou=People," + TEST_ROOT_DN_STRING + "\n"
@@ -1669,7 +1669,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   @Test(enabled=true)
   public void CNGeneratorAdjust() throws Exception
   {
-    short serverId = 88;
+    int serverId = 88;
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting synchronization test : CNGeneratorAdjust"));
 

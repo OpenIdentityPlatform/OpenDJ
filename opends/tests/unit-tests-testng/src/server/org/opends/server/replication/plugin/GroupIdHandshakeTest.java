@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -56,11 +56,11 @@ import static org.opends.server.TestCaseUtils.*;
  */
 public class GroupIdHandshakeTest extends ReplicationTestCase
 {
-  private static final short DS1_ID = 1;
-  private static final short DS2_ID = 2;
-  private static final short RS1_ID = 61;
-  private static final short RS2_ID = 62;
-  private static final short RS3_ID = 63;
+  private static final int DS1_ID = 1;
+  private static final int DS2_ID = 2;
+  private static final int RS1_ID = 61;
+  private static final int RS2_ID = 62;
+  private static final int RS3_ID = 63;
   private int rs1Port = -1;
   private int rs2Port = -1;
   private int rs3Port = -1;
@@ -153,7 +153,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, short dsId, short rsId, String msg)
+  private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
   {
 
     int rsPort = -1;
@@ -292,7 +292,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationServer.
    */
-  private ReplicationServer createReplicationServer(short serverId,
+  private ReplicationServer createReplicationServer(int serverId,
     int groupId, String testCase)
   {
     SortedSet<String> replServers = new TreeSet<String>();
@@ -359,7 +359,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationDomain.
    */
-  private LDAPReplicationDomain createReplicationDomain(short serverId,
+  private LDAPReplicationDomain createReplicationDomain(int serverId,
     int groupId, String testCase)
   {
 
@@ -588,12 +588,12 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");
       checkConnection(30, DS2_ID, RS3_ID,
         "Change GID of RS3 to 1 and RS1 to 3, DS2 should reconnect to RS3 with GID=1");
-      
+
       /**
        * Change group id of DS1 and DS2 to 3 : they should reconnect to RS1
        */
       domainConfWithNewGid = new DomainFakeCfg(baseDn, DS1_ID, replServers, 3);
-      rd1.applyConfigurationChange(domainConfWithNewGid);      
+      rd1.applyConfigurationChange(domainConfWithNewGid);
       domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 3);
       rd2.applyConfigurationChange(domainConfWithNewGid);
       checkConnection(30, DS1_ID, RS1_ID,

@@ -38,17 +38,17 @@ public class ChangeNumberGenerator
 {
   private long lastTime;
   private int seqnum;
-  private short serverId;
+  private int serverId;
 
   /**
    * Create a new ChangeNumber Generator.
-   * @param id id to use when creating change numbers.
+   * @param serverID2 id to use when creating change numbers.
    * @param timestamp time to start with.
    */
-  public ChangeNumberGenerator(short id, long timestamp)
+  public ChangeNumberGenerator(int serverID2, long timestamp)
   {
     this.lastTime = timestamp;
-    this.serverId = id;
+    this.serverId = serverID2;
     this.seqnum = 0;
   }
 
@@ -60,10 +60,10 @@ public class ChangeNumberGenerator
   *              all change numbers generated will be larger than all the
   *              changenumbers currently in state.
   */
- public ChangeNumberGenerator(short id, ServerState state)
+ public ChangeNumberGenerator(int id, ServerState state)
  {
    this.lastTime = TimeThread.getTime();
-   for (short stateId : state)
+   for (int stateId : state)
    {
      if (this.lastTime < state.getMaxChangeNumber(stateId).getTime())
        this.lastTime = state.getMaxChangeNumber(stateId).getTime();
@@ -125,7 +125,7 @@ public class ChangeNumberGenerator
 
     long rcvdTime = number.getTime();
 
-    short changeServerId = number.getServerId();
+    int changeServerId = number.getServerId();
     int changeSeqNum = number.getSeqnum();
 
     /* need to synchronize with NewChangeNumber method so that we
@@ -151,7 +151,7 @@ public class ChangeNumberGenerator
    */
   public void adjust(ServerState state)
   {
-    for (short localServerId : state)
+    for (int localServerId : state)
     {
       adjust(state.getMaxChangeNumber(localServerId));
      }

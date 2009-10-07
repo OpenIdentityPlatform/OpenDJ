@@ -79,7 +79,7 @@ public class ECLServerWriter extends ServerWriter
   public ECLServerWriter(ProtocolSession session, ECLServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
-    super(session, (short)-1, handler, replicationServerDomain);
+    super(session, -1, handler, replicationServerDomain);
 
     setName("Replication ECL Writer Thread for operation " +
         handler.getOperationId());

@@ -57,7 +57,7 @@ public class ReplicationDB
   private Database db = null;
   private ReplicationDbEnv dbenv = null;
   private ReplicationServer replicationServer;
-  private Short serverId;
+  private int serverId;
   private String baseDn;
 
   // The maximum number of retries in case of DatabaseDeadlock Exception.
@@ -76,7 +76,7 @@ public class ReplicationDB
    * @param dbenv The Db environment to use to create the db.
    * @throws DatabaseException If a database problem happened.
    */
-  public ReplicationDB(Short serverId, String baseDn,
+  public ReplicationDB(int serverId, String baseDn,
                      ReplicationServer replicationServer,
                      ReplicationDbEnv dbenv)
                      throws DatabaseException
@@ -379,7 +379,7 @@ public class ReplicationDB
   @Override
   public String toString()
   {
-    return serverId.toString() + baseDn.toString();
+    return serverId + baseDn.toString();
   }
 
   /**

@@ -58,7 +58,7 @@ public class ReplicationIterator
    * @throws DatabaseException if a database problem happened.
    */
   public ReplicationIterator(
-          short id, ReplicationDB db, ChangeNumber changeNumber, DbHandler dbh)
+          int id, ReplicationDB db, ChangeNumber changeNumber, DbHandler dbh)
           throws Exception, DatabaseException
   {
     this.db = db;

@@ -126,12 +126,12 @@ public class InitOnLineTest extends ReplicationTestCase
   boolean ssShutdownRequested = false;
   protected String[] updatedEntries;
   boolean externalDS = false;
-  private static final short server1ID = 1;
-  private static final short server2ID = 2;
-  private static final short server3ID = 3;
-  private static final short changelog1ID =  8;
-  private static final short changelog2ID =  9;
-  private static final short changelog3ID = 10;
+  private static final int server1ID = 1;
+  private static final int server2ID = 2;
+  private static final int server3ID = 3;
+  private static final int changelog1ID =  8;
+  private static final int changelog2ID =  9;
+  private static final int changelog3ID = 10;
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";
 
@@ -480,7 +480,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * @param requestorID The initiator server.
    */
   private void makeBrokerPublishEntries(ReplicationBroker broker,
-      short senderID, short destinationServerID, short requestorID)
+      int senderID, int destinationServerID, int requestorID)
   {
     // Send entries
     try
@@ -513,7 +513,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  void receiveUpdatedEntries(ReplicationBroker broker, short serverID,
+  void receiveUpdatedEntries(ReplicationBroker broker, int serverID,
       String[] updatedEntries)
   {
     // Expect the broker to receive the entries
@@ -602,7 +602,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * @param changelogId The serverID of the replicationServer to create.
    * @return The new replicationServer.
    */
-  private ReplicationServer createChangelogServer(short changelogId, String testCase)
+  private ReplicationServer createChangelogServer(int changelogId, String testCase)
   {
     SortedSet<String> servers = null;
     servers = new TreeSet<String>();
@@ -641,7 +641,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * replication Server ID.
    * @param changelogID
    */
-  private void connectServer1ToChangelog(short changelogID)
+  private void connectServer1ToChangelog(int changelogID)
   {
     // Connect DS to the replicationServer
     try
@@ -684,7 +684,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  private int getChangelogPort(short changelogID)
+  private int getChangelogPort(int changelogID)
   {
     if (replServerPort[changelogID] == 0)
     {
@@ -1474,8 +1474,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Now tests error in the middle of an import
       // S2 sends init request
-      ErrorMsg msg =
-        new ErrorMsg(server1ID, (short) 1, Message.EMPTY);
+      ErrorMsg msg = new ErrorMsg(server1ID, 1, Message.EMPTY);
       server2.publish(msg);
 
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,

@@ -75,8 +75,8 @@ public abstract class ExpectedAcksInfo
    * value: a boolean true if we received the ack from the server,
    * false otherwise.
    */
-  protected Map<Short,Boolean> expectedServersAckStatus =
-    new HashMap<Short,Boolean>();
+  protected Map<Integer,Boolean> expectedServersAckStatus =
+    new HashMap<Integer,Boolean>();
 
   /**
    * Facility for monitoring:
@@ -87,7 +87,7 @@ public abstract class ExpectedAcksInfo
    * code can then call getTimeoutServers() method to now which servers did not
    * respond in time.
    */
-  protected List<Short> serversInTimeout = null;
+  protected List<Integer> serversInTimeout = null;
 
   /**
    * Creates a new ExpectedAcksInfo.
@@ -99,14 +99,14 @@ public abstract class ExpectedAcksInfo
    */
   protected ExpectedAcksInfo(ChangeNumber changeNumber,
     ServerHandler requesterServerHandler, AssuredMode assuredMode,
-    List<Short> expectedServers)
+    List<Integer> expectedServers)
   {
     this.requesterServerHandler = requesterServerHandler;
     this.assuredMode = assuredMode;
     this.changeNumber = changeNumber;
 
     // Initialize list of servers we expect acks from
-    for (Short serverId : expectedServers)
+    for (Integer serverId : expectedServers)
     {
       expectedServersAckStatus.put(serverId, false);
     }
@@ -126,7 +126,7 @@ public abstract class ExpectedAcksInfo
    * Gets the list of expected servers that did not respond in time.
    * @return The list of expected servers that did not respond in time.
    */
-  public List<Short> getTimeoutServers()
+  public List<Integer> getTimeoutServers()
   {
     return serversInTimeout;
   }

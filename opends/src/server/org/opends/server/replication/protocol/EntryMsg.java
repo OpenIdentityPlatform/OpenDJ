@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -48,8 +48,8 @@ public class EntryMsg extends RoutableMsg
    * @param entryBytes  The bytes of the entry.
    */
   public EntryMsg(
-      short sender,
-      short destination,
+      int sender,
+      int destination,
       byte[] entryBytes)
   {
     super(sender, destination);
@@ -60,20 +60,20 @@ public class EntryMsg extends RoutableMsg
   /**
    * Creates a new EntryMsg.
    *
-   * @param sender The sender of this message.
-   * @param destination The destination of this message.
+   * @param serverID The sender of this message.
+   * @param i The destination of this message.
    * @param entryBytes The bytes of the entry.
    * @param pos         The starting Position in the array.
    * @param length      Number of array elements to be copied.
    */
   public EntryMsg(
-      short sender,
-      short destination,
+      int serverID,
+      int i,
       byte[] entryBytes,
       int pos,
       int length)
   {
-    super(sender, destination);
+    super(serverID, i);
     this.entryByteArray = new byte[length];
     System.arraycopy(entryBytes, pos, this.entryByteArray, 0, length);
   }
@@ -97,13 +97,13 @@ public class EntryMsg extends RoutableMsg
       // sender
       int length = getNextLength(in, pos);
       String senderIDString = new String(in, pos, length, "UTF-8");
-      this.senderID = Short.valueOf(senderIDString);
+      this.senderID = Integer.valueOf(senderIDString);
       pos += length +1;
 
       // destination
       length = getNextLength(in, pos);
       String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Short.valueOf(destinationString);
+      this.destination = Integer.valueOf(destinationString);
       pos += length +1;
 
       // entry

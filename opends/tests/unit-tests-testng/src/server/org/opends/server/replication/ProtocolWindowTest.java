@@ -120,7 +120,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     assertNotNull(DirectoryServer.getConfigEntry(repDomainEntry.getDN()),
           "Unable to add the synchronized server");
 
-    ReplicationBroker broker = openReplicationSession(baseDn, (short) 12,
+    ReplicationBroker broker = openReplicationSession(baseDn, 12,
         WINDOW_SIZE, replServerPort, 1000, true);
 
     try {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -48,9 +48,14 @@ public class ChangeNumberTest extends ReplicationTestCase
    */
   @DataProvider(name = "changeNumberData")
   public Object[][] createConstructorData() {
+    long time = 0x12ABC;
     return new Object[][] {
-       {1, (short) 0, (short) 1},
-       {TimeThread.getTime(), (short) 123, (short) 45}
+       {1, 0, 1, "0000000000000001000100000000"},
+       {time, 123, 45, "0000000000012abc002d0000007b"},
+       {time, 123456789, 32767, "0000000000012abc7fff075bcd15"},
+       {time, 123456789, 32768, "0000000000012abc8000075bcd15"},
+       {time, 123456789, 65000, "0000000000012abcfde8075bcd15"},
+       {time, 123, 45678, "0000000000012abcb26e0000007b"}
     };
   }
 
@@ -58,23 +63,23 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test ChangeNumber constructor
    */
   @Test(dataProvider = "changeNumberData")
-  public void CreateChangeNumber(long time, int seq, short id)
+  public void CreateChangeNumber(long time, int seq, int id, String str)
          throws Exception
   {
-    // Create 2 ChangeNumber with the same data and check equality
-    new ChangeNumber(time,seq,id);
+    ChangeNumber cn = new ChangeNumber(time,seq,id);
+    assertEquals(cn.toString(), str);
+
     new ChangeNumber(time,seq,id);
     new ChangeNumber(time+1,seq,id) ;
     new ChangeNumber(time,seq+1,id) ;
-    new ChangeNumber(time,seq,(short)(id+1));
-    assertTrue(true);
+    new ChangeNumber(time,seq,id+1);
   }
 
   /**
    * Test toString and constructor from String
    */
  @Test(dataProvider = "changeNumberData")
- public void ChangeNumberEncodeDecode(long time, int seq, short id)
+ public void ChangeNumberEncodeDecode(long time, int seq, int id, String str)
         throws Exception
  {
    // Create 2 ChangeNumber with the same data and check equality
@@ -83,6 +88,8 @@ public class ChangeNumberTest extends ReplicationTestCase
 
    assertEquals(cn, cn2,
        "The encoding/decoding of ChangeNumber is not reversible");
+   assertEquals(cn2.toString(), str,
+       "The encoding/decoding of ChangeNumber is not reversible for toString()");
  }
 
   /**
@@ -92,8 +99,8 @@ public class ChangeNumberTest extends ReplicationTestCase
   public Object[][] createChangeNumberData() {
 
     long time[] = {1, TimeThread.getTime()} ;
-    short seq[] = {(short)0,  (short) 123} ;
-    short id [] = {(short)1,  (short) 45} ;
+    int seq[] = {0,  123} ;
+    int id [] = {1,  45} ;
 
     Object[][] obj = new Object[time.length][5];
     for (int i=0; i<time.length; i++)
@@ -102,7 +109,7 @@ public class ChangeNumberTest extends ReplicationTestCase
       obj[i][1] = new ChangeNumber(time[i],seq[i],id[i]);
       obj[i][2] = new ChangeNumber(time[i]+1,seq[i],id[i]);
       obj[i][3] = new ChangeNumber(time[i],seq[i]+1,id[i]);
-      obj[i][4] = new ChangeNumber(time[i],seq[i],(short)(id[i]+1));
+      obj[i][4] = new ChangeNumber(time[i],seq[i],id[i]+1);
     }
     return obj;
   }
@@ -253,7 +260,7 @@ public class ChangeNumberTest extends ReplicationTestCase
 
     // Generated the ChangeNumberGenerator object
     ChangeNumberGenerator cng =
-      new ChangeNumberGenerator((short) 0, TimeThread.getTime());
+      new ChangeNumberGenerator( 0, TimeThread.getTime());
 
     // Generate 2 changeNumbers and check that they are differents
     CN1 = cng.newChangeNumber();
@@ -314,36 +321,36 @@ public class ChangeNumberTest extends ReplicationTestCase
     ChangeNumber CN1;
     ChangeNumber CN2;
 
-    CN1 = new ChangeNumber((long)0, 3, (short)0);
+    CN1 = new ChangeNumber((long)0, 3, 0);
 
     // 3-0 = 3
-    CN2 = new ChangeNumber((long)0, 0, (short)0);
+    CN2 = new ChangeNumber((long)0, 0, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
 
     // 3-1 = 2
-    CN2 = new ChangeNumber((long)0, 1, (short)0);
+    CN2 = new ChangeNumber((long)0, 1, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 2);
 
     // 3-3 = 0
-    CN2 = new ChangeNumber((long)0, 3, (short)0);
+    CN2 = new ChangeNumber((long)0, 3, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
     // 3-4 = 0 (CN1 must be newer otherwise 0 should be returned)
-    CN2 = new ChangeNumber((long)0, 4, (short)0);
+    CN2 = new ChangeNumber((long)0, 4, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)0, 0, (short)0);
+    CN1 = new ChangeNumber((long)0, 0, 0);
 
     // 0-0 = 0
-    CN2 = new ChangeNumber((long)0, 0, (short)0);
+    CN2 = new ChangeNumber((long)0, 0, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
     // 0-1 = 0 (CN1 must be newer otherwise 0 should be returned)
-    CN2 = new ChangeNumber((long)0, 1, (short)0);
+    CN2 = new ChangeNumber((long)0, 1, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)0, 5, (short)0);
-    CN2 = new ChangeNumber((long)0, 2, (short)0);
+    CN1 = new ChangeNumber((long)0, 5, 0);
+    CN2 = new ChangeNumber((long)0, 2, 0);
 
     // 5-null = 5
     assertEquals(ChangeNumber.diffSeqNum(CN1, null), 5);
@@ -354,14 +361,14 @@ public class ChangeNumberTest extends ReplicationTestCase
     // null-null = 0
     assertEquals(ChangeNumber.diffSeqNum(null, null), 0);
 
-    CN1 = new ChangeNumber((long)1111111, 2, (short)0);
-    CN2 = new ChangeNumber((long)3333333, 4, (short)0);
+    CN1 = new ChangeNumber((long)1111111, 2, 0);
+    CN2 = new ChangeNumber((long)3333333, 4, 0);
 
     // CN1 older than CN2 -> 0
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)3333333, 1, (short)0);
-    CN2 = new ChangeNumber((long)1111111, Integer.MAX_VALUE-1, (short)0);
+    CN1 = new ChangeNumber((long)3333333, 1, 0);
+    CN2 = new ChangeNumber((long)1111111, Integer.MAX_VALUE-1, 0);
 
     // CN1 seqnum looped
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);

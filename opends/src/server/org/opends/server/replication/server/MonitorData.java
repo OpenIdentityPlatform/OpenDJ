@@ -64,32 +64,32 @@ public class MonitorData
 
 
   // For each LDAP server, its server state
-  private ConcurrentHashMap<Short, ServerState> LDAPStates =
-    new ConcurrentHashMap<Short, ServerState>();
+  private ConcurrentHashMap<Integer, ServerState> LDAPStates =
+    new ConcurrentHashMap<Integer, ServerState>();
 
   // A Map containing the ServerStates of each RS.
-  private ConcurrentHashMap<Short, ServerState> RSStates =
-    new ConcurrentHashMap<Short, ServerState>();
+  private ConcurrentHashMap<Integer, ServerState> RSStates =
+    new ConcurrentHashMap<Integer, ServerState>();
 
   // For each LDAP server, the last(max) CN it published
-  private ConcurrentHashMap<Short, ChangeNumber> maxCNs =
-    new ConcurrentHashMap<Short, ChangeNumber>();
+  private ConcurrentHashMap<Integer, ChangeNumber> maxCNs =
+    new ConcurrentHashMap<Integer, ChangeNumber>();
 
   // For each LDAP server, an approximation of the date of the first missing
   // change
-  private ConcurrentHashMap<Short, Long> fmd =
-    new ConcurrentHashMap<Short, Long>();
+  private ConcurrentHashMap<Integer, Long> fmd =
+    new ConcurrentHashMap<Integer, Long>();
 
-  private ConcurrentHashMap<Short, Long> missingChanges =
-    new ConcurrentHashMap<Short, Long>();
+  private ConcurrentHashMap<Integer, Long> missingChanges =
+    new ConcurrentHashMap<Integer, Long>();
 
   // For each RS server, an approximation of the date of the first missing
   // change
-  private ConcurrentHashMap<Short, Long> fmRSDate =
-    new ConcurrentHashMap<Short, Long>();
+  private ConcurrentHashMap<Integer, Long> fmRSDate =
+    new ConcurrentHashMap<Integer, Long>();
 
-  private ConcurrentHashMap<Short, Long> missingChangesRS =
-    new ConcurrentHashMap<Short, Long>();
+  private ConcurrentHashMap<Integer, Long> missingChangesRS =
+    new ConcurrentHashMap<Integer, Long>();
 
 
   /**
@@ -97,7 +97,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The delay
    */
-  public long getApproxDelay(short serverId)
+  public long getApproxDelay(int serverId)
   {
     Long afmd = fmd.get(serverId);
     if ((afmd != null) && (afmd>0))
@@ -111,7 +111,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The date.
    */
-  public long getApproxFirstMissingDate(short serverId)
+  public long getApproxFirstMissingDate(int serverId)
   {
     Long res;
     if ((res = fmd.get(serverId)) != null)
@@ -124,7 +124,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The number of missing changes.
    */
-  public long getMissingChanges(short serverId)
+  public long getMissingChanges(int serverId)
   {
     Long res = missingChanges.get(serverId);
     if (res==null)
@@ -140,7 +140,7 @@ public class MonitorData
    *
    * @return           The number of missing changes.
    */
-  public long getMissingChangesRS(short serverId)
+  public long getMissingChangesRS(int serverId)
   {
     Long res = missingChangesRS.get(serverId);
     if (res==null)
@@ -161,18 +161,18 @@ public class MonitorData
     //   Regarding each other LSj
     //    Sum the difference : max(LSj) - state(LSi)
 
-    Iterator<Short> lsiStateItr = this.LDAPStates.keySet().iterator();
+    Iterator<Integer> lsiStateItr = this.LDAPStates.keySet().iterator();
     while (lsiStateItr.hasNext())
     {
-      Short lsiSid = lsiStateItr.next();
+      Integer lsiSid = lsiStateItr.next();
       ServerState lsiState = this.LDAPStates.get(lsiSid);
       Long lsiMissingChanges = (long)0;
       if (lsiState != null)
       {
-        Iterator<Short> lsjMaxItr = this.maxCNs.keySet().iterator();
+        Iterator<Integer> lsjMaxItr = this.maxCNs.keySet().iterator();
         while (lsjMaxItr.hasNext())
         {
-          Short lsjSid = lsjMaxItr.next();
+          Integer lsjSid = lsjMaxItr.next();
           ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
           ChangeNumber lsiLastCN = lsiState.getMaxChangeNumber(lsjSid);
 
@@ -211,16 +211,16 @@ public class MonitorData
     // Computes the missing changes counters for RS :
     // Sum the difference of sequence numbers for each element in the States.
 
-    for (short lsiSid : RSStates.keySet())
+    for (int lsiSid : RSStates.keySet())
     {
       ServerState lsiState = this.RSStates.get(lsiSid);
       Long lsiMissingChanges = (long)0;
       if (lsiState != null)
       {
-        Iterator<Short> lsjMaxItr = this.maxCNs.keySet().iterator();
+        Iterator<Integer> lsjMaxItr = this.maxCNs.keySet().iterator();
         while (lsjMaxItr.hasNext())
         {
-          Short lsjSid = lsjMaxItr.next();
+          int lsjSid = lsjMaxItr.next();
           ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
           ChangeNumber lsiLastCN = lsiState.getMaxChangeNumber(lsjSid);
 
@@ -253,27 +253,27 @@ public class MonitorData
     String mds = "Monitor data=\n";
 
     // RS data
-    Iterator<Short> rsite = fmRSDate.keySet().iterator();
+    Iterator<Integer> rsite = fmRSDate.keySet().iterator();
     while (rsite.hasNext())
     {
-      Short sid = rsite.next();
+      Integer sid = rsite.next();
       mds += "\nfmRSDate(" + sid + ")=\t "+ "afmd=" + fmRSDate.get(sid);
     }
 
     // maxCNs
-    Iterator<Short> itc = maxCNs.keySet().iterator();
+    Iterator<Integer> itc = maxCNs.keySet().iterator();
     while (itc.hasNext())
     {
-      Short sid = itc.next();
+      Integer sid = itc.next();
       ChangeNumber cn = maxCNs.get(sid);
       mds += "\nmaxCNs(" + sid + ")= " + cn.toStringUI();
     }
 
     // LDAP data
-    Iterator<Short> lsite = LDAPStates.keySet().iterator();
+    Iterator<Integer> lsite = LDAPStates.keySet().iterator();
     while (lsite.hasNext())
     {
-      Short sid = lsite.next();
+      Integer sid = lsite.next();
       ServerState ss = LDAPStates.get(sid);
       mds += "\nLSData(" + sid + ")=\t" + "state=[" + ss.toString()
       + "] afmd=" + this.getApproxFirstMissingDate(sid);
@@ -287,7 +287,7 @@ public class MonitorData
     rsite = RSStates.keySet().iterator();
     while (rsite.hasNext())
     {
-      Short sid = rsite.next();
+      Integer sid = rsite.next();
       ServerState ss = RSStates.get(sid);
       mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss.toString()
       + "] missingCount=" + missingChangesRS.get(sid);
@@ -304,10 +304,10 @@ public class MonitorData
    */
   public void setMaxCNs(ServerState state)
   {
-    Iterator<Short> it = state.iterator();
+    Iterator<Integer> it = state.iterator();
     while (it.hasNext())
     {
-      short sid = it.next();
+      int sid = it.next();
       ChangeNumber newCN = state.getMaxChangeNumber(sid);
       setMaxCN(sid, newCN);
     }
@@ -319,7 +319,7 @@ public class MonitorData
    * @param serverId the provided serverId
    * @param newCN the provided new CN
    */
-  public void setMaxCN(short serverId, ChangeNumber newCN)
+  public void setMaxCN(int serverId, ChangeNumber newCN)
   {
     if (newCN==null) return;
     ChangeNumber currentMaxCN = maxCNs.get(serverId);
@@ -340,7 +340,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The highest change number.
    */
-  public ChangeNumber getMaxCN(short serverId)
+  public ChangeNumber getMaxCN(int serverId)
   {
     return maxCNs.get(serverId);
   }
@@ -350,7 +350,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The server state.
    */
-  public ServerState getLDAPServerState(short serverId)
+  public ServerState getLDAPServerState(int serverId)
   {
     return LDAPStates.get(serverId);
   }
@@ -360,7 +360,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @param state The server state.
    */
-  public void setLDAPServerState(short serverId, ServerState state)
+  public void setLDAPServerState(int serverId, ServerState state)
   {
     LDAPStates.put(serverId, state);
   }
@@ -371,7 +371,7 @@ public class MonitorData
    * @param serverId   The server ID.
    * @param state      The server state.
    */
-  public void setRSState(short serverId, ServerState state)
+  public void setRSState(int serverId, ServerState state)
   {
     RSStates.put(serverId, state);
   }
@@ -381,7 +381,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @param newFmd The first missing date.
    */
-  public void setFirstMissingDate(short serverId, Long newFmd)
+  public void setFirstMissingDate(int serverId, Long newFmd)
   {
     if (newFmd==null) return;
     Long currentfmd = fmd.get(serverId);
@@ -402,7 +402,7 @@ public class MonitorData
    *
    * @return The iterator.
    */
-  public Iterator<Short> ldapIterator()
+  public Iterator<Integer> ldapIterator()
   {
     return LDAPStates.keySet().iterator();
   }
@@ -413,7 +413,7 @@ public class MonitorData
    *
    * @return The iterator.
    */
-  public Iterator<Short> rsIterator()
+  public Iterator<Integer> rsIterator()
   {
     return RSStates.keySet().iterator();
   }
@@ -424,7 +424,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The server state.
    */
-  public ServerState getRSStates(short serverId)
+  public ServerState getRSStates(int serverId)
   {
     return RSStates.get(serverId);
   }
@@ -435,7 +435,7 @@ public class MonitorData
    * @param serverId The server ID.
    * @return The date.
    */
-  public long getRSApproxFirstMissingDate(short serverId)
+  public long getRSApproxFirstMissingDate(int serverId)
   {
     Long res;
     if ((res = fmRSDate.get(serverId)) != null)

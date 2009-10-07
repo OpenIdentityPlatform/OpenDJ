@@ -37,7 +37,7 @@ import org.opends.server.replication.common.ServerState;
  */
 public class ReplServerStartMsg extends StartMsg
 {
-  private short serverId;
+  private Integer serverId;
   private String serverURL;
   private String baseDn = null;
   private int windowSize;
@@ -71,7 +71,7 @@ public class ReplServerStartMsg extends StartMsg
    * @param groupId The group id of the RS
    * @param degradedStatusThreshold The degraded status threshold
    */
-  public ReplServerStartMsg(short serverId, String serverURL, String baseDn,
+  public ReplServerStartMsg(int serverId, String serverURL, String baseDn,
                                int windowSize,
                                ServerState serverState,
                                short protocolVersion,
@@ -130,7 +130,7 @@ public class ReplServerStartMsg extends StartMsg
        */
       length = getNextLength(in, pos);
       String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Short.valueOf(serverIdString);
+      serverId = Integer.valueOf(serverIdString);
       pos += length +1;
 
       /*
@@ -185,7 +185,7 @@ public class ReplServerStartMsg extends StartMsg
    * Get the Server Id.
    * @return the server id
    */
-  public short getServerId()
+  public int getServerId()
   {
     return this.serverId;
   }

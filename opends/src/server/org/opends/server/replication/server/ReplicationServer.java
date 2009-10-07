@@ -114,7 +114,7 @@ public class ReplicationServer
              BackupTaskListener, RestoreTaskListener, ImportTaskListener,
              ExportTaskListener
 {
-  private short serverId;
+  private int serverId;
   private String serverURL;
 
   private ServerSocket listenSocket;
@@ -198,7 +198,7 @@ public class ReplicationServer
     throws ConfigException
   {
     replicationPort = configuration.getReplicationPort();
-    serverId = (short) configuration.getReplicationServerId();
+    serverId = configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
     if (replicationServers == null)
       replicationServers = new ArrayList<String>();
@@ -802,7 +802,7 @@ public class ReplicationServer
    *         DN given in parameter.
    * @throws DatabaseException in case of underlying database problem.
    */
-  public DbHandler newDbHandler(short id, String baseDn)
+  public DbHandler newDbHandler(int id, String baseDn)
   throws DatabaseException
   {
     return new DbHandler(id, baseDn, this, dbEnv, queueSize);
@@ -1019,7 +1019,7 @@ public class ReplicationServer
    * @return The value of the serverId.
    *
    */
-  public short getServerId()
+  public int getServerId()
   {
     return serverId;
   }
@@ -1558,7 +1558,7 @@ public class ReplicationServer
 
     if (eligibleCN==null)
     {
-      eligibleCN = new ChangeNumber(0,0,(short)0);
+      eligibleCN = new ChangeNumber(0, 0, 0);
     }
 
     if (debugEnabled())

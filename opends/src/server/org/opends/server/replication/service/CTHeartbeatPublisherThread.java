@@ -64,7 +64,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    * The time in milliseconds between heartbeats.
    */
   private long heartbeatInterval;
-  private short serverId;
+  private int serverId;
 
   /**
    * Set this to stop the thread.
@@ -78,15 +78,15 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    * @param session The session on which heartbeats are to be sent.
    * @param heartbeatInterval The interval between heartbeats sent
    *                          (in milliseconds).
-   * @param serverId The serverId of the sender domain.
+   * @param serverId2 The serverId of the sender domain.
    */
   public CTHeartbeatPublisherThread(String threadName, ProtocolSession session,
-                  long heartbeatInterval, short serverId)
+                  long heartbeatInterval, int serverId2)
   {
     super(threadName);
     this.session = session;
     this.heartbeatInterval = heartbeatInterval;
-    this.serverId = serverId;
+    this.serverId = serverId2;
   }
 
   /**

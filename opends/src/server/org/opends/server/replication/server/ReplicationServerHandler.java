@@ -69,8 +69,8 @@ public class ReplicationServerHandler extends ServerHandler
    * this collection will contain as many elements as there are
    * LDAP servers connected to the remote replication server.
    */
-  private final Map<Short, LightweightServerHandler> remoteDirectoryServers =
-    new ConcurrentHashMap<Short, LightweightServerHandler>();
+  private final Map<Integer, LightweightServerHandler> remoteDirectoryServers =
+    new ConcurrentHashMap<Integer, LightweightServerHandler>();
 
   /**
    * Starts this handler based on a start message received from remote server.
@@ -133,7 +133,7 @@ public class ReplicationServerHandler extends ServerHandler
       ProtocolSession session,
       int queueSize,
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
@@ -323,7 +323,7 @@ public class ReplicationServerHandler extends ServerHandler
                   // then  we are just degrading the peer.
                   Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
                     getServiceId(),
-                    Short.toString(serverId),
+                    Integer.toString(serverId),
                     Long.toString(generationId),
                     Long.toString(localGenerationId));
                   logError(message);
@@ -350,7 +350,7 @@ public class ReplicationServerHandler extends ServerHandler
                   // setGenerationId(generationId, false);
                   Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
                     getServiceId(),
-                    Short.toString(serverId),
+                    Integer.toString(serverId),
                     Long.toString(generationId),
                     Long.toString(localGenerationId));
                   logError(message);
@@ -412,7 +412,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     // Alright, connected with new RS (either outgoing or incoming
     // connection): store handler.
-    Map<Short, ReplicationServerHandler> connectedRSs =
+    Map<Integer, ReplicationServerHandler> connectedRSs =
       replicationServerDomain.getConnectedRSs();
     connectedRSs.put(serverId, this);
   }
@@ -493,7 +493,7 @@ public class ReplicationServerHandler extends ServerHandler
               // then  we are just degrading the peer.
               Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
                   getServiceId(),
-                  Short.toString(serverId),
+                  Integer.toString(serverId),
                   Long.toString(generationId),
                   Long.toString(localGenerationId));
               logError(message);
@@ -521,7 +521,7 @@ public class ReplicationServerHandler extends ServerHandler
               // setGenerationId(generationId, false);
               Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
                   getServiceId(),
-                  Short.toString(serverId),
+                  Integer.toString(serverId),
                   Long.toString(generationId),
                   Long.toString(localGenerationId));
               logError(message);
@@ -648,7 +648,7 @@ public class ReplicationServerHandler extends ServerHandler
    * @return boolean True is the wanted server is connected to the server
    * represented by this handler.
    */
-  public boolean isRemoteLDAPServer(short wantedServer)
+  public boolean isRemoteLDAPServer(int wantedServer)
   {
     synchronized (remoteDirectoryServers)
     {
@@ -682,7 +682,7 @@ public class ReplicationServerHandler extends ServerHandler
    * Return a Set containing the servers known by this replicationServer.
    * @return a set containing the servers known by this replicationServer.
    */
-  public Set<Short> getConnectedDirectoryServerIds()
+  public Set<Integer> getConnectedDirectoryServerIds()
   {
     synchronized (remoteDirectoryServers)
     {

@@ -264,13 +264,14 @@ public class UpdateMsg extends ReplicationMsg
    * @param type the type of UpdateMsg to encode.
    * @param additionalLength additional length needed to encode the remaining
    *                         part of the UpdateMsg.
+   * @param version The ProtocolVersion to use when encoding.
    * @return a byte array containing the common header and enough space to
    *         encode the remaining bytes of the UpdateMsg as was specified
    *         by the additionalLength.
    *         (byte array length = common header length + additionalLength)
    * @throws UnsupportedEncodingException if UTF-8 is not supported.
    */
-  protected byte[] encodeHeader(byte type, int additionalLength)
+  protected byte[] encodeHeader(byte type, int additionalLength, short version)
     throws UnsupportedEncodingException
   {
     byte[] changeNumberByte =
@@ -371,7 +372,8 @@ public class UpdateMsg extends ReplicationMsg
   {
     /* Encode the header in a byte[] large enough to also contain the payload */
     byte [] resultByteArray =
-      encodeHeader(MSG_TYPE_GENERIC_UPDATE, payload.length);
+      encodeHeader(MSG_TYPE_GENERIC_UPDATE, payload.length,
+                   ProtocolVersion.getCurrentVersion());
 
     int pos = resultByteArray.length - payload.length;
 

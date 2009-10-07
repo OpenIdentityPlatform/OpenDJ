@@ -41,9 +41,9 @@ public class DSInfo
 {
 
   // DS server id
-  private short dsId = -1;
+  private int dsId = -1;
   // Server id of the RS the DS is connected to
-  private short rsId = -1;
+  private int rsId = -1;
   // DS Generation Id
   private long generationId = -1;
   // DS Status
@@ -75,7 +75,7 @@ public class DSInfo
    * @param refUrls DS exported referrals URLs
    * @param eclIncludes The list of entry attributes to include in the ECL.
    */
-  public DSInfo(short dsId, short rsId, long generationId, ServerStatus status,
+  public DSInfo(int dsId, int rsId, long generationId, ServerStatus status,
     boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
     byte groupId, List<String> refUrls, Set<String> eclIncludes)
   {
@@ -96,7 +96,7 @@ public class DSInfo
    * Get the DS id.
    * @return the DS id
    */
-  public short getDsId()
+  public int getDsId()
   {
     return dsId;
   }
@@ -105,7 +105,7 @@ public class DSInfo
    * Get the RS id the DS is connected to.
    * @return the RS id the DS is connected to
    */
-  public short getRsId()
+  public int getRsId()
   {
     return rsId;
   }
@@ -206,7 +206,9 @@ public class DSInfo
         (safeDataLevel == dsInfo.getSafeDataLevel()) &&
         (groupId == dsInfo.getGroupId()) &&
         (refUrls.equals(dsInfo.getRefUrls())) &&
-        (eclIncludes.equals(dsInfo.getEclIncludes())));
+         (((eclIncludes == null) && (dsInfo.getEclIncludes() == null)) ||
+           ((eclIncludes != null) &&
+                         (eclIncludes.equals(dsInfo.getEclIncludes())))));
     } else
     {
       return false;
@@ -245,23 +247,23 @@ public class DSInfo
     StringBuffer sb = new StringBuffer();
     sb.append("DS id: ");
     sb.append(dsId);
-    sb.append("\nRS id: ");
+    sb.append(" RS id: ");
     sb.append(rsId);
-    sb.append("\nGeneration id: ");
+    sb.append(" Generation id: ");
     sb.append(generationId);
-    sb.append("\nStatus: ");
+    sb.append(" Status: ");
     sb.append(status);
-    sb.append("\nAssured replication: ");
+    sb.append(" Assured replication: ");
     sb.append(assuredFlag);
-    sb.append("\nAssured mode: ");
+    sb.append(" Assured mode: ");
     sb.append(assuredMode);
-    sb.append("\nSafe data level: ");
+    sb.append(" Safe data level: ");
     sb.append(safeDataLevel);
-    sb.append("\nGroup id: ");
+    sb.append(" Group id: ");
     sb.append(groupId);
-    sb.append("\nReferral URLs: ");
+    sb.append(" Referral URLs: ");
     sb.append(refUrls);
-    sb.append("\nECL Include: ");
+    sb.append(" ECL Include: ");
     sb.append(eclIncludes);
     return sb.toString();
   }

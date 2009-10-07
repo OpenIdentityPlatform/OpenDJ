@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -160,8 +160,8 @@ extends ReplicationTestCase
     HistoricalCsnOrderingMatchingRule r =
       new HistoricalCsnOrderingMatchingRule();
 
-    ChangeNumber del1 = new ChangeNumber(1, (short) 0, (short) 1);
-    ChangeNumber del2 = new ChangeNumber(1, (short) 1, (short) 1);
+    ChangeNumber del1 = new ChangeNumber(1,  0,  1);
+    ChangeNumber del2 = new ChangeNumber(1,  1,  1);
 
     ByteString v1 = ByteString.valueOf("a"+":"+del1.toString());
     ByteString v2 = ByteString.valueOf("a"+":"+del2.toString());

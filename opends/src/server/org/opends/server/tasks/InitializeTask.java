@@ -64,7 +64,7 @@ public class InitializeTask extends Task
   private static final DebugTracer TRACER = getTracer();
 
   private String  domainString            = null;
-  private short  source;
+  private int  source;
   private LDAPReplicationDomain domain        = null;
   private TaskState initState;
 

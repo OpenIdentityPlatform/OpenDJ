@@ -40,7 +40,7 @@ import org.opends.server.replication.common.ServerState;
  */
 public class ServerStartMsg extends StartMsg
 {
-  private short serverId; // Id of the LDAP server that sent this message
+  private int serverId; // Id of the LDAP server that sent this message
   private String serverURL;
   private String baseDn;
   private int maxReceiveQueue;
@@ -67,7 +67,7 @@ public class ServerStartMsg extends StartMsg
    * Server after being connected to a replication server for a given
    * replication domain.
    *
-   * @param serverId The serverId of the server for which the ServerStartMsg
+   * @param serverId2 The serverId of the server for which the ServerStartMsg
    *                 is created.
    * @param baseDn   The base DN.
    * @param windowSize   The window size used by this server.
@@ -79,7 +79,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(short serverId, String baseDn, int windowSize,
+  public ServerStartMsg(int serverId2, String baseDn, int windowSize,
                             long heartbeatInterval,
                             ServerState serverState,
                             short protocolVersion,
@@ -89,7 +89,7 @@ public class ServerStartMsg extends StartMsg
   {
     super(protocolVersion, generationId);
 
-    this.serverId = serverId;
+    this.serverId = serverId2;
     this.baseDn = baseDn;
     this.maxReceiveDelay = 0;
     this.maxReceiveQueue = 0;
@@ -143,7 +143,7 @@ public class ServerStartMsg extends StartMsg
        */
       length = getNextLength(in, pos);
       String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Short.valueOf(serverIdString);
+      serverId = Integer.valueOf(serverIdString);
       pos += length +1;
 
       /*
@@ -221,7 +221,7 @@ public class ServerStartMsg extends StartMsg
    * Get the ServerID from the message.
    * @return the server ID
    */
-  public short getServerId()
+  public int getServerId()
   {
     return serverId;
   }

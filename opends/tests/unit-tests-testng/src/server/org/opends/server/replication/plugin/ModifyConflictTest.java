@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -1199,7 +1199,7 @@ public class ModifyConflictTest
 
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
+    ChangeNumber t = new ChangeNumber(date, 0, 0);
 
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(mod);

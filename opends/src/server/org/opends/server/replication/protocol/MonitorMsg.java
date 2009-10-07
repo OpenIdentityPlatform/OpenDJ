@@ -72,11 +72,11 @@ public class MonitorMsg extends RoutableMsg
     // This replication server DbState
     ServerState replServerDbState;
     // The data related to the LDAP servers connected to this RS
-    HashMap<Short, ServerData> ldapStates =
-      new HashMap<Short, ServerData>();
+    HashMap<Integer, ServerData> ldapStates =
+      new HashMap<Integer, ServerData>();
     // The data related to the RS servers connected to this RS
-    HashMap<Short, ServerData> rsStates =
-      new HashMap<Short, ServerData>();
+    HashMap<Integer, ServerData> rsStates =
+      new HashMap<Integer, ServerData>();
   }
 
   SubTopoMonitorData data = new SubTopoMonitorData();
@@ -92,7 +92,7 @@ public class MonitorMsg extends RoutableMsg
    * @param sender The sender of this message.
    * @param destination The destination of this message.
    */
-  public MonitorMsg(short sender, short destination)
+  public MonitorMsg(int sender, int destination)
   {
     super(sender, destination);
     protocolVersion = ProtocolVersion.getCurrentVersion();
@@ -106,7 +106,7 @@ public class MonitorMsg extends RoutableMsg
    * @param destination           The destination of this message.
    * @param replicationProtocol   The protocol version to use.
    */
-  public MonitorMsg(short sender, short destination,
+  public MonitorMsg(int sender, int destination,
       short replicationProtocol)
   {
     super(sender, destination);
@@ -131,16 +131,16 @@ public class MonitorMsg extends RoutableMsg
    * of the older missing change. null when none.
    * @param isLDAP Specifies whether the server is a LS or a RS
    */
-  public void setServerState(short serverId, ServerState state,
+  public void setServerState(int serverId, ServerState state,
       Long approxFirstMissingDate, boolean isLDAP)
   {
     if (data.ldapStates == null)
     {
-      data.ldapStates = new HashMap<Short, ServerData>();
+      data.ldapStates = new HashMap<Integer, ServerData>();
     }
     if (data.rsStates == null)
     {
-      data.rsStates = new HashMap<Short, ServerData>();
+      data.rsStates = new HashMap<Integer, ServerData>();
     }
     ServerData sd = new ServerData();
     sd.state = state;
@@ -156,7 +156,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The state.
    */
-  public ServerState getLDAPServerState(short serverId)
+  public ServerState getLDAPServerState(int serverId)
   {
     return data.ldapStates.get(serverId).state;
   }
@@ -166,7 +166,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The state.
    */
-  public ServerState getRSServerState(short serverId)
+  public ServerState getRSServerState(int serverId)
   {
     return data.rsStates.get(serverId).state;
   }
@@ -178,7 +178,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The approximated state.
    */
-  public Long getLDAPApproxFirstMissingDate(short serverId)
+  public Long getLDAPApproxFirstMissingDate(int serverId)
   {
     return data.ldapStates.get(serverId).approxFirstMissingDate;
   }
@@ -189,7 +189,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The approximated state.
    */
-  public Long getRSApproxFirstMissingDate(short serverId)
+  public Long getRSApproxFirstMissingDate(int serverId)
   {
     return data.rsStates.get(serverId).approxFirstMissingDate;
   }
@@ -220,13 +220,13 @@ public class MonitorMsg extends RoutableMsg
         // sender
         int length = getNextLength(in, pos);
         String senderIDString = new String(in, pos, length, "UTF-8");
-        this.senderID = Short.valueOf(senderIDString);
+        this.senderID = Integer.valueOf(senderIDString);
         pos += length +1;
 
         // destination
         length = getNextLength(in, pos);
         String destinationString = new String(in, pos, length, "UTF-8");
-        this.destination = Short.valueOf(destinationString);
+        this.destination = Integer.valueOf(destinationString);
         pos += length +1;
 
         reader.position(pos);
@@ -242,11 +242,26 @@ public class MonitorMsg extends RoutableMsg
         throw new DataFormatException("input is not a valid " +
             this.getClass().getCanonicalName());
 
-      // sender
-      this.senderID = reader.getShort();
+      /*
+       * V4 and above uses integers for its serverIds while V2 and V3
+       * use shorts.
+       */
+      if (version <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+      {
+        // sender
+        this.senderID = reader.getShort();
 
-      // destination
-      this.destination = reader.getShort();
+        // destination
+        this.destination = reader.getShort();
+      }
+      else
+      {
+        // sender
+        this.senderID = reader.getInt();
+
+        // destination
+        this.destination = reader.getInt();
+      }
     }
 
 
@@ -258,7 +273,7 @@ public class MonitorMsg extends RoutableMsg
       while(asn1Reader.hasNextElement())
       {
         ServerState newState = new ServerState();
-        short serverId = 0;
+        int serverId = 0;
         Long outime = (long)0;
         boolean isLDAPServer = false;
 
@@ -324,8 +339,20 @@ public class MonitorMsg extends RoutableMsg
         /* put the type of the operation */
         byteBuilder.append(MSG_TYPE_REPL_SERVER_MONITOR);
 
-        byteBuilder.append(senderID);
-        byteBuilder.append(destination);
+        /*
+         * V4 and above uses integers for its serverIds while V2 and V3
+         * use shorts.
+         */
+        if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        {
+          byteBuilder.append(senderID);
+          byteBuilder.append(destination);
+        }
+        else
+        {
+          byteBuilder.append((short)senderID);
+          byteBuilder.append((short)destination);
+        }
       }
 
       /* Put the serverStates ... */
@@ -342,8 +369,8 @@ public class MonitorMsg extends RoutableMsg
       writer.writeEndSequence();
 
       // then the LDAP server datas
-      Set<Short> servers = data.ldapStates.keySet();
-      for (Short sid : servers)
+      Set<Integer> servers = data.ldapStates.keySet();
+      for (Integer sid : servers)
       {
         ServerState statei = data.ldapStates.get(sid).state;
         Long outime = data.ldapStates.get(sid).approxFirstMissingDate;
@@ -367,7 +394,7 @@ public class MonitorMsg extends RoutableMsg
 
       // then the RS server datas
       servers = data.rsStates.keySet();
-      for (Short sid : servers)
+      for (Integer sid : servers)
       {
         ServerState statei = data.rsStates.get(sid).state;
         Long outime = data.rsStates.get(sid).approxFirstMissingDate;
@@ -436,7 +463,7 @@ public class MonitorMsg extends RoutableMsg
    * Returns an iterator on the serverId of the connected LDAP servers.
    * @return The iterator.
    */
-  public Iterator<Short> ldapIterator()
+  public Iterator<Integer> ldapIterator()
   {
     return data.ldapStates.keySet().iterator();
   }
@@ -445,7 +472,7 @@ public class MonitorMsg extends RoutableMsg
    * Returns an iterator on the serverId of the connected RS servers.
    * @return The iterator.
    */
-  public Iterator<Short> rsIterator()
+  public Iterator<Integer> rsIterator()
   {
     return data.rsStates.keySet().iterator();
   }
@@ -461,7 +488,7 @@ public class MonitorMsg extends RoutableMsg
     stateS += "]";
 
     stateS += "\nLDAPStates:[";
-    for (Short sid : data.ldapStates.keySet())
+    for (Integer sid : data.ldapStates.keySet())
     {
       ServerData sd = data.ldapStates.get(sid);
       stateS +=
@@ -471,7 +498,7 @@ public class MonitorMsg extends RoutableMsg
     }
 
     stateS += "\nRSStates:[";
-    for (Short sid : data.rsStates.keySet())
+    for (Integer sid : data.rsStates.keySet())
     {
       ServerData sd = data.rsStates.get(sid);
       stateS +=

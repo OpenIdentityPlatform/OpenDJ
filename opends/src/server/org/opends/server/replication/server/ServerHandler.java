@@ -113,7 +113,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The serverId of the remote server.
    */
-  protected short serverId;
+  protected int serverId;
   /**
    * The session opened with the remote server.
    */
@@ -251,7 +251,7 @@ public abstract class ServerHandler extends MessageHandler
       ProtocolSession session,
       int queueSize,
       String replicationServerURL,
-      short replicationServerId,
+      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
@@ -686,7 +686,7 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @return the ID of the server to which this object is linked
    */
-  public short getServerId()
+  public int getServerId()
   {
     return serverId;
   }
@@ -921,8 +921,8 @@ public abstract class ServerHandler extends MessageHandler
           // Timeout
           Message message = NOTE_TIMEOUT_WHEN_CROSS_CONNECTION.get(
               getServiceId(),
-              Short.toString(serverId),
-              Short.toString(replicationServerId));
+              Integer.toString(serverId),
+              Integer.toString(replicationServerId));
           throw new DirectoryException(ResultCode.OTHER, message);
         }
       }

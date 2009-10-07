@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -47,11 +47,11 @@ public class InitializeRequestMsg extends RoutableMsg
    *
    * @param baseDn The base DN of the replication domain.
    * @param destination destination of this message
-   * @param senderID serverID of the server that will send this message
+   * @param serverID serverID of the server that will send this message
    */
-  public InitializeRequestMsg(String baseDn, short senderID, short destination)
+  public InitializeRequestMsg(String baseDn, int serverID, int destination)
   {
-    super(senderID, destination);
+    super(serverID, destination);
     this.baseDn = baseDn;
   }
 
@@ -80,13 +80,13 @@ public class InitializeRequestMsg extends RoutableMsg
       // sender
       length = getNextLength(in, pos);
       String sourceServerIdString = new String(in, pos, length, "UTF-8");
-      senderID = Short.valueOf(sourceServerIdString);
+      senderID = Integer.valueOf(sourceServerIdString);
       pos += length +1;
 
       // destination
       length = getNextLength(in, pos);
       String destinationServerIdString = new String(in, pos, length, "UTF-8");
-      destination = Short.valueOf(destinationServerIdString);
+      destination = Integer.valueOf(destinationServerIdString);
       pos += length +1;
 
 

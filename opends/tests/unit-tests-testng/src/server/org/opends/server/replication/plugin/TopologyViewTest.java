@@ -69,15 +69,15 @@ import org.testng.annotations.Test;
 public class TopologyViewTest extends ReplicationTestCase
 {
   // Server id definitions
-  private static final short DS1_ID = 1;
-  private static final short DS2_ID = 2;
-  private static final short DS3_ID = 3;
-  private static final short DS4_ID = 4;
-  private static final short DS5_ID = 5;
-  private static final short DS6_ID = 6;
-  private static final short RS1_ID = 51;
-  private static final short RS2_ID = 52;
-  private static final short RS3_ID = 53;
+  private static final int DS1_ID = 1;
+  private static final int DS2_ID = 2;
+  private static final int DS3_ID = 3;
+  private static final int DS4_ID = 4;
+  private static final int DS5_ID = 5;
+  private static final int DS6_ID = 6;
+  private static final int RS1_ID = 51;
+  private static final int RS2_ID = 52;
+  private static final int RS3_ID = 53;
 
   // Group id definitions
   private static final int DS1_GID = 1;
@@ -146,11 +146,6 @@ public class TopologyViewTest extends ReplicationTestCase
     {
       TRACER.debugInfo("** TEST **" + s);
     }
-  }
-
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
   }
 
   private void initTest()
@@ -258,7 +253,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, short dsId, short rsId)
+  private void checkConnection(int secTimeout, int dsId, int rsId)
   {
     int rsPort = -1;
     LDAPReplicationDomain rd = null;
@@ -384,7 +379,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * Creates the list of servers to represent the RS topology excluding the
    * RS whose id is passed.
    */
-  private SortedSet<String> createRSListExceptOne(short rsIdToExclude)
+  private SortedSet<String> createRSListExceptOne(int rsIdToExclude)
   {
     SortedSet<String> replServers = new TreeSet<String>();
 
@@ -407,7 +402,7 @@ public class TopologyViewTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationServer.
    */
-  private ReplicationServer createReplicationServer(short rsId, String testCase)
+  private ReplicationServer createReplicationServer(int rsId, String testCase)
   {
     try
     {
@@ -451,7 +446,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * Creates and starts a new ReplicationDomain with the correct list of
    * know RSs according to DS id
    */
-  private LDAPReplicationDomain createReplicationDomain(short dsId)
+  private LDAPReplicationDomain createReplicationDomain(int dsId)
   {
     try
     {
@@ -626,7 +621,7 @@ public class TopologyViewTest extends ReplicationTestCase
       rd1 = createReplicationDomain(DS1_ID);
       checkConnection(30, DS1_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_1);
-      checkTopoView(new short[] {DS1_ID}, theoricalTopoView);
+      checkTopoView(new int[] {DS1_ID}, theoricalTopoView);
 
       /**
        * DS2 starts and connects to RS1 (check topo view in DS1,DS2)
@@ -637,7 +632,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_2);
-      checkTopoView(new short[] {DS1_ID, DS2_ID}, theoricalTopoView);
+      checkTopoView(new int[] {DS1_ID, DS2_ID}, theoricalTopoView);
 
       /**
        * RS2 starts (check topo view in DS1,DS2)
@@ -648,7 +643,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_3);
-      checkTopoView(new short[] {DS1_ID, DS2_ID}, theoricalTopoView);
+      checkTopoView(new int[] {DS1_ID, DS2_ID}, theoricalTopoView);
 
       /**
        * DS3 starts and connects to RS2 (check topo view in DS1,DS2,DS3)
@@ -660,7 +655,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_4);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID}, theoricalTopoView);
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID}, theoricalTopoView);
 
       /**
        * DS4 starts and connects to RS2 (check topo view in DS1,DS2,DS3,DS4)
@@ -673,7 +668,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS3_ID, RS2_ID);
       checkConnection(30, DS4_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_5);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID},
         theoricalTopoView);
 
       /**
@@ -688,7 +683,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS4_ID, RS2_ID);
       checkConnection(30, DS5_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_6);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
         theoricalTopoView);
 
       /**
@@ -704,7 +699,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS4_ID, RS2_ID);
       checkConnection(30, DS5_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_7);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
         theoricalTopoView);
 
 
@@ -722,7 +717,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS3_ID);
       checkConnection(30, DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_8);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
 
 
@@ -739,7 +734,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS3_ID);
       assertFalse(rd6.isConnected());
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_9);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
         theoricalTopoView);
 
 
@@ -757,7 +752,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS3_ID);
       checkConnection(30, DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_10);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
 
 
@@ -775,7 +770,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS2_ID);
       checkConnection(30, DS6_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_11);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
 
 
@@ -793,7 +788,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS3_ID);
       checkConnection(30, DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_12);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
 
 
@@ -810,7 +805,7 @@ public class TopologyViewTest extends ReplicationTestCase
       checkConnection(30, DS5_ID, RS3_ID);
       checkConnection(30, DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_13);
-      checkTopoView(new short[] {DS1_ID, DS2_ID, DS5_ID, DS6_ID},
+      checkTopoView(new int[] {DS1_ID, DS2_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
 
     } finally
@@ -822,7 +817,7 @@ public class TopologyViewTest extends ReplicationTestCase
   /**
    * Creates RSInfo for the passed RS
    */
-  private RSInfo createRSInfo(short rsId)
+  private RSInfo createRSInfo(int rsId)
   {
     int groupId = -1;
     switch (rsId)
@@ -846,7 +841,7 @@ public class TopologyViewTest extends ReplicationTestCase
   /**
    * Creates DSInfo for the passed DS, connected to the passed RS
    */
-  private DSInfo createDSInfo(short dsId, short rsId)
+  private DSInfo createDSInfo(int dsId, int rsId)
   {
     ServerStatus status = ServerStatus.NORMAL_STATUS;
 
@@ -854,7 +849,7 @@ public class TopologyViewTest extends ReplicationTestCase
     AssuredType assuredType = null;
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
-    SortedSet<String> attrs = null;
+    SortedSet<String> attrs = new TreeSet<String>();
 
     switch (dsId)
       {
@@ -1058,9 +1053,9 @@ public class TopologyViewTest extends ReplicationTestCase
    * with the theoretical topology view that every body should have at the time
    * this method is called.
    */
-  private void checkTopoView(short[] dsIdList, TopoView theoricalTopoView)
+  private void checkTopoView(int[] dsIdList, TopoView theoricalTopoView)
   {
-   for(short currentDsId : dsIdList)
+   for(int currentDsId : dsIdList)
    {
      LDAPReplicationDomain rd = null;
 
@@ -1100,8 +1095,8 @@ public class TopologyViewTest extends ReplicationTestCase
      {
        dsList.add(aDsInfo);
      }
-     short dsId = rd.getServerId();
-     short rsId = rd.getRsServerId();
+     int dsId = rd.getServerId();
+     int rsId = rd.getRsServerId();
      ServerStatus status = rd.getStatus();
      boolean assuredFlag = rd.isAssured();
      AssuredMode assuredMode = rd.getAssuredMode();

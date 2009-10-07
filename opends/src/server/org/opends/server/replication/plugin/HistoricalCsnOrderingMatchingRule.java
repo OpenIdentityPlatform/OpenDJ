@@ -149,7 +149,7 @@ public class HistoricalCsnOrderingMatchingRule
     String serverId = token[1].substring(16,20);
     String seqNumber = token[1].substring(20, 28);
 
-    if (MultimasterReplication.isLocalServerId(Short.parseShort(serverId, 16)))
+    if (MultimasterReplication.isLocalServerId(Integer.parseInt(serverId, 16)))
       return ByteString.valueOf(serverId + timestamp + seqNumber);
     else
       return (ByteString.valueOf("0"));

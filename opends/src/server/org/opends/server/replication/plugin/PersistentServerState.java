@@ -73,7 +73,7 @@ public class PersistentServerState
    private final InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
    private final ByteString asn1BaseDn;
-   private final short serverId;
+   private final int serverId;
 
    private final ServerState state;
 
@@ -97,7 +97,7 @@ public class PersistentServerState
    * @param baseDn The baseDN for which the ServerState is created
    * @param serverId The serverId
    */
-  public PersistentServerState(DN baseDn, short serverId)
+  public PersistentServerState(DN baseDn, int serverId)
   {
     this.baseDn = baseDn;
     this.serverId = serverId;
@@ -113,7 +113,7 @@ public class PersistentServerState
    * @param serverId  The serverId.
    * @param state     The serverState.
    */
-  public PersistentServerState(DN baseDn, short serverId, ServerState state)
+  public PersistentServerState(DN baseDn, int serverId, ServerState state)
   {
     this.baseDn = baseDn;
     this.serverId = serverId;
@@ -576,8 +576,8 @@ public class PersistentServerState
               Integer replicaId = Integer.parseInt(temp, 16);
 
               // No need to take into account the subSeqNum
-              ChangeNumber cn = new ChangeNumber(timeStamp*1000, seqNum,
-                  replicaId.shortValue());
+              ChangeNumber cn =
+                new ChangeNumber(timeStamp*1000, seqNum, replicaId);
 
               this.update(cn);
             }
@@ -673,7 +673,7 @@ public class PersistentServerState
    *
    * @return            The largest ChangeNumber seen.
    */
-  public ChangeNumber getMaxChangeNumber(short serverID)
+  public ChangeNumber getMaxChangeNumber(int serverID)
   {
     return state.getMaxChangeNumber(serverID);
   }

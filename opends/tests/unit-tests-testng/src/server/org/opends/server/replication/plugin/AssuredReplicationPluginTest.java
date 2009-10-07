@@ -105,7 +105,7 @@ public class AssuredReplicationPluginTest
    * The port of the replicationServer.
    */
   private int replServerPort;
-  private final byte RS_SERVER_ID = (byte) 90;
+  private final int RS_SERVER_ID = 90;
   // Sleep time of the RS, before sending an ack
   private static final long NO_TIMEOUT_RS_SLEEP_TIME = 2000;
   private final String testName = this.getClass().getSimpleName();
@@ -285,7 +285,7 @@ public class AssuredReplicationPluginTest
 
     // Parameters given at constructor time
     private final int port;
-    private short serverId = -1;
+    private int serverId = -1;
     boolean isAssured = false; // Default value for config
     AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
     byte safeDataLevel = (byte) 1; // Default value for config
@@ -315,7 +315,7 @@ public class AssuredReplicationPluginTest
     // The assured boolean means:
     // - true: SR mode
     // - false: not assured
-    public FakeReplicationServer(byte groupId, int port, short serverId, boolean assured)
+    public FakeReplicationServer(byte groupId, int port, int serverId, boolean assured)
     {
 
       this.groupId = groupId;
@@ -330,7 +330,7 @@ public class AssuredReplicationPluginTest
     }
 
     // Constructor for RS receiving updates in SD assured mode
-    public FakeReplicationServer(byte groupId, int port, short serverId, int safeDataLevel)
+    public FakeReplicationServer(byte groupId, int port, int serverId, int safeDataLevel)
     {
       this.groupId = groupId;
       this.port = port;
@@ -347,7 +347,7 @@ public class AssuredReplicationPluginTest
     public void start(int scenario)
     {
 
-      gen = new ChangeNumberGenerator((short)3, 0L);
+      gen = new ChangeNumberGenerator(3, 0L);
 
       // Store expected test case
       this.scenario = scenario;
@@ -731,9 +731,9 @@ public class AssuredReplicationPluginTest
         // Send an ack with errors:
         // - replay error
         // - server 10 error, server 20 error
-        List<Short> serversInError = new ArrayList<Short>();
-        serversInError.add((short)10);
-        serversInError.add((short)20);
+        List<Integer> serversInError = new ArrayList<Integer>();
+        serversInError.add(10);
+        serversInError.add(20);
         AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber(), false, false, true, serversInError);
         session.publish(ackMsg);
 
@@ -749,10 +749,10 @@ public class AssuredReplicationPluginTest
         // - wrong status error
         // - replay error
         // - server 10 error, server 20 error, server 30 error
-        serversInError = new ArrayList<Short>();
-        serversInError.add((short)10);
-        serversInError.add((short)20);
-        serversInError.add((short)30);
+        serversInError = new ArrayList<Integer>();
+        serversInError.add(10);
+        serversInError.add(20);
+        serversInError.add(30);
         ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, true, true, serversInError);
         session.publish(ackMsg);
 
@@ -789,8 +789,8 @@ public class AssuredReplicationPluginTest
         // Send an ack with errors:
         // - timeout error
         // - server 10 error
-        List<Short> serversInError = new ArrayList<Short>();
-        serversInError.add((short)10);
+        List<Integer> serversInError = new ArrayList<Integer>();
+        serversInError.add(10);
         AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, false, false, serversInError);
         session.publish(ackMsg);
 
@@ -804,9 +804,9 @@ public class AssuredReplicationPluginTest
         // Send an ack with errors:
         // - timeout error
         // - server 10 error, server 20 error
-        serversInError = new ArrayList<Short>();
-        serversInError.add((short)10);
-        serversInError.add((short)20);
+        serversInError = new ArrayList<Integer>();
+        serversInError.add(10);
+        serversInError.add(20);
         ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, false, false, serversInError);
         session.publish(ackMsg);
 
@@ -907,7 +907,7 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -918,7 +918,7 @@ public class AssuredReplicationPluginTest
         errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
         //  errors by server list for sd mode should be [[rsId:1]]
         assertEquals(errorsByServer.size(), 1);
-        Integer nError = errorsByServer.get((short)RS_SERVER_ID);
+        Integer nError = errorsByServer.get(RS_SERVER_ID);
         assertNotNull(nError);
         assertEquals(nError.intValue(), 1);
       } else
@@ -936,7 +936,7 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -1006,10 +1006,10 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 1);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         //  errors by server list for sr mode should be [[rsId:1]]
         assertEquals(errorsByServer.size(), 1);
-        Integer nError = errorsByServer.get((short)RS_SERVER_ID);
+        Integer nError = errorsByServer.get(RS_SERVER_ID);
         assertNotNull(nError);
         assertEquals(nError.intValue(), 1);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
@@ -1035,7 +1035,7 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -1192,7 +1192,7 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+      Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -1256,7 +1256,7 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+      Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -1331,7 +1331,7 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-        Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+        Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 1);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 1);
@@ -1473,7 +1473,7 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 0);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+      Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       assertTrue(errorsByServer.isEmpty());
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates-acked"), 0);
@@ -1484,7 +1484,7 @@ public class AssuredReplicationPluginTest
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
       //  errors by server list for sd mode should be [[10:1]]
       assertEquals(errorsByServer.size(), 1);
-      Integer nError = errorsByServer.get((short)10);
+      Integer nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
 
@@ -1522,10 +1522,10 @@ public class AssuredReplicationPluginTest
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
       //  errors by server list for sd mode should be [[10:2],[20:1]]
       assertEquals(errorsByServer.size(), 2);
-      nError = errorsByServer.get((short)10);
+      nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)20);
+      nError = errorsByServer.get(20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
 
@@ -1562,13 +1562,13 @@ public class AssuredReplicationPluginTest
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
       //  errors by server list for sd mode should be [[10:2],[20:1],[rsId:1]]
       assertEquals(errorsByServer.size(), 3);
-      nError = errorsByServer.get((short)10);
+      nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)20);
+      nError = errorsByServer.get(20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
-      nError = errorsByServer.get((short)RS_SERVER_ID);
+      nError = errorsByServer.get(RS_SERVER_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
 
@@ -1628,13 +1628,13 @@ public class AssuredReplicationPluginTest
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-timeout-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-wrong-status-updates"), 0);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-replay-error-updates"), 1);
-      Map<Short, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
+      Map<Integer, Integer> errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       //  errors by server list for sr mode should be [[10:1],[20:1]]
       assertEquals(errorsByServer.size(), 2);
-      Integer nError = errorsByServer.get((short)10);
+      Integer nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
-      nError = errorsByServer.get((short)20);
+      nError = errorsByServer.get(20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
@@ -1673,13 +1673,13 @@ public class AssuredReplicationPluginTest
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       //  errors by server list for sr mode should be [[10:2],[20:2],[30:1]]
       assertEquals(errorsByServer.size(), 3);
-      nError = errorsByServer.get((short)10);
+      nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)20);
+      nError = errorsByServer.get(20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)30);
+      nError = errorsByServer.get(30);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
@@ -1715,16 +1715,16 @@ public class AssuredReplicationPluginTest
       errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
       //  errors by server list for sr mode should be [[10:2],[20:2],[30:1],[rsId:1]]
       assertEquals(errorsByServer.size(), 4);
-      nError = errorsByServer.get((short)10);
+      nError = errorsByServer.get(10);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)20);
+      nError = errorsByServer.get(20);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 2);
-      nError = errorsByServer.get((short)30);
+      nError = errorsByServer.get(30);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
-      nError = errorsByServer.get((short)RS_SERVER_ID);
+      nError = errorsByServer.get(RS_SERVER_ID);
       assertNotNull(nError);
       assertEquals(nError.intValue(), 1);
       assertEquals(getMonitorAttrValue(baseDn, "assured-sr-received-updates"), 0);
@@ -1763,7 +1763,7 @@ public class AssuredReplicationPluginTest
    * - assured-sr-server-not-acknowledged-updates in SR mode
    * - assured-sd-server-timeout-updates in SD mode
    */
-  protected Map<Short,Integer> getErrorsByServers(DN baseDn,
+  protected Map<Integer,Integer> getErrorsByServers(DN baseDn,
     AssuredMode assuredMode) throws Exception
   {
     /*
@@ -1810,7 +1810,7 @@ public class AssuredReplicationPluginTest
 
     List<Attribute> attrs = entry.getAttribute(assuredAttr);
 
-    Map<Short,Integer> resultMap = new HashMap<Short,Integer>();
+    Map<Integer,Integer> resultMap = new HashMap<Integer,Integer>();
     if ( (attrs == null) || (attrs.isEmpty()) )
       return resultMap; // Empty map
 
@@ -1824,7 +1824,7 @@ public class AssuredReplicationPluginTest
       String token = strtok.nextToken();
       if (token != null)
       {
-        Short serverId = Short.valueOf(token);
+        int serverId = Integer.valueOf(token);
         token = strtok.nextToken();
         if (token != null)
         {

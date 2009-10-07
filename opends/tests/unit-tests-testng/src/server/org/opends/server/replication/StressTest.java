@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -94,7 +94,7 @@ public class StressTest extends ReplicationTestCase
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 18, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDn, 18, 100, replServerPort, 5000, true);
     Monitor monitor = new Monitor("stress test monitor");
     DirectoryServer.registerMonitorProvider(monitor);
 

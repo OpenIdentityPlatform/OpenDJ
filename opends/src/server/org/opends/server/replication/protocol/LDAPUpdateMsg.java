@@ -236,13 +236,15 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param type the type of UpdateMsg to encode.
    * @param additionalLength additional length needed to encode the remaining
    *                         part of the UpdateMsg.
+   * @param version The ProtocolVersion to use when encoding.
    * @return a byte array containing the common header and enough space to
    *         encode the remaining bytes of the UpdateMsg as was specified
    *         by the additionalLength.
    *         (byte array length = common header length + additionalLength)
    * @throws UnsupportedEncodingException if UTF-8 is not supported.
    */
-  public byte[] encodeHeader(byte type, int additionalLength)
+  @Override
+  public byte[] encodeHeader(byte type, int additionalLength, short version)
     throws UnsupportedEncodingException
   {
     byte[] byteDn = dn.getBytes("UTF-8");
@@ -266,7 +268,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     encodedMsg[0] = type;
 
     /* put the protocol version */
-    encodedMsg[1] = (byte)ProtocolVersion.getCurrentVersion();
+    encodedMsg[1] = (byte) version;
     int pos = 2;
 
     /* Put the ChangeNumber */

@@ -47,6 +47,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -55,21 +56,35 @@ import org.testng.annotations.Test;
 public class ReplicationDomainTest extends ReplicationTestCase
 {
   /**
+   * Create ChangeNumber Data
+   */
+  @DataProvider(name = "publishAndReceiveData")
+  public Object[][] createpublishAndReceiveData()
+  {
+    return new Object[][] {
+       {1, 2, 3, 4},
+       {1, 2, 1, 2},
+       {1, 2, 45891, 45672},
+       {45610, 45720, 1, 2},
+       {45610, 45720, 45891, 45672}
+    };
+  }
+
+  /**
    * Test that a ReplicationDomain is able to publish and receive UpdateMsg.
    * Also test the ReplicationDomain.resetReplicationLog() method.
    */
-  @Test(enabled=true)
-  public void publishAndReceive() throws Exception
+  @Test(dataProvider = "publishAndReceiveData", enabled=true)
+  public void publishAndReceive(
+      int replServerID1, int replServerID2,
+      int domain1ServerId, int domain2ServerId)
+      throws Exception
   {
     String testService = "test";
     ReplicationServer replServer1 = null;
     ReplicationServer replServer2 = null;
-    int replServerID1 = 10;
-    int replServerID2 = 20;
     FakeReplicationDomain domain1 = null;
     FakeReplicationDomain domain2 = null;
-    short domain1ServerId = 1;
-    short domain2ServerId = 2;
 
     try
     {
@@ -133,12 +148,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
       for (RSInfo replServerInfo : replServers)
       {
         // The generation Id of the remote should be 1
-        assertTrue(replServerInfo.getGenerationId() == 1);
+        assertEquals(replServerInfo.getGenerationId(), 1);
       }
 
       for (DSInfo serverInfo : domain1.getReplicasList())
       {
-        assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
+        assertEquals(serverInfo.getStatus(), ServerStatus.NORMAL_STATUS);
       }
 
       domain1.setGenerationID(2);
@@ -189,13 +204,13 @@ public class ReplicationDomainTest extends ReplicationTestCase
           }
           else
             throw e;
-        } 
+        }
       }
-      Map<Short, ServerState> states1 = domain1.getReplicaStates();
+      Map<Integer, ServerState> states1 = domain1.getReplicaStates();
       ServerState state2 = states1.get(domain2ServerId);
       assertNotNull(state2, "getReplicaStates is not showing DS2");
 
-      Map<Short, ServerState> states2 = domain2.getReplicaStates();
+      Map<Integer, ServerState> states2 = domain2.getReplicaStates();
       ServerState state1 = states2.get(domain1ServerId);
       assertNotNull(state1, "getReplicaStates is not showing DS1");
 
@@ -203,10 +218,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
     finally
     {
       if (domain1 != null)
-        domain1.disableService();
+        domain1.stopDomain();
 
       if (domain2 != null)
-        domain2.disableService();
+        domain2.stopDomain();
 
       if (replServer1 != null)
         replServer1.remove();
@@ -229,7 +244,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     ReplicationServer replServer1 = null;
     int replServerID1 = 10;
     FakeReplicationDomain domain1 = null;
-    short domain1ServerId = 1;
+    int domain1ServerId = 1;
 
     try
     {
@@ -297,12 +312,21 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
   }
 
+  @DataProvider(name = "exportAndImportData")
+  public Object[][] createExportAndimportData()
+  {
+    return new Object[][] {
+       {1, 2},
+       {45610, 45720}
+    };
+  }
+
   /**
    * Test that a ReplicationDomain is able to export and import its database
    * When there is only one replication server.
    */
-  @Test(enabled=true)
-  public void exportAndImport() throws Exception
+  @Test(dataProvider = "exportAndImportData", enabled=true)
+  public void exportAndImport(int serverId1, int serverId2) throws Exception
   {
     final int ENTRYCOUNT=5000;
     String testService = "test";
@@ -334,12 +358,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
       }
       String exportedData=exportedDataBuilder.toString();
       domain1 = new FakeReplicationDomain(
-          testService, (short) 1, servers,
+          testService, serverId1, servers,
           100, 0, exportedData, null, ENTRYCOUNT);
 
       StringBuilder importedData = new StringBuilder();
       domain2 = new FakeReplicationDomain(
-          testService, (short) 2, servers, 100, 0,
+          testService, serverId2, servers, 100, 0,
           null, importedData, 0);
 
       /*
@@ -525,7 +549,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
-          testService, (short) 2, servers, 100, 1000, rcvQueue1);
+          testService, 2, servers, 100, 1000, rcvQueue1);
 
       System.out.println("waiting");
       Thread.sleep(1000000000);
@@ -566,7 +590,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
-          testService, (short) 1, servers, 100, 100000, rcvQueue1);
+          testService, 1, servers, 100, 100000, rcvQueue1);
       /*
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.

@@ -131,7 +131,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDn,  2, 100, replServerPort, 5000, true);
 
     try
     {
@@ -219,11 +219,11 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDn,  2, 100, replServerPort, 5000, true);
 
     try
     {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 2, 0);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
 
       ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
         baseDn, rcvdMods, "cn=schema");
@@ -256,7 +256,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 3, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDn,  3, 100, replServerPort, 5000, true);
 
     try
     {
