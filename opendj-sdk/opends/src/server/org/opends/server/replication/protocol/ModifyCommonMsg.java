@@ -102,6 +102,24 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     encodedMods = encodeMods(mods);
   }
 
+  /**
+   * Get the Modifications associated to the UpdateMsg to the provided value.
+   * @throws LDAPException In case of LDAP decoding exception
+   * @throws ASN1Exception In case of ASN1 decoding exception
+   * @return the list of modifications
+   */
+  public List<Modification> getMods() throws ASN1Exception, LDAPException
+  {
+    List<Modification> mods = new ArrayList<Modification>();
+
+    ASN1Reader reader = ASN1.getReader(encodedMods);
+
+    while (reader.hasNextElement())
+      mods.add((LDAPModification.decode(reader)).toModification());
+
+    return mods;
+  }
+
   // ============
   // Msg encoding
   // ============
