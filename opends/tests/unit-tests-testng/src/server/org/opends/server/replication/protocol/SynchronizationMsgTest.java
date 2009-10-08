@@ -886,6 +886,65 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       newMsg.getDegradedStatusThreshold());
   }
 
+  @DataProvider(name="createReplServerStartDSData")
+  public Object [][] createReplServerStartDSData() throws Exception
+  {
+    String baseDN = TEST_ROOT_DN_STRING;
+    ServerState state = new ServerState();
+    state.update(new ChangeNumber((long)0, 0, 0));
+    Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0, 0, 0};
+
+    state = new ServerState();
+    state.update(new ChangeNumber((long)75, 5, 263));
+    Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456, 3, 31512};
+
+    state = new ServerState();
+    state.update(new ChangeNumber((long)123, 5, 98));
+    Object[] set3 = new Object[] {36, baseDN, 100, "anotherHostAgain:8017", state, 6841L, (byte)32, 2496, 630, 9524};
+
+    return new Object [][] { set1, set2, set3 };
+  }
+
+  /**
+   * Test that ReplServerStartDSMsg encoding and decoding works
+   * by checking that : msg == new ReplServerStartMsg(msg.getBytes()).
+   */
+  @Test(dataProvider="createReplServerStartDSData")
+  public void replServerStartDSMsgTest(int serverId, String baseDN, int window,
+         String url, ServerState state, long genId, byte groupId, int degTh,
+         int weight, int connectedDSNumber) throws Exception
+  {
+    ReplServerStartDSMsg msg = new ReplServerStartDSMsg(serverId,
+        url, baseDN, window, state, ProtocolVersion.getCurrentVersion(), genId,
+        true, groupId, degTh, weight, connectedDSNumber);
+    ReplServerStartDSMsg newMsg = new ReplServerStartDSMsg(msg.getBytes());
+    assertEquals(msg.getServerId(), newMsg.getServerId());
+    assertEquals(msg.getServerURL(), newMsg.getServerURL());
+    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
+    assertEquals(msg.getServerState().getMaxChangeNumber(1),
+        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getVersion(), newMsg.getVersion());
+    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
+    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
+    assertTrue(msg.getGroupId() == newMsg.getGroupId());
+    assertTrue(msg.getDegradedStatusThreshold() ==
+      newMsg.getDegradedStatusThreshold());
+    assertEquals(msg.getWeight(), newMsg.getWeight());
+    assertEquals(msg.getConnectedDSNumber(), newMsg.getConnectedDSNumber());
+  }
+
+  /**
+   * Test that StopMsg encoding and decoding works
+   * by checking that : msg == new StopMsg(msg.getBytes()).
+   */
+  @Test
+  public void stopMsgTest() throws Exception
+  {
+    StopMsg msg = new StopMsg();
+    StopMsg newMsg = new StopMsg(msg.getBytes());
+  }
+
   /**
    * Test that WindowMsg encoding and decoding works
    * by checking that : msg == new WindowMsg(msg.getBytes()).
@@ -1457,8 +1516,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       new HashMap<AttributeType,List<Attribute>>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
-    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
-        (short) 123, (short) 45);
+    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
     DN dn = DN.decode(rawDN);
 
     for (int i=1;i<perfRep;i++)
@@ -1538,8 +1596,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
 
-    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
-        (short) 123, (short) 45);
+    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
     DN dn = DN.decode(rawdn);
 
     for (int i=1;i<perfRep;i++)
@@ -1627,8 +1684,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       DeleteOperationBasis opBasis =
         new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
       LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
-      ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
-        (short) 123, (short) 45);
+      ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
       op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
       t2 = System.nanoTime();
       createop += (t2 - t1);

@@ -331,6 +331,64 @@ public class ECLServerHandler extends ServerHandler
   }
 
   /**
+   * Send the ReplServerStartDSMsg to the remote ECL server.
+   * @param requestedProtocolVersion The provided protocol version.
+   * @return The StartMsg sent.
+   * @throws IOException When an exception occurs.
+   */
+  private StartMsg sendStartToRemote(short requestedProtocolVersion)
+  throws IOException
+  {
+    // Before V4 protocol, we sent a ReplServerStartMsg
+    if (protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V4)
+    {
+
+      // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
+      ReplServerStartMsg outReplServerStartMsg
+      = new ReplServerStartMsg(
+          replicationServerId,
+          replicationServerURL,
+          getServiceId(),
+          maxRcvWindow,
+          replicationServerDomain.getDbServerState(),
+          protocolVersion,
+          localGenerationId,
+          sslEncryption,
+          getLocalGroupId(),
+          replicationServerDomain.
+          getReplicationServer().getDegradedStatusThreshold());
+
+      session.publish(outReplServerStartMsg, requestedProtocolVersion);
+
+      return outReplServerStartMsg;
+    }
+    else
+    {
+      // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
+      ReplServerStartDSMsg outReplServerStartDSMsg
+      = new ReplServerStartDSMsg(
+          replicationServerId,
+          replicationServerURL,
+          getServiceId(),
+          maxRcvWindow,
+          replicationServerDomain.getDbServerState(),
+          protocolVersion,
+          localGenerationId,
+          sslEncryption,
+          getLocalGroupId(),
+          replicationServerDomain.
+          getReplicationServer().getDegradedStatusThreshold(),
+          replicationServer.getWeight(),
+          replicationServerDomain.getConnectedLDAPservers().size());
+
+
+      session.publish(outReplServerStartDSMsg);
+
+      return outReplServerStartDSMsg;
+    }
+  }
+
+  /**
    * Creates a new handler object to a remote replication server.
    * @param session The session with the remote RS.
    * @param queueSize The queue size to manage updates to that RS.
@@ -406,12 +464,14 @@ public class ECLServerHandler extends ServerHandler
       // lock with timeout
       lockDomain(true);
 
+      this.localGenerationId = replicationServerDomain.getGenerationId();
+
       // send start to remote
-      ReplServerStartMsg outReplServerStartMsg =
+      StartMsg outStartMsg =
         sendStartToRemote(protocolVersion);
 
       // log
-      logStartHandshakeRCVandSND(inECLStartMsg, outReplServerStartMsg);
+      logStartHandshakeRCVandSND(inECLStartMsg, outStartMsg);
 
       // until here session is encrypted then it depends on the negociation
       // The session initiator decides whether to use SSL.
@@ -421,6 +481,14 @@ public class ECLServerHandler extends ServerHandler
       // wait and process StartSessionMsg from remote RS
       StartECLSessionMsg inStartECLSessionMsg =
         waitAndProcessStartSessionECLFromRemoteServer();
+      if (inStartECLSessionMsg == null)
+        {
+          // client wants to properly close the connection (client sent a
+          // StopMsg)
+          logStopReceived();
+          abortStart(null);
+          return;
+        }
 
       logStartECLSessionHandshake(inStartECLSessionMsg);
 
@@ -462,7 +530,12 @@ public class ECLServerHandler extends ServerHandler
     ReplicationMsg msg = null;
     msg = session.receive();
 
-    if (!(msg instanceof StartECLSessionMsg))
+    if (msg instanceof StopMsg)
+    {
+      // client wants to stop handshake (was just for handshake phase one for RS
+      // choice). Return null to make the session be terminated.
+      return null;
+    } else if (!(msg instanceof StartECLSessionMsg))
     {
       Message message = Message.raw(
           "Protocol error: StartECLSessionMsg required." + msg + " received.");

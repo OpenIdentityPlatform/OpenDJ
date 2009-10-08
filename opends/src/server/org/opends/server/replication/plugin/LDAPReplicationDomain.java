@@ -4472,7 +4472,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Verifies that the given string represents a valid source
    * from which this server can be initialized.
    * @param sourceString The string representing the source
-   * @return The source as a short value
+   * @return The source as a integer value
    * @throws DirectoryException if the string is not valid
    */
   public int decodeSource(String sourceString)

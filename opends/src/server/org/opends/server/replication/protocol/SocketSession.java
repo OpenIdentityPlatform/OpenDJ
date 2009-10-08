@@ -232,6 +232,14 @@ public class SocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
+  public String getReadableRemoteAddress()
+  {
+    return socket.getRemoteSocketAddress().toString();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void setSoTimeout(int timeout) throws SocketException
   {
     socket.setSoTimeout(timeout);

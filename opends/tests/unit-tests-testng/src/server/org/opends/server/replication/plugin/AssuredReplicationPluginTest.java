@@ -36,11 +36,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import org.opends.server.types.ResultCode;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -69,13 +66,14 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.DataProvider;
@@ -478,8 +476,14 @@ public class AssuredReplicationPluginTest
           session.stopEncryption();
         }
 
-        // Read start session
-        StartSessionMsg startSessionMsg = (StartSessionMsg) session.receive();
+        // Read start session or stop
+        ReplicationMsg msg = session.receive();
+        if (msg instanceof StopMsg){
+          // Disconnection of DS looking for best server
+          return false;
+        }
+
+        StartSessionMsg startSessionMsg = (StartSessionMsg)msg;
 
         // Sanity checking for assured parameters
         boolean receivedIsAssured = startSessionMsg.isAssured();
@@ -505,7 +509,8 @@ public class AssuredReplicationPluginTest
 
       } catch (IOException e)
       {
-        // Probably un-connection of DS looking for best server
+        fail("Unexpected io exception in fake replication server handshake " +
+          "processing: " + e);
         return false;
       } catch (Exception e)
       {
@@ -1364,9 +1369,9 @@ public class AssuredReplicationPluginTest
 //      assertFalse(ackMsg.hasTimeout());
 //      assertTrue(ackMsg.hasReplayError());
 //      assertFalse(ackMsg.hasWrongStatus());
-//      List<Short> failedServers = ackMsg.getFailedServers();
+//      List<Integer> failedServers = ackMsg.getFailedServers();
 //      assertEquals(failedServers.size(), 1);
-//      assertEquals((short)failedServers.get(0), (short)1);
+//      assertEquals((integer)failedServers.get(0), (integer)1);
     } finally
     {
       endTest();

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -60,8 +60,11 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   // Threshold for status analyzers
   private int degradedStatusThreshold = 5000;
 
+  // The weight of the server
+  private int weight = 1;
+
   /**
-   * Constructor without assured info
+   * Constructor without goup id, assured info and weight
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, int purgeDelay, int serverId,
@@ -103,7 +106,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   }
   
   /**
-   * Constructor with assured info
+   * Constructor with group id and assured info
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, int purgeDelay, int serverId,
@@ -114,6 +117,19 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     this.groupId = groupId;
     this.assuredTimeout = assuredTimeout;
     this.degradedStatusThreshold = degradedStatusThreshold;
+  }
+
+  /**
+   * Constructor with group id, assured info and weight
+   */
+  public ReplServerFakeConfiguration(
+      int port, String dirName, int purgeDelay, int serverId,
+      int queueSize, int windowSize, SortedSet<String> servers,
+      int groupId, long assuredTimeout, int degradedStatusThreshold, int weight)
+  {
+    this(port, dirName, purgeDelay, serverId, queueSize, windowSize, servers,
+      groupId, assuredTimeout, degradedStatusThreshold);
+    this.weight = weight;
   }
 
   /**
@@ -231,6 +247,11 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   public void setDegradedStatusThreshold(int degradedStatusThreshold)
   {
     this.degradedStatusThreshold = degradedStatusThreshold;
+  }
+
+  public int getWeight()
+  {
+    return weight;
   }
 
 }

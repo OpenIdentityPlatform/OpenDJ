@@ -121,6 +121,34 @@ public class ReplicationServerHandler extends ServerHandler
   }
 
   /**
+   * Send the ReplServerStartMsg to the remote RS.
+   * @param requestedProtocolVersion The provided protocol version.
+   * @return The ReplServerStartMsg sent.
+   * @throws IOException When an exception occurs.
+   */
+  private ReplServerStartMsg sendStartToRemote(short requestedProtocolVersion)
+  throws IOException
+  {
+    ReplServerStartMsg outReplServerStartMsg
+    = new ReplServerStartMsg(
+        replicationServerId,
+        replicationServerURL,
+        getServiceId(),
+        maxRcvWindow,
+        replicationServerDomain.getDbServerState(),
+        protocolVersion,
+        localGenerationId,
+        sslEncryption,
+        getLocalGroupId(),
+        replicationServerDomain.
+        getReplicationServer().getDegradedStatusThreshold());
+
+    session.publish(outReplServerStartMsg, requestedProtocolVersion);
+
+    return outReplServerStartMsg;
+  }
+
+  /**
    * Creates a new handler object to a remote replication server.
    * @param session The session with the remote RS.
    * @param queueSize The queue size to manage updates to that RS.
@@ -262,6 +290,7 @@ public class ReplicationServerHandler extends ServerHandler
       // lock with timeout
       lockDomain(true);
 
+      this.localGenerationId = replicationServerDomain.getGenerationId();
       ReplServerStartMsg outReplServerStartMsg =
         sendStartToRemote(protocolVersion);
 
@@ -389,6 +418,14 @@ public class ReplicationServerHandler extends ServerHandler
       super.finalizeStart();
 
     }
+    catch(IOException ioe) {
+      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+        Integer.toString(inReplServerStartMsg.getServerId()),
+        Integer.toString(replicationServerDomain.getReplicationServer().
+        getServerId()));
+      logError(errMessage);
+      abortStart(errMessage);
+    }
     catch(DirectoryException de)
     {
       abortStart(de.getMessageObject());
@@ -425,7 +462,7 @@ public class ReplicationServerHandler extends ServerHandler
   throws IOException
   {
     TopologyMsg outTopoMsg = replicationServerDomain.createTopologyMsgForRS();
-    session.publish(outTopoMsg);
+    session.publish(outTopoMsg, protocolVersion);
     return outTopoMsg;
   }
 

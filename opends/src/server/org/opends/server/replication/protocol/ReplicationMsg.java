@@ -71,11 +71,15 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_CHANGE_STATUS = 28;
   static final byte MSG_TYPE_GENERIC_UPDATE = 29;
 
-  // Protocol version : 3
+  // Added for protocol version 3
   static final byte MSG_TYPE_START_ECL = 30;
   static final byte MSG_TYPE_START_ECL_SESSION = 31;
   static final byte MSG_TYPE_ECL_UPDATE = 32;
   static final byte MSG_TYPE_CT_HEARTBEAT = 33;
+
+  // Added for protocol version 4
+  static final byte MSG_TYPE_REPL_SERVER_START_DS = 34;
+  static final byte MSG_TYPE_STOP = 35;
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -237,6 +241,12 @@ public abstract class ReplicationMsg
       break;
       case MSG_TYPE_CT_HEARTBEAT:
         msg = new ChangeTimeHeartbeatMsg(buffer);
+      break;
+      case MSG_TYPE_REPL_SERVER_START_DS:
+        msg = new ReplServerStartDSMsg(buffer);
+      break;
+      case MSG_TYPE_STOP:
+        msg = new StopMsg(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

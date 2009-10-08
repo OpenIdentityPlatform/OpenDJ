@@ -73,6 +73,7 @@ import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartDSMsg;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -1006,10 +1007,10 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       // Read the Replication Server state from the ReplServerStartMsg that
       // comes back.
-      ReplServerStartMsg replStartMsg =
-        (ReplServerStartMsg) session.receive();
-      int serverwindow = replStartMsg.getWindowSize();
-      ServerState replServerState = replStartMsg.getServerState();
+      ReplServerStartDSMsg replStartDSMsg =
+        (ReplServerStartDSMsg) session.receive();
+      int serverwindow = replStartDSMsg.getWindowSize();
+      ServerState replServerState = replStartDSMsg.getServerState();
 
       if (!sslEncryption)
       {
@@ -1052,9 +1053,9 @@ public class ReplicationServerTest extends ReplicationTestCase
           sslEncryption, (byte)10);
       session.publish(msg);
 
-      // Read the ReplServerStartMsg that should come back.
+      // Read the ReplServerStartDSMsg that should come back.
       repMsg = session.receive();
-      assertTrue(repMsg instanceof ReplServerStartMsg);
+      assertTrue(repMsg instanceof ReplServerStartDSMsg);
 
       if (!sslEncryption)
       {

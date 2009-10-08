@@ -69,6 +69,11 @@ public class HeartbeatMonitor extends DirectoryThread
    */
   private boolean shutdown = false;
 
+  /**
+   * Send StopMsg before session closure or not.
+   */
+  private boolean sendStopBeforeClose = false;
+
 
   /**
    * Create a heartbeat monitor thread.
@@ -76,13 +81,16 @@ public class HeartbeatMonitor extends DirectoryThread
    * @param session The session on which heartbeats are to be monitored.
    * @param heartbeatInterval The expected interval between heartbeats received
    * (in milliseconds).
+   * @param sendStopBeforeClose Should we send a StopMsg before closing the
+   *        session ?
    */
   public HeartbeatMonitor(String threadName, ProtocolSession session,
-                          long heartbeatInterval)
+                          long heartbeatInterval, boolean sendStopBeforeClose)
   {
     super(threadName);
     this.session = session;
     this.heartbeatInterval = heartbeatInterval;
+    this.sendStopBeforeClose = sendStopBeforeClose;
   }
 
   /**
@@ -117,6 +125,17 @@ public class HeartbeatMonitor extends DirectoryThread
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
             logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
+            if (sendStopBeforeClose)
+            {
+              // V4 protocol introduces a StopMsg to properly end communications
+              try
+              {
+                session.publish(new StopMsg());
+              } catch(IOException ioe)
+              {
+                // Anyway, going to close session, so nothing to do
+              }
+            }
             session.close();
             break;
           }

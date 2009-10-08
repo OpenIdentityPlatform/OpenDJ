@@ -41,7 +41,7 @@ public class DoneMsg extends RoutableMsg
    * Creates a message.
    *
    * @param serverID The sender server of this message.
-   * @param i The server or servers targetted by this message.
+   * @param i The server or servers targeted by this message.
    */
   public DoneMsg(int serverID, int i)
   {

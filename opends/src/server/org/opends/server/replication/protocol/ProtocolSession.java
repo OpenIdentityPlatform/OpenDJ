@@ -116,6 +116,13 @@ public interface ProtocolSession
    */
   public abstract String getRemoteAddress();
 
+  /**
+   * Retrieve the human readable address of the remote server.
+   *
+   * @return The human readable address of the remote server.
+   */
+  public abstract String getReadableRemoteAddress();
+
 
   /**
   * Set a timeout value.

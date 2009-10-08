@@ -82,11 +82,6 @@ public class MonitorMsg extends RoutableMsg
   SubTopoMonitorData data = new SubTopoMonitorData();
 
   /**
-   * The protocolVersion that should be used when serializing this message.
-   */
-  private final short protocolVersion;
-
-  /**
    * Creates a new MonitorMsg.
    *
    * @param sender The sender of this message.
@@ -95,24 +90,7 @@ public class MonitorMsg extends RoutableMsg
   public MonitorMsg(int sender, int destination)
   {
     super(sender, destination);
-    protocolVersion = ProtocolVersion.getCurrentVersion();
   }
-
-
-  /**
-   * Creates a new MonitorMsg with a specific protocol version.
-   *
-   * @param sender                The sender of this message.
-   * @param destination           The destination of this message.
-   * @param replicationProtocol   The protocol version to use.
-   */
-  public MonitorMsg(int sender, int destination,
-      short replicationProtocol)
-  {
-    super(sender, destination);
-    protocolVersion = replicationProtocol;
-  }
-
 
   /**
    * Sets the state of the replication server.
@@ -204,7 +182,6 @@ public class MonitorMsg extends RoutableMsg
    */
   public MonitorMsg(byte[] in, short version) throws DataFormatException
   {
-    protocolVersion = ProtocolVersion.getCurrentVersion();
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
 
     if (version == ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -328,6 +305,17 @@ public class MonitorMsg extends RoutableMsg
    */
   @Override
   public byte[] getBytes()
+  throws UnsupportedEncodingException
+  {
+    return getBytes(ProtocolVersion.getCurrentVersion());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public byte[] getBytes(short protocolVersion)
+     throws UnsupportedEncodingException
   {
     try
     {

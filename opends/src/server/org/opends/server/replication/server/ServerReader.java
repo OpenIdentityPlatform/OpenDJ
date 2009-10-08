@@ -272,6 +272,18 @@ public class ServerReader extends DirectoryThread
             ChangeTimeHeartbeatMsg cthbMsg = (ChangeTimeHeartbeatMsg) msg;
             replicationServerDomain.processChangeTimeHeartbeatMsg(handler,
                 cthbMsg);
+          } else if (msg instanceof StopMsg)
+          {
+            // Peer server is properly disconnecting: go out of here to
+            // properly close the server handler going to finally block.
+            if (debugEnabled())
+            {
+              TRACER.debugInfo(handler.toString() + " has properly " +
+                "disconnected from this replication server " +
+                Integer.toString(replicationServerDomain.getReplicationServer().
+                getServerId()));
+            }
+            return;
           } else if (msg == null)
           {
             /*
@@ -308,7 +320,7 @@ public class ServerReader extends DirectoryThread
           " reader IO EXCEPTION for serverID=" + serverId + " " +
           this + " " +
           stackTraceToSingleLineString(e) + " " + e.getLocalizedMessage());
-      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
         Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
@@ -346,7 +358,7 @@ public class ServerReader extends DirectoryThread
     finally
     {
       /*
-       * The thread only exit the loop above is some error condition
+       * The thread only exits the loop above if some error condition
        * happen.
        * Attempt to close the socket and stop the server handler.
        */
@@ -357,6 +369,19 @@ public class ServerReader extends DirectoryThread
             "In RS " + replicationServerDomain.getReplicationServer().
             getMonitorInstanceName() +
             this + " is closing the session");
+        if (handler.getProtocolVersion() >=
+          ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        {
+          // V4 protocol introduces a StopMsg to properly end
+          // communications
+          try
+          {
+            session.publish(new StopMsg());
+          } catch (IOException ioe)
+          {
+            // Anyway, going to close session, so nothing to do
+          }
+        }
         session.close();
       } catch (IOException e)
       {

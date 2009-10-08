@@ -1245,7 +1245,7 @@ public abstract class ReplicationDomain
    * from which this server can be initialized.
    *
    * @param targetString The string representing the source
-   * @return The source as a short value
+   * @return The source as a integer value
    * @throws DirectoryException if the string is not valid
    */
   public int decodeTarget(String targetString)
