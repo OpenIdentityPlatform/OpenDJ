@@ -27,8 +27,8 @@
 package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
 import static org.opends.server.util.StaticUtils.createEntry;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -109,6 +109,7 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeValue;
@@ -209,9 +210,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
+    // Test all types of ops.  
+    ECLAllOps(); // Do not clean the db for the next test
+
+    // First and last should be ok whenever a request has been done or not
+    // in compat mode.
+    ECLCompatTestLimits(1,4);replicationServer.clearDb();
+ 
+    // Test with a mix of domains, a mix of DSes
+    ECLTwoDomains(); replicationServer.clearDb();
+    
+    // Write changes and read ECL from start
+    int ts = ECLCompatWriteReadAllOps(1);
+
+    // Write additional changes and read ECL from a provided draft change number
+    ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
+
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest()
+  {
     // ***********************************************
     // First set of test are in the cookie mode
     // ***********************************************
+
     // Test that private backend is excluded from ECL
     ECLOnPrivateBackend();replicationServer.clearDb();
 
@@ -232,7 +255,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();replicationServer.clearDb();
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();
+    //ECLTwoDomains();
     // changelogDb required NOT empty for the next test
 
     // Test ECL after changelog triming
@@ -523,9 +546,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
 
       // success
-      assertEquals(
-          op2.getResultCode(), ResultCode.SUCCESS,
-          op2.getErrorMessage().toString());
+      waitOpResult(op2, ResultCode.SUCCESS);
 
       // root entry returned
       assertEquals(op2.getEntriesSent(), 1);
@@ -581,8 +602,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         entry.getUserAttributes(), entry.getOperationalAttributes());
     addOp.setInternalOperation(true);
     addOp.run();
-    assertEquals(addOp.getResultCode(), ResultCode.SUCCESS,
-        addOp.getErrorMessage().toString() + addOp.getAdditionalLogMessage());
+    waitOpResult(addOp, ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
 
@@ -649,8 +669,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
 
       // Expect SUCCESS and root entry returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       assertEquals(entries.size(),2, "Entries number returned by search");
       assertTrue(entries != null);
@@ -691,8 +711,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
 
       // Expect success and only entry from o=test returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+
       entries = searchOp.getSearchEntries();
       assertTrue(entries != null);
       assertTrue(entries.size()==1);
@@ -817,8 +837,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             createControls(cookie),
             null);
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+
       cookie="";
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       if (entries != null)
@@ -837,7 +857,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           }
         }
       }
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 4);
 
       // Now start from last cookie and expect to get ONLY the 4th change
@@ -865,8 +884,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
 
       // We expect SUCCESS and the 4th change
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       entries = searchOp.getSearchEntries();
       cookie="";
       if (entries != null)
@@ -919,8 +937,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           controls,
           null);
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       entries = searchOp.getSearchEntries();
       if (entries != null)
       {
@@ -937,7 +954,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {}
         }
       }
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 1);
 
       cookie="";
@@ -963,8 +979,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
 
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
 
       entries = searchOp.getSearchEntries();
       if (entries != null)
@@ -982,7 +997,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {}
         }
       }
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
       // we expect msg1 + msg4 + msg5
       assertEquals(searchOp.getSearchEntries().size(), 3);
 
@@ -1099,8 +1113,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             createControls(cookie),
             null);
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+
       cookie="";
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       if (entries != null)
@@ -1111,7 +1125,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ldifWriter.writeEntry(entry);
         }
       }
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 0);
 
       // Read last cookie
@@ -1133,8 +1146,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             createControls(cookie),
             null);
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       entries = searchOp.getSearchEntries();
       if (entries != null)
       {
@@ -1144,7 +1156,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ldifWriter.writeEntry(entry);
         }
       }
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 0);
     }
     catch(Exception e)
@@ -1180,9 +1191,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             NO_CONTROL,
             null);
 
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString()
-          + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       if (entries != null)
       {
@@ -1322,11 +1331,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             controls,
             null);
-      sleep(500);
 
       // test success
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       // test 4 entries returned
       String cookie1 = "o=test:"+cn1.toString()+";o=test2:;";
       String cookie2 = "o=test:"+cn2.toString()+";o=test2:;";
@@ -1696,9 +1703,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
               searchResultEntry = message.getSearchResultEntryProtocolOp();
               searchEntries++;
-              // FIXME:ECL Double check 10 is really the valid value here.
+              // FIXME:ECL Double check 1 is really the valid value here.
               checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                  (compatMode?"10":"0"));
+                  (compatMode?"1":"0"));
               break;
 
             case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
@@ -1784,7 +1791,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, "Second search done successfully : " + searchResultEntry);
       server01.stop();
       try { s.close(); } catch (Exception e) {};
-      sleep(1000);
+      while (!s.isClosed()) sleep(100);
 
       // TODO:  Testing ACI is disabled because it is currently failing when
       // ran in the precommit target while it works well when running alone.
@@ -1854,7 +1861,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
 
       try { s.close(); } catch (Exception e) {};
-      sleep(1000);
+      while (!s.isClosed()) sleep(100);
     }
     catch(Exception e)
     {
@@ -2234,21 +2241,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
       sleep(1000);
-      /*
-      // Check we received change 11
-      for (LDAPAttribute a : searchResultEntry.getAttributes())
-      {
-        if (a.getAttributeType().equalsIgnoreCase("targetDN"))
-        {
-          for (ByteString av : a.getValues())
-          {
-            assertTrue(av.toString().equalsIgnoreCase(expectedDn11),
-                "Entry returned by psearch11 is " + av.toString() +
-                " when expected is " + expectedDn11);
-          }
-        }
-      }
-      */
       debugInfo(tn, "Search 1 successfully receives additional changes");
 
       // wait 12 & 13
@@ -2282,21 +2274,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
       sleep(1000);
-      /*
-      // Check we received change 12
-      for (LDAPAttribute a : searchResultEntry.getAttributes())
-      {
-        if (a.getAttributeType().equalsIgnoreCase("targetDN"))
-        {
-          for (ByteString av : a.getValues())
-          {
-            assertTrue(av.toString().equalsIgnoreCase(expectedDn12),
-                "Entry returned by psearch 12 is " + av.toString() +
-                " when expected is " + expectedDn12);
-          }
-        }
-      }
-      */
       debugInfo(tn, "Search 2 successfully receives additional changes");
 
       // wait 11 & 12 & 13
@@ -2353,7 +2330,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       try { s2.close(); } catch (Exception e) {};
       try { s3.close(); } catch (Exception e) {};
 
-      sleep(1000);
+      while (!s1.isClosed()) sleep(100);
+      while (!s2.isClosed()) sleep(100);
+      while (!s3.isClosed()) sleep(100);
     }
     catch(Exception e)
     {
@@ -2450,7 +2429,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     if (debugEnabled())
     {
 //      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-//          "** TEST " + tn + " ** " + s));
+//         "** TEST " + tn + " ** " + s));
       TRACER.debugInfo("** TEST " + tn + " ** " + s);
     }
   }
@@ -2519,12 +2498,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          5000, true);
 
       ReplicationBroker s2test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          5000, true, EMPTY_DN_GENID);
       sleep(500);
 
       // Produce updates
@@ -2750,11 +2729,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
 
       // test 4 entries returned
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -2848,11 +2823,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
 
       entries = searchOp.getSearchEntries();
 
@@ -2973,11 +2944,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
 
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       assertEquals(searchOp.getSearchEntries().size(), 1);
@@ -3046,12 +3013,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
-      assertEquals(searchOp.getSearchEntries().size(),
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+      assertEquals(searchOp.getSearchEntries().size(), 
           lastDraftChangeNumber-firstDraftChangeNumber+1);
     }
     catch(Exception e)
@@ -3091,11 +3054,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 0);
     }
     catch(Exception e)
@@ -3137,11 +3096,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 1);
 
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -3313,11 +3268,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      sleep(500);
-
-      // test success and no entries returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 1);
 
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -3369,6 +3320,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+      sleep(500);
 
       ECLCompatTestLimits(expectedFirst, expectedLast+1);
 
@@ -3562,28 +3514,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Entry uentry2 = TestCaseUtils.entryFromLdifString(lentry);
       addEntry(uentry2);
 
+      //
       AttributeBuilder builder = new AttributeBuilder("sn");
       builder.add("newsn");
       Modification mod =
         new Modification(ModificationType.REPLACE, builder.toAttribute());
       List<Modification> mods = new ArrayList<Modification>();
       mods.add(mod);
-
       ModifyOperationBasis modOpBasis =
         new ModifyOperationBasis(connection, 1, 1, null, uentry1.getDN(), mods);
       modOpBasis.run();
+      waitOpResult(modOpBasis, ResultCode.SUCCESS);
 
+      //
       builder = new AttributeBuilder("telephonenumber");
       builder.add("555555");
       mod =
         new Modification(ModificationType.REPLACE, builder.toAttribute());
       mods = new ArrayList<Modification>();
       mods.add(mod);
-
-      modOpBasis =
+      ModifyOperationBasis modOpBasis2 =
         new ModifyOperationBasis(connection, 1, 1, null, uentry2.getDN(), mods);
-      modOpBasis.run();
+      modOpBasis2.run();
+      waitOpResult(modOpBasis2, ResultCode.SUCCESS);
 
+      //
       ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
@@ -3592,18 +3547,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           RDN.decode("cn=Robert Hue2"), true,
           DN.decode(TEST_ROOT_DN_STRING3));
       modDNOp.run();
-      assertEquals(modDNOp.getResultCode(), ResultCode.SUCCESS,
-          modDNOp.getErrorMessage().toString() + modDNOp.getAdditionalLogMessage());
+      waitOpResult(modDNOp, ResultCode.SUCCESS);
 
+      //
       DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(), null,
           DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3));
       delOp.run();
-      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS,
-          delOp.getErrorMessage().toString() + delOp.getAdditionalLogMessage());
+      waitOpResult(delOp, ResultCode.SUCCESS);
 
-      sleep(400);
+      getEntry(DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3),5000,false);
 
       // Search on ECL from start on all suffixes
       String cookie = "";
@@ -3616,7 +3570,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("+");
       attributes.add("*");
 
-
+      sleep(1000);
       debugInfo(tn, "Search with cookie=" + cookie);
       InternalSearchOperation searchOp = connection.processSearch(
           ByteString.valueOf("cn=changelog"),
@@ -3630,23 +3584,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           controls,
           null);
 
-      sleep(500);
-
-      // Expect SUCCESS and root entry returned
-      assertEquals(searchOp.getResultCode(), ResultCode.SUCCESS,
-          searchOp.getErrorMessage().toString() + searchOp.getAdditionalLogMessage());
+      waitOpResult(searchOp, ResultCode.SUCCESS);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
 
 
-      assertEquals(entries.size(),8, "Entries number returned by search");
       assertTrue(entries != null);
-
+      String s = tn + " entries returned= ";
       if (entries != null)
       {
         for (SearchResultEntry resultEntry : entries)
         {
           // Expect
           debugInfo(tn, "Entry returned =" +  resultEntry.toLDIFString());
+          s += "Entry:" + resultEntry.toLDIFString();
 
           String targetdn = getAttributeValue(resultEntry, "targetdn");
           if ((targetdn.endsWith("cn=robert hue,o=test3"))
@@ -3663,6 +3613,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           }
         }
       }
+      assertEquals(entries.size(),8, "Entries number returned by search" + s);
       server01.stop();
 
       // Cleaning
@@ -3689,5 +3640,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     }
     debugInfo(tn, "Ending test with success");
+  }
+  
+  private void waitOpResult(AbstractOperation searchOp,
+      ResultCode expectedResult)
+  {
+    int ii=0;
+    while((searchOp.getResultCode()==ResultCode.UNDEFINED) ||
+        (searchOp.getResultCode()!=expectedResult))
+    {
+      sleep(50);
+      ii++;
+      if (ii>10)
+        assertEquals(searchOp.getResultCode(), expectedResult, 
+            searchOp.getErrorMessage().toString());                
+    }
   }
 }
