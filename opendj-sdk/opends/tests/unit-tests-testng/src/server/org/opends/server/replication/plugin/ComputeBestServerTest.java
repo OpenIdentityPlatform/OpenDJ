@@ -40,6 +40,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.testng.annotations.Test;
 
 /**
@@ -98,7 +99,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -143,7 +147,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -190,7 +197,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -237,7 +247,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -285,7 +298,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -295,7 +311,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -345,7 +364,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     // This server has less changes than the other one but it has the same
     // group id as us so he should be the winner
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -355,7 +377,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)2));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)2, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -403,7 +428,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)2));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)2, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -413,7 +441,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(2L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)2));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)2, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -462,7 +493,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -472,7 +506,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(3L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 3
     aState = new ServerState();
@@ -482,7 +519,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER2, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -531,7 +571,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -541,7 +584,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(3L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)2));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)2, 0);
+    rsInfos.put(LOOSER2, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 3
     aState = new ServerState();
@@ -553,7 +599,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     // This server has less changes than looser2 but it has the same
     // group id as us so he should be the winner
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -600,7 +649,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -648,7 +700,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -658,7 +713,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -707,7 +765,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -717,7 +778,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(0L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 3
     aState = new ServerState();
@@ -727,7 +791,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER2, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);
@@ -780,7 +847,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER1, new ServerInfo(aState, (byte)1));
+    ReplServerStartMsg replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER1, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 2
     aState = new ServerState();
@@ -790,7 +860,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(5L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER2, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER2, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 3
     aState = new ServerState();
@@ -800,7 +873,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(10L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER3, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER3, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 4
     aState = new ServerState();
@@ -810,7 +886,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(8L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(WINNER, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(WINNER, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 5 (null one for our serverid)
     aState = new ServerState();
@@ -818,7 +897,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(5L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER4, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER4, ServerInfo.newServerInfo(replServerStartMsg));
 
     // State for server 6
     aState = new ServerState();
@@ -828,7 +910,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
     aState.update(cn);
     cn = new ChangeNumber(6L, 0, myId3);
     aState.update(cn);
-    rsInfos.put(LOOSER5, new ServerInfo(aState, (byte)1));
+    replServerStartMsg =
+      new ReplServerStartMsg(0, null, null, 0, aState, (short)0, 0L,
+      false, (byte)1, 0);
+    rsInfos.put(LOOSER5, ServerInfo.newServerInfo(replServerStartMsg));
 
     String bestServer =
       computeBestReplicationServer(mySt, rsInfos, myId1, " ", (byte)1);

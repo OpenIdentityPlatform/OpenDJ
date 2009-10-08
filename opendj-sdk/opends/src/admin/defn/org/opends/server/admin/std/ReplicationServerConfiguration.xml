@@ -216,11 +216,11 @@
   </adm:property>
   <adm:property name="assured-timeout" mandatory="false">
     <adm:synopsis>
-      The timeout value when waiting for assured mode acknowledgements.
+      The timeout value when waiting for assured mode acknowledgments.
     </adm:synopsis>
     <adm:description>
       Defines the amount of milliseconds the replication server will wait for
-      assured acknowledgements (in either Safe Data or Safe Read assured sub
+      assured acknowledgments (in either Safe Data or Safe Read assured sub
       modes) before forgetting them and answer to the entity that sent an update
       and is waiting for acknowledgment.
     </adm:description>
@@ -262,6 +262,37 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-degraded-status-threshold</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="weight" mandatory="false">
+    <adm:synopsis>
+      The weight of the replication server.
+    </adm:synopsis>
+    <adm:description>
+      The weight affected to the replication server.
+      Each replication server of the topology has a weight. When combined
+      together, the weights of the replication servers of a same group can be
+      translated to a percentage that determines the quantity of directory
+      servers of the topology that should be connected to a replication server.
+      For instance imagine a topology with 3 replication servers (with the same
+      group id) with the following weights: RS1=1, RS2=1, RS3=2. This means that
+      RS1 should have 25% of the directory servers connected in the topology,
+      RS2 25%, and RS3 50%. This may be useful if the replication servers of the
+      topology have a different power and one wants to spread the load between
+      the replication servers according to their power.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-weight</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

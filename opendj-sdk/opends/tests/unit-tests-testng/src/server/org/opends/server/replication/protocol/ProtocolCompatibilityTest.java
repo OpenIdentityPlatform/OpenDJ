@@ -889,7 +889,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         {"1603303030303030303030303030303030313030303130303030303030300064633" +
          "d746573740066616b65756e69717565696400000200301f0a0102301a040b646573" +
          "6372697074696f6e310b04096e65772076616c756500",
-          ModifyMsg.class, new ChangeNumber(1, (short) 0, (short) 1), "dc=test" },
+          ModifyMsg.class, new ChangeNumber(1, 0, 1), "dc=test" },
         {"1803303030303031323366313238343132303030326430303030303037620064633" +
          "d636f6d00756e69717565696400000201",
             DeleteMsg.class, new ChangeNumber(0x123f1284120L,123,45), "dc=com"},
@@ -1092,11 +1092,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     dsList4.add(dsInfo2);
     dsList4.add(dsInfo1);
 
-    RSInfo rsInfo1 = new RSInfo((short)4527, (long)45316, (byte)103);
+    RSInfo rsInfo1 = new RSInfo(4527, (long)45316, (byte)103);
 
-    RSInfo rsInfo2 = new RSInfo((short)4527, (long)0, (byte)0);
+    RSInfo rsInfo2 = new RSInfo(4527, (long)0, (byte)0);
 
-    RSInfo rsInfo3 = new RSInfo((short)0, (long)-21113, (byte)98);
+    RSInfo rsInfo3 = new RSInfo(0, (long)-21113, (byte)98);
 
     List<RSInfo> rsList1 = new ArrayList<RSInfo>();
     rsList1.add(rsInfo1);

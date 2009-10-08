@@ -42,7 +42,7 @@ public class MonitorRequestMsg extends RoutableMsg
    * Creates a message.
    *
    * @param serverID The sender server of this message.
-   * @param destination The server or servers targetted by this message.
+   * @param destination The server or servers targeted by this message.
    */
   public MonitorRequestMsg(int serverID, int destination)
   {

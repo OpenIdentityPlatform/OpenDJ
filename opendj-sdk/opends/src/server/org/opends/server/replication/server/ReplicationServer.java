@@ -189,6 +189,21 @@ public class ReplicationServer
   final private Object domainMonitor = new Object();
 
   /**
+   * The weight affected to the replication server.
+   * Each replication server of the topology has a weight. When combined
+   * together, the weights of the replication servers of a same group can be
+   * translated to a percentage that determines the quantity of directory
+   * servers of the topology that should be connected to a replication server.
+   * For instance imagine a topology with 3 replication servers (with the same
+   * group id) with the following weights: RS1=1, RS2=1, RS3=2. This means that
+   * RS1 should have 25% of the directory servers connected in the topology,
+   * RS2 25%, and RS3 50%. This may be useful if the replication servers of the
+   * topology have a different power and one wants to spread the load between
+   * the replication servers according to their power.
+   */
+  private int weight = 1;
+
+  /**
    * Creates a new Replication server using the provided configuration entry.
    *
    * @param configuration The configuration of this replication server.
@@ -977,6 +992,13 @@ public class ReplicationServer
       {
         replicationServerDomain.stopAllServers();
       }
+    }
+
+    // Set a potential new weight
+    if (weight != configuration.getWeight())
+    {
+      weight = configuration.getWeight();
+      // TODO: send new TopologyMsg
     }
 
     if ((configuration.getReplicationDBDirectory() != null) &&
@@ -1785,5 +1807,14 @@ public class ReplicationServer
       }
     }
     return result;
+  }
+
+  /**
+   * Gets the weight.
+   * @return the weight
+   */
+  public int getWeight()
+  {
+    return weight;
   }
 }

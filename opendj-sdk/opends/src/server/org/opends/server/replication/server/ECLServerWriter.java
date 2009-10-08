@@ -169,7 +169,7 @@ public class ECLServerWriter extends ServerWriter
     catch (SocketException e)
     {
       // Just ignore the exception and let the thread die as well
-      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
           "for operation " + handler.getOperationId());
       logError(errMessage);
     }
@@ -198,7 +198,7 @@ public class ECLServerWriter extends ServerWriter
   }
 
   /**
-   * Loop geting changes from the domain and publishing them either to
+   * Loop getting changes from the domain and publishing them either to
    * the provided session or to the ECL session interface.
    * @throws IOException when raised (connection closure)
    * @throws InterruptedException when raised

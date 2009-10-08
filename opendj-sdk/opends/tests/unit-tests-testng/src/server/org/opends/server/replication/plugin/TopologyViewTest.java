@@ -39,6 +39,7 @@ import static org.testng.Assert.fail;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -849,7 +850,7 @@ public class TopologyViewTest extends ReplicationTestCase
     AssuredType assuredType = null;
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
-    SortedSet<String> attrs = new TreeSet<String>();
+    Set<String> eclIncludes = new HashSet<String>();
 
     switch (dsId)
       {
@@ -904,7 +905,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     return new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
-       (byte)assuredSdLevel, groupId, urls, attrs);
+       (byte)assuredSdLevel, groupId, urls, eclIncludes);
   }
 
   /**

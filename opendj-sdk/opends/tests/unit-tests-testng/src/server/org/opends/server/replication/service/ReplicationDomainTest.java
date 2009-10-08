@@ -464,15 +464,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
       }
       String exportedData=exportedDataBuilder.toString();
       domain1 = new FakeReplicationDomain(
-          testService, (short) 1, servers1,
+          testService, 1, servers1,
           100, 0, exportedData, null, ENTRYCOUNT);
 
       StringBuilder importedData = new StringBuilder();
       domain2 = new FakeReplicationDomain(
-          testService, (short) 2, servers2, 100, 0,
+          testService, 2, servers2, 100, 0,
           null, importedData, 0);
 
-      domain2.initializeFromRemote((short)1);
+      domain2.initializeFromRemote(1);
 
       int count = 0;
       while ((importedData.length() < exportedData.length()) && (count < 500))

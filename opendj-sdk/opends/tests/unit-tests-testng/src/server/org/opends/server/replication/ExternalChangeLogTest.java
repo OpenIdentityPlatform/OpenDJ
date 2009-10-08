@@ -3445,7 +3445,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
       DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn2, (short) 1702, replServers);
+        new DomainFakeCfg(baseDn2, 1702, replServers);
       SortedSet<String> includeAttributes = new TreeSet<String>();
       includeAttributes.add("sn");
       domainConf.setEclIncludes(includeAttributes);
@@ -3457,7 +3457,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
       DN baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
       domainConf =
-        new DomainFakeCfg(baseDn3, (short) 1703, replServers);
+        new DomainFakeCfg(baseDn3, 1703, replServers);
       includeAttributes = new TreeSet<String>();
       includeAttributes.add("objectclass");
       domainConf.setEclIncludes(includeAttributes);
@@ -3466,7 +3466,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       replicationPlugin3.completeSynchronizationProvider();
 
       domainConf =
-        new DomainFakeCfg(baseDn2, (short) 1704, replServers);
+        new DomainFakeCfg(baseDn2, 1704, replServers);
       includeAttributes = new TreeSet<String>();
       includeAttributes.add("cn");
       domainConf.setEclIncludes(includeAttributes);
@@ -3475,7 +3475,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Set<String> attrList = new HashSet<String>();
       attrList.add(new String("cn"));
       ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), (short) 1206,
+          DN.decode(TEST_ROOT_DN_STRING2), 1206,
           100, replicationServerPort,
           1000, true, -1 , domain21);
 

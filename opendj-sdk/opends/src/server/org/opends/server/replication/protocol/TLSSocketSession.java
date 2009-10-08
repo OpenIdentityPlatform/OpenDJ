@@ -243,6 +243,14 @@ public class TLSSocketSession implements ProtocolSession
   /**
    * {@inheritDoc}
    */
+  public String getReadableRemoteAddress()
+  {
+    return plainSocket.getRemoteSocketAddress().toString();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void setSoTimeout(int timeout) throws SocketException
   {
     plainSocket.setSoTimeout(timeout);

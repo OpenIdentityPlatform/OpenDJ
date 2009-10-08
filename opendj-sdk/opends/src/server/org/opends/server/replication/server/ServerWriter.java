@@ -41,6 +41,8 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 
@@ -198,7 +200,7 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
         Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
@@ -209,7 +211,7 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      errMessage = NOTE_SERVER_DISCONNECT.get(handler.toString(),
+      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
         Integer.toString(replicationServerDomain.
         getReplicationServer().getServerId()));
       logError(errMessage);
@@ -225,6 +227,18 @@ public class ServerWriter extends DirectoryThread
       logError(errMessage);
     }
     finally {
+      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+      {
+        // V4 protocol introduces a StopMsg to properly end
+        // communications
+        try
+        {
+          session.publish(new StopMsg());
+        } catch (IOException ioe)
+        {
+          // Anyway, going to close session, so nothing to do
+        }
+      }
       try
       {
         session.close();

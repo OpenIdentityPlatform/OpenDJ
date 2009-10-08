@@ -54,9 +54,12 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V3 = 3;
 
   /**
-   * 4th version of the replication protocol.
-   * Add to the body of the ADD/MOD/MODDN/DEL msgs, a list of attribute for
-   * ECL entry attributes.
+   * The constant for the 4th version of the replication protocol.
+   * - Add to the body of the ADD/MOD/MODDN/DEL msgs, a list of attribute for
+   *   ECL entry attributes.
+   * - Modified algorithm for choosing a RS to connect to: introduction of a
+   *   ReplicationServerDSMsg message.
+   * - Introduction of a StopMsg for proper connections ending.
    */
   public static final short REPLICATION_PROTOCOL_V4 = 4;
 
