@@ -1514,12 +1514,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     System.out.println(
         "addMsgPerfs "
-        + createop/perfRep/1000.0 + " μs \t"
-        + createmsgfromop/perfRep/1000.0 + " μs \t"
-        + setentryattr/perfRep/1000.0 + " μs \t"
-        + encodemsg/perfRep/1000.0 + " μs \t"
-        + getbytes/perfRep/1000.0 + " μs \t"
-        + buildnew/perfRep/1000.0 + " μs \t");
+        + createop/perfRep/1000.0 + " micros \t"
+        + createmsgfromop/perfRep/1000.0 + " micros \t"
+        + setentryattr/perfRep/1000.0 + " micros \t"
+        + encodemsg/perfRep/1000.0 + " micros \t"
+        + getbytes/perfRep/1000.0 + " micros \t"
+        + buildnew/perfRep/1000.0 + " micros \t");
   }
 
   @Test(enabled=false,dataProvider = "createModifyData")
@@ -1595,12 +1595,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     System.out.println(
         "modMsgPerfs "
-        + createop/perfRep/1000.0 + " μs \t"
-        + createmsgfromop/perfRep/1000.0 + " μs \t"
-        + setentryattr/perfRep/1000.0 + " μs \t"
-        + encodemsg/perfRep/1000.0 + " μs \t"
-        + getbytes/perfRep/1000.0 + " μs \t"
-        + buildnew/perfRep/1000.0 + " μs \t");
+        + createop/perfRep/1000.0 + " micros \t"
+        + createmsgfromop/perfRep/1000.0 + " micros \t"
+        + setentryattr/perfRep/1000.0 + " micros \t"
+        + encodemsg/perfRep/1000.0 + " micros \t"
+        + getbytes/perfRep/1000.0 + " micros \t"
+        + buildnew/perfRep/1000.0 + " micros \t");
   }
 
   @Test(enabled=false,dataProvider = "createDeleteData")
@@ -1672,11 +1672,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     System.out.println(
         "deleteMsgPerfs "
-        + createop/perfRep/1000.0 + " μs \t"
-        + createmsgfromop/perfRep/1000.0 + " μs \t"
-        + setentryattr/perfRep/1000.0 + " μs \t"
-        + encodemsg/perfRep/1000.0 + " μs \t"
-        + getbytes/perfRep/1000.0 + " μs \t"
-        + buildnew/perfRep/1000.0 + " μs \t");
+        + createop/perfRep/1000.0 + " micros \t"
+        + createmsgfromop/perfRep/1000.0 + " micros \t"
+        + setentryattr/perfRep/1000.0 + " micros \t"
+        + encodemsg/perfRep/1000.0 + " micros \t"
+        + getbytes/perfRep/1000.0 + " micros \t"
+        + buildnew/perfRep/1000.0 + " micros \t");
   }
 }
