@@ -111,7 +111,7 @@ public class DraftCNDbHandler implements Runnable
 
     // DB initialization
     db = new DraftCNDB(replicationServer, dbenv);
-    firstkey = db.readFirstSeqnum();
+    firstkey = db.readFirstDraftCN();
     lastkey = db.readLastDraftCN();
 
     // Triming thread
@@ -155,7 +155,7 @@ public class DraftCNDbHandler implements Runnable
    */
   public int getFirstKey()
   {
-    return db.readFirstSeqnum();
+    return db.readFirstDraftCN();
   }
 
   /**
@@ -405,7 +405,7 @@ public class DraftCNDbHandler implements Runnable
     {
       ArrayList<Attribute> attributes = new ArrayList<Attribute>();
       attributes.add(Attributes.create("first-draft-changenumber",
-          Integer.toString(db.readFirstSeqnum())));
+          Integer.toString(db.readFirstDraftCN())));
       attributes.add(Attributes.create("last-draft-changenumber",
           Integer.toString(db.readLastDraftCN())));
       attributes.add(Attributes.create("count",
@@ -481,7 +481,7 @@ public class DraftCNDbHandler implements Runnable
   public void clear() throws DatabaseException, Exception
   {
     db.clear();
-    firstkey = db.readFirstSeqnum();
+    firstkey = db.readFirstDraftCN();
     lastkey = db.readLastDraftCN();
   }
 
@@ -532,7 +532,7 @@ public class DraftCNDbHandler implements Runnable
       if (debugEnabled())
         TRACER.debugInfo("In DraftCNDbHandler.getGeneralizedState, read: " +
           " key=" + key + " genServerState returned is null" +
-          " first=" + db.readFirstSeqnum() +
+          " first=" + db.readFirstDraftCN() +
           " last=" + db.readLastDraftCN() +
           " count=" + db.count() +
           " exception" + e + " " + e.getMessage());
