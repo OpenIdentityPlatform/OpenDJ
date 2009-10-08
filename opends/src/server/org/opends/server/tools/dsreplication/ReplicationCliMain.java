@@ -8506,7 +8506,15 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (c instanceof OpenDsException)
       {
-        s = ((OpenDsException)c).getMessageObject().toString();
+        Message msg = ((OpenDsException)c).getMessageObject();
+        if (msg != null)
+        {
+          s = msg.toString();
+        }
+        else
+        {
+          s = c.toString();
+        }
       }
       else
       {
