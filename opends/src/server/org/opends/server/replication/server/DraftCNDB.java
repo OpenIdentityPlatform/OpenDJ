@@ -263,9 +263,9 @@ public class DraftCNDB
 
   /**
    * Read the first Change from the database, 0 when none.
-   * @return the first ChangeNumber.
+   * @return the first draftCN.
    */
-  public int readFirstSeqnum()
+  public int readFirstDraftCN()
   {
     Cursor cursor = null;
     String str = null;
