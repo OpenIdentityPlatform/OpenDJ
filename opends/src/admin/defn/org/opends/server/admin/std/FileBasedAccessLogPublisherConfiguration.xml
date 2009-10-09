@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="file-based-access-log-publisher"
   plural-name="file-based-access-log-publishers"
@@ -74,6 +74,12 @@
       The maximum number of log records that can be stored in the
       asynchronous queue.
     </adm:synopsis>
+    <adm:description>
+      Setting the queue size to zero activates parallel log writer
+      implementation which has no queue size limit and as such the
+      parallel log writer should only be used on a very well tuned
+      server configuration to avoid potential out of memory errors.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
@@ -88,7 +94,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="1" />
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
