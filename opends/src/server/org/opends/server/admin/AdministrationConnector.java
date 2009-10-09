@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -128,6 +128,8 @@ public final class AdministrationConnector implements
   private static final long ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT = 120000; // 2mn
 
   private static final int ADMIN_MAX_REQUEST_SIZE = 5000000; // 5 Mb
+
+  private static final int ADMIN_WRITE_BUFFER_SIZE = 4096;
 
   private static final int ADMIN_NUM_REQUEST_HANDLERS = 1;
 
@@ -412,6 +414,16 @@ public final class AdministrationConnector implements
     public long getMaxRequestSize()
     {
       return ADMIN_MAX_REQUEST_SIZE;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getBufferSize()
+    {
+      return ADMIN_WRITE_BUFFER_SIZE;
     }
 
 

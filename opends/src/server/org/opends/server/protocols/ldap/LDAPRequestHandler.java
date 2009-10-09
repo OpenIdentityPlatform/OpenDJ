@@ -40,15 +40,16 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+
 import java.util.LinkedList;
 import java.util.List;
-
 import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
@@ -71,16 +72,6 @@ public class LDAPRequestHandler
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-
-  /**
-   * The buffer size in bytes to use when reading data from a client.
-   */
-  public static final int BUFFER_SIZE = 8192;
-
-
-
   // Indicates whether the Directory Server is in the process of shutting down.
   private volatile boolean shutdownRequested = false;
 
@@ -89,11 +80,16 @@ public class LDAPRequestHandler
 
   // The queue that will be used to hold the set of pending connections that
   // need to be registered with the selector.
+  // TODO: revisit, see Issue 4202.
   private List<LDAPClientConnection> pendingConnections =
     new LinkedList<LDAPClientConnection>();
 
   // Lock object for synchronizing access to the pending connections queue.
   private final Object pendingConnectionsLock = new Object();
+
+  // The list of connections ready for request processing.
+  private LinkedList<LDAPClientConnection> readyConnections =
+    new LinkedList<LDAPClientConnection>();
 
   // The selector that will be used to monitor the client connections.
   private final Selector selector;
@@ -180,6 +176,89 @@ public class LDAPRequestHandler
     // loop, check for new requests, then check for new connections.
     while (!shutdownRequested)
     {
+      LDAPClientConnection readyConnection = null;
+      while ((readyConnection = readyConnections.poll()) != null)
+      {
+        try
+        {
+          ASN1ByteChannelReader asn1Reader = readyConnection.getASN1Reader();
+          boolean ldapMessageProcessed = false;
+          while (true)
+          {
+            if (asn1Reader.elementAvailable())
+            {
+              if (!ldapMessageProcessed)
+              {
+                if (readyConnection.processLDAPMessage(
+                    LDAPReader.readMessage(asn1Reader)))
+                {
+                  ldapMessageProcessed = true;
+                }
+                else
+                {
+                  break;
+                }
+              }
+              else
+              {
+                readyConnections.add(readyConnection);
+                break;
+              }
+            }
+            else
+            {
+              if (readyConnection.processDataRead() <= 0)
+              {
+                break;
+              }
+            }
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+
+      // Check to see if we have any pending connections that need to be
+      // registered with the selector.
+      List<LDAPClientConnection> tmp = null;
+      synchronized (pendingConnectionsLock)
+      {
+        if (!pendingConnections.isEmpty())
+        {
+          tmp = pendingConnections;
+          pendingConnections = new LinkedList<LDAPClientConnection>();
+        }
+      }
+
+      if (tmp != null)
+      {
+        for (LDAPClientConnection c : tmp)
+        {
+          try
+          {
+            SocketChannel socketChannel = c.getSocketChannel();
+            socketChannel.configureBlocking(false);
+            socketChannel.register(selector, SelectionKey.OP_READ, c);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            c.disconnect(DisconnectReason.SERVER_ERROR, true,
+                ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
+                    String.valueOf(e)));
+          }
+        }
+      }
+
       // Create a copy of the selection keys which can be used in a
       // thread-safe manner by getClientConnections. This copy is only
       // updated once per loop, so may not be accurate.
@@ -226,9 +305,13 @@ public class LDAPRequestHandler
 
                 try
                 {
-                  if (! clientConnection.processDataRead())
+                  int readResult = clientConnection.processDataRead();
+                  if (readResult < 0)
                   {
                     key.cancel();
+                  }
+                  if (readResult > 0) {
+                    readyConnections.add(clientConnection);
                   }
                 }
                 catch (Exception e)
@@ -304,43 +387,6 @@ public class LDAPRequestHandler
             }
 
             iterator.remove();
-          }
-        }
-      }
-
-
-      // Check to see if we have any pending connections that need to be
-      // registered with the selector.
-      List<LDAPClientConnection> tmp = null;
-      synchronized (pendingConnectionsLock)
-      {
-        if (!pendingConnections.isEmpty())
-        {
-          tmp = pendingConnections;
-          pendingConnections = new LinkedList<LDAPClientConnection>();
-        }
-      }
-
-      if (tmp != null)
-      {
-        for (LDAPClientConnection c : tmp)
-        {
-          try
-          {
-            SocketChannel socketChannel = c.getSocketChannel();
-            socketChannel.configureBlocking(false);
-            socketChannel.register(selector, SelectionKey.OP_READ, c);
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            c.disconnect(DisconnectReason.SERVER_ERROR, true,
-                ERR_LDAP_REQHANDLER_CANNOT_REGISTER.get(handlerName,
-                    String.valueOf(e)));
           }
         }
       }
@@ -438,7 +484,6 @@ public class LDAPRequestHandler
            ERR_LDAP_REQHANDLER_REJECT_DUE_TO_SHUTDOWN.get());
       return false;
     }
-
 
     // Try to add the new connection to the queue.  If it succeeds, then wake
     // up the selector so it will be picked up right away.  Otherwise,
