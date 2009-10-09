@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="parallel-work-queue"
+  plural-name="parallel-work-queues" extends="work-queue"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is a type of work queue that uses a number of worker threads that
+    watch a queue and pick up an operation to process whenever one
+    becomes available.
+  </adm:synopsis>
+  <adm:description>
+    The parallel work queue is a FIFO queue serviced by a fixed
+    number of worker threads. This fixed number of threads can be
+    changed on the fly, with the change taking effect as soon as
+    it is made. This work queue implementation is unbound ie it
+    does not block after reaching certain queue size and as such
+    should only be used on a very well tuned server configuration
+    to avoid potential out of memory errors.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-parallel-work-queue</ldap:name>
+      <ldap:superior>ds-cfg-work-queue</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.ParallelWorkQueue
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="num-worker-threads">
+    <adm:synopsis>
+      Specifies the number of worker threads to be used for processing
+      operations placed in the queue.
+  </adm:synopsis>
+  <adm:description>
+      If the value is increased,
+      the additional worker threads are created immediately. If the
+      value is reduced, the appropriate number of threads are destroyed
+      as operations complete processing.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-num-worker-threads</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
