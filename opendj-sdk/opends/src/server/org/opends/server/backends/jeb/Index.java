@@ -328,8 +328,8 @@ public class Index extends DatabaseContainer
         put(null, key, data);
       }
     } else {
-      //Should never happen -- the keys should always be there.
-      throw new DatabaseException();
+      // Should never happen -- the keys should always be there.
+      throw new RuntimeException();
     }
   }
 
@@ -353,8 +353,8 @@ public class Index extends DatabaseContainer
       data.setData(importIdSet.toDatabase());
       put(null, key, data);
     } else {
-      //Should never happen during import.
-      throw new DatabaseException();
+      // Should never happen during import.
+      throw new RuntimeException();
     }
   }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -47,6 +47,16 @@ public class JebException
    * Java SDK.
    */
   static final long serialVersionUID = 3110979454298870834L;
+
+
+
+  /**
+   * Creates a new JE backend exception.
+   */
+  public JebException()
+  {
+    super();
+  }
 
 
 

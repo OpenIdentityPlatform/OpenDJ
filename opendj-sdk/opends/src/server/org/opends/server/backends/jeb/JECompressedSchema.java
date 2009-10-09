@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -133,12 +133,15 @@ public final class JECompressedSchema
    * @param  environment  A reference to the database environment in which the
    *                      databases will be held.
    *
-   * @throws  DatabaseException  If a problem occurs while loading the
-   *                             compressed schema definitions from the
-   *                             database.
+   * @throws DatabaseException       If a database problem occurs while loading
+   *                                 the compressed schema definitions from the
+   *                                 database.
+   * @throws InitializationException If an error occurs while loading and
+   *                                 processing the compressed schema
+   *                                 definitions.
    */
   public JECompressedSchema(Environment environment)
-         throws DatabaseException
+         throws DatabaseException, InitializationException
   {
     this.environment = environment;
 
@@ -165,11 +168,14 @@ public final class JECompressedSchema
   /**
    * Loads the compressed schema information from the database.
    *
-   * @throws  DatabaseException  If a problem occurs while loading the
-   *                             definitions from the database.
+   * @throws DatabaseException       If a database error occurs while
+   *                                 loading the definitions from the
+   *                                 database.
+   * @throws InitializationException If an error occurs while loading
+   *                                 and processing the definitions.
    */
   private void load()
-          throws DatabaseException
+          throws DatabaseException, InitializationException
   {
     DatabaseConfig dbConfig = new DatabaseConfig();
 
@@ -242,7 +248,7 @@ public final class JECompressedSchema
 
       Message m =
            ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae.getMessage());
-      throw new DatabaseException(m.toString(), ae);
+      throw new InitializationException(m, ae);
     }
     finally
     {
@@ -314,7 +320,7 @@ public final class JECompressedSchema
 
       Message m =
            ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae.getMessage());
-      throw new DatabaseException(m.toString(), ae);
+      throw new InitializationException(m, ae);
     }
     finally
     {
