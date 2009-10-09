@@ -601,6 +601,19 @@ public final class LDAPConnectionHandler extends
 
 
   /**
+   * Retrieves the size in bytes of the LDAP response message
+   * write buffer defined for this connection handler.
+   *
+   * @return The size in bytes of the LDAP response
+   *         message write buffer.
+   */
+  public int getBufferSize() {
+    return (int) currentConfig.getBufferSize();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override

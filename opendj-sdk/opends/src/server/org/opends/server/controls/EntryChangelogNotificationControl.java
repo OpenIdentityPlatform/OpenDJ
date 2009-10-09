@@ -145,7 +145,6 @@ public class EntryChangelogNotificationControl
     writer.writeOctetString(cookie.toString());
     writer.writeEndSequence();
     writer.writeEndSequence();
-    writer.flush();
   }
 
 

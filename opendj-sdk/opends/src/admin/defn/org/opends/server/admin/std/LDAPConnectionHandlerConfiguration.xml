@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2009 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -435,6 +435,29 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-max-request-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="buffer-size" advanced="true">
+    <adm:synopsis>
+      Specifies the size in bytes of the LDAP response message write buffer.
+    </adm:synopsis>
+    <adm:description>
+      This property specifies write buffer size allocated by the server for
+      each client connection and used to buffer LDAP response messages data
+      when writing.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>4096 bytes</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size lower-limit="1b" upper-limit="2147483647b"></adm:size>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-buffer-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
