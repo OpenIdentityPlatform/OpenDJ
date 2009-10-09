@@ -159,6 +159,10 @@ public class TextAccessLogPublisher extends
       {
         currentWriter = ((AsyncronousTextWriter) writer).getWrappedWriter();
       }
+      else if (writer instanceof ParallelTextWriter)
+      {
+        currentWriter = ((ParallelTextWriter) writer).getWrappedWriter();
+      }
       else
       {
         currentWriter = writer;
@@ -196,6 +200,14 @@ public class TextAccessLogPublisher extends
           asyncWriter.shutdown(false);
         }
 
+        if (writer instanceof ParallelTextWriter && !config.isAsynchronous())
+        {
+          // The asynchronous setting is being turned off.
+          ParallelTextWriter asyncWriter = ((ParallelTextWriter) writer);
+          writer = mfWriter;
+          asyncWriter.shutdown(false);
+        }
+
         if (!(writer instanceof AsyncronousTextWriter)
             && config.isAsynchronous())
         {
@@ -203,6 +215,16 @@ public class TextAccessLogPublisher extends
           AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
               "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
+          writer = asyncWriter;
+        }
+
+        if (!(writer instanceof ParallelTextWriter)
+            && config.isAsynchronous())
+        {
+          // The asynchronous setting is being turned on.
+          ParallelTextWriter asyncWriter = new ParallelTextWriter(
+              "Parallel Text Writer for " + config.dn().toNormalizedString(),
+              config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
 
@@ -303,9 +325,18 @@ public class TextAccessLogPublisher extends
 
       if (config.isAsynchronous())
       {
-        this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for "
-            + config.dn().toNormalizedString(), config.getQueueSize(), config
-            .isAutoFlush(), writer);
+        if (config.getQueueSize() > 0)
+        {
+          this.writer = new AsyncronousTextWriter(
+            "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
+            config.getQueueSize(), config.isAutoFlush(), writer);
+        }
+        else
+        {
+          this.writer = new ParallelTextWriter(
+            "Parallel Text Writer for " + config.dn().toNormalizedString(),
+            config.isAutoFlush(), writer);
+        }
       }
       else
       {
