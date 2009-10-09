@@ -644,7 +644,9 @@ public class Importer
   }
 
 
-  private void switchContainers() throws DatabaseException, JebException {
+  private void switchContainers()
+    throws DatabaseException, JebException, InitializationException
+  {
 
      for(Suffix suffix : dnSuffixMap.values()) {
        DN baseDN = suffix.getBaseDN();
@@ -1693,7 +1695,7 @@ public class Importer
 
 
     private void cleanUP() throws DatabaseException, DirectoryException,
-            IOException
+      IOException
     {
       if(indexMgr.isDN2ID() && skipDNValidation)
       {

@@ -48,11 +48,8 @@ import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.InitializationException;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_BACKEND_MODE_INVALID;
-import static org.opends.messages.ConfigMessages.
-    ERR_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -134,13 +131,16 @@ public class RootContainer
   /**
    * Opens the root container using the JE configuration object provided.
    *
-   * @param envConfig The JE environment configuration.
-   * @throws DatabaseException If an error occurs when creating the environment.
-   * @throws ConfigException If an configuration error occurs while creating
-   * the enviornment.
+   * @param  envConfig               The JE environment configuration.
+   * @throws DatabaseException       If a database error occurs when creating
+   *                                 the environment.
+   * @throws InitializationException If an initialization error occurs while
+   *                                 creating the enviornment.
+   * @throws ConfigException         If an configuration error occurs while
+   *                                 creating the enviornment.
    */
   public void open(EnvironmentConfig envConfig)
-      throws DatabaseException, ConfigException
+      throws DatabaseException, InitializationException, ConfigException
   {
     // Determine the backend database directory.
     File parentDirectory = getFileForPath(config.getDBDirectory());
@@ -282,21 +282,23 @@ public class RootContainer
    *
    * @param baseDN The base DN of the entry container to close.
    * @param entryContainer The entry container to register for the baseDN.
-   * @throws DatabaseException If an error occurs while opening the entry
-   *                           container.
+   * @throws InitializationException If an error occurs while opening the
+   *                                 entry container.
    */
   public void registerEntryContainer(DN baseDN,
                                      EntryContainer entryContainer)
-      throws DatabaseException
+      throws InitializationException
   {
-    EntryContainer ec1=this.entryContainers.get(baseDN);
+    EntryContainer ec1 = this.entryContainers.get(baseDN);
 
-    //If an entry container for this baseDN is already open we don't allow
-    //another to be opened.
+    // If an entry container for this baseDN is already open we don't allow
+    // another to be opened.
     if (ec1 != null)
-      throw new DatabaseException("An entry container named " +
-          ec1.getDatabasePrefix() + " is alreadly registered for base DN " +
-          baseDN.toString());
+    {
+      Message m = ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
+        ec1.getDatabasePrefix(), baseDN.toString());
+      throw new InitializationException(m);
+    }
 
     this.entryContainers.put(baseDN, entryContainer);
   }
@@ -305,13 +307,15 @@ public class RootContainer
    * Opens the entry containers for multiple base DNs.
    *
    * @param baseDNs The base DNs of the entry containers to open.
-   * @throws DatabaseException If an error occurs while opening the entry
-   *                           container.
-   * @throws ConfigException if a configuration error occurs while opening the
-   *                         container.
+   * @throws DatabaseException       If a database error occurs while opening
+   *                                 the entry container.
+   * @throws InitializationException If an initialization error occurs while
+   *                                 opening the entry container.
+   * @throws ConfigException         If a configuration error occurs while
+   *                                 opening the entry container.
    */
   private void openAndRegisterEntryContainers(Set<DN> baseDNs)
-      throws DatabaseException, ConfigException
+      throws DatabaseException, InitializationException, ConfigException
   {
     EntryID id;
     EntryID highestID = null;
