@@ -1438,6 +1438,7 @@ public final class AciHandler extends
     {
       evalCtx.setEvalReason(EnumEvalReason.NO_ALLOW_ACIS);
       evalCtx.setDecidingAci(null);
+      evalCtx.setDenyEval(true);
       return false;
     }
     evalCtx.setDenyEval(true);
