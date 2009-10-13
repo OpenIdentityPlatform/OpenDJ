@@ -154,6 +154,8 @@ public class Utils
       String installPath)
   {
     boolean supported = false;
+    LOG.log(Level.INFO, "Checking if options "+option+
+        " are supported with java home: "+javaHome);
     try
     {
       List<String> args = new ArrayList<String>();
@@ -183,33 +185,45 @@ public class Utils
       {
         env.put("DO_NOT_PAUSE", "true");
       }
-      Process process = pb.start();
+      final Process process = pb.start();
       LOG.log(Level.INFO, "launching "+args+ " with env: "+env);
       InputStream is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
+      boolean errorDetected = false;
       while (null != (line = reader.readLine())) {
         LOG.log(Level.INFO, "The output: "+line);
         if (line.indexOf("ERROR:  The detected Java version") != -1)
         {
-          try
+          if (Utils.isWindows())
           {
-            process.destroy();
-            return false;
+            // If we are running windows, the process get blocked waiting for
+            // user input.  Just wait for a certain time to print the output
+            // in the logger and then kill the process.
+            Thread t = new Thread(new Runnable()
+            {
+              public void run()
+              {
+                try
+                {
+                  Thread.sleep(3000);
+                  process.destroy();
+                }
+                catch (Throwable t)
+                {
+                }
+              }
+            });
+            t.start();
           }
-          catch (Throwable t)
-          {
-            return false;
-          }
-          finally
-          {
-          }
+          errorDetected = true;
         }
       }
       process.waitFor();
       int returnCode = process.exitValue();
       LOG.log(Level.INFO, "returnCode: "+returnCode);
-      supported = returnCode == 0;
+      supported = returnCode == 0 && !errorDetected;
+      LOG.log(Level.INFO, "supported: "+supported);
     }
     catch (Throwable t)
     {
