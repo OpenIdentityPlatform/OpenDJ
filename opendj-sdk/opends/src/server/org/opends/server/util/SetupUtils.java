@@ -316,6 +316,27 @@ public class SetupUtils
   }
 
   /**
+   * Indicates whether the underlying operating system is Windows 7.
+   *
+   * @return  {@code true} if the underlying operating system is Windows 7, or
+   * {@code false} if not.
+   */
+  public static boolean isWindows7()
+  {
+    boolean isWindows7;
+    String os = System.getProperty("os.name");
+    if (os != null)
+    {
+      isWindows7 = (os.toLowerCase().indexOf("windows 7") != -1);
+    }
+    else
+    {
+      isWindows7 = false;
+    }
+    return isWindows7;
+  }
+
+  /**
    * Indicates whether the underlying operating system has UAC (User Access
    * Control).
    *
@@ -324,7 +345,7 @@ public class SetupUtils
    */
   public static boolean hasUAC()
   {
-    return SetupUtils.isVista() || SetupUtils.isWindows2008();
+    return isVista() || isWindows2008() || isWindows7();
   }
 
   /**
