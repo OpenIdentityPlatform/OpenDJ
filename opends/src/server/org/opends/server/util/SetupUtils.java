@@ -292,6 +292,41 @@ public class SetupUtils
     }
     return isVista;
   }
+
+  /**
+   * Indicates whether the underlying operating system is Windows 2008.
+   *
+   * @return  {@code true} if the underlying operating system is Windows
+   *          2008, or {@code false} if not.
+   */
+  public static boolean isWindows2008()
+  {
+    boolean isWindows2008;
+    String os = System.getProperty("os.name");
+    if (os != null)
+    {
+      isWindows2008 = isWindows() &&
+      (os.toLowerCase().indexOf("server 2008") != -1);
+    }
+    else
+    {
+      isWindows2008 = false;
+    }
+    return isWindows2008;
+  }
+
+  /**
+   * Indicates whether the underlying operating system has UAC (User Access
+   * Control).
+   *
+   * @return  {@code true} if the underlying operating system has UAC (User
+   * Access Control), or {@code false} if not.
+   */
+  public static boolean hasUAC()
+  {
+    return SetupUtils.isVista() || SetupUtils.isWindows2008();
+  }
+
   /**
    * Returns a String representation of the OS we are running.
    * @return a String representation of the OS we are running.
