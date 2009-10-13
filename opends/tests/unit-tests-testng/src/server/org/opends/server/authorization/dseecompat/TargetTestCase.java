@@ -30,13 +30,34 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ByteString;
+import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+
+import javax.naming.Context;
+import java.util.Hashtable;
 
 public class TargetTestCase extends AciTestCase
 {
+  private static final String testUser="uid=user.3,ou=People,o=test";
+  private static final String aciUser = "o=test";
+
+  private static final
+  String entryCheckACI = "(target=\"ldap:///ou=People,o=test\")" +
+          "(version 3.0; acl \"entryCheck aci\";" +
+          "deny(all) (ssf < \"1\");)";
+
+  private static final
+  String attrACI = "(targetattr!=\"userPassword\")" +
+        "(version 3.0; acl \"user attr ACI\"; " +
+        "allow (search, read, compare) " +
+        "userdn=\"ldap:///anyone\";)";
 
 
   @DataProvider
@@ -369,6 +390,12 @@ public class TargetTestCase extends AciTestCase
     };
   }
 
+  @BeforeClass
+  public void setupClass() throws Exception {
+    deleteAttrFromAdminEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+    addEntries("o=test");
+  }
+
 
   @Test(dataProvider = "matchingPatterns")
   public void matchingPatterns(String pattern, String entryDN)
@@ -424,5 +451,28 @@ public class TargetTestCase extends AciTestCase
                                                   DN.decode(entryDN));
     assertTrue(!match, aciString + " in entry " + aciDN +
          " incorrectly applied to " + entryDN);
+  }
+
+  /**
+   * Test entry check ACI. Related to issue 4278.
+   *
+   * @throws Exception If a test doesn't pass.
+   */
+  @Test()
+  public void testEntryCheckACI() throws Exception {
+    try {
+      String addACILDIF = makeAddLDIF("aci", aciUser, entryCheckACI);
+      LDIFModify(addACILDIF, DIR_MGR_DN, PWD);
+      String addAttrACILDIF = makeAddLDIF("aci", aciUser, attrACI);
+      LDIFModify(addAttrACILDIF, DIR_MGR_DN, PWD);
+         String userResults =
+            LDAPSearchParams(testUser, PWD, null,null, null,
+                     testUser, filter, null);
+      Assert.assertTrue(userResults.equals(""));
+    }
+    finally
+    {
+      deleteAttrFromEntry(aciUser, "aci");
+    }
   }
 }
