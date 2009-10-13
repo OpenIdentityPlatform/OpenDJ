@@ -69,6 +69,8 @@ public class ReSyncTest extends ReplicationTestCase
 
   protected static final String EXAMPLE_DN = "dc=example,dc=com";
 
+  private File reSyncTempDir;
+
  /**
   * Set up the environment for performing the tests in this Class.
   *
@@ -79,6 +81,8 @@ public class ReSyncTest extends ReplicationTestCase
   public void setup() throws Exception
   {
    super.setUp();
+
+   reSyncTempDir = TestCaseUtils.createTemporaryDirectory("resynctest");
 
    /*
     * - Configure replication
@@ -223,8 +227,8 @@ public class ReSyncTest extends ReplicationTestCase
     // we do test something.
     connection.processDelete(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN));
 
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = "ReSynchTest";
+    String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator +
+            "ReSynchTest";
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -270,6 +274,8 @@ public class ReSyncTest extends ReplicationTestCase
 
     // Clear the backend
     LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+
+    TestCaseUtils.deleteDirectory(reSyncTempDir);
 
     paranoiaCheck();
   }
