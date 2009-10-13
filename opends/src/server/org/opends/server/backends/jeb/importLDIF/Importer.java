@@ -1229,7 +1229,6 @@ public class Importer
           EntryID entryID = entryInfo.getEntryID();
           Suffix suffix = entryInfo.getSuffix();
           processEntry(entry, entryID, suffix);
-          importCount.getAndIncrement();
         }
         flushIndexBuffers();
         closeCursors();
@@ -1290,6 +1289,7 @@ public class Importer
       processDN2URI(suffix, null, entry);
       suffix.getID2Entry().put(null, entryID, entry);
       processIndexes(suffix, entry, entryID);
+      importCount.getAndIncrement();
     }
 
     boolean processParent(DN entryDN, EntryID entryID, Entry entry,
