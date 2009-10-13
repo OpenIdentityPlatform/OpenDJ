@@ -119,7 +119,7 @@ public class StopWindowsService
     else
     {
       String[] cmd;
-      if (SetupUtils.isVista())
+      if (SetupUtils.hasUAC())
       {
         cmd= new String[] {
             ConfigureWindowsService.getLauncherBinaryFullPath(),
