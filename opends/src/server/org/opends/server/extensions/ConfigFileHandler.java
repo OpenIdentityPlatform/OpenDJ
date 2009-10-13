@@ -735,7 +735,19 @@ public class ConfigFileHandler
     }
     else
     {
-      serverRoot = rootFile.getAbsolutePath();
+      /*
+       * Do a best effort to avoid having a relative representation (for
+       * instance to avoid having ../../../).
+       */
+      try
+      {
+        serverRoot = rootFile.getCanonicalPath();
+      }
+      catch (IOException ioe)
+      {
+        // Best effort
+        serverRoot = rootFile.getAbsolutePath();
+      }
     }
 
     // Determine the appropriate server root.  If it's not defined in the
