@@ -207,10 +207,13 @@ public class Utils
                 try
                 {
                   Thread.sleep(3000);
-                  process.destroy();
+                  // To see if the process is over, call the exitValue method.
+                  // If it is not over, a IllegalThreadStateException.
+                  process.exitValue();
                 }
                 catch (Throwable t)
                 {
+                  process.destroy();
                 }
               }
             });
