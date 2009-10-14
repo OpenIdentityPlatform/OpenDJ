@@ -1333,7 +1333,7 @@ public class Importer
           EntryContainer entryContainer = suffix.getEntryContainer();
           for (DN dn = entryContainer.getParentWithinBase(parentDN); dn != null;
                dn = entryContainer.getParentWithinBase(dn)) {
-            if((nodeID =  getAncestorID(dn2id, dn)) == null) {
+            if((nodeID =  suffix.getParentID(dn)) == null) {
               return false;
             } else {
               IDs.add(nodeID);
@@ -1371,38 +1371,6 @@ public class Importer
       idSubSet.addEntryID(entryID);
       id2subtree.insert(idSubSet, subTreeKeySet, dbSubKey, dbSubVal);
     }
-
-    EntryID getAncestorID(DN2ID dn2id, DN dn)
-            throws DatabaseException
-    {
-      int i=0;
-      EntryID nodeID = dn2id.get(null, dn, LockMode.DEFAULT);
-      if(nodeID == null) {
-        while((nodeID = dn2id.get(null, dn, LockMode.DEFAULT)) == null) {
-          try {
-            Thread.sleep(50);
-            if(i == 10) {
-               //Temporary messages until this code is cleaned up.
-               Message message =
-                   Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                    "ancestorID check failed");
-              logError(message);
-              return null;
-            }
-            i++;
-          } catch (Exception e) {
-               //Temporary messages until this code is cleaned up.
-               Message message =
-                 Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                "ancestorID exception thrown");
-              logError(message);
-            return null;
-          }
-        }
-      }
-      return nodeID;
-    }
-
 
 
     void
