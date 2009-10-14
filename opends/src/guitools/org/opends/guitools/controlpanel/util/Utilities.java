@@ -1905,7 +1905,7 @@ public class Utilities
    * @param syntax the attribute syntax.
    * @return the string representation of an attribute syntax.
    */
-  public static String getSyntaxText(AttributeSyntax syntax)
+  public static String getSyntaxText(AttributeSyntax<?> syntax)
   {
     String returnValue;
     String syntaxName = syntax.getSyntaxName();
@@ -2163,7 +2163,7 @@ public class Utilities
     searchControls.setSearchScope(
     SearchControls. OBJECT_SCOPE);
     searchControls.setReturningAttributes(
-    new String[] {"dn"});
+    new String[] {"1.1"});
     ctx.search("cn=config", "objectclass=*", searchControls);
   }
 

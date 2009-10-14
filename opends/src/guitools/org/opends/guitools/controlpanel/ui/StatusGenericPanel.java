@@ -2063,7 +2063,7 @@ implements ConfigChangeListener
       ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
       ctls.setReturningAttributes(
           new String[] {
-              "dn"
+              "1.1"
           });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =

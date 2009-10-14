@@ -511,8 +511,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         InitialLdapContext ctx =
           controller.findConnectionForDisplayedEntry(node);
-        Schema schema = getInfo().getServerDescriptor().getSchema();
-        LDAPEntryReader reader = new LDAPEntryReader(dn, ctx, schema);
+        LDAPEntryReader reader = new LDAPEntryReader(dn, ctx);
         reader.addEntryReadListener(entryPane);
         cleanupReaderQueue();
         // Required to update the browser controller properly if the entry is

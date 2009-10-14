@@ -1341,7 +1341,7 @@ public class ServerDescriptor
     {
       SearchControls sc = new SearchControls();
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      String[] attList = {"dn"};
+      String[] attList = {"1.1"};
       sc.setReturningAttributes(attList);
       NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
           "(objectclass=ds-cfg-instance-key)", sc);
