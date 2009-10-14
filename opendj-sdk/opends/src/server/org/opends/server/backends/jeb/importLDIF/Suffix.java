@@ -29,6 +29,8 @@ package org.opends.server.backends.jeb.importLDIF;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
@@ -53,9 +55,8 @@ public class Suffix
   private EntryContainer entryContainer;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_MAP_SIZE = 4096;
-
-  private ConcurrentHashMap<DN,DN> pendingMap =
-                      new ConcurrentHashMap<DN, DN>() ;
+  private ConcurrentHashMap<DN, CountDownLatch> pendingMap =
+                                    new ConcurrentHashMap<DN, CountDownLatch>();
   private HashMap<DN,EntryID> parentIDMap =
     new HashMap<DN,EntryID>(PARENT_ID_MAP_SIZE);
 
@@ -172,15 +173,14 @@ public class Suffix
    * Check if the parent DN is in the pending map.
    *
    * @param parentDN The DN of the parent.
-   * @return <CODE>True</CODE> if the parent is in the pending map.
    */
-  private boolean isPending(DN parentDN)
+  private void checkPending(DN parentDN)  throws InterruptedException
   {
-    boolean ret = false;
-    if(pendingMap.containsKey(parentDN)) {
-      ret = true;
+    CountDownLatch l;
+    if((l=pendingMap.get(parentDN)) != null)
+    {
+      l.await();
     }
-    return ret;
   }
 
   /**
@@ -190,17 +190,22 @@ public class Suffix
    */
   public void addPending(DN dn)
   {
-    pendingMap.putIfAbsent(dn, dn);
+    pendingMap.putIfAbsent(dn, new CountDownLatch(1));
   }
 
   /**
-   * Remove the specified DN from the pending map.
+   * Remove the specified DN from the pending map, it may not exist if the
+   * entries are being migrated so just return.
    *
    * @param dn The DN to remove from the map.
    */
   public void removePending(DN dn)
   {
-    pendingMap.remove(dn);
+    CountDownLatch l = pendingMap.remove(dn);
+    if(l != null)
+    {
+      l.countDown();
+    }
   }
 
 
@@ -224,27 +229,13 @@ public class Suffix
         return parentID;
       }
     }
-    int i=0;
-    //If the parent is in the pending map, another thread is working on the
-    //parent entry; wait 500 ms until that thread is done with the parent.
-    while(isPending(parentDN)) {
-      try {
-        Thread.sleep(50);
-        if(i == 10) {
-          //Temporary message until this code is removed.
-           Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-               "time out in parentID check");
-          logError(message);
-          return null;
-        }
-        i++;
-      } catch (Exception e) {
-        //Temporary message until this code is removed.
-         Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-                "Exception thrown in parentID check");
-         logError(message);
-        return null;
-      }
+    try {
+      checkPending(parentDN);
+    } catch (Exception e) {
+      Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
+              "Exception thrown in parentID check");
+      logError(message);
+      return null;
     }
     parentID = entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
     //If the parent is in dn2id, add it to the cache.
