@@ -363,7 +363,7 @@ public class DeleteEntryTask extends Task
       ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       String filter =
         "(|(objectClass=*)(objectclass=ldapsubentry))";
-      ctls.setReturningAttributes(new String[] {"dn"});
+      ctls.setReturningAttributes(new String[] {"1.1"});
       NamingEnumeration<SearchResult> entryDNs =
         ctx.search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
 

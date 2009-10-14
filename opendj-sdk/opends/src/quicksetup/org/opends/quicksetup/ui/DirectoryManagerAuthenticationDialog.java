@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -351,7 +351,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
           searchControls.setSearchScope(
           SearchControls. OBJECT_SCOPE);
           searchControls.setReturningAttributes(
-          new String[] {"dn"});
+          new String[] {"1.1"});
           ctx.search("cn=config", "objectclass=*", searchControls);
 
         } catch (NamingException ne)

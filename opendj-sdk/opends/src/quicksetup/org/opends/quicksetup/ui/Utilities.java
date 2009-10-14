@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -84,7 +84,8 @@ public class Utilities {
    *
    * @param frame for which the icon will be set
    */
-  static public void setFrameIcon(JFrame frame) {
+  static public void setFrameIcon(JFrame frame)
+  {
     UIFactory.IconType ic;
     if (Utils.isMacOS()) {
       ic = UIFactory.IconType.MINIMIZED_MAC;

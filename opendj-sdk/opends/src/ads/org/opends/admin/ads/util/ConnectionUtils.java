@@ -627,7 +627,7 @@ public class ConnectionUtils
       searchControls.setSearchScope(
           SearchControls. OBJECT_SCOPE);
       searchControls.setReturningAttributes(
-          new String[] {"dn"});
+          new String[] {"1.1"});
       ctx.search("cn=config", "objectclass=*", searchControls);
 
       connectedAsAdministrativeUser = true;

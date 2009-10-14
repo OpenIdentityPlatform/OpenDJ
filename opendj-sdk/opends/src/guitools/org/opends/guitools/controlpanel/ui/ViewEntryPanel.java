@@ -53,7 +53,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -74,6 +73,7 @@ import org.opends.server.util.ServerConstants;
  */
 public abstract class ViewEntryPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = -1908757626234678L;
   /**
    * The read-only attributes as they appear on the schema.
    */
@@ -82,6 +82,11 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * The read-only attributes in lower case.
    */
   protected SortedSet<String> schemaReadOnlyAttributesLowerCase =
+    new TreeSet<String>();
+  /**
+   * The editable operational attributes.
+   */
+  protected SortedSet<String> editableOperationalAttrNames =
     new TreeSet<String>();
   private JLabel title= Utilities.createDefaultLabel();
 
@@ -390,20 +395,21 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     Schema schema = ev.getNewDescriptor().getSchema();
-    if (schema != null)
+    if (schema != null && schemaReadOnlyAttributes.isEmpty())
     {
       schemaReadOnlyAttributes.clear();
       schemaReadOnlyAttributesLowerCase.clear();
       for (AttributeType attr : schema.getAttributeTypes().values())
       {
-        if (attr.isOperational())
+        if (attr.isNoUserModification())
         {
           String attrName = attr.getNameOrOID();
-          if (!isEditable(attrName, schema))
-          {
-            schemaReadOnlyAttributes.add(attrName);
-            schemaReadOnlyAttributesLowerCase.add(attrName.toLowerCase());
-          }
+          schemaReadOnlyAttributes.add(attrName);
+          schemaReadOnlyAttributesLowerCase.add(attrName.toLowerCase());
+        }
+        else if (attr.isOperational())
+        {
+          editableOperationalAttrNames.add(attr.getNameOrOID());
         }
       }
     }
@@ -535,7 +541,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
           Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase());
       if (attr != null)
       {
-        AttributeSyntax syntax = attr.getSyntax();
+        AttributeSyntax<?> syntax = attr.getSyntax();
         if (syntax != null)
         {
           isCertificate = syntax.getOID().equals(
@@ -544,37 +550,6 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       }
     }
     return isCertificate;
-  }
-
-  static String[] editableOperationalAttrNames = {
-      ConfigConstants.ATTR_OBJECTCLASSES,
-      ConfigConstants.ATTR_ATTRIBUTE_TYPES,
-      ConfigConstants.ATTR_MATCHING_RULES,
-      ConfigConstants.ATTR_NAME_FORMS,
-      ConfigConstants.ATTR_LDAP_SYNTAXES,
-      ConfigConstants.ATTR_DIT_STRUCTURE_RULES,
-      "aci"
-  };
-
-  /**
-   * Returns <CODE>true</CODE> if the provided attribute name is an editable
-   * operational attribute and <CODE>false</CODE> otherwise.
-   * @param attrName the attribute name.
-   * @return <CODE>true</CODE> if the provided attribute name is an editable
-   * operational attribute and <CODE>false</CODE> otherwise.
-   */
-  private static boolean isEditableOperationalAttribute(String attrName)
-  {
-    boolean isEditableOperationalAttribute = false;
-    for (String attr : editableOperationalAttrNames)
-    {
-      if (attr.equalsIgnoreCase(attrName))
-      {
-        isEditableOperationalAttribute = true;
-        break;
-      }
-    }
-    return isEditableOperationalAttribute;
   }
 
   /**
@@ -645,16 +620,16 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   public static boolean isEditable(String attrName, Schema schema)
   {
-    boolean isOperational = false;
+    boolean isEditable = false;
     attrName = Utilities.getAttributeNameWithoutOptions(attrName);
     if (schema != null)
     {
       AttributeType attrType = schema.getAttributeType(attrName.toLowerCase());
       if (attrType != null)
       {
-        isOperational = attrType.isOperational();
+        isEditable = !attrType.isNoUserModification();
       }
     }
-    return !isOperational || isEditableOperationalAttribute(attrName);
+    return isEditable;
   }
 }

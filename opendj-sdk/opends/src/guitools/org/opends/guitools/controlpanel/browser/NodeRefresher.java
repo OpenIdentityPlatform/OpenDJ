@@ -340,7 +340,7 @@ class NodeRefresher extends AbstractNodeTask {
   {
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(new String[]{"dn"});
+    ctls.setReturningAttributes(new String[]{"1.1"});
     ctls.setCountLimit(1);
     NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
               controller.getFilter(),
@@ -586,7 +586,7 @@ class NodeRefresher extends AbstractNodeTask {
       // It's enough to know if the entry has children or not.
       SearchControls ctls = controller.getBasicSearchControls();
       ctls.setCountLimit(1);
-      String[] attrs = {"dn"};
+      String[] attrs = {"1.1"};
       ctls.setReturningAttributes(attrs);
       if (useCustomFilter())
       {

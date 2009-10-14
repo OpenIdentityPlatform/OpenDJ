@@ -1401,9 +1401,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           }
           values.addAll(ocValue.getAuxiliary());
         }
-        else if (value instanceof Collection)
+        else if (value instanceof Collection<?>)
         {
-          for (Object o : (Collection)value)
+          for (Object o : (Collection<?>)value)
           {
             values.add((String)o);
           }
@@ -1559,9 +1559,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         if (hasValue(comp))
         {
           Object value = comp.getValue();
-          if (value instanceof Collection)
+          if (value instanceof Collection<?>)
           {
-            for (Object o : (Collection)value)
+            for (Object o : (Collection<?>)value)
             {
               values.add(o);
             }
@@ -1930,9 +1930,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       {
         hasValue = ((String)value).trim().length() > 0;
       }
-      else if (value instanceof Collection)
+      else if (value instanceof Collection<?>)
       {
-        hasValue = ((Collection)value).size() > 0;
+        hasValue = ((Collection<?>)value).size() > 0;
       }
       else
       {
