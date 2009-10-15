@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -279,7 +279,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    Enumeration propertyNames = properties.propertyNames();
+    Enumeration<?> propertyNames = properties.propertyNames();
 
     boolean overwriteEnvJavaHome = true;
     boolean overwriteEnvJavaArgs = true;
@@ -508,7 +508,7 @@ public class JavaPropertiesTool extends ConsoleApplication
 
     boolean propertiesAdded = false;
 
-    Enumeration propertyNames = properties.propertyNames();
+    Enumeration<?> propertyNames = properties.propertyNames();
     int nIfs = 0;
     while (propertyNames.hasMoreElements())
     {
@@ -900,7 +900,7 @@ public class JavaPropertiesTool extends ConsoleApplication
 
     buf.append(
         ":"+CHECK_JAVA_HOME+EOL);
-    Enumeration propertyNames = properties.propertyNames();
+    Enumeration<?> propertyNames = properties.propertyNames();
     while (propertyNames.hasMoreElements())
     {
       String name = propertyNames.nextElement().toString();
