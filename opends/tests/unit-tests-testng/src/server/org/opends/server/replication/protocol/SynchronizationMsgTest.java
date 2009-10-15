@@ -350,11 +350,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     {
       msg.setEclIncludes(entryAttrList);
     }
-
+    msg.setInitiatorsName("johnny h");
     DeleteMsg generatedMsg = (DeleteMsg) ReplicationMsg.generateMsg(
         msg.getBytes(), ProtocolVersion.getCurrentVersion());
 
     assertEquals(msg.toString(), generatedMsg.toString());
+    assertEquals(msg.getInitiatorsName(), generatedMsg.getInitiatorsName());
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
@@ -374,7 +375,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         i++;
       }
     }
-
+    
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
     assertEquals(generatedOperation.getClass(), DeleteOperationBasis.class);

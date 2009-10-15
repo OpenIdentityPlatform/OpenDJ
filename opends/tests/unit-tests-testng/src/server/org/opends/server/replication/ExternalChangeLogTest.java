@@ -27,6 +27,7 @@
 package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
@@ -54,6 +55,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
@@ -226,6 +230,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Write additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
 
+    // ECLIncludeAttributes();replicationServer.clearDb();
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
@@ -2428,10 +2433,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     if (debugEnabled())
     {
-//      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-//         "** TEST " + tn + " ** " + s));
       TRACER.debugInfo("** TEST " + tn + " ** " + s);
     }
+    // logError(Message.raw(Category.SYNC, Severity.NOTICE,
+    // "** TEST " + tn + " ** " + s));
   }
 
   /**
@@ -3434,14 +3439,25 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLIncludeAttributes";
     debugInfo(tn, "Starting test\n\n");
+    Backend backend2 = null;
+    Backend backend3 = null;
+    ReplicationBroker server01 = null;
+    DeleteOperationBasis delOp =null;
+    LDAPReplicationDomain domain2 = null;
+    LDAPReplicationDomain domain3 = null;
+    LDAPReplicationDomain domain21 = null;
+    SynchronizationProvider replicationPlugin2 = null;
+    SynchronizationProvider replicationPlugin3 = null;
+    DN baseDn2 = null;
+    DN baseDn3 = null;
     try
     {
       // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      Backend backend2 = initializeTestBackend(false,
+      backend2 = initializeTestBackend(false,
           TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
-      DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
+      baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
       DomainFakeCfg domainConf =
@@ -3449,20 +3465,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<String> includeAttributes = new TreeSet<String>();
       includeAttributes.add("sn");
       domainConf.setEclIncludes(includeAttributes);
-      LDAPReplicationDomain domain2 = MultimasterReplication.createNewDomain(domainConf);
-      SynchronizationProvider replicationPlugin2 = new MultimasterReplication();
+      domain2 = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin2 = new MultimasterReplication();
       replicationPlugin2.completeSynchronizationProvider();
 
-      Backend backend3 = initializeTestBackend(false,
+      backend3 = initializeTestBackend(false,
           TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
-      DN baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
+      baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
       domainConf =
         new DomainFakeCfg(baseDn3, 1703, replServers);
       includeAttributes = new TreeSet<String>();
       includeAttributes.add("objectclass");
       domainConf.setEclIncludes(includeAttributes);
-      LDAPReplicationDomain domain3 = MultimasterReplication.createNewDomain(domainConf);
-      SynchronizationProvider replicationPlugin3 = new MultimasterReplication();
+      domain3 = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin3 = new MultimasterReplication();
       replicationPlugin3.completeSynchronizationProvider();
 
       domainConf =
@@ -3470,11 +3486,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes = new TreeSet<String>();
       includeAttributes.add("cn");
       domainConf.setEclIncludes(includeAttributes);
-      LDAPReplicationDomain domain21 = MultimasterReplication.createNewDomain(domainConf);
+      domain21 = MultimasterReplication.createNewDomain(domainConf);
 
       Set<String> attrList = new HashSet<String>();
       attrList.add(new String("cn"));
-      ReplicationBroker server01 = openReplicationSession(
+      server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2), 1206,
           100, replicationServerPort,
           1000, true, -1 , domain21);
@@ -3550,7 +3566,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(modDNOp, ResultCode.SUCCESS);
 
       //
-      DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
+      delOp = new DeleteOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(), null,
           DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3));
@@ -3611,24 +3627,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"targetsn","jensen");
             checkValue(resultEntry,"targetcn","Fiona Jensen");
           }
+          checkValue(resultEntry,"changeinitiatorsname", "cn=Internal Client,cn=Root DNs,cn=config");
         }
       }
       assertEquals(entries.size(),8, "Entries number returned by search" + s);
-      server01.stop();
-
-      // Cleaning
-      if (domain2 != null)
-        MultimasterReplication.deleteDomain(baseDn2);
-      if (replicationPlugin2 != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin2);
-      removeTestBackend2(backend2);
-
-      if (domain3 != null)
-        MultimasterReplication.deleteDomain(baseDn3);
-      if (replicationPlugin3 != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin3);
-      removeTestBackend2(backend3);
-
     }
     catch(Exception e)
     {
@@ -3637,7 +3639,43 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
+      try
+      {
+        server01.stop();
+        //
+        delOp = new DeleteOperationBasis(connection,
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(), null,
+            DN.decode("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2));
+        delOp.run();
+        waitOpResult(delOp, ResultCode.SUCCESS);
+        delOp = new DeleteOperationBasis(connection,
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(), null,
+            DN.decode(TEST_ROOT_DN_STRING2));
+        delOp.run();
+        waitOpResult(delOp, ResultCode.SUCCESS);
+        delOp = new DeleteOperationBasis(connection,
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(), null,
+            DN.decode(TEST_ROOT_DN_STRING3));
+        delOp.run();
+        waitOpResult(delOp, ResultCode.SUCCESS);
 
+        // Cleaning
+        if (domain2 != null)
+          MultimasterReplication.deleteDomain(baseDn2);
+        if (replicationPlugin2 != null)
+          DirectoryServer.deregisterSynchronizationProvider(replicationPlugin2);
+        removeTestBackend2(backend2);
+
+        if (domain3 != null)
+          MultimasterReplication.deleteDomain(baseDn3);
+        if (replicationPlugin3 != null)
+          DirectoryServer.deregisterSynchronizationProvider(replicationPlugin3);
+        removeTestBackend2(backend3);    
+      }
+      catch(Exception e) {}
     }
     debugInfo(tn, "Ending test with success");
   }
