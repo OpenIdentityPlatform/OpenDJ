@@ -43,6 +43,8 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
  */
 public class DeleteMsg extends LDAPUpdateMsg
 {
+  String initiatorsName;
+
   /**
    * Creates a new delete message.
    *
@@ -137,13 +139,28 @@ public class DeleteMsg extends LDAPUpdateMsg
 
     byte[] byteEntryAttrLen =
       String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
+
     bodyLength += byteEntryAttrLen.length + 1;
     bodyLength += encodedEclIncludes.length + 1;
+    byte[] byteInitiatorsName = null;
+    if (initiatorsName != null)
+    {
+      byteInitiatorsName = initiatorsName.getBytes("UTF-8");
+      bodyLength += byteInitiatorsName.length + 1;
+    }
+    else
+    {
+      bodyLength++;
+    }
 
     /* encode the header in a byte[] large enough to also contain the mods */
     byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength,
         ProtocolVersion.REPLICATION_PROTOCOL_V4);
     int pos = encodedMsg.length - bodyLength;
+    if (byteInitiatorsName != null)
+      pos = addByteArray(byteInitiatorsName, encodedMsg, pos);
+    else
+      encodedMsg[pos++] = 0;
     pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
     pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
     return encodedMsg;
@@ -158,6 +175,17 @@ public class DeleteMsg extends LDAPUpdateMsg
   {
     // Read ecl attr len
     int length = getNextLength(in, pos);
+    if (length != 0)
+    {
+      initiatorsName = new String(in, pos, length, "UTF-8");
+      pos += length + 1;
+    }
+    else
+    {
+      initiatorsName = null;
+      pos += 1;
+    }
+    length = getNextLength(in, pos);
     int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
     pos += length + 1;
 
@@ -214,6 +242,25 @@ public class DeleteMsg extends LDAPUpdateMsg
   public int size()
   {
     return encodedEclIncludes.length + headerSize();
+  }
+
+  /**
+   * Set the initiator's name of this change.
+   *
+   * @param iname the initiator's name.
+   */
+  public void setInitiatorsName(String iname)
+  {
+    initiatorsName = iname;
+  }
+
+  /**
+   * Get the initiator's name of this change.
+   * @return the initiator's name.
+   */
+  public String getInitiatorsName()
+  {
+    return initiatorsName;
   }
 
 }

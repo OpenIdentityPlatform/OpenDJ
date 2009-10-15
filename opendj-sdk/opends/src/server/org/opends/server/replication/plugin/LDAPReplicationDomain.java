@@ -4537,6 +4537,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           newattrs.add(a);
       }
       ((DeleteMsg)msg).setEclIncludes(newattrs);
+
+      // For delete only, add the modifiersName since they are required in the
+      // ECL entry but are not part of other parts of the message
+      AttributeType atype = DirectoryServer.getAttributeType("modifiersname");
+      List<Attribute> attrs = entry.getAttribute(atype);
+      if (attrs != null)
+      {
+        for (Attribute a : attrs)
+        {
+          ((DeleteMsg)msg).setInitiatorsName(a.iterator().next().toString());
+          break;
+        }
+      }
+
     }
     else if (op instanceof PostOperationModifyOperation)
     {

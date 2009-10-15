@@ -62,6 +62,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
@@ -733,7 +734,7 @@ public class ECLSearchOperation
           null, // real time current entry
           eclAttributes, // entry attributes
           eclmsg.getDraftChangeNumber(),
-      "add");
+      "add", null);
 
     } else
       if (msg instanceof ModifyMsg)
@@ -761,7 +762,7 @@ public class ECLSearchOperation
               null, // real time current entry
               eclAttributes, // entry attributes
               eclmsg.getDraftChangeNumber(),
-              "modify");
+              "modify",null);
 
         }
         catch(Exception e)
@@ -774,35 +775,50 @@ public class ECLSearchOperation
       }
       else if (msg instanceof ModifyDNMsg)
       {
-        ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
-
-        ArrayList<RawAttribute> eclAttributes = modDNMsg.getEclIncludes();
-
-        clEntry = createChangelogEntry(
-            eclmsg.getServiceId(),
-            eclmsg.getCookie().toString(),
-            DN.decode(modDNMsg.getDn()),
-            modDNMsg.getChangeNumber(),
-            null,
-            modDNMsg.getUniqueId(),
-            null, // real time current entry
-            eclAttributes, // entry attributes
-            eclmsg.getDraftChangeNumber(),
-           "modrdn");
-
-        Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
-        clEntry.addAttribute(a, null);
-
-        if (modDNMsg.getNewSuperior()!=null)
+        try
         {
-          Attribute b = Attributes.create("newsuperior",
-            modDNMsg.getNewSuperior());
-          clEntry.addAttribute(b, null);
-        }
+          InternalClientConnection conn =
+            InternalClientConnection.getRootConnection();
+          ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
 
-        Attribute c = Attributes.create("deleteoldrdn",
-            String.valueOf(modDNMsg.deleteOldRdn()));
-        clEntry.addAttribute(c, null);
+          ArrayList<RawAttribute> eclAttributes = modDNMsg.getEclIncludes();
+          ModifyDNOperation modifyDNOperation =
+            (ModifyDNOperation)modDNMsg.createOperation(conn);
+          String LDIFchanges = modToLDIF(modifyDNOperation.getModifications());
+
+          clEntry = createChangelogEntry(
+              eclmsg.getServiceId(),
+              eclmsg.getCookie().toString(),
+              DN.decode(modDNMsg.getDn()),
+              modDNMsg.getChangeNumber(),
+              LDIFchanges,
+              modDNMsg.getUniqueId(),
+              null, // real time current entry
+              eclAttributes, // entry attributes
+              eclmsg.getDraftChangeNumber(),
+          "modrdn", null);
+
+          Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
+          clEntry.addAttribute(a, null);
+
+          if (modDNMsg.getNewSuperior()!=null)
+          {
+            Attribute b = Attributes.create("newsuperior",
+                modDNMsg.getNewSuperior());
+            clEntry.addAttribute(b, null);
+          }
+
+          Attribute c = Attributes.create("deleteoldrdn",
+              String.valueOf(modDNMsg.deleteOldRdn()));
+          clEntry.addAttribute(c, null);
+        }
+        catch(Exception e)
+        {
+          // Exceptions raised by createOperation for example
+          throw new DirectoryException(ResultCode.OTHER,
+              Message.raw(Category.SYNC, Severity.NOTICE,
+                  " Server fails to create entry: "),e);
+        }
 
       }
       else if (msg instanceof DeleteMsg)
@@ -821,7 +837,7 @@ public class ECLSearchOperation
             null,
             eclAttributes, // entry attributes
             eclmsg.getDraftChangeNumber(),
-           "delete");
+           "delete", delMsg.getInitiatorsName());
       }
     return clEntry;
   }
@@ -861,6 +877,7 @@ public class ECLSearchOperation
    * @param histEntryAttributes TODO:ECL Adress hist entry attributes
    * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
+   * @param delInitiatorsName The provided del initiatiors name
    * @return                The created ECL entry.
    * @throws DirectoryException
    *         When any error occurs.
@@ -875,12 +892,14 @@ public class ECLSearchOperation
       Entry entry,
       List<RawAttribute> histEntryAttributes,
       int draftChangenumber,
-      String changetype)
+      String changetype,
+      String delInitiatorsName)
   throws DirectoryException
   {
     AttributeType attributeType;
 
     String dnString = "";
+    String pattern;
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
@@ -1007,13 +1026,94 @@ public class ECLSearchOperation
 
     if (clearLDIFchanges != null)
     {
-      if((attributeType =
-        DirectoryServer.getAttributeType("changes")) == null)
-        attributeType =
+      if (changetype.equals("add"))
+      {
+        if((attributeType =
+          DirectoryServer.getAttributeType("changes")) == null)
+          attributeType =
             DirectoryServer.getDefaultAttributeType("changes");
 
-      a = Attributes.create(attributeType, clearLDIFchanges + "\n");
-      // force base64
+        a = Attributes.create(attributeType, clearLDIFchanges + "\n");
+        // force base64
+        attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
+        if(attributeType.isOperational())
+          operationalAttrs.put(attributeType, attrList);
+        else
+          uAttrs.put(attributeType, attrList);
+
+        pattern = "creatorsName: ";
+        int att_cr = clearLDIFchanges.indexOf(pattern);
+        if (att_cr>0)
+        {
+          int start_val_cr = clearLDIFchanges.indexOf(':', att_cr);
+          int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
+          String creatorsName =
+            clearLDIFchanges.substring(start_val_cr+2, end_val_cr);
+
+          if((attributeType =
+            DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+            attributeType =
+              DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
+          a = Attributes.create(attributeType, creatorsName);
+          attrList = new ArrayList<Attribute>(1);
+          attrList.add(a);
+          if(attributeType.isOperational())
+            operationalAttrs.put(attributeType, attrList);
+          else
+            uAttrs.put(attributeType, attrList);
+        }
+      }
+      else if (changetype.equals("modify")||changetype.equals("modrdn"))
+      {
+        if (changetype.equals("modify"))
+        {
+          if((attributeType =
+            DirectoryServer.getAttributeType("changes")) == null)
+            attributeType =
+              DirectoryServer.getDefaultAttributeType("changes");
+
+          a = Attributes.create(attributeType, clearLDIFchanges + "\n");
+          // force base64
+          attrList = new ArrayList<Attribute>(1);
+          attrList.add(a);
+          if(attributeType.isOperational())
+            operationalAttrs.put(attributeType, attrList);
+          else
+            uAttrs.put(attributeType, attrList);
+        }
+
+        pattern = "modifiersName: ";
+        int att_cr = clearLDIFchanges.indexOf(pattern);
+        if (att_cr>0)
+        {
+          int start_val_cr = att_cr + pattern.length();
+          int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
+          String modifiersName =
+            clearLDIFchanges.substring(start_val_cr, end_val_cr);
+
+          if((attributeType =
+            DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+            attributeType =
+              DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
+          a = Attributes.create(attributeType, modifiersName);
+          attrList = new ArrayList<Attribute>(1);
+          attrList.add(a);
+          if(attributeType.isOperational())
+            operationalAttrs.put(attributeType, attrList);
+          else
+            uAttrs.put(attributeType, attrList);
+        }
+      }
+    }
+
+    if (changetype.equals("delete") && (delInitiatorsName!=null))
+    {
+      if((attributeType =
+        DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+        attributeType =
+          DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
+      a = Attributes.create(attributeType, delInitiatorsName);
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
       if(attributeType.isOperational())
@@ -1072,7 +1172,8 @@ public class ECLSearchOperation
       {
         try
         {
-          String eclName = "target" + ra.getAttributeType().toLowerCase();
+          String attrName = ra.getAttributeType().toLowerCase();
+          String eclName = "target" + attrName;
           AttributeBuilder builder = new AttributeBuilder(
               DirectoryServer.getDefaultAttributeType(eclName));
           AttributeType at = builder.getAttributeType();
@@ -1250,6 +1351,11 @@ public class ECLSearchOperation
    */
   public static String modToLDIF(List<Modification> mods)
   {
+    if (mods==null)
+    {
+      // test case only
+      return null;
+    }
     StringBuilder modTypeLine = new StringBuilder();
     Iterator<Modification> iterator = mods.iterator();
     while (iterator.hasNext())
