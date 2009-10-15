@@ -401,7 +401,7 @@ public class AccountUsableResponseControl
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
 
-    if(secondsBeforeExpiration < 0)
+    if(isUsable)
     {
       writer.writeInteger(TYPE_SECONDS_BEFORE_EXPIRATION,
           secondsBeforeExpiration);
