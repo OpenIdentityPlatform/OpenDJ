@@ -154,6 +154,7 @@ public class CustomObjectClassPanel extends StandardObjectClassPanel
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_OBJECTCLASS_TITLE.get(), getInfo());
     ArrayList<ObjectClass> ocsToDelete = new ArrayList<ObjectClass>();

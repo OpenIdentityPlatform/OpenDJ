@@ -429,6 +429,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     if (errors.size() == 0)
     {
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get(), getInfo());
       LinkedHashSet<DN> groupDns = new LinkedHashSet<DN>();

@@ -412,7 +412,8 @@ implements IndexModifiedListener
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.getParentDialog(this), getTitle(), getInfo());
+          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
+          getInfo());
       VerifyIndexTask newTask = new VerifyIndexTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())
       {

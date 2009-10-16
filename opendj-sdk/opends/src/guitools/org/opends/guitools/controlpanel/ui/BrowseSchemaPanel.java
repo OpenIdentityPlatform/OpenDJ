@@ -1401,6 +1401,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         title = INFO_CTRL_PANEL_DELETE_OBJECTCLASSES_AND_ATTRIBUTES_TITLE.get();
       }
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this), title, getInfo());
       DeleteSchemaElementsTask newTask =
         new DeleteSchemaElementsTask(getInfo(), dlg, orderedObjectClasses,

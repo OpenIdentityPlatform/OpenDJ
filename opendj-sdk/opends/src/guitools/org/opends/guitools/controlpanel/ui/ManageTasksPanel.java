@@ -568,6 +568,7 @@ public class ManageTasksPanel extends StatusGenericPanel
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_CANCEL_TASK_TITLE.get(), getInfo());
     List<TaskEntry> tasks = getSelectedTasks(true);

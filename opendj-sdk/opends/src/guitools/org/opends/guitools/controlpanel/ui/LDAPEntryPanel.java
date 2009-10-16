@@ -555,7 +555,8 @@ implements EntryReadListener
     try
     {
       ProgressDialog dlg = new ProgressDialog(
-          Utilities.getParentDialog(this),
+          Utilities.getFrame(this),
+          Utilities.getFrame(this),
           INFO_CTRL_PANEL_MODIFYING_ENTRY_CHANGES_TITLE.get(), getInfo());
       dlg.setModal(modal);
       Entry entry = displayedEntryPanel.getEntry();
@@ -617,8 +618,8 @@ implements EntryReadListener
       Message title = isLeaf ? INFO_CTRL_PANEL_DELETING_ENTRY_TITLE.get() :
         INFO_CTRL_PANEL_DELETING_SUBTREE_TITLE.get();
       ProgressDialog dlg = new ProgressDialog(
-          Utilities.getParentDialog(this),
-          title, getInfo());
+          Utilities.createFrame(),
+          Utilities.getParentDialog(this), title, getInfo());
       DeleteEntryTask newTask = new DeleteEntryTask(getInfo(), dlg,
           new TreePath[]{treePath}, controller);
       for (Task task : getInfo().getTasks())

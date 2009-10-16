@@ -375,6 +375,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
   {
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
     Object[] dns = list.getSelectedValues();
     ArrayList<BaseDNDescriptor> baseDNsToDelete =

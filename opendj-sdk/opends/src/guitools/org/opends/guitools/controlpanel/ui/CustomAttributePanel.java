@@ -160,6 +160,7 @@ public class CustomAttributePanel extends StandardAttributePanel
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_ATTRIBUTE_TITLE.get(), getInfo());
     ArrayList<ObjectClass> ocsToDelete = new ArrayList<ObjectClass>();

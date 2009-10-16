@@ -920,6 +920,7 @@ implements IndexModifiedListener
     if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_DELETE_INDEXES_TITLE.get(), getInfo());
       DeleteIndexTask newTask = new DeleteIndexTask(getInfo(), dlg,

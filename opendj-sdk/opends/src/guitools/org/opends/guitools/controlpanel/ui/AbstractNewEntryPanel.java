@@ -181,7 +181,8 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
     if (errors.size() == 0)
     {
       ProgressDialog dlg = new ProgressDialog(
-          Utilities.getParentDialog(this), getProgressDialogTitle(), getInfo());
+          Utilities.createFrame(), Utilities.getParentDialog(this),
+          getProgressDialogTitle(), getInfo());
       try
       {
         NewEntryTask newTask =
