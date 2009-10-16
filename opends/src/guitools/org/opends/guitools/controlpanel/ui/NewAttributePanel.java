@@ -442,6 +442,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
 
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get(), getInfo());
     NewAttributeTask newTask = null;

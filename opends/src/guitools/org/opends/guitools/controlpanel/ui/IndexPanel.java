@@ -339,6 +339,7 @@ public class IndexPanel extends AbstractIndexPanel
   {
     ArrayList<Message> errors = new ArrayList<Message>();
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_DELETE_INDEX_TITLE.get(), getInfo());
     ArrayList<AbstractIndexDescriptor> indexesToDelete =
@@ -395,7 +396,8 @@ public class IndexPanel extends AbstractIndexPanel
     if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
-          Utilities.getParentDialog(this),
+          Utilities.getFrame(this),
+          Utilities.getFrame(this),
           INFO_CTRL_PANEL_MODIFYING_INDEX_TITLE.get(), getInfo());
       dlg.setModal(modal);
       newModifyTask = new ModifyIndexTask(getInfo(), dlg);

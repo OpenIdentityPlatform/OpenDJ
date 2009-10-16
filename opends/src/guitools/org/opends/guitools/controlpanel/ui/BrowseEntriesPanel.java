@@ -918,6 +918,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     if ((paths != null) && (paths.length > 0))
     {
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_DELETE_SELECTED_ENTRIES_TITLE.get(), getInfo());
       DeleteEntryTask newTask = new DeleteEntryTask(getInfo(), dlg, paths,

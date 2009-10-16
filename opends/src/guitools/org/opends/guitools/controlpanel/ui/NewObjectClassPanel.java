@@ -329,6 +329,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
 
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_OBJECTCLASS_PANEL_TITLE.get(), getInfo());
     NewObjectClassTask newTask = null;

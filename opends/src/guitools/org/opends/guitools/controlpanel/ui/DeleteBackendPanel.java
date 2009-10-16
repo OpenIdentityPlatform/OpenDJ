@@ -109,6 +109,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
   {
     final LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this), getTitle(), getInfo());
     Object[] backends = list.getSelectedValues();
     ArrayList<BackendDescriptor> backendsToDelete =

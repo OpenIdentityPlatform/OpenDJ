@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -128,9 +128,9 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
     if (errors.size() == 0)
     {
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this),
-          INFO_CTRL_PANEL_RESET_USER_PASSWORD_TITLE.get(),
-          getInfo());
+          INFO_CTRL_PANEL_RESET_USER_PASSWORD_TITLE.get(), getInfo());
       ResetUserPasswordTask newTask =
         new ResetUserPasswordTask(getInfo(), dlg, node, controller,
             password.getPassword());

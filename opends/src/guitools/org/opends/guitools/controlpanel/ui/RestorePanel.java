@@ -171,9 +171,9 @@ implements BackupCreatedListener
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
 //  Launch the task in another progress dialog.
     ProgressDialog dlg = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
-        INFO_CTRL_PANEL_VERIFY_BACKUP_TITLE.get(),
-        getInfo());
+        INFO_CTRL_PANEL_VERIFY_BACKUP_TITLE.get(), getInfo());
     RestoreTask newTask = new RestoreTask(getInfo(), dlg, true);
     for (Task task : getInfo().getTasks())
     {
@@ -301,7 +301,8 @@ implements BackupCreatedListener
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.getParentDialog(this), getTitle(), getInfo());
+          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
+          getInfo());
       RestoreTask newTask = new RestoreTask(getInfo(), progressDialog, false);
       for (Task task : getInfo().getTasks())
       {

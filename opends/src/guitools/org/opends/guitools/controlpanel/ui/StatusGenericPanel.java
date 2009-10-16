@@ -1897,6 +1897,7 @@ implements ConfigChangeListener
   {
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_START_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StartServerTask newTask = new StartServerTask(getInfo(), progressDialog);
@@ -1932,6 +1933,7 @@ implements ConfigChangeListener
   {
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_STOP_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     StopServerTask newTask = new StopServerTask(getInfo(), progressDialog);
@@ -1974,6 +1976,7 @@ implements ConfigChangeListener
   {
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
+        Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_RESTART_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
     RestartServerTask newTask = new RestartServerTask(getInfo(),

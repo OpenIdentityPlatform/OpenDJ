@@ -632,6 +632,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this), getTitle(), getInfo());
       ImportTask newTask = new ImportTask(getInfo(), progressDialog);
       for (Task task : getInfo().getTasks())

@@ -340,7 +340,8 @@ implements IndexModifiedListener
     if (errors.isEmpty())
     {
       ProgressDialog progressDialog = new ProgressDialog(
-          Utilities.getParentDialog(this), getTitle(), getInfo());
+          Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
+          getInfo());
       HashSet<String> baseDNs = new HashSet<String>();
       baseDNs.add(getSelectedBaseDN());
       RebuildIndexTask newTask = new RebuildIndexTask(getInfo(), progressDialog,

@@ -545,8 +545,9 @@ public class BackupPanel extends BackupListPanel
         if (errors.isEmpty())
         {
           ProgressDialog progressDialog = new ProgressDialog(
-              Utilities.getParentDialog(BackupPanel.this), getTitle(),
-              getInfo());
+              Utilities.createFrame(),
+              Utilities.getParentDialog(BackupPanel.this),
+              getTitle(), getInfo());
           BackupTask newTask = new BackupTask(getInfo(), progressDialog);
           for (Task task : getInfo().getTasks())
           {

@@ -44,6 +44,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -69,15 +70,17 @@ public class ProgressDialog extends GenericDialog
 
   /**
    * Constructor of the dialog.
-   * @param parentDialog the parent dialog.
+   * @param parentFrame the parent frame.
+   * @param relativeTo the component to use as reference to set the position
+   * of this dialog.
    * @param title the title of the dialog.
    * @param info the control panel information.
    */
-  public ProgressDialog(Component parentDialog, Message title,
-      ControlPanelInfo info)
+  public ProgressDialog(JFrame parentFrame, Component relativeTo,
+      Message title, ControlPanelInfo info)
   {
-    super(Utilities.getFrame(parentDialog), getPanel(info));
-    Utilities.centerGoldenMean(this, parentDialog);
+    super(parentFrame, getPanel(info));
+    Utilities.centerGoldenMean(this, relativeTo);
     setTitle(title.toString());
     progressPanel = (ProgressPanel)panel;
     getRootPane().setDefaultButton(progressPanel.closeButton);

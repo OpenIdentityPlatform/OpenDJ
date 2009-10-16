@@ -138,6 +138,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
     if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
+          Utilities.createFrame(),
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_NEW_VLV_INDEX_TITLE.get(), getInfo());
       NewVLVIndexTask newTask = new NewVLVIndexTask(getInfo(), dlg);

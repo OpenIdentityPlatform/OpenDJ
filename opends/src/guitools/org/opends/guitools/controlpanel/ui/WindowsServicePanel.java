@@ -242,7 +242,8 @@ public class WindowsServicePanel extends StatusGenericPanel
   {
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
     ProgressDialog progressDialog = new ProgressDialog(
-        Utilities.getParentDialog(this), getTitle(), getInfo());
+        Utilities.createFrame(), Utilities.getParentDialog(this), getTitle(),
+        getInfo());
     WindowsServiceTask newTask = new WindowsServiceTask(getInfo(),
         progressDialog, !isWindowsServiceEnabled);
     for (Task task : getInfo().getTasks())
