@@ -1503,6 +1503,34 @@ public class ReplicationServer
   }
 
   /**
+   * WARNING : only use this methods for tests purpose.
+   *
+   * Add the Replication Server given as a parameter in the list
+   * of local replication servers.
+   *
+   * @param server The server to be added.
+   */
+  public static void onlyForTestsAddlocalReplicationServer(String server)
+  {
+    int separator = server.lastIndexOf(':');
+    if (separator == -1)
+      return ;
+    int port = Integer.parseInt(server.substring(separator + 1));
+    localPorts.add(port);
+  }
+
+  /**
+   * WARNING : only use this methods for tests purpose.
+   *
+   * Clear the list of local Replication Servers
+   *
+   */
+  public static void onlyForTestsClearLocalReplicationServerList()
+  {
+    localPorts.clear();
+  }
+
+  /**
    * This method allows to check if the Replication Server given
    * as the parameter is running in the local JVM.
    *

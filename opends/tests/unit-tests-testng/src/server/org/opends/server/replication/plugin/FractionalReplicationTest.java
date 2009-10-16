@@ -165,6 +165,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-exclude configuration
    * attribute
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testExcludePrecommitProvider")
   private Object[][] testExcludePrecommitProvider()
   {
@@ -178,6 +179,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-exclude configuration
    * attribute
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testExcludeNightlyProvider")
   private Object[][] testExcludeNightlyProvider()
   {
@@ -305,6 +307,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-include configuration
    * attribute
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testIncludePrecommitProvider")
   private Object[][] testIncludePrecommitProvider()
   {
@@ -318,6 +321,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-include configuration
    * attribute
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testIncludeNightlyProvider")
   private Object[][] testIncludeNightlyProvider()
   {
@@ -1077,6 +1081,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateExcludePrecommitProvider")
   private Object[][] testInitWithFullUpdateExcludePrecommitProvider()
   {
@@ -1090,6 +1095,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateExcludeNightlyProvider")
   private Object[][] testInitWithFullUpdateExcludeNightlyProvider()
   {
@@ -1319,6 +1325,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateIncludePrecommitProvider")
   private Object[][] testInitWithFullUpdateIncludePrecommitProvider()
   {
@@ -1332,6 +1339,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
+  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateIncludeNightlyProvider")
   private Object[][] testInitWithFullUpdateIncludeNightlyProvider()
   {

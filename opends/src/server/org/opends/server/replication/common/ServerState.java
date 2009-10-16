@@ -366,6 +366,26 @@ public class ServerState implements Iterable<Integer>
   }
 
   /**
+   * Checks that the ChangeNumber given as a parameter is in this ServerState.
+   *
+   * @param   covered The ChangeNumber that should be checked.
+   * @return  A boolean indicating if this ServerState contains the ChangeNumber
+   *          given in parameter.
+   */
+  public boolean cover(ChangeNumber covered)
+  {
+    ChangeNumber change = this.list.get(covered.getServerId());
+    if ((change == null) || (change.older(covered)))
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+
+  /**
    * Tests if the state is empty.
    *
    * @return True if the state is empty.
