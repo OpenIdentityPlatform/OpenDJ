@@ -159,7 +159,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     tree.setCellRenderer(new BrowserCellRenderer());
     displayFlags = DISPLAY_ACI_COUNT;
     displayAttribute = RDN_ATTRIBUTE;
-    followReferrals = true;
+    followReferrals = false;
     sorted = false;
     showContainerOnly = true;
     containerClasses = new String[0];
@@ -457,10 +457,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Enable/display the following of referrals.
    * This routine starts a refresh on each referral node.
    * @param followReferrals whether to follow referrals or not.
+   * @throws NamingException if there is an error updating the request controls
+   * of the internal connections.
    */
-  public void setFollowReferrals(boolean followReferrals) {
+  public void setFollowReferrals(boolean followReferrals) throws NamingException
+  {
     this.followReferrals = followReferrals;
-    startRefreshReferralNodes(rootNode);
+    stopRefresh();
+    removeAllChildNodes(rootNode, true /* Keep suffixes */);
+    ctxConfiguration.setRequestControls(getConfigurationRequestControls());
+    ctxUserData.setRequestControls(getRequestControls());
+    connectionPool.setRequestControls(getRequestControls());
+    startRefresh(null);
   }
 
 
@@ -1324,16 +1332,24 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   Control[] getRequestControls()
   {
-    Control ctls[] = new Control[sorted ? 2 : 1];
-    ctls[0] = new ManageReferralControl(true);
-    if (sorted) {
+    Control ctls[];
+    if (followReferrals)
+    {
+      ctls = new Control[sorted ? 2 : 1];
+    }
+    else
+    {
+      ctls = new Control[sorted ? 1 : 0];
+    }
+    if (sorted)
+    {
       SortKey[] keys = new SortKey[SORT_ATTRIBUTES.length];
       for (int i=0; i<keys.length; i++) {
         keys[i] = new SortKey(SORT_ATTRIBUTES[i]);
       }
       try
       {
-        ctls[1] = new SortControl(keys, true);
+        ctls[0] = new SortControl(keys, false);
       }
       catch (IOException ioe)
       {
@@ -1341,6 +1357,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         throw new RuntimeException("Unexpected encoding exception: "+ioe,
             ioe);
       }
+    }
+    if (followReferrals)
+    {
+      ctls[ctls.length - 1] = new ManageReferralControl(false);
     }
     return ctls;
   }
@@ -1351,8 +1371,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   Control[] getConfigurationRequestControls()
   {
-    Control ctls[] = new Control[0];
-    return ctls;
+    return getRequestControls();
   }
 
 
