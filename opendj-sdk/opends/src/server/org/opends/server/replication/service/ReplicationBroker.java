@@ -1375,13 +1375,14 @@ public class ReplicationBroker
    * @param myState The local server state.
    * @param rsInfos The list of available replication servers and their
    *                 associated information (choice will be made among them).
-   * @param serverId2 The server id for the suffix we are working for.
+   * @param localServerId The server id for the suffix we are working for.
    * @param baseDn The suffix for which we are working for.
    * @param groupId The groupId we prefer being connected to if possible
    * @return The computed best replication server.
    */
   public static String computeBestReplicationServer(ServerState myState,
-    Map<String, ServerInfo> rsInfos, int serverId2, String baseDn, byte groupId)
+    Map<String, ServerInfo> rsInfos, int localServerId,
+    String baseDn, byte groupId)
   {
     /*
      * Preference is given to servers with the requested group id:
@@ -1405,11 +1406,11 @@ public class ReplicationBroker
     if (sameGroupIdRsInfos.size() > 0)
     {
       return searchForBestReplicationServer(myState, sameGroupIdRsInfos,
-        serverId2, baseDn);
+        localServerId, baseDn);
     } else
     {
       return searchForBestReplicationServer(myState, rsInfos,
-        serverId2, baseDn);
+        localServerId, baseDn);
     }
   }
 
@@ -1422,12 +1423,12 @@ public class ReplicationBroker
    * @param myState The local server state.
    * @param rsInfos The list of available replication servers and their
    *                 associated information (choice will be made among them).
-   * @param serverId2 The server id for the suffix we are working for.
+   * @param localServerID The server id for the suffix we are working for.
    * @param baseDn The suffix for which we are working for.
    * @return The computed best replication server.
    */
   private static String searchForBestReplicationServer(ServerState myState,
-    Map<String, ServerInfo> rsInfos, int serverId2, String baseDn)
+    Map<String, ServerInfo> rsInfos, int localServerID, String baseDn)
   {
     /*
      * Find replication servers who are up to date (or more up to date than us,
@@ -1455,6 +1456,8 @@ public class ReplicationBroker
     }
 
     String bestServer = null;
+    boolean bestServerIsLocal = false;
+
     // Servers up to dates with regard to our changes
     HashMap<String, ServerState> upToDateServers =
       new HashMap<String, ServerState>();
@@ -1464,19 +1467,19 @@ public class ReplicationBroker
     /*
      * Start loop to differentiate up to date servers from late ones.
      */
-    ChangeNumber myChangeNumber = myState.getMaxChangeNumber(serverId2);
+    ChangeNumber myChangeNumber = myState.getMaxChangeNumber(localServerID);
     if (myChangeNumber == null)
     {
-      myChangeNumber = new ChangeNumber(0, 0, serverId2);
+      myChangeNumber = new ChangeNumber(0, 0, localServerID);
     }
     for (String repServer : rsInfos.keySet())
     {
 
       ServerState rsState = rsInfos.get(repServer).getServerState();
-      ChangeNumber rsChangeNumber = rsState.getMaxChangeNumber(serverId2);
+      ChangeNumber rsChangeNumber = rsState.getMaxChangeNumber(localServerID);
       if (rsChangeNumber == null)
       {
-        rsChangeNumber = new ChangeNumber(0, 0, serverId2);
+        rsChangeNumber = new ChangeNumber(0, 0, localServerID);
       }
 
       // Store state in right list
@@ -1491,7 +1494,6 @@ public class ReplicationBroker
 
     if (upToDateServers.size() > 0)
     {
-
       /*
        * Some up to date servers, among them, choose either :
        * - The local one
@@ -1504,33 +1506,8 @@ public class ReplicationBroker
        */
 
       Message message = NOTE_FOUND_CHANGELOGS_WITH_MY_CHANGES.get(
-        upToDateServers.size(), baseDn, Integer.toString(serverId2));
+        upToDateServers.size(), baseDn, Integer.toString(localServerID));
       logError(message);
-
-      /*
-       * If there are local Replication Servers, remove all the other one
-       * from the list so that we are sure that we choose a local one.
-       */
-      boolean localRS = false;
-      for (String upServer : upToDateServers.keySet())
-      {
-        if (ReplicationServer.isLocalReplicationServer(upServer))
-        {
-          localRS = true;
-          break;
-        }
-      }
-      if (localRS)
-      {
-        Iterator<String> it = upToDateServers.keySet().iterator();
-        while (it.hasNext())
-        {
-          if (!ReplicationServer.isLocalReplicationServer(it.next()))
-          {
-            it.remove();
-          }
-        }
-      }
 
       /*
        * First of all, compute the virtual server state for the whole topology,
@@ -1570,7 +1547,7 @@ public class ReplicationBroker
          * number loops and comes back to 0 (computation would have becomen
          * meaningless).
          */
-        long shift = -1L;
+        long shift = 0;
         ServerState curState = upToDateServers.get(upServer);
         Iterator<Integer> it = curState.iterator();
         while (it.hasNext())
@@ -1586,17 +1563,21 @@ public class ReplicationBroker
           // Cannot be negative as topoState computed as being the max CN
           // for each server id in the topology
           long tmpShift = topoCurSidCn.getTime() - curSidCn.getTime();
-          if (tmpShift > shift)
-          {
-            shift = tmpShift;
-          }
+          shift +=tmpShift;
         }
 
+        boolean upServerIsLocal =
+          ReplicationServer.isLocalReplicationServer(upServer);
         if ((minShift < 0) // First time in loop
-          || (shift < minShift))
+            || ((shift < minShift) && upServerIsLocal)
+            || (((bestServerIsLocal == false) && (shift < minShift)))
+            || ((bestServerIsLocal == false) && (upServerIsLocal &&
+                                              (shift<(minShift + 60)) ))
+            || (shift+120 < minShift))
         {
           // This server is even closer to topo state
           bestServer = upServer;
+          bestServerIsLocal = upServerIsLocal;
           minShift = shift;
         }
       } // For up to date servers
@@ -1616,26 +1597,32 @@ public class ReplicationBroker
       long minShift = -1L;
       for (String lateServer : lateOnes.keySet())
       {
-
         /*
          * Choose the server who is the closest to us regarding our server id
          * (this is the most up to date regarding our server id).
          */
         ServerState curState = lateOnes.get(lateServer);
-        ChangeNumber ourSidCn = curState.getMaxChangeNumber(serverId2);
+        ChangeNumber ourSidCn = curState.getMaxChangeNumber(localServerID);
         if (ourSidCn == null)
         {
-          ourSidCn = new ChangeNumber(0, 0, serverId2);
+          ourSidCn = new ChangeNumber(0, 0, localServerID);
         }
         // Cannot be negative as our Cn for our server id is strictly
         // greater than those of the servers in late server list
         long tmpShift = myChangeNumber.getTime() - ourSidCn.getTime();
 
+        boolean lateServerisLocal =
+          ReplicationServer.isLocalReplicationServer(lateServer);
         if ((minShift < 0) // First time in loop
-          || (tmpShift < minShift))
+          || ((tmpShift < minShift) && lateServerisLocal)
+          || (((bestServerIsLocal == false) && (tmpShift < minShift)))
+          || ((bestServerIsLocal == false) && (lateServerisLocal &&
+                                            (tmpShift<(minShift + 60)) ))
+          || (tmpShift+120 < minShift))
         {
-          // This sever is even closer to topo state
+          // This server is even closer to topo state
           bestServer = lateServer;
+          bestServerIsLocal = lateServerisLocal;
           minShift = tmpShift;
         }
       } // For late servers
