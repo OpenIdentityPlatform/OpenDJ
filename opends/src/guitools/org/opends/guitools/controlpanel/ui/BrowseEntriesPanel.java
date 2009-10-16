@@ -53,8 +53,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import javax.naming.InterruptedNamingException;
+import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -1123,7 +1125,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         menu.add(menus[i]);
         group.add(menus[i]);
       }
-      ActionListener listener = new ActionListener()
+      ActionListener radioListener = new ActionListener()
       {
         private boolean ignoreEvents;
         private JRadioButtonMenuItem lastSelected = menus[0];
@@ -1166,9 +1168,54 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       };
       for (int i=0; i<labels.length; i++)
       {
-        menus[i].addActionListener(listener);
+        menus[i].addActionListener(radioListener);
       }
       menus[0].setSelected(true);
+
+      // Add the view menus
+      menu.add(new JSeparator());
+      final JCheckBoxMenuItem sortUserData =
+        new JCheckBoxMenuItem(INFO_CTRL_PANEL_SORT_USER_DATA.get().toString());
+      final JCheckBoxMenuItem followReferrals = new JCheckBoxMenuItem(
+        INFO_CTRL_PANEL_FOLLOW_REFERRALS.get().toString());
+      menu.add(sortUserData);
+      menu.add(followReferrals);
+      sortUserData.setSelected(entryPane.getController().isSorted());
+      followReferrals.setSelected(
+          entryPane.getController().getFollowReferrals());
+      sortUserData.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          try
+          {
+            entryPane.getController().setSorted(sortUserData.isSelected());
+          }
+          catch (NamingException ne)
+          {
+            // Bug
+            System.err.println("Unexpected error updating sorting.");
+            ne.printStackTrace();
+          }
+        }
+      });
+      followReferrals.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          try
+          {
+            entryPane.getController().setFollowReferrals(
+                followReferrals.isSelected());
+          }
+          catch (NamingException ne)
+          {
+            // Bug
+            System.err.println("Unexpected error updating referral state.");
+            ne.printStackTrace();
+          }
+        }
+      });
       return menu;
     }
 
