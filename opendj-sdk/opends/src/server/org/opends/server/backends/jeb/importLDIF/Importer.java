@@ -1781,61 +1781,73 @@ public class Importer
       }
 
 
-      private boolean checkParent(ImportIDSet record) throws DirectoryException
+      private boolean checkParent(ImportIDSet record) throws DirectoryException,
+              DatabaseException
       {
         DNKey.setData(record.getKey());
         byte[] v = record.toDatabase();
         long v1 = JebFormat.entryIDFromDatabase(v);
         DNValue.setData(v);
         DN dn = DN.decode(ByteString.wrap(DNKey.getData()));
-
-        entryID = new EntryID(v1);
-        if(parentIDMap.isEmpty())
+        //Bypass the cache for append data, lookup the parent in DN2ID and
+        //return.
+        if(importConfiguration != null &&
+           importConfiguration.appendToExistingData())
         {
-          parentIDMap.put(dn, entryID);
-          return true;
-        }
-        else if(lastDN != null && lastDN.isAncestorOf(dn))
-        {
-          parentIDMap.put(lastDN, lastID);
-          parentDN = lastDN;
-          parentID = lastID;
-          lastDN = dn;
-          lastID = entryID;
-          return true;
-        }
-        else if(parentIDMap.lastKey().isAncestorOf(dn))
-        {
-          parentDN = parentIDMap.lastKey();
-          parentID = parentIDMap.get(parentDN);
-          lastDN = dn;
-          lastID = entryID;
-          return true;
+          DN newParentDN = entryContainer.getParentWithinBase(dn);
+          parentID =
+             entryContainer.getDN2ID().get(null, newParentDN, LockMode.DEFAULT);
         }
         else
         {
-          DN newParentDN = entryContainer.getParentWithinBase(dn);
-          if(parentIDMap.containsKey(newParentDN))
+          entryID = new EntryID(v1);
+          if(parentIDMap.isEmpty())
           {
-            EntryID newParentID = parentIDMap.get(newParentDN);
-            DN lastDN = parentIDMap.lastKey();
-            while(!newParentDN.equals(lastDN)) {
-              parentIDMap.remove(lastDN);
-              lastDN = parentIDMap.lastKey();
-            }
             parentIDMap.put(dn, entryID);
-            parentDN = newParentDN;
-            parentID = newParentID;
+            return true;
+          }
+          else if(lastDN != null && lastDN.isAncestorOf(dn))
+          {
+            parentIDMap.put(lastDN, lastID);
+            parentDN = lastDN;
+            parentID = lastID;
             lastDN = dn;
             lastID = entryID;
+            return true;
+          }
+          else if(parentIDMap.lastKey().isAncestorOf(dn))
+          {
+            parentDN = parentIDMap.lastKey();
+            parentID = parentIDMap.get(parentDN);
+            lastDN = dn;
+            lastID = entryID;
+            return true;
           }
           else
           {
-            Message message =
+            DN newParentDN = entryContainer.getParentWithinBase(dn);
+            if(parentIDMap.containsKey(newParentDN))
+            {
+              EntryID newParentID = parentIDMap.get(newParentDN);
+              DN lastDN = parentIDMap.lastKey();
+              while(!newParentDN.equals(lastDN)) {
+                parentIDMap.remove(lastDN);
+                lastDN = parentIDMap.lastKey();
+              }
+              parentIDMap.put(dn, entryID);
+              parentDN = newParentDN;
+              parentID = newParentID;
+              lastDN = dn;
+              lastID = entryID;
+            }
+            else
+            {
+              Message message =
                       NOTE_JEB_IMPORT_LDIF_DN_NO_PARENT.get(dn.toString());
-            Entry e = new Entry(dn, null, null, null);
-            reader.rejectEntry(e, message);
-            return false;
+              Entry e = new Entry(dn, null, null, null);
+              reader.rejectEntry(e, message);
+              return false;
+            }
           }
         }
         return true;
@@ -1862,6 +1874,22 @@ public class Importer
         }
       }
 
+      private EntryID getParentID(DN dn) throws DatabaseException
+      {
+        EntryID nodeID;
+        //Bypass the cache for append data, lookup the parent DN in the DN2ID
+        //db.
+        if (importConfiguration != null &&
+            importConfiguration.appendToExistingData())
+        {
+          nodeID = entryContainer.getDN2ID().get(null, dn, LockMode.DEFAULT);
+        }
+        else
+        {
+          nodeID = parentIDMap.get(dn);
+        }
+        return nodeID;
+      }
 
       private void id2SubTree(EntryID childID)
               throws DatabaseException, DirectoryException
@@ -1880,7 +1908,7 @@ public class Importer
         for (DN dn = entryContainer.getParentWithinBase(parentDN); dn != null;
              dn = entryContainer.getParentWithinBase(dn))
         {
-          EntryID nodeID = parentIDMap.get(dn);
+          EntryID nodeID = getParentID(dn);
           if(!id2subtreeTree.containsKey(nodeID.getDatabaseEntry().getData()))
           {
             idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
