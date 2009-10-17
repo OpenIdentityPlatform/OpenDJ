@@ -57,6 +57,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
@@ -890,12 +891,9 @@ public abstract class ConsoleApplication {
         {
           if ( isInteractive() && ci.isTrustStoreInMemory())
           {
-            if ((e.getRootCause() != null)
-                && (e.getRootCause().getCause()
-                    instanceof OpendsCertificateException))
+            OpendsCertificateException oce = getCertificateRootException(e);
+            if (oce != null)
             {
-              OpendsCertificateException oce =
-                (OpendsCertificateException) e.getRootCause().getCause();
               String authType = null;
               if (trustManager instanceof ApplicationTrustManager)
               {
@@ -903,31 +901,29 @@ public abstract class ConsoleApplication {
                   (ApplicationTrustManager)trustManager;
                 authType = appTrustManager.getLastRefusedAuthType();
               }
-                if (ci.checkServerCertificate(oce.getChain(), authType,
-                    hostName))
-                {
-                  // If the certificate is trusted, update the trust manager.
-                  trustManager = ci.getTrustManager();
+              if (ci.checkServerCertificate(oce.getChain(), authType,
+                  hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
 
-                  // Try to connect again.
-                  continue ;
-                }
-                else
-                {
-                  // Assume user cancelled.
-                  return null;
-                }
+                // Try to connect again.
+                continue;
+              }
+              else
+              {
+                // Assume user canceled.
+                return null;
+              }
             }
           }
-          if (e.getRootCause() != null)
+          if (e.getCause() != null)
           {
-            if (e.getRootCause().getCause() != null &&
-                !ci.isTrustStoreInMemory() &&
+            if (!ci.isTrustStoreInMemory() &&
                 !ci.isTrustAll())
             {
-              if (((e.getRootCause().getCause()
-                instanceof OpendsCertificateException)) ||
-                (e.getRootCause() instanceof SSLHandshakeException))
+              if (getCertificateRootException(e) != null ||
+                (e.getCause() instanceof SSLHandshakeException))
               {
                 Message message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
@@ -936,7 +932,7 @@ public abstract class ConsoleApplication {
                   LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
-            if (e.getRootCause() instanceof SSLException)
+            if (e.getCause() instanceof SSLException)
             {
               Message message =
                 ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
@@ -945,8 +941,9 @@ public abstract class ConsoleApplication {
                 LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
-          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-              hostName, String.valueOf(portNumber));
+          String hostPort =
+            ServerDescriptor.getServerRepresentation(hostName, portNumber);
+          Message message = Utils.getMessageForException(e, hostPort);
           throw new ClientException(
               LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
         }
@@ -969,9 +966,8 @@ public abstract class ConsoleApplication {
         {
           if ( isInteractive() && ci.isTrustStoreInMemory())
           {
-            if ((e.getRootCause() != null)
-                && (e.getRootCause().getCause()
-                    instanceof OpendsCertificateException))
+            OpendsCertificateException oce = getCertificateRootException(e);
+            if (oce != null)
             {
               String authType = null;
               if (trustManager instanceof ApplicationTrustManager)
@@ -980,22 +976,21 @@ public abstract class ConsoleApplication {
                   (ApplicationTrustManager)trustManager;
                 authType = appTrustManager.getLastRefusedAuthType();
               }
-              OpendsCertificateException oce =
-                (OpendsCertificateException) e.getRootCause().getCause();
-                if (ci.checkServerCertificate(oce.getChain(), authType,
-                    hostName))
-                {
-                  // If the certificate is trusted, update the trust manager.
-                  trustManager = ci.getTrustManager();
 
-                  // Try to connect again.
-                  continue ;
-                }
-                else
-                {
-                  // Assume user cancelled.
-                  return null;
-                }
+              if (ci.checkServerCertificate(oce.getChain(), authType,
+                  hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
+
+                // Try to connect again.
+                continue ;
+              }
+              else
+              {
+                // Assume user cancelled.
+                return null;
+              }
             }
             else
             {
@@ -1028,9 +1023,8 @@ public abstract class ConsoleApplication {
         {
           if ( isInteractive() && ci.isTrustStoreInMemory())
           {
-            if ((e.getRootCause() != null)
-                && (e.getRootCause().getCause()
-                    instanceof OpendsCertificateException))
+            OpendsCertificateException oce = getCertificateRootException(e);
+            if (oce != null)
             {
               String authType = null;
               if (trustManager instanceof ApplicationTrustManager)
@@ -1039,22 +1033,20 @@ public abstract class ConsoleApplication {
                   (ApplicationTrustManager)trustManager;
                 authType = appTrustManager.getLastRefusedAuthType();
               }
-              OpendsCertificateException oce =
-                (OpendsCertificateException) e.getRootCause().getCause();
-                if (ci.checkServerCertificate(oce.getChain(), authType,
-                    hostName))
-                {
-                  // If the certificate is trusted, update the trust manager.
-                  trustManager = ci.getTrustManager();
+              if (ci.checkServerCertificate(oce.getChain(), authType,
+                  hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
 
-                  // Try to connect again.
-                  continue ;
-                }
-                else
-                {
-                  // Assume user cancelled.
-                  return null;
-                }
+                // Try to connect again.
+                continue;
+              }
+              else
+              {
+                // Assume user canceled.
+                return null;
+              }
             }
             else
             {
@@ -1251,5 +1243,19 @@ public abstract class ConsoleApplication {
       }
       pointAdderStopped = true;
     }
+  }
+
+  private OpendsCertificateException getCertificateRootException(Throwable t)
+  {
+    OpendsCertificateException oce = null;
+    while (t != null && oce == null)
+    {
+      t = t.getCause();
+      if (t instanceof OpendsCertificateException)
+      {
+        oce = (OpendsCertificateException)t;
+      }
+    }
+    return oce;
   }
 }

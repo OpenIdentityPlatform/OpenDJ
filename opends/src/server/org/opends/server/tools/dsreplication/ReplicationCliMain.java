@@ -1067,7 +1067,9 @@ public class ReplicationCliMain extends ConsoleApplication
     String bindDn2 = null;
     String pwd2 = null;
     ci.resetHeadingDisplayed();
-    ci.resetTrustManager();
+
+    boolean doNotDisplayFirstError = false;
+
     if (!cancelled)
     {
       host2 = argParser.getHostName2();
@@ -1087,6 +1089,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (bindDn2 == null)
       {
+        doNotDisplayFirstError = true;
         pwd = adminPwd;
         if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
         {
@@ -1156,10 +1159,19 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (ClientException ce)
       {
         LOG.log(Level.WARNING, "Client exception "+ce);
-        println();
-        println(ce.getMessageObject());
-        println();
-        ci.resetConnectionArguments();
+        if (!doNotDisplayFirstError)
+        {
+          println();
+          println(ce.getMessageObject());
+          println();
+          ci.resetConnectionArguments();
+        }
+        else
+        {
+          // Reset only the credential parameters.
+          ci.resetConnectionArguments();
+          ci.initializeGlobalArguments(host2, port2, null, null, null, null);
+        }
       }
       catch (ArgumentException ae)
       {
@@ -1168,6 +1180,10 @@ public class ReplicationCliMain extends ConsoleApplication
         println(ae.getMessageObject());
         println();
         cancelled = true;
+      }
+      finally
+      {
+        doNotDisplayFirstError = false;
       }
     }
 
