@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -109,6 +110,8 @@ import org.opends.server.util.ServerConstants;
 public abstract class StatusGenericPanel extends JPanel
 implements ConfigChangeListener
 {
+  private static final long serialVersionUID = -9123358652232556732L;
+
   /**
    * The string to be used as combo separator.
    */
@@ -131,8 +134,14 @@ implements ConfigChangeListener
 
   private boolean disposeOnClose = false;
 
+  private JPanel cardPanel;
   private JPanel mainPanel;
   private JEditorPane message;
+
+  private CardLayout cardLayout;
+
+  private static final String MAIN_PANEL = "mainPanel";
+  private static final String MESSAGE_PANEL = "messagePanel";
 
   /**
    * The error pane.
@@ -240,6 +249,10 @@ implements ConfigChangeListener
     super(new GridBagLayout());
     setBackground(ColorAndFontConstants.background);
 
+    cardLayout = new CardLayout();
+    cardPanel = new JPanel(cardLayout);
+    cardPanel.setOpaque(false);
+
     mainPanel = new JPanel(new GridBagLayout());
     mainPanel.setOpaque(false);
 
@@ -251,11 +264,18 @@ implements ConfigChangeListener
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
-    super.add(mainPanel, gbc);
+    super.add(cardPanel, gbc);
+
+    cardPanel.add(mainPanel, MAIN_PANEL);
+
+    JPanel messagePanel = new JPanel(new GridBagLayout());
+    messagePanel.setOpaque(false);
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.CENTER;
-    super.add(message, gbc);
-    message.setVisible(false);
+    messagePanel.add(message, gbc);
+    cardPanel.add(messagePanel, MESSAGE_PANEL);
+
+    cardLayout.show(cardPanel, MAIN_PANEL);
   }
 
   /**
@@ -640,7 +660,7 @@ implements ConfigChangeListener
     }
     else
     {
-      if (isLocal() || true)
+      if (isLocal())
       {
         rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
             INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
@@ -1091,8 +1111,7 @@ implements ConfigChangeListener
    */
   protected void displayMainPanel()
   {
-    mainPanel.setVisible(true);
-    message.setVisible(false);
+    cardLayout.show(cardPanel, MAIN_PANEL);
   }
 
   /**
@@ -1112,8 +1131,7 @@ implements ConfigChangeListener
   {
     message.setText(Utilities.applyFont(msg.toString(),
         ColorAndFontConstants.progressFont));
-    mainPanel.setVisible(false);
-    message.setVisible(true);
+    cardLayout.show(cardPanel, MESSAGE_PANEL);
   }
 
   /**
@@ -1125,8 +1143,7 @@ implements ConfigChangeListener
   {
     updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
         msg, ColorAndFontConstants.defaultFont);
-    mainPanel.setVisible(false);
-    message.setVisible(true);
+    cardLayout.show(cardPanel, MESSAGE_PANEL);
   }
 
   /**
