@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -37,39 +36,31 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 
 
 /**
- * This class implements a virtual attribute provider that allows administrators
- * to define their own values that will be inserted into any entry that matches
- * the criteria defined in the virtual attribute rule.  This can be used to
- * provide functionality like Class of Service (CoS) in the Sun Java System
- * Directory Server.
+ * This class implements a virtual attribute provider that specifies the
+ * changelog attribute of the root DSE entry that contain the baseDn of the ECL.
  */
-public class FirstChangeNumberVirtualAttributeProvider
+public class ChangelogBaseDNVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
   /**
    * Creates a new instance of this member virtual attribute provider.
    */
-  public FirstChangeNumberVirtualAttributeProvider()
+  public ChangelogBaseDNVirtualAttributeProvider()
   {
     super();
 
@@ -121,40 +112,10 @@ public class FirstChangeNumberVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
     Set<AttributeValue> values = new HashSet<AttributeValue>();
-    String first="0";
-    try
-    {
-      if (!entry.getDN().equals(DN.decode("")))
-      {
-        return values;
-      }
-      ECLWorkflowElement eclwe = (ECLWorkflowElement)
-      DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
-      if (eclwe!=null)
-      {
-        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        ArrayList<String> excludedDomains =
-          MultimasterReplication.getPrivateDomains();
-        if (!excludedDomains.contains(
-            ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
-          excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-
-        ReplicationServer rs = eclwe.getReplicationServer();
-        int[] limits = rs.getECLDraftCNLimits(
-            rs.getEligibleCN(), excludedDomains);
-
-        first = String.valueOf(limits[0]);
-
-      }
-    }
-    catch(Exception e)
-    {
-
-    }
     AttributeValue value =
       AttributeValues.create(
-          ByteString.valueOf(first),
-          ByteString.valueOf(first));
+          ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
+          ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
     values=Collections.singleton(value);
     return values;
   }
