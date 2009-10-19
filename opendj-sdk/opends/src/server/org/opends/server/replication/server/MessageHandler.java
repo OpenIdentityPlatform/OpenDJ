@@ -747,7 +747,8 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     else
     {
       this.serviceId = serviceId;
-      this.replicationServerDomain = getDomain(true, isDataServer);
+      if (!serviceId.equalsIgnoreCase("cn=changelog"))
+        this.replicationServerDomain = getDomain(true, isDataServer);
     }
   }
 
@@ -802,4 +803,12 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     return replicationServer.getGroupId();
   }
 
+  /**
+   * Get the serverId of the hosting replication server.
+   * @return the replication serverId.
+   */
+  public int getReplicationServerId()
+  {
+    return this.replicationServerId;
+  }
 }

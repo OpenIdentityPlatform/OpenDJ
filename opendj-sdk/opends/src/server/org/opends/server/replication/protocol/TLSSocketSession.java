@@ -28,6 +28,7 @@ package org.opends.server.replication.protocol;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,7 +104,7 @@ public class TLSSocketSession implements ProtocolSession
     if (debugEnabled())
     {
       TRACER.debugInfo("Closing SocketSession." +
-          Thread.currentThread().getStackTrace());
+          stackTraceToSingleLineString(new Exception("Stack:")));
     }
     if (plainSocket != null && !plainSocket.isClosed())
     {

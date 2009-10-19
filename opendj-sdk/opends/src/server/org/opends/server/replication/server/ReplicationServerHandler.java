@@ -638,7 +638,7 @@ public class ReplicationServerHandler extends ServerHandler
    *
    * @param topoMsg The received topology message
    */
-  public void receiveTopoInfoFromRS(TopologyMsg topoMsg)
+  public void processTopoInfoFromRS(TopologyMsg topoMsg)
   {
     // Store info for remote RS
     List<RSInfo> rsInfos = topoMsg.getRsList();
@@ -836,4 +836,16 @@ public class ReplicationServerHandler extends ServerHandler
     session.publish(msg);
   }
 
+  /**
+   * Receives a topology msg.
+   * @param topoMsg The message received.
+   * @throws DirectoryException when it occurs.
+   * @throws IOException when it occurs.
+   */
+  public void receiveTopoInfoFromRS(TopologyMsg topoMsg)
+  throws DirectoryException, IOException
+  {
+    if (replicationServerDomain != null)
+      replicationServerDomain.receiveTopoInfoFromRS(topoMsg, this, true);
+  }
 }

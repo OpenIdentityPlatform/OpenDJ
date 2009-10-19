@@ -371,19 +371,17 @@ public class ECLServerHandler extends ServerHandler
           replicationServerURL,
           getServiceId(),
           maxRcvWindow,
-          replicationServerDomain.getDbServerState(),
+          new ServerState(),
           protocolVersion,
           localGenerationId,
           sslEncryption,
           getLocalGroupId(),
-          replicationServerDomain.
-          getReplicationServer().getDegradedStatusThreshold(),
+          0,
           replicationServer.getWeight(),
-          replicationServerDomain.getConnectedLDAPservers().size());
+          0);
 
 
       session.publish(outReplServerStartDSMsg);
-
       return outReplServerStartDSMsg;
     }
   }
@@ -462,9 +460,11 @@ public class ECLServerHandler extends ServerHandler
         processStartFromRemote(inECLStartMsg);
 
       // lock with timeout
-      lockDomain(true);
+      if (this.replicationServerDomain != null)
+        lockDomain(true);
 
-      this.localGenerationId = replicationServerDomain.getGenerationId();
+//    this.localGenerationId = replicationServerDomain.getGenerationId();
+      this.localGenerationId = -1;
 
       // send start to remote
       StartMsg outStartMsg =
@@ -708,7 +708,7 @@ public class ECLServerHandler extends ServerHandler
   {
     HashMap<String,ServerState> startStates = new HashMap<String,ServerState>();
 
-    ReplicationServer rs = replicationServerDomain.getReplicationServer();
+    ReplicationServer rs = this.replicationServer;
 
     // Parse the provided cookie and overwrite startState from it.
     if ((providedCookie != null) && (providedCookie.length()!=0))
@@ -738,6 +738,10 @@ public class ECLServerHandler extends ServerHandler
 
           // skip the excluded domains
           if (excludedServiceIDs.contains(rsd.getBaseDn()))
+            continue;
+
+          // skip unused domains
+          if (rsd.getDbServerState().isEmpty())
             continue;
 
           // Creates the new domain context
@@ -826,7 +830,8 @@ public class ECLServerHandler extends ServerHandler
    */
   private void registerIntoDomain()
   {
-    replicationServerDomain.registerHandler(this);
+    if (replicationServerDomain!=null)
+      replicationServerDomain.registerHandler(this);
   }
 
   /**
@@ -877,7 +882,7 @@ public class ECLServerHandler extends ServerHandler
     String str = serverURL + " " + String.valueOf(serverId);
 
     return "Connected External Changelog Server " + str +
-    ",cn=" + replicationServerDomain.getMonitorInstanceName();
+    ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
   }
 
   /**
@@ -982,8 +987,7 @@ public class ECLServerHandler extends ServerHandler
       sendWindow = new Semaphore(sendWindowSize);
 
       // create reader
-      reader = new ServerReader(session, serverId,
-          this, replicationServerDomain);
+      reader = new ServerReader(session, serverId, this);
       reader.start();
 
       if (writer == null)
@@ -1132,8 +1136,7 @@ public class ECLServerHandler extends ServerHandler
     ECLUpdateMsg oldestChange = null;
 
     if (debugEnabled())
-      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
-          getMonitorInstanceName() + "," + this +
+      TRACER.debugInfo("In cn=changelog" + this +
           " getNextECLUpdate starts: " + dumpState());
 
     try
@@ -1443,8 +1446,7 @@ public class ECLServerHandler extends ServerHandler
     // starvation of changelog messages
     // all domain have been unactived means are covered
     if (debugEnabled())
-      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
-          getMonitorInstanceName() + "," + this + " closeInitPhase(): "
+      TRACER.debugInfo("In cn=changelog" + "," + this + " closeInitPhase(): "
           + dumpState());
 
     // go to persistent phase if one
@@ -1503,8 +1505,7 @@ public class ECLServerHandler extends ServerHandler
     }
 
     if (debugEnabled())
-      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
-          getMonitorInstanceName()
+      TRACER.debugInfo("In cn=changelog"
           + "," + this + " getOldestChangeFromDomainCtxts() returns " +
           ((oldest!=-1)?domainCtxts[oldest].nextMsg:"-1"));
 

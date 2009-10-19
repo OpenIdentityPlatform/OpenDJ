@@ -780,4 +780,14 @@ public class DataServerHandler extends ServerHandler
     }
     return startSessionMsg;
   }
+
+  /**
+   * Process message of a remote server changing his status.
+   * @param csMsg The message containing the new status
+   */
+  public void receiveNewStatus(ChangeStatusMsg csMsg)
+  {
+    if (replicationServerDomain!=null)
+      replicationServerDomain.processNewStatus(this, csMsg);
+  }
 }

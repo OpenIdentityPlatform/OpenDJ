@@ -193,7 +193,8 @@ public class ECLServerWriter extends ServerWriter
           // Can't do much more : ignore
         }
       }
-      replicationServerDomain.stopServer(handler);
+      if (replicationServerDomain!=null)
+        replicationServerDomain.stopServer(handler);
     }
   }
 
@@ -243,7 +244,7 @@ public class ECLServerWriter extends ServerWriter
             // session is null in pusherOnly mode
             // Done is used to end phase 1
             session.publish(new DoneMsg(
-                replicationServerDomain.getReplicationServer().getServerId(),
+                handler.getReplicationServerId(),
                 handler.getServerId()), protocolVersion);
           }
         }

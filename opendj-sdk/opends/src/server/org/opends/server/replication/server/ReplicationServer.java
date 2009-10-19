@@ -1596,11 +1596,9 @@ public class ReplicationServer
       while (rsdi.hasNext())
       {
         ReplicationServerDomain domain = rsdi.next();
-
-        if (excludedServiceIDs.contains(domain.getBaseDn()))
-        {
+        if ((excludedServiceIDs != null) &&
+            excludedServiceIDs.contains(domain.getBaseDn()))
           continue;
-        }
 
         ChangeNumber domainEligibleCN = domain.getEligibleCN();
         String dates = "";
@@ -1828,6 +1826,9 @@ public class ReplicationServer
 
         if ((excludedServiceIDs!=null)
             && (excludedServiceIDs.contains(rsd.getBaseDn())))
+          continue;
+
+        if (rsd.getDbServerState().isEmpty())
           continue;
 
         result.update(rsd.getBaseDn(), rsd.getEligibleState(

@@ -194,7 +194,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     super("Replication Server " + replicationServer.getReplicationPort() + " "
         + baseDn + " " + replicationServer.getServerId());
-
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
     this.assuredTimeoutTimer = new Timer("Replication Assured Timer for " +
@@ -2316,7 +2315,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     /*
      * Store DS connected to remote RS and update information about the peer RS
      */
-    handler.receiveTopoInfoFromRS(topoMsg);
+    handler.processTopoInfoFromRS(topoMsg);
 
     /*
      * Handle generation id
@@ -2904,8 +2903,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Computes the eligible server state for the domain.
-   * Consists in taking the most recent change from the dbServerState and the
-   * eligibleCN.
+   *
+   *     s1               s2          s3
+   *     --               --          --
+   *                                 cn31
+   *     cn15
+   *
+   *  ----------------------------------------- eligibleCN
+   *     cn14
+   *                     cn26
+   *     cn13
+   *
+   * The eligibleState is : s1;cn14 / s2;cn26 / s3;cn31
+   *
    * @param eligibleCN The provided eligibleCN.
    * @return The computed eligible server state.
    */
@@ -2915,6 +2925,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     ServerState dbState = this.getDbServerState();
 
+    // The result is initialized from the dbState.
+    // From it, we don't want to kepp the changes newer than eligibleCN.
     result = dbState.duplicate();
 
     if (eligibleCN != null)
@@ -2924,32 +2936,44 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         int sid = it.next();
         DbHandler h = sourceDbHandlers.get(sid);
-        ChangeNumber dbCN = dbState.getMaxChangeNumber(sid);
+        ChangeNumber mostRecentDbCN = dbState.getMaxChangeNumber(sid);
         try
         {
-          if (eligibleCN.older(dbCN))
+          // Is the most recent change in the Db newer than eligible CN ?
+          // if yes (like cn15 in the example above, then we have to go back
+          // to the Db and look for the change older than  eligible CN (cn14)
+          if (eligibleCN.olderOrEqual(mostRecentDbCN))
           {
-            // some CN exist in the db newer than eligible CN
-            // let's get it
-            ReplicationIterator ri = h.generateIterator(eligibleCN);
+            // let's try to seek the first change <= eligibleCN
+            ReplicationIterator ri = null;
             try
             {
+              ri = h.generateIterator(eligibleCN);
               if ((ri != null) && (ri.getChange()!=null))
               {
                 ChangeNumber newCN = ri.getChange().getChangeNumber();
                 result.update(newCN);
               }
             }
+            catch(Exception e)
+            {
+              // there's no change older than eligibleCN (case of s3/cn31)
+              result.update(new ChangeNumber(0,0,sid));
+            }
             finally
             {
-              ri.releaseCursor();
-              ri = null;
+              if (ri != null)
+              {
+                ri.releaseCursor();
+                ri = null;
+              }
             }
           }
           else
           {
-            // no CN exist in the db newer than elligible CN
-            result.update(dbCN);
+            // for this serverid, all changes in the ChangelogDb are holder
+            // than eligibleCN , the most recent in the db is our guy.
+            result.update(mostRecentDbCN);
           }
         }
         catch(Exception e)
