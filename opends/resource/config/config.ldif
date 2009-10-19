@@ -2459,39 +2459,6 @@ ds-cfg-conflict-behavior: virtual-overrides-real
 ds-cfg-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 ds-cfg-allow-retrieving-membership: false
 
-dn: cn=Last External Changelog Cookie,cn=Virtual Attributes,cn=config
-objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-user-defined-virtual-attribute
-objectClass: top
-cn: Last External Changelog Cookie
-ds-cfg-attribute-type: lastExternalChangelogCookie
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.replication.common.LastCookieVirtualProvider
-ds-cfg-value: 1
-ds-cfg-filter: (objectClass=ds-root-dse)
-
-dn: cn=External Changelog First Draft Change Number,cn=Virtual Attributes,cn=config
-objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-user-defined-virtual-attribute
-objectClass: top
-cn: External Changelog First Draft Change Number
-ds-cfg-attribute-type: firstChangeNumber
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.replication.common.FirstChangeNumberVirtualAttributeProvider
-ds-cfg-value: 0
-ds-cfg-filter: (objectClass=ds-root-dse)
-
-dn: cn=External Changelog Last Draft Change Number,cn=Virtual Attributes,cn=config
-objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-user-defined-virtual-attribute
-objectClass: top
-cn: External Changelog Last Draft Change Number
-ds-cfg-attribute-type: lastChangeNumber
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.replication.common.LastChangeNumberVirtualAttributeProvider
-ds-cfg-value: 0
-ds-cfg-filter: (objectClass=ds-root-dse)
-
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

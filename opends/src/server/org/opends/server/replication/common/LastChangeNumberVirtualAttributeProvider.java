@@ -25,7 +25,6 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +39,6 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.AttributeValue;
@@ -67,10 +65,6 @@ public class LastChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  private static final DebugTracer TRACER = getTracer();
-  // The current configuration for this virtual attribute provider.
-  private UserDefinedVirtualAttributeCfg currentConfig;
-
   /**
    * Creates a new instance of this member virtual attribute provider.
    */
@@ -92,8 +86,7 @@ public class LastChangeNumberVirtualAttributeProvider
                             UserDefinedVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
-    this.currentConfig = configuration;
-    configuration.addUserDefinedChangeListener(this);
+    // No initialization required
   }
 
 
@@ -104,7 +97,7 @@ public class LastChangeNumberVirtualAttributeProvider
   @Override()
   public void finalizeVirtualAttributeProvider()
   {
-    currentConfig.removeUserDefinedChangeListener(this);
+    //
   }
 
 
@@ -115,14 +108,7 @@ public class LastChangeNumberVirtualAttributeProvider
   @Override()
   public boolean isMultiValued()
   {
-    if (currentConfig == null)
-    {
-      return true;
-    }
-    else
-    {
-      return (currentConfig.getValue().size() > 1);
-    }
+    return false;
   }
 
 
@@ -202,8 +188,7 @@ public class LastChangeNumberVirtualAttributeProvider
                       UserDefinedVirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // The new configuration should always be acceptable.
-    return true;
+    return false;
   }
 
 
@@ -214,10 +199,7 @@ public class LastChangeNumberVirtualAttributeProvider
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {
-    // Just accept the new configuration as-is.
-    currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult(ResultCode.OTHER, false);
   }
 }
 

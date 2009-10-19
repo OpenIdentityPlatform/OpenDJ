@@ -65,9 +65,6 @@ public class FirstChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  // The current configuration for this virtual attribute provider.
-  private UserDefinedVirtualAttributeCfg currentConfig;
-
   /**
    * Creates a new instance of this member virtual attribute provider.
    */
@@ -89,8 +86,7 @@ public class FirstChangeNumberVirtualAttributeProvider
                             UserDefinedVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
-    this.currentConfig = configuration;
-    configuration.addUserDefinedChangeListener(this);
+    // No initialization required
   }
 
 
@@ -101,7 +97,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   @Override()
   public void finalizeVirtualAttributeProvider()
   {
-    currentConfig.removeUserDefinedChangeListener(this);
+    //
   }
 
 
@@ -112,14 +108,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   @Override()
   public boolean isMultiValued()
   {
-    if (currentConfig == null)
-    {
-      return true;
-    }
-    else
-    {
-      return (currentConfig.getValue().size() > 1);
-    }
+    return false;
   }
 
 
@@ -200,8 +189,7 @@ public class FirstChangeNumberVirtualAttributeProvider
                       UserDefinedVirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // The new configuration should always be acceptable.
-    return true;
+    return false;
   }
 
 
@@ -212,10 +200,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {
-    // Just accept the new configuration as-is.
-    currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult(ResultCode.OTHER, false);
   }
 }
 
