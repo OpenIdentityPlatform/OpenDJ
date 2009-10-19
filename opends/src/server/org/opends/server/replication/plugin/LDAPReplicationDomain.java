@@ -4533,8 +4533,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         AttributeType atype = DirectoryServer.getAttributeType(name);
         List<Attribute> attrs = entry.getAttribute(atype);
-        for (Attribute a : attrs)
-          newattrs.add(a);
+        if (attrs != null)
+          for (Attribute a : attrs)
+            newattrs.add(a);
       }
       ((DeleteMsg)msg).setEclIncludes(newattrs);
 

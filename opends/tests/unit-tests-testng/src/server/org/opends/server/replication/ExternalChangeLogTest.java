@@ -37,6 +37,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -230,7 +231,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Write additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
 
-    // ECLIncludeAttributes();replicationServer.clearDb();
+    ECLIncludeAttributes();replicationServer.clearDb();
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
@@ -260,7 +261,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();replicationServer.clearDb();
 
     // Test with a mix of domains, a mix of DSes
-    //ECLTwoDomains();
+    ECLTwoDomains();
     // changelogDb required NOT empty for the next test
 
     // Test ECL after changelog triming
@@ -1340,10 +1341,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // test success
       waitOpResult(searchOp, ResultCode.SUCCESS);
       // test 4 entries returned
-      String cookie1 = "o=test:"+cn1.toString()+";o=test2:;";
-      String cookie2 = "o=test:"+cn2.toString()+";o=test2:;";
-      String cookie3 = "o=test:"+cn3.toString()+";o=test2:;";
-      String cookie4 = "o=test:"+cn4.toString()+";o=test2:;";
+      String cookie1 = "o=test:"+cn1.toString()+";";
+      String cookie2 = "o=test:"+cn2.toString()+";";
+      String cookie3 = "o=test:"+cn3.toString()+";";
+      String cookie4 = "o=test:"+cn4.toString()+";";
 
       assertEquals(searchOp.getSearchEntries().size(), 4);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -2017,7 +2018,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s2 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       org.opends.server.tools.LDAPReader r2 = new org.opends.server.tools.LDAPReader(s2);
       LDAPWriter w2 = new LDAPWriter(s2);
-      s2.setSoTimeout(15000);
+      s2.setSoTimeout(30000);
       bindAsManager(w2, r2);
 
       // Connects and bind
@@ -2483,6 +2484,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static void removeTestBackend2(Backend backend)
   {
     MemoryBackend memoryBackend = (MemoryBackend)backend;
+    memoryBackend.clearMemoryBackend();
     memoryBackend.finalizeBackend();
     DirectoryServer.deregisterBackend(memoryBackend);
   }
@@ -2757,7 +2759,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","delete");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+0));
             checkValue(resultEntry,"targetuniqueid","11111111-11121113-11141111-11111115");
@@ -2775,7 +2777,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","add");
-            checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+1));
           } else if (i==3)
@@ -2790,7 +2792,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modify");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+2));
           } else if (i==4)
@@ -2802,7 +2804,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modrdn");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"newrdn","uid="+tn+"new4");
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
@@ -2849,7 +2851,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","delete");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+0));
             checkValue(resultEntry,"targetuniqueid","11111111-11121113-11141111-11111115");
@@ -2867,7 +2869,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","add");
-            checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+1));
           } else if (i==3)
@@ -2882,7 +2884,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modify");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn3.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+2));
           } else if (i==4)
@@ -2894,7 +2896,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modrdn");
-            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";o=test2:;");
+            checkValue(resultEntry,"changelogcookie","o=test:"+cn4.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"newrdn","uid="+tn+"new4");
             checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
@@ -2967,7 +2969,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           checkValue(resultEntry,"replicationcsn",gblCN.toString());
           checkValue(resultEntry,"replicaidentifier","1201");
           checkValue(resultEntry,"changetype","add");
-          checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";o=test2:;");
+          checkValue(resultEntry,"changelogcookie","o=test:"+gblCN.toString()+";");
           checkValue(resultEntry,"targetentryuuid",user1entryUUID);
           checkValue(resultEntry,"changenumber","6");
         }
@@ -3603,6 +3605,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.SUCCESS);
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
 
+      sleep(2000);
 
       assertTrue(entries != null);
       String s = tn + " entries returned= ";

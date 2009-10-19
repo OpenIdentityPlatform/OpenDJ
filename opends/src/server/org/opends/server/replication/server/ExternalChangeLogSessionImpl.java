@@ -92,6 +92,7 @@ public class ExternalChangeLogSessionImpl
    */
   public void close()
   {
-    handler.getDomain().stopServer(handler);
+    if (handler.getDomain() != null)
+      handler.getDomain().stopServer(handler);
   }
 }
