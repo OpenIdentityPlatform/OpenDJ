@@ -1846,7 +1846,8 @@ implements BackendPopulatedListener
                 (DefaultMutableTreeNode)controller.getTreeModel().getRoot();
 
               nEntries += getChildren(root);
-              lNumberOfEntries.setText("Number of entries: "+nEntries);
+              lNumberOfEntries.setText(INFO_CTRL_BROWSER_NUMBER_OF_ENTRIES.get(
+                  nEntries).toString());
             }
           });
         }
