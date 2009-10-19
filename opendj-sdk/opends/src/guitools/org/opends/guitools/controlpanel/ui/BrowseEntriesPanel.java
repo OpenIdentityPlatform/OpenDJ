@@ -532,7 +532,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       }
       catch (Throwable t)
       {
-        if (!(t instanceof InterruptedNamingException))
+        if (!isInterruptedException(t))
         {
           EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
           entryPane.entryReadError(ev);
@@ -1476,5 +1476,19 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       menu.add(deleteBackendMenuItem);
       return menu;
     }
+  }
+
+  private boolean isInterruptedException(Throwable t)
+  {
+    boolean isInterruptedException = false;
+    isInterruptedException = t instanceof java.io.InterruptedIOException ||
+    t instanceof InterruptedNamingException;
+    while ((t != null) && !isInterruptedException)
+    {
+      t = t.getCause();
+      isInterruptedException = t instanceof java.io.InterruptedIOException ||
+      t instanceof InterruptedNamingException;
+    }
+    return isInterruptedException;
   }
 }
