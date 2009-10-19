@@ -500,14 +500,14 @@ class NodeRefresher extends AbstractNodeTask {
         }
         throwAbandonIfNeeded(null);
       }
-      catch(InterruptedNamingException x) {
+      catch (InterruptedNamingException x) {
         throwAbandonIfNeeded(x);
       }
-      catch(NamingException x) {
+      catch (NamingException x) {
         lastException = x;
         lastExceptionArg = referral[i];
       }
-      catch(DirectoryException de) {
+      catch (DirectoryException de) {
         lastException = de;
         lastExceptionArg = referral[i];
       }
