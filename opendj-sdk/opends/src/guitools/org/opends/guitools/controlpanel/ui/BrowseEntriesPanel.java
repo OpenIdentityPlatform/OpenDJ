@@ -113,6 +113,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   private JMenuItem popupNewOrganizationMenuItem;
   private JMenuItem popupNewDomainMenuItem;
   private JMenuItem popupResetUserPasswordMenuItem;
+  private JMenuItem popupDuplicateEntryMenuItem;
 
   private LDAPEntryPanel entryPane;
 
@@ -142,6 +143,9 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private GenericDialog newEntryFromLDIFDlg;
   private NewEntryFromLDIFPanel newEntryFromLDIFPanel;
+
+  private GenericDialog duplicateEntryDlg;
+  private DuplicateEntryPanel duplicateEntryPanel;
 
   private boolean ignoreTreeSelectionEvents = false;
 
@@ -297,9 +301,13 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         popupDeleteMenuItem.setEnabled(enableDelete);
         menuBar.deleteMenuItem.setEnabled(enableDelete);
 
-        boolean enableCopyDN = (paths != null) && (paths.length > 0);
+        boolean enableCopyDN = path != null;
         popupCopyDNMenuItem.setEnabled(enableCopyDN);
         menuBar.copyDNMenuItem.setEnabled(enableCopyDN);
+
+        boolean enableDuplicateEntry = enableCopyDN;
+        popupDuplicateEntryMenuItem.setEnabled(enableDuplicateEntry);
+        menuBar.duplicateEntryMenuItem.setEnabled(enableDuplicateEntry);
 
         boolean enableAddToGroup = enableCopyDN;
         popupAddToGroupMenuItem.setEnabled(enableAddToGroup);
@@ -696,6 +704,22 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     popup.add(popupAddToGroupMenuItem);
     popupAddToGroupMenuItem.setEnabled(false);
 
+    popup.add(new JSeparator());
+
+    popupDuplicateEntryMenuItem = Utilities.createMenuItem(
+        INFO_CTRL_PANEL_DUPLICATE_ENTRY_MENU.get());
+    popupDuplicateEntryMenuItem.addActionListener(new ActionListener()
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public void actionPerformed(ActionEvent ev)
+      {
+        duplicateEntry();
+      }
+    });
+    popup.add(popupDuplicateEntryMenuItem);
+
     popupCopyDNMenuItem = Utilities.createMenuItem(
         INFO_CTRL_PANEL_COPY_DN_MENU.get());
     popupCopyDNMenuItem.addActionListener(new ActionListener()
@@ -708,9 +732,9 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         copyDN();
       }
     });
-    popup.add(new JSeparator());
     popup.add(popupCopyDNMenuItem);
     popupCopyDNMenuItem.setEnabled(false);
+
     popup.add(new JSeparator());
 
     popupDeleteMenuItem = Utilities.createMenuItem(
@@ -912,6 +936,32 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     newEntryFromLDIFDlg.setVisible(true);
   }
 
+  private void duplicateEntry()
+  {
+    duplicateEntryDlg = null;
+    if (duplicateEntryDlg == null)
+    {
+      if (duplicateEntryPanel == null)
+      {
+        duplicateEntryPanel = new DuplicateEntryPanel();
+        duplicateEntryPanel.setInfo(getInfo());
+      }
+      duplicateEntryDlg = new GenericDialog(Utilities.getFrame(this),
+          duplicateEntryPanel);
+      Utilities.centerGoldenMean(duplicateEntryDlg,
+          Utilities.getParentDialog(this));
+    }
+    TreePath[] paths = treePane.getTree().getSelectionPaths();
+    BasicNode node = null;
+    if ((paths != null) && (paths.length == 1))
+    {
+      TreePath path = paths[0];
+      node = (BasicNode)path.getLastPathComponent();
+    }
+    duplicateEntryPanel.setEntryToDuplicate(node, controller);
+    duplicateEntryDlg.setVisible(true);
+  }
+
   private void deleteClicked()
   {
     ArrayList<Message> errors = new ArrayList<Message>();
@@ -1043,6 +1093,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     JMenuItem newOrganizationMenuItem;
     JMenuItem newDomainMenuItem;
     JMenuItem newEntryFromLDIFMenuItem;
+    JMenuItem duplicateEntryMenuItem;
 
     /**
      * Constructor.
@@ -1350,6 +1401,22 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       menu.add(addToGroupMenuItem);
 
       menu.add(new JSeparator());
+
+      duplicateEntryMenuItem = Utilities.createMenuItem(
+          INFO_CTRL_PANEL_DUPLICATE_ENTRY_MENU.get());
+      duplicateEntryMenuItem.addActionListener(new ActionListener()
+      {
+        /**
+         * {@inheritDoc}
+         */
+        public void actionPerformed(ActionEvent ev)
+        {
+          duplicateEntry();
+        }
+      });
+      duplicateEntryMenuItem.setEnabled(false);
+      menu.add(duplicateEntryMenuItem);
+
       copyDNMenuItem = Utilities.createMenuItem(
           INFO_CTRL_PANEL_COPY_DN_MENU.get());
       copyDNMenuItem.addActionListener(new ActionListener()
