@@ -136,7 +136,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       byte[] test = {1, 2, 3 ,4, 0, 1, 2, 3, 4, 5};
       domain1.publish(test);
 
-      UpdateMsg rcvdMsg = rcvQueue2.poll(1, TimeUnit.SECONDS);
+      UpdateMsg rcvdMsg = rcvQueue2.poll(20, TimeUnit.SECONDS);
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
 
