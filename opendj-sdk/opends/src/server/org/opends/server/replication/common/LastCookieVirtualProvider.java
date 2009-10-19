@@ -62,10 +62,6 @@ public class LastCookieVirtualProvider
    extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
    implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  // The current configuration for this virtual attribute provider.
-  private UserDefinedVirtualAttributeCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this member virtual attribute provider.
@@ -88,8 +84,7 @@ public class LastCookieVirtualProvider
                             UserDefinedVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
   {
-    this.currentConfig = configuration;
-    configuration.addUserDefinedChangeListener(this);
+    // No initialization required
   }
 
 
@@ -100,10 +95,21 @@ public class LastCookieVirtualProvider
   @Override()
   public void finalizeVirtualAttributeProvider()
   {
-    currentConfig.removeUserDefinedChangeListener(this);
+    //
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule)
+  {
+    // Indicates whether this virtual attribute provider will generate
+    // at least one value for the provided entry.
+    // True is the DN is the one of the root DSE : "".
+    return entry.getDN().toNormalizedString().equalsIgnoreCase("");
 
+  }
 
   /**
    * {@inheritDoc}
@@ -111,14 +117,7 @@ public class LastCookieVirtualProvider
   @Override()
   public boolean isMultiValued()
   {
-    if (currentConfig == null)
-    {
-      return true;
-    }
-    else
-    {
-      return (currentConfig.getValue().size() > 1);
-    }
+    return false;
   }
 
 
@@ -194,8 +193,7 @@ public class LastCookieVirtualProvider
                       UserDefinedVirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // The new configuration should always be acceptable.
-    return true;
+    return false;
   }
 
 
@@ -206,9 +204,6 @@ public class LastCookieVirtualProvider
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {
-    // Just accept the new configuration as-is.
-    currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult(ResultCode.OTHER, false);
   }
 }

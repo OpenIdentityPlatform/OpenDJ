@@ -57,22 +57,23 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ExternalChangeLogSession;
-import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
@@ -81,6 +82,7 @@ import org.opends.server.replication.protocol.ServerStartECLMsg;
 import org.opends.server.replication.protocol.ServerStartMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.StartMsg;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -91,6 +93,8 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
@@ -648,7 +652,53 @@ public class ReplicationServer
     NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
     internalNetworkGroup.registerWorkflow(externalChangeLogWorkflow);
 
-}
+    enableECLVirtualAttr("lastexternalchangelogcookie",
+        new LastCookieVirtualProvider());
+    enableECLVirtualAttr("firstchangenumber",
+        new FirstChangeNumberVirtualAttributeProvider());
+    enableECLVirtualAttr("lastchangenumber",
+        new LastChangeNumberVirtualAttributeProvider());
+
+  }
+
+  private void enableECLVirtualAttr(String attrName,
+      VirtualAttributeProvider<UserDefinedVirtualAttributeCfg> provider)
+  {
+    Set<DN> baseDNs = new HashSet<DN>(0);
+    Set<DN> groupDNs = new HashSet<DN>(0);
+    Set<SearchFilter> filters = new HashSet<SearchFilter>(0);
+    VirtualAttributeCfgDefn.ConflictBehavior conflictBehavior =
+      ConflictBehavior.VIRTUAL_OVERRIDES_REAL;
+
+    try
+    {
+
+      // To avoid the configuration in cn=config just
+      // create a rule and register it into the DirectoryServer
+      provider.initializeVirtualAttributeProvider(null);
+
+      AttributeType attributeType = DirectoryServer.getAttributeType(
+          attrName, false);
+
+      SearchFilter filter =
+        SearchFilter.createFilterFromString("objectclass=*");
+      filters.add(filter);
+
+      baseDNs.add(DN.decode(""));
+      VirtualAttributeRule rule =
+        new VirtualAttributeRule(attributeType, provider,
+            baseDNs, groupDNs, filters, conflictBehavior);
+
+      DirectoryServer.registerVirtualAttribute(rule);
+
+    }
+    catch (Exception e)
+    {
+      Message message =
+        NOTE_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
+      logError(message);
+    }
+  }
 
   private void shutdownECL()
   {
@@ -1846,4 +1896,5 @@ public class ReplicationServer
   {
     return weight;
   }
+
 }
