@@ -110,7 +110,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static final DebugTracer TRACER = getTracer();
 
   // Number of seconds before generating an error if some conditions not met
-  private static final int TIMEOUT = 10;
+  private static final int TIMEOUT = 10000;
 
   // Uuid of the manipulated entry
   private static final String ENTRY_UUID =
