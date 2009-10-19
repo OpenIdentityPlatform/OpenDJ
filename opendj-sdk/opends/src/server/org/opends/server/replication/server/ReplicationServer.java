@@ -652,13 +652,21 @@ public class ReplicationServer
     NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
     internalNetworkGroup.registerWorkflow(externalChangeLogWorkflow);
 
-    enableECLVirtualAttr("lastexternalchangelogcookie",
-        new LastCookieVirtualProvider());
-    enableECLVirtualAttr("firstchangenumber",
-        new FirstChangeNumberVirtualAttributeProvider());
-    enableECLVirtualAttr("lastchangenumber",
-        new LastChangeNumberVirtualAttributeProvider());
-
+    try
+    {
+      enableECLVirtualAttr("lastexternalchangelogcookie",
+          new LastCookieVirtualProvider());
+      enableECLVirtualAttr("firstchangenumber",
+          new FirstChangeNumberVirtualAttributeProvider());
+      enableECLVirtualAttr("lastchangenumber",
+          new LastChangeNumberVirtualAttributeProvider());
+      enableECLVirtualAttr("changelog",
+          new ChangelogBaseDNVirtualAttributeProvider());
+    }
+    catch (Exception e)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
   }
 
   private void enableECLVirtualAttr(String attrName,
@@ -1312,7 +1320,7 @@ public class ReplicationServer
     {
       try
       {
-        draftCNDbHandler.clear();
+        try { draftCNDbHandler.clear(); } catch(Exception e){}
         draftCNDbHandler.shutdown();
         lastGeneratedDraftCN = 0;
         draftCNDbHandler = null;
