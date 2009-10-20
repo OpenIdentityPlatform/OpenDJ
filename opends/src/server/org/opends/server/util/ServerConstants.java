@@ -2065,7 +2065,7 @@ public final class ServerConstants
    * The OID for the LDAP subentries control used to indicate that matching
    * subentries should be returned.
    */
-  public static final String OID_LDAP_SUBENTRIES = "1.3.6.1.4.1.7628.5.101.1";
+  public static final String OID_LDAP_SUBENTRIES = "1.3.6.1.4.1.4203.1.10.1";
 
 
 

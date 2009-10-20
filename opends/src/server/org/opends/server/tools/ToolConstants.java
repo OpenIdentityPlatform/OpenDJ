@@ -597,6 +597,16 @@ public class ToolConstants
   public static final Character OPTION_SHORT_RECURRING_TASK = null;
 
   /**
+   * Subentries control option long form.
+   */
+  public static final String OPTION_LONG_SUBENTRIES = "subEntries";
+
+  /**
+   * Subentries control option short form.
+   */
+  public static final Character OPTION_SHORT_SUBENTRIES = null;
+
+  /**
    * The value for the long option propertiesFilePAth .
    */
   public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";

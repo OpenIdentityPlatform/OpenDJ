@@ -609,25 +609,34 @@ public class SearchOperationBasis
 
     // Determine whether the provided entry is a subentry and if so whether it
     // should be returned.
-    if ((getScope() != SearchScope.BASE_OBJECT) &&
-        (! isReturnLDAPSubentries()) &&
-        entry.isLDAPSubentry())
+    if (entry.isLDAPSubentry())
     {
-      // Check to see if the filter contains an equality element with the
-      // objectclass attribute type and a value of "ldapSubentry".  If so, then
-      // we'll return it anyway.  Technically, this isn't part of the
-      // specification so we don't need to get carried away with really in-depth
-      // checks.
-      checkFilterForLDAPSubEntry(getFilter(), 0);
-
-      if (! isReturnLDAPSubentries())
+      if ((getScope() != SearchScope.BASE_OBJECT) &&
+              (! isReturnLDAPSubentries()))
       {
-        // We still shouldn't return it even based on the filter.  Just throw it
-        // away without doing anything.
+        // Check to see if the filter contains an equality element with the
+        // objectclass attribute type and a value of "ldapSubentry".  If so,
+        // then we'll return it anyway.  Technically, this isn't part of the
+        // specification so we don't need to get carried away with really in
+        // depth checks. Just do best effort for earlier draft compatibility.
+        checkFilterForLDAPSubEntry(getFilter(), 0);
+
+        if (! isReturnLDAPSubentries())
+        {
+          // We still shouldn't return it even based on the filter.
+          // Just throw it away without doing anything.
+          return true;
+        }
+      }
+    }
+    else
+    {
+      if (isReturnLDAPSubentries())
+      {
+        // Subentries are visible and normal entries are not.
         return true;
       }
     }
-
 
     // Determine whether to include the account usable control.  If so, then
     // create it now.
