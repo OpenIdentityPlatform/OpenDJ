@@ -35,6 +35,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.controls.SubentriesControl;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -411,7 +412,9 @@ searchProcessing:
         }
         else if (oid.equals(OID_LDAP_SUBENTRIES))
         {
-          setReturnLDAPSubentries(true);
+          SubentriesControl subentriesControl =
+                  getRequestControl(SubentriesControl.DECODER);
+          setReturnLDAPSubentries(subentriesControl.getVisibility());
         }
         else if (oid.equals(OID_MATCHED_VALUES))
         {

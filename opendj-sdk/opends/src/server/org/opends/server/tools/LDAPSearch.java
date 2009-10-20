@@ -712,6 +712,7 @@ public class LDAPSearch
     StringArgument    effectiveRightsAttrs     = null;
     StringArgument    propertiesFileArgument   = null;
     BooleanArgument   noPropertiesFileArgument = null;
+    BooleanArgument   subEntriesArgument       = null;
 
 
     // Create the command-line argument parser for use with this program.
@@ -983,6 +984,12 @@ public class LDAPSearch
                     null, null, INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
+
+      subEntriesArgument = new BooleanArgument("subEntries",
+              OPTION_SHORT_SUBENTRIES, OPTION_LONG_SUBENTRIES,
+              INFO_DESCRIPTION_SUBENTRIES.get());
+      useSSL.setPropertyName(OPTION_LONG_SUBENTRIES);
+      argParser.addArgument(subEntriesArgument);
 
       effectiveRightsUser =
               new StringArgument("effectiveRightsUser",
@@ -1597,6 +1604,13 @@ public class LDAPSearch
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return CLIENT_SIDE_PARAM_ERROR;
       }
+    }
+
+    if (subEntriesArgument.isPresent())
+    {
+      Control subentriesControl =
+          new SubentriesControl(true, true);
+      searchOptions.getControls().add(subentriesControl);
     }
 
     // Set the connection options.

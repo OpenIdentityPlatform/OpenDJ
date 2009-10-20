@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -94,10 +94,6 @@ public class LDAPToolUtils
     else if (lowerOID.equals("noop") || lowerOID.equals("no-op"))
     {
       controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
-    }
-    else if (lowerOID.equals("subentries"))
-    {
-      controlOID = OID_LDAP_SUBENTRIES;
     }
     else if (lowerOID.equals("managedsait"))
     {

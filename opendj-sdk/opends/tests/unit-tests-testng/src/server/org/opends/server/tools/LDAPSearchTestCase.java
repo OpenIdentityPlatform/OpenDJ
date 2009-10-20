@@ -1654,11 +1654,11 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "--countEntries",
       "--noPropertiesFile",
-      "-J", OID_LDAP_SUBENTRIES + ":true",
+      "--subEntries",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 2);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 1);
 
     args = new String[]
     {
@@ -1666,15 +1666,14 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-b", "o=test",
-      "-s", "sub",
+      "-b", "cn=test,o=test",
+      "-s", "base",
       "--countEntries",
       "--noPropertiesFile",
-      "-J", "subentries:true",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 2);
+    assertEquals(LDAPSearch.mainSearch(args, false, true, null, System.err), 1);
   }
 
 
