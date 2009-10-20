@@ -125,10 +125,20 @@ public class MainMenuBar extends GenericMenuBar
     JMenu menu = Utilities.createMenu(INFO_CTRL_PANEL_FILE_MENU.get(),
         INFO_CTRL_PANEL_FILE_MENU_DESCRIPTION.get());
     menu.setMnemonic(KeyEvent.VK_F);
+    JMenuItem menuItem = Utilities.createMenuItem(
+        INFO_CTRL_PANEL_CONNECT_TO_SERVER_MENU.get());
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        connectToServerClicked();
+      }
+    });
+    menu.add(menuItem);
+
     if (!Utilities.isMacOS())
     {
-      JMenuItem menuItem =
-        Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
+      menuItem = Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
       menuItem.addActionListener(new ActionListener()
       {
         /**
@@ -141,16 +151,6 @@ public class MainMenuBar extends GenericMenuBar
       });
       menu.add(menuItem);
     }
-    JMenuItem menuItem = Utilities.createMenuItem(
-        INFO_CTRL_PANEL_CONNECT_TO_SERVER_MENU.get());
-    menuItem.addActionListener(new ActionListener()
-    {
-      public void actionPerformed(ActionEvent ev)
-      {
-        connectToServerClicked();
-      }
-    });
-    menu.add(menuItem);
     return menu;
   }
 
