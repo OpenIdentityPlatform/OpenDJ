@@ -610,13 +610,13 @@ public class LDAPConnectionPool {
    * Returns a collection of AuthRecord.
    * @return a collection of AuthRecord.
    */
-  Collection getRegisteredAuthentication() {
+  Collection<?> getRegisteredAuthentication() {
     return authTable.values();
   }
 }
 
 /**
- * A struct representing authentication data.
+ * A structure representing authentication data.
  */
 class AuthRecord {
   LDAPURL ldapUrl;
@@ -625,7 +625,7 @@ class AuthRecord {
 }
 
 /**
- * A struct representing an active connection.
+ * A structure representing an active connection.
  */
 class ConnectionRecord {
   InitialLdapContext ctx;
