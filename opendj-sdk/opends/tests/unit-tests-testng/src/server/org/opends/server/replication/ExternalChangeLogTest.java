@@ -212,7 +212,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Launcher.
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void ECLReplicationServerTest()
   {
     // Test all types of ops.  
@@ -234,7 +234,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLIncludeAttributes();replicationServer.clearDb();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest()
   {
     // ***********************************************
