@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -101,7 +101,7 @@ public class ControlPanelLog
 
   static private String getInitialLogRecord() {
     StringBuilder sb = new StringBuilder()
-            .append("Status application launched " +
+            .append("Application launched " +
                     DateFormat.getDateTimeInstance(DateFormat.LONG,
                                                    DateFormat.LONG).
                             format(new Date()));

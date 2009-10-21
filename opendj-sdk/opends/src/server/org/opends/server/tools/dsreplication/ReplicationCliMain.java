@@ -90,11 +90,11 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
+import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
@@ -306,16 +306,14 @@ public class ReplicationCliMain extends ConsoleApplication
       err = new PrintStream(errStream);
     }
 
-    try {
-      QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              ReplicationCliMain.class.getPackage().getName());
-      QuickSetupLog.disableConsoleLogging();
+    try
+    {
+      ControlPanelLog.initLogFileHandler(
+          File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
-
     ReplicationCliMain replicationCli = new ReplicationCliMain(out, err,
         inStream);
     return replicationCli.execute(args, initializeServer);
@@ -444,39 +442,53 @@ public class ReplicationCliMain extends ConsoleApplication
       if (returnValue == SUCCESSFUL_NOP)
       {
         boolean subcommandLaunched = true;
+        String subCommand = null;
         if (argParser.isEnableReplicationSubcommand())
         {
           returnValue = enableReplication();
+          subCommand =
+            ReplicationCliArgumentParser.ENABLE_REPLICATION_SUBCMD_NAME;
         }
         else if (argParser.isDisableReplicationSubcommand())
         {
           returnValue = disableReplication();
+          subCommand =
+            ReplicationCliArgumentParser.DISABLE_REPLICATION_SUBCMD_NAME;
         }
         else if (argParser.isInitializeReplicationSubcommand())
         {
           returnValue = initializeReplication();
+          subCommand =
+            ReplicationCliArgumentParser.INITIALIZE_REPLICATION_SUBCMD_NAME;
         }
         else if (argParser.isInitializeAllReplicationSubcommand())
         {
           returnValue = initializeAllReplication();
+          subCommand =
+            ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME;
         }
         else if (argParser.isPreExternalInitializationSubcommand())
         {
           returnValue = preExternalInitialization();
+          subCommand =
+           ReplicationCliArgumentParser.PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
         }
         else if (argParser.isPostExternalInitializationSubcommand())
         {
           returnValue = postExternalInitialization();
+          subCommand =
+          ReplicationCliArgumentParser.POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
         }
         else if (argParser.isStatusReplicationSubcommand())
         {
           returnValue = statusReplication();
+          subCommand =
+            ReplicationCliArgumentParser.STATUS_REPLICATION_SUBCMD_NAME;
         }
         else
         {
           if (argParser.isInteractive())
           {
-            String subCommand = null;
             switch (promptForSubcommand())
             {
             case ENABLE:
@@ -516,7 +528,7 @@ public class ReplicationCliMain extends ConsoleApplication
               break;
 
             default:
-              // User cancelled
+              // User canceled
               returnValue = USER_CANCELLED;
             }
 
@@ -542,11 +554,13 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
 
+
         // Display the log file only if the operation is successful (when there
         // is a critical error this is already displayed).
-        if (subcommandLaunched && (returnValue == SUCCESSFUL_NOP))
+        if (subcommandLaunched && (returnValue == SUCCESSFUL) &&
+            displayLogFileAtEnd(subCommand))
         {
-          File logFile = QuickSetupLog.getLogFile();
+          File logFile = ControlPanelLog.getLogFile();
           if (logFile != null)
           {
             println();
@@ -556,6 +570,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
+
     return returnValue.getReturnCode();
   }
 
@@ -566,7 +581,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode enableReplication()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     EnableReplicationUserData uData = new EnableReplicationUserData();
     if (argParser.isInteractive())
     {
@@ -604,7 +619,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode disableReplication()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     DisableReplicationUserData uData = new DisableReplicationUserData();
     if (argParser.isInteractive())
     {
@@ -642,7 +657,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode initializeAllReplication()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitializeAllReplicationUserData uData =
       new InitializeAllReplicationUserData();
     if (argParser.isInteractive())
@@ -672,7 +687,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode preExternalInitialization()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     PreExternalInitializationUserData uData =
       new PreExternalInitializationUserData();
     if (argParser.isInteractive())
@@ -702,7 +717,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode postExternalInitialization()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     PostExternalInitializationUserData uData =
       new PostExternalInitializationUserData();
     if (argParser.isInteractive())
@@ -732,7 +747,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode statusReplication()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     StatusReplicationUserData uData = new StatusReplicationUserData();
     if (argParser.isInteractive())
     {
@@ -770,7 +785,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode initializeReplication()
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitializeReplicationUserData uData = new InitializeReplicationUserData();
     if (argParser.isInteractive())
     {
@@ -3049,7 +3064,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ADSContext adsContext = new ADSContext(ctx);
       if (adsContext.hasAdminData())
       {
-        Set administrators = adsContext.readAdministratorRegistry();
+        Set<?> administrators = adsContext.readAdministratorRegistry();
         isAdminDefined = administrators.size() > 0;
       }
     }
@@ -3798,6 +3813,7 @@ public class ReplicationCliMain extends ConsoleApplication
             printProgress(msg);
             printlnProgress();
             initializeSuffix(baseDN, ctxSource, ctxDestination, true);
+            returnValue = SUCCESSFUL;
           }
           catch (ReplicationCliException rce)
           {
@@ -3904,6 +3920,7 @@ public class ReplicationCliMain extends ConsoleApplication
             printProgress(msg);
             println();
             initializeAllSuffix(baseDN, ctx, true);
+            returnValue = SUCCESSFUL;
           }
           catch (ReplicationCliException rce)
           {
@@ -3990,6 +4007,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 t);
           }
         }
+        returnValue = SUCCESSFUL;
         for (String baseDN : baseDNs)
         {
           try
@@ -4106,6 +4124,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 t);
           }
         }
+        returnValue = SUCCESSFUL;
         for (String baseDN : baseDNs)
         {
           try
@@ -7747,8 +7766,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       try
       {
-        NamingEnumeration res = ctx.search(dn, filter, searchControls);
-        SearchResult sr = (SearchResult)res.next();
+        NamingEnumeration<SearchResult> res =
+          ctx.search(dn, filter, searchControls);
+        SearchResult sr = res.next();
         String logMsg = getFirstValue(sr, "ds-task-log-message");
         if (logMsg != null)
         {
@@ -7898,8 +7918,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       try
       {
-        NamingEnumeration res = ctx.search(dn, filter, searchControls);
-        SearchResult sr = (SearchResult)res.next();
+        NamingEnumeration<SearchResult> res =
+          ctx.search(dn, filter, searchControls);
+        SearchResult sr = res.next();
 
         // Get the number of entries that have been handled and
         // a percentage...
@@ -8504,7 +8525,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     MessageBuilder mb = new MessageBuilder();
     mb.append(rce.getMessageObject());
-    File logFile = QuickSetupLog.getLogFile();
+    File logFile = ControlPanelLog.getLogFile();
     if ((logFile != null) &&
         (rce.getErrorCode() != ReplicationCliReturnCode.USER_CANCELLED))
     {
@@ -10487,6 +10508,24 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return isReplicatedInBoth;
+  }
+
+  private boolean displayLogFileAtEnd(String subCommand)
+  {
+    String[] subCommands =
+    {
+      ReplicationCliArgumentParser.ENABLE_REPLICATION_SUBCMD_NAME,
+      ReplicationCliArgumentParser.DISABLE_REPLICATION_SUBCMD_NAME,
+      ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME,
+      ReplicationCliArgumentParser.INITIALIZE_REPLICATION_SUBCMD_NAME};
+    for (String sub : subCommands)
+    {
+      if (sub.equals(subCommand))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
