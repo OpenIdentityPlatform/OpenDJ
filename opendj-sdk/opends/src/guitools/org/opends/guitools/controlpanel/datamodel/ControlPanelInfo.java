@@ -605,70 +605,48 @@ public class ControlPanelInfo
         {
           reader = createNewConfigFromDirContextReader();
           ((ConfigFromDirContext)reader).readConfiguration(ctx);
-          if (reader.getExceptions().size() > 0)
+
+          boolean connectionWorks = checkConnections(ctx, userDataCtx);
+          if (!connectionWorks)
           {
-            // Check the connection
-            boolean connectionWorks = false;
-            int nMaxErrors = 5;
-            for (int i=0; i< nMaxErrors && !connectionWorks; i++)
+            if (isLocal)
             {
-              try
-              {
-                Utilities.pingDirContext(ctx);
-                connectionWorks = true;
-              }
-              catch (NamingException ne)
-              {
-                try
-                {
-                  Thread.sleep(400);
-                }
-                catch (Throwable t)
-                {
-                }
-              }
+              // Try with off-line info
+              reader = createNewConfigFromFileReader();
+              ((ConfigFromFile)reader).readConfiguration();
             }
-            if (!connectionWorks)
+            else
             {
-              if (isLocal)
-              {
-                // Try with offline info
-                reader = createNewConfigFromFileReader();
-                ((ConfigFromFile)reader).readConfiguration();
-              }
-              else
-              {
-                desc.setStatus(
-                    ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
-                reader = null;
-              }
+              desc.setStatus(
+                  ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
+              reader = null;
+            }
+            try
+            {
+              ctx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+            this.ctx = null;
+            if (connectionPool.isConnectionRegistered(userDataCtx))
+            {
               try
               {
-                ctx.close();
+                connectionPool.unregisterConnection(userDataCtx);
               }
               catch (Throwable t)
               {
               }
-              this.ctx = null;
-              if (connectionPool.isConnectionRegistered(userDataCtx))
-              {
-                try
-                {
-                  connectionPool.unregisterConnection(userDataCtx);
-                }
-                catch (Throwable t)
-                {
-                }
-              }
-              try
-              {
-                userDataCtx.close();
-              }
-              catch (Throwable t)
-              {
-              }
-              userDataCtx = null;
             }
+            try
+            {
+              userDataCtx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+            userDataCtx = null;
           }
         }
       }
@@ -1340,5 +1318,36 @@ public class ControlPanelInfo
       isRunningOnServer = true;
     }
     return isRunningOnServer;
+  }
+
+  private boolean checkConnections(InitialLdapContext ctx,
+      InitialLdapContext userCtx)
+  {
+    // Check the connection
+    boolean connectionWorks = false;
+    int nMaxErrors = 5;
+    for (int i=0; i< nMaxErrors && !connectionWorks; i++)
+    {
+      try
+      {
+        Utilities.pingDirContext(ctx);
+        if (userCtx != null)
+        {
+          Utilities.pingDirContext(userCtx);
+        }
+        connectionWorks = true;
+      }
+      catch (NamingException ne)
+      {
+        try
+        {
+          Thread.sleep(400);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+    return connectionWorks;
   }
 }

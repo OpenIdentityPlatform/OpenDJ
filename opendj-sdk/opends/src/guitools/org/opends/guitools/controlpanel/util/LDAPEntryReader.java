@@ -52,6 +52,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   private InitialLdapContext ctx;
   private Set<EntryReadListener> listeners = new HashSet<EntryReadListener>();
   private boolean isOver;
+  private boolean notifyListeners;
 
   /**
    * Constructor of the entry reader.
@@ -62,6 +63,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   {
     this.dn = dn;
     this.ctx = ctx;
+    this.notifyListeners = true;
   }
 
   /**
@@ -102,7 +104,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   public void backgroundTaskCompleted(CustomSearchResult sr,
       Throwable throwable)
   {
-    if (!isInterrupted())
+    if (!isInterrupted() && isNotifyListeners())
     {
       if (throwable == null)
       {
@@ -114,6 +116,28 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
       }
     }
     isOver = true;
+  }
+
+  /**
+   * Returns whether this entry reader will notify the listeners once it is
+   * over.
+   * @return whether this entry reader will notify the listeners once it is
+   * over.
+   */
+  public boolean isNotifyListeners()
+  {
+    return notifyListeners;
+  }
+
+  /**
+   * Sets whether this entry reader will notify the listeners once it is
+   * over.
+   * @param notifyListeners whether this entry reader will notify the listeners
+   * once it is over.
+   */
+  public void setNotifyListeners(boolean notifyListeners)
+  {
+    this.notifyListeners = notifyListeners;
   }
 
   /**
