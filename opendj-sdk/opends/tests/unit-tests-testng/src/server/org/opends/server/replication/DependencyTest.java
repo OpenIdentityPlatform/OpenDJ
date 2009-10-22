@@ -92,7 +92,6 @@ public class DependencyTest extends ReplicationTestCase
     ReplicationServer replServer = null;
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-    SynchronizationProvider replicationPlugin = null;
     int brokerId = 2;
     int serverId = 1;
     int replServerId = 81;
@@ -127,8 +126,6 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = socket.getLocalPort();
       socket.close();
 
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModDelDependencyTestDb",
                                         0, replServerId, 0,
@@ -174,7 +171,7 @@ public class DependencyTest extends ReplicationTestCase
       domainConf.setHeartbeatInterval(100000);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin.completeSynchronizationProvider();
+      domain.start();
 
       // check that last entry in sequence got added.
       Entry lastEntry = getEntry(DN.decode(addDn), 30000, true);
@@ -239,9 +236,6 @@ public class DependencyTest extends ReplicationTestCase
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
-
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
   }
 
@@ -257,7 +251,6 @@ public class DependencyTest extends ReplicationTestCase
     ReplicationServer replServer = null;
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-    SynchronizationProvider replicationPlugin = null;
     int brokerId = 2;
     int serverId = 1;
     int replServerId = 82;
@@ -284,8 +277,6 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = socket.getLocalPort();
       socket.close();
 
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestModdnDelDependencyTestDb",
                                         0, replServerId, 0,
@@ -301,7 +292,7 @@ public class DependencyTest extends ReplicationTestCase
 
       Thread.sleep(2000);
       domain = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin.completeSynchronizationProvider();
+      domain.start();
 
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
@@ -364,9 +355,6 @@ public class DependencyTest extends ReplicationTestCase
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
-
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
 
   }
@@ -415,7 +403,6 @@ public class DependencyTest extends ReplicationTestCase
     ReplicationServer replServer = null;
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-    SynchronizationProvider replicationPlugin = null;
     int brokerId = 2;
     int serverId = 1;
     int replServerId = 83;
@@ -437,8 +424,6 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = socket.getLocalPort();
       socket.close();
 
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", 0,
                                         replServerId,
@@ -491,7 +476,7 @@ public class DependencyTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn, serverId, replServers);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin.completeSynchronizationProvider();
+      domain.start();
 
       // check that all entries have been deleted and added
       // again by checking that they do have the correct entryuuid
@@ -531,9 +516,6 @@ public class DependencyTest extends ReplicationTestCase
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
-
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
   }
 
@@ -548,7 +530,6 @@ public class DependencyTest extends ReplicationTestCase
     ReplicationServer replServer = null;
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-    SynchronizationProvider replicationPlugin = null;
     int brokerId = 2;
     int serverId = 1;
     int replServerId = 84;
@@ -571,8 +552,6 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = socket.getLocalPort();
       socket.close();
 
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", 0,
                                         replServerId,
@@ -617,7 +596,7 @@ public class DependencyTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn, serverId, replServers);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin.completeSynchronizationProvider();
+      domain.start();
 
       // check that all entries have been renamed
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
@@ -646,9 +625,6 @@ public class DependencyTest extends ReplicationTestCase
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
-
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
   }
 

@@ -74,6 +74,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
     LDAPReplicationDomain domain =
       MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
 
     try
     {
