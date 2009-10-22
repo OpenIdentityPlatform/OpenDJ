@@ -1789,18 +1789,18 @@ public class Importer
         long v1 = JebFormat.entryIDFromDatabase(v);
         DNValue.setData(v);
         DN dn = DN.decode(ByteString.wrap(DNKey.getData()));
+        entryID = new EntryID(v1);
         //Bypass the cache for append data, lookup the parent in DN2ID and
         //return.
         if(importConfiguration != null &&
            importConfiguration.appendToExistingData())
         {
-          DN newParentDN = entryContainer.getParentWithinBase(dn);
+         parentDN = entryContainer.getParentWithinBase(dn);
           parentID =
-             entryContainer.getDN2ID().get(null, newParentDN, LockMode.DEFAULT);
+             entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
         }
         else
         {
-          entryID = new EntryID(v1);
           if(parentIDMap.isEmpty())
           {
             parentIDMap.put(dn, entryID);
