@@ -1812,24 +1812,37 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     for (DataServerHandler handler : directoryServers.values())
     {
-      if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
-      {
-        if ((notThisOne == null) || // All DSs requested
+      if ((notThisOne == null) || // All DSs requested
           ((notThisOne != null) && (handler != notThisOne)))
         // All except passed one
+      {
+        for (int i=1; i<2; i++)
         {
-          TopologyMsg topoMsg = createTopologyMsgForDS(handler.getServerId());
-          try
+          if (handler.shuttingDown()==false)
           {
-            handler.sendTopoInfo(topoMsg);
-          } catch (IOException e)
-          {
-            Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
-            baseDn.toString(),
-            "directory", Integer.toString(handler.getServerId()),
-            e.getMessage());
-            logError(message);
+            if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
+            {
+              TopologyMsg topoMsg=createTopologyMsgForDS(handler.getServerId());
+              try
+              {
+                handler.sendTopoInfo(topoMsg);
+                break;
+              }
+              catch (IOException e)
+              {
+                if (i==2)
+                {
+                  Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+                      baseDn.toString(),
+                      "directory",
+                      Integer.toString(handler.getServerId()),
+                      e.getMessage());
+                  logError(message);
+                }
+              }
+            }
           }
+          try { Thread.sleep(100); } catch(Exception e) {}
         }
       }
     }
@@ -1844,19 +1857,32 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     TopologyMsg topoMsg = createTopologyMsgForRS();
     for (ReplicationServerHandler handler : replicationServers.values())
     {
-      if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
+      for (int i=1; i<2; i++)
       {
-        try
+        if (handler.shuttingDown()==false)
         {
-          handler.sendTopoInfo(topoMsg);
-        } catch (IOException e)
-        {
-          Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
-            baseDn.toString(),
-            "replication", Integer.toString(handler.getServerId()),
-            e.getMessage());
-          logError(message);
+          if (handler.getStatus() != ServerStatus.NOT_CONNECTED_STATUS)
+          {
+            try
+            {
+              handler.sendTopoInfo(topoMsg);
+              break;
+            }
+            catch (IOException e)
+            {
+              if (i==2)
+              {
+                Message message = ERR_EXCEPTION_SENDING_TOPO_INFO.get(
+                    baseDn.toString(),
+                    "replication",
+                    Integer.toString(handler.getServerId()),
+                    e.getMessage());
+                logError(message);
+              }
+            }
+          }
         }
+        try { Thread.sleep(100); } catch(Exception e) {}
       }
     }
   }
