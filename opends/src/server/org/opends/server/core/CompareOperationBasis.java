@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -185,6 +185,22 @@ public class CompareOperationBasis
    */
   public final DN getEntryDN()
   {
+    if (entryDN == null) {
+      try
+      {
+        entryDN = DN.decode(rawEntryDN);
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        setResultCode(de.getResultCode());
+        appendErrorMessage(de.getMessageObject());
+      }
+    }
     return entryDN;
   }
 
