@@ -342,6 +342,15 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
+   * Returns the shutdown flag.
+   * @return The shutdown flag value.
+   */
+  public boolean shuttingDown()
+  {
+    return shuttingDown.get();
+  }
+
+  /**
    * Finalize the initialization, create reader, writer, heartbeat system
    * and monitoring system.
    * @throws DirectoryException When an exception is raised.
