@@ -212,7 +212,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Launcher.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
     // Test all types of ops.  
@@ -234,7 +234,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLIncludeAttributes();replicationServer.clearDb();
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest()
   {
     // ***********************************************
@@ -340,10 +340,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test simultaneous persistent searches in draft compat mode.
     ECLSimultaneousPsearches();replicationServer.clearDb();
 
-    // ***********************************************
-    // Entry attributes
-    // ***********************************************
-    ECLIncludeAttributes();replicationServer.clearDb();
   }
 
   //=======================================================
@@ -1071,6 +1067,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       s1test2.stop();
       s2test.stop();
       s2test2.stop();
+      sleep(500);
 
       // removeTestBackend2(backend2);
     }
@@ -2658,7 +2655,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          5000, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -3330,10 +3327,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
       sleep(500);
+      server01.stop();
 
       ECLCompatTestLimits(expectedFirst, expectedLast+1);
 
-      server01.stop();
     }
     catch(Exception e)
     {
@@ -3445,13 +3442,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
     Backend backend2 = null;
     Backend backend3 = null;
-    ReplicationBroker server01 = null;
     DeleteOperationBasis delOp =null;
     LDAPReplicationDomain domain2 = null;
     LDAPReplicationDomain domain3 = null;
     LDAPReplicationDomain domain21 = null;
-    SynchronizationProvider replicationPlugin2 = null;
-    SynchronizationProvider replicationPlugin3 = null;
     DN baseDn2 = null;
     DN baseDn3 = null;
     try
@@ -3470,8 +3464,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("sn");
       domainConf.setEclIncludes(includeAttributes);
       domain2 = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin2 = new MultimasterReplication();
-      replicationPlugin2.completeSynchronizationProvider();
 
       backend3 = initializeTestBackend(false,
           TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
@@ -3482,8 +3474,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("objectclass");
       domainConf.setEclIncludes(includeAttributes);
       domain3 = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin3 = new MultimasterReplication();
-      replicationPlugin3.completeSynchronizationProvider();
 
       domainConf =
         new DomainFakeCfg(baseDn2, 1704, replServers);
@@ -3491,13 +3481,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("cn");
       domainConf.setEclIncludes(includeAttributes);
       domain21 = MultimasterReplication.createNewDomain(domainConf);
-
-      Set<String> attrList = new HashSet<String>();
-      attrList.add(new String("cn"));
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), 1206,
-          100, replicationServerPort,
-          1000, true, -1 , domain21);
 
       sleep(1000);
 
@@ -3646,8 +3629,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       try
       {
-        server01.stop();
-        //
         delOp = new DeleteOperationBasis(connection,
             InternalClientConnection.nextOperationID(),
             InternalClientConnection.nextMessageID(), null,
@@ -3670,14 +3651,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         // Cleaning
         if (domain2 != null)
           MultimasterReplication.deleteDomain(baseDn2);
-        if (replicationPlugin2 != null)
-          DirectoryServer.deregisterSynchronizationProvider(replicationPlugin2);
         removeTestBackend2(backend2);
 
         if (domain3 != null)
           MultimasterReplication.deleteDomain(baseDn3);
-        if (replicationPlugin3 != null)
-          DirectoryServer.deregisterSynchronizationProvider(replicationPlugin3);
         removeTestBackend2(backend3);    
       }
       catch(Exception e) {}
