@@ -123,7 +123,6 @@ public class PersistentServerStateTest extends ReplicationTestCase
   public void translateRuvEntryTest()
          throws Exception
   {
-    SynchronizationProvider replicationPlugin = null;
     LDAPReplicationDomain replDomain = null;
 
     try
@@ -154,12 +153,10 @@ public class PersistentServerStateTest extends ReplicationTestCase
 
       assertTrue(addOp.getResultCode() == ResultCode.SUCCESS);
 
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
       DomainFakeCfg domainConf =
         new DomainFakeCfg("o=test", 1, "localhost:3389");
       replDomain = MultimasterReplication.createNewDomain(domainConf);
-      replicationPlugin.completeSynchronizationProvider();
+      replDomain.start();
 
       // Then check serverSate and GenId
       assertTrue(replDomain.getGenerationID() == 1225361491);
@@ -175,9 +172,6 @@ public class PersistentServerStateTest extends ReplicationTestCase
     {
       if (replDomain != null)
         MultimasterReplication.deleteDomain(DN.decode("o=test"));
-
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
     }
   }
 }

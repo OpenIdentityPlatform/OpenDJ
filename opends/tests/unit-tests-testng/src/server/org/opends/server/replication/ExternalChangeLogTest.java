@@ -639,8 +639,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
       LDAPReplicationDomain domain2 = MultimasterReplication.createNewDomain(domainConf);
-      SynchronizationProvider replicationPlugin = new MultimasterReplication();
-      replicationPlugin.completeSynchronizationProvider();
+      domain2.start();
       sleep(1000);
       Entry e = createEntry(baseDn2);
       addEntry(e);
@@ -741,8 +740,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Cleaning
       if (domain2 != null)
         MultimasterReplication.deleteDomain(baseDn2);
-      if (replicationPlugin != null)
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
       removeTestBackend2(backend2);
 
       server01.stop();
@@ -3464,6 +3461,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("sn");
       domainConf.setEclIncludes(includeAttributes);
       domain2 = MultimasterReplication.createNewDomain(domainConf);
+      domain2.start();
 
       backend3 = initializeTestBackend(false,
           TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
@@ -3474,6 +3472,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("objectclass");
       domainConf.setEclIncludes(includeAttributes);
       domain3 = MultimasterReplication.createNewDomain(domainConf);
+      domain3.start();
 
       domainConf =
         new DomainFakeCfg(baseDn2, 1704, replServers);
@@ -3481,6 +3480,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       includeAttributes.add("cn");
       domainConf.setEclIncludes(includeAttributes);
       domain21 = MultimasterReplication.createNewDomain(domainConf);
+      domain21.start();
 
       sleep(1000);
 
@@ -3649,6 +3649,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         waitOpResult(delOp, ResultCode.SUCCESS);
 
         // Cleaning
+        if (domain21 != null)
+          domain21.shutdown();
+
         if (domain2 != null)
           MultimasterReplication.deleteDomain(baseDn2);
         removeTestBackend2(backend2);
@@ -3656,6 +3659,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         if (domain3 != null)
           MultimasterReplication.deleteDomain(baseDn3);
         removeTestBackend2(backend3);    
+
       }
       catch(Exception e) {}
     }

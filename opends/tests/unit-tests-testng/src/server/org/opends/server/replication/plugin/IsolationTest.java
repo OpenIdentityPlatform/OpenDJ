@@ -62,15 +62,12 @@ public class IsolationTest extends ReplicationTestCase
   {
     LDAPReplicationDomain domain = null;
     DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-    SynchronizationProvider replicationPlugin = null;
     int serverId = 1;
 
     try
     {
       // configure and start replication of TEST_ROOT_DN_STRING on the server
       // using a replication server that is not started
-      replicationPlugin = new MultimasterReplication();
-      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
 
       // find  a free port for the replicationServer
       ServerSocket socket = TestCaseUtils.bindFreePort();
@@ -82,6 +79,7 @@ public class IsolationTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn, serverId, replServers);
       domainConf.setHeartbeatInterval(100000);
       domain = MultimasterReplication.createNewDomain(domainConf);
+      domain.start();
 
       // check that the updates fail with the unwilling to perform error.
       InternalClientConnection conn =
@@ -108,12 +106,6 @@ public class IsolationTest extends ReplicationTestCase
     {
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
-
-      if (replicationPlugin != null)
-      {
-        replicationPlugin.finalizeSynchronizationProvider();
-        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
-      }
     }
   }
 }
