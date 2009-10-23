@@ -1939,7 +1939,7 @@ public class ADSContext
    * Returns the parent entry of the server entries.
    * @return the parent entry of the server entries.
    */
-  private static String getServerContainerDN()
+  public static String getServerContainerDN()
   {
     return "cn=Servers," + getAdministrationSuffixDN();
   }
@@ -1957,7 +1957,7 @@ public class ADSContext
    * Returns the parent entry of the server group entries.
    * @return the parent entry of the server group entries.
    */
-  private static String getServerGroupContainerDN()
+  public static String getServerGroupContainerDN()
   {
     return "cn=Server Groups," + getAdministrationSuffixDN();
   }
