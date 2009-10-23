@@ -29,6 +29,8 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
 
+import java.io.File;
+
 import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -79,6 +81,7 @@ public class StopServerTask extends StartStopTask
     super.runTask();
     if (state == State.FINISHED_SUCCESSFULLY)
     {
+      // Verify that the server is actually stopped
       SwingUtilities.invokeLater(new Runnable()
       {
         public void run()
@@ -97,5 +100,57 @@ public class StopServerTask extends StartStopTask
   protected String getCommandLinePath()
   {
     return getCommandLinePath("stop-ds");
+  }
+
+  /**
+   * Method called just after calling the command-line.  To be overwritten
+   * by the inheriting classes.
+   */
+  protected void postCommandLine()
+  {
+    if (returnCode != 0)
+    {
+      state = State.FINISHED_WITH_ERROR;
+    }
+    else
+    {
+      File f = new File(getInfo().getServerDescriptor().getInstancePath());
+      // Check that the server is actually stopped.
+      boolean stopped = !Utilities.isServerRunning(f);
+      int nTries = 20;
+      while (!stopped && nTries > 0)
+      {
+        try
+        {
+          Thread.sleep(700);
+        }
+        catch (Throwable t)
+        {
+        }
+        stopped = !Utilities.isServerRunning(f);
+        nTries --;
+      }
+      if (!stopped)
+      {
+        SwingUtilities.invokeLater(new Runnable()
+        {
+          public void run()
+          {
+            getProgressDialog().appendProgressHtml(
+                Utilities.applyFont(
+                    "<br>"+
+                    ERR_CTRL_PANEL_STOPPING_SERVER_POST_CMD_LINE.get(
+                        getCommandLinePath("stop-ds"))+"<br>",
+                        ColorAndFontConstants.progressFont));
+          }
+        });
+        returnCode = -1;
+        state = State.FINISHED_WITH_ERROR;
+      }
+      else
+      {
+        state = State.FINISHED_SUCCESSFULLY;
+      }
+    }
   }
 }

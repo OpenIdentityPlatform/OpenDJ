@@ -261,7 +261,14 @@ public class LocalOrRemotePanel extends StatusGenericPanel
    */
   public Component getPreferredFocusComponent()
   {
-    return pwd;
+    if (pwd.isVisible())
+    {
+      return pwd;
+    }
+    else
+    {
+      return combo;
+    }
   }
 
   /**
@@ -302,6 +309,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         {
           updateComponentState();
           displayMainPanel();
+          Component comp = getPreferredFocusComponent();
+          if (comp != null)
+          {
+            comp.requestFocusInWindow();
+          }
         }
       };
       displayMessage(INFO_CTRL_PANEL_LOADING_PANEL_SUMMARY.get());

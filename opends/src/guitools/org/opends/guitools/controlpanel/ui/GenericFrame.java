@@ -210,7 +210,7 @@ public class GenericFrame extends JFrame
    */
   public void setVisible(boolean visible)
   {
-    if (lastComponentWithFocus == null)
+    if (visible && lastComponentWithFocus == null)
     {
       lastComponentWithFocus = panel.getPreferredFocusComponent();
     }

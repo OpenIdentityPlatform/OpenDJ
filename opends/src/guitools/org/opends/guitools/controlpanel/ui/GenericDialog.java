@@ -234,13 +234,17 @@ public class GenericDialog extends JDialog
    */
   public void setVisible(boolean visible)
   {
-    if (lastComponentWithFocus == null)
+    if (visible && lastComponentWithFocus == null)
     {
       lastComponentWithFocus = panel.getPreferredFocusComponent();
     }
     if (visible && (lastComponentWithFocus != null) &&
         lastComponentWithFocus.isVisible())
     {
+      if (lastComponentWithFocus == null)
+      {
+        lastComponentWithFocus = panel.getPreferredFocusComponent();
+      }
       lastComponentWithFocus.requestFocusInWindow();
     }
     updateDefaultButton(panel);

@@ -105,7 +105,6 @@ public class ControlPanelInfo
   private LinkedHashSet<ConfigChangeListener> configListeners =
     new LinkedHashSet<ConfigChangeListener>();
 
-
   private LinkedHashSet<BackupCreatedListener> backupListeners =
     new LinkedHashSet<BackupCreatedListener>();
 
