@@ -38,7 +38,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.messages.Message;
 
 /**
- * An abstract class used to refactor some code between the start, stop and
+ * An abstract class used to re-factor some code between the start, stop and
  * restart tasks.
  *
  */
@@ -98,8 +98,8 @@ public abstract class StartStopTask extends Task
     // To display new status
     try
     {
-      getInfo().regenerateDescriptor();
       getInfo().stopPooling();
+      getInfo().regenerateDescriptor();
 
       ArrayList<String> arguments = getCommandLineArguments();
 
@@ -108,14 +108,7 @@ public abstract class StartStopTask extends Task
       arguments.toArray(args);
       returnCode = executeCommandLine(getCommandLinePath(), args);
 
-      if (returnCode != 0)
-      {
-        state = State.FINISHED_WITH_ERROR;
-      }
-      else
-      {
-        state = State.FINISHED_SUCCESSFULLY;
-      }
+      postCommandLine();
     }
     catch (Throwable t)
     {
@@ -132,5 +125,21 @@ public abstract class StartStopTask extends Task
   {
     ArrayList<String> args = new ArrayList<String>();
     return args;
+  }
+
+  /**
+   * Method called just after calling the command-line.  To be overwritten
+   * by the inheriting classes.
+   */
+  protected void postCommandLine()
+  {
+    if (returnCode != 0)
+    {
+      state = State.FINISHED_WITH_ERROR;
+    }
+    else
+    {
+      state = State.FINISHED_SUCCESSFULLY;
+    }
   }
 }
