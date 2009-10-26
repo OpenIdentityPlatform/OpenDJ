@@ -89,6 +89,9 @@ public class ReplicationDbEnv
     envConfig.setAllowCreate(true);
     envConfig.setTransactional(true);
     envConfig.setConfigParam("je.cleaner.expunge", "true");
+    envConfig.setConfigParam("java.util.logging.FileHandler.on", "true");
+    envConfig.setConfigParam("je.cleaner.threads", "2");
+    envConfig.setConfigParam("je.checkpointer.highPriority", "true");
 
     // Tests have shown that since the parsing of the Replication log is always
     // done sequentially, it is not necessary to use a large DB cache.
