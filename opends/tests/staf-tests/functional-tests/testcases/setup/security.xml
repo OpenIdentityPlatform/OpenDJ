@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -52,7 +52,7 @@
 
       <call function="'testSuite_Preamble'"/>
 
-      
+
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
@@ -76,7 +76,7 @@
         }
       </call>
       <script>SEC_I1_ADMIN_PORT = STAXResult</script>
-      
+
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
@@ -108,7 +108,7 @@
         }
       </call>
       <script>SEC_I2_ADMIN_PORT = STAXResult</script>
-      
+
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
@@ -155,7 +155,11 @@
             DM_PW = 'secret12'
             DM_PW_FILE = '%s/setup/pwd-security.ldif' % remote.data
 
-            KEYTOOL = '%s/bin/keytool' % (JAVA_HOME)
+            if is_windows_platform(STAF_REMOTE_HOSTNAME):
+              KEYTOOL = '%s/bin/keytool.exe' % (JAVA_HOME)
+            else:
+              KEYTOOL = '%s/bin/keytool' % (JAVA_HOME)
+              
             SEC_I1_BASE = '%s/sec_i1' % (OUT_GROUP)
             SEC_I1_ROOT = '%s/%s' % (SEC_I1_BASE, OPENDSNAME)
             SEC_I2_BASE = '%s/sec_i2' % (OUT_GROUP)

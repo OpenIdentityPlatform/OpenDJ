@@ -296,14 +296,13 @@
                   </script>
 
                   <!-- Export changelog data from server -->
-                  <call function="'exportLdifTask'">
+                  <call function="'exportLdifWithScript'">
                     { 'location'       : replServer.getHostname(),
                       'dsPath'         : replServerPath,
                       'dsInstanceHost' : replServer.getHostname(),
-                      'dsInstancePort' : replServer.getPort(),
+                      'dsInstanceAdminPort' : replServer.getAdminPort(),
                       'dsInstanceDn'   : replServer.getRootDn(),
                       'dsInstancePswd' : replServer.getRootPwd(),
-                      'taskID'         : 'changelog export task',
                       'ldifFile'       : exportedChangelog,
                       'backEnd'        : 'replicationChanges'
                     }

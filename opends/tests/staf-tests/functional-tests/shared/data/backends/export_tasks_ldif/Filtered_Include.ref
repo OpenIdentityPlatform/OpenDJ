@@ -1,0 +1,1468 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: uid=tmorris,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Morris
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 4117
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Ted Morris
+telephoneNumber: +1 408 555 9187
+uid: tmorris
+givenName: Ted
+mail: tmorris@example.com
+entryUUID: bcd2e42f-2c5e-3430-b159-b60bfab77f53
+
+dn: uid=kwinters,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Winters
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 4178
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Kelly Winters
+telephoneNumber: +1 408 555 9069
+uid: kwinters
+givenName: Kelly
+mail: kwinters@example.com
+entryUUID: 5842ad11-5bef-316a-9d96-910fb852e6a3
+
+dn: uid=trigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Rigden
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 3584
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Torrey Rigden
+telephoneNumber: +1 408 555 9280
+uid: trigden
+givenName: Torrey
+mail: trigden@example.com
+entryUUID: da22451e-1604-35b0-9c98-72abe75e92b2
+
+dn: uid=cschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Schmith
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 0416
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Chris Schmith
+telephoneNumber: +1 408 555 8011
+uid: cschmith
+givenName: Chris
+mail: cschmith@example.com
+entryUUID: 396b3db5-e005-3a3f-8b47-9d5597842efd
+
+dn: uid=tclow,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Clow
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 4376
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Torrey Clow
+telephoneNumber: +1 408 555 8825
+uid: tclow
+givenName: Torrey
+mail: tclow@example.com
+entryUUID: 81bacb5b-92e1-3122-a736-a545d5831f3b
+
+dn: uid=bhall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Hall
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 2511
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Benjamin Hall
+telephoneNumber: +1 408 555 6067
+uid: bhall
+givenName: Benjamin
+mail: bhall@example.com
+entryUUID: 2ad14b46-7865-3c73-8725-5d0a6c619ae3
+
+dn: uid=mward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Ward
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 1707
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Marcus Ward
+telephoneNumber: +1 408 555 5688
+uid: mward
+givenName: Marcus
+mail: mward@example.com
+entryUUID: 2742d515-61cf-34cd-8881-9e06e6bcd5c7
+
+dn: uid=jmcFarla,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: McFarland
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 2359
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Judy McFarland
+telephoneNumber: +1 408 555 2567
+uid: jmcFarla
+givenName: Judy
+mail: jmcFarla@example.com
+entryUUID: 4dc86d95-88f2-35b1-bb27-7eac4298fab5
+
+dn: uid=llabonte,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Labonte
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 2854
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Lee Labonte
+telephoneNumber: +1 408 555 0957
+uid: llabonte
+givenName: Lee
+mail: llabonte@example.com
+entryUUID: 7cfb830e-6667-39bc-a4b3-d0260b591b93
+
+dn: uid=alutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Lutz
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 1327
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Alexander Lutz
+telephoneNumber: +1 408 555 6505
+uid: alutz
+givenName: Alexander
+mail: alutz@example.com
+entryUUID: 153475bc-88dc-39ec-9024-fd1a40b2b222
+
+dn: uid=btalbo2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Talbot
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 1205
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Bjorn Talbot
+telephoneNumber: +1 408 555 4234
+uid: btalbo2
+givenName: Bjorn
+mail: btalbo2@example.com
+entryUUID: 90323656-407b-3073-917c-cbbe3b2b81a0
+
+dn: uid=achassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Chassin
+facsimileTelephoneNumber: +1 408 555 3372
+roomNumber: 0466
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Ashley Chassin
+telephoneNumber: +1 408 555 9972
+uid: achassin
+givenName: Ashley
+mail: achassin@example.com
+entryUUID: 5023820b-927f-3452-8523-178b9e765a02
+
+dn: uid=hmiller,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Miller
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 4304
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Harry Miller
+telephoneNumber: +1 408 555 9804
+uid: hmiller
+givenName: Harry
+mail: hmiller@example.com
+entryUUID: b0dd2f09-3af1-35fe-a731-e2d0b6290ae7
+
+dn: uid=jcampai2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Campaigne
+facsimileTelephoneNumber: +1 408 555 3372
+roomNumber: 1377
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jeffrey Campaigne
+telephoneNumber: +1 408 555 7393
+uid: jcampai2
+givenName: Jeffrey
+mail: jcampai2@example.com
+entryUUID: 67215d9a-90ec-3caf-a840-e765e6c4a2ea
+
+dn: uid=striplet,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Triplett
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 3083
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Stephen Triplett
+telephoneNumber: +1 408 555 4519
+uid: striplet
+givenName: Stephen
+mail: striplet@example.com
+entryUUID: 06ca9de4-45d1-36ab-b518-0308f2d91aff
+
+dn: uid=jfalena,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Falena
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 1917
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: John Falena
+telephoneNumber: +1 408 555 8133
+uid: jfalena
+givenName: John
+mail: jfalena@example.com
+entryUUID: 895d0656-1520-3594-abe0-ff92b797d38e
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Johnson
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 3737
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Emanuel Johnson
+telephoneNumber: +1 408 555 3287
+uid: ejohnson
+givenName: Emanuel
+mail: ejohnson@example.com
+entryUUID: 10328dad-c716-3a83-93d8-9235d8aa5525
+
+dn: uid=bwalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Walker
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 3529
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Brad Walker
+telephoneNumber: +1 408 555 5476
+uid: bwalker
+givenName: Brad
+mail: bwalker@example.com
+entryUUID: d9f093f8-f7c8-3fbd-8cc3-6610fb915176
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 8721
+roomNumber: 1944
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Kurt Jensen
+telephoneNumber: +1 408 555 6127
+uid: kjensen
+givenName: Kurt
+mail: kjensen@example.com
+entryUUID: 5d3658b7-3e86-3de8-b26b-914c6508733f
+
+dn: uid=rbannist,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Bannister
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 0983
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Richard Bannister
+telephoneNumber: +1 408 555 1833
+uid: rbannist
+givenName: Richard
+mail: rbannist@example.com
+entryUUID: 19a6e1df-5882-346b-a4d1-6ca948da100d
+
+dn: uid=rmills,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Mills
+facsimileTelephoneNumber: +1 408 555 3372
+roomNumber: 3823
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Randy Mills
+telephoneNumber: +1 408 555 2072
+uid: rmills
+givenName: Randy
+mail: rmills@example.com
+entryUUID: 6854d15c-aac6-3423-bd14-0f8f37fe042a
+
+dn: uid=bschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Schneider
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 4471
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Benjamin Schneider
+telephoneNumber: +1 408 555 1012
+uid: bschneid
+givenName: Benjamin
+mail: bschneid@example.com
+entryUUID: 15390267-8fa8-3625-8771-81f45d8173ec
+
+dn: uid=skellehe,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Kelleher
+facsimileTelephoneNumber: +1 408 555 8721
+roomNumber: 1608
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Sue Kelleher
+telephoneNumber: +1 408 555 3480
+uid: skellehe
+givenName: Sue
+mail: skellehe@example.com
+entryUUID: 110dd12e-29c2-36f0-90fd-587c395daf24
+
+dn: uid=dsmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Smith
+facsimileTelephoneNumber: +1 408 555 3372
+roomNumber: 0368
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Daniel Smith
+telephoneNumber: +1 408 555 9519
+uid: dsmith
+givenName: Daniel
+mail: dsmith@example.com
+entryUUID: 3f665510-6e38-303b-8773-fd5b8b6e7198
+
+dn: uid=scarte2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Carter
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 2013
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Stephen Carter
+telephoneNumber: +1 408 555 6022
+uid: scarte2
+givenName: Stephen
+mail: scarte2@example.com
+entryUUID: 70c251ea-182c-3eec-91b9-0b65de9d26e4
+
+dn: uid=lcampbel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Campbell
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 2073
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Laurel Campbell
+telephoneNumber: +1 408 555 2537
+uid: lcampbel
+givenName: Laurel
+mail: lcampbel@example.com
+entryUUID: 702e5d7b-4a5e-359d-8426-08facf460cdf
+
+dn: uid=slee,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Lee
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 1806
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Scott Lee
+telephoneNumber: +1 408 555 2335
+uid: slee
+givenName: Scott
+mail: slee@example.com
+entryUUID: 18e6301a-9684-3542-b0af-3ab9c03f2bd8
+
+dn: uid=bfree,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Free
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 3307
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Bjorn Free
+telephoneNumber: +1 408 555 8588
+uid: bfree
+givenName: Bjorn
+mail: bfree@example.com
+entryUUID: 35c0028e-7003-3532-87fa-9604be62ca74
+
+dn: uid=jhunter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Hunter
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 4856
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Janet Hunter
+telephoneNumber: +1 408 555 7665
+uid: jhunter
+givenName: Janet
+mail: jhunter@example.com
+entryUUID: 4bfb6bc3-fa30-3fb3-bdeb-9a6d8112daf5
+
+dn: uid=ashelton,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Shelton
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 1987
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Alexander Shelton
+telephoneNumber: +1 408 555 1081
+uid: ashelton
+givenName: Alexander
+mail: ashelton@example.com
+entryUUID: 25587aba-d62c-3266-9a21-815076ae8b6d
+
+dn: uid=mmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Mcinnis
+facsimileTelephoneNumber: +1 408 555 8721
+roomNumber: 4818
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Marcus Mcinnis
+telephoneNumber: +1 408 555 9655
+uid: mmcinnis
+givenName: Marcus
+mail: mmcinnis@example.com
+entryUUID: a2fefac6-fc0b-3e56-b342-f74d78c5fe47
+
+dn: uid=pcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Cruse
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 3967
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Patricia Cruse
+telephoneNumber: +1 408 555 8641
+uid: pcruse
+givenName: Patricia
+mail: pcruse@example.com
+entryUUID: 50e3bef8-7b9f-32d8-93cb-457ed0b6617b
+
+dn: uid=tkelly,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+sn: Kelly
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 3107
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Timothy Kelly
+telephoneNumber: +1 408 555 4295
+uid: tkelly
+givenName: Timothy
+mail: tkelly@example.com
+entryUUID: 159cf4e6-c7a8-39d0-a844-0f1c4c132ff2
+
+dn: uid=ahel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Hel
+facsimileTelephoneNumber: +1 408 555 8721
+roomNumber: 0572
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Andrew Hel
+telephoneNumber: +1 408 555 2666
+uid: ahel
+givenName: Andrew
+mail: ahel@example.com
+entryUUID: ad639ba8-a03b-3c77-9fe6-ff26fe151854
+
+dn: uid=ptyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Tyler
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 0327
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Pete Tyler
+telephoneNumber: +1 408 555 3335
+uid: ptyler
+givenName: Pete
+mail: ptyler@example.com
+entryUUID: f18c9e2c-07f5-3986-b6e9-db20ead1d2ee
+
+dn: uid=jcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Cruse
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 0083
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jim Cruse
+telephoneNumber: +1 408 555 9482
+uid: jcruse
+givenName: Jim
+mail: jcruse@example.com
+entryUUID: 54290b32-a25c-3621-98a5-90a1eb1106a9
+
+dn: uid=rfish,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Fish
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 2317
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Randy Fish
+telephoneNumber: +1 408 555 9865
+uid: rfish
+givenName: Randy
+mail: rfish@example.com
+entryUUID: 67597f00-2d27-331e-90b8-2c504ae41627
+
+dn: uid=rschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Schneider
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 4183
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Rachel Schneider
+telephoneNumber: +1 408 555 9908
+uid: rschneid
+givenName: Rachel
+mail: rschneid@example.com
+entryUUID: f7bc3d86-71ab-303f-88b3-4f69ef7cbfab
+
+dn: uid=jlange,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Lange
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 3798
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jim Lange
+telephoneNumber: +1 408 555 0488
+uid: jlange
+givenName: Jim
+mail: jlange@example.com
+entryUUID: d23b0850-1b60-3bb2-a560-c37dad64d976
+
+dn: uid=rfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Francis
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 3482
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Richard Francis
+telephoneNumber: +1 408 555 8157
+uid: rfrancis
+givenName: Richard
+mail: rfrancis@example.com
+entryUUID: 22017c57-ffaf-339b-82cb-0e18bbe9e94e
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 4609
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Gern Jensen
+telephoneNumber: +1 408 555 3299
+uid: gjensen
+givenName: Gern
+mail: gjensen@example.com
+entryUUID: d3c31ef5-c6e5-322d-b4ee-ced7e9c0c715
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Maddox
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 2207
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Barbara Maddox
+telephoneNumber: +1 408 555 7783
+uid: bmaddox
+givenName: Barbara
+mail: bmaddox@example.com
+entryUUID: ca46e7e6-1dd5-3434-abae-c99c2f77a2cd
+
+dn: uid=jbrown,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Brown
+facsimileTelephoneNumber: +1 408 555 3825
+roomNumber: 4224
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Judy Brown
+telephoneNumber: +1 408 555 6885
+uid: jbrown
+givenName: Judy
+mail: jbrown@example.com
+entryUUID: 6e27d1c1-b52d-3852-9699-c4fd7e68db58
+
+dn: uid=mcarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Carter
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 3819
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Mike Carter
+telephoneNumber: +1 408 555 1846
+uid: mcarter
+givenName: Mike
+mail: mcarter@example.com
+entryUUID: d909c657-5d6f-30fc-a6d9-8390b1df616e
+
+dn: uid=sfarmer,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Farmer
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 0019
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Scott Farmer
+telephoneNumber: +1 408 555 4228
+uid: sfarmer
+givenName: Scott
+mail: sfarmer@example.com
+entryUUID: 98db84d9-8c2e-3651-80a0-f3cdeb5f5ccd
+
+dn: uid=tward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Ward
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 2238
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Tobias Ward
+telephoneNumber: +1 408 555 7202
+uid: tward
+givenName: Tobias
+mail: tward@example.com
+entryUUID: bbf3dce4-dcdc-3f6d-81d4-e5c24c48709a
+
+dn: uid=jrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Rentz
+facsimileTelephoneNumber: +1 408 555 1992
+roomNumber: 3025
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jody Rentz
+telephoneNumber: +1 408 555 5829
+uid: jrentz
+givenName: Jody
+mail: jrentz@example.com
+entryUUID: 4e326ccc-0032-34be-bf93-c962b9bd4f72
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 0784
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Allison Jensen
+telephoneNumber: +1 408 555 7892
+uid: ajensen
+givenName: Allison
+mail: ajensen@example.com
+entryUUID: ba50de20-112a-3427-a1c4-6f13699c96f1
+
+dn: uid=pworrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Worrell
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 2449
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Pete Worrell
+telephoneNumber: +1 408 555 1637
+uid: pworrell
+givenName: Pete
+mail: pworrell@example.com
+entryUUID: e2bce469-54c7-3807-82aa-1997ad13d588
+
+dn: uid=gtyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Tyler
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 0312
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Gern Tyler
+telephoneNumber: +1 408 555 1020
+uid: gtyler
+givenName: Gern
+mail: gtyler@example.com
+entryUUID: d9541e60-e19d-3f85-ba2a-5048a6af8df0
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 4294
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Bjorn Jensen
+telephoneNumber: +1 408 555 5655
+uid: bjense2
+givenName: Bjorn
+mail: bjense2@example.com
+entryUUID: fa57c2bc-6d00-3a32-ac02-19030a07ef36
+
+dn: uid=ahall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Hall
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 3050
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Andy Hall
+telephoneNumber: +1 408 555 6169
+uid: ahall
+givenName: Andy
+mail: ahall@example.com
+entryUUID: 5bc04a85-0a32-3381-9c4a-1b273d88d8a9
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 3825
+roomNumber: 4717
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Ted Jensen
+telephoneNumber: +1 408 555 8622
+uid: tjensen
+givenName: Ted
+mail: tjensen@example.com
+entryUUID: b9647761-c6f7-3d6a-81a3-8a537db4aca0
+
+dn: uid=jgoldste,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Goldstein
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 1454
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jon Goldstein
+telephoneNumber: +1 408 555 5769
+uid: jgoldste
+givenName: Jon
+mail: jgoldste@example.com
+entryUUID: ec931c60-85db-33fb-8406-5b1bfa9b6cb9
+
+dn: uid=wlutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Lutz
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 4912
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Wendy Lutz
+telephoneNumber: +1 408 555 3358
+uid: wlutz
+givenName: Wendy
+mail: wlutz@example.com
+entryUUID: 30d80872-5c91-39f3-85ad-bdb068984441
+
+dn: uid=dlangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Langdon
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 3263
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Dan Langdon
+telephoneNumber: +1 408 555 7044
+uid: dlangdon
+givenName: Dan
+mail: dlangdon@example.com
+entryUUID: c8bc040a-faca-3c8d-9d04-68b081b9fd11
+
+dn: uid=kmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Mcinnis
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 4312
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Kelly Mcinnis
+telephoneNumber: +1 408 555 8596
+uid: kmcinnis
+givenName: Kelly
+mail: kmcinnis@example.com
+entryUUID: 170fd990-ec03-3ef2-a035-51d2994d8c7c
+
+dn: uid=lstockto,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Stockton
+facsimileTelephoneNumber: +1 408 555 4774
+roomNumber: 0169
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Lee Stockton
+telephoneNumber: +1 408 555 0518
+uid: lstockto
+givenName: Lee
+mail: lstockto@example.com
+entryUUID: 78a4d801-298e-37f4-ba88-22209d9cc951
+
+dn: uid=dlanoway,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Lanoway
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 3540
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Dan Lanoway
+telephoneNumber: +1 408 555 2017
+uid: dlanoway
+givenName: Dan
+mail: dlanoway@example.com
+entryUUID: 2cc5c252-055b-3c8d-870f-f4cabfd77a1e
+
+dn: uid=abarnes,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Barnes
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 2290
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Anne-Louise Barnes
+telephoneNumber: +1 408 555 9445
+uid: abarnes
+givenName: Anne-Louise
+mail: abarnes@example.com
+entryUUID: e2e8cb75-44ff-32b3-9db9-a300d635bbf9
+
+dn: uid=phun2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Hunt
+facsimileTelephoneNumber: +1 408 555 4661
+roomNumber: 0087
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Pete Hunt
+telephoneNumber: +1 408 555 0342
+uid: phun2
+givenName: Pete
+mail: phun2@example.com
+entryUUID: d334dfdb-b4da-374b-abf3-ef0e7bbd7aa9
+
+dn: uid=jlut2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Lutz
+facsimileTelephoneNumber: +1 408 555 3825
+roomNumber: 3541
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: James Lutz
+telephoneNumber: +1 408 555 9689
+uid: jlut2
+givenName: James
+mail: jlut2@example.com
+entryUUID: d6d40675-8b09-386b-83e7-9bce8f148158
+
+dn: uid=pchassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Chassin
+facsimileTelephoneNumber: +1 408 555 3372
+roomNumber: 4524
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Peter Chassin
+telephoneNumber: +1 408 555 2816
+uid: pchassin
+givenName: Peter
+mail: pchassin@example.com
+entryUUID: 1375ea23-83c4-35aa-b02c-7d2d4450d60a
+
+dn: uid=jrent2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Payroll
+ou: People
+sn: Rentz
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 4405
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Judy Rentz
+telephoneNumber: +1 408 555 2523
+uid: jrent2
+givenName: Judy
+mail: jrent2@example.com
+entryUUID: 659bd415-249f-33dc-ade1-727df01c2d25
+
+dn: uid=eward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Ward
+facsimileTelephoneNumber: +1 408 555 7472
+roomNumber: 4874
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Eric Ward
+telephoneNumber: +1 408 555 2320
+uid: eward
+givenName: Eric
+mail: eward@example.com
+entryUUID: 32a51504-23c4-3dd6-8a1a-b5a2ac22969d
+
+dn: uid=charvey,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Harvey
+facsimileTelephoneNumber: +1 408 555 3825
+roomNumber: 4583
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Cecil Harvey
+telephoneNumber: +1 408 555 1815
+uid: charvey
+givenName: Cecil
+mail: charvey@example.com
+entryUUID: 995b629c-3c17-33d0-9c14-031d6122786a
+
+dn: uid=alangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Langdon
+facsimileTelephoneNumber: +1 408 555 9332
+roomNumber: 2254
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Andrew Langdon
+telephoneNumber: +1 408 555 8289
+uid: alangdon
+givenName: Andrew
+mail: alangdon@example.com
+entryUUID: c367142b-7074-3d71-8392-ad11f04a1c0f
+
+dn: uid=polfield,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Olfield
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 1376
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Peter Olfield
+telephoneNumber: +1 408 555 8231
+uid: polfield
+givenName: Peter
+mail: polfield@example.com
+entryUUID: 26f8bebf-a136-3ed4-85df-d43bd0793991
+
+dn: uid=lrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Rentz
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 2203
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Lex Rentz
+telephoneNumber: +1 408 555 2019
+uid: lrentz
+givenName: Lex
+mail: lrentz@example.com
+entryUUID: a8508628-80a6-39bc-a724-1c3e5d691858
+
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Human Resources
+ou: People
+sn: Francis
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 3743
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Barbara Francis
+telephoneNumber: +1 408 555 9111
+uid: bfrancis
+givenName: Barbara
+mail: bfrancis@example.com
+entryUUID: 93b2275d-be7d-30f9-8e95-6ca40dc04a5a
+
+dn: uid=tjames,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: James
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 0730
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Tobias James
+telephoneNumber: +1 408 555 2458
+uid: tjames
+givenName: Tobias
+mail: tjames@example.com
+entryUUID: 2f87a94d-5c64-37c6-b025-2faffa99451b
+
+dn: uid=ecruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Cruse
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 4233
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Eric Cruse
+telephoneNumber: +1 408 555 0648
+uid: ecruse
+givenName: Eric
+mail: ecruse@example.com
+entryUUID: e1e611e3-fb95-35b4-9bb0-b880ce3d1b0b
+
+dn: uid=rhunt,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Accounting
+ou: People
+sn: Hunt
+facsimileTelephoneNumber: +1 408 555 8473
+roomNumber: 0718
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Richard Hunt
+telephoneNumber: +1 408 555 0139
+uid: rhunt
+givenName: Richard
+mail: rhunt@example.com
+entryUUID: a08444bf-a839-3004-a484-3f31722108f2
+
+dn: uid=ealexand,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Alexander
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 2434
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Erin Alexander
+telephoneNumber: +1 408 555 5563
+uid: ealexand
+givenName: Erin
+mail: ealexand@example.com
+entryUUID: fad65fd4-957e-3c0e-9c2e-8fd86c4c9f60
+
+dn: uid=elott,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Testing
+ou: People
+sn: Lott
+facsimileTelephoneNumber: +1 408 555 9751
+roomNumber: 3906
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Emanuel Lott
+telephoneNumber: +1 408 555 0932
+uid: elott
+givenName: Emanuel
+mail: elott@example.com
+entryUUID: ba3fd584-e2fb-363f-9f6e-260894dfa102
+
+dn: uid=jvedder,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+ou: Product Development
+ou: People
+sn: Vedder
+facsimileTelephoneNumber: +1 408 555 0111
+roomNumber: 3445
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jeff Vedder
+telephoneNumber: +1 408 555 4668
+uid: jvedder
+givenName: Jeff
+mail: jvedder@example.com
+entryUUID: 0aa24f77-0362-3e7f-9f7d-ef0f7986c8eb
+

@@ -1,0 +1,28 @@
+#-- disabling replication on a server 
+#---------------------------------------------------------
+dsreplication disable \
+  --hostname sugoi \
+  --port 4444 \
+  --disableReplicationServer \
+  --baseDN dc=example,dc=com \
+  --adminUID admin \
+  --adminPassword ****** \
+  --trustAll \
+  --no-prompt
+
+# - Output if only one server of the 2 disabled
+# - You have decided to disable the replication server (replication changelog).
+# - After disabling the replication server only one replication server will be
+# - configured for the following suffixes:
+# - dc=example,dc=com
+# - To avoid a single point of failure at least two replication servers must be
+# - configured.
+# - Do you want to continue? (yes / no) [no]: yes
+# - Disabling replication on base DN cn=admin data of server sugoi:4444 ..... Done.
+# - Disabling replication on base DN dc=example,dc=com of server sugoi:4444 ..... Done.
+# - Disabling replication on base DN cn=schema of server sugoi:4444 ..... Done.
+# - Removing references on base DN cn=schema of server sugoi:4445 ..... Done.
+# - Removing references on base DN dc=example,dc=com of server sugoi:4445 ..... Done.
+# - Removing references on base DN cn=admin data of server sugoi:4445 ..... Done.
+# - Disabling replication port 8989 of server sugoi:4444 ..... Done.
+

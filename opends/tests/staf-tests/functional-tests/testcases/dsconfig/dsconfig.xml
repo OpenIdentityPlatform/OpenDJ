@@ -51,35 +51,36 @@
               suiteList = []
               suiteList.append('dsconfig_list')
               suiteList.append('dsconfig_get')
+              suiteList.append('dsconfig_batch-mode')
             </script>
     
-            <!-- Run the test suites -->
-            <iterate  var="_suite" in="suiteList">
-              <sequence>              
-                <try>
-                  <sequence>                  
-                    <import machine="STAF_LOCAL_HOSTNAME"
-                      file="'%s/testcases/%s/%s.xml' % (TESTS_DIR,_group,_suite)"/> 
-                    <call function="'%s' % _suite" />
-                  </sequence>
-                <catch exception="'STAFException.TestSuite.SetupException'">
-                  <sequence>
-                    <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite</message>
-                  </sequence>
-                </catch>
-                <catch exception="'STAFException.TestSuite.MainException'">
-                  <sequence>
-                    <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite</message>
-                  </sequence>
-                </catch>
-                <catch exception="'STAFException.TestSuite.CleanupException'">
-                  <sequence>
-                    <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite</message>
-                  </sequence>
-                </catch>
-                </try>
-              </sequence>
-            </iterate>
+          <!-- Run the test suites -->
+          <iterate  var="_suite" in="suiteList">
+            <sequence>
+              <try>
+                <sequence>
+                  <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/%s/%s/%s.xml' % (TESTS_DIR,_group,_suite,_suite)"/>
+                  <call function="'%s' % _suite" />
+                </sequence>
+              <catch exception="'STAFException.TestSuite.SetupException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Setup of test suite %s failed.' % _suite</message>
+                </sequence>
+              </catch>
+              <catch exception="'STAFException.TestSuite.MainException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Main part of test suite %s failed.' % _suite</message>
+                </sequence>
+              </catch>
+              <catch exception="'STAFException.TestSuite.CleanupException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite %s failed.' % _suite</message>
+                </sequence>
+              </catch>
+              </try>
+            </sequence>
+          </iterate>
                                     
           </sequence>
         </block>

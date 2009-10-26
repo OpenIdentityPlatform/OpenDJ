@@ -1,0 +1,43 @@
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: cn=added-user.1,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaccf Amar - 03862 Elm Street - Pocatello, MA  21195
+postalCode: 21195
+cn: added-user.1
+userPassword: password
+employeeNumber: 0
+initials: ALA
+givenName: Aaccf
+pager: +1 469 131 2035
+mobile: +1 146 535 6881
+sn: Amar
+telephoneNumber: +1 800 953 4311
+street: 03862 Elm Street
+mail: added-user.0@example.com
+l: Pocatello
+st: MA
+

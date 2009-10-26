@@ -139,7 +139,7 @@
       </call>
       <return>STAXResult</return>
     </sequence>
-  </function> 
+  </function>
   
   
   <!-- This function uses make ldif to generate LDIF data files -->
@@ -155,7 +155,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="startFrom" 
+      <function-arg-def name="startFrom"
                         type="optional"
                         default="0">
         <function-arg-description>
@@ -163,7 +163,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="suffix" 
+      <function-arg-def name="suffix"
                         type="optional"
                         default="DIRECTORY_INSTANCE_SFX">
         <function-arg-description>
@@ -185,7 +185,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="additionalAttributes" 
+      <function-arg-def name="additionalAttributes"
                         type="optional"
                         default="False">
         <function-arg-description>
@@ -292,7 +292,7 @@
       <return>[RC, STAXResult]</return>
      
     </sequence>
-  </function> 
+  </function>
     
   <!-- This function compares two LDIF files using the ldif-diff script -->
   <function name="LdifDiffWithScript">
@@ -366,7 +366,7 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def> 
+      </function-arg-def>
 
     </function-map-args>
     <sequence>
@@ -447,7 +447,7 @@
           </script>
           <message log="1"> 'LdifDiffWithScript: %s' % msg </message>
           <if expr="diffsFileSize &lt; MAX_READABLE_SIZE">
-            <sequence>                                          
+            <sequence>
               <call function="'getFile'">
                 { 'location' : location,
                   'filename' : outputLdif
@@ -552,7 +552,7 @@
           LDIF file containing the changes to apply
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>      
+      </function-arg-def>
       
       <function-arg-def name="Help" type="optional">
         <function-arg-description>
@@ -669,7 +669,7 @@
       </function-arg-def>
 
     </function-list-args>
-    <sequence>      
+    <sequence>
       <script>
         myRC = 0
         myKnownIssue = knownIssue
@@ -688,7 +688,7 @@
           'dsPath'              : dsPath,
           'dsInstanceHost'      : referenceServer.getHostname(),
           'dsInstanceAdminPort' : referenceServer.getAdminPort(),
-          'replicationDnList'   : [synchroSuffix],
+          'replicationDnList'   : [treeSuffix],
           'noOfLoops'           : 10, 
           'noOfMilliSeconds'    : 6000
         }
@@ -699,14 +699,15 @@
         % (treeSuffix, referenceServerPath)
       </message>
       <!-- Retrieve the tree from the reference server -->      
-      <call function="'exportLdif'">
+      <call function="'exportLdifWithScript'">
         { 'location'            : location,
           'dsPath'              : dsPath,
           'dsInstanceHost'      : referenceServer.getHostname(),
           'dsInstanceAdminPort' : referenceServer.getAdminPort(),
           'dsInstanceDn'        : referenceServer.getRootDn(),
           'dsInstancePswd'      : referenceServer.getRootPwd(),
-          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree)
+          'ldifFile'            : '%s/../%s' % (dsPath, referenceTree),
+          'includeBranches'     : [treeSuffix]
         }
       </call>
             
@@ -729,21 +730,22 @@
               </script>
             </else>
           </if>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'location'            : location,
               'dsPath'              : dsPath,
               'dsInstanceHost'      : server.getHostname(),
               'dsInstanceAdminPort' : server.getAdminPort(),
               'dsInstanceDn'        : server.getRootDn(),
               'dsInstancePswd'      : server.getRootPwd(),
-              'ldifFile'            : '%s/../%s' % (filePath, sampleTree)
+              'ldifFile'            : '%s/../%s' % (filePath, sampleTree),
+              'includeBranches'     : [treeSuffix]
             }
           </call>
           
           <if expr="RC == 0">
             <sequence>
               
-              <if expr="not isSameLocation">                
+              <if expr="not isSameLocation">
                 <!-- Copy sample tree file to reference server -->  
                 <call function="'copyFile'">
                   { 'location'   : server.getHostname(),
@@ -765,7 +767,7 @@
               </call>
               <if expr="STAXResult != 0">
                 <sequence>
-                  <script>            
+                  <script>
                     failedServers.append('%s:%s' % \
                                          (server.getHostname(), server.getPort()))
                   </script>
@@ -908,7 +910,7 @@
           <script>
             if STAXResult != 0 :
               failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
-          </script>                                                                                                                                                                                           
+          </script>
         </sequence>
       </iterate>
       <if expr="len(failedServers) > 0">
@@ -1007,13 +1009,13 @@
     <function-prolog>
       This function starts a list of servers.
     </function-prolog>
-    <function-list-args>       
+    <function-list-args>
       <function-arg-def name="serverList" type="required">
         <function-arg-description>
           List of the servers (instances of "Server" class) to be started.
         </function-arg-description>
         <function-arg-property name="type" value="Server-list"/>
-      </function-arg-def>             
+      </function-arg-def>
     </function-list-args>
       
     <sequence>
@@ -1060,6 +1062,22 @@
         </function-arg-description>
         <function-arg-property name="type" value="Server-list"/>
       </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations (for isStopped())
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
     </function-list-args>
     
     <sequence>
@@ -1072,12 +1090,14 @@
           
           <!--- Stop DS -->
           <call function="'StopDsWithScript'">
-            { 'location'    : server.getHostname(),
-              'dsHost'      : server.getHostname(),
-              'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
-              'dsAdminPort' : server.getAdminPort(),
-              'dsBindDN'    : server.getRootDn(),
-              'dsBindPwd'   : server.getRootPwd()
+            { 'location'         : server.getHostname(),
+              'dsHost'           : server.getHostname(),
+              'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+              'dsAdminPort'      : server.getAdminPort(),
+              'dsBindDN'         : server.getRootDn(),
+              'dsBindPwd'        : server.getRootPwd(),
+              'noOfLoops'        : noOfLoops,
+              'noOfMilliSeconds' : noOfMilliSeconds
             }
           </call>
         </sequence>
@@ -1112,7 +1132,7 @@
           The baseDN for the search operation
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="dsFilterFile" type="optional">
         <function-arg-description>
           File containing a list of search filter strings
@@ -1131,7 +1151,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="dsOverwriteExisting" 
+      <function-arg-def name="dsOverwriteExisting"
                         type="optional" 
                         default="True">
         <function-arg-description>
@@ -1144,7 +1164,7 @@
           The scope of the search operation
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def> 
+      </function-arg-def>
       <function-arg-def name="dsTimeLimit" type="optional">
         <function-arg-description>
           Maximum length of time in seconds to allow for the search
@@ -1192,8 +1212,8 @@
           Expected return code value. Default value is 0
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>      
-      </function-arg-def>    
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -1282,7 +1302,7 @@
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="authPwdSyntax" type="optional">
         <function-arg-description>
           Use the authentication password syntax.
@@ -1335,7 +1355,7 @@
           encoding a clear-text password.
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Display this usage information
@@ -1353,7 +1373,7 @@
           Expected return code value. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>     
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1412,6 +1432,136 @@
       <return>STAXResult</return>
     </sequence>
   </function>
+
+
+  <!-- This function check task execution-->
+  <function name="checkTaskExecution" scope="local">
+    <function-prolog>
+      This functioncheck task execution
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="outputToCheck" type="required">
+        <function-arg-description>
+          The output result of the task
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+
+      <function-arg-def name="dsInstanceAdminPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_ADMIN_PORT">
+        <function-arg-description>
+          Directory server admin port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+    </function-map-args>
+    <sequence>
+      <script>
+         resultString = outputToCheck
+         resultSplitted = resultString.split()
+         taskId = None
+         for str in resultSplitted:
+          if len(str) == 17:
+            taskId = str
+      </script>
+
+      <message>
+        'Command  task  Id : %s' % taskId
+      </message>
+
+      <message>
+        'Check ldif command successfully completed with manage-task'
+      </message>
+
+      <script>checkRC=9999</script>
+      <loop from="1" to="10" var="loop" while="checkRC != 0">
+        <sequence>
+          <message>'LOOP %s' % loop</message>
+          <call function="'manage-tasks'">
+            {
+              'dsPath'              : dsPath,
+              'dsInstanceHost'      : dsInstanceHost ,
+              'dsInstanceAdminPort' : dsInstanceAdminPort,
+              'dsInstanceDn'        : dsInstanceDn ,
+              'dsInstancePswd'      : dsInstancePswd ,
+              'dsInfo'              : taskId ,
+              'dsQuiet'             : 'True'
+            }
+          </call>
+          
+          <script>
+            returnString = STAXResult[0][1]
+            msg = 'Status                    Completed successfully'
+          </script>
+
+          <call function="'searchString'">
+            { 
+            'expectedString' : msg ,
+            'returnString'	 : returnString ,
+            'expectedRC'     : 'noCheck'
+            }
+          </call>
+
+          <script>
+            checkRC = STAXResult[0]
+          </script>
+
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds'  : 2000 }
+          </call>
+
+        </sequence>
+      </loop>
+
+      <call function="'checktestRC'">
+        { 'returncode' : checkRC ,
+          'result'     : "Task succeeds" ,
+          'expected'   : 0
+        }
+      </call>
+    </sequence>
+  </function>
   
   <!-- This function compares two LDIF files using the ldif-diff script -->
   <function name="LdifDiffWithScript-new" scope="local">
@@ -1427,7 +1577,7 @@
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>     
+      </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
@@ -1435,44 +1585,44 @@
           Pathname to installation root
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>      
+      </function-arg-def>
       <function-arg-def name="dsVersion" type="optional">
         <function-arg-description>
           Display Directory Server version information
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def>     
+      </function-arg-def>
       <function-arg-def name="sourceLdif" type="required">
         <function-arg-description>
           LDIF file to use as the source data
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>     
+      </function-arg-def>
       <function-arg-def name="targetLdif" type="required">
         <function-arg-description>
           LDIF file to use as the target data
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>  
+      </function-arg-def>
       <function-arg-def name="outputLdif" type="required">
         <function-arg-description>
           File to which the diffs should be written
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>  
+      </function-arg-def>
       <function-arg-def name="overwriteExisting" type="optional" default="True">
         <function-arg-description>
           Overwrite existing output file rather than append to it
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def>   
+      </function-arg-def>
       <function-arg-def name="singleValueChanges" type="optional">
         <function-arg-description>
           Write each attribute-level change as a separate modification 
           per attribute value rather than one modification per entry
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def> 
+      </function-arg-def>
       <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Help option
@@ -1484,8 +1634,8 @@
           Expected return code value. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>     
-      </function-arg-def>      
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -1555,7 +1705,7 @@
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
-      </function-arg-def> 
+      </function-arg-def>
       <function-arg-def name="dsPath"
                        type="optional"
                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
@@ -1811,7 +1961,7 @@
           dsOperationValue is true or false
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
-      </function-arg-def> 
+      </function-arg-def>
    
     </function-map-args>
     
@@ -1987,7 +2137,7 @@
 
           <call function="'Sleep'">
             { 'sleepForMilliSeconds'  : 2000 }
-          </call>                                      
+          </call>
 
           <!-- Check the update has been propagated -->
           <paralleliterate var="otherServer" in="otherServersList">
@@ -2005,9 +2155,9 @@
                   'dsAttributes'   : 'employeeNumber',
                   'logStderr'      : False
                 }                
-              </call>                
+              </call>
               <script>
-                searchRC = STAXResult[0][0]
+                searchRC = RC
                 searchResult = STAXResult[0][1]
                 resultLength = len(searchResult) > 0
               </script>
@@ -2019,20 +2169,20 @@
                        searchResult)
                   </message>
                 </sequence>
-              <else>
-                <sequence>
-                  <message>
+                <else>
+                  <sequence>
+                    <message>
                     'verifyReplication: Entry %s NOT found in server %s:%s' % \
                     (entryDn, otherServer.getHostname(), otherServer.getPort())
-                  </message>
-                  <script>
+                    </message>
+                    <script>
                     failedServers.append('%s:%s' % \
                              (otherServer.getHostname(), otherServer.getPort()))                    
-                  </script>
-                </sequence>                  
-              </else>
+                    </script>
+                  </sequence>
+                </else>
               </if>
-            </sequence>                  
+            </sequence>
           </paralleliterate>
               
           <if expr="len(failedServers) > 0">
@@ -2059,10 +2209,10 @@
               'expected'   : 0,
               'issue'      : myKnownIssue
             }
-          </call>                              
+          </call>
       
-        </sequence>                  
-      </iterate>      
+        </sequence>
+      </iterate>
       
     </sequence>
   </function>

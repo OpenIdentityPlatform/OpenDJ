@@ -56,6 +56,15 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+        <function-arg-def name="fileExtensions"
+                          type="optional"
+                          default="[]">
+          <function-arg-description>
+            Specifies a list of file extension to add to testdata.zip
+          </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
       <function-arg-def name="splitReplicationServers" 
                         type="optional" 
                         default="False">
@@ -78,7 +87,9 @@
       </script>
       
       <call function="'prepareInstanceCreation'">
-        { 'groupDataDir' : sharedDataFolder }
+        { 'groupDataDir' : sharedDataFolder,
+          'fileExtensions' : fileExtensions
+        }
       </call>
 
       <if expr="topologyDescFile == None">  

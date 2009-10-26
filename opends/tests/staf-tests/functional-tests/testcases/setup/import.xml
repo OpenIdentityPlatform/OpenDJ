@@ -68,8 +68,8 @@
           'port'  : 5544,
         }
       </call>
-      <script>IMP_I1_ADMIN_PORT = STAXResult</script>    
-      
+      <script>IMP_I1_ADMIN_PORT = STAXResult</script>
+
       <call function="'getFreePort'">
         {
           'host'  : STAF_REMOTE_HOSTNAME,
@@ -496,9 +496,15 @@
 
           <script>
             if PRODUCTNAME.startswith('OpenDS'):
-              expectedNb = 1
+              if is_windows_platform(STAF_REMOTE_HOSTNAME):
+                expectedNb = 2
+              else:
+                expectedNb = 1
             else:
-              expectedNb = 2
+              if is_windows_platform(STAF_REMOTE_HOSTNAME):
+                expectedNb = 3
+              else:
+                expectedNb = 2
           </script>
           <call function="'checktestRC'">
             { 'returncode' : nb,
@@ -507,12 +513,14 @@
             }
           </call>
 
+          <!--
           <call function="'checktestRC'">
             { 'returncode' : ct,
               'result'     : a,
               'expected'   : 1
             }
           </call>
+         -->
          
           <call function="'testCase_Postamble'"/>
 

@@ -1,0 +1,969 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: dc=com
+objectClass: domain
+objectClass: top
+
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+objectClass: groupofuniquenames
+objectClass: top
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+
+dn: ou=Special Users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+
+dn: uid=scarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tmorris,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=abergin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dmiller,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=gfarmer,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kwinters,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=trigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=cschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jwallace,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jwalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tclow,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rdaugherty,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jreuter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tmason,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bhall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=btalbot,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bjablons,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jmcFarla,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=llabonte,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jcampaig,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bhal2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=alutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=btalbo2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=achassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=hmiller,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jcampai2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=lulrich,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mlangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=striplet,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=gtriplet,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jfalena,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=speterso,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=prigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bwalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mlott,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=cwallace,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tpierce,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rbannist,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bplante,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rmills,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=skellehe,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=brentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dsmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=scarte2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dthorud,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ekohler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=lcampbel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tlabonte,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=slee,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bfree,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=prose,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jhunter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ashelton,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=falbers,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=pcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tkelly,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ahel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jburrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=smason,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ptyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=calexand,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kcarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rfish,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=phunt,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jlange,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rulrich,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mwhite,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=awhite,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mtalbot,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jbrown,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mcarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dakers,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=sfarmer,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=pshelton,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=plorig,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=pworrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mreuter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=gtyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dswain,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ahall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jmuffly,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ahunter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jgoldste,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=aworrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=wlutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jlutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dlangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=aknutson,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tcouzens,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=lstockto,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jbourke,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dlanoway,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=kcope,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=abarnes,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=phun2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jlut2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mjablons,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=pchassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=dcope,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jrent2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=eward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ttully,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=charvey,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rfisher,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=alangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=drose,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=polfield,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=awalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=lrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ewalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=tjames,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=brigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ecruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rjense2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=rhunt,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=bparker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=ealexand,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=mtyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=elott,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=cnewport,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: uid=jvedder,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+
+dn: cn=Accounting Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=HR Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=QA Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=PD Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: ou=Company Servers,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+

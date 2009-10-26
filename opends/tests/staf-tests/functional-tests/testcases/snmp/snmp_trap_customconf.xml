@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -912,15 +912,10 @@
               <script>
                 returnString = STAXResult[0][1]
 
-                if is_windows_platform(DIRECTORY_INSTANCE_HOST):
-                  newline = '\r\n'
-                else:
-                  newline = '\n'
-
                 returnString = STAXResult[0][1]
                 msg1 = 'It is not possible to specify multiple values for the'
                 msg2 = 'SNMP Connection Handler%sproperty "traps-community"' \
-                       % newline               
+                       % newLine
                 msg3 = 'as it is single-valued'
                 msg = '%s %s %s' % (msg1, msg2, msg3)
               </script>

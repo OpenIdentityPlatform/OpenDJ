@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="addEntry">
@@ -1623,7 +1623,7 @@
         <function-arg-description>
           Delete the specified entry and all entries below it
         </function-arg-description>
-        <function-arg-property name="type" value="option"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
       <function-arg-def name="dsInstanceHost" type="optional">
         <function-arg-description>

@@ -41,8 +41,6 @@
 
         xml=xmldoc_service()
         
-        xml.createBlankDocument()
-        
         builder = xml.createBlankDocument()
         
         doc = builder.newDocument()

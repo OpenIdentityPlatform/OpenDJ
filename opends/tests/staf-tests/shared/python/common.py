@@ -195,14 +195,14 @@ def is_windows_platform(host):
     from java.lang import Boolean
     from com.ibm.staf import STAFHandle
     from com.ibm.staf import STAFResult
-    import re
 
     handle = STAFHandle("varHandle") 
     res = handle.submit2(host, "VAR", "GET SYSTEM VAR STAF/Config/OS/Name")
 
-    winPattern=re.compile('win', re.IGNORECASE)
-    if (winPattern.search(res.result) != None):
-      return Boolean.TRUE
+    winLower = res.result.lower()
+    winNdx = winLower.find("win")
+    if winNdx != -1:
+      return res.result[winNdx:]
     else:
       return Boolean.FALSE
 
@@ -630,6 +630,8 @@ class xmldoc_service:
     self.testgroup=''
     self.testsuite=''
     self.testcase=''
+    self.issues=''
+    self.issue=''
 
   def createBlankDocument(self):
     try:

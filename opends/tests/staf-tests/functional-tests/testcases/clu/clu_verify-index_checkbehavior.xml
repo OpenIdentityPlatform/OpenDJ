@@ -283,8 +283,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : msg ,
-                  'issue'          : '3102'
+                  'expectedString' : msg
                   }
                 </call>          
   

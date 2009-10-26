@@ -1,0 +1,71 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: Groups
+entryUUID: 95b6a9b9-0d5c-3cf8-b8e4-0eb256c27113
+
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+objectClass: groupofuniquenames
+objectClass: top
+ou: Groups
+uniqueMember: uid=kvaughan, ou=People, dc=example,dc=com
+uniqueMember: uid=rdaugherty, ou=People, dc=example,dc=com
+uniqueMember: uid=hmiller, ou=People, dc=example,dc=com
+cn: Directory Administrators
+entryUUID: d8ebf92e-9c29-3d54-b9be-127ee04b1589
+
+dn: cn=HR Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+uniqueMember: uid=kvaughan, ou=People, dc=example,dc=com
+uniqueMember: uid=cschmith, ou=People, dc=example,dc=com
+description: People who can manage HR entries
+cn: HR Managers
+entryUUID: 3c851f61-c8e1-3b50-a92a-2d6a1184b0ea
+
+dn: cn=QA Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+uniqueMember: uid=abergin, ou=People, dc=example,dc=com
+uniqueMember: uid=jwalker, ou=People, dc=example,dc=com
+description: People who can manage QA entries
+cn: QA Managers
+entryUUID: 4924222c-9dd7-356e-aa5a-16a2fa603229
+
+dn: cn=PD Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+ou: groups
+uniqueMember: uid=kwinters, ou=People, dc=example,dc=com
+uniqueMember: uid=trigden, ou=People, dc=example,dc=com
+description: People who can manage engineer entries
+cn: PD Managers
+entryUUID: 38666d52-7a53-332e-902f-e34dd4aaa7a0
+

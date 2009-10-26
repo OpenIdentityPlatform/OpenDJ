@@ -113,6 +113,7 @@
         from security import *
         from replication import *
         from snmp import *
+        from schema import *
       </script>     
                         
     

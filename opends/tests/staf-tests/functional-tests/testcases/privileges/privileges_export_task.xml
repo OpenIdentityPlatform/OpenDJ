@@ -96,28 +96,37 @@
       
               <sequence>
       
-                  <call function="'testCase_Preamble'"/>
+                <call function="'testCase_Preamble'"/>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'   : 'ACIRules' ,
-                    'taskID'           : '1' ,
-                    'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
-                    'expectedRC'       : 50
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                     'dsInstancePswd'   : 'ACIRules' ,
+                     'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
+                     'expectedRC'       : 1
                   }
-                  </call>
+                </call>
+
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
+                <call function="'searchString'">
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
+                }
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Admin adding privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
@@ -126,32 +135,41 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : 'ldif-export' ,
                       'changetype'             : 'add' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'taskID'           : '1' ,
                     'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
-                    'expectedRC'       : 50
+                    'expectedRC'       : 1
                   }
-                  </call>
+                </call>
+
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
+                 <call function="'searchString'">
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
+                }
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Admin adding global ACI'
-                  </message>
+                </message>
       
-                  <script>
+                <script>
                       aci="(target=\"ldap:///cn=Scheduled Tasks,cn=Tasks\")(targetattr=\"ds-task-class-name || ds-task-export-backend-id || ds-task-export-ldif-file\")(version 3.0; acl \"Allows writes for tasks\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
-                  </script>
+                </script>
                   
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
@@ -160,27 +178,26 @@
                       'attributeName'          : 'ds-cfg-global-aci' ,
                       'newAttributeValue'      : aci ,
                       'changetype'             : 'add' }
-                  </call>
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'taskID'           : '1' ,
                     'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data
                   }
-                  </call>
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Admin deleting privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
@@ -189,13 +206,13 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : 'ldif-export' ,
                       'changetype'             : 'delete' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Admin deleting global ACI'
-                  </message>
+                </message>
       
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
@@ -204,24 +221,33 @@
                       'attributeName'          : 'ds-cfg-global-aci' ,
                       'newAttributeValue'      : aci ,
                       'changetype'             : 'delete' }
-                  </call>
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'taskID'           : '1.1' ,
                     'ldifFile'         : '%s/privileges/export_task_out2.ldif' % remote.data ,
-                    'expectedRC'       : 50
+                   'expectedRC'       : 1
                   }
-                  </call>
+                </call>
+
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
+                 <call function="'searchString'">
+                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
+                  'returnString'	 : resultString
+                }
+                </call>
                        
-                  <call function="'testCase_Postamble'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
             </testcase>
@@ -248,27 +274,26 @@
       
               <sequence>
       
-                  <call function="'testCase_Preamble'"/>
+                <call function="'testCase_Preamble'"/>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'taskID'           : '1.1' ,
                     'ldifFile'         : '%s/privileges/export_task_out3.ldif' % remote.data
                   }
-                  </call>
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Directory Manager, alternative root user removing privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : 'cn=Aroot' ,
@@ -277,28 +302,37 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : '-ldif-export' ,
                       'changetype'             : 'add' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'taskID'           : '1.2' ,
                     'ldifFile'         : '%s/privileges/export_task_out4.ldif' % remote.data ,
-                    'expectedRC'       : 50
+                    'expectedRC'       : 1
                   }
-                  </call>
+                </call>
+
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
+                 <call function="'searchString'">
+                { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
+                  'returnString'	 : resultString
+                }
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Directory Manager, alternative root user putting back privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : 'cn=Aroot' ,
@@ -307,23 +341,22 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : '-ldif-export' ,
                       'changetype'             : 'delete' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'taskID'           : '1.3' ,
                     'ldifFile'         : '%s/privileges/export_task_out5.ldif' % remote.data
                   }
-                  </call>
+                </call>
                        
-                  <call function="'testCase_Postamble'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
             </testcase>
@@ -350,39 +383,38 @@
       
               <sequence>
       
-                  <call function="'testCase_Preamble'"/>
+                <call function="'testCase_Preamble'"/>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, New Root User, preamble, alternative root user adding new root user'
-                  </message>
+                </message>
       
-                  <call function="'addEntry'">
+                <call function="'addEntry'">
                     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'        : 'cn=Aroot' ,
                       'dsInstancePswd'      : 'PrivsRule' ,
                       'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % remote.data }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif, New Root User, new root user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'taskID'           : '1.4' ,
                     'ldifFile'         : '%s/privileges/export_task_out6.ldif' % remote.data
                   }
-                  </call>
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif,  New Root User, alternative root user removing privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : 'cn=Aroot' ,
@@ -391,28 +423,37 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : '-ldif-export' ,
                       'changetype'             : 'add' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'taskID'           : '1.5' ,
                     'ldifFile'         : '%s/privileges/export_task_out7.ldif' % remote.data ,
-                    'expectedRC'       : 50
+                   'expectedRC'       : 1
                   }
-                  </call>
+                </call>
+
+                <script>
+                 resultString = STAXResult[0][1]
+                </script>
+
+                 <call function="'searchString'">
+                { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
+                  'returnString'	 : resultString
+                }
+                </call>
                   
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif,  New Root User, alternative root user putting back privilege'
-                  </message>
+                </message>
    
-                  <call function="'modifyAnAttribute'">
+                <call function="'modifyAnAttribute'">
                     { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'           : 'cn=Aroot' ,
@@ -421,23 +462,22 @@
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : '-ldif-export' ,
                       'changetype'             : 'delete' }
-                  </call>
+                </call>
       
-                  <message>
+                <message>
                      'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
-                  </message>
+                </message>
       
-                  <call function="'exportLdifTask'">
+                <call function="'exportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'taskID'           : '1.6' ,
                     'ldifFile'         : '%s/privileges/export_task_out8.ldif' % remote.data
                   }
-                  </call>
+                </call>
                        
-                  <call function="'testCase_Postamble'"/>
+                <call function="'testCase_Postamble'"/>
       
               </sequence>
             </testcase>
@@ -450,14 +490,14 @@
               <message>'Finally: Global Privileges Export Task Cleanup.'</message>
               <try>
                 <call function="'common_cleanup'" />
-              <catch exception="'STAFException'">
-                <sequence>
-                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
-                </sequence>
-              </catch>
-              <finally>
-                <call function="'testSuite_Postamble'"/>
-              </finally>
+                <catch exception="'STAFException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                  </sequence>
+                </catch>
+                <finally>
+                  <call function="'testSuite_Postamble'"/>
+                </finally>
               </try>
             </sequence>
           </finally>

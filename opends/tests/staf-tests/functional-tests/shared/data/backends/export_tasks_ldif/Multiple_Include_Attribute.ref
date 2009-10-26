@@ -1,0 +1,1269 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: dc=com
+objectClass: domain
+objectClass: top
+
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+
+dn: cn=Directory Administrators,ou=Groups,dc=example,dc=com
+objectClass: groupofuniquenames
+objectClass: top
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+
+dn: ou=Special Users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+
+dn: uid=scarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Sam
+mail: scarter@example.com
+
+dn: uid=tmorris,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Ted
+mail: tmorris@example.com
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Kirsten
+mail: kvaughan@example.com
+
+dn: uid=abergin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Andy
+mail: abergin@example.com
+
+dn: uid=dmiller,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: David
+mail: dmiller@example.com
+
+dn: uid=gfarmer,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Gern
+mail: gfarmer@example.com
+
+dn: uid=kwinters,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Kelly
+mail: kwinters@example.com
+
+dn: uid=trigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Torrey
+mail: trigden@example.com
+
+dn: uid=cschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Chris
+mail: cschmith@example.com
+
+dn: uid=jwallace,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Judy
+mail: jwallace@example.com
+
+dn: uid=jwalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: John
+mail: jwalker@example.com
+
+dn: uid=tclow,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Torrey
+mail: tclow@example.com
+
+dn: uid=rdaugherty,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Robert
+mail: rdaugherty@example.com
+
+dn: uid=jreuter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jayne
+mail: jreuter@example.com
+
+dn: uid=tmason,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Torrey
+mail: tmason@example.com
+
+dn: uid=bhall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Benjamin
+mail: bhall@example.com
+
+dn: uid=btalbot,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Brad
+mail: btalbot@example.com
+
+dn: uid=mward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Marcus
+mail: mward@example.com
+
+dn: uid=bjablons,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barbara
+mail: bjablons@example.com
+
+dn: uid=jmcFarla,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Judy
+mail: jmcFarla@example.com
+
+dn: uid=llabonte,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Lee
+mail: llabonte@example.com
+
+dn: uid=jcampaig,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jody
+mail: jcampaig@example.com
+
+dn: uid=bhal2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barbara
+mail: bhal2@example.com
+
+dn: uid=alutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Alexander
+mail: alutz@example.com
+
+dn: uid=btalbo2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Bjorn
+mail: btalbo2@example.com
+
+dn: uid=achassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Ashley
+mail: achassin@example.com
+
+dn: uid=hmiller,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Harry
+mail: hmiller@example.com
+
+dn: uid=jcampai2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jeffrey
+mail: jcampai2@example.com
+
+dn: uid=lulrich,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Lee
+mail: lulrich@example.com
+
+dn: uid=mlangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Marcus
+mail: mlangdon@example.com
+
+dn: uid=striplet,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Stephen
+mail: striplet@example.com
+
+dn: uid=gtriplet,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Gern
+mail: gtriplet@example.com
+
+dn: uid=jfalena,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: John
+mail: jfalena@example.com
+
+dn: uid=speterso,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Sue
+mail: speterso@example.com
+
+dn: uid=ejohnson,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Emanuel
+mail: ejohnson@example.com
+
+dn: uid=prigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Peter
+mail: prigden@example.com
+
+dn: uid=bwalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Brad
+mail: bwalker@example.com
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Kurt
+mail: kjensen@example.com
+
+dn: uid=mlott,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Mike
+mail: mlott@example.com
+
+dn: uid=cwallace,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Cecil
+mail: cwallace@example.com
+
+dn: uid=tpierce,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tobias
+mail: tpierce@example.com
+
+dn: uid=rbannist,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Richard
+mail: rbannist@example.com
+
+dn: uid=bplante,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Brian
+mail: bplante@example.com
+
+dn: uid=rmills,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Randy
+mail: rmills@example.com
+
+dn: uid=bschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Benjamin
+mail: bschneid@example.com
+
+dn: uid=skellehe,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Sue
+mail: skellehe@example.com
+
+dn: uid=brentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Bertram
+mail: brentz@example.com
+
+dn: uid=dsmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Daniel
+mail: dsmith@example.com
+
+dn: uid=scarte2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Stephen
+mail: scarte2@example.com
+
+dn: uid=dthorud,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: David
+mail: dthorud@example.com
+
+dn: uid=ekohler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Elba
+mail: ekohler@example.com
+
+dn: uid=lcampbel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Laurel
+mail: lcampbel@example.com
+
+dn: uid=tlabonte,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tim
+mail: tlabonte@example.com
+
+dn: uid=slee,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Scott
+mail: slee@example.com
+
+dn: uid=bfree,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Bjorn
+mail: bfree@example.com
+
+dn: uid=tschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Torrey
+mail: tschneid@example.com
+
+dn: uid=prose,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Paula
+mail: prose@example.com
+
+dn: uid=jhunter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Janet
+mail: jhunter@example.com
+
+dn: uid=ashelton,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Alexander
+mail: ashelton@example.com
+
+dn: uid=mmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Marcus
+mail: mmcinnis@example.com
+
+dn: uid=falbers,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Frank
+mail: falbers@example.com
+
+dn: uid=mschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Martin
+mail: mschneid@example.com
+
+dn: uid=pcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Patricia
+mail: pcruse@example.com
+
+dn: uid=tkelly,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Timothy
+mail: tkelly@example.com
+
+dn: uid=ahel,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Andrew
+mail: ahel@example.com
+
+dn: uid=jburrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: James
+mail: jburrell@example.com
+
+dn: uid=smason,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Sue
+mail: smason@example.com
+
+dn: uid=ptyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Pete
+mail: ptyler@example.com
+
+dn: uid=calexand,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Chris
+mail: calexand@example.com
+
+dn: uid=jcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jim
+mail: jcruse@example.com
+
+dn: uid=kcarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Karen
+mail: kcarter@example.com
+
+dn: uid=rfish,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Randy
+mail: rfish@example.com
+
+dn: uid=phunt,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Philip
+mail: phunt@example.com
+
+dn: uid=rschneid,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Rachel
+mail: rschneid@example.com
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barbara
+mail: bjensen@example.com
+
+dn: uid=jlange,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jim
+mail: jlange@example.com
+
+dn: uid=rulrich,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Randy
+mail: rulrich@example.com
+
+dn: uid=rfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Richard
+mail: rfrancis@example.com
+
+dn: uid=mwhite,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Morgan
+mail: mwhite@example.com
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Gern
+mail: gjensen@example.com
+
+dn: uid=awhite,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Alan
+mail: awhite@example.com
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barbara
+mail: bmaddox@example.com
+
+dn: uid=mtalbot,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Martin
+mail: mtalbot@example.com
+
+dn: uid=jbrown,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Judy
+mail: jbrown@example.com
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jody
+mail: jjensen@example.com
+
+dn: uid=mcarter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Mike
+mail: mcarter@example.com
+
+dn: uid=dakers,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: David
+mail: dakers@example.com
+
+dn: uid=sfarmer,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Scott
+mail: sfarmer@example.com
+
+dn: uid=dward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Daniel
+mail: dward@example.com
+
+dn: uid=tward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tobias
+mail: tward@example.com
+
+dn: uid=pshelton,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Patricia
+mail: pshelton@example.com
+
+dn: uid=jrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jody
+mail: jrentz@example.com
+
+dn: uid=plorig,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Peter
+mail: plorig@example.com
+
+dn: uid=ajensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Allison
+mail: ajensen@example.com
+
+dn: uid=kschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Kelly
+mail: kschmith@example.com
+
+dn: uid=pworrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Pete
+mail: pworrell@example.com
+
+dn: uid=mreuter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Matthew
+mail: mreuter@example.com
+
+dn: uid=gtyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Gern
+mail: gtyler@example.com
+
+dn: uid=tschmith,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tobias
+mail: tschmith@example.com
+
+dn: uid=bjense2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Bjorn
+mail: bjense2@example.com
+
+dn: uid=dswain,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Dietrich
+mail: dswain@example.com
+
+dn: uid=ahall,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Andy
+mail: ahall@example.com
+
+dn: uid=jmuffly,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jeff
+mail: jmuffly@example.com
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Ted
+mail: tjensen@example.com
+
+dn: uid=ahunter,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Allison
+mail: ahunter@example.com
+
+dn: uid=jgoldste,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jon
+mail: jgoldste@example.com
+
+dn: uid=aworrell,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Alan
+mail: aworrell@example.com
+
+dn: uid=wlutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Wendy
+mail: wlutz@example.com
+
+dn: uid=jlutz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Janet
+mail: jlutz@example.com
+
+dn: uid=dlangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Dan
+mail: dlangdon@example.com
+
+dn: uid=aknutson,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Ashley
+mail: aknutson@example.com
+
+dn: uid=kmcinnis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Kelly
+mail: kmcinnis@example.com
+
+dn: uid=tcouzens,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Trent
+mail: tcouzens@example.com
+
+dn: uid=lstockto,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Lee
+mail: lstockto@example.com
+
+dn: uid=jbourke,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jon
+mail: jbourke@example.com
+
+dn: uid=dlanoway,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Dan
+mail: dlanoway@example.com
+
+dn: uid=kcope,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Karl
+mail: kcope@example.com
+
+dn: uid=abarnes,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Anne-Louise
+mail: abarnes@example.com
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Richard
+mail: rjensen@example.com
+
+dn: uid=phun2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Pete
+mail: phun2@example.com
+
+dn: uid=mvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Matthew
+mail: mvaughan@example.com
+
+dn: uid=jlut2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: James
+mail: jlut2@example.com
+
+dn: uid=mjablons,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Morgan
+mail: mjablons@example.com
+
+dn: uid=pchassin,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Peter
+mail: pchassin@example.com
+
+dn: uid=dcope,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Dan
+mail: dcope@example.com
+
+dn: uid=jrent2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Judy
+mail: jrent2@example.com
+
+dn: uid=tcruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tobias
+mail: tcruse@example.com
+
+dn: uid=eward,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Eric
+mail: eward@example.com
+
+dn: uid=ttully,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Torrey
+mail: ttully@example.com
+
+dn: uid=charvey,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Cecil
+mail: charvey@example.com
+
+dn: uid=rfisher,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Randy
+mail: rfisher@example.com
+
+dn: uid=alangdon,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Andrew
+mail: alangdon@example.com
+
+dn: uid=drose,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: David
+mail: drose@example.com
+
+dn: uid=polfield,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Peter
+mail: polfield@example.com
+
+dn: uid=awalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Andy
+mail: awalker@example.com
+
+dn: uid=lrentz,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Lex
+mail: lrentz@example.com
+
+dn: uid=jvaughan,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jeff
+mail: jvaughan@example.com
+
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barbara
+mail: bfrancis@example.com
+
+dn: uid=ewalker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Eric
+mail: ewalker@example.com
+
+dn: uid=tjames,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Tobias
+mail: tjames@example.com
+
+dn: uid=brigden,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Bjorn
+mail: brigden@example.com
+
+dn: uid=ecruse,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Eric
+mail: ecruse@example.com
+
+dn: uid=rjense2,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Randy
+mail: rjense2@example.com
+
+dn: uid=rhunt,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Richard
+mail: rhunt@example.com
+
+dn: uid=bparker,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Barry
+mail: bparker@example.com
+
+dn: uid=ealexand,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Erin
+mail: ealexand@example.com
+
+dn: uid=mtyler,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Matthew
+mail: mtyler@example.com
+
+dn: uid=elott,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Emanuel
+mail: elott@example.com
+
+dn: uid=cnewport,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Christoph
+mail: cnewport@example.com
+
+dn: uid=jvedder,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+givenName: Jeff
+mail: jvedder@example.com
+
+dn: cn=Accounting Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=HR Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=QA Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: cn=PD Managers,ou=groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+objectClass: top
+
+dn: ou=Company Servers,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+

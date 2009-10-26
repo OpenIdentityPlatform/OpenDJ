@@ -53,17 +53,17 @@
             <call function="'testSuite_Preamble'"/>
 
             <try>
-              <sequence> 
+              <sequence>
 
                 <call function="'common_setup'">
                   {
                     'quickStart'  : False ,
-                    'startServer' : True ,
+                    'startServer' :  False,
                     'loadData'    : False ,
                     'stopServer'  : False
                   }
                 </call>
- 
+                
                 <!-- List of Import of Test Functions -->
                 <script>
                   exportList=[]
@@ -74,12 +74,33 @@
                 <iterate var="__export" in="exportList">
                   <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/%s.xml' % (__groupdir,__export)"/>
-                </iterate>                                                                       
+                </iterate>
                                                     
                 <!-- List of Test Cases -->
                 <script>
                   testsList=[]
+                  testsList.append('backends_import_default')
+                  testsList.append('backends_import_nonDefault')
                   testsList.append('backends_export_tasks_001')
+                  testsList.append('backends_export_tasks_002')
+                  testsList.append('backends_export_tasks_003')
+                  testsList.append('backends_export_tasks_004')
+                  testsList.append('backends_export_tasks_005')
+                  testsList.append('backends_export_tasks_006')
+                  testsList.append('backends_export_tasks_007')
+                  testsList.append('backends_export_tasks_008')
+                  testsList.append('backends_export_tasks_009')
+                  testsList.append('backends_export_tasks_010')
+                  testsList.append('backends_export_tasks_011')
+                  testsList.append('backends_export_tasks_012')
+                  testsList.append('backends_export_tasks_013')
+                  testsList.append('backends_export_tasks_014')
+                  testsList.append('backends_export_tasks_015')
+                  testsList.append('backends_export_tasks_016')
+                  testsList.append('backends_export_tasks_017')
+                  testsList.append('backends_export_tasks_018')
+                  testsList.append('backends_export_tasks_019')
+                  testsList.append('backends_export_tasks_020')
                 </script>
 
                 <!-- Execute the Tests -->
@@ -87,21 +108,21 @@
                   <sequence>
                     <call function="'%s' % (__test)" />
                   </sequence>
-                </iterate>                
+                </iterate>
                                 
               </sequence>
-            <catch exception="'STAFException.TestSuite.SetupException'">
-              <sequence>
-                <message log="1" level="'fatal'">
+              <catch exception="'STAFException.TestSuite.SetupException'">
+                <sequence>
+                  <message log="1" level="'fatal'">
                   'Setup of test suite failed.'
-                </message>
-                <rethrow/>
-              </sequence>
-            </catch>
+                  </message>
+                  <rethrow/>
+                </sequence>
+              </catch>
 
-            <finally>
-              <message>'Test Cases Completed.'</message>
-            </finally>
+              <finally>
+                <message>'Test Cases Completed.'</message>
+              </finally>
 
             </try>
 
@@ -113,14 +134,14 @@
               <message>'Finally: Global Schema Cleanup.'</message>
               <try>
                 <call function="'common_cleanup'" />
-              <catch exception="'STAFException'">
-                <sequence>
-                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
-                </sequence>
-              </catch>
-              <finally>
-                <call function="'testSuite_Postamble'"/>
-              </finally>
+                <catch exception="'STAFException'">
+                  <sequence>
+                    <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                  </sequence>
+                </catch>
+                <finally>
+                  <call function="'testSuite_Postamble'"/>
+                </finally>
               </try>
             </sequence>
           </finally>

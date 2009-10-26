@@ -1,0 +1,115 @@
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: ou=masterModifyDN,o=example
+objectClass: top
+objectClass: organizationalunit
+ou: masterModifyDN
+
+dn: ou=A,ou=masterModifyDN,o=example
+objectClass: top
+objectClass: organizationalunit
+ou: A
+
+dn: uid=user.0,ou=A,ou=masterModifyDN,o=example
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaccf
+sn: Amar
+cn: Aaccf Amar
+initials: AUA
+employeeNumber: 0
+uid: user.0
+mail: user.0@example.com
+userPassword: password
+telephoneNumber: +1 496 709 1644
+pager: +1 542 068 5162
+mobile: +1 830 626 1904
+street: 25322 Hill Street
+l: Parkersburg
+st: ID
+postalCode: 07186
+postalAddress: Aaccf Amar - 25322 Hill Street - Parkersburg, ID  07186
+description: This is the description for Aaccf Amar.
+description: This is a seconde description  0548608245
+jpegPhoto:: SJgn1C9SQgIxuCggSnAuaHJQ2lrVX05UUZLqcxORI6vmmmQqy0kX/kNYb8QoXTmfE6T+J9vAG+TLAIEqK6edJAkWU+Nsm4JG8TXY8UQO1qS4CxSGGThjPh5AgTJYOSKceYqwmTZRM1/Bpdwln8iMQOEXbDqIuuwOd3Cbz8nzpDSUfOd+fjiCF0oe7mGydRdQFYOlD708ziC4k95xwnos/xWE3tDoGokYmG8dufCDrCh0KOqkcDa14/N8Zw3wIH4pAikmv3FDtIky0qyZ7IPpcOYX5HwnW4M7fIeRj3PjLiwflYZ/UF5TWY05+vTzoeL72o9g4kgIJlZbv8IgOm4RfXzF17L+FwodSnzYdIP3I+foXRkzGoljxl3TQ0ZIJ/dMy6ZTeT27InYgRY7oaU9BcbAsPn0FCNJgVm1+ifp4ngg1eoc0u5gtvIGWH3v9TFc69cHr2NC6gJ74MG8/dZsG+emRQq7Ymq/7txbVBWKMSmpuzpaouR+QYWc1QPmTy0K4PiwjRqNPQOGCHhjTnDXGwuX99BIu6UYjdSa19F2j0MNxkMRjmv+fWcMvwNZuzXWzv68bzX9BpYfPNmS1wTzkaGw7mI24cQF2LTrhTZjHOa+m0Vu/f3Tt5ytolLuz65PijLNEu6LNYoE/JwoLiIwrCU3ECcr0M4YXJjN6m6K+nnVxQdqmZS8wy8rZT33+Ya7dRI7rbinF5qACoJhb1TozUh/z6bVTJrrV42SqJgIjLNhJutxYBp4Nem9dfc3MCd5osE6xy9d7Z81+QdQ0wdiCBcfwHJCHe5lSY6YWtCpuCiupuG20BCz6BKplaZ0di1pXYJYNL+BrLA7TBP7eF3FAA/Zn6VFpFNXpulYKjnKjZ1FccGP7p/4BPZ4BassmOxWSau9GuZSo1fy7boS0XxrLxXXxbrWHuUIHE1trMPpeNGK5LqNmCAQ2mzHgxpS5pvJ80qBAYof4NUsNyvREb0/zhsCO6LwQh4PkeCLgmOBw
+jpegPhoto:: aBrvAyl0HWGpWm0Q7M2xMZ5xYuLjNZ2N8xsdHczaMgbInCOMAZ2XP4dO9tXKpxcwh3+09g1lpr8cf+w8YouZgej3K0dtYuCeU3dH+rWIe9qdrSU/ErWLtkZq+/YjmRwg0QAB4lzsD6nD+Lkx86pgY6/1OjoocY7cuJQI/Pydwx3SI0Lwlek087rA0bUCZEt7oVjqdh8nxu0tbhUViVI4AdPbHOxta3/PrRpFsJsusFdUPCwLTpCk1jcy0Q61JyiUJcPLJ045yf0Ejn49nBmF07Q1pgKbD0UODvoxMWk8QtSug/BPyp5CMNWNaW+8jzJojG8SNBqNH21EwdWP3gxKc6S0UeGi2ouWUTXG6H6QKxWA4deDY4k2QiLINdRyK3jDc3fVolZrdZKuoh1kmC2UF4sPST22YrrCuDH0VzcZ35AdONDnE+Dt+t3LoEvCEcFFuVUJHhaAXkj6l0lkdd6fa1IXjNQUNe1nSmIWnLX+BDm1XEtfF0xJaPCuw2YQ/VFXt5OQ9M/sGJ0aInuu3V7Hqqe0DGz6YyvFWFjjhMUPmqy4drZg9xuu+dIKiRhq7N5e+0uwQliL6EloyNo1z3ZsApB81wL1KiLvflTl4X0IQWGAZXe6JJSi+a0rpKzvX0h8Z8ChlnILtRecRbadCGPlpuWaCNdHtQHyy8+kjiIHaLV67Nvf8TkqqVItXaVM+2uF2sbIKh5rTGPFOHbmAsUi2HpNRAjArVC29Lwd4GzVzTGD0i/+U9/a4jAhWYofoHp2dBI+wObVRR1FoL3+MNkiBnVEj0aq2T16xkO3y+cPXLEY/R2Totz/L6V2tu4vKb9xUPrMvbTgDgE6kF0xz3WKAGqEdSbP930i2xX0BzT4wav/JSZtkMquWukclp0KmkTxh5362Gbl3QrGXi44J2qo38MvS+t3GatAR5YaXuFhexheyzFOyp3fpKhkZ2ALkPwLFwE+csVFzXe0i/szgFfISbWuOGnlrFJad3n700a/
+
+dn: uid=user.1,ou=A,ou=masterModifyDN,o=example
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaren
+sn: Atp
+cn: Aaren Atp
+initials: APA
+employeeNumber: 1
+uid: user.1
+mail: user.1@example.com
+userPassword: password
+telephoneNumber: +1 099 123 0399
+pager: +1 060 238 2392
+mobile: +1 792 029 9403
+street: 19012 Ninth Street
+l: Jacksonville
+st: KY
+postalCode: 06553
+postalAddress: Aaren Atp - 19012 Ninth Street - Jacksonville, KY  06553
+description: This is the description for Aaren Atp.
+description: This is a seconde description  5540536681
+jpegPhoto:: QviSbNRxrKCS6wN3AcXUyg+fE/xzh0eeuJlORDPEnnSlCy65IFPymAHoCQ46bI47FKW6G6sRpTpRJrU0816QRUMDp8UvRphiL0qTw4HK1VI/ID1CiqFtxgCZ2aMAQl3r1D9hxyTvJxkBwyBt5OpI3LQNtxlnZMTIX6EVjwvagRm1dko1eV820lu2zxLBKZMDDKZSMAjvsAiXpOD9k6CGDUOlCUbfRstBXipYk7Pec15yqRpOd7Y1THjODO9Kv6zBlqUq1bEsTotLdM+XZaPlR8ex9TJYn75zvhkLPhMXuoCP08tpEuSUaCIg2wbaraxq2hy3g5UM0O3BQ+M5NsYFe2cUiGSoSpPHFGs2WCUzN07JhFFtl0N+0JAbLSJMH83qwR1umhU7eQlhxKrkAiG+fnwJ4LazpmVd+EFBbIrX01RaQ3i2KVAcChNRRbnb8WXWGiODh8VyDQz69mxMrufS5btbdwI4Z+0a2Wcft0ZGJLm5X7eyuaeo4i4+QdJN8HhMW1HlGyx3CeqTbo5itTwYA9bBVW6M8aQV2FjRcR+YuFY7iEwXIZzWeOz1g+Uvijb0B01ZCqglaCIe6IZx84R7+OfcuV42FXIrifpa2K3tk/yPug0B5SHrjJItg43CqmfZr9XyIyMt317BtpXzZ1IWyvAU4j7SkPsqLv+Bdgzob48doKUcasRvI3wo097/b+Qx9YUn76Wd4YCAJdZtyjRCJILOw4O7ty6lFvFBBweQcZx9mGwLuII/e3OI1BE0N/254QVSw0mcA4yQ+uL/l47uzRYNEpi31DRfzPeN/yzgWOEcK9wT1vU+r60xdgk2Pm2v3aAKgHA6JJPFBerIYEtfLD4oygnJC99j3at5OJgaKGd29/0/Lkqjl+RWaVVlqV1/peYZwOLjYhVeSAfs8XRcvjvwKvpysMRnrHRIi0jYLHe2G4+GMP7se1cu4xQfFdJ30H5UR5j0g2Lv3iB/s8Woxeneb8f57wImYXmVkZus
+jpegPhoto:: 85cvWkS03ZE55m8yTPHkupTngCrbUAfw0UQ35x3OvdPfeot4qpGrWzhMvm2bIH0aJukCTLfu+QPrTkbQzI8x7OBr1RsuQ9tQOp3Bcn09QG5GBaYLZzDusUrD5MHbECcQf67VizWO6E8I/1x86o4gRAg7rICon3U8vwACvpIbmCjglAXEwSs0B0vtXxAxzuSUwxav+Ubcvq3nwzYP6gjvNcX6Lo0Y01LYR6G8ty+Cpbr0KCOw6uqQ1i8hyo/xDpuzfB588eUSO5M5rI9amF/rBNHLbON0Pc/0Ak1ET5mk60ws0zcTGyQ2KGTv5D53SABIR20iYUk+xTlE5KASnyDphuDZ/WGdA0oMwbkJHYdn94Bi+0LjX8t+jPvhO1QPv/NVPKJLLjz6UbOxcrmcRRF9ApnvuO088FPbCLqGyvD+ZZYtbKMrQ4tvUUozQb9CihLOYs88T8hFlg0E3ll1v+jq+NP4+Qd9TipUhsr/ZW0Hd0K3b7f+yVs0VnIc3qb63hd7JafH2dk7tuxeIlr97MvgI8+kw6bW9EVevwfL9zzL1C6TNkiaLUKZho3DiySOL1X5reCCm/ollIMFVsnpzoSu93KoyDXs0M72vQ3B6uj1PcRBIbmcjBRydX1NFGjuMazjVohw0Y19gsGgdPHNKi4uxL+ViEoLzyKl70OKkNyQZjzSmEJi6D8t7XQPjKZrOKZTKO7i08J7gJK1IGM+7KyRcqTho5LA1zWNcDhHgqR0i9roFwMFvXcMiO2U8XOcHLYBNk896nHSAXI3fx0u48m6WMLBeFIUuLUhMR0hBCkFW0oRWuk0DjnLUdJbSJczlkpP9/SP0vQKH0o7zrBHDB1L7Fjq8Seowm85IrI0v71og0xcF3Tp8maKPG0ZVfpXJxfn8NaTj4jvQMXGZFSBnUbL328y60uiQGDBW+SB2pe6nROhZ0DXePG0xp42nJR+kP5/zT6IFlIwn9I8LvXP4MkjkSFR241aEN9UUtUItOQK
+
+dn: uid=user.2,ou=A,ou=masterModifyDN,o=example
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aarika
+sn: Atpco
+cn: Aarika Atpco
+initials: AUA
+employeeNumber: 2
+uid: user.2
+mail: user.2@example.com
+userPassword: password
+telephoneNumber: +1 060 723 1059
+pager: +1 440 777 5507
+mobile: +1 734 805 0238
+street: 04305 Ash Street
+l: Presque Isle
+st: MO
+postalCode: 42519
+postalAddress: Aarika Atpco - 04305 Ash Street - Presque Isle, MO  42519
+description: This is the description for Aarika Atpco.
+description: This is a seconde description  1046409666
+jpegPhoto:: bm01wvP1qOQJeoZI7tpr02E9CqxwWcg7kEkVxJq/0YVVEC3qLU/ZqcEcmjuXMTbQGkB/23daAbruqBCQLKjr2k3wgTiPNyAsD/XweF0EjTOw/JYglJ8RSO4yZbbOtqRrab8RpmzUDkK7nmOcacY4ixb6c499F0ZDoE0XG2aKKpQBm05+O82bGtHGPW0D09AUQUYHqqq57ebae28TOxDO8j1X4Bk0jFxVUdswcd3PIuviMZs0vdq/egZAtA5OAKf82HDbpj2AnTdeRXkqzFYwq404MD3fnxONvegAXVqSPDijoGSt/7Aej68fuHwHQudf+nRdJZC3LBJGEoxTaKqpVzgbOJ2WFyz/r+OOeVTg5VyaSBZl8K1sNZ5X6xpFhh1kffpnrCKSKlNiayiIh1sRFTLV0JPQDR0aUiagaH03/sGZI8jr7W7bS70ybnI2lUIjMjwoA6AqmepDcfF5YIPUzurtIx/XMP26D2zLlBjMJie57y9mpIZbkMxwjJGRqg2IOg0YQBhSp843fdIKJhT4dmwSMXheb8IYn7rFgx5+hEOJBIO8WVUIK/0bb3E9Nu3YZSy7W8THej9tElkOc6cUw4XGEIHlKRTpxpVsUM6GCCGvwwNH3IWhUuT0fn/6fhvHE89MItJSCR5qgZ3EeL6sIz2br6SG5HA8sufRX4FwREH+MPn8su/24bMiexyBT+WOxxqWy2bx2M3D+CrLq+LgcaqDqZOab5qffUoPs/EappmehO+UClhrBaXLyh9+qc/8FSoYyUe8okV8D0TnoOG/LG4jR38DoyxIlGiKV2UeLeTvvUI6OBJa1WADPDHrg/9+JehNigNSVbjE0tTw88SA8L5occ6YhS/tV1uJOu0W8RIhERb0We6cA34E1854XZ0PqlzmLFguywYnVpxXG1SXpo59i4Hr/bgxUQq0RjxBpGdg3yBJpJ0oWnvMQHJ8HYAmOYINXEjoaEF257JWILCgFah9Rx0qHZv9/9jwKscS
+jpegPhoto:: Aetnjx+7gLWcm2bKic6alq7hcFfQ83cEOg7/W6k7wJ+DTXTfrNc2nx9r9EYcubkJnYzv+IzYnSVivjru8svlUNnOWkT5v4soXj+AWXbH83rb1ggiBLWAQ+AdpKlwb/bI/eqARHeB8IKx+A0QN+jWIT1HZOlqZ0YyBB/Jy45O+ymXF4YGsR3cWt31rDV4++LwrPrn685/DuVyI3tLtzDc+37x6PW68BA8U01B/6aOJrBf94BpBzAdMPVbReNouX9qM7O07GB60yjLZwkjrjgjfPpp0ZaVtKpaw6jAPVPAw6022JxGWodqe9q81GJqI2GQD0HduWPaXdx82VvWJdMm42A9Gb7U9flqWC0atY/IqiEta07b0jPbpuLSbIaue9cyEuL1isg0rVPhM9oJbLLhO1cWBxOg0RjXT681MW+7iuPxkcGbVy1KkG6jFTorHcZ849h2/TxYKUsoSsUd5ns1slS0Q0V+vthgojQOIZFFYngCOQMWZUw0uEaGigY0HMI6dsTlp0DmDnFA48vShoGbsuAV/81IlEzcMwTdIR58ms+NXCi4J2rmyHBfVykFx2HG2k/Hs+8SmlEK+dHhy0K0FR94tjNuGg0HXgKP/KgJl6Nbqi0iMnHSD6/xw86Q/lwKdqB7TJoiF1kcBEMk4PzrZyR00DDi4GNCpDesfX0r4+MloHXrbjdy0bsH4gQC7qImw6FkZ2ZgO2Rjyqpp4Lu05pyo9GIx51tb0v7UFQQwsT7OPTD/IQj93niWRcIXaa41o961EEtG1XVtoxSaDvAD566FkWhgfiIbW9Qg1yFtFej0/fgiw82A7lbmXCBlcpg7KoWwRRjpQ0tCuynUq0sh6zhrq80D0uU8kvspRkK7gKxivTIB0cHI+ItiHn+szukl8hRqOWqiUs53+R3SiEeF2k5bPG7nZ0HG8CBd8RNz5iAueeLF1NYg0HWTHczVVzBuvyx0Km93eHSMUao45sHIK0gGyjueY4NAYOCMo4kk
+
+dn: ou=B,ou=masterModifyDN,o=example
+objectClass: top
+objectClass: organizationalunit
+ou: B
+

@@ -702,6 +702,84 @@
     </sequence>
   </function>
 
+  <function name="isStopped" scope="local">
+    <function-prolog>
+      Checks that the ldap server is stopped
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" 
+                        type="optional"
+                        default="10">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="noOfMilliSeconds" 
+                        type="optional"
+                        default="2000">
+        <function-arg-description>
+          Number of seconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>checkRC=9999</script>
+      <loop from="1" to="noOfLoops" var="loop" while="checkRC != 48">
+        <sequence>
+          <message>
+            'Check if %s/logs/server.pid still exists on host %s' \
+            % (dsPath,location)
+          </message>
+
+          <call function="'GetEntry'">
+            { 'location'  : location,
+              'entry'     : '%s/logs/server.pid' % dsPath,
+              'attribute' : 'TYPE'
+            }
+          </call>
+
+          <script>
+            checkRC = RC
+          </script>
+
+          <message>'LOOP %s => RC %s' % (loop,checkRC)</message>
+
+          <message>'Sleep for %sms' % noOfMilliSeconds</message>
+          <call function="'Sleep'">
+            { 'sleepForMilliSeconds' : noOfMilliSeconds }
+          </call>
+        </sequence>
+      </loop>
+
+      <if expr="checkRC != 48">
+        <message>
+          'Server is not stopped after %sms \
+          (%s/logs/server.pid still exists on %s)' \
+          % (noOfLoops*noOfMilliSeconds,dsPath,location)
+        </message>
+      </if>
+    </sequence>
+  </function>
+
   <function name="Sleep">
     <function-prolog>
       Sleep for number of milliseconds
@@ -855,15 +933,23 @@
         if numFail == 0:
           if numPass == 0:
             _status='INCONCLUSIVE'
+            _result='unknown'
           else:
             _status='PASS'
+            _result='pass'
         else:
           if len(issuesList)==0:
             _status='FAIL'
+            _result='fail'
           else:
             _status='KNOWN ISSUES %s' % str(issuesList)
+            _result='fail'
       </script>
-      <message level="'status'">'## Test Verdict: %s ##' % _status</message>
+
+      <message level="'status'">
+        '## Test Verdict: %s ##' % _status
+      </message>
+
       <call function="'testCase_EndBanner'" />
 
       <script>
@@ -877,13 +963,22 @@
         xml.createAttr(doc,xml.testcase,"name",STAXCurrentTestcase)
         xml.createAttr(doc,xml.testcase,"duration",testcaseDuration)
         xml.createAttr(doc,xml.testcase,"group",ThisGroupName)
-        xml.createAttr(doc,xml.testcase,"result",_status)
+        xml.createAttr(doc,xml.testcase,"result",_result)
         xml.createAttr(doc,xml.testcase,"shortname",shortName.lower())
         xml.createAttr(doc,xml.testcase,"start",startTimestamp)
         xml.createAttr(doc,xml.testcase,"stop",testcaseEndTime)
         xml.createAttr(doc,xml.testcase,"suite",ThisSuiteName)
         xml.createAttr(doc,xml.testcase,"info",information)
         xml.testsuite.appendChild(xml.testcase)
+
+        if len(issuesList)!=0:
+          xml.issues = doc.createElement("issues")
+          xml.testcase.appendChild(xml.issues)
+
+          for issueID in issuesList:
+            xml.issue = doc.createElement("issue")
+            xml.createAttr(doc,xml.issue,"id",issueID)
+            xml.issues.appendChild(xml.issue)
 
         xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
       </script>
@@ -1702,6 +1797,9 @@
         else:
           env.append('PATH=/bin:/usr/bin:%s' % path)
           env.append('JAVA_HOME=%s' % JAVA_HOME)
+
+        if command.endswith('setup.bat') or command.endswith('uninstall.bat'):
+          arguments = arguments + ' &amp; set PROCESSRC=%ERRORLEVEL% &amp; exit %PROCESSRC%'
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -1745,7 +1843,7 @@
         </process>
       </else>
       </if>
-      
+
       <!-- The problem here is that STAXResult can either be a
            string, list or a map object -->
       <script>
@@ -2660,7 +2758,7 @@
 
          STAFCmdParams=' '.join(STAFCmdParamsList)
 
-         ld = 'LD_LIBRARY_PATH=%s/lib' % LDCLT_DIR
+         ld = 'LD_LIBRARY_PATH='
          env = ['%s' % ld]
        </script>
 
@@ -2834,7 +2932,63 @@
             prevVal = val
       </script>
 
-      <return> parsedEntry </return>      
+      <return> parsedEntry </return>
+    </sequence>
+  </function>
+
+
+  <!-- This function parses several ldif entries -->
+  <function name="parseLdifEntries">
+    <function-prolog>
+      This function parses several ldif entries and returns a list of 
+      dictionaries such as those produced by parseLdifEntry
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="ldifEntries" type="required">
+        <function-arg-description>
+          Ldif entries to parse (single string).
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        parsedEntryList = []
+        ldifEntryList = []
+        ldifEntryLines = []
+        ldifEntry = None
+        
+        for line in ldifEntries.splitlines():
+          notBlank = (len(line.strip()) != 0)
+          if notBlank:
+            ldifEntryLines.append(line)
+          else:
+            if len(ldifEntryLines) != 0:
+              ldifEntry = '\n'.join(ldifEntryLines)
+              ldifEntryList.append(ldifEntry)
+              ldifEntryLines = []
+        
+        if len(ldifEntryLines) != 0:
+          ldifEntry = '\n'.join(ldifEntryLines)
+          ldifEntryList.append(ldifEntry)
+          ldifEntryLines = []
+      </script>
+      
+      <if expr="len(ldifEntryList) != 0">
+        <iterate var="entryToParse" in="ldifEntryList">
+          <sequence>
+            <call function="'parseLdifEntry'">
+              { 'ldifEntry' : entryToParse }
+            </call>
+            <script>
+              parsedEntryList.append(STAXResult)
+            </script>
+          </sequence>
+        </iterate>
+      </if>
+      
+      <return> parsedEntryList </return>
     </sequence>
   </function>
 
