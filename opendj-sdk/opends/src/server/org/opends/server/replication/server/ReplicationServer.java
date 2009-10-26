@@ -1675,7 +1675,7 @@ public class ReplicationServer
 
     if (eligibleCN==null)
     {
-      eligibleCN = new ChangeNumber(0, 0, 0);
+      eligibleCN = new ChangeNumber(TimeThread.getTime(), 0, 0);
     }
 
     if (debugEnabled())

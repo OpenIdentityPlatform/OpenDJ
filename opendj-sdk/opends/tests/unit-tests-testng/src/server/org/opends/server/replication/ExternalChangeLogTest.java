@@ -173,6 +173,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   List<Control> NO_CONTROL = null;
 
+  private int brokerSessionTimeout = 5000;
   /**
    * Set up the environment for performing the tests in this Class.
    * Replication
@@ -232,6 +233,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
 
     ECLIncludeAttributes();replicationServer.clearDb();
+    
+    ChangeTimeHeartbeatTest();replicationServer.clearDb();
+
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
@@ -362,15 +366,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Create 3 ECL broker
       server1 = openReplicationSession(
           DN.decode("cn=changelog"), 1111,
-          100, replicationServerPort, 1000, false);
+          100, replicationServerPort, brokerSessionTimeout, false);
       assertTrue(server1.isConnected());
       server2 = openReplicationSession(
           DN.decode("cn=changelog"), 2222,
-          100, replicationServerPort,1000, false);
+          100, replicationServerPort,brokerSessionTimeout, false);
       assertTrue(server2.isConnected());
       server3 = openReplicationSession(
           DN.decode("cn=changelog"), 3333,
-          100, replicationServerPort,1000, false);
+          100, replicationServerPort,brokerSessionTimeout, false);
       assertTrue(server3.isConnected());
 
       // Test broker1 receives only Done
@@ -455,12 +459,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       server02 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
@@ -483,7 +487,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // open ECL broker
       serverECL = openReplicationSession(
           DN.decode("cn=changelog"), 10,
-          100, replicationServerPort, 1000, false);
+          100, replicationServerPort, brokerSessionTimeout, false);
       assertTrue(serverECL.isConnected());
 
       // receive change 1 from suffix 1
@@ -617,7 +621,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
@@ -775,12 +779,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       ReplicationBroker s2test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
       sleep(500);
 
       // Produce updates
@@ -1006,12 +1010,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker s1test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       ReplicationBroker s2test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
       sleep(500);
 
       time = TimeThread.getTime();
@@ -1231,14 +1235,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
       int ts = 1;
 
       // Creates broker on o=test2
       ReplicationBroker server02 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -1610,7 +1614,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
       int ts = 1;
 
       // Produce update on this suffix
@@ -1901,14 +1905,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
       int ts = 1;
 
       // Create broker on o=test2
       ReplicationBroker server02 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       // Produce update 1
       ChangeNumber cn1 =
@@ -2499,12 +2503,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          5000, true);
+          brokerSessionTimeout, true);
 
       ReplicationBroker s2test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
-          5000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
       sleep(500);
 
       // Produce updates
@@ -2539,12 +2543,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker s1test2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING2),  1203,
           100, replicationServerPort,
-          1000, true, EMPTY_DN_GENID);
+          brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       ReplicationBroker s2test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1204,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
       sleep(500);
 
       // Test startState ("first cookie") of the ECL
@@ -2574,26 +2578,42 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
       rsd1.getDbServerState();
       rsd1.getChangeTimeHeartbeatState();
-      debugInfo(tn, " DbServerState=" + rsd1.getDbServerState()
+      debugInfo(tn, rsd1.getBaseDn()
+          + " DbServerState=" + rsd1.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd1.getChangeTimeHeartbeatState()
-          + " eligibleCN=" + rsd1.getEligibleCN());
+          + " eligibleCN=" + rsd1.getEligibleCN()
+          + " rs eligibleCN=" + replicationServer.getEligibleCN());
       // FIXME:ECL Enable this test by adding an assert on the right value
 
       ReplicationServerDomain rsd2 =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
       rsd2.getDbServerState();
       rsd2.getChangeTimeHeartbeatState();
-      debugInfo(tn, " DbServerState=" + rsd2.getDbServerState()
+      debugInfo(tn, rsd2.getBaseDn()
+          + " DbServerState=" + rsd2.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
-          + " eligibleCN=" + rsd2.getEligibleCN());
+          + " eligibleCN=" + rsd2.getEligibleCN()
+          + " rs eligibleCN=" + replicationServer.getEligibleCN());
       // FIXME:ECL Enable this test by adding an assert on the right value
 
-      s1test.stop();
       s1test2.stop();
-      s2test.stop();
       s2test2.stop();
-
       removeTestBackend2(backend2);
+
+      Thread.sleep(1000);
+
+      rsd2.getChangeTimeHeartbeatState();
+      debugInfo(tn, rsd2.getBaseDn()
+          + " DbServerState=" + rsd2.getDbServerState()
+          + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
+          + " eligibleCN=" + rsd2.getEligibleCN()
+          + " rs eligibleCN=" + replicationServer.getEligibleCN());
+
+      s1test.stop();
+      s2test.stop();
+
+      Thread.sleep(1000);
+
     }
     catch(Exception e)
     {
@@ -2652,7 +2672,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          5000, true);
+          brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -2923,7 +2943,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
@@ -3312,7 +3332,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
@@ -3356,7 +3376,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationBroker server01 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
-          1000, true);
+          brokerSessionTimeout, true);
 
       // Publish 1 message
       ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), 1, 1201);
