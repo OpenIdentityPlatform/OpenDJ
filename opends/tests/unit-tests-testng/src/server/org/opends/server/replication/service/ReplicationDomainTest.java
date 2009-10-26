@@ -105,12 +105,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf1 =
         new ReplServerFakeConfiguration(
-            replServerPort1, "ReplicationDomainTestDb",
+            replServerPort1, "ReplicationDomainTestDb1",
             0, replServerID1, 0, 100, replserver2);
 
       ReplServerFakeConfiguration conf2 =
         new ReplServerFakeConfiguration(
-            replServerPort2, "ReplicationDomainTestDb",
+            replServerPort2, "ReplicationDomainTestDb2",
             0, replServerID2, 0, 100, replserver1);
 
       replServer1 = new ReplicationServer(conf1);;
@@ -344,7 +344,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
-            replServerPort, "ReplicationDomainTestDb",
+            replServerPort, "exportAndImportData",
             0, replServerID, 0, 100, null);
 
       replServer = new ReplicationServer(conf);
@@ -440,12 +440,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf1 =
         new ReplServerFakeConfiguration(
-            replServerPort1, "ReplicationDomainTestDb",
+            replServerPort1, "exportAndImportservice1",
             0, replServerID, 0, 100, null);
 
       ReplServerFakeConfiguration conf2 =
         new ReplServerFakeConfiguration(
-            replServerPort2, "ReplicationDomainTestDb",
+            replServerPort2, "exportAndImportservice2",
             0, replServerID2, 0, 100, replserver1);
 
       replServer1 = new ReplicationServer(conf1);
