@@ -572,24 +572,27 @@ public class ECLServerHandler extends ServerHandler
     draftCompat = true;
 
     DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
+
+    // Any (optimizable) condition on draft changenumber in the request filter ?
     if (startDraftCN <= 1)
     {
-      // Request filter does not contain any firstDraftCN
+      // Request filter DOES NOT contain any firstDraftCN
       // So we'll generate from the beginning of what we have stored here.
 
-      // Get the first DraftCN from DraftCNdb
+      // Get starting state from first DraftCN from DraftCNdb
       if (draftCNDb.count() == 0)
       {
-        // db is empty
+        // DraftCNdb IS EMPTY hence start from what we have in the changelog db.
         isEndOfDraftCNReached = true;
         crossDomainStartState = null;
       }
       else
       {
-        // get the generalizedServerState related to the start of the draftDb
+        // DraftCNdb IS NOT EMPTY hence start from
+        // the generalizedServerState related to the start of the draftDb
         crossDomainStartState = draftCNDb.getValue(draftCNDb.getFirstKey());
 
-        // Get an iterator to traverse the draftCNDb
+        // And get an iterator to traverse the draftCNDb
         try
         {
           draftCNDbIter =
@@ -611,14 +614,14 @@ public class ECLServerHandler extends ServerHandler
     }
     else
     {
-      // Request filter does contain a startDraftCN
+      // Request filter DOES contain a startDraftCN
 
       // Read the draftCNDb to see whether it contains startDraftCN
       crossDomainStartState = draftCNDb.getValue(startDraftCN);
 
       if (crossDomainStartState != null)
       {
-        // startDraftCN is present in the draftCnDb
+        // startDraftCN (from the request filter) is present in the draftCnDb
         // Get an iterator to traverse the draftCNDb
         try
         {
@@ -640,17 +643,18 @@ public class ECLServerHandler extends ServerHandler
       }
       else
       {
-        // startDraftCN provided in the request is not present in the draftCnDb
-        // Is the provided startDraftCN <= the potential last DraftCNdb
+        // startDraftCN provided in the request IS NOT in the DraftCNDb
+
+        // Is the provided startDraftCN <= the potential last DraftCN
 
         // Get the draftLimits (from the eligibleCN got at the beginning of
-        // the operation.
+        // the operation) in order to have the potential last DraftCN.
         int[] limits = replicationServer.getECLDraftCNLimits(
             eligibleCN, excludedServiceIDs);
 
         if (startDraftCN<=limits[1])
         {
-          // startDraftCN is between first and last and has never been
+          // startDraftCN is between first and potential last and has never been
           // returned yet
           if (draftCNDb.count() == 0)
           {
@@ -684,6 +688,7 @@ public class ECLServerHandler extends ServerHandler
         }
         else
         {
+          // startDraftCN is > the potential last DraftCN
           throw new DirectoryException(
               ResultCode.SUCCESS,
               Message.raw(Category.SYNC,
