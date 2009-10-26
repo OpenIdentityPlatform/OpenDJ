@@ -83,7 +83,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.TimeThread;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -2443,8 +2442,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   synchronized protected MonitorData computeMonitorData()
     throws DirectoryException
   {
-    // Update the monitorData of all domains if this was necessary.
+    // Update the monitorData of ALL domains if this was necessary.
     replicationServer.computeMonitorData();
+
+    // Returns the monitorData of THIS domain
     return monitorData;
   }
 
@@ -2932,51 +2933,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       ctHeartbeatState = this.getDbServerState().duplicate();
     }
     return ctHeartbeatState;
-  }
-
-  /**
-   * TODO: code cleaning - remove this method.
-   * Computes the change number eligible to the ECL.
-   * @return null if the domain does not play in eligibility.
-   */
-  public ChangeNumber computeEligibleCN2()
-  {
-    ChangeNumber eligibleCN = null;
-    ServerState heartbeatState = getChangeTimeHeartbeatState();
-
-    if (heartbeatState==null)
-      return null;
-
-    // compute eligible CN
-    ServerState hbState = heartbeatState.duplicate();
-
-    Iterator<Integer> it = hbState.iterator();
-    while (it.hasNext())
-    {
-      int sid = it.next();
-      ChangeNumber storedCN = hbState.getMaxChangeNumber(sid);
-
-      // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
-      // then the server is considered down and not considered for eligibility
-      if (TimeThread.getTime()-storedCN.getTime()>2000)
-      {
-        if (debugEnabled())
-          TRACER.debugInfo("In " + this.getName() +
-            " Server " + sid
-            + " is not considered for eligibility ... potentially down");
-        continue;
-      }
-
-      if ((eligibleCN == null) || (storedCN.older(eligibleCN)))
-      {
-        eligibleCN = storedCN;
-      }
-    }
-
-    if (debugEnabled())
-      TRACER.debugInfo("In " + this.getName() +
-        " computeEligibleCN() returns " + eligibleCN);
-    return eligibleCN;
   }
 
   /**
