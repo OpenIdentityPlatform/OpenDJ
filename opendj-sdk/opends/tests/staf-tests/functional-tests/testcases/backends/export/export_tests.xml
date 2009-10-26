@@ -114,7 +114,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
       </try>
     </testcase>
   </function>
@@ -125,11 +125,11 @@
         #@TestID              LDIF Default
         #@TestPurpose         Verify an export of a LDIF file on the default backend.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_002" scope="local">
     <testcase name="getTestCaseName('LDIF Default')">
@@ -139,10 +139,10 @@
           <message>
             'Backend: Export: Export default backend'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 
               'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
-              'backEnd'  : '%s' % DIRECTORY_INSTANCE_BE
+             'backEnd'  : '%s' % DIRECTORY_INSTANCE_BE
             }
           </call>
           
@@ -193,7 +193,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
       </try>
     </testcase>
   </function>
@@ -204,10 +204,10 @@
         #@TestID              LDIF Non Default
         #@TestPurpose         Verify an export of a LDIF file on a differrent backend to the default.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               non-default backend, and ldifFile           
         #@TestPostamble
-        #@TestResult          Success if Success if exportLDIF, importLDIF returns 0
+        #@TestResult          Success if Success if exportLdif, importLDIF returns 0
   -->
   <function name="backends_export_003" scope="local">
     <testcase name="getTestCaseName('LDIF Non Default')">
@@ -257,7 +257,7 @@
 
           <call function="'StopDsWithScript'"/>
 
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.data,
               'backEnd'  : 'nonDefault'
             }
@@ -314,7 +314,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
 
@@ -328,11 +328,11 @@
         #@TestID              Fractional Include Branch
         #@TestPurpose         Verify an export of a LDIF file specifying a branch that should be included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -b option. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_004" scope="local">
     <testcase name="getTestCaseName('Fractional Include Branch')">
@@ -342,9 +342,9 @@
           <message>
             'Backend: Export: Export Fractional Include Branch'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % remote.data,
-              'extraParams' : '-b "dc=com"'
+               'includeBranches' :  ["dc=com"]
             }
           </call>
 
@@ -395,7 +395,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
 
@@ -408,11 +408,11 @@
         #@TestID              Fractional Include Branches
         #@TestPurpose         Verify an export of a LDIF file specifying multiple branches that should be included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and two -b options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_005" scope="local">
     <testcase name="getTestCaseName('Fractional Include Branches')">
@@ -422,10 +422,10 @@
           <message>
             'Backend: Export: Export Fractional Include Branches'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 
               'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % remote.data,
-              'extraParams'    : '-b "dc=com" -b "dc=example,dc=com"'
+              'includeBranches':  ["dc=com","dc=example,dc=com"]
             }
           </call>
           
@@ -476,7 +476,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
 
@@ -490,11 +490,11 @@
         #@TestID              Fractional Exclude Branch
         #@TestPurpose         Verify an export of a LDIF file specifying a branch that should be excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -B option. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_006" scope="local">
     <testcase name="getTestCaseName('Fractional Exclude Branch')">
@@ -504,9 +504,9 @@
           <message>
             'Backend: Export: Export Fractional Exclude Branch'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % remote.data,
-              'extraParams' : '-B "dc=example,dc=com"'
+              'excludeBranches' : ["dc=example,dc=com"]
             }
           </call>
   
@@ -557,7 +557,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -571,11 +571,11 @@
         #@TestID              Fractional Exclude Branches
         #@TestPurpose         Verify an export of a LDIF file specifying multiple branches that should be excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and two -B options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_007" scope="local">
     <testcase name="getTestCaseName('Export Fractional Exclude Branches')">
@@ -585,9 +585,9 @@
           <message>
             'Backend: Export: Export Fractional Exclude Branches'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % remote.data,
-              'extraParams' : '-B "ou=People,dc=example,dc=com" -B "dc=example,dc=com"'
+              'excludeBranches' : ["ou=People,dc=example,dc=com","dc=example,dc=com"]
             }
           </call>
 
@@ -638,7 +638,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -651,11 +651,11 @@
         #@TestID              Fractional Branches Mix
         #@TestPurpose         Verify an export of a LDIF file specifying a mix of include and exclude branches.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, both -b and -B options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_008" scope="local">
     <testcase name="getTestCaseName('Export Fractional Branches Mix')">
@@ -665,9 +665,10 @@
           <message>
             'Backend: Export: Export Fractional Branches Mix'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % remote.data,
-              'extraParams' : '-b "dc=com" -B "ou=People,dc=example,dc=com"'
+               'includeBranches' : ["dc=com"],
+               'excludeBranches' : ["ou=People,dc=example,dc=com"]
             }
           </call>
   
@@ -717,7 +718,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -730,11 +731,11 @@
         #@TestID              Fractional Include Attribute
         #@TestPurpose         Verify an export of a LDIF file specifying an attribute that should be included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -i option. Import the ldifFile to
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_009" scope="local">
     <testcase name="getTestCaseName('Export Fractional Include Attribute')">
@@ -744,9 +745,9 @@
           <message>
             'Backend: Export: Export Fractional Include Attribute'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % remote.data,
-              'extraParams'    : '-i dc'
+              'includeAttributes'    : ["dc"]
             }
           </call>
 
@@ -796,7 +797,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -809,11 +810,11 @@
         #@TestID              Fractional Include Attributes
         #@TestPurpose         Verify an export of a LDIF file specifying multiple attributes that should be included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and five -i options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_010" scope="local">
     <testcase name="getTestCaseName('Export Fractional Include Attributes')">
@@ -823,9 +824,9 @@
           <message>
             'Backend: Export: Export Fractional Include Attributes'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % remote.data,
-              'extraParams' : '-i dc -i cn -i ou -i sn -i uid'
+              'includeAttributes' : ["dc","cn","ou","sn","uid"]
             }
           </call>
 
@@ -877,7 +878,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -890,11 +891,11 @@
         #@TestID              Fractional Exclude Attribute
         #@TestPurpose         Verify an export of a LDIF file specifying an attribute that should be excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -e option. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_011" scope="local">
     <testcase name="getTestCaseName('Export Fractional Exclude Attribute')">
@@ -904,9 +905,9 @@
           <message>
             'Backend: Export: Export Fractional Exclude Attribute'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % remote.data,
-              'extraParams' : '-e userpassword'
+              'excludeAttributes' : ["userPassword"]
             }
           </call>
 
@@ -956,7 +957,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -969,11 +970,11 @@
         #@TestID              Fractional Exclude Attributes
         #@TestPurpose         Verify an export of a LDIF file specifying multiple attribute that should be excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and three -e options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_012" scope="local">
     <testcase name="getTestCaseName('Export Fractional Exclude Attributes')">
@@ -983,9 +984,9 @@
           <message>
             'Backend: Export: Export Fractional Exclude Attributes'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % remote.data,
-              'extraParams' : '-e userpassword -e mail -e roomnumber'
+              'excludeAttributes' : ["userPassword","mail","roomnumber"]
             }
           </call>
 
@@ -1037,7 +1038,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1050,11 +1051,11 @@
         #@TestID              Fractional Mix
         #@TestPurpose         Verify an export of a LDIF file specifying a mix of fractional attributes and branches.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and mixed -i, -b, and -B options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_013" scope="local">
     <testcase name="getTestCaseName('Export Fractional Mix')">
@@ -1064,9 +1065,11 @@
           <message>
             'Backend: Export: Export Fractional Mix'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % remote.data,
-              'extraParams' : '-i dc -i cn -i ou -i sn -i uid -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
+             'includeAttributes' : ["dc","cn","ou","sn","uid"],
+             'includeBranches' : ["dc=com","dc=example,dc=com","ou=People,dc=example,dc=com"],
+             'excludeBranches' : ["ou=Departed,ou=People,dc=example,dc=com"]
             }
           </call>
 
@@ -1118,7 +1121,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1131,11 +1134,11 @@
         #@TestID              Filtered Include
         #@TestPurpose         Verify an export of a LDIF file specifying a search filter control which entries are included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -I option. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_014" scope="local">
     <testcase name="getTestCaseName('Export Filtered Include')">
@@ -1145,9 +1148,9 @@
           <message>
             'Backend: Export: Export Filtered Include'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % remote.data,
-              'extraParams' : '-I "objectclass=*"'
+              'includeFilters' : ["objectclass=*"]
             }
           </call>
 
@@ -1198,7 +1201,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1211,11 +1214,11 @@
         #@TestID              Filtered Includes
         #@TestPurpose         Verify an export of a LDIF file specifying a search filter control which entries are included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and two -I options. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_015" scope="local">
     <testcase name="getTestCaseName('Export Filtered Includes')">
@@ -1225,9 +1228,9 @@
           <message>
             'Backend: Export: Export Filtered Includes'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
-              'extraParams' : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
+              'includeFilters' : ["objectclass=domain","objectclass=organizationalunit"]
             }
           </call>
 
@@ -1278,7 +1281,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1291,11 +1294,11 @@
         #@TestID              Filtered Exclude
         #@TestPurpose         Verify an export of a LDIF file specifying search filter control which entries are excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, an ldifFile, and -E option. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_016" scope="local">
     <testcase name="getTestCaseName('Export Filtered Exclude')">
@@ -1305,9 +1308,9 @@
           <message>
             'Backend: Export: Export Filtered Exclude'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % remote.data,
-              'extraParams' : '-E "objectclass=person"'
+              'excludeFilters' : ["objectclass=person"]
             }
           </call>
 
@@ -1360,7 +1363,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1373,11 +1376,11 @@
         #@TestID              Filtered Excludes
         #@TestPurpose         Verify an export of a LDIF file specifying multiple search filters control which entries are excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_017" scope="local">
     <testcase name="getTestCaseName('Export Filtered Excludes')">
@@ -1387,9 +1390,9 @@
           <message>
             'Backend: Export: Export Filtered Excludes'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % remote.data,
-              'extraParams' : '-E "objectclass=person" -E "objectclass=organizationalunit"'
+               'excludeFilters' : ["objectclass=person","objectclass=organizationalunit"]
             }
           </call>
 
@@ -1442,7 +1445,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1455,11 +1458,11 @@
         #@TestID              Filtered Includes
         #@TestPurpose         Verify an export of a LDIF file specifying multiple search filters control which entries are included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_018" scope="local">
     <testcase name="getTestCaseName('Export Filtered Includes')">
@@ -1469,10 +1472,10 @@
           <message>
             'Backend: Export: Export Filtered Includes'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 
               'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
-              'extraParams'    : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
+              'includeFilters'    : [ "objectclass=domain", "objectclass=organizationalunit"]
             }
           </call>
 
@@ -1524,7 +1527,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1537,11 +1540,11 @@
         #@TestID              Filtered Includes Complex
         #@TestPurpose         Verify an export of a LDIF file specifying complex search filters control which entries are included in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_019" scope="local">
     <testcase name="getTestCaseName('Export Filtered Includes Complex')">
@@ -1551,9 +1554,9 @@
           <message>
             'Backend: Export: Export Filtered Includes Complex'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.data,
-              'extraParams' : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
+              'includeFilters' : ["|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"]
             }
           </call>
 
@@ -1565,7 +1568,7 @@
           </call>
      
           <!-- StartDS -->
-           <call function="'StartDsWithScript'">
+          <call function="'StartDsWithScript'">
             { 'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME) }
           </call>
           
@@ -1604,7 +1607,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1617,11 +1620,11 @@
         #@TestID              Filtered Excludes Complex
         #@TestPurpose         Verify an export of a LDIF file specifying complex search filters control which entries are excluded in the export.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_020" scope="local">
     <testcase name="getTestCaseName('Export Filtered Excludes Complex')">
@@ -1631,9 +1634,9 @@
           <message>
             'Backend: Export: Export Filtered Excludes Complex'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.data,
-              'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)"'
+              'excludeFilters' : ["&amp;(objectclass=person)(ou=Departed)"]
             }
           </call>
 
@@ -1684,7 +1687,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1697,11 +1700,11 @@
         #@TestID              Fractional Filtered Mix
         #@TestPurpose         Verify an export of a LDIF file specifying a mix of fractional and filtered.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_021" scope="local">
     <testcase name="getTestCaseName('Export Fractional Filtered Mix')">
@@ -1711,9 +1714,11 @@
           <message>
             'Backend: Export: Export Fractional Filtered Mix'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.data,
-              'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
+             'excludeFilters' : ["&amp;(objectclass=person)(ou=Departed)"],
+             'includeBranches' : ["dc=com"],
+             'excludeAttributes' : ["userpassword"]
             }
           </call>
 
@@ -1764,7 +1769,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1777,11 +1782,11 @@
         #@TestID              Append To LDIF
         #@TestPurpose         Verify an export of a LDIF file specifying that the export process should append to the existing LDIF file.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_022" scope="local">
     <testcase name="getTestCaseName('Export Append To LDIF')">
@@ -1791,9 +1796,9 @@
           <message>
             'Backend: Export: Export Append To LDIF'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.data,
-              'extraParams' : '-a'
+               'append'      : 'True'
             }
           </call>
 
@@ -1845,7 +1850,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1858,11 +1863,11 @@
         #@TestID              Compress LDIF
         #@TestPurpose         Verify an export where the LDIF file is compressed.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_023" scope="local">
     <testcase name="getTestCaseName('Export Compress LDIF')">
@@ -1872,9 +1877,9 @@
           <message>
             'Backend: Export: Export Compress LDIF'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/ExportCompressed.ldif' % remote.data,
-              'extraParams' : '-c'
+               'isCompressed' : 'True'
             }
           </call>
 
@@ -1926,7 +1931,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -1939,11 +1944,11 @@
         #@TestID              Encrypt LDIF
         #@TestPurpose         Verify an export where the LDIF file is encrypted.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_024" scope="local">
     <testcase name="getTestCaseName('Export Encrypt LDIF')">
@@ -1953,9 +1958,9 @@
           <message>
             'Backend: Export: Export Encrypt LDIF'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.data,
-              'extraParams' : '-y'
+              'isEncrypted' : 'True'
             }
           </call>
 
@@ -2005,7 +2010,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -2050,7 +2055,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -2063,11 +2068,11 @@
         #@TestID              Wrap Column
         #@TestPurpose         Verify an export of a LDIF file containing wrapped columns
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
   <function name="backends_export_026" scope="local">
     <testcase name="getTestCaseName('Export Wrap Column')">
@@ -2077,9 +2082,9 @@
           <message>
             'Backend: Export: Export Wrap Column'
           </message>
-          <call function="'exportLdif'">
+          <call function="'exportLdifWithScript'">
             { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % remote.data,
-              'extraParams' : '--wrapColumn 25'
+              'wrapColumn'  : 25,
             }
           </call>
 
@@ -2127,7 +2132,7 @@
 
         <finally>
           <call function="'testCase_Postamble'"/>
-        </finally>        
+        </finally>
 
       </try>
       
@@ -2140,11 +2145,11 @@
         #@TestID              Error Codes
         #@TestPurpose         Verify an export fails with an error code.
         #@TestPreamble
-        #@TestSteps           Client calls exportLDIF with the parameters
+        #@TestSteps           Client calls exportLdif with the parameters
                               default backend, and ldifFile. Import the ldifFile to 
                               a second instance, then do a search to verify the import.
         #@TestPostamble
-        #@TestResult          Success if exportLDIF, importLDIF, and checkImport returns 0
+        #@TestResult          Success if exportLdif, importLDIF, and checkImport returns 0
   -->
    <!-- Need to know what the error codes are -->
   

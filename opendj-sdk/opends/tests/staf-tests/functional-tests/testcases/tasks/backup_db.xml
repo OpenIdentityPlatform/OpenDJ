@@ -249,7 +249,11 @@
                   <script>
                     checkRC = STAXResult[0]
                   </script>
-  
+
+                  <call function="'Sleep'">
+                    { 'sleepForMilliSeconds'  : 2000 }
+                  </call>
+
                 </sequence>
               </loop>
   
@@ -330,6 +334,10 @@
                     checkRC = STAXResult[0]
                   </script>
 
+                  <call function="'Sleep'">
+                    { 'sleepForMilliSeconds'  : 2000 }
+                  </call>
+                  
                 </sequence>
               </loop>
 

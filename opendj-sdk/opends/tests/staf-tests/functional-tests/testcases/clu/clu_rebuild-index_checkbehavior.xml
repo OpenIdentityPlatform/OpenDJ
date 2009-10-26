@@ -64,24 +64,67 @@
                 'allowPreEncodePassword'  : True
               }
             </call>
-            
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: online mode
+              #@TestIssue           none
+              #@TestPurpose         Verify that online rebuild-index command
+                                    succeeds that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a online rebuild-index on a single index.
+              #@TestStep            Check that the rebuild-index task is
+                                    completed successfuly.
+              #@TestPostamble       none
+              #@TestResult          Success if online rebuild-index return 0.
+            -->
+            <testcase name="getTestCaseName('rebuild-index: online')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                  'rebuild-index: online'
+                </message>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'            : 'dc=com' ,
+                  'dsIndexList'         : [ 'uid' ]
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
             <!--- Test Case information
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: check on a single index
               #@TestIssue           none
-              #@TestPurpose         Verify that rebuild-index command failed if
-                                    the server is started and successful otherwise
-                                    and that the output is correct.
+              #@TestPurpose         Verify that rebuild-index without credential
+                                    command failed if the server is started and
+                                    successful otherwise and that the output is
+                                    correct.
               #@TestPreamble        none
-              #@TestStep            Do a rebuild-index on a single index.
+              #@TestStep            Do a rebuild-index (without credential)
+                                    on a single index.
               #@TestStep            Check the output of the command.
               #@TestStep            Create a new index using dsconfig for the 
                                     other testcases.            
               #@TestStep            Stop the server.
-              #@TestStep            Do a rebuild-index on a single index.            
+              #@TestStep            Do a rebuild-index (without credential)
+                                    on a single index.
               #@TestStep            Check the output of the command.            
               #@TestPostamble       none
-              #@TestResult          Success if verify-index returns 1 when the
+              #@TestResult          Success if rebuild-index returns 1 when the
                                     server is running, 0 when the server is 
                                     stopped and the outputs are correct.
             -->
@@ -92,8 +135,8 @@
                 <call function="'testCase_Preamble'"/>
                 
                 <message>
-                  'rebuild-index: try to rebuild a single index while the server \
-                  is running'
+                  'rebuild-index: try to rebuild a single index while the \
+                  server is running'
                 </message>
                 
                 <call function="'rebuildIndexWithScript'">
@@ -160,7 +203,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) uid started with 1048'
-                  msg2 = 'total records to process' 
+                  msg2 = 'total entries to process'
                 </script>                  
                 <call function="'checktestString'">
                   { 
@@ -172,7 +215,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Rebuild complete. Processed 1048 records'
+                  'expectedString' : 'Rebuild complete. Processed 1048 entries'
                   }
                 </call>           
                 
@@ -192,7 +235,7 @@
               #@TestStep            Do a rebuild-index without index option.
               #@TestStep            Check the output of the command.         
               #@TestPostamble       none
-              #@TestResult          Success if verify-index returns 1 and the 
+              #@TestResult          Success if rebuild-index returns 1 and the
                                     output is correct.
             -->
             <testcase name="getTestCaseName('rebuild-index: without index')">
@@ -243,7 +286,7 @@
               #@TestStep            Do a rebuild-index on multiple indexes.
               #@TestStep            Check the output of the command.
               #@TestPostamble       none
-              #@TestResult          Success if verify-index returns 0 and the 
+              #@TestResult          Success if rebuild-index returns 0 and the
                                     output is correct.
             -->
             <testcase name="getTestCaseName('rebuild-index: multiple indexes')">
@@ -269,7 +312,7 @@
                 
                 <script>
                   msg1 = 'Rebuild of index\(es\) uid, cn started'
-                  msg2 = 'with 2096 total records to process' 
+                  msg2 = 'with 1048 total entries to process'
                 </script>                  
                 <call function="'checktestString'">
                   { 
@@ -281,7 +324,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Rebuild complete. Processed 2096 records'
+                  'expectedString' : 'Rebuild complete. Processed 1048 entries'
                   }
                 </call>
                 
@@ -301,7 +344,7 @@
               #@TestStep            Do a rebuild-index on a non existing index.
               #@TestStep            Check the output of the command.         
               #@TestPostamble       none
-              #@TestResult          Success if verify-index returns 1 and the 
+              #@TestResult          Success if rebuild-index returns 1 and the
                                     output is correct.
             -->
             <testcase name="getTestCaseName('rebuild-index: non existing index')">
@@ -342,7 +385,7 @@
               </sequence>
               
             </testcase>          
-            
+
             <!--- Test Case information
               #@TestMarker          rebuild-index check behavior tests
               #@TestName            rebuild-index: after creation
@@ -351,234 +394,376 @@
                                     successfull on a newly created index
                                     and that the output is correct.
               #@TestPreamble        none
-              #@TestStep            Do a verifiy-index before rebuild on 
+              #@TestStep            Do a verifiy-index before rebuild on
                                     the new index.
-              #@TestStep            Check the output of the command.              
+              #@TestStep            Check the output of the command.
               #@TestStep            Do a rebuild-index on the new index.
-              #@TestStep            Check the output of the command.  
+              #@TestStep            Check the output of the command.
               #@TestStep            Do a verify-index after rebuild on
                                     the new index.
               #@TestStep            Check the output of the command.
               #@TestStep            Do again a rebuild-index on the new index.
-              #@TestStep            Check the output of the command.  
-              #@TestStep            Re-start the server.          
+              #@TestStep            Check the output of the command.
+              #@TestStep            Re-start the server.
               #@TestPostamble       none
               #@TestResult          Success if all the commands return 0 and
                                     the outputs are correct.
             -->
             <testcase name="getTestCaseName
             ('rebuild-index: rebuild index after creation')">
-              
+
               <sequence>
-                
+
                 <call function="'testCase_Preamble'"/>
-                
+
                 <message>
                   'rebuild-index: verify index st before rebuild'
                 </message>
-                
+
                 <call function="'verifyIndexWithScript'">
                   {
-                  'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'st' ]
-                  }                
+                  'dsBaseDN'      : 'dc=com' ,
+                  'dsIndexList'   : [ 'st' ] ,
+                  'dsCountErrors' : 'TRUE' ,
+                  'knownIssue'    : 4293
+                  }
                 </call>
-                
+
                 <script>
                   returnString = STAXResult[0][1]
                 </script>
-                
+
                 <script>
                   msg1 = 'Due to changes in the configuration, index'
                   msg2 = 'dc_com_st is currently operating in a degraded'
-                  msg3 = 'state and must be rebuilt before it can be used' 
-                </script>                 
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
-                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
-                  'issue'          : '3102'
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
                   }
                 </call>
-                
+
                 <script>
-                  msg1 = 'Statistics for records that have'
-                  msg2 = 'exceeded the entry limit:' 
-                </script>                 
+                  msg1 = 'Statistics for entries that have'
+                  msg2 = 'exceeded the entry limit:'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
-                
+
                 <script>
-                  msg1 = 'File dc_com_st.equality has 51 such record\(s\)'
-                  msg2 = 'min=14 max=31 median=20' 
-                </script>                 
+                  msg1 = 'File dc_com_st.equality has 51 such entrie\(s\)'
+                  msg2 = 'min=14 max=31 median=20'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
-                
+
                 <message>
                   'rebuild-index: rebuild index st'
-                </message>    
-                
+                </message>
+
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'st' ]
-                  }                
+                  }
                 </call>
-                
+
                 <script>
                   returnString = STAXResult[0][1]
                 </script>
-                
+
                 <script>
                   msg1 = 'Due to changes in the configuration, index'
                   msg2 = 'dc_com_st is currently operating in a degraded'
-                  msg3 = 'state and must be rebuilt before it can be used' 
-                </script>                 
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
-                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3) ,
-                  'issue'          : '3102'
+                  'expectedString' : '%s %s %s' % (msg1, msg2, msg3)
                   }
                 </call>
-                
+
                 <script>
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
-                  msg2 = 'total records to process' 
-                </script>                 
+                  msg2 = 'total entries to process'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
-                
+
                 <script>
-                  msg = 'Rebuild complete. Processed 1048 records' 
-                </script>                 
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : msg
                   }
                 </call>
-                
+
                 <message>
                   'rebuild-index: verify index st after rebuild'
                 </message>
-                
+
                 <call function="'verifyIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'st' ]
-                  }                
+                  }
                 </call>
-                
+
                 <script>
                   returnString = STAXResult[0][1]
                 </script>
-                
+
                 <script>
                   msg1 = 'Due to changes in the configuration, index'
                   msg2 = 'dc_com_st is currently operating in a degraded'
-                  msg3 = 'state and must be rebuilt before it can be used' 
-                </script>                 
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
                 <call function="'checktestStringNotPresent'">
-                  { 
+                  {
                   'returnString' : returnString ,
                   'testString'   : '%s %s %s' % (msg1, msg2, msg3)
                   }
                 </call>
-                
+
                 <script>
-                  msg = 'Checked 1048 entries and found 0 error' 
-                </script>                 
+                  msg = 'Checked 1048 entries and found 0 error'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : msg
                   }
                 </call>
-                
+
                 <message>
                   'rebuild-index: rebuild again index st'
-                </message>    
-                
+                </message>
+
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'st' ]
-                  }                
+                  }
                 </call>
-                
+
                 <script>
                   returnString = STAXResult[0][1]
                 </script>
-                
+
                 <script>
                   msg1 = 'Due to changes in the configuration, index'
                   msg2 = 'dc_com_st is currently operating in a degraded'
-                  msg3 = 'state and must be rebuilt before it can be used' 
-                </script>                 
+                  msg3 = 'state and must be rebuilt before it can be used'
+                </script>
                 <call function="'checktestStringNotPresent'">
-                  { 
+                  {
                   'returnString' : returnString ,
                   'testString'   : '%s %s %s' % (msg1, msg2, msg3)
                   }
                 </call>
-                
+
                 <script>
                   msg1 = 'Rebuild of index\(es\) st started with 1048'
-                  msg2 = 'total records to process' 
-                </script>                 
+                  msg2 = 'total entries to process'
+                </script>
                 <call function="'checktestString'">
-                  { 
+                  {
                   'returnString'   : returnString ,
                   'expectedString' : '%s %s' % (msg1, msg2)
                   }
                 </call>
-                
+
                 <script>
-                  msg = 'Rebuild complete. Processed 1048 records' 
-                </script>                 
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
                 <call function="'checktestString'">
-                  { 
-                  'returnString'   : returnString ,
-                  'expectedString' : msg 
-                  }
-                </call>
-  
-                <message>
-                  'rebuild-index: start the server'
-                </message>
-                
-                <call function="'StartDsWithScript'">
-                  { 'location' : STAF_REMOTE_HOSTNAME }
-                </call>
-         
-                <!--- Check that DS started -->
-                <call function="'isAlive'">
                   {
-                  'noOfLoops'        : 10 ,
-                  'noOfMilliSeconds' : 2000
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
                   }
-                </call>             
-  
+                </call>
+
                 <call function="'testCase_Postamble'"/>
-                
+
               </sequence>
-              
-            </testcase>          
-  
+
+            </testcase>
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: rebuild option
+              #@TestIssue           none
+              #@TestPurpose         Verify that rebuild-index command succeeds
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index on a non existing index.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 0 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: rebuildAll option')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                  'rebuild-index: rebuildAll'
+                </message>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'     : 'dc=com' ,
+                  'dsRebuildAll' : 'True'
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
+                <call function="'checktestString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: rebuildAll and i options
+              #@TestIssue           none
+              #@TestPurpose         Verify that rebuild-index command failed
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index with rebuildAll
+                                    and i options.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 1 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: rebuildAll and i option')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                  'rebuild-index: rebuildAll and i'
+                </message>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'     : 'dc=com' ,
+                  'dsRebuildAll' : 'True' ,
+                  'dsIndexList'  : [ 'uid' ] ,
+                  'expectedRC'   : 1
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg1 = 'Index \"-i\" option cannot be specified with'
+                  msg2 = 'the \"--rebuildAll\" option'
+                </script>
+                <call function="'checktestString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : '%s %s' % (msg1, msg2)
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+
+            <!--- Test Case information
+              #@TestMarker          rebuild-index check behavior tests
+              #@TestName            rebuild-index: tmpdirectory option
+              #@TestIssue           none
+              #@TestPurpose         Verify that rebuild-index command succeeds
+                                    and that the output is correct.
+              #@TestPreamble        none
+              #@TestStep            Do a rebuild-index with tmpdirectory option.
+              #@TestStep            Check the output of the command.
+              #@TestPostamble       none
+              #@TestResult          Success if rebuild-index returns 0 and the
+                                    output is correct.
+            -->
+            <testcase name="getTestCaseName
+                            ('rebuild-index: tmpdirectory option')">
+
+              <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                  'rebuild-index: tmpdirectory'
+                </message>
+
+                <call function="'rebuildIndexWithScript'">
+                  {
+                  'dsBaseDN'     : 'dc=com' ,
+                  'dsIndexList'  : [ 'uid' ] ,
+                  'dsTmpDir'     : '%s/index_tmp' % DIRECTORY_INSTANCE_DIR
+                  }
+                </call>
+
+                <script>
+                  returnString = STAXResult[0][1]
+                </script>
+
+                <script>
+                  msg = 'Rebuild complete. Processed 1048 entries'
+                </script>
+                <call function="'checktestString'">
+                  {
+                  'returnString'   : returnString ,
+                  'expectedString' : msg
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+
+              </sequence>
+
+            </testcase>
+            
           </sequence>
 
           <finally>

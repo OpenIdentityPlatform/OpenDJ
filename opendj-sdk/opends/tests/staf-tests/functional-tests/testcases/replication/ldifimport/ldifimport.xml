@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2009 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -132,7 +132,7 @@
                 '+++++ ldif import off-line: export suffix on server %s:%s' \
                 % (masterHost, master.getPort())
               </message>                
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'  : masterHost,
                   'dsPath'    : masterPath,
                   'ldifFile'  : '%s/replication/master_export.ldif' \
@@ -324,14 +324,13 @@
                 '+++++ ldif import on-line: export suffix on server %s:%s' \
                 % (masterHost, master.getPort())
               </message>                     
-              <call function="'exportLdifTask'">
+              <call function="'exportLdifWithScript'">
                 { 'location'       : masterHost,
                   'dsPath'         : masterPath,
                   'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceAdminPort' : master.getAdminPort(),
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'taskID'         : 'export task',
                   'ldifFile'       : sourceFile
                 }
               </call>                

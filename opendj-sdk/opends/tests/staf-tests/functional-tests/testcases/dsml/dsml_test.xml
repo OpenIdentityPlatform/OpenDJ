@@ -427,6 +427,15 @@
                                 }
                               </call>
                             </sequence>
+                            <elseif expr="result['statusCode'] == '404'">
+                              <call function="'checktestRC'">
+                                {
+                                'returncode' : result['statusCode'] ,
+                                'result'     : result['statusMessage'],
+                                'issue'      : 4214
+                                }
+                              </call>
+                            </elseif>
                             <else>
                               <call function="'checktestRC'">
                                 {

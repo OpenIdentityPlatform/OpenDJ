@@ -163,11 +163,11 @@
               }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'CLI_rebuild-index' ,
+              { 'functionName'      : 'rebuildIndexWithScript' ,
                 'functionException' : 'CLI.RebuildIndex'  ,
                 'functionFailureTC' : 'Indexes - Modify'  ,
-                'functionArguments' : { 'baseDN'     : DIRECTORY_INSTANCE_SFX ,
-                                        'attributes' : [ 'uid' ]
+                'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
+                                        'dsIndexList' : [ 'uid' ]
                                       }
               }
             </call>
@@ -248,18 +248,17 @@
               }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'rebuildIndexTask' ,
+              { 'functionName'      : 'rebuildIndexWithScript' ,
                 'functionException' : 'CLI.RebuildIndex'  ,
                 'functionFailureTC' : 'Indexes - Dynamic Modify'  ,
                 'functionArguments' : 
-                  { 'location'       : STAF_REMOTE_HOSTNAME,
-                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'         : 'rebuild uid index task',
-                    'baseDN'         : DIRECTORY_INSTANCE_SFX ,
-                    'attributes'     : [ 'uid' ]
+                  { 'location'            : STAF_REMOTE_HOSTNAME,
+                    'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'            : DIRECTORY_INSTANCE_SFX ,
+                    'dsIndexList'         : [ 'uid' ]
                   }
               }
             </call>
@@ -341,11 +340,11 @@
               }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'CLI_rebuild-index' ,
+              { 'functionName'      : 'rebuildIndexWithScript' ,
                 'functionException' : 'CLI.RebuildIndex'  ,
                 'functionFailureTC' : 'Indexes - Modify'  ,
-                'functionArguments' : { 'baseDN'     : DIRECTORY_INSTANCE_SFX ,
-                                        'attributes' : [ 'l' ]  
+                'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
+                                        'dsIndexList' : [ 'l' ]
                                       }
               }
             </call>
@@ -427,18 +426,17 @@
               }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'rebuildIndexTask' ,
+              { 'functionName'      : 'rebuildIndexWithScript' ,
                 'functionException' : 'CLI.RebuildIndex'  ,
                 'functionFailureTC' : 'Indexes - Dynamic Add'  ,
                 'functionArguments' : 
-                  { 'location'       : STAF_REMOTE_HOSTNAME,
-                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                    'taskID'         : 'rebuild l index task',
-                    'baseDN'         : DIRECTORY_INSTANCE_SFX ,
-                    'attributes'     : [ 'l' ]
+                  { 'location'            : STAF_REMOTE_HOSTNAME,
+                    'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                    'dsBaseDN'            : DIRECTORY_INSTANCE_SFX ,
+                    'dsIndexList'         : [ 'l' ]
                   }
               }
             </call>  

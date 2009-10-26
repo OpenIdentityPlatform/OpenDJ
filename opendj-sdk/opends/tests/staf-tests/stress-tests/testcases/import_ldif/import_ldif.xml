@@ -57,8 +57,8 @@
           <script>
             testList = []
             testList.append('import_ldif_bin_attr')
-            testList.append('import_ldif_bin_attr_1m')
-            #testList.append('import_ldif_bin_attr_3m')
+            testList.append('import_ldif_bin_attr_6m')
+            testList.append('import_ldif_bin_attr_10m')
             #testList.append('import_ldif_large_import_buffer')
             #testList.append('import_ldif_many_thrds')
             #testList.append('import_ldif_low_index_entry_limit')

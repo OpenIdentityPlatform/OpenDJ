@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+<!--
+  Place group-specific test information here.
+  #@TestGroupName		fractional-replication
+  #@TestGroupPurpose	Test the ability to work with fractional replication
+-->
+<stax>
+  <defaultcall function="main_fractional-replication"/>
+  <function name="main_fractional-replication">
+    <function-list-args>
+      <function-required-arg name="STAXParentID"/>
+    </function-list-args>
+    <sequence>
+      <try>
+        <block name="'fractional-replication'">
+          <sequence>
+            <!--- Load the job environment for the test group execution -->
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/environment.xml' % TESTS_FUNCTIONS_DIR" />
+            <call function="'loadJobEnvironment'">
+                 { 'parent' : STAXParentID }
+            </call>
+            <script>
+              CurrentTestPath['group']='fractional-replication'
+            </script>
+            <call function="'testGroup_Preamble'"/>
+
+            <!-- List of fractional-replication test suites to run -->
+            <script>
+              suiteList = []
+              suiteList.append('config')
+              suiteList.append('basic')
+
+              globalAssuredReplication = None
+
+              if (REPLICATION_SPLIT_SERVERS == 'true'):
+                globalSplitServers = True
+              else:
+                globalSplitServers = None
+            </script>
+
+            <import machine="STAF_LOCAL_HOSTNAME"
+                    file="'%s/testcases/fractional-replication/utils.xml' %
+                      (TESTS_DIR)"/>
+            <iterate var="_suite" in="suiteList" >
+              <sequence>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                        file="'%s/testcases/fractional-replication/%s.xml' %
+                          (TESTS_DIR, _suite)"/>
+                <call function="'fractional-replication_%s'% _suite" />
+              </sequence>
+            </iterate>
+          </sequence>
+        </block>
+        <catch exception="'STAXException.TestGroupException'">
+          <sequence>
+            <message log="1" level="'fatal'">'Execution of Test Group Failed'</message>
+          </sequence>
+        </catch>
+        <finally>
+          <!-- Test Group postamble -->
+          <call function="'testGroup_Postamble'"/>
+        </finally>
+      </try>
+    </sequence>
+  </function>
+</stax>

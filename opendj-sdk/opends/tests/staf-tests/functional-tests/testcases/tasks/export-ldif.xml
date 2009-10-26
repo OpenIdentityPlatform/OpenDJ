@@ -28,13 +28,13 @@
 <stax>
   <defaultcall function="export-ldif"/>
   <function name="export-ldif" scope="local">
-    <block name="STAXCurrentFunction">    
+    <block name="STAXCurrentFunction">
       <try>
         <sequence>
           <script>
             CurrentTestPath['suite']=STAXCurrentFunction
           </script>
-          <call function="'testSuite_Preamble'" />        
+          <call function="'testSuite_Preamble'" />
           
           <!--- Test Suite information
             #@TestSuiteName      Export tasks
@@ -52,7 +52,7 @@
               'startServer'   : True  ,
               'stopServer'    : False
             }
-          </call>            
+          </call>
                            
           <!--- Test Case information
             #@TestMarker       Export tasks
@@ -69,9 +69,9 @@
               
           <testcase name="getTestCaseName('schedule export-ldif task for immediate execution in asynchronous mode')">
             <sequence>
-              <call function="'testCase_Preamble'"/>              
+              <call function="'testCase_Preamble'"/>
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -111,9 +111,13 @@
                   <script>
                     checkRC = STAXResult[0]
                   </script>
-  
-                  </sequence>
-                  </loop>
+
+                  <call function="'Sleep'">
+                    { 'sleepForMilliSeconds'  : 2000 }
+                  </call>
+
+                </sequence>
+              </loop>
   
               <message>'--- Check log files export_asynchronous ---'</message>
               <call function="'listFolder'">
@@ -121,15 +125,15 @@
                 'foldername' : '%s/tasks' % remote.data,
                 'filename'   : 'export_asynchronous'
                 }
-              </call>     
+              </call>
               
               <!-- check  the export ldif file has been created-->
               <if expr="len(cmdResult) == 0">
                 <call function="'testFailed'"/>
                 <else>
-                  <call function="'testPassed'"/> 
+                  <call function="'testPassed'"/>
                 </else>
-              </if>   
+              </if>
               
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -151,9 +155,9 @@
               
           <testcase name="getTestCaseName('schedule export-ldif task for immediate execution in synchronous mode')">
             <sequence>
-              <call function="'testCase_Preamble'"/>              
+              <call function="'testCase_Preamble'"/>
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -193,6 +197,10 @@
                     checkRC = STAXResult[0]
                   </script>
 
+                  <call function="'Sleep'">
+                    { 'sleepForMilliSeconds'  : 2000 }
+                  </call>
+
                 </sequence>
               </loop>
               
@@ -207,13 +215,13 @@
               <if expr="len(cmdResult) == 0">
                 <call function="'testFailed'"/>
                 <else>
-                  <call function="'testPassed'"/>          
+                  <call function="'testPassed'"/>
                 </else>
-              </if>                     
+              </if>
               
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>               
+          </testcase>
           
           
           <!--- Test Case information
@@ -229,10 +237,10 @@
               
           <testcase name="getTestCaseName('schedule export-ldif task for scheduled execution in asynchronous mode')">
             <sequence>
-              <call function="'testCase_Preamble'"/>              
+              <call function="'testCase_Preamble'"/>
               
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -240,21 +248,16 @@
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'ldifFile'            : '%s/tasks/export_schedule_asynchronous' % remote.data,
                 'startTask'           : '20061212000000',
+                'expectedRC' : 1,
                 'backEnd'             : DIRECTORY_INSTANCE_BE}
               </call>
-  
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-  
+              
               <call function="'searchString'">
-                { 'expectedString' : 'The specified start time \'20061212000000\' has already passed' ,
-                  'returnString'	 : returnString ,
-                  'knownIssue'     : '3909' ,
-                  'expectedRC'     : '1' }
-                </call>
-  
-                
+                { 'expectedString' : 'The specified start time \'%s\' has already passed'%startTask,
+                  'returnString'	 : resultString ,
+                }
+              </call>
+              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -295,7 +298,7 @@
                }
               </call>
   
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
@@ -406,19 +409,19 @@
             <message>'Finally: Tasks Cleanup.'</message>
             <try>
               <call function="'common_cleanup'" />
-            <catch exception="'STAFException'">
-              <sequence>
-                <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
-              </sequence>
-            </catch>
-            <finally>
-              <call function="'testSuite_Postamble'"/>
-            </finally>
+              <catch exception="'STAFException'">
+                <sequence>
+                  <message log="1" level="'fatal'">'Cleanup of test suite failed.'</message>
+                </sequence>
+              </catch>
+              <finally>
+                <call function="'testSuite_Postamble'"/>
+              </finally>
             </try>
           </sequence>
         </finally>
       
       </try>
-    </block>      
+    </block>
   </function>
 </stax>

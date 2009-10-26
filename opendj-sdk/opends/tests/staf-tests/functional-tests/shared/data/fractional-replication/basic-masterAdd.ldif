@@ -1,0 +1,48 @@
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: uid=added-user.0,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaccf Amar - 03862 Elm Street - Pocatello, MA  21195
+postalCode: 21195
+description: This is the description for Aaccf Amar.
+description: This another description 
+uid: added-user.0
+userPassword: password
+jpegPhoto:: yQknHMevKiEhxlZEzNKG2VjDVV4kFg/wE2VaWGXXPDxnd0hcmy00wAFCAnw9iaC46+C0S8h9Enf8qbnEx4AJgs6mRY4ogFmp11Gi8zPYWnOk7dDYnYlimxK8PBH++10cTAM5PJK00T7y0EX8yKymVzhNTStowFSa6f5/omq12a3hVxQQ8gvj88Zj4FufmyjXD8XFC61OkfGSFkmt3MySEWW03Ss4wLAsdxuO9c4umdD8nO/GTOk8ULPacXapKa0k3ucPwuKHroKSQGDFQTvWBp9v5I8OxhB4sdenIYjduG91jfx0zvDFOjNw+CYwm4twGOhEEUkkxrpeCsB5sXvP18d8o0d0/WgydC/9SProqDu+YaqXR0VAEG4y6nYVj+qmtgsCxfevYlz7HzfdQi19608bNgw0T/EOBNzms88/oRP3u51ZpwY/5nks4YqjfpeMQPdjPq0vwVlTQ0AKujCHHN6hRQ2WwSqyqnO07QsbvAP7N4gMNIW2WLQywINGlalboIjvvHZcDJNZJY6KTd4TTk7RhB06hqxOcTBhHSU4RrGje5c87mVZX/NUUnq8o4AdOakyOZl6V1CLwo0i04OADgRinPgkQfaY1ufYQFVQ93APnY0Uxel0O/E/SVm8vWY5w+Z3YbPZj5/i9ESIV4K/BxOuVBp40Qbkd8IbT/lkPTqwaNUp/3TQPjNlGwXouChcPJSCi/tzcrpP5wO04NrR1i8oxmfme0cYvx7papTkc4gCsr4RmD6+pCBY0caCc8m/6u0jw+vhvzdn5xLM49ThUJkHTej6UGCLo8qUR8e9JaXmbUbuXn4+a2V6dEIQL0tWFruqorRD5J8pcEM9iDJ5mQXS/D4NHK1/QIdlIIzLT7yWO9R0g65SNgdWoeJUKt9PUOvzYBr2bS+oT00jB1eoEes5cquVktrupYEWRAHjnOj2dOorqEoeFAzTw4Pu0xLFKsDk1JNsmV7Io1feoZfxnn6fAKZNywmOZ0T/6vT7
+jpegPhoto:: YC0lbVPhFJeuBQwi6NtVFRdOibuLc7jJ3lcFAWN+oj3r61XwJRV8zZwGWZwIev1LWb27HsGHou2R0Z8RQW20AmquWCRy3z203sISKr1+MLiGETNebIA2jlfpqeZzzqMuK9mdmqFH0SKGwmM5uzg3EeI7WNEKD2LCY7y8ZBr40KtaUbPZ+DSj0YjX74/ONZZ0OubuIRhtmgcJEMgq9dpiMITc/IfE9SlntJzjTDsu42SfDPR35ew700pfH+PPekP0a80ACk4SY4MJ63V6JgI0ejR/fx3bRUasGrbynS4vh1LtLZR0nzYgdcIC61ZhEaY0yAht9twJ/Skue90S0V7k1Xxjm8yFxDgBwfWB/LnS40ubV9qYfiHxIvaNeR/l6E0RYXlQDpaeOHHNmbzpT0EwD9722GKS9F9evbfhTbQ5l724xZ0Ok1Jx6FlZAE0NJZwqFkIVrNvsanPo0ZnSYs+4uPTrCXdSLnIAIik7b6lQ3XalwlNu4jSg4LAfmMtvmQ9YKJW2BrvqdDqa9576aiKrA9gfuSouo8nE3D+ce0VPz3eTRqwQd6HfmhKs0xoT/b77NqsQD8cGfQ9wYYNwmLsSpWVap6kaRiAu62Qdn9h4ELkVk5hBwbpFMZy/aYUNEvAGxi3XRMkl8ZM4buVn7G8x9eWC/b4nwn9z/aJpZmMdauyl2137N0QPke/J+KdG5Dj7LPr0Z7TG85Nqdjn/HeB5Z4BfNXdyhNEHBX8cd5paPFe6r6uQFtWnaygzzASYAZJnO+EtVl7+oIb7lMcEfpa902R//SJ+mpv3rUXU3qGaNZ7/uvn69deYoIjkQktbs9zbA7HMtvymfJF12KO70ykatNsKMxafyqSVpaSVz1FWwBM4Vv0oOM1gINOX3mC2ONDvm3yP5srFoj0dgFEVHYef3oDhxO7Wa/nxfPbF+TCap00uJTLYEaYVc5RXi8C5/3H64jN7pc/FFKxAaGpO17NWiHjktDI4iXU32V5oZQn6
+employeeNumber: 0
+initials: ALA
+givenName: Aaccf
+pager: +1 469 131 2035
+mobile: +1 146 535 6881
+cn: Aaccf Amar
+sn: Amar
+telephoneNumber: +1 800 953 4311
+street: 03862 Elm Street
+mail: added-user.0@example.com
+l: Pocatello
+st: MA
+

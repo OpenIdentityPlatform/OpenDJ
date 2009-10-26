@@ -385,7 +385,6 @@ test.plan.custom=${test.plan.custom}</echo>
   <target name="coverage-instrument" if="coverage.on">
     <delete dir="${tests.tmp.dir}/coverage-instr" />
     <mkdir dir="${tests.tmp.dir}/coverage-instr" />
-    <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage" />
     <!-- unzip the original package in a temporary location to make the
          changes necessary so that the coverage tool is called
      -->

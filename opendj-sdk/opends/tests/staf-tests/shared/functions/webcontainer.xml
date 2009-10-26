@@ -329,13 +329,21 @@
         '%s' % STAFCmd
       </message>
 
+      <!-- On Windows 2003, startup command return 1 and 2008 returns 0 -->
+      <script>
+        winVersion = is_windows_platform(location)
+        if winVersion and winVersion.find('2003') != -1:
+          expectedRC=1
+        else:
+          expectedRC=0
+      </script>
       <call function="'runCommand'">
         { 'location' : location,
         'command'    : STAFCmd,
         'envCmd'     : STAFCmdEnv,
         'name'       : STAFCmd,
         'path'       : wcBinPath,
-        'expectedRC' : 0
+        'expectedRC' : expectedRC
         }
       </call>
       

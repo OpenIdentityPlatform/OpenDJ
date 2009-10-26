@@ -3007,33 +3007,26 @@
       
                   <if expr="STAFCmdRC != 0">
                       <tcstatus result="'fail'"/>
-                  <else>
-                          <!--- Start DS -->
-                          <sequence>
-          
-                          <message>
+                    <else>
+                      <sequence>
+                        <!--- Start DS -->
+                        <message>
                           'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-                          </message>
-    
-                          <!--- Start DS -->
-                          <call function="'StartDsWithScript'">
-                          { 'location'  : STAF_REMOTE_HOSTNAME }
-                          </call>
-    
-                          <call function="'checkRC'">
-                          { 'returncode' : RC ,
-                            'result'     : STAXResult }
-                          </call>
-    
-                          <!--- Check that DS started -->
-                          <call function="'isAlive'">
+                        </message>
+
+                        <call function="'StartDsWithScript'">
+                          { 'location'   : STAF_REMOTE_HOSTNAME }
+                        </call>
+
+                        <!--- Check that DS started -->
+                        <call function="'isAlive'">
                           { 'noOfLoops'        : 10 ,
                             'noOfMilliSeconds' : 2000 }
-                          </call>      
-                          </sequence>
-                          <!--- End Block DS Process Active -->
-                  </else>
-      </if>
+                        </call>
+                      </sequence>
+                      <!--- End Block DS Process Active -->
+                    </else>
+                  </if>
                   
                   <message>
                      'Privileges: Users: server-shutdown, Admin deleting privilege'

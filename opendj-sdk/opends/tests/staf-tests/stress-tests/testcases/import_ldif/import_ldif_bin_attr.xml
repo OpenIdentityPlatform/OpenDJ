@@ -61,188 +61,195 @@
           <call function="'import_ldif_setup'" />
 
           <testcase name="getTestCaseName('Preamble')">
-              <sequence>
-                <call function="'testCase_Preamble'"/>
+            <sequence>
+              <call function="'testCase_Preamble'"/>
 
-                <message>
-                  'Import Ldif: Binary Attribute: Preamble - Stop DS running on port %s' \
-                  % (DIRECTORY_INSTANCE_PORT)
-                </message>
+              <message>
+                'Import Ldif: Binary Attribute: Preamble - Stop DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
 
-                <call function="'StopDsWithScript'">
-                  {
-                  'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsHost'      : DIRECTORY_INSTANCE_HOST ,
-                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
-                  'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
-                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
-                  }
-                </call>
+              <call function="'StopDsWithScript'">
+                {
+                'location'    : STAF_REMOTE_HOSTNAME ,
+                'dsHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                'dsBindDN'    : DIRECTORY_INSTANCE_DN ,
+                'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+                }
+              </call>
 
-                <!-- Check if 'ldifFile' exists -->
-                <call function="'GetEntry'">
-                  {
-                  'location'  : STAF_REMOTE_HOSTNAME ,
-                  'entry'     : ldifFile ,
-                  'attribute' : 'TYPE'
-                  }
-                </call>
-                <if expr="RC == 48">
-                  <sequence>
-                    <message>
-                      'Import Ldif: Binary Attribute: File %s does not exist, create it' % ldifFile
-                    </message>
+              <!-- Check if 'ldifFile' exists -->
+              <call function="'GetEntry'">
+                {
+                'location'  : STAF_REMOTE_HOSTNAME ,
+                'entry'     : ldifFile ,
+                'attribute' : 'TYPE'
+                }
+              </call>
+              <if expr="RC == 48">
+                <sequence>
+                  <message>
+                    'Import Ldif: Binary Attribute: File %s does not exist, create it' % ldifFile
+                  </message>
 
-                    <message>
-                      'Import Ldif: Binary Attribute: Preamble - Make an make-ldif template file'
-                    </message>
+                  <message>
+                    'Import Ldif: Binary Attribute: Preamble - Make an make-ldif template file'
+                  </message>
 
-                    <call function="'MakeAMakeLdifTemplate'">
-                      {
-                      'numEntries'           : numberOfEntries ,
-                      'additionalAttributes' : True ,
-                      'templateFile'         : ldifTemplate ,
-                      'templateLocation'     : STAF_REMOTE_HOSTNAME
-                      }
-                    </call>
-                
-                    <message>
-                      'Import Ldif: Binary Attribute: Preamble - Make the ldif file'
-                    </message>
-                
-                    <call function="'MakeLdifWithScript'">
-                      {
-                      'location'     : STAF_REMOTE_HOSTNAME ,
-                      'templateFile' : ldifTemplate ,
-                      'ldifFile'     : ldifFile
-                      }
-                    </call>
-                  </sequence>
-                  <else>
-                    <message>
-                      'Import Ldif: Binary Attribute: File %s exists, do nothing' % ldifFile
-                    </message>
-                  </else>
-                </if>
-                
-                <call function="'testCase_Postamble'"/>
-    
-              </sequence>
-            </testcase>
+                  <call function="'MakeAMakeLdifTemplate'">
+                    {
+                    'numEntries'           : numberOfEntries ,
+                    'additionalAttributes' : True ,
+                    'templateFile'         : ldifTemplate ,
+                    'templateLocation'     : STAF_REMOTE_HOSTNAME
+                    }
+                  </call>
+
+                  <message>
+                    'Import Ldif: Binary Attribute: Preamble - Make the ldif file'
+                  </message>
+
+                  <call function="'MakeLdifWithScript'">
+                    {
+                    'location'     : STAF_REMOTE_HOSTNAME ,
+                    'templateFile' : ldifTemplate ,
+                    'ldifFile'     : ldifFile
+                    }
+                  </call>
+                </sequence>
+                <else>
+                  <message>
+                    'Import Ldif: Binary Attribute: File %s exists, do nothing' % ldifFile
+                  </message>
+                </else>
+              </if>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+          </testcase>
     
             
-            <testcase name="getTestCaseName('Import Large Ldif File')">
-              <sequence>
-                <call function="'testCase_Preamble'"/>
-                          
-                <message>
-                   'Import Ldif: Binary Attribute: Import large ldif file'
-                </message>
-                
-                <call function="'ImportLdifWithScript'">
+          <testcase name="getTestCaseName('Import Large Ldif File')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                 'Import Ldif: Binary Attribute: Import large ldif file'
+              </message>
+
+              <call function="'ImportLdifWithScript'">
+              {
+                'location'   : STAF_REMOTE_HOSTNAME ,
+                'dsLdifFile' : ldifFile ,
+                'dsBackEnd'  : 'userRoot'
+              }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+                msg = 'Processed %s entries, imported %s, skipped 0, rejected 0' \
+                      % (totalEntries,totalEntries)
+              </script>
+
+              <call function="'checktestString'">
                 {
-                  'location'   : STAF_REMOTE_HOSTNAME ,
-                  'dsLdifFile' : ldifFile ,
-                  'dsBackEnd'  : 'userRoot'
+                'returnString'   : returnString ,
+                'expectedString' : msg
                 }
-                </call>
-    
-                <script> 
-                  returnString = STAXResult[0][1]
-                </script> 
-    
-                <call function="'checktestString'">
-                  {
-                  'returnString'   : returnString ,
-                  'expectedString' : 'Processed %s entries' % totalEntries
-                  }
-                </call>
+              </call>
 
-                <!--<call function="'setKnownIssue'">
-                    { 'issueId' : '2535' }
-                </call>-->
+              <call function="'testCase_Postamble'"/>
 
-                <call function="'testCase_Postamble'"/>
-    
-              </sequence>
+            </sequence>
           </testcase>
           
           <testcase name="getTestCaseName('Start Directory After Import')">
-              <sequence>
-                <call function="'testCase_Preamble'"/>
-                          
-                <message>
-                  'Import Ldif: Binary Attribute: Start DS running on port %s' \
-                  % (DIRECTORY_INSTANCE_PORT)
-                </message>
+            <sequence>
+              <call function="'testCase_Preamble'"/>
 
-                <call function="'StartDsWithScript'">
-                  { 'location' : STAF_REMOTE_HOSTNAME }
-                </call>
-  
-                <!--- Check that DS started -->
-                <call function="'isAlive'">
-                  {
-                  'noOfLoops'        : 10 ,
-                  'noOfMilliSeconds' : 5000
-                  }
-                </call> 
+              <message>
+                'Import Ldif: Binary Attribute: Start DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
+              </message>
 
-                <call function="'testCase_Postamble'"/>
-    
-              </sequence>
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+                msg = 'The database backend userRoot containing %s entries has started' \
+                      % totalEntries
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 5000
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
           </testcase>
           
           <testcase name="getTestCaseName('Search For Imported Entries')">
-              <sequence>
-                <call function="'testCase_Preamble'"/>
-                          
-                <message>
-                  'Import Ldif: Binary Attribute: Search for certain entries that were imported'
-                </message>
+            <sequence>
+              <call function="'testCase_Preamble'"/>
 
-                <call function="'checkImport'">
-                  {
-                  'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
-                                      'uid=user.10000,ou=People,dc=com' ,
-                                      'uid=user.20000,ou=People,dc=com' ,
-                                      'uid=user.30000,ou=People,dc=com' ,
-                                      'uid=user.40000,ou=People,dc=com' ,
-                                      'uid=user.50000,ou=People,dc=com' ,
-                                      'uid=user.60000,ou=People,dc=com' ,
-                                      'uid=user.70000,ou=People,dc=com' ,
-                                      'uid=user.80000,ou=People,dc=com' ,
-                                      'uid=user.90000,ou=People,dc=com' ,
-                                      'uid=user.99999,ou=People,dc=com'] ,
-                  'startDS'         : 'no'
-                  }
-                </call>
-                
-                <!--<call function="'setKnownIssue'">
-                    { 'issueId' : '2535' }
-                </call>-->
+              <message>
+                'Import Ldif: Binary Attribute: Search for certain entries that were imported'
+              </message>
 
-                <message>
-                  'ldclt_compare: Delete ldif and template files'
-                </message>
+              <call function="'checkImport'">
+                {
+                'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
+                                     'uid=user.10000,ou=People,dc=com' ,
+                                     'uid=user.20000,ou=People,dc=com' ,
+                                     'uid=user.30000,ou=People,dc=com' ,
+                                     'uid=user.40000,ou=People,dc=com' ,
+                                     'uid=user.50000,ou=People,dc=com' ,
+                                     'uid=user.60000,ou=People,dc=com' ,
+                                     'uid=user.70000,ou=People,dc=com' ,
+                                     'uid=user.80000,ou=People,dc=com' ,
+                                     'uid=user.90000,ou=People,dc=com' ,
+                                     'uid=user.99999,ou=People,dc=com'] ,
+                'startDS'         : 'no'
+                }
+              </call>
 
-                <call function="'deleteFile'">
-                  {
-                  'location' : STAF_REMOTE_HOSTNAME,
-                  'filename' : ldifFile
-                  }
-                </call>
+              <message>
+                'Import Ldif: Binary Attribute: Delete ldif and template files'
+              </message>
 
-                <call function="'deleteFile'">
-                  {
-                  'location' : STAF_REMOTE_HOSTNAME,
-                  'filename' : ldifTemplate
-                  }
-                </call>
+              <call function="'deleteFile'">
+                {
+                'location' : STAF_REMOTE_HOSTNAME,
+                'filename' : ldifFile
+                }
+              </call>
 
-                <call function="'testCase_Postamble'"/>
-    
-              </sequence>
+              <call function="'deleteFile'">
+                {
+                'location' : STAF_REMOTE_HOSTNAME,
+                'filename' : ldifTemplate
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
           </testcase>
 
 

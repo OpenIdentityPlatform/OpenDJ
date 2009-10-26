@@ -82,7 +82,7 @@
               
               <!-- the export task is not allowed. the task must be rejected -->
               
-              <call function="'exportLdif'">
+              <call function="'exportLdifWithScript'">
                 { 'location'          : STAF_REMOTE_HOSTNAME ,
                 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,

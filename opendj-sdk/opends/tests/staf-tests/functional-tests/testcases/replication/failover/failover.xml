@@ -75,7 +75,8 @@
               'dsHost'      : masterHost,
               'dsAdminPort' : master.getAdminPort(),
               'dsBindDN'    : master.getRootDn(),
-              'dsBindPwd'   : master.getRootPwd()
+              'dsBindPwd'   : master.getRootPwd(),
+              'noOfLoops'   : 30
             }
           </call>
               
@@ -176,7 +177,8 @@
                       'dsHost'      :  server.getHostname(),
                       'dsAdminPort' :  server.getAdminPort(),
                       'dsBindDN'    :  server.getRootDn(),
-                      'dsBindPwd'   :  server.getRootPwd()
+                      'dsBindPwd'   :  server.getRootPwd(),
+                      'noOfLoops'   : 30
                     }
                   </call>
                   <if expr="globalSplitServers">
@@ -186,7 +188,8 @@
                         'dsHost'      :  replServer.getHostname(),
                         'dsAdminPort' :  replServer.getAdminPort(),
                         'dsBindDN'    :  replServer.getRootDn(),
-                        'dsBindPwd'   :  replServer.getRootPwd()
+                        'dsBindPwd'   :  replServer.getRootPwd(),
+                        'noOfLoops'   : 30
                       }
                     </call>
                   </if>
@@ -263,11 +266,11 @@
 
               <!-- Stop the "consumer" servers -->
               <call function="'stopServers'">
-                [consumerList]
+                [consumerList, 30]
               </call>
               <if expr="globalSplitServers">
                 <call function="'stopServers'">
-                  [_topologyReplServerList[1:]]
+                  [_topologyReplServerList[1:], 30]
                 </call>
               </if>
  

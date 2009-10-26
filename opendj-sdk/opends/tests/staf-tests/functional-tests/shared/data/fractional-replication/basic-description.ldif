@@ -1,0 +1,482 @@
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Copyright 2009 Sun Microsystems, Inc.
+#
+
+dn: o=example
+objectClass: top
+objectClass: organization
+o: example
+
+dn: ou=People,o=example
+objectClass: organizationalunit
+objectClass: top
+ou: People
+
+dn: uid=user.0,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Aaccf Amar.
+cn: Aaccf Amar
+sn: Amar
+
+dn: uid=user.1,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Aaren Atp.
+cn: Aaren Atp
+sn: Atp
+
+dn: uid=user.2,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Aarika Atpco.
+cn: Aarika Atpco
+sn: Atpco
+
+dn: uid=user.3,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Aaron Atrc.
+cn: Aaron Atrc
+sn: Atrc
+
+dn: uid=user.4,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Aartjan Aalders.
+cn: Aartjan Aalders
+sn: Aalders
+
+dn: uid=user.5,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abagael Aasen.
+cn: Abagael Aasen
+sn: Aasen
+
+dn: uid=user.6,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abagail Abadines.
+cn: Abagail Abadines
+sn: Abadines
+
+dn: uid=user.7,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abahri Abazari.
+cn: Abahri Abazari
+sn: Abazari
+
+dn: uid=user.8,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbas Abbatantuono.
+cn: Abbas Abbatantuono
+sn: Abbatantuono
+
+dn: uid=user.9,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbe Abbate.
+cn: Abbe Abbate
+sn: Abbate
+
+dn: uid=user.10,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbey Abbie.
+cn: Abbey Abbie
+sn: Abbie
+
+dn: uid=user.11,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbi Abbott.
+cn: Abbi Abbott
+sn: Abbott
+
+dn: uid=user.12,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbie Abdalla.
+cn: Abbie Abdalla
+sn: Abdalla
+
+dn: uid=user.13,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abby Abdo.
+cn: Abby Abdo
+sn: Abdo
+
+dn: uid=user.14,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abbye Abdollahi.
+cn: Abbye Abdollahi
+sn: Abdollahi
+
+dn: uid=user.15,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abdalla Abdou.
+cn: Abdalla Abdou
+sn: Abdou
+
+dn: uid=user.16,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abdallah Abdul-Nour.
+cn: Abdallah Abdul-Nour
+sn: Abdul-Nour
+
+dn: uid=user.17,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abdul Abdulla.
+cn: Abdul Abdulla
+sn: Abdulla
+
+dn: uid=user.18,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abdullah Abdullah.
+cn: Abdullah Abdullah
+sn: Abdullah
+
+dn: uid=user.19,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abe Abe.
+cn: Abe Abe
+sn: Abe
+
+dn: uid=user.20,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abel Abedi.
+cn: Abel Abedi
+sn: Abedi
+
+dn: uid=user.21,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abigael Abel.
+cn: Abigael Abel
+sn: Abel
+
+dn: uid=user.22,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abigail Abell.
+cn: Abigail Abell
+sn: Abell
+
+dn: uid=user.23,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abigale Abella.
+cn: Abigale Abella
+sn: Abella
+
+dn: uid=user.24,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abra Abello.
+cn: Abra Abello
+sn: Abello
+
+dn: uid=user.25,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abraham Abelow.
+cn: Abraham Abelow
+sn: Abelow
+
+dn: uid=user.26,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Abu Abernathy.
+cn: Abu Abernathy
+sn: Abernathy
+
+dn: uid=user.27,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Access Abernethy.
+cn: Access Abernethy
+sn: Abernethy
+
+dn: uid=user.28,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Accounting Abi-Aad.
+cn: Accounting Abi-Aad
+sn: Abi-Aad
+
+dn: uid=user.29,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Achal Abou-Arrage.
+cn: Achal Abou-Arrage
+sn: Abou-Arrage
+
+dn: uid=user.30,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Achamma Abou-Ezze.
+cn: Achamma Abou-Ezze
+sn: Abou-Ezze
+
+dn: uid=user.31,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Action Aboul-Magd.
+cn: Action Aboul-Magd
+sn: Aboul-Magd
+
+dn: uid=user.32,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Ada Aboussouan.
+cn: Ada Aboussouan
+sn: Aboussouan
+
+dn: uid=user.33,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adah Abovyan.
+cn: Adah Abovyan
+sn: Abovyan
+
+dn: uid=user.34,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adaline Abraham.
+cn: Adaline Abraham
+sn: Abraham
+
+dn: uid=user.35,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adam Abrahim.
+cn: Adam Abrahim
+sn: Abrahim
+
+dn: uid=user.36,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adan Abrams.
+cn: Adan Abrams
+sn: Abrams
+
+dn: uid=user.37,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adara Absi.
+cn: Adara Absi
+sn: Absi
+
+dn: uid=user.38,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adda Acelvari.
+cn: Adda Acelvari
+sn: Acelvari
+
+dn: uid=user.39,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Addi Acharyya.
+cn: Addi Acharyya
+sn: Acharyya
+
+dn: uid=user.40,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Addia Achcar.
+cn: Addia Achcar
+sn: Achcar
+
+dn: uid=user.41,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Addie Achille.
+cn: Addie Achille
+sn: Achille
+
+dn: uid=user.42,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Addons Achkar.
+cn: Addons Achkar
+sn: Achkar
+
+dn: uid=user.43,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Addy Ackaouy.
+cn: Addy Ackaouy
+sn: Ackaouy
+
+dn: uid=user.44,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adel Acker.
+cn: Adel Acker
+sn: Acker
+
+dn: uid=user.45,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adela Acklin.
+cn: Adela Acklin
+sn: Acklin
+
+dn: uid=user.46,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adelaida Ackwood.
+cn: Adelaida Ackwood
+sn: Ackwood
+
+dn: uid=user.47,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adelaide Acree.
+cn: Adelaide Acree
+sn: Acree
+
+dn: uid=user.48,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adele Acres.
+cn: Adele Acres
+sn: Acres
+
+dn: uid=user.49,ou=People,o=example
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+description: This is the description for Adelheid Acs.
+cn: Adelheid Acs
+sn: Acs
+
