@@ -328,6 +328,7 @@ public class StateMachineTest extends ReplicationTestCase
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + rs1Port);
     broker.start(servers);
+    checkConnection(30, broker, rs1Port);
 
     return broker;
   }

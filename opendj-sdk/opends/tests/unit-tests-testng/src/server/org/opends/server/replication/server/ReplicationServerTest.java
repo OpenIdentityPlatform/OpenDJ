@@ -248,10 +248,10 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       server1 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1, 100, replicationServerPort,
-          1000, true);
+          1000, false);
       server2 = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  2, 100, replicationServerPort,
-          1000, true);
+          1000, false);
 
       assertTrue(server1.isConnected());
       assertTrue(server2.isConnected());
@@ -418,8 +418,6 @@ public class ReplicationServerTest extends ReplicationTestCase
       broker =
         openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
                              100, replicationServerPort, 5000, state);
-
-      assertTrue(broker.isConnected(), "Broker could not connect to RS");
 
       ReplicationMsg msg2 = broker.receive();
       broker.updateWindowAfterReplay();
