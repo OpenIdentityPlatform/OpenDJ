@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -202,11 +202,11 @@ public class AddRemovePanel<T> extends JPanel
     gbc.weighty = 1.0;
     gbc.weightx = 1.0;
     gbc.gridheight = 3;
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    if ((displayOptions & DISPLAY_ADD_ALL) != 0)
     {
       gbc.gridheight ++;
     }
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    if ((displayOptions & DISPLAY_REMOVE_ALL) != 0)
     {
       gbc.gridheight ++;
     }
@@ -238,7 +238,7 @@ public class AddRemovePanel<T> extends JPanel
     gbc.insets = new Insets(5, 5, 0, 5);
     add(add, gbc);
 
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    if ((displayOptions & DISPLAY_ADD_ALL) != 0)
     {
       addAll = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_ADD_ALL_BUTTON.get());
@@ -279,7 +279,7 @@ public class AddRemovePanel<T> extends JPanel
     gbc.insets.top = 10;
     add(remove, gbc);
 
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    if ((displayOptions & DISPLAY_REMOVE_ALL) != 0)
     {
       removeAll = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_REMOVE_ALL_BUTTON.get());
