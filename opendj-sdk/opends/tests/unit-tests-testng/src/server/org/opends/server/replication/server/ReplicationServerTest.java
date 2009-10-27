@@ -419,7 +419,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
                              100, replicationServerPort, 5000, state);
 
-      assertTrue(broker.isConnected());
+      assertTrue(broker.isConnected(), "Broker could not connect to RS");
 
       ReplicationMsg msg2 = broker.receive();
       broker.updateWindowAfterReplay();

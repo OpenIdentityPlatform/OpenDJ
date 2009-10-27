@@ -375,7 +375,7 @@ public abstract class ServerHandler extends MessageHandler
 
       writer = new ServerWriter(session, serverId,
           this, replicationServerDomain);
-      reader = new ServerReader(session, serverId, this);
+      reader = new ServerReader(session, this);
 
       reader.start();
       writer.start();
@@ -1421,6 +1421,6 @@ public abstract class ServerHandler extends MessageHandler
   public void doStop()
   {
     if (replicationServerDomain!=null)
-      replicationServerDomain.stopServer(this);
+      replicationServerDomain.stopServer(this, false);
   }
 }

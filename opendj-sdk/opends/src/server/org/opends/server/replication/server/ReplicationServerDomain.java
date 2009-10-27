@@ -808,7 +808,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               cn.toString(), baseDn));
             mb.append(stackTraceToSingleLineString(e));
             logError(mb.toMessage());
-            stopServer(origServer);
+            stopServer(origServer, false);
           }
           // Mark the ack info object as completed to prevent potential timeout
           // code parallel run
@@ -887,7 +887,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
                 cn.toString(), baseDn));
             mb.append(stackTraceToSingleLineString(e));
             logError(mb.toMessage());
-            stopServer(origServer);
+            stopServer(origServer, false);
           }
           // Increment assured counters
           boolean safeRead =
@@ -979,25 +979,28 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     for (ReplicationServerHandler handler : replicationServers.values())
     {
       if (replServers.contains(handler.getServerAddressURL()))
-        stopServer(handler);
+        stopServer(handler, false);
     }
   }
 
   /**
    * Stop operations with all servers this domain is connected with (RS and DS).
+   *
+   * @param shutdown A boolean indicating if the stop is due to a
+   *                 shutdown condition.
    */
-  public void stopAllServers()
+  public void stopAllServers(boolean shutdown)
   {
     // Close session with other replication servers
     for (ReplicationServerHandler serverHandler : replicationServers.values())
     {
-      stopServer(serverHandler);
+      stopServer(serverHandler, shutdown);
     }
 
     // Close session with other LDAP servers
     for (DataServerHandler serverHandler : directoryServers.values())
     {
-      stopServer(serverHandler);
+      stopServer(serverHandler, shutdown);
     }
   }
 
@@ -1026,9 +1029,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Stop operations with a given server.
    *
-   * @param handler the server for which we want to stop operations
+   * @param handler the server for which we want to stop operations.
+   * @param shutdown A boolean indicating if the stop is due to a
+   *                 shutdown condition.
    */
-  public void stopServer(ServerHandler handler)
+  public void stopServer(ServerHandler handler, boolean shutdown)
   {
       if (debugEnabled())
         TRACER.debugInfo(
@@ -1049,9 +1054,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         try
         {
+
           // Acquire lock on domain (see more details in comment of start()
           // method of ServerHandler)
-          lock();
+          if (!shutdown)
+          {
+            lock();
+          }
         } catch (InterruptedException ex)
         {
           // Try doing job anyway...
@@ -1066,9 +1075,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
             // Check if generation id has to be reset
             mayResetGenerationId();
-            // Warn our DSs that a RS or DS has quit (does not use this
-            // handler as already removed from list)
-            buildAndSendTopoInfoToDSs(null);
+            if (!shutdown)
+            {
+              // Warn our DSs that a RS or DS has quit (does not use this
+              // handler as already removed from list)
+              buildAndSendTopoInfoToDSs(null);
+            }
           }
         } else
         {
@@ -1093,10 +1105,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             mayResetGenerationId();
             // Update the remote replication servers with our list
             // of connected LDAP servers
-            buildAndSendTopoInfoToRSs();
-            // Warn our DSs that a RS or DS has quit (does not use this
-            // handler as already removed from list)
-            buildAndSendTopoInfoToDSs(null);
+            if (!shutdown)
+            {
+              buildAndSendTopoInfoToRSs();
+              // Warn our DSs that a RS or DS has quit (does not use this
+              // handler as already removed from list)
+              buildAndSendTopoInfoToDSs(null);
+            }
           }
           else if (otherHandlers.contains(handler))
           {
@@ -1113,7 +1128,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       finally
       {
-        release();
+        if (!shutdown)
+        {
+          release();
+        }
       }
     }
   }
@@ -1710,7 +1728,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
         mb2.append(stackTraceToSingleLineString(ioe));
         logError(mb2.toMessage());
-        stopServer(senderHandler);
+        stopServer(senderHandler, false);
       }
     } else
     {
@@ -1746,8 +1764,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             // an error happened on the sender session trying to recover
             // from an error on the receiver session.
             // We don't have much solution left beside closing the sessions.
-            stopServer(senderHandler);
-            stopServer(targetHandler);
+            stopServer(senderHandler, false);
+            stopServer(targetHandler, false);
           }
         // TODO Handle error properly (sender timeout in addition)
         }
@@ -1766,7 +1784,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // Terminate the assured timer
     assuredTimeoutTimer.cancel();
 
-    stopAllServers();
+    stopAllServers(true);
 
     stopDbHandlers();
   }
@@ -3163,7 +3181,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
             logError(ERR_CHANGELOG_ERROR_SENDING_MSG.get(rsHandler.getName()));
-            stopServer(rsHandler);
+            stopServer(rsHandler, false);
           }
         }
       }

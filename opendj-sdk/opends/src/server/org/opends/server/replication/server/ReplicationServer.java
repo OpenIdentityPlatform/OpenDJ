@@ -569,10 +569,6 @@ public class ReplicationServer
         serverId , this);
       connectThread.start();
 
-      // FIXME : Is it better to have the time to receive the ReplServerInfo
-      // from all the other replication servers since this info is necessary
-      // to route an early received total update request.
-      try { Thread.sleep(300);} catch(Exception e) {}
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " creates listen thread");
@@ -1048,7 +1044,7 @@ public class ReplicationServer
       // Have a new group id: Disconnect every servers.
       for (ReplicationServerDomain replicationServerDomain : baseDNs.values())
       {
-        replicationServerDomain.stopAllServers();
+        replicationServerDomain.stopAllServers(true);
       }
     }
 

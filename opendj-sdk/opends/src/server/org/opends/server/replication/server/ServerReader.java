@@ -58,7 +58,6 @@ public class ServerReader extends DirectoryThread
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  private int serverId;
   private ProtocolSession session;
   private ServerHandler handler;
 
@@ -66,16 +65,14 @@ public class ServerReader extends DirectoryThread
    * Constructor for the LDAP server reader part of the replicationServer.
    *
    * @param session The ProtocolSession from which to read the data.
-   * @param serverId The server ID of the server from which we read messages.
    * @param handler The server handler for this server reader.
    */
-  public ServerReader(ProtocolSession session, int serverId,
+  public ServerReader(ProtocolSession session,
       ServerHandler handler)
   {
     super("Replication Reader Thread for RS handler " +
         handler.getMonitorInstanceName());
     this.session = session;
-    this.serverId = serverId;
     this.handler = handler;
   }
 
@@ -302,9 +299,12 @@ public class ServerReader extends DirectoryThread
       if (debugEnabled())
         TRACER.debugInfo(
             "In " + this.getName() + " " + stackTraceToSingleLineString(e));
-      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
-        Integer.toString(handler.getReplicationServerId()));
-      logError(errMessage);
+      if (!handler.shuttingDown())
+      {
+        errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
+            Integer.toString(handler.getReplicationServerId()));
+        logError(errMessage);
+      }
     }
     catch (ClassNotFoundException e)
     {

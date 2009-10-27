@@ -194,7 +194,7 @@ public class ECLServerWriter extends ServerWriter
         }
       }
       if (replicationServerDomain!=null)
-        replicationServerDomain.stopServer(handler);
+        replicationServerDomain.stopServer(handler, false);
     }
   }
 
