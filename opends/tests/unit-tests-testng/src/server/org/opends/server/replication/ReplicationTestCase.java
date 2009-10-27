@@ -372,6 +372,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       try
       {
         Thread.sleep(1000);
+        rb.start();
       } catch (InterruptedException ex)
       {
         fail("Error sleeping " + stackTraceToSingleLineString(ex));
@@ -382,7 +383,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         // Timeout reached, end with error
         fail("checkConnection: DS " + rb.getServerId() + " is not connected to "
-          + "the RS port " + rsPort + " after " + secTimeout + " seconds.");
+           + "the RS port " + rsPort + " after " + secTimeout + " seconds.");
       }
     }
   }
@@ -416,6 +417,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
+    checkConnection(30, broker, port);
     if (timeout != 0)
       broker.setSoTimeout(timeout);
 
@@ -455,6 +457,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
+    checkConnection(30, broker, port);
     if (timeout != 0)
       broker.setSoTimeout(timeout);
     if (emptyOldChanges)
