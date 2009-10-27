@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -36,10 +36,13 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
@@ -56,6 +59,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
   private static final long serialVersionUID = -3923907357481784964L;
   private JTextArea ldif;
   private JButton checkSyntax;
+  private JLabel lSyntaxCorrect;
 
   /**
    * Default constructor.
@@ -138,10 +142,43 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     gbc.gridx = 0;
     gbc.insets.left = 0;
     gbc.weightx = 1.0;
+    gbc.gridwidth = 3;
     JLabel label = Utilities.createDefaultLabel(
         INFO_CTRL_PANEL_LDIF_SYNTAX_LABEL.get());
     add(label, gbc);
+
+    lSyntaxCorrect = Utilities.createDefaultLabel(
+        INFO_CTRL_PANEL_SYNTAX_CORRECT_LABEL.get());
+    lSyntaxCorrect.setIcon(Utilities.createImageIcon(
+        "org/opends/quicksetup/images/info_small.gif"));
+
     ldif = Utilities.createTextArea(Message.EMPTY, 20, 50);
+    ldif.getDocument().addDocumentListener(new DocumentListener()
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public void removeUpdate(DocumentEvent ev)
+      {
+        lSyntaxCorrect.setVisible(false);
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      public void changedUpdate(DocumentEvent ev)
+      {
+        removeUpdate(ev);
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      public void insertUpdate(DocumentEvent ev)
+      {
+       removeUpdate(ev);
+      }
+    });
     gbc.weightx = 1.0;
     gbc.weighty = 1.0;
     JScrollPane scroll = Utilities.createScrollPane(ldif);
@@ -168,12 +205,36 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
         {
           displayErrorDialog(errors);
         }
+        else
+        {
+          lSyntaxCorrect.setVisible(true);
+        }
       }
     });
     gbc.gridy ++;
+    gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0.0;
     gbc.anchor = GridBagConstraints.WEST;
+    gbc.gridx = 0;
+    add(lSyntaxCorrect, gbc);
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 1;
+    add(Box.createHorizontalGlue(), gbc);
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0.0;
+    gbc.anchor = GridBagConstraints.EAST;
+    gbc.gridx = 2;
     add(checkSyntax, gbc);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void toBeDisplayed(boolean visible)
+  {
+    lSyntaxCorrect.setVisible(false);
   }
 
   /**
