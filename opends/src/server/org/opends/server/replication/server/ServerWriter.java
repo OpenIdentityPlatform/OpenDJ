@@ -246,7 +246,7 @@ public class ServerWriter extends DirectoryThread
       {
        // Can't do much more : ignore
       }
-      replicationServerDomain.stopServer(handler);
+      replicationServerDomain.stopServer(handler, false);
       if (debugEnabled())
       {
         TRACER.debugInfo(this.getName() + " stopped " + errMessage);

@@ -79,6 +79,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.MutableBoolean;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachine;
@@ -309,7 +310,7 @@ public abstract class ReplicationDomain
    * This object is used as a conditional event to be notified about
    * the reception of monitor information from the Replication Server.
    */
-  private Object monitorResponse = new Object();
+  private final MutableBoolean monitorResponse = new MutableBoolean(false);
 
 
   /**
@@ -585,6 +586,8 @@ public abstract class ReplicationDomain
    */
   public Map<Integer, ServerState> getReplicaStates()
   {
+    monitorResponse.set(false);
+
     // publish Monitor Request Message to the Replication Server
     broker.publish(new MonitorRequestMsg(serverID, broker.getRsServerId()));
 
@@ -593,7 +596,10 @@ public abstract class ReplicationDomain
     {
       synchronized (monitorResponse)
       {
-        monitorResponse.wait(10000);
+        if (monitorResponse.get() == false)
+        {
+          monitorResponse.wait(10000);
+        }
       }
     } catch (InterruptedException e)
     {}
@@ -844,6 +850,7 @@ public abstract class ReplicationDomain
           // Notify the sender that the response was received.
           synchronized (monitorResponse)
           {
+            monitorResponse.set(true);
             monitorResponse.notify();
           }
         }
@@ -1900,6 +1907,18 @@ public abstract class ReplicationDomain
     // GenerationID.
     disableService();
     enableService();
+
+    // wait for the domain to reconnect.
+    int count = 0;
+    while (!isConnected() && (count < 10))
+    {
+      try
+      {
+        Thread.sleep(100);
+      } catch (InterruptedException e)
+      {
+      }
+    }
 
     resetGenerationId(getGenerationID());
 

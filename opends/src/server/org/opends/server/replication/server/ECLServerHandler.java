@@ -988,7 +988,7 @@ public class ECLServerHandler extends ServerHandler
       sendWindow = new Semaphore(sendWindowSize);
 
       // create reader
-      reader = new ServerReader(session, serverId, this);
+      reader = new ServerReader(session, this);
       reader.start();
 
       if (writer == null)

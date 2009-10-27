@@ -321,9 +321,9 @@ public class DbHandler implements Runnable
     }
 
     shutdown  = true;
-    synchronized (this)
+    synchronized (msgQueue)
     {
-      this.notifyAll();
+      msgQueue.notifyAll();
     }
 
     synchronized (this)
