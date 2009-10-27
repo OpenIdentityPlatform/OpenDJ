@@ -33,6 +33,7 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -49,6 +50,7 @@ import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -230,7 +232,9 @@ implements IndexModifiedListener
    */
   private void refreshContents(final ServerDescriptor desc)
   {
-    updateIndexMap(desc, hmIndexes);
+    super.updateIndexMap(desc, hmIndexes);
+    filterIndexes(hmIndexes);
+
     updateBaseDNComboBoxModel((DefaultComboBoxModel)baseDNs.getModel(), desc);
 
     // Check that all backends
@@ -279,7 +283,7 @@ implements IndexModifiedListener
         addRemove.getSelectedList().repaint();
 
         Utilities.updateViewPositions(pos);
-        if (!desc.isLocal() && false)
+        if (!desc.isLocal())
         {
           displayErrorMessage(INFO_CTRL_PANEL_SERVER_REMOTE_SUMMARY.get(),
           INFO_CTRL_PANEL_SERVER_MUST_BE_LOCAL_REBUILD_INDEX_SUMMARY.get());
@@ -398,5 +402,41 @@ implements IndexModifiedListener
       dn = (String)o.getValue();
     }
     return dn;
+  }
+
+  private void filterIndexes(
+      HashMap<String, SortedSet<AbstractIndexDescriptor>> hmIndexes)
+  {
+ // Remove the indexes that are not to be added.
+    for (SortedSet<AbstractIndexDescriptor> indexes : hmIndexes.values())
+    {
+      ArrayList<AbstractIndexDescriptor> toRemove =
+        new ArrayList<AbstractIndexDescriptor>();
+      for (AbstractIndexDescriptor index : indexes)
+      {
+        if (!mustBeDisplayed(index))
+        {
+          toRemove.add(index);
+        }
+      }
+      indexes.removeAll(toRemove);
+    }
+  }
+
+  private boolean mustBeDisplayed(AbstractIndexDescriptor index)
+  {
+    boolean mustBeDisplayed = true;
+    if (index instanceof IndexDescriptor)
+    {
+      for (String name : RebuildIndexTask.INDEXES_NOT_TO_SPECIFY)
+      {
+        if (name.equalsIgnoreCase(index.getName()))
+        {
+          mustBeDisplayed = false;
+          break;
+        }
+      }
+    }
+    return mustBeDisplayed;
   }
 }

@@ -31,6 +31,7 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -40,6 +41,7 @@ import javax.swing.SwingUtilities;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -62,6 +64,12 @@ public class RebuildIndexTask extends IndexTask
 {
   private SortedSet<AbstractIndexDescriptor> indexes =
     new TreeSet<AbstractIndexDescriptor>();
+
+  /**
+   * The indexes that must not be specified in the command-line.
+   */
+  public static final String[] INDEXES_NOT_TO_SPECIFY =
+  {"id2children", "id2subtree"};
 
   /**
    * Constructor of the task.
@@ -254,17 +262,24 @@ public class RebuildIndexTask extends IndexTask
     args.add("--baseDN");
     args.add(baseDN);
 
-    for (AbstractIndexDescriptor index : indexes)
+    if (rebuildAll())
     {
-      args.add("--index");
-      if (index instanceof VLVIndexDescriptor)
+      args.add("--rebuildAll");
+    }
+    else
+    {
+      for (AbstractIndexDescriptor index : indexes)
       {
-        args.add(
-            Utilities.getVLVNameInCommandLine((VLVIndexDescriptor)index));
-      }
-      else
-      {
-        args.add(index.getName());
+        args.add("--index");
+        if (index instanceof VLVIndexDescriptor)
+        {
+          args.add(
+              Utilities.getVLVNameInCommandLine((VLVIndexDescriptor)index));
+        }
+        else
+        {
+          args.add(index.getName());
+        }
       }
     }
 
@@ -363,5 +378,60 @@ public class RebuildIndexTask extends IndexTask
         "<br><br>");
       }
     });
+  }
+
+  private boolean rebuildAll()
+  {
+    boolean rebuildAll = true;
+    Set<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
+    for (AbstractIndexDescriptor index : indexes)
+    {
+      backends.add(index.getBackend());
+    }
+    for (BackendDescriptor backend : backends)
+    {
+      Set<AbstractIndexDescriptor> allIndexes =
+        new HashSet<AbstractIndexDescriptor>();
+      allIndexes.addAll(backend.getIndexes());
+      allIndexes.addAll(backend.getVLVIndexes());
+      for (AbstractIndexDescriptor index : allIndexes)
+      {
+        if (!ignoreIndex(index))
+        {
+          boolean found = false;
+          for (AbstractIndexDescriptor indexToRebuild : indexes)
+          {
+            if (indexToRebuild.equals(index))
+            {
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+          {
+            rebuildAll = false;
+            break;
+          }
+        }
+      }
+    }
+    return rebuildAll;
+  }
+
+  private boolean ignoreIndex(AbstractIndexDescriptor index)
+  {
+    boolean ignoreIndex = false;
+    if (index instanceof IndexDescriptor)
+    {
+      for (String name : INDEXES_NOT_TO_SPECIFY)
+      {
+        if (name.equalsIgnoreCase(index.getName()))
+        {
+          ignoreIndex = true;
+          break;
+        }
+      }
+    }
+    return ignoreIndex;
   }
 }
