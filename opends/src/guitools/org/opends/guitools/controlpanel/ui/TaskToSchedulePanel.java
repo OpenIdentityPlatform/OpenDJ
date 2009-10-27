@@ -45,6 +45,7 @@ import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -279,10 +280,23 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    */
   public void toBeDisplayed(boolean visible)
   {
-    // Reset the schedule
+    // Reset the schedule and the labels
     if (visible)
     {
       schedule = null;
+      setPrimaryValid(lTime);
+      setPrimaryValid(lDay);
+      setPrimaryValid(lMonth);
+      setPrimaryValid(lYear);
+      setPrimaryValid(lWeeklyTime);
+      setPrimaryValid(lWeeklyDays);
+      setPrimaryValid(lMonthlyTime);
+      setPrimaryValid(lMonthlyDays);
+      setPrimaryValid(lCronMinute);
+      setPrimaryValid(lCronHour);
+      setPrimaryValid(lCronMonthDay);
+      setPrimaryValid(lCronMonth);
+      setPrimaryValid(lCronWeekDay);
     }
   }
 
@@ -866,7 +880,14 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     gbc.gridy = 0;
 
     JLabel[] labels = {lTime, lDay, lMonth, lYear};
-    Component[] comps = {time, day, month, year};
+    JComponent[] comps = {time, day, month, year};
+    Message[] inlineHelp =
+    {
+        INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TIME_TOOLTIP.get(),
+        null,
+        null,
+        null
+    };
 
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -875,6 +896,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     {
       gbc.gridx = 0;
       gbc.weightx = 0.0;
+      gbc.gridwidth = 1;
 
       panel.add(labels[i], gbc);
       gbc.gridx = 1;
@@ -884,6 +906,16 @@ public class TaskToSchedulePanel extends StatusGenericPanel
       gbc.weightx = 1.0;
       gbc.insets.left = 0;
       panel.add(Box.createHorizontalGlue(), gbc);
+
+      if (inlineHelp[i] != null)
+      {
+        gbc.gridwidth = 2;
+        gbc.insets.top = 3;
+        gbc.insets.left = 10;
+        gbc.gridx = 1;
+        gbc.gridy ++;
+        panel.add(Utilities.createInlineHelpLabel(inlineHelp[i]), gbc);
+      }
 
       gbc.insets.top = 10;
       gbc.gridy ++;
@@ -903,6 +935,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     panel.setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
+    gbc.gridy = 0;
     gbc.weightx = 0.0;
 
     lDailyTime =
@@ -925,6 +958,14 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     gbc.insets.left = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel.add(Box.createHorizontalGlue(), gbc);
+
+    gbc.gridy ++;
+    gbc.gridwidth = 2;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    panel.add(Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TIME_TOOLTIP.get()), gbc);
 
     return panel;
   }
@@ -969,6 +1010,13 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel.add(Box.createHorizontalGlue(), gbc);
+    gbc.gridy ++;
+    gbc.gridwidth = weekDays.length + 1;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    panel.add(Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TIME_TOOLTIP.get()), gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -1025,6 +1073,13 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     panel.add(Box.createHorizontalGlue(), gbc);
+    gbc.gridy ++;
+    gbc.gridwidth = 8;
+    gbc.insets.top = 3;
+    gbc.insets.left = 10;
+    gbc.gridx = 1;
+    panel.add(Utilities.createInlineHelpLabel(
+        INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TIME_TOOLTIP.get()), gbc);
 
     gbc.gridx = 0;
     gbc.gridy ++;
