@@ -1158,6 +1158,10 @@ public class Utils
     {
       arg = ne.getLocalizedMessage();
     }
+    else if (ne.getExplanation() != null)
+    {
+      arg = ne.getExplanation();
+    }
     else
     {
       arg = ne.toString(true);
