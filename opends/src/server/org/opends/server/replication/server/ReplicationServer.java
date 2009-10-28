@@ -185,8 +185,11 @@ public class ReplicationServer
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private String externalChangeLogWorkflowID = "External Changelog Workflow ID";
+  private static String externalChangeLogWorkflowID =
+    "External Changelog Workflow ID";
   ECLWorkflowElement eclwe;
+  WorkflowImpl externalChangeLogWorkflowImpl = null;
+
   private static HashSet<Integer> localPorts = new HashSet<Integer>();
 
   // used to synchronize the domain creation with the connect thread.
@@ -501,15 +504,6 @@ public class ReplicationServer
       socket.setTcpNoDelay(true);
       socket.connect(ServerAddr, 500);
 
-      /*
-      ServerHandler handler = new ServerHandler(
-           replSessionSecurity.createClientSession(serverURL, socket,
-           ReplSessionSecurity.HANDSHAKE_TIMEOUT),
-           queueSize);
-      handler.start(baseDn, serverId, this.serverURL, rcvWindow,
-                    sslEncryption, this);
-      */
-
       ReplicationServerHandler handler = new ReplicationServerHandler(
           replSessionSecurity.createClientSession(remoteServerURL,
               socket,
@@ -578,9 +572,14 @@ public class ReplicationServer
         serverId , this);
       listenThread.start();
 
-      // Initialize the External Changelog
-      // FIXME: how is WF creation enabed/disabled in the RS ?
-      initializeECL();
+      // Creates the ECL workflow elem so that DS (LDAPReplicationDomain)
+      // can know me and really enableECL.
+      if (WorkflowImpl.getWorkflow(externalChangeLogWorkflowID) != null)
+      {
+        // Already done . Nothing to do
+        return;
+      }
+      eclwe = new ECLWorkflowElement(this);
 
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
@@ -609,64 +608,57 @@ public class ReplicationServer
     {
       //FIXME:DirectoryException is raised by initializeECL => fix err msg
       Message message = Message.raw(Category.SYNC, Severity.SEVERE_ERROR,
-        "Directory Exception raised by ECL initialization: " + e.getMessage());
+      "Directory Exception raised by ECL initialization: " + e.getMessage());
       logError(message);
     }
   }
 
   /**
-   * Initializes the ECL access by creating a dedicated workflow element.
-   * @throws DirectoryException
+   * Enable the ECL access by creating a dedicated workflow element.
+   * @throws DirectoryException when an error occurs.
    */
-  private void initializeECL()
+  public void enableECL()
   throws DirectoryException
   {
-    WorkflowImpl externalChangeLogWorkflow;
-    if (WorkflowImpl.getWorkflow(externalChangeLogWorkflowID)
-        !=null)
+    if (externalChangeLogWorkflowImpl!=null)
+    {
+      // do nothing if ECL is already enabled
       return;
-
-    ECLWorkflowElement eclwe = new ECLWorkflowElement(this);
+    }
 
     // Create the workflow for the base DN and register the workflow with
     // the server.
-    externalChangeLogWorkflow = new WorkflowImpl(
+    externalChangeLogWorkflowImpl = new WorkflowImpl(
         externalChangeLogWorkflowID,
         DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
         eclwe.getWorkflowElementID(),
         eclwe);
-    externalChangeLogWorkflow.register();
+    externalChangeLogWorkflowImpl.register();
 
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    defaultNetworkGroup.registerWorkflow(externalChangeLogWorkflow);
+    defaultNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
 
     // FIXME:ECL should the ECL Workflow be registered in adminNetworkGroup?
     NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
-    adminNetworkGroup.registerWorkflow(externalChangeLogWorkflow);
+    adminNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
 
     // FIXME:ECL should the ECL Workflow be registered in internalNetworkGroup?
     NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
-    internalNetworkGroup.registerWorkflow(externalChangeLogWorkflow);
+    internalNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
 
-    try
-    {
-      enableECLVirtualAttr("lastexternalchangelogcookie",
-          new LastCookieVirtualProvider());
-      enableECLVirtualAttr("firstchangenumber",
-          new FirstChangeNumberVirtualAttributeProvider());
-      enableECLVirtualAttr("lastchangenumber",
-          new LastChangeNumberVirtualAttributeProvider());
-      enableECLVirtualAttr("changelog",
-          new ChangelogBaseDNVirtualAttributeProvider());
-    }
-    catch (Exception e)
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
+    enableECLVirtualAttr("lastexternalchangelogcookie",
+        new LastCookieVirtualProvider());
+    enableECLVirtualAttr("firstchangenumber",
+        new FirstChangeNumberVirtualAttributeProvider());
+    enableECLVirtualAttr("lastchangenumber",
+        new LastChangeNumberVirtualAttributeProvider());
+    enableECLVirtualAttr("changelog",
+        new ChangelogBaseDNVirtualAttributeProvider());
   }
 
-  private void enableECLVirtualAttr(String attrName,
+  private static void enableECLVirtualAttr(String attrName,
       VirtualAttributeProvider<UserDefinedVirtualAttributeCfg> provider)
+  throws DirectoryException
   {
     Set<DN> baseDNs = new HashSet<DN>(0);
     Set<DN> groupDNs = new HashSet<DN>(0);
@@ -694,13 +686,13 @@ public class ReplicationServer
             baseDNs, groupDNs, filters, conflictBehavior);
 
       DirectoryServer.registerVirtualAttribute(rule);
-
     }
     catch (Exception e)
     {
       Message message =
-        NOTE_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
-      logError(message);
+        NOTE_ERR_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
+          message, e);
     }
   }
 
