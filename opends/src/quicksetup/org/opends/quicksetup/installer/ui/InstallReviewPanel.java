@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -518,9 +518,11 @@ public class InstallReviewPanel extends ReviewPanel {
     if (bottomComponent == null)
     {
       bottomComponent = new JPanel(new GridBagLayout());
+      bottomComponent.setOpaque(false);
       GridBagConstraints gbc = new GridBagConstraints();
       gbc.anchor = GridBagConstraints.WEST;
       JPanel auxPanel = new JPanel(new GridBagLayout());
+      auxPanel.setOpaque(false);
       gbc.gridwidth = 3;
       auxPanel.add(getStartCheckBox(), gbc);
       gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
