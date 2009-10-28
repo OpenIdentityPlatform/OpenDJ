@@ -283,7 +283,7 @@ implements Comparator<ConnectionHandlerDescriptor>
         {
           buf.append("<br>");
         }
-        buf.append(address.getCanonicalHostName());
+        buf.append(address.getHostAddress());
         added = true;
         if (desc.getPort() > 0)
         {
