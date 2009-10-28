@@ -98,7 +98,6 @@ public class InstallerHelper {
       InstallerHelper.class.getName());
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
-  private static final String DOMAIN_BASE_NAME = "domain ";
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
@@ -841,7 +840,7 @@ public class InstallerHelper {
   public static String getDomainName(String[] existingDomains, int newDomainId,
       String baseDN)
   {
-    String domainName = baseDN + " ("+DOMAIN_BASE_NAME+newDomainId+")";
+    String domainName = baseDN;
     boolean nameExists = true;
     int j = 0;
     while (nameExists)
@@ -853,7 +852,7 @@ public class InstallerHelper {
       }
       if (found)
       {
-        domainName = DOMAIN_BASE_NAME+newDomainId+"-"+j;
+        domainName = baseDN+"-"+j;
       }
       else
       {
