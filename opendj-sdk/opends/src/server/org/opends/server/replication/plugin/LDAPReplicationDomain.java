@@ -157,6 +157,7 @@ import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationOperation;
+import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.*;
 
 /**
@@ -896,7 +897,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * Utility class to have get a sting iterator from an AtributeValue iterator.
+   * Utility class to have get a string iterator from an AtributeValue iterator.
    * Assuming the attribute values are strings.
    */
   public static class AttributeValueStringIterator implements Iterator<String>
@@ -4181,6 +4182,31 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     super.sessionInitiated(
         initStatus, replicationServerState,generationID, session);
 
+    // Now that we are connected , we can enable ECL if :
+    // 1/ RS must in the same JVM and created an ECL_WORKFLOW_ELEMENT
+    // and 2/ this domain must NOT be private
+    if (!getBackend().isPrivateBackend())
+    {
+      try
+      {
+        ECLWorkflowElement wfe = (ECLWorkflowElement)
+        DirectoryServer.getWorkflowElement(
+            ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
+        if (wfe!=null)
+          wfe.getReplicationServer().enableECL();
+      }
+      catch(DirectoryException de)
+      {
+        //FIXME:DirectoryException is raised by initializeECL => fix err msg
+        Message message =
+          NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+              "Replication Domain on" + baseDn,
+              de.getMessage() + " " + de.getCause().getMessage());
+        logError(message);
+        // and go on
+      }
+    }
+
     // Now for bad data set status if needed
     if (force_bad_data_set)
     {
@@ -4297,6 +4323,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           e.getLocalizedMessage() + stackTraceToSingleLineString(e));
       logError(message);
     }
+
   }
 
   /**

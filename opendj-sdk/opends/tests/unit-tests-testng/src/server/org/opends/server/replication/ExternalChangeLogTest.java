@@ -138,6 +138,7 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
+import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -216,12 +217,32 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
+    // No RSDomain created yet => RS only case => ECL is not a supported 
+    ECLIsNotASupportedSuffix();
+
+    // Following test does not create RSDomain (only broker) but want to test
+    // ECL .. so let's enable ECl manually
+    // Now that we tested that ECl is not available 
+    try
+    {
+      ECLWorkflowElement wfe = (ECLWorkflowElement)
+      DirectoryServer.getWorkflowElement(
+          ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
+      if (wfe!=null)
+        wfe.getReplicationServer().enableECL();
+    }
+    catch(DirectoryException de)
+    {
+      fail("Ending test " +  " with exception:"
+          +  stackTraceToSingleLineString(de));
+    }
+   
     // Test all types of ops.  
     ECLAllOps(); // Do not clean the db for the next test
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
  
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains(); replicationServer.clearDb();
@@ -259,7 +280,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4, true);replicationServer.clearDb();
 
     // Test remote API (ECL through replication protocol) with NON empty ECL
     ECLRemoteNonEmpty();replicationServer.clearDb();
@@ -319,7 +340,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatReadFromTo(5,7);
 
     // Test first and last draft changenumber
-    ECLCompatTestLimits(1,8);
+    ECLCompatTestLimits(1,8, true);
 
     // Test first and last draft changenumber, a dd a new change, do not
     // search again the ECL, but search fro first and last
@@ -329,7 +350,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLPurgeDraftCNDbAfterChangelogClear();
 
     // Test first and last are updated
-    ECLCompatTestLimits(0,0);
+    ECLCompatTestLimits(0,0, true);
 
     // Persistent search in changesOnly mode
     ECLPsearch(true, true);replicationServer.clearDb();
@@ -344,6 +365,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test simultaneous persistent searches in draft compat mode.
     ECLSimultaneousPsearches();replicationServer.clearDb();
 
+  }
+
+  private void ECLIsNotASupportedSuffix()
+  {
+    ECLCompatTestLimits(0,0, false);
   }
 
   //=======================================================
@@ -1182,6 +1208,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     try
     {
+      // Root DSE
       InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf(""),
@@ -3263,7 +3290,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
-  private void ECLCompatTestLimits(int expectedFirst, int expectedLast)
+  private void ECLCompatTestLimits(int expectedFirst, int expectedLast,
+      boolean eclEnabled)
   {
     String tn = "ECLCompatTestLimits";
     debugInfo(tn, "Starting test\n\n");
@@ -3302,12 +3330,27 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           i++;
           debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
           ldifWriter.writeEntry(resultEntry);
-          checkValue(resultEntry,"firstchangenumber",
+          if (eclEnabled)
+          {
+            checkValue(resultEntry,"firstchangenumber",
               String.valueOf(expectedFirst));
-          checkValue(resultEntry,"lastchangenumber",
+            checkValue(resultEntry,"lastchangenumber",
               String.valueOf(expectedLast));
-          checkValue(resultEntry,"changelog",
+            checkValue(resultEntry,"changelog",
               String.valueOf("cn=changelog"));
+          }
+          else
+          {
+            assertEquals(getAttributeValue(resultEntry, "firstchangenumber"),
+                null);
+            assertEquals(getAttributeValue(resultEntry, "lastchangenumber"),
+                null);
+            assertEquals(getAttributeValue(resultEntry, "changelog"),
+                null);
+            assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"),
+                null);
+            
+          }
         }
       }
     }
@@ -3326,7 +3369,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
     try
     {
-      ECLCompatTestLimits(expectedFirst, expectedLast);
+      ECLCompatTestLimits(expectedFirst, expectedLast, true);
 
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(
@@ -3346,7 +3389,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
       server01.stop();
 
-      ECLCompatTestLimits(expectedFirst, expectedLast+1);
+      ECLCompatTestLimits(expectedFirst, expectedLast+1, true);
 
     }
     catch(Exception e)
