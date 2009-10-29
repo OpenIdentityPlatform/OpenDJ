@@ -2651,10 +2651,11 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
     String adminUid = argParser.getAdministratorUID();
-    String bindDn = argParser.getBindDN();
+    String bindDn = argParser.getBindDNToDisable();
     if ((bindDn == null) && (adminUid == null))
     {
       adminUid = argParser.getDefaultAdministratorUID();
+      bindDn = ADSContext.getAdministratorDN(adminUid);
     }
     uData.setAdminUid(adminUid);
     uData.setBindDn(bindDn);
