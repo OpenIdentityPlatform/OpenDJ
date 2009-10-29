@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -95,6 +95,8 @@ public class UserData
   private String configurationFile;
 
   private String configurationClass;
+
+  private static String defaultHostName;
 
   /**
    * Creates a user data object with default values.
@@ -677,15 +679,18 @@ public class UserData
    */
   public static String getDefaultHostName()
   {
-    String name = "";
-    try
+    if (defaultHostName == null)
     {
-      name = java.net.InetAddress.getLocalHost().getCanonicalHostName();
+      try
+      {
+        defaultHostName = java.net.InetAddress.getLocalHost().getHostName();
+      }
+      catch (Throwable t)
+      {
+        defaultHostName = "localhost";
+      }
     }
-    catch (Throwable t)
-    {
-    }
-    return name;
+    return defaultHostName;
   }
 
   /**
