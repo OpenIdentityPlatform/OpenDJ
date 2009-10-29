@@ -88,7 +88,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private IntegerArgument port1Arg = null;
 
   /**
-   * The 'binDN' argument for the first server.
+   * The 'bindDN' argument for the first server.
    */
   private StringArgument bindDn1Arg = null;
 
