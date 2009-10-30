@@ -32,7 +32,7 @@
   </description>
 
   <!-- Build JVM properties -->
-  <property name="MEM" value="768M"/>
+  <property name="MEM" value="256M"/>
 
   <!-- Build OpenDMK properties -->
   <property file="build.properties"/>
