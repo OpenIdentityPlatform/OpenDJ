@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -199,6 +199,20 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     panel.add(auxPanel, gbc);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.top = 0;
+    gbc.insets.left = 0;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel.add(Box.createHorizontalGlue(), gbc);
+
+    gbc.insets.top = 3;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    panel.add(UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+        INFO_NO_BASE_DN_INLINE_HELP.get(),
+        UIFactory.TextStyle.INLINE_HELP), gbc);
 
     int h1 = getLabel(FieldName.DATA_OPTIONS).getPreferredSize().height;
     int h2 = getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).

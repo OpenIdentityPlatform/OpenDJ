@@ -336,6 +336,12 @@ public class UIFactory
           getColor(INFO_PASSWORDFIELD_COLOR.get());
 
   /**
+   * Specifies the in-line help text color.
+   */
+  public static final Color INLINE_HELP_COLOR =
+          getColor(INFO_INLINE_HELP_COLOR.get());
+
+  /**
    * Specifies the panel border color.
    */
   public static final Color PANEL_BORDER_COLOR =
@@ -503,6 +509,12 @@ public class UIFactory
    * Specifies the font for the text in the WebBrowserErrorDialog.
    */
   public static final Font ERROR_DIALOG_FONT = defaultFont;
+
+  /**
+   * Specifies the font for the text in the in-line help.
+   */
+  public static final Font INLINE_HELP_FONT = defaultFont.deriveFont(
+      (float)(defaultFont.getSize() - 2));
 
   private static final String SPAN_CLOSE = "</span>";
 
@@ -708,6 +720,10 @@ public class UIFactory
      * Text style for the instructions.
      */
     INSTRUCTIONS,
+    /**
+     * In-line help style.
+     */
+    INLINE_HELP,
     /**
      * No text style.
      */
@@ -1074,6 +1090,11 @@ public class UIFactory
     case PASSWORD_FIELD:
       l.setFont(UIFactory.PASSWORD_FIELD_FONT);
       l.setForeground(PASSWORDFIELD_COLOR);
+      break;
+
+    case INLINE_HELP:
+      l.setFont(INLINE_HELP_FONT);
+      l.setForeground(INLINE_HELP_COLOR);
       break;
 
     case NO_STYLE:

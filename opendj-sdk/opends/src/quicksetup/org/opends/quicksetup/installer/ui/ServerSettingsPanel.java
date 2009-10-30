@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -433,7 +433,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       break;
 
     case SECURITY_OPTIONS:
-      value = getSecurityOptionsString(defaultUserData.getSecurityOptions(),
+      value = Utils.getSecurityOptionsString(
+          defaultUserData.getSecurityOptions(),
           true);
       break;
 
@@ -597,7 +598,8 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
           {
             securityOptions =
               getConfigureSecureAccessDialog().getSecurityOptions();
-            lSecurity.setText(getSecurityOptionsString(securityOptions, true));
+            lSecurity.setText(
+                Utils.getSecurityOptionsString(securityOptions, true));
           }
         }
       });

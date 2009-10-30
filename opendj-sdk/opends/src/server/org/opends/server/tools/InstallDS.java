@@ -59,8 +59,6 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
-import org.opends.quicksetup.installer.ui.InstallReviewPanel;
-import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -771,10 +769,6 @@ public class InstallDS extends ConsoleApplication
 
     // Check the validity of the base DNs
     LinkedList<String> baseDNs = argParser.baseDNArg.getValues();
-    if (baseDNs.isEmpty())
-    {
-      baseDNs.add(argParser.baseDNArg.getDefaultValue());
-    }
     for (String baseDN : baseDNs)
     {
       try
@@ -1338,10 +1332,39 @@ public class InstallDS extends ConsoleApplication
   private void promptIfRequiredForImportData(UserData uData)
   throws UserDataException
   {
-    // Check the validity of the base DNs
-    LinkedList<String> baseDNs = promptIfRequiredForDNs(
-        argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
+    boolean prompt = true;
+    if (!argParser.baseDNArg.isPresent())
+    {
+      try
+      {
+        prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(),
+            true);
+      }
+      catch (CLIException ce)
+      {
+        prompt = true;
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
+    }
+    NewSuffixOptions dataOptions;
+    if (!prompt)
+    {
+      LinkedList<String> baseDNs = new LinkedList<String>();
+      dataOptions = NewSuffixOptions.createEmpty(baseDNs);
+    }
+    else
+    {
+      // Check the validity of the base DNs
+      LinkedList<String>baseDNs = promptIfRequiredForDNs(
+          argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
+      dataOptions = promptIfRequiredForDataOptions(baseDNs);
+    }
+    uData.setNewSuffixOptions(dataOptions);
+  }
 
+  private NewSuffixOptions promptIfRequiredForDataOptions(
+      LinkedList<String> baseDNs)
+  {
     NewSuffixOptions dataOptions;
     if (argParser.importLDIFArg.isPresent())
     {
@@ -1466,7 +1489,7 @@ public class InstallDS extends ConsoleApplication
           INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
           INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
           INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get()
-        };
+      };
 
       MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get());
@@ -1479,32 +1502,32 @@ public class InstallDS extends ConsoleApplication
       if (lastResetPopulateOption == null)
       {
         builder.setDefault(Message.raw(
-              String.valueOf(POPULATE_TYPE_BASE_ONLY)),
-              MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+            String.valueOf(POPULATE_TYPE_BASE_ONLY)),
+            MenuResult.success(POPULATE_TYPE_BASE_ONLY));
       }
       else
       {
         switch (lastResetPopulateOption)
         {
-          case LEAVE_DATABASE_EMPTY:
-            builder.setDefault(Message.raw(
+        case LEAVE_DATABASE_EMPTY:
+          builder.setDefault(Message.raw(
               String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
               MenuResult.success(POPULATE_TYPE_LEAVE_EMPTY));
-            break;
-          case IMPORT_FROM_LDIF_FILE:
-            builder.setDefault(Message.raw(
-                String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
-                MenuResult.success(POPULATE_TYPE_IMPORT_FROM_LDIF));
-            break;
-          case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-            builder.setDefault(Message.raw(
-                String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA)),
-                MenuResult.success(POPULATE_TYPE_GENERATE_SAMPLE_DATA));
-            break;
-          default:
-            builder.setDefault(Message.raw(
-                String.valueOf(POPULATE_TYPE_BASE_ONLY)),
-                MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+          break;
+        case IMPORT_FROM_LDIF_FILE:
+          builder.setDefault(Message.raw(
+              String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
+              MenuResult.success(POPULATE_TYPE_IMPORT_FROM_LDIF));
+          break;
+        case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+          builder.setDefault(Message.raw(
+              String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA)),
+              MenuResult.success(POPULATE_TYPE_GENERATE_SAMPLE_DATA));
+          break;
+        default:
+          builder.setDefault(Message.raw(
+              String.valueOf(POPULATE_TYPE_BASE_ONLY)),
+              MenuResult.success(POPULATE_TYPE_BASE_ONLY));
         }
       }
 
@@ -1629,7 +1652,7 @@ public class InstallDS extends ConsoleApplication
             populateType);
       }
     }
-    uData.setNewSuffixOptions(dataOptions);
+    return dataOptions;
   }
 
   /**
@@ -2509,10 +2532,9 @@ public class InstallDS extends ConsoleApplication
         Message.raw(String.valueOf(uData.getAdminConnectorPort())),
         Message.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
         Message.raw(
-            QuickSetupStepPanel.getSecurityOptionsString(
-                uData.getSecurityOptions(), false)),
+            Utils.getSecurityOptionsString(uData.getSecurityOptions(), false)),
         Message.raw(uData.getDirectoryManagerDn()),
-        Message.raw(InstallReviewPanel.getDataDisplayString(uData)),
+        Message.raw(Utils.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
     for (Message l : labels)

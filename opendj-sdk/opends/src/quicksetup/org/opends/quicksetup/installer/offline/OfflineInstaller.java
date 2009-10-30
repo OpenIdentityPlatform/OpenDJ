@@ -181,7 +181,7 @@ public class OfflineInstaller extends Installer
           notifyListeners(getTaskSeparator());
         }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
-        createReplicatedBackends();
+        createReplicatedBackendsIfRequired();
         configureReplication();
         checkAbort();
       }
