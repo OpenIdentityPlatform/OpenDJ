@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -44,9 +44,7 @@ import javax.swing.event.HyperlinkListener;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
-import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
@@ -439,95 +437,6 @@ implements HyperlinkListener
       formatter = new HtmlProgressMessageFormatter();
     }
     return formatter;
-  }
-
-  /**
-   * Returns a localized String representation of the provided SecurityOptions
-   * object.
-   * @param ops the SecurityOptions object from which we want to obtain the
-   * String representation.
-   * @param html whether the resulting String must be in HTML or not.
-   * @return a localized String representation of the provided SecurityOptions
-   * object.
-   */
-  public static String getSecurityOptionsString(SecurityOptions ops,
-      boolean html)
-  {
-    StringBuilder buf = new StringBuilder();
-
-    if (ops.getCertificateType() ==
-      SecurityOptions.CertificateType.NO_CERTIFICATE)
-    {
-      buf.append(INFO_NO_SECURITY.get());
-    }
-    else
-    {
-      if (ops.getEnableStartTLS())
-      {
-        buf.append(INFO_ENABLE_STARTTLS.get());
-      }
-      if (ops.getEnableSSL())
-      {
-        if (buf.length() > 0)
-        {
-          if (html)
-          {
-            buf.append(Constants.HTML_LINE_BREAK);
-          }
-          else
-          {
-            buf.append("\n");
-          }
-        }
-        buf.append(INFO_ENABLE_SSL.get(String.valueOf(ops.getSslPort())));
-      }
-      if (html)
-      {
-        buf.append(Constants.HTML_LINE_BREAK);
-      }
-      else
-      {
-        buf.append("\n");
-      }
-      Message certMsg;
-      switch (ops.getCertificateType())
-      {
-      case SELF_SIGNED_CERTIFICATE:
-        certMsg = INFO_SELF_SIGNED_CERTIFICATE.get();
-        break;
-
-      case JKS:
-        certMsg = INFO_JKS_CERTIFICATE.get();
-        break;
-
-      case JCEKS:
-        certMsg = INFO_JCEKS_CERTIFICATE.get();
-        break;
-
-      case PKCS11:
-        certMsg = INFO_PKCS11_CERTIFICATE.get();
-        break;
-
-      case PKCS12:
-        certMsg = INFO_PKCS12_CERTIFICATE.get();
-        break;
-
-      default:
-        throw new IllegalStateException("Unknown certificate options type: "+
-            ops.getCertificateType());
-      }
-      buf.append(certMsg);
-    }
-
-    if (html)
-    {
-      return "<html>"+UIFactory.applyFontToHtml(buf.toString(),
-          UIFactory.SECONDARY_FIELD_VALID_FONT);
-    }
-    else
-    {
-      return buf.toString();
-    }
   }
 
   /**

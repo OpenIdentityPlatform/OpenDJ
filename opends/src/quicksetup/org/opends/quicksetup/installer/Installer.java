@@ -973,6 +973,13 @@ public abstract class Installer extends GuiApplication {
                 ReturnCode.CONFIGURATION_ERROR,
                 INFO_ERROR_CONFIGURING.get(), null);
           }
+          else
+          {
+            if (getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
+            {
+              helper.deleteBackend(getBackendName());
+            }
+          }
         } catch (ApplicationException aex)
         {
           ae = aex;
@@ -1582,8 +1589,16 @@ public abstract class Installer extends GuiApplication {
    * NOTE: this method assumes that the server is running.
    * @throws ApplicationException if something goes wrong.
    */
-  protected void createReplicatedBackends() throws ApplicationException
+  protected void createReplicatedBackendsIfRequired()
+  throws ApplicationException
   {
+    if (getUserData().getReplicationOptions().getType()
+        == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY &&
+        getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
+    {
+      // There is nothing to do.
+      return;
+    }
     notifyListeners(getFormattedWithPoints(
         INFO_PROGRESS_CREATING_REPLICATED_BACKENDS.get()));
     // The keys are the backend IDs and the values the list of base DNs.
@@ -3902,8 +3917,8 @@ public abstract class Installer extends GuiApplication {
     String baseDn = qs.getFieldStringValue(FieldName.DIRECTORY_BASE_DN);
     if ((baseDn == null) || (baseDn.trim().length() == 0))
     {
-      errorMsgs.add(INFO_EMPTY_BASE_DN.get());
-      qs.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);
+      // Do nothing, the user does not want to provide a base DN.
+      baseDn = "";
     } else if (!isDn(baseDn))
     {
       errorMsgs.add(INFO_NOT_A_BASE_DN.get());
@@ -3918,93 +3933,101 @@ public abstract class Installer extends GuiApplication {
       validBaseDn = true;
     }
 
-    // Check the data options
-    NewSuffixOptions.Type type =
+    if (baseDn.equals(""))
+    {
+      LinkedList<String> baseDns = new LinkedList<String>();
+      dataOptions = NewSuffixOptions.createEmpty(baseDns);
+    }
+    else
+    {
+      // Check the data options
+      NewSuffixOptions.Type type =
         (NewSuffixOptions.Type) qs.getFieldValue(FieldName.DATA_OPTIONS);
 
-    switch (type)
-    {
-    case IMPORT_FROM_LDIF_FILE:
-      String ldifPath = qs.getFieldStringValue(FieldName.LDIF_PATH);
-      if ((ldifPath == null) || (ldifPath.trim().equals("")))
+      switch (type)
       {
-        errorMsgs.add(INFO_NO_LDIF_PATH.get());
-        qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
-      } else if (!fileExists(ldifPath))
-      {
-        errorMsgs.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
-        qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
-      } else if (validBaseDn)
-      {
-        LinkedList<String> baseDns = new LinkedList<String>();
-        baseDns.add(baseDn);
-        LinkedList<String> ldifPaths = new LinkedList<String>();
-        ldifPaths.add(ldifPath);
-
-        dataOptions = NewSuffixOptions.createImportFromLDIF(baseDns, ldifPaths,
-            null, null);
-        qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
-      }
-      break;
-
-    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-      // variable used to know if everything went ok during these
-      // checks
-      int startErrors = errorMsgs.size();
-
-      // Check the number of entries
-      String nEntries = qs.getFieldStringValue(FieldName.NUMBER_ENTRIES);
-      if ((nEntries == null) || (nEntries.trim().equals("")))
-      {
-        errorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
-        qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
-      } else
-      {
-        boolean nEntriesValid = false;
-        try
+      case IMPORT_FROM_LDIF_FILE:
+        String ldifPath = qs.getFieldStringValue(FieldName.LDIF_PATH);
+        if ((ldifPath == null) || (ldifPath.trim().equals("")))
         {
-          int n = Integer.parseInt(nEntries);
-
-          nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
-        } catch (NumberFormatException nfe)
+          errorMsgs.add(INFO_NO_LDIF_PATH.get());
+          qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
+        } else if (!fileExists(ldifPath))
         {
+          errorMsgs.add(INFO_LDIF_FILE_DOES_NOT_EXIST.get());
+          qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
+        } else if (validBaseDn)
+        {
+          LinkedList<String> baseDns = new LinkedList<String>();
+          baseDns.add(baseDn);
+          LinkedList<String> ldifPaths = new LinkedList<String>();
+          ldifPaths.add(ldifPath);
+
+          dataOptions = NewSuffixOptions.createImportFromLDIF(
+              baseDns, ldifPaths, null, null);
+          qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
         }
+        break;
 
-        if (!nEntriesValid)
+      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+        // variable used to know if everything went ok during these
+        // checks
+        int startErrors = errorMsgs.size();
+
+        // Check the number of entries
+        String nEntries = qs.getFieldStringValue(FieldName.NUMBER_ENTRIES);
+        if ((nEntries == null) || (nEntries.trim().equals("")))
         {
-          errorMsgs.add(INFO_INVALID_NUMBER_ENTRIES_RANGE.get(
-                  String.valueOf(MIN_NUMBER_ENTRIES),
-                    String.valueOf(MAX_NUMBER_ENTRIES)));
+          errorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
           qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
         } else
         {
-          qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-        }
-      }
-      if (startErrors == errorMsgs.size() && validBaseDn)
-      {
-        // No validation errors
-        LinkedList<String> baseDns = new LinkedList<String>();
-        baseDns.add(baseDn);
-        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDns,
-            Integer.parseInt(nEntries));
-      }
-      break;
+          boolean nEntriesValid = false;
+          try
+          {
+            int n = Integer.parseInt(nEntries);
 
-    default:
-      qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
-      qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
-      if (validBaseDn)
-      {
-        LinkedList<String> baseDns = new LinkedList<String>();
-        baseDns.add(baseDn);
-        if (type == NewSuffixOptions.Type.CREATE_BASE_ENTRY)
-        {
-          dataOptions = NewSuffixOptions.createBaseEntry(baseDns);
+            nEntriesValid = n >= MIN_NUMBER_ENTRIES && n <= MAX_NUMBER_ENTRIES;
+          } catch (NumberFormatException nfe)
+          {
+          }
+
+          if (!nEntriesValid)
+          {
+            errorMsgs.add(INFO_INVALID_NUMBER_ENTRIES_RANGE.get(
+                String.valueOf(MIN_NUMBER_ENTRIES),
+                String.valueOf(MAX_NUMBER_ENTRIES)));
+            qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
+          } else
+          {
+            qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
+          }
         }
-        else
+        if (startErrors == errorMsgs.size() && validBaseDn)
         {
-          dataOptions = NewSuffixOptions.createEmpty(baseDns);
+          // No validation errors
+          LinkedList<String> baseDns = new LinkedList<String>();
+          baseDns.add(baseDn);
+          dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDns,
+              Integer.parseInt(nEntries));
+        }
+        break;
+
+      default:
+        qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
+        qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, false);
+        if (validBaseDn)
+        {
+          LinkedList<String> baseDns = new LinkedList<String>();
+          baseDns.add(baseDn);
+          if (type == NewSuffixOptions.Type.CREATE_BASE_ENTRY)
+          {
+            dataOptions = NewSuffixOptions.createBaseEntry(baseDns);
+          }
+          else
+          {
+            dataOptions = NewSuffixOptions.createEmpty(baseDns);
+          }
         }
       }
     }

@@ -63,6 +63,8 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
+import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.CoreMessages;
 import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
@@ -77,6 +79,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.SetupUtils;
@@ -334,6 +337,29 @@ public class InstallerHelper {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage,
           t);
+    }
+  }
+
+  /**
+   * Deletes a backend on the server.  It assumes the server is stopped.
+   * @param backendName the name of the backend to be deleted.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void deleteBackend(String backendName)
+  throws ApplicationException
+  {
+    try
+    {
+      // Read the configuration file.
+      String dn = Utilities.getRDNString("ds-cfg-backend-id",
+          backendName)+",cn=Backends,cn=config";
+      Utilities.deleteConfigSubtree(
+          DirectoryServer.getConfigHandler(), DN.decode(dn));
+    }
+    catch (OpenDsException ode)
+    {
+      throw new ApplicationException(
+          ReturnCode.CONFIGURATION_ERROR, ode.getMessageObject(), ode);
     }
   }
 

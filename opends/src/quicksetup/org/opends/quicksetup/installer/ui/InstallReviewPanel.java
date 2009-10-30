@@ -32,12 +32,9 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
-import org.opends.admin.ads.SuffixDescriptor;
-import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
-import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
@@ -49,7 +46,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -100,10 +96,10 @@ public class InstallReviewPanel extends ReviewPanel {
     setFieldValue(FieldName.ADMIN_CONNECTOR_PORT,
         String.valueOf(userData.getAdminConnectorPort()));
     setFieldValue(FieldName.SECURITY_OPTIONS,
-        getSecurityOptionsString(userData.getSecurityOptions(), false));
+        Utils.getSecurityOptionsString(userData.getSecurityOptions(), false));
     setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData
         .getDirectoryManagerDn());
-    setFieldValue(FieldName.DATA_OPTIONS, getDataDisplayString(userData));
+    setFieldValue(FieldName.DATA_OPTIONS, Utils.getDataDisplayString(userData));
     if (userData.mustCreateAdministrator())
     {
       setFieldValue(FieldName.GLOBAL_ADMINISTRATOR_UID,
@@ -273,88 +269,6 @@ public class InstallReviewPanel extends ReviewPanel {
   private void setFieldValue(FieldName fieldName, String value)
   {
     getField(fieldName).setText(value);
-  }
-
-  /**
-   * Returns the localized string describing the DataOptions chosen by the user.
-   * @param userInstallData the DataOptions of the user.
-   * @return the localized string describing the DataOptions chosen by the user.
-   */
-  public static String getDataDisplayString(UserData userInstallData)
-  {
-    Message msg;
-
-    boolean createSuffix = false;
-
-    DataReplicationOptions repl =
-      userInstallData.getReplicationOptions();
-
-    SuffixesToReplicateOptions suf =
-      userInstallData.getSuffixesToReplicateOptions();
-
-    createSuffix =
-      repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
-      repl.getType() == DataReplicationOptions.Type.STANDALONE ||
-      suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
-
-    if (createSuffix)
-    {
-      Message arg2;
-
-      NewSuffixOptions options = userInstallData.getNewSuffixOptions();
-
-      switch (options.getType())
-      {
-      case CREATE_BASE_ENTRY:
-        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(
-            options.getBaseDns().getFirst());
-
-        break;
-
-      case LEAVE_DATABASE_EMPTY:
-        arg2 = INFO_REVIEW_LEAVE_DATABASE_EMPTY_LABEL.get();
-        break;
-
-      case IMPORT_FROM_LDIF_FILE:
-        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPaths().getFirst());
-        break;
-
-      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(
-                String.valueOf(options.getNumberEntries()));
-        break;
-
-      default:
-        throw new IllegalArgumentException("Unknown type: "+options.getType());
-      }
-
-      if (options.getBaseDns().size() > 1)
-      {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(
-            Utils.listToString(options.getBaseDns(), Constants.LINE_SEPARATOR),
-            arg2);
-      }
-      else
-      {
-        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
-          arg2);
-      }
-    }
-    else
-    {
-      StringBuilder buf = new StringBuilder();
-      Set<SuffixDescriptor> suffixes = suf.getSuffixes();
-      for (SuffixDescriptor suffix : suffixes)
-      {
-        if (buf.length() > 0)
-        {
-          buf.append("\n");
-        }
-        buf.append(suffix.getDN());
-      }
-      msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
-    }
-    return msg.toString();
   }
 
    /**

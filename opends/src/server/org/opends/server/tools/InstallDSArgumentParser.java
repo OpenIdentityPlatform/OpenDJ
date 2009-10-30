@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -43,6 +43,7 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -203,7 +204,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_BASEDN.toLowerCase(), OPTION_SHORT_BASEDN,
         OPTION_LONG_BASEDN, false, true, true,
         INFO_BASEDN_PLACEHOLDER.get(),
-        "dc=example,dc=com", OPTION_LONG_BASEDN,
+        null, OPTION_LONG_BASEDN,
         INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
     addArgument(baseDNArg);
 
@@ -658,6 +659,19 @@ public class InstallDSArgumentParser extends ArgumentParser
           skippedImportFileArg.getLongIdentifier(),
           sampleDataArg.getLongIdentifier());
       errorMessages.add(message);
+    }
+
+    if (noPromptArg.isPresent() && !baseDNArg.isPresent())
+    {
+      Argument[] args = {importLDIFArg, addBaseEntryArg, sampleDataArg};
+      for (Argument arg : args)
+      {
+        if (arg.isPresent())
+        {
+          errorMessages.add(ERR_INSTALLDS_NO_BASE_DN_AND_CONFLICTING_ARG.get(
+              "--"+arg.getLongIdentifier()));
+        }
+      }
     }
   }
 

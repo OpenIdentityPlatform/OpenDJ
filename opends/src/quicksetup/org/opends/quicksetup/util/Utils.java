@@ -61,9 +61,14 @@ import javax.naming.ldap.LdapName;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 
+import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.installer.DataReplicationOptions;
+import org.opends.quicksetup.installer.NewSuffixOptions;
+import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
+import org.opends.quicksetup.ui.UIFactory;
 
 import org.opends.server.util.SetupUtils;
 import org.opends.messages.MessageBuilder;
@@ -1746,9 +1751,9 @@ public class Utils
     try
     {
       LdapName jndiName = new LdapName("cn=monitor");
-      NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<?> listeners = ctx.search(jndiName, filter, ctls);
 
-      while(listeners.hasMore())
+      while (listeners.hasMore())
       {
         SearchResult sr = (SearchResult)listeners.next();
 
@@ -1919,7 +1924,7 @@ public class Utils
     {
       try
       {
-        Class c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
+        Class<?> c = Class.forName(Utils.CUSTOMIZATION_CLASS_NAME);
         Object obj = c.newInstance();
 
         value = valueClass.cast(c.getField(fieldName).get(obj));
@@ -1968,6 +1973,185 @@ public class Utils
       }
     }
     return sb.toString();
+  }
+
+
+
+  /**
+   * Returns the localized string describing the DataOptions chosen by the user.
+   * @param userInstallData the DataOptions of the user.
+   * @return the localized string describing the DataOptions chosen by the user.
+   */
+  public static String getDataDisplayString(UserData userInstallData)
+  {
+    Message msg;
+
+    boolean createSuffix = false;
+
+    DataReplicationOptions repl =
+      userInstallData.getReplicationOptions();
+
+    SuffixesToReplicateOptions suf =
+      userInstallData.getSuffixesToReplicateOptions();
+
+    createSuffix =
+      repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
+      repl.getType() == DataReplicationOptions.Type.STANDALONE ||
+      suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+
+    if (createSuffix)
+    {
+      Message arg2;
+
+      NewSuffixOptions options = userInstallData.getNewSuffixOptions();
+
+      switch (options.getType())
+      {
+      case CREATE_BASE_ENTRY:
+        arg2 = INFO_REVIEW_CREATE_BASE_ENTRY_LABEL.get(
+            options.getBaseDns().getFirst());
+
+        break;
+
+      case LEAVE_DATABASE_EMPTY:
+        arg2 = INFO_REVIEW_LEAVE_DATABASE_EMPTY_LABEL.get();
+        break;
+
+      case IMPORT_FROM_LDIF_FILE:
+        arg2 = INFO_REVIEW_IMPORT_LDIF.get(options.getLDIFPaths().getFirst());
+        break;
+
+      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+        arg2 = INFO_REVIEW_IMPORT_AUTOMATICALLY_GENERATED.get(
+                String.valueOf(options.getNumberEntries()));
+        break;
+
+      default:
+        throw new IllegalArgumentException("Unknown type: "+options.getType());
+      }
+
+      if (options.getBaseDns().isEmpty())
+      {
+        msg = INFO_REVIEW_CREATE_NO_SUFFIX.get();
+      }
+      else if (options.getBaseDns().size() > 1)
+      {
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(
+            Utils.listToString(options.getBaseDns(), Constants.LINE_SEPARATOR),
+            arg2);
+      }
+      else
+      {
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
+          arg2);
+      }
+    }
+    else
+    {
+      StringBuilder buf = new StringBuilder();
+      Set<SuffixDescriptor> suffixes = suf.getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        if (buf.length() > 0)
+        {
+          buf.append("\n");
+        }
+        buf.append(suffix.getDN());
+      }
+      msg = INFO_REVIEW_REPLICATE_SUFFIX.get(buf.toString());
+    }
+    return msg.toString();
+  }
+
+
+
+  /**
+   * Returns a localized String representation of the provided SecurityOptions
+   * object.
+   * @param ops the SecurityOptions object from which we want to obtain the
+   * String representation.
+   * @param html whether the resulting String must be in HTML or not.
+   * @return a localized String representation of the provided SecurityOptions
+   * object.
+   */
+  public static String getSecurityOptionsString(SecurityOptions ops,
+      boolean html)
+  {
+    StringBuilder buf = new StringBuilder();
+
+    if (ops.getCertificateType() ==
+      SecurityOptions.CertificateType.NO_CERTIFICATE)
+    {
+      buf.append(INFO_NO_SECURITY.get());
+    }
+    else
+    {
+      if (ops.getEnableStartTLS())
+      {
+        buf.append(INFO_ENABLE_STARTTLS.get());
+      }
+      if (ops.getEnableSSL())
+      {
+        if (buf.length() > 0)
+        {
+          if (html)
+          {
+            buf.append(Constants.HTML_LINE_BREAK);
+          }
+          else
+          {
+            buf.append("\n");
+          }
+        }
+        buf.append(INFO_ENABLE_SSL.get(String.valueOf(ops.getSslPort())));
+      }
+      if (html)
+      {
+        buf.append(Constants.HTML_LINE_BREAK);
+      }
+      else
+      {
+        buf.append("\n");
+      }
+      Message certMsg;
+      switch (ops.getCertificateType())
+      {
+      case SELF_SIGNED_CERTIFICATE:
+        certMsg = INFO_SELF_SIGNED_CERTIFICATE.get();
+        break;
+
+      case JKS:
+        certMsg = INFO_JKS_CERTIFICATE.get();
+        break;
+
+      case JCEKS:
+        certMsg = INFO_JCEKS_CERTIFICATE.get();
+        break;
+
+      case PKCS11:
+        certMsg = INFO_PKCS11_CERTIFICATE.get();
+        break;
+
+      case PKCS12:
+        certMsg = INFO_PKCS12_CERTIFICATE.get();
+        break;
+
+      default:
+        throw new IllegalStateException("Unknown certificate options type: "+
+            ops.getCertificateType());
+      }
+      buf.append(certMsg);
+    }
+
+    if (html)
+    {
+      return "<html>"+UIFactory.applyFontToHtml(buf.toString(),
+          UIFactory.SECONDARY_FIELD_VALID_FONT);
+    }
+    else
+    {
+      return buf.toString();
+    }
   }
 }
 
