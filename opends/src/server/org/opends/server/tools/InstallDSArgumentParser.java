@@ -204,7 +204,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_BASEDN.toLowerCase(), OPTION_SHORT_BASEDN,
         OPTION_LONG_BASEDN, false, true, true,
         INFO_BASEDN_PLACEHOLDER.get(),
-        null, OPTION_LONG_BASEDN,
+        "dc=example,dc=com", OPTION_LONG_BASEDN,
         INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
     addArgument(baseDNArg);
 
@@ -661,7 +661,8 @@ public class InstallDSArgumentParser extends ArgumentParser
       errorMessages.add(message);
     }
 
-    if (noPromptArg.isPresent() && !baseDNArg.isPresent())
+    if (noPromptArg.isPresent() && !baseDNArg.isPresent() &&
+        baseDNArg.getDefaultValue() == null)
     {
       Argument[] args = {importLDIFArg, addBaseEntryArg, sampleDataArg};
       for (Argument arg : args)
