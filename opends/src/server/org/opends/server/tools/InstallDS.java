@@ -1337,8 +1337,7 @@ public class InstallDS extends ConsoleApplication
   throws UserDataException
   {
     boolean prompt = true;
-    if (!argParser.baseDNArg.isPresent() &&
-        argParser.baseDNArg.getDefaultValue() == null)
+    if (!argParser.baseDNArg.isPresent())
     {
       try
       {
