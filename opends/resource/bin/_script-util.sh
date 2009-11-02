@@ -145,18 +145,18 @@ set_environment_vars() {
 
 # Configure the appropriate CLASSPATH.
 set_classpath() {
-  CLASSPATH=${INSTANCE_ROOT}/classes
-  for JAR in ${INSTALL_ROOT}/resources/*.jar
+  CLASSPATH="${INSTANCE_ROOT}/classes"
+  for JAR in "${INSTALL_ROOT}/resources/"*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
-  for JAR in ${INSTALL_ROOT}/lib/*.jar
+  for JAR in "${INSTALL_ROOT}/lib/"*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
-    for JAR in ${INSTANCE_ROOT}/lib/*.jar
+    for JAR in "${INSTANCE_ROOT}/lib/"*.jar
     do
       CLASSPATH=${CLASSPATH}:${JAR}
     done
@@ -192,7 +192,7 @@ fi
 
 if test "${INSTANCE_ROOT}" = ""
 then
-  if [ -f ${INSTALL_ROOT}/configure ]
+  if [ -f "${INSTALL_ROOT}/configure" ]
   then
     if [ -f /etc/opends/instance.loc ]
     then
@@ -218,7 +218,7 @@ then
       fi
     fi
   else
-    if [ -f ${INSTALL_ROOT}/instance.loc ]
+    if [ -f "${INSTALL_ROOT}/instance.loc" ]
     then
       read location < ${INSTALL_ROOT}/instance.loc
       case `echo ${location}` in
@@ -256,7 +256,7 @@ then
   set_java_home_and_args
   set_environment_vars
   set_classpath
-elif test "${SCRIPT_UTIL_CMD}" = "set-java-home-and-args"
+ elif test "${SCRIPT_UTIL_CMD}" = "set-java-home-and-args"
 then
   set_java_home_and_args
 elif test "${SCRIPT_UTIL_CMD}" = "set-environment-vars"
@@ -308,7 +308,7 @@ then
 	  OPT_CHECK_VERSION=""
       fi
   # Launch the CheckInstance process.
-      "${OPENDS_JAVA_BIN}" ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} -DINSTANCE_ROOT=${INSTANCE_ROOT} org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
+      "${OPENDS_JAVA_BIN}" ${SCRIPT_NAME_ARG} "-DINSTALL_ROOT=${INSTALL_ROOT}" "-DINSTANCE_ROOT=${INSTANCE_ROOT}" org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
   # return part
       RETURN_CODE=$?
       if [ ${RETURN_CODE} -ne 0 ]

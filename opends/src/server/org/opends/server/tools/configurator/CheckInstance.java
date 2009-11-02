@@ -213,16 +213,24 @@ public class CheckInstance {
      if (!isWin) {
     // Check user
     File conf = new File (confDir, Installation.CURRENT_CONFIG_FILE_NAME);
-    String cmd = null;
     Process proc = null;
     int exit = 0;
 
     InputStreamReader reader = null;
     int c;
     StringBuffer sb = new StringBuffer();
-    cmd = "ls -l " + conf.getAbsolutePath();
+    String[] cmdArgs = {"ls", "-l", conf.getAbsolutePath()};
+    StringBuilder cmd = new StringBuilder();
+    for (String arg : cmdArgs)
+    {
+      if (cmd.length() > 0)
+      {
+        cmd.append(" ");
+      }
+      cmd.append(arg);
+    }
     try {
-      proc = Runtime.getRuntime().exec(cmd);
+      proc = Runtime.getRuntime().exec(cmdArgs);
       proc.waitFor();
       reader = new InputStreamReader(proc.getInputStream());
       while (((c = reader.read()) != -1)) {
@@ -231,18 +239,21 @@ public class CheckInstance {
       exit = proc.exitValue();
       if (exit != 0) {
         LOG.log(Level.FINEST, cmd + " error= " + exit);
-        System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+        System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(
+            confDir.getAbsolutePath(),
             installRootFromSystem + File.separator + "instance.loc"));
         System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
       }
     } catch (InterruptedException ex) {
       LOG.log(Level.SEVERE, "InterruptedException" + ex.getMessage());
-      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+      System.err.println(
+          ERR_CONFIG_LDIF_NOT_FOUND.get(confDir.getAbsolutePath(),
           installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, "IOException" + ex.getMessage() );
-      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(conf.getAbsolutePath(),
+      System.err.println(ERR_CONFIG_LDIF_NOT_FOUND.get(
+          confDir.getAbsolutePath(),
           installRootFromSystem + File.separator + "instance.loc"));
       System.exit(ReturnCode.APPLICATION_ERROR.getReturnCode());
     }
