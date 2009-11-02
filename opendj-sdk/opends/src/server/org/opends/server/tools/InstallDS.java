@@ -769,6 +769,10 @@ public class InstallDS extends ConsoleApplication
 
     // Check the validity of the base DNs
     LinkedList<String> baseDNs = argParser.baseDNArg.getValues();
+    if (baseDNs.isEmpty() && argParser.baseDNArg.getDefaultValue() != null)
+    {
+      baseDNs.add(argParser.baseDNArg.getDefaultValue());
+    }
     for (String baseDN : baseDNs)
     {
       try
@@ -1333,7 +1337,8 @@ public class InstallDS extends ConsoleApplication
   throws UserDataException
   {
     boolean prompt = true;
-    if (!argParser.baseDNArg.isPresent())
+    if (!argParser.baseDNArg.isPresent() &&
+        argParser.baseDNArg.getDefaultValue() == null)
     {
       try
       {
@@ -1355,7 +1360,7 @@ public class InstallDS extends ConsoleApplication
     else
     {
       // Check the validity of the base DNs
-      LinkedList<String>baseDNs = promptIfRequiredForDNs(
+      LinkedList<String> baseDNs = promptIfRequiredForDNs(
           argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
       dataOptions = promptIfRequiredForDataOptions(baseDNs);
     }
