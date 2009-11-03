@@ -402,6 +402,7 @@ public class Utilities
     scroll.getViewport().setOpaque(false);
     scroll.getViewport().setBackground(ColorAndFontConstants.background);
     scroll.setBackground(ColorAndFontConstants.background);
+    setScrollIncrementUnit(scroll);
     return scroll;
   }
 
@@ -417,7 +418,21 @@ public class Utilities
     scroll.setOpaque(false);
     scroll.getViewport().setBackground(ColorAndFontConstants.background);
     scroll.setBackground(ColorAndFontConstants.background);
+    setScrollIncrementUnit(scroll);
     return scroll;
+  }
+
+  /**
+   * Sets the scroll increment unit for the scroll.
+   * @param scroll the scroll to be updated.
+   */
+  public static void setScrollIncrementUnit(JScrollPane scroll)
+  {
+    if (scroll.getVerticalScrollBar() != null)
+    {
+      int increment = scroll.getVerticalScrollBar().getUnitIncrement();
+      scroll.getVerticalScrollBar().setUnitIncrement(increment * 3);
+    }
   }
 
   /**
