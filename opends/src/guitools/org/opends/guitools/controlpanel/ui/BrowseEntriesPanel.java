@@ -1275,7 +1275,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       }
       menus[0].setSelected(true);
 
-      // Add the view menus
+      // Add the referral and sort data menus
       menu.add(new JSeparator());
       final JCheckBoxMenuItem sortUserData =
         new JCheckBoxMenuItem(INFO_CTRL_PANEL_SORT_USER_DATA.get().toString());
@@ -1317,6 +1317,18 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
             System.err.println("Unexpected error updating referral state.");
             ne.printStackTrace();
           }
+        }
+      });
+      // Add the refresh menu
+      menu.add(new JSeparator());
+      final JMenuItem refresh =
+        new JMenuItem(INFO_CTRL_PANEL_REFRESH_DATA.get().toString());
+      menu.add(refresh);
+      refresh.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          entryPane.getController().startRefresh(null);
         }
       });
       return menu;
