@@ -155,6 +155,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private Thread entryReaderThread;
 
+  private boolean forceRefreshWhenOpening;
+
   /**
    * {@inheritDoc}
    */
@@ -198,6 +200,28 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
    */
   public void okClicked()
   {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void toBeDisplayed(boolean visible)
+  {
+    super.toBeDisplayed(visible);
+    boolean isAuthenticated = false;
+    if (getInfo() != null && getInfo().getServerDescriptor() != null)
+    {
+      isAuthenticated = getInfo().getServerDescriptor().isAuthenticated();
+    }
+    if (visible && !isDisposeOnClose() && forceRefreshWhenOpening &&
+        isAuthenticated)
+    {
+      refreshClicked();
+    }
+    if (!visible)
+    {
+      forceRefreshWhenOpening = isAuthenticated;
+    }
   }
 
   /**
@@ -1328,7 +1352,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         public void actionPerformed(ActionEvent ev)
         {
-          entryPane.getController().startRefresh(null);
+          refreshClicked();
         }
       });
       return menu;
@@ -1554,5 +1578,10 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       t instanceof InterruptedNamingException;
     }
     return isInterruptedException;
+  }
+
+  private void refreshClicked()
+  {
+    entryPane.getController().startRefresh(null);
   }
 }
