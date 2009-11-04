@@ -431,7 +431,10 @@ public class Utilities
     if (scroll.getVerticalScrollBar() != null)
     {
       int increment = scroll.getVerticalScrollBar().getUnitIncrement();
-      scroll.getVerticalScrollBar().setUnitIncrement(increment * 3);
+      if (increment < 16)
+      {
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+      }
     }
   }
 
