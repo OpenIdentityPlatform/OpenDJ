@@ -205,7 +205,7 @@ public class TLSByteChannel implements
     /**
      * {@inheritDoc}
      */
-    public int read(ByteBuffer clearBuffer) throws IOException {
+    public synchronized int read(ByteBuffer clearBuffer) throws IOException {
         SSLEngineResult.HandshakeStatus hsStatus;
         if(!reading)
           appNetData.clear();
@@ -252,7 +252,7 @@ public class TLSByteChannel implements
     /**
      * {@inheritDoc}
      */
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         sslEngine.closeInbound();
         sslEngine.closeOutbound();
         SSLEngineResult.HandshakeStatus hsStatus =
@@ -328,7 +328,7 @@ public class TLSByteChannel implements
     /**
      * {@inheritDoc}
      */
-    public int write(ByteBuffer clearData) throws IOException {
+    public synchronized int write(ByteBuffer clearData) throws IOException {
         if(!socketChannel.isOpen() || sslEngine.isOutboundDone()) {
             throw new ClosedChannelException();
         }
