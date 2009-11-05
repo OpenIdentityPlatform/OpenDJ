@@ -199,7 +199,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
-    public int read(ByteBuffer clearDst) throws IOException {
+    public synchronized int read(ByteBuffer clearDst) throws IOException {
       int bytesToRead = lengthSize;
       if(reading)
         bytesToRead = neededBytes;
@@ -277,7 +277,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
-    public int write(ByteBuffer clearSrc) throws IOException {
+    public synchronized int write(ByteBuffer clearSrc) throws IOException {
         int sendBufSize = getAppBufSize();
         int srcLen = clearSrc.remaining();
         ByteBuffer sendBuffer = ByteBuffer.allocate(sendBufSize);
@@ -323,7 +323,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         saslContext.dispose();
         saslContext=null;
     }
