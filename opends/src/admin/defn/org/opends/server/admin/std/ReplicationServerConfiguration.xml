@@ -311,7 +311,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="ms" lower-limit="1000" />
+      <adm:duration base-unit="ms" lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
