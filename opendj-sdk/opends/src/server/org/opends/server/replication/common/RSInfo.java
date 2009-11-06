@@ -40,6 +40,11 @@ public class RSInfo
   private long generationId = -1;
   // Group id of the RS
   private byte groupId = (byte) -1;
+  // The weight of the RS
+  // It is important to keep the default value to 1 so that it is used as
+  // default value for a RS using protocol V3: this default value vill be used
+  // in algorithms that use weight
+  private int weight = 1;
 
   /**
    * Creates a new instance of RSInfo with every given info.
@@ -47,12 +52,14 @@ public class RSInfo
    * @param id The RS id
    * @param generationId The generation id the RS is using
    * @param groupId RS group id
+   * @param weight RS weight
    */
-  public RSInfo(int id, long generationId, byte groupId)
+  public RSInfo(int id, long generationId, byte groupId, int weight)
   {
     this.id = id;
     this.generationId = generationId;
     this.groupId = groupId;
+    this.weight = weight;
   }
 
   /**
@@ -83,6 +90,16 @@ public class RSInfo
   }
 
   /**
+   * Get the RS weight.
+   * @return The RS weight
+   */
+  public int getWeight()
+  {
+    return weight;
+  }
+
+
+  /**
    * Test if the passed object is equal to this one.
    * @param obj The object to test
    * @return True if both objects are equal
@@ -99,7 +116,8 @@ public class RSInfo
       RSInfo rsInfo = (RSInfo) obj;
       return ((id == rsInfo.getId()) &&
         (generationId == rsInfo.getGenerationId()) &&
-        (groupId == rsInfo.getGroupId()));
+        (groupId == rsInfo.getGroupId()) &&
+        (weight == rsInfo.getWeight()));
     } else
     {
       return false;
@@ -117,6 +135,7 @@ public class RSInfo
     hash = 37 * hash + this.id;
     hash = 37 * hash + (int) (this.generationId ^ (this.generationId >>> 32));
     hash = 37 * hash + this.groupId;
+    hash = 37 * hash + this.weight;
     return hash;
   }
 
@@ -130,11 +149,12 @@ public class RSInfo
     StringBuffer sb = new StringBuffer();
     sb.append("Id: ");
     sb.append(id);
-    sb.append(" Generation id: ");
+    sb.append(" ; Generation id: ");
     sb.append(generationId);
-    sb.append(" Group id: ");
+    sb.append(" ; Group id: ");
     sb.append(groupId);
+    sb.append(" ; Weight: ");
+    sb.append(weight);
     return sb.toString();
   }
-
 }

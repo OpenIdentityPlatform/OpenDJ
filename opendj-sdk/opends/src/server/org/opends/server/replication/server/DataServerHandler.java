@@ -309,8 +309,7 @@ public class DataServerHandler extends ServerHandler
 
     try
     {
-      MonitorData md;
-      md = replicationServerDomain.computeMonitorData();
+      MonitorData md = replicationServerDomain.computeMonitorData();
 
       // Oldest missing update
       Long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
@@ -538,7 +537,7 @@ public class DataServerHandler extends ServerHandler
           return;
         }
 
-        // Send our own TopologyMsg to remote RS
+        // Send our own TopologyMsg to remote DS
         TopologyMsg outTopoMsg = sendTopoToRemoteDS();
 
         logStartSessionHandshake(inStartSessionMsg, outTopoMsg);
@@ -571,6 +570,9 @@ public class DataServerHandler extends ServerHandler
 
       // Create the status analyzer for the domain if not already started
       createStatusAnalyzer();
+
+      // Create the monitoring publisher for the domain if not already started
+      createMonitoringPublisher();
 
       registerIntoDomain();
 

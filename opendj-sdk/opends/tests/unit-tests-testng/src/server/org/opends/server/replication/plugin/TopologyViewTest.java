@@ -836,7 +836,7 @@ public class TopologyViewTest extends ReplicationTestCase
         fail("Unknown replication server id.");
     }
 
-    return new RSInfo(rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, (byte)groupId);
+    return new RSInfo(rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, (byte)groupId, 1);
   }
 
   /**

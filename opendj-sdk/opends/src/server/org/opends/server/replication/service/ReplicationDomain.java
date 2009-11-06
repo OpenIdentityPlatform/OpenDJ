@@ -65,7 +65,6 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -79,7 +78,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.MutableBoolean;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachine;
@@ -92,8 +90,6 @@ import org.opends.server.replication.protocol.ErrorMsg;
 import org.opends.server.replication.protocol.HeartbeatMsg;
 import org.opends.server.replication.protocol.InitializeRequestMsg;
 import org.opends.server.replication.protocol.InitializeTargetMsg;
-import org.opends.server.replication.protocol.MonitorMsg;
-import org.opends.server.replication.protocol.MonitorRequestMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -305,20 +301,6 @@ public abstract class ReplicationDomain
    * for this domain.
    */
   private final ChangeNumberGenerator generator;
-
-  /**
-   * This object is used as a conditional event to be notified about
-   * the reception of monitor information from the Replication Server.
-   */
-  private final MutableBoolean monitorResponse = new MutableBoolean(false);
-
-
-  /**
-   * A Map containing of the ServerStates of all the replicas in the topology
-   * as seen by the ReplicationServer the last time it was polled.
-   */
-  private HashMap<Integer, ServerState> replicaStates =
-    new HashMap<Integer, ServerState>();
 
   Set<String> cfgEclIncludes = new HashSet<String>();
   Set<String>    eClIncludes = new HashSet<String>();
@@ -586,24 +568,7 @@ public abstract class ReplicationDomain
    */
   public Map<Integer, ServerState> getReplicaStates()
   {
-    monitorResponse.set(false);
-
-    // publish Monitor Request Message to the Replication Server
-    broker.publish(new MonitorRequestMsg(serverID, broker.getRsServerId()));
-
-    // wait for Response up to 10 seconds.
-    try
-    {
-      synchronized (monitorResponse)
-      {
-        if (monitorResponse.get() == false)
-        {
-          monitorResponse.wait(10000);
-        }
-      }
-    } catch (InterruptedException e)
-    {}
-    return replicaStates;
+    return broker.getReplicaStates();
   }
 
   /**
@@ -833,26 +798,6 @@ public abstract class ReplicationDomain
         {
           update = (UpdateMsg) msg;
           generator.adjust(update.getChangeNumber());
-        }
-        else if (msg instanceof MonitorMsg)
-        {
-          // This is the response to a MonitorRequest that was sent earlier
-          // build the replicaStates Map.
-          replicaStates = new HashMap<Integer, ServerState>();
-          MonitorMsg monitorMsg = (MonitorMsg) msg;
-          Iterator<Integer> it = monitorMsg.ldapIterator();
-          while (it.hasNext())
-          {
-            int serverId = it.next();
-            replicaStates.put(
-                serverId, monitorMsg.getLDAPServerState(serverId));
-          }
-          // Notify the sender that the response was received.
-          synchronized (monitorResponse)
-          {
-            monitorResponse.set(true);
-            monitorResponse.notify();
-          }
         }
       }
       catch (SocketTimeoutException e)

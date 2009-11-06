@@ -784,6 +784,8 @@ public class GenerationIdTest extends ReplicationTestCase
       catch(SocketTimeoutException e)
       {
         // This is the expected result
+        // Note that timeout should be lower than RS montoring publisher period
+        // so that timeout occurs
       }
 
       //===========================================================
@@ -889,49 +891,21 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // Broker 2 and 3 should receive 1 change status message to order them
       // to enter the bad gen id status
-      try
+      ChangeStatusMsg csMsg = (ChangeStatusMsg)waitForSpecificMsg(broker2,
+        ChangeStatusMsg.class.getName());
+      if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
       {
-        ReplicationMsg msg = broker2.receive();
-        if (!(msg instanceof ChangeStatusMsg))
-        {
-          fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
-            " to enter the bad gen id status"
-              + msg);
-        }
-        ChangeStatusMsg csMsg = (ChangeStatusMsg)msg;
-        if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
-        {
-          fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
-            " to enter the bad gen id status"
-              + msg);
-        }
+        fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
+          " to enter the bad gen id status"
+            + csMsg);
       }
-      catch(SocketTimeoutException se)
+      csMsg = (ChangeStatusMsg)waitForSpecificMsg(broker3,
+        ChangeStatusMsg.class.getName());
+      if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
       {
-        fail("DS2 is expected to receive 1 ChangeStatusMsg to enter the " +
-          "bad gen id status.");
-      }
-      try
-      {
-        ReplicationMsg msg = broker3.receive();
-        if (!(msg instanceof ChangeStatusMsg))
-        {
-          fail("Broker 3 connection is expected to receive 1 ChangeStatusMsg" +
-            " to enter the bad gen id status"
-              + msg);
-        }
-        ChangeStatusMsg csMsg = (ChangeStatusMsg)msg;
-        if (csMsg.getRequestedStatus() != ServerStatus.BAD_GEN_ID_STATUS)
-        {
-          fail("Broker 3 connection is expected to receive 1 ChangeStatusMsg" +
-            " to enter the bad gen id status"
-              + msg);
-        }
-      }
-      catch(SocketTimeoutException se)
-      {
-        fail("DS3 is expected to receive 1 ChangeStatusMsg to enter the " +
-          "bad gen id status.");
+        fail("Broker 2 connection is expected to receive 1 ChangeStatusMsg" +
+          " to enter the bad gen id status"
+            + csMsg);
       }
 
       debugInfo("DS1 root entry must contain the new gen ID");
@@ -988,7 +962,8 @@ public class GenerationIdTest extends ReplicationTestCase
 
 
       debugInfo("DS2 is publishing a change and RS1 must ignore this change, DS3 must not receive it.");
-      broker2.publish(createAddMsg());
+      AddMsg emsg = (AddMsg)createAddMsg();
+      broker2.publish(emsg);
 
       // Updates count in RS1 must stay unchanged = to 1
       Thread.sleep(500);
@@ -1060,8 +1035,30 @@ public class GenerationIdTest extends ReplicationTestCase
           isDegradedDueToGenerationId(server3ID),
       "Expecting that DS3 is not in bad gen id from RS1");
 
+      debugInfo("Verify that DS2 receives the add message stored in RS1 DB");
+      try
+      {
+        ReplicationMsg msg = broker2.receive();
+        assertTrue(msg instanceof AddMsg, "Excpected to receive an AddMsg but received: " + msg);
+      }
+      catch(SocketTimeoutException e)
+      {
+        fail("The msg stored in RS1 DB is expected to be received by DS2)");
+      }
+
+      debugInfo("Verify that DS3 receives the add message stored in RS1 DB");
+      try
+      {
+        ReplicationMsg msg = broker3.receive();
+        assertTrue(msg instanceof AddMsg, "Excpected to receive an AddMsg but received: " + msg);
+      }
+      catch(SocketTimeoutException e)
+      {
+        fail("The msg stored in RS1 DB is expected to be received by DS3)");
+      }
+
       debugInfo("DS2 is publishing a change and RS1 must store this change, DS3 must receive it.");
-      AddMsg emsg = (AddMsg)createAddMsg();
+      emsg = (AddMsg)createAddMsg();
       broker2.publish(emsg);
 
       Thread.sleep(500);
@@ -1105,7 +1102,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * The following test focus on:
    * - genId checking across multiple starting RS (replication servers)
    * - genId setting propagation from one RS to the others
-   * - genId reset   propagation from one RS to the others
+   * - genId reset propagation from one RS to the others
    */
   @Test(enabled=false)
   public void testMultiRS() throws Exception
@@ -1190,7 +1187,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), genId);
 
-      debugInfo("Connecting broker2 to replServer1 with a bad genId");
+      debugInfo("Connecting broker3 to replServer1 with a bad genId");
       try
       {
         long badgenId = 1;
@@ -1215,7 +1212,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting DS to replServer1.");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(1000);
+      Thread.sleep(3000);
 
 
       debugInfo("Adding reset task to DS.");
@@ -1373,7 +1370,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   /**
    * Loop opening sessions to the Replication Server
-   * to check that it handle correctly deconnection and reconnection.
+   * to check that it handle correctly disconnection and reconnection.
    */
   @Test(enabled=false, groups="slow")
   public void testLoop() throws Exception

@@ -29,7 +29,7 @@ package org.opends.server.replication.protocol;
 /**
  * This is an abstract class of messages of the replication protocol
  * for message that needs to contain information about the server that
- * send them and the destination servers to whitch they should be sent.
+ * send them and the destination servers to which they should be sent.
  */
 public abstract class RoutableMsg extends ReplicationMsg
 {

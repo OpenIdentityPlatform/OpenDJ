@@ -244,6 +244,10 @@ public abstract class ServerHandler extends MessageHandler
    */
   private AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
+  /**
+   * Weight of this remote server.
+   */
+  protected int weight = 1;
 
   /**
    * Creates a new server handler instance with the provided socket.
@@ -1215,9 +1219,20 @@ public abstract class ServerHandler extends MessageHandler
    */
   public RSInfo toRSInfo()
   {
-    RSInfo rsInfo = new RSInfo(serverId, generationId, groupId);
+    RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, weight);
 
     return rsInfo;
+  }
+
+  /**
+   * Starts the monitoring publisher for the domain if not already started.
+   */
+  protected void createMonitoringPublisher()
+  {
+    if (!replicationServerDomain.isRunningMonitoringPublisher())
+    {
+      replicationServerDomain.startMonitoringPublisher();
+    }
   }
 
   /**

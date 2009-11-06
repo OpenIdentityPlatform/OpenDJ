@@ -128,6 +128,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication test : pushSchemaChange "));
 
+    cleanUpReplicationServersDB();
+
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
@@ -216,6 +218,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication test : replaySchemaChange "));
 
+    cleanUpReplicationServersDB();
+
     final DN baseDn = DN.decode("cn=schema");
 
     ReplicationBroker broker =
@@ -252,6 +256,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication test : pushSchemaFilesChange "));
+
+    cleanUpReplicationServersDB();
 
     final DN baseDn = DN.decode("cn=schema");
 
