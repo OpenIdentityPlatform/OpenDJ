@@ -1545,7 +1545,7 @@ public class ReplicationServer
      * @return True if both identifiers are the same.
      */
     public boolean equals(Object obj) {
-      if ( (obj == null) || (obj instanceof GlobalServerId))
+      if ( (obj == null) || (!(obj instanceof GlobalServerId)))
         return false;
 
       GlobalServerId globalServerId = (GlobalServerId)obj;
