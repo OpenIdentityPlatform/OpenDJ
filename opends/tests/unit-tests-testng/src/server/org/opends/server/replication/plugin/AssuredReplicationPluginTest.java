@@ -501,7 +501,7 @@ public class AssuredReplicationPluginTest
 
         // Send topo view
         List<RSInfo> rsList = new ArrayList<RSInfo>();
-        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId);
+        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, 1);
         rsList.add(rsInfo);
         TopologyMsg topologyMsg = new TopologyMsg(new ArrayList<DSInfo>(),
           rsList);
@@ -719,7 +719,7 @@ public class AssuredReplicationPluginTest
     }
 
     /**
-     * Read the coming seaf read mode updates and send back acks with errors
+     * Read the coming safe read mode updates and send back acks with errors
      */
     private void executeSafeReadManyErrorsScenario()
     {
@@ -1058,7 +1058,7 @@ public class AssuredReplicationPluginTest
   }
 
   /**
-   * Tests parameters sent in session handshake an updates, when not using
+   * Tests parameters sent in session handshake and updates, when not using
    * assured replication
    */
   @Test

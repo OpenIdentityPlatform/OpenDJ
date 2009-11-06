@@ -29,7 +29,6 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -595,6 +594,9 @@ public class AssuredReplicationServerTest
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
         replServers, groupId, assuredTimeout, 5000);
+      // No monitoring publisher to not interfer with some SocketTimeoutException
+      // expected at some points in these tests
+      conf.setMonitoringPeriod(0L);
       ReplicationServer replicationServer = new ReplicationServer(conf);
       return replicationServer;
 
@@ -908,7 +910,7 @@ public class AssuredReplicationServerTest
         ReplicationMsg replMsg = session.receive();
         if (replMsg instanceof ErrorMsg)
         {
-          // Support for connection done with bad gen id : we receive an error
+        // Support for connection done with bad gen id : we receive an error
           // message that we must throw away before reading our ack.
           replMsg = session.receive();
         }
@@ -967,7 +969,7 @@ public class AssuredReplicationServerTest
         }
 
         // Send our topo mesg
-        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId);
+        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, 1);
         List<RSInfo> rsInfos = new ArrayList<RSInfo>();
         rsInfos.add(rsInfo);
         TopologyMsg topoMsg = new TopologyMsg(null, rsInfos);

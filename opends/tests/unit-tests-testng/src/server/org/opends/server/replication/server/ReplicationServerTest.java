@@ -74,7 +74,6 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartDSMsg;
-import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.ServerStartMsg;
@@ -1003,7 +1002,7 @@ public class ReplicationServerTest extends ReplicationTestCase
             ProtocolVersion.getCurrentVersion(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
 
-      // Read the Replication Server state from the ReplServerStartMsg that
+      // Read the Replication Server state from the ReplServerStartDSMsg that
       // comes back.
       ReplServerStartDSMsg replStartDSMsg =
         (ReplServerStartDSMsg) session.receive();
@@ -1079,7 +1078,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       // check that this did not change the window by sending a probe again.
       session.publish(new WindowProbeMsg());
 
-      windowMsg = (WindowMsg) session.receive();
+      // We may receive some MonitoringMsg so use filter method
+      windowMsg = (WindowMsg)waitForSpecificMsg(session, WindowMsg.class.getName());
       assertEquals(serverwindow, windowMsg.getNumAck());
       debugInfo("Ending windowProbeTest");
     }

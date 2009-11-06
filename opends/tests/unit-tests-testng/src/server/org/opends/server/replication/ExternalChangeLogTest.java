@@ -27,7 +27,6 @@
 package org.opends.server.replication;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
@@ -37,7 +36,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
-import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -56,13 +54,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.ExternalChangelogRequestControl;

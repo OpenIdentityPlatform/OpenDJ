@@ -93,6 +93,24 @@ public class MonitorMsg extends RoutableMsg
   }
 
   /**
+   * Sets the sender ID.
+   * @param senderID The sender ID.
+   */
+  public void setSenderID(int senderID)
+  {
+    this.senderID = senderID;
+  }
+
+  /**
+   * Sets the destination.
+   * @param destination The destination.
+   */
+  public void setDestination(int destination)
+  {
+    this.destination = destination;
+  }
+
+  /**
    * Sets the state of the replication server.
    * @param state The state.
    */

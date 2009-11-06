@@ -67,6 +67,7 @@ import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -300,6 +301,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting synchronization test : toggleReceiveStatus"));
 
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
+
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
     /*
@@ -378,6 +382,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
   {
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting replication test : lostHeartbeatFailover"));
+
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
@@ -482,6 +489,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
     final AttributeType entryuuidType =
          DirectoryServer.getAttributeType("entryuuid");
     String monitorAttr = "resolved-modify-conflicts";
+
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
 
     /*
      * Open a session to the replicationServer using the broker API.
@@ -609,6 +619,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
     String resolvedMonitorAttr = "resolved-naming-conflicts";
     String unresolvedMonitorAttr = "unresolved-naming-conflicts";
+
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
 
     /*
      * Open a session to the replicationServer using the ReplicationServer broker API.
@@ -1302,6 +1315,18 @@ public class  UpdateOperationTest extends ReplicationTestCase
     return new Object[][] { { false }, {true} };
   }
 
+  private void cleanupTest() {
+    try
+    {
+      classCleanUp();
+      setUp();
+    } catch (Exception e)
+    {
+      fail("Test cleanup failed: " + e.getClass().getName() + " : " +
+        e.getMessage() + " : " + StaticUtils.stackTraceToSingleLineString(e));
+    }
+  }
+
   /**
    * Tests done using directly the ReplicationBroker interface.
    */
@@ -1311,6 +1336,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
     logError(Message.raw(
         Category.SYNC, Severity.INFORMATION,
         "Starting replication test : updateOperations " + assured));
+
+    // Cleanup from previous run
+    cleanupTest();
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
@@ -1341,15 +1369,15 @@ public class  UpdateOperationTest extends ReplicationTestCase
         // Check if the client has received the msg
         ReplicationMsg msg = broker.receive();
         assertTrue(msg instanceof AddMsg,
-        "The received replication message is not an ADD msg");
+        "The received replication message is not an ADD msg : " + msg);
         AddMsg addMsg =  (AddMsg) msg;
 
         Operation receivedOp = addMsg.createOperation(connection);
         assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
-        "The received replication message is not an ADD msg");
+        "The received replication message is not an ADD msg : " + addMsg);
 
         assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
-        "The received ADD replication message is not for the excepted DN");
+        "The received ADD replication message is not for the excepted DN : " + addMsg);
       }
 
       // Modify the entry
@@ -1364,12 +1392,12 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // See if the client has received the msg
       ReplicationMsg msg = broker.receive();
       assertTrue(msg instanceof ModifyMsg,
-      "The received replication message is not a MODIFY msg");
+      "The received replication message is not a MODIFY msg : " + msg);
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       modMsg.createOperation(connection);
       assertTrue(DN.decode(modMsg.getDn()).compareTo(personEntry.getDN()) == 0,
-      "The received MODIFY replication message is not for the excepted DN");
+      "The received MODIFY replication message is not for the excepted DN : " + modMsg);
 
       // Modify the entry DN
       DN newDN = DN.decode("uid= new person,ou=People," + TEST_ROOT_DN_STRING) ;
@@ -1387,12 +1415,12 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // See if the client has received the msg
       msg = broker.receive();
       assertTrue(msg instanceof ModifyDNMsg,
-      "The received replication message is not a MODIFY DN msg");
+      "The received replication message is not a MODIFY DN msg : " + msg);
       ModifyDNMsg moddnMsg = (ModifyDNMsg) msg;
       moddnMsg.createOperation(connection);
 
       assertTrue(DN.decode(moddnMsg.getDn()).compareTo(personEntry.getDN()) == 0,
-      "The received MODIFY_DN message is not for the excepted DN");
+      "The received MODIFY_DN message is not for the excepted DN : " + moddnMsg);
 
       // Delete the entry
       DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
@@ -1406,12 +1434,12 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // See if the client has received the msg
       msg = broker.receive();
       assertTrue(msg instanceof DeleteMsg,
-      "The received replication message is not a MODIFY DN msg");
+      "The received replication message is not a MODIFY DN msg : " + msg);
       DeleteMsg delMsg = (DeleteMsg) msg;
       delMsg.createOperation(connection);
       assertTrue(DN.decode(delMsg.getDn()).compareTo(DN
           .decode("uid= new person,ou=People," + TEST_ROOT_DN_STRING)) == 0,
-      "The received DELETE message is not for the excepted DN");
+      "The received DELETE message is not for the excepted DN : " + delMsg);
 
       /*
        * Now check that when we send message to the ReplicationServer
@@ -1512,6 +1540,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting replication test : deleteNoSuchObject"));
 
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
+
     DN dn = DN.decode("cn=No Such Object,ou=People," + TEST_ROOT_DN_STRING);
     DeleteOperationBasis op =
          new DeleteOperationBasis(connection,
@@ -1534,6 +1565,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "Starting replication test : infiniteReplayLoop"));
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
+
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
 
     Thread.sleep(2000);
     ReplicationBroker broker =
@@ -1674,6 +1708,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "Starting synchronization test : CNGeneratorAdjust"));
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
+
+    // Clean replication server database from previous run
+    cleanUpReplicationServersDB();
 
     /*
      * Open a session to the replicationServer using the broker API.

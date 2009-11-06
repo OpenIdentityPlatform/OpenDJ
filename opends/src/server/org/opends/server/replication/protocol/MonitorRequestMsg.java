@@ -31,7 +31,7 @@ import java.util.zip.DataFormatException;
 
 /**
  * This message is part of the replication protocol.
- * RS1 sends a MonitorRequestMsg to RS2 to requests its monitoring
+ * RS1 sends a MonitorRequestMsg to RS2 to request its monitoring
  * informations.
  * When RS2 receives a MonitorRequestMsg from RS1, RS2 responds with a
  * MonitorMessage.

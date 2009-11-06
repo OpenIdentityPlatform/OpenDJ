@@ -167,6 +167,7 @@ public class TopologyMsg extends ReplicationMsg
 
         if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
+          // Put ECL includes
           Set<String> attrs = dsInfo.getEclIncludes();
           oStream.write(attrs.size());
           for (String attr : attrs)
@@ -192,8 +193,15 @@ public class TopologyMsg extends ReplicationMsg
         oStream.write(String.valueOf(rsInfo.getGenerationId()).
           getBytes("UTF-8"));
         oStream.write(0);
-        // Put DS group id
+        // Put RS group id
         oStream.write(rsInfo.getGroupId());
+
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        {
+          // Put RS weight
+          oStream.write(String.valueOf(rsInfo.getWeight()).getBytes("UTF-8"));
+          oStream.write(0);
+        }
       }
 
       return oStream.toByteArray();
@@ -332,23 +340,30 @@ public class TopologyMsg extends ReplicationMsg
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
         int id = Integer.valueOf(serverIdString);
-        pos +=
-          length + 1;
+        pos += length + 1;
 
         /* Read the generation id */
         length = getNextLength(in, pos);
         long generationId =
           Long.valueOf(new String(in, pos, length,
           "UTF-8"));
-        pos +=
-          length + 1;
+        pos += length + 1;
 
         /* Read RS group id */
         byte groupId = in[pos++];
 
+        int weight = 1;
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        {
+          /* Read RS weight */
+          length = getNextLength(in, pos);
+          weight = Integer.valueOf(new String(in, pos, length, "UTF-8"));
+          pos += length + 1;
+        }
+
         /* Now create RSInfo and store it in list */
 
-        RSInfo rsInfo = new RSInfo(id, generationId, groupId);
+        RSInfo rsInfo = new RSInfo(id, generationId, groupId, weight);
         rsList.add(rsInfo);
 
         nRsInfo--;

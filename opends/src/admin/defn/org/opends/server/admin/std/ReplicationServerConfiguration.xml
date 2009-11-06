@@ -296,4 +296,27 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="monitoring-period" mandatory="false">
+    <adm:synopsis>
+      The period between sending of monitoring messages.
+    </adm:synopsis>
+    <adm:description>
+      Defines the amount of milliseconds the replication server will wait before
+      sending new monitoring messages to its peers (replication servers and
+      directory servers).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>3000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1000" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-monitoring-period</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

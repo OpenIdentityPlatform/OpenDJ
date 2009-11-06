@@ -240,6 +240,9 @@ public class ReplicationServerHandler extends ServerHandler
 
         logTopoHandshakeSNDandRCV(outTopoMsg, inTopoMsg);
 
+        // Create the monitoring publisher for the domain if not already started
+        createMonitoringPublisher();
+
         // FIXME: i think this should be done for all protocol version !!
         // not only those > V1
         registerIntoDomain();
@@ -408,6 +411,10 @@ public class ReplicationServerHandler extends ServerHandler
         // other servers.
       }
 
+
+      // Create the monitoring publisher for the domain if not already started
+      createMonitoringPublisher();
+
       registerIntoDomain();
 
       // Process TopologyMsg sent by remote RS: store matching new info
@@ -497,7 +504,18 @@ public class ReplicationServerHandler extends ServerHandler
     // Remote RS sent his topo msg
     TopologyMsg inTopoMsg = (TopologyMsg) msg;
 
-    // CONNECTION WITH A RS
+    // Store remore RS weight if it has one
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+    {
+      // List should only contain RS info for sender
+      RSInfo rsInfo = inTopoMsg.getRsList().get(0);
+      weight = rsInfo.getWeight();
+    }
+    else
+    {
+      // Remote RS uses protocol version prior to 4 : use default value for
+      // weight: 1
+    }
 
     // if the remote RS and the local RS have the same genID
     // then it's ok and nothing else to do
@@ -646,6 +664,7 @@ public class ReplicationServerHandler extends ServerHandler
     RSInfo rsInfo = rsInfos.get(0);
     generationId = rsInfo.getGenerationId();
     groupId = rsInfo.getGroupId();
+    weight = rsInfo.getWeight();
 
     /**
      * Store info for DSs connected to the peer RS

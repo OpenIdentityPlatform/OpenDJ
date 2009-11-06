@@ -63,8 +63,11 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   // The weight of the server
   private int weight = 1;
 
+  // The monitoring publisher period
+  private long monitoringPeriod = 3000;
+
   /**
-   * Constructor without goup id, assured info and weight
+   * Constructor without group id, assured info and weight
    */
   public ReplServerFakeConfiguration(
       int port, String dirName, int purgeDelay, int serverId,
@@ -252,6 +255,19 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   public int getWeight()
   {
     return weight;
+  }
+
+  public long getMonitoringPeriod()
+  {
+    return monitoringPeriod;
+  }
+
+  /**
+   * @param monitoringPeriod the monitoringPeriod to set
+   */
+  public void setMonitoringPeriod(long monitoringPeriod)
+  {
+    this.monitoringPeriod = monitoringPeriod;
   }
 
 }
