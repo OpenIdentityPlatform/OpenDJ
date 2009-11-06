@@ -64,6 +64,7 @@ public class Importer
   private final int TIMER_INTERVAL = 10000;
   private final int KB = 1024;
   private final int MB =  (KB * KB);
+  private final int GB = (1000 * MB);
   private final int LDIF_READER_BUFFER_SIZE = 2 * MB;
   private final int MIN_IMPORT_MEMORY_REQUIRED = 16 * MB;
   private final int MAX_BUFFER_SIZE = 48 * MB;
@@ -74,6 +75,7 @@ public class Importer
   private final int MAX_DB_LOG_BUFFER_BYTES = 100 * MB;
   private final int MEM_PCT_PHASE_1 = 45;
   private final int MEM_PCT_PHASE_2 = 55;
+  private final int EXTRA_DB_CACHE_PCT = 30;
   private final int DN_STATE_CACHE_SIZE = 32 * KB;
 
   private final String DIRECT_PROPERTY = "import.directphase2";
@@ -390,7 +392,12 @@ public class Importer
       long maxMemory = runTime.maxMemory();
       long totMemory = runTime.totalMemory();
       long totFreeMemory = (freeMemory + (maxMemory - totMemory));
+      long extraDBCache = 0;
       long availableMemoryImport = (totFreeMemory * MEM_PCT_PHASE_1) / 100;
+      if(!skipDNValidation && (totFreeMemory > GB)){
+        extraDBCache = (availableMemoryImport * EXTRA_DB_CACHE_PCT) / 100;
+        availableMemoryImport -= extraDBCache;
+       }
       int phaseOneBuffers = 2 * (indexCount * threadCount);
       message = NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(availableMemoryImport,
               phaseOneBuffers);
@@ -404,6 +411,11 @@ public class Importer
           }
       }
       getBufferSizes(availableMemoryImport, phaseOneBuffers);
+      dbCacheSize += extraDBCache;
+      if(!skipDNValidation)
+      {
+        envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "true");
+      }
       envConfig.setConfigParam("je.maxMemory", Long.toString(dbCacheSize));
       message =
               NOTE_JEB_IMPORT_LDIF_DB_MEM_BUF_INFO.get(dbCacheSize, bufferSize);
