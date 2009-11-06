@@ -291,11 +291,6 @@ public class ModifyOperationBasis
   throws DirectoryException
   {
     modifications.add(modification);
-    if (modification != null) {
-      rawModifications.add(new LDAPModification(
-            modification.getModificationType(),
-            new LDAPAttribute(modification.getAttribute())));
-    }
   }
 
   /**

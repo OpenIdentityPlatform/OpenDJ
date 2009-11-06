@@ -233,10 +233,6 @@ public class CompareOperationBasis
    */
   public final AttributeType getAttributeType()
   {
-    if (attributeType == null) {
-      attributeType = DirectoryServer.getAttributeType(
-          rawAttributeType.toLowerCase());
-    }
     return attributeType;
   }
 
@@ -248,7 +244,6 @@ public class CompareOperationBasis
   public void setAttributeType(AttributeType attributeType)
   {
     this.attributeType = attributeType;
-    this.rawAttributeType = attributeType.getNameOrOID();
   }
 
 
