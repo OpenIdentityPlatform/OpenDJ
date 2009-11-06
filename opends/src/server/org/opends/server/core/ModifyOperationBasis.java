@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -291,6 +291,11 @@ public class ModifyOperationBasis
   throws DirectoryException
   {
     modifications.add(modification);
+    if (modification != null) {
+      rawModifications.add(new LDAPModification(
+            modification.getModificationType(),
+            new LDAPAttribute(modification.getAttribute())));
+    }
   }
 
   /**
