@@ -2685,6 +2685,7 @@ public class Importer
                           new LinkedHashMap<IndexKey, Index>();
    private final Map<IndexKey, Collection<Index>> extensibleIndexMap =
                                new LinkedHashMap<IndexKey, Collection<Index>>();
+   private final List<VLVIndex> vlvIndexes = new LinkedList<VLVIndex>();
    private DN2ID dn2id = null;
    private DN2URI dn2uri = null;
    private long totalEntries =0;
@@ -2816,10 +2817,67 @@ public class Importer
    {
      processPhaseOne();
      processPhaseTwo();
-     setIndexesTrusted();
+     if(rebuildAll)
+     {
+       setAllIndexesTrusted();
+     }
+     else
+     {
+       setRebuildListIndexesTrusted();
+     }
    }
 
-   private void setIndexesTrusted() throws JebException
+    private void setRebuildListIndexesTrusted()  throws JebException
+    {
+      try
+      {
+        if(dn2id != null)
+        {
+          EntryContainer ec = suffix.getEntryContainer();
+          ec.getID2Children().setTrusted(null,true);
+          ec.getID2Subtree().setTrusted(null, true);
+        }
+        if(!indexMap.isEmpty())
+        {
+          for(Map.Entry<IndexKey, Index> mapEntry : indexMap.entrySet()) {
+            Index index = mapEntry.getValue();
+            index.setTrusted(null, true);
+          }
+        }
+        if(!vlvIndexes.isEmpty())
+        {
+          for(VLVIndex vlvIndex : vlvIndexes)
+          {
+            vlvIndex.setTrusted(null, true);
+          }
+        }
+        if(!extensibleIndexMap.isEmpty())
+        {
+          Collection<Index> subIndexes =
+                  extensibleIndexMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
+          if(subIndexes != null) {
+            for(Index subIndex : subIndexes) {
+              subIndex.setTrusted(null, true);
+            }
+          }
+          Collection<Index> sharedIndexes =
+                  extensibleIndexMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
+          if(sharedIndexes !=null) {
+            for(Index sharedIndex : sharedIndexes) {
+              sharedIndex.setTrusted(null, true);
+            }
+          }
+        }
+      }
+      catch (DatabaseException ex)
+      {
+        Message message =
+                NOTE_JEB_IMPORT_LDIF_TRUSTED_FAILED.get(ex.getMessage());
+        throw new JebException(message);
+      }
+    }
+
+    private void setAllIndexesTrusted() throws JebException
    {
      try {
        suffix.setIndexesTrusted();
@@ -3240,6 +3298,7 @@ public class Importer
    {
      VLVIndex vlvIndex = ec.getVLVIndex(name);
      ec.clearDatabase(vlvIndex);
+     vlvIndexes.add(vlvIndex);
    }
 
    private void clearDN2URI(EntryContainer ec) throws DatabaseException
