@@ -22,9 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
+
+import java.util.Set;
 
 import org.opends.server.types.*;
 
@@ -102,6 +104,22 @@ public interface CompareOperation extends Operation
    */
   public void setAttributeType(AttributeType attributeType);
 
+
+  /**
+   * Retrieves the attribute options for this compare operation. This should
+   * not be called by the pre-parse plugins because the processed attribute
+   * options will not be available yet.
+   *
+   * @return  The attribute options for this compare operation.
+   */
+  public Set<String> getAttributeOptions();
+
+  /**
+   * Specifies the attribute options for this compare operation.
+   *
+   * @param attributeOptions The attribute options for this compare operation.
+   */
+  public void setAttributeOptions(Set<String> attributeOptions);
 
   /**
    * Retrieves the assertion value for this compare operation.
