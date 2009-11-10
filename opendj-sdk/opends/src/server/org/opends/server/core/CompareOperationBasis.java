@@ -32,9 +32,12 @@ import static org.opends.server.loggers.AccessLogger.logCompareRequest;
 import static org.opends.server.loggers.AccessLogger.logCompareResponse;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -68,6 +71,9 @@ public class CompareOperationBasis
 
   // The assertion value for the compare operation.
   private ByteString assertionValue;
+
+  // The set of attribute options
+  private Set<String> attributeOptions;
 
   // The raw, unprocessed entry DN as included in the client request.
   private ByteString rawEntryDN;
@@ -117,6 +123,7 @@ public class CompareOperationBasis
     responseControls       = new ArrayList<Control>();
     entryDN                = null;
     attributeType          = null;
+    attributeOptions       = null;
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
   }
@@ -154,6 +161,7 @@ public class CompareOperationBasis
     rawAttributeType       = attributeType.getNameOrOID();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
+    attributeOptions       = new HashSet<String>();
   }
 
 
@@ -224,15 +232,45 @@ public class CompareOperationBasis
     this.rawAttributeType = rawAttributeType;
 
     attributeType = null;
+    attributeOptions = null;
   }
 
 
+
+  private void getAttributeTypeAndOptions() {
+    String baseName;
+    int semicolonPos = rawAttributeType.indexOf(';');
+    if (semicolonPos > 0) {
+      baseName = toLowerCase(rawAttributeType.substring(0, semicolonPos));
+
+      attributeOptions = new HashSet<String>();
+      int nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
+      while (nextPos > 0)
+      {
+        attributeOptions.add(
+            rawAttributeType.substring(semicolonPos+1, nextPos));
+        semicolonPos = nextPos;
+        nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
+      }
+
+      attributeOptions.add(rawAttributeType.substring(semicolonPos+1));
+    }
+    else
+    {
+      baseName = toLowerCase(rawAttributeType);
+      attributeOptions  = null;
+    }
+    attributeType = DirectoryServer.getAttributeType(baseName, true);
+  }
 
   /**
    * {@inheritDoc}
    */
   public final AttributeType getAttributeType()
   {
+    if (attributeType == null) {
+      getAttributeTypeAndOptions();
+    }
     return attributeType;
   }
 
@@ -247,6 +285,27 @@ public class CompareOperationBasis
   }
 
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public Set<String> getAttributeOptions()
+  {
+    if (attributeOptions == null) {
+      getAttributeTypeAndOptions();
+    }
+    return attributeOptions;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setAttributeOptions(Set<String> attributeOptions)
+  {
+    this.attributeOptions = attributeOptions;
+  }
 
   /**
    * {@inheritDoc}

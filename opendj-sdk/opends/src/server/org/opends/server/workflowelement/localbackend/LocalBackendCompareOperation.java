@@ -28,8 +28,8 @@ package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.Backend;
@@ -315,39 +315,10 @@ compareProcessing:
 
 
         // Get the base attribute type and set of options.
-        String          baseName;
-        HashSet<String> options;
-        String rawAttributeType = getRawAttributeType();
-        int             semicolonPos = rawAttributeType.indexOf(';');
-        if (semicolonPos > 0)
-        {
-          baseName = toLowerCase(rawAttributeType.substring(0, semicolonPos));
-
-          options = new HashSet<String>();
-          int nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
-          while (nextPos > 0)
-          {
-            options.add(rawAttributeType.substring(semicolonPos+1, nextPos));
-            semicolonPos = nextPos;
-            nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
-          }
-
-          options.add(rawAttributeType.substring(semicolonPos+1));
-        }
-        else
-        {
-          baseName = toLowerCase(rawAttributeType);
-          options  = null;
-        }
-
+        Set<String> options = getAttributeOptions();
 
         // Actually perform the compare operation.
         AttributeType attrType = getAttributeType();
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getAttributeType(baseName, true);
-          setAttributeType(attrType);
-        }
 
         List<Attribute> attrList = entry.getAttribute(attrType, options);
         if ((attrList == null) || attrList.isEmpty())
@@ -356,12 +327,14 @@ compareProcessing:
           if (options == null)
           {
             appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(
-                                    String.valueOf(entryDN), baseName));
+                                    String.valueOf(entryDN),
+                                    getRawAttributeType()));
           }
           else
           {
             appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(
-                                    String.valueOf(entryDN), baseName));
+                                    String.valueOf(entryDN),
+                                    getRawAttributeType()));
           }
         }
         else
