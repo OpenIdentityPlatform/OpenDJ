@@ -2502,11 +2502,6 @@ public class ReplicationBroker
           domain.addEclInclude(attr);
         }
       }
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("domain: " + domain.getServiceID() +
-            " EclIncludes" + domain.getEclInclude());
-      }
     }
   }
   /**

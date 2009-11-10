@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication;
 
+import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -54,7 +56,6 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
@@ -69,10 +70,12 @@ import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
@@ -81,7 +84,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Tests contained here:
@@ -117,7 +119,6 @@ public class GenerationIdTest extends ReplicationTestCase
   private ReplicationServer replServer2 = null;
   private ReplicationServer replServer3 = null;
   private boolean emptyOldChanges = true;
-  LDAPReplicationDomain replDomain = null;
   private Entry taskInitRemoteS2;
   SocketSession ssSession = null;
   boolean ssShutdownRequested = false;
@@ -440,12 +441,21 @@ public class GenerationIdTest extends ReplicationTestCase
         "Unable to add the synchronized server");
       configEntryList.add(synchroServerEntry.getDN());
 
-      replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
-
-
-      if (replDomain != null)
+      int waitCo=0;
+      LDAPReplicationDomain doToco=null;
+      while(waitCo<30)
       {
-        debugInfo("ReplicationDomain: Import/Export is running ? " + replDomain.ieRunning());
+        doToco =
+          LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+        if ((doToco!=null) && (doToco.isConnected()))
+          break;
+        Thread.sleep(200);
+        waitCo++;
+      }
+      assertTrue(doToco.isConnected(), "not connected after #attempt="+waitCo);
+      if (doToco != null)
+      {
+        debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
       }
     }
     catch(Exception e)
@@ -469,6 +479,14 @@ public class GenerationIdTest extends ReplicationTestCase
       assertTrue(synchroServerEntry != null);
 
       DN synchroServerDN = DN.decode(synchroServerStringDN);
+      
+      Entry ecle;
+      ecle = DirectoryServer.getConfigHandler().getEntry(
+          DN.decode("cn=external changelog," + synchroServerStringDN));
+      if (ecle!=null)
+      {
+        DirectoryServer.getConfigHandler().deleteEntry(ecle.getDN(), null);        
+      }
       DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN, null);
       assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()) ==
         null,
@@ -477,6 +495,23 @@ public class GenerationIdTest extends ReplicationTestCase
 
       configEntryList.remove(configEntryList.indexOf(synchroServerDN));
 
+      LDAPReplicationDomain replDomainToDis = null;
+      try
+      {
+        int waitCo=0;
+        while(waitCo<30)
+        {
+          replDomainToDis =
+            LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+          Thread.sleep(200);
+          waitCo++;
+        }
+        assert(replDomainToDis==null);
+      }
+      catch (DirectoryException e)
+      {
+        // success
+      }
     }
     catch(Exception e)
     {
@@ -703,7 +738,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // To search the replication server db later in these tests, we need
       // to attach the search backend to the replication server just created.
-      Thread.sleep(500);
       ReplicationBackend b =
         (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
       b.setServer(replServer1);
@@ -829,7 +863,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // To search the replication server db later in these tests, we need
       // to attach the search backend to the replication server just created.
-      Thread.sleep(500);
       b = (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
       b.setServer(replServer1);
 
@@ -1012,7 +1045,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       addTask(taskReset, ResultCode.SUCCESS, null);
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
-      Thread.sleep(200);
 
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), rgenId);
@@ -1126,9 +1158,18 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting DS to replServer1");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(1500);
 
       debugInfo("Expect genId are set in all replServers.");
+      int waitRes=0;
+      while(waitRes<100)
+      {
+        if ((replServer1.getGenerationId(baseDn.toNormalizedString())==EMPTY_DN_GENID)
+          && (replServer2.getGenerationId(baseDn.toNormalizedString())==EMPTY_DN_GENID)
+          && (replServer3.getGenerationId(baseDn.toNormalizedString())==EMPTY_DN_GENID))
+          break;
+        waitRes++;
+        Thread.sleep(100);
+      }
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), EMPTY_DN_GENID,
         " in replServer1");
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), EMPTY_DN_GENID,
@@ -1138,8 +1179,17 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Disconnect DS from replServer1.");
       disconnectFromReplServer(changelog1ID);
-      Thread.sleep(3000);
 
+      waitRes=0;
+      while(waitRes<100)
+      {
+        if ((replServer1.getGenerationId(baseDn.toNormalizedString())==-1)
+          && (replServer2.getGenerationId(baseDn.toNormalizedString())==-1)
+          && (replServer3.getGenerationId(baseDn.toNormalizedString())==-1))
+          break;
+        waitRes++;
+        Thread.sleep(100);
+      }
       debugInfo(
         "Expect genIds to be resetted in all servers to -1 as no more DS in topo");
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), -1);
@@ -1151,12 +1201,21 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting DS to replServer2");
       connectServer1ToChangelog(changelog2ID);
-      Thread.sleep(3000);
 
       debugInfo(
         "Expect genIds to be set in all servers based on the added entries.");
       genId = readGenIdFromSuffixRootEntry();
       assertTrue(genId != -1);
+      waitRes=0;
+      while(waitRes<100)
+      {
+        if ((replServer1.getGenerationId(baseDn.toNormalizedString())==genId)
+          && (replServer2.getGenerationId(baseDn.toNormalizedString())==genId)
+          && (replServer3.getGenerationId(baseDn.toNormalizedString())==genId))
+          break;
+        waitRes++;
+        Thread.sleep(100);
+      }
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), genId);
@@ -1347,7 +1406,6 @@ public class GenerationIdTest extends ReplicationTestCase
       // Read generationId - should be not retrievable since no entry
       debugInfo(testCase + " Connecting DS1 to replServer1(" + changelog1ID + ")");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(1000);
 
       debugInfo(testCase + " Expect genId attribute to be not retrievable");
       genId = readGenIdFromSuffixRootEntry();

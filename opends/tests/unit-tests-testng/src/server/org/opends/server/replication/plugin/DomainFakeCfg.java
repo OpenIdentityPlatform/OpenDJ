@@ -26,17 +26,21 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
@@ -69,7 +73,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private SortedSet<String> fractionalIncludes = new TreeSet<String>();
 
   private SortedSet<String> eclIncludes = new TreeSet<String>();
-
+  private ExternalChangelogDomainCfg eclCfg = 
+    new ExternalChangelogDomainFakeCfg(true, new TreeSet<AttributeType>());
+  
   /**
    * Creates a new Domain with the provided information
    * (assured mode disabled, default group id)
@@ -365,8 +371,95 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     this.eclIncludes = attrs;
   }
  
-  public SortedSet<String> getEclInclude()
+  public SortedSet<String> getECLInclude()
   {
     return this.eclIncludes;
   }
+  
+  public boolean hasExternalChangelogDomain() { return true; }
+
+
+
+  /**
+   * Gets the ECL Domain if it is present.
+   *
+   * @return Returns the ECL Domain if it is present.
+   * @throws ConfigException
+   *           If the ECL Domain does not exist or it could not
+   *           be successfully decoded.
+   */
+  public ExternalChangelogDomainCfg getExternalChangelogDomain()
+  throws ConfigException 
+  { return eclCfg; }
+
+
+  /**
+   * Sets the ECL Domain if it is present.
+   *
+   * @return Returns the ECL Domain if it is present.
+   * @throws ConfigException
+   *           If the ECL Domain does not exist or it could not
+   *           be successfully decoded.
+   */
+  public void  setExternalChangelogDomain(ExternalChangelogDomainCfg eclCfg)
+  throws ConfigException 
+  { this.eclCfg=eclCfg;}
+
+
+
+  /**
+   * Registers to be notified when the ECL Domain is added.
+   *
+   * @param listener
+   *          The ECL Domain configuration add listener.
+   * @throws ConfigException
+   *          If the add listener could not be registered.
+   */
+  public
+  void addECLDomainAddListener(
+      ConfigurationAddListener<ExternalChangelogDomainCfg> listener)
+  throws ConfigException
+  {}
+
+
+
+  /**
+   * Deregisters an existing ECL Domain configuration add listener.
+   *
+   * @param listener
+   *          The ECL Domain configuration add listener.
+   */
+  public void removeECLDomainAddListener(
+      ConfigurationAddListener<ExternalChangelogDomainCfg>
+  listener)
+  {}
+
+
+
+  /**
+   * Registers to be notified the ECL Domain is deleted.
+   *
+   * @param listener
+   *          The ECL Domain configuration delete listener.
+   * @throws ConfigException
+   *          If the delete listener could not be registered.
+   */
+  public void 
+  addECLDomainDeleteListener(
+      ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
+  throws ConfigException
+  {}
+
+
+
+  /**
+   * Deregisters an existing ECL Domain configuration delete listener.
+   *
+   * @param listener
+   *          The ECL Domain configuration delete listener.
+   */
+  public void 
+  removeECLDomainDeleteListener(
+      ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
+  {}
 }

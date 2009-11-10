@@ -267,14 +267,9 @@ public class MonitorTest extends ReplicationTestCase
       SYNCHRO_PLUGIN_DN;
       // Must have called connectServer1ToChangelog previously
       assertTrue(synchroServerEntry != null);
-
       DN synchroServerDN = DN.decode(synchroServerStringDN);
-      DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN, null);
-      assertTrue(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()) ==
-        null,
-        "Unable to delete the synchronized domain");
+      deleteEntry(synchroServerDN);
       synchroServerEntry = null;
-
       configEntryList.remove(configEntryList.indexOf(synchroServerDN));
 
     }

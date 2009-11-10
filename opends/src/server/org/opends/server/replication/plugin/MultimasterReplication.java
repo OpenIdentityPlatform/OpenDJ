@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -195,7 +196,7 @@ public class MultimasterReplication
       ReplicationDomainCfg configuration)
       throws ConfigException
   {
-    LDAPReplicationDomain domain;
+    LDAPReplicationDomain domain = null;
     try
     {
       domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
@@ -208,14 +209,14 @@ public class MultimasterReplication
       }
 
       domains.put(domain.getBaseDN(), domain);
-      return domain;
     }
     catch (ConfigException e)
     {
       logError(ERR_COULD_NOT_START_REPLICATION.get(
-          configuration.dn().toString(), e.getLocalizedMessage()));
-      return null;
+          configuration.dn().toString(), e.getLocalizedMessage()
+          + " " + stackTraceToSingleLineString(e)));
     }
+    return domain;
   }
 
   /**
@@ -251,7 +252,7 @@ public class MultimasterReplication
     LDAPReplicationDomain domain = domains.remove(dn);
 
     if (domain != null)
-      domain.shutdown();
+      domain.delete();
 
     // No replay threads running if no replication need
     if (domains.size() == 0) {
@@ -822,18 +823,16 @@ public class MultimasterReplication
    * Gets the baseDn of the domains that have a private backend.
    * @return The private baseDN.
    */
-  public static ArrayList<String> getPrivateDomains()
+  public static ArrayList<String> getECLDisabledDomains()
   {
-    ArrayList<String> privateDNs = new ArrayList<String>();
+    ArrayList<String> disabledServiceIDs = new ArrayList<String>();
 
     for (LDAPReplicationDomain domain : domains.values())
     {
-      Backend b = domain.getBackend();
-      if (b != null)
-        if (b.isPrivateBackend())
-          privateDNs.add(domain.getBaseDN().toNormalizedString());
+      if (!domain.isECLEnabled())
+        disabledServiceIDs.add(domain.getBaseDN().toNormalizedString());
     }
-    return privateDNs;
+    return disabledServiceIDs;
   }
 
   /**

@@ -3026,8 +3026,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
         ds-cfg-fractional-exclude $
         ds-cfg-fractional-include $
         ds-cfg-solve-conflicts $
-        ds-cfg-changetime-heartbeat-interval $
-        ds-cfg-ecl-include )
+        ds-cfg-changetime-heartbeat-interval )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.58
   NAME 'ds-cfg-length-based-password-validator'
@@ -4143,5 +4142,13 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.233
   SUP ds-cfg-work-queue
   STRUCTURAL
   MAY ( ds-cfg-num-worker-threads )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.234
+  NAME 'ds-cfg-external-changelog-domain'
+  SUP top
+  STRUCTURAL
+  MUST ( cn $
+         ds-cfg-enabled )
+  MAY  ( ds-cfg-ecl-include )
   X-ORIGIN 'OpenDS Directory Server' )
 

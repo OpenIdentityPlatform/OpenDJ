@@ -2909,14 +2909,4 @@ public abstract class ReplicationDomain
   {
     return eClIncludes;
   }
-
-  /**
-   * Set the list of attributes to include in the ECL.
-   * @param eclIncludes The list of attributes.
-   */
-  protected void setCfgEclInclude(Set<String> eclIncludes)
-  {
-    this.cfgEclIncludes = eclIncludes;
-    this.eClIncludes = eclIncludes;
-  }
 }
