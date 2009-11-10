@@ -723,7 +723,7 @@
   <!-- copy the l10n message properties files (for generated messages)-->
   <target name="copyl10nmessages">
     <copy todir="${build.dir}/classes/admin/messages/org/opends/server/admin/std/meta/">
-    <fileset dir="${msgl10n.prop.dir}" includes="*_fr.properties,*_de.properties,*_es.properties,*_ja.properties,*_ko.properties,*_zh_CN.properties,*_zh_TW.properties">
+    <fileset dir="${msgl10n.prop.dir}" includes="*_fr.properties,*_de.properties,*_es.properties,*_ja.properties,*_ko.properties,*_zh_CN.properties,*_zh_TW.properties,*_pl.properties">
     </fileset>
     </copy>
   </target>
@@ -975,7 +975,7 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties" 
+	 excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties,**/*_pl.properties" 
         compress="true" index="true" />
 
    <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
@@ -1013,6 +1013,10 @@
          includes="**/*_zh_TW.properties"
          compress="true" index="true" />
 
+     <jar jarfile="${pdir}/lib/${SHORT_NAME}_pl.jar"
+	 basedir="${classes.dir}"
+	 includes="**/*_pl.properties"
+	 compress="true" index="true" />
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
          basedir="${quicksetup.classes.dir}" compress="true" index="true" />
@@ -1321,6 +1325,7 @@
         <include name="${SHORT_NAME}_es.jar" />
         <include name="${SHORT_NAME}_zh_TW.jar" />
         <include name="${SHORT_NAME}_zh_CN.jar" />
+        <include name="${SHORT_NAME}_pl.jar" />
       </lib>
     </war>
 
