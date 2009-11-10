@@ -41,6 +41,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,7 +67,9 @@ import java.util.zip.DataFormatException;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
+import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -157,6 +160,7 @@ import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationOperation;
+import org.opends.server.util.LDIFReader;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.*;
 
@@ -256,6 +260,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * The DN of the configuration entry of this domain.
    */
   private final DN configDn;
+  private ExternalChangelogDomain eclDomain;
 
   /**
    * A boolean indicating if the thread used to save the persistentServerState
@@ -432,7 +437,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     setGroupId((byte)configuration.getGroupId());
     setURLs(configuration.getReferralsUrl());
 
-    setCfgEclInclude(configuration.getEclInclude());
+    createECLDomainCfg(configuration);
 
     /*
      * Modify conflicts are solved for all suffixes but the schema suffix
@@ -2305,6 +2310,15 @@ public class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Delete this ReplicationDomain.
+   */
+  public void delete()
+  {
+    shutdown();
+    removeECLDomainCfg();
+  }
+
+  /**
    * Shutdown this ReplicationDomain.
    */
   public void shutdown()
@@ -4093,6 +4107,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       solveConflictFlag = configuration.isSolveConflicts();
     }
 
+    try
+    {
+      createECLDomainCfg(configuration);
+    }
+    catch(Exception e)
+    {
+      return new ConfigChangeResult(ResultCode.OTHER, false);
+    }
+
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
@@ -4166,6 +4189,94 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
 
   /**
+   * Remove from this domain configuration, the configuration of the
+   * external change log.
+   */
+  public void removeECLDomainCfg()
+  {
+    try
+    {
+      DN eclConfigEntryDN = DN.decode(
+          "cn=external changeLog," + configDn);
+
+      if (DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
+      {
+        DirectoryServer.getConfigHandler().deleteEntry(eclConfigEntryDN, null);
+      }
+    }
+    catch(Exception e)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(e.getMessage());
+      Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
+      logError(msg);
+    }
+  }
+
+  /**
+   * Create the ECl configuration.
+   * @param  configuration The provided configuration.
+   * @throws ConfigException a.
+   */
+  public void createECLDomainCfg(ReplicationDomainCfg configuration)
+  throws ConfigException
+  {
+    // create the ecl config if it does not exist
+    // There may ot be any config entry related to this domain in some
+    // unit test cases
+    try
+    {
+      ExternalChangelogDomainCfg eclDomCfg = null;
+      if (DirectoryServer.getConfigHandler().entryExists(configDn))
+      {
+        try
+        { eclDomCfg = configuration.getExternalChangelogDomain();
+        }catch(Exception e) {}
+        if (eclDomCfg==null)
+        {
+          DN eclConfigEntryDN = DN.decode("cn=external changelog," + configDn);
+          if (!DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
+          {
+            String ldif = makeLdif(
+                "dn: cn=external changelog," + configDn,
+                "objectClass: top",
+                "objectClass: ds-cfg-external-changelog-domain",
+                "cn: external changelog",
+                "ds-cfg-enabled: " + (!getBackend().isPrivateBackend()));
+            LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
+                new StringReader(ldif));
+            LDIFReader reader = new LDIFReader(ldifImportConfig);
+            Entry eclEntry = reader.readEntry();
+            DirectoryServer.getConfigHandler().addEntry(eclEntry, null);
+            ldifImportConfig.close();
+          }
+        }
+      }
+      eclDomCfg = configuration.getExternalChangelogDomain();
+      eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
+    }
+    catch(Exception de)
+    {
+      throw new ConfigException(
+            NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+                "Replication Domain on" + baseDn,
+                de.getMessage() + " " + de.getCause().getMessage()), de);
+    }
+  }
+
+  private static String makeLdif(String... lines)
+  {
+    StringBuilder buffer = new StringBuilder();
+    for (String line : lines) {
+      buffer.append(line).append(EOL);
+    }
+    // Append an extra line so we can append LDIF Strings.
+    buffer.append(EOL);
+    return buffer.toString();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -4197,7 +4308,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch(DirectoryException de)
       {
-        //FIXME:DirectoryException is raised by initializeECL => fix err msg
         Message message =
           NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
               "Replication Domain on" + baseDn,
@@ -5079,5 +5189,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       return true;
     }
+  }
+
+  /**
+   * Specifies whether this domain is enabled/disabled regarding the ECL.
+   * @return enabled/disabled for the ECL.
+   */
+  public boolean isECLEnabled()
+  {
+    return this.eclDomain.isEnabled();
   }
 }

@@ -398,35 +398,43 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return broker;
   }
 
+  protected void deleteEntry(DN dn)
+  {
+    try
+    {
+    if (dn.getParent().getRDN().toString().equalsIgnoreCase("cn=domains"))
+      deleteEntry(DN.decode("cn=external changelog,"+dn.toString()));
+    }
+    catch(Exception e)
+    {}
+
+    DeleteOperationBasis op;
+    op = new DeleteOperationBasis(connection, InternalClientConnection
+        .nextOperationID(), InternalClientConnection.nextMessageID(), null,
+        dn);
+    op.run();
+    if ((op.getResultCode() != ResultCode.SUCCESS) &&
+        (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
+    {
+      fail("Delete entry " + dn +
+          " failed: " + op.getResultCode().getResultCodeName());
+    }
+  }
+
   /**
    * suppress all the config entries created by the tests in this class
    */
   protected void cleanConfigEntries()
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "ReplicationTestCase/Cleaning config entries"));
+    "ReplicationTestCase/Cleaning config entries"));
 
-    DeleteOperationBasis op;
-    // Delete entries
     try
     {
       while (true)
       {
         DN dn = configEntryList.removeLast();
-
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-                 "cleaning config entry " + dn));
-
-        op = new DeleteOperationBasis(connection, InternalClientConnection
-            .nextOperationID(), InternalClientConnection.nextMessageID(), null,
-            dn);
-        op.run();
-        if ((op.getResultCode() != ResultCode.SUCCESS) &&
-            (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
-        {
-          fail("ReplicationTestCase/Cleaning config entries DEL " + dn +
-                   " failed: " + op.getResultCode().getResultCodeName());
-        }
+        deleteEntry(dn);
       }
     }
     catch (NoSuchElementException e) {
@@ -441,8 +449,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void cleanRealEntries()
   {
-  	logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "ReplicationTestCase/Cleaning entries"));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE,
+    "ReplicationTestCase/Cleaning entries"));
 
     DeleteOperationBasis op;
     // Delete entries
@@ -451,23 +459,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = entryList.removeLast();
-
-        op = new DeleteOperationBasis(connection,
-               InternalClientConnection.nextOperationID(),
-               InternalClientConnection.nextMessageID(),
-               null,
-               dn);
-
-        op.run();
-
-        if ((op.getResultCode() != ResultCode.SUCCESS) &&
-            (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
-        {
-          logError(Message.raw(Category.SYNC, Severity.NOTICE,
-                   "ReplicationTestCase/Cleaning entries" +
-                   "DEL " + dn +
-                   " failed " + op.getResultCode().getResultCodeName()));
-        }
+        deleteEntry(dn);
       }
     }
     catch (NoSuchElementException e) {
@@ -1171,29 +1163,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void removeDomain(Entry domainCfgEntry)
   {
-    DeleteOperationBasis op;
-    // Delete entries
-    try
-    {
-      DN dn = domainCfgEntry.getDN();
-
-      logError(Message.raw(Category.SYNC, Severity.NOTICE,
-        "cleaning config entry " + dn));
-
-      op = new DeleteOperationBasis(connection, InternalClientConnection.
-        nextOperationID(), InternalClientConnection.nextMessageID(), null,
-        dn);
-      op.run();
-      if ((op.getResultCode() != ResultCode.SUCCESS) &&
-        (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
-      {
-        fail("Deleting config entry" + dn +
-          " failed: " + op.getResultCode().getResultCodeName());
-      }
-    } catch (NoSuchElementException e)
-    {
-      // done
-    }
+    DN dn = domainCfgEntry.getDN();
+    deleteEntry(dn);
   }
 
   /**

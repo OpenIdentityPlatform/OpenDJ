@@ -137,7 +137,7 @@ public class LastCookieVirtualProvider
       {
         // Set a list of excluded domains (also exclude 'cn=changelog' itself)
         ArrayList<String> excludedDomains =
-          MultimasterReplication.getPrivateDomains();
+          MultimasterReplication.getECLDisabledDomains();
         if (!excludedDomains.contains(
             ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
           excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);

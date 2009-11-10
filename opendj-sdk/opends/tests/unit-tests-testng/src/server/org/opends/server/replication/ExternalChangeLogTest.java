@@ -89,6 +89,7 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.DomainFakeCfg;
+import org.opends.server.replication.plugin.ExternalChangelogDomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AddMsg;
@@ -111,6 +112,7 @@ import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
@@ -230,17 +232,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       fail("Ending test " +  " with exception:"
           +  stackTraceToSingleLineString(de));
     }
-   
+
     // Test all types of ops.  
     ECLAllOps(); // Do not clean the db for the next test
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
     ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
- 
+
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains(); replicationServer.clearDb();
-    
+
     // Write changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
@@ -657,13 +659,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Add the root entry in the backend
       Backend backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
           TEST_BACKEND_ID2);
+      backend2.setPrivateBackend(true);
       DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
+      
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
-      LDAPReplicationDomain domain2 = MultimasterReplication.createNewDomain(domainConf);
+      ExternalChangelogDomainFakeCfg eclCfg = 
+        new ExternalChangelogDomainFakeCfg(true, null);
+      domainConf.setExternalChangelogDomain(eclCfg);
+      LDAPReplicationDomain domain2 =
+        MultimasterReplication.createNewDomain(domainConf);
       domain2.start();
+
       sleep(1000);
       Entry e = createEntry(baseDn2);
       addEntry(e);
@@ -716,11 +725,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           //}
         }
       }
-      //
-      // Set the backend private and do again a search on ECL that should
-      // now not return the entry
-      //
-      domain2.getBackend().setPrivateBackend(true);
+
+      eclCfg = 
+        new ExternalChangelogDomainFakeCfg(false, null);
+      domainConf.setExternalChangelogDomain(eclCfg);
+      domain2.applyConfigurationChange(domainConf);
 
       debugInfo(tn, "Search with cookie=" + cookie);
       searchOp = connection.processSearch(
@@ -739,8 +748,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.SUCCESS);
 
       entries = searchOp.getSearchEntries();
-      assertTrue(entries != null);
-      assertTrue(entries.size()==1);
+      assertTrue(entries != null, "Entries returned when test2 is ECL disabled.");
+      assertTrue(entries.size()==1, "#Entry="+entries.size()+"when expected is 1");
       if (entries != null)
         for (SearchResultEntry resultEntry : entries)
         {
@@ -3514,9 +3523,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       replServers.add("localhost:"+replicationServerPort);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2, 1702, replServers);
-      SortedSet<String> includeAttributes = new TreeSet<String>();
-      includeAttributes.add("sn");
-      domainConf.setEclIncludes(includeAttributes);
+      // SortedSet<String> includeAttributes = new TreeSet<String>();
+      // includeAttributes.add("sn");
+      SortedSet<AttributeType> eclInclude = new TreeSet<AttributeType>();
+      eclInclude.add(DirectoryServer.getAttributeType("sn"));
+      ExternalChangelogDomainFakeCfg eclCfg = 
+        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+      domainConf.setExternalChangelogDomain(eclCfg);
       domain2 = MultimasterReplication.createNewDomain(domainConf);
       domain2.start();
 
@@ -3525,17 +3538,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
       domainConf =
         new DomainFakeCfg(baseDn3, 1703, replServers);
-      includeAttributes = new TreeSet<String>();
-      includeAttributes.add("objectclass");
-      domainConf.setEclIncludes(includeAttributes);
+      eclInclude = new TreeSet<AttributeType>();
+      eclInclude.add(DirectoryServer.getAttributeType("objectclass"));
+      eclCfg = 
+        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+      domainConf.setExternalChangelogDomain(eclCfg);
       domain3 = MultimasterReplication.createNewDomain(domainConf);
       domain3.start();
 
       domainConf =
         new DomainFakeCfg(baseDn2, 1704, replServers);
-      includeAttributes = new TreeSet<String>();
-      includeAttributes.add("cn");
-      domainConf.setEclIncludes(includeAttributes);
+      eclInclude = new TreeSet<AttributeType>();
+      eclInclude.add(DirectoryServer.getAttributeType("cn"));
+      eclCfg = 
+        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+      domainConf.setExternalChangelogDomain(eclCfg);
       domain21 = MultimasterReplication.createNewDomain(domainConf);
       domain21.start();
 
