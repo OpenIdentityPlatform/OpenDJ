@@ -796,7 +796,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       if (recursive) {
         // The root cannot be queued directly.
         // We need to queue each child individually.
-        Enumeration e = rootNode.children();
+        Enumeration<?> e = rootNode.children();
         while (e.hasMoreElements()) {
           BasicNode child = (BasicNode)e.nextElement();
           startRefreshNode(child, null, true);
@@ -807,9 +807,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       refreshQueue.queue(new NodeRefresher(node, this, localEntry, recursive));
       // The task does not *see* suffixes.
       // So we need to propagate the refresh on
-      // the subsuffixes if any.
+      // the sub-suffixes if any.
       if (recursive && (node instanceof SuffixNode)) {
-        Enumeration e = node.children();
+        Enumeration<?> e = node.children();
         while (e.hasMoreElements()) {
           BasicNode child = (BasicNode)e.nextElement();
           if (child instanceof SuffixNode) {
@@ -834,7 +834,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       refreshQueue.cancelAll();
     }
     else {
-      Enumeration e = node.children();
+      Enumeration<?> e = node.children();
       while (e.hasMoreElements()) {
         BasicNode child = (BasicNode)e.nextElement();
         stopRefreshNode(child);
@@ -850,7 +850,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param parentNode the parent node.
    */
   void startRefreshReferralNodes(BasicNode parentNode) {
-    Enumeration e = parentNode.children();
+    Enumeration<?> e = parentNode.children();
     while (e.hasMoreElements()) {
       BasicNode child = (BasicNode)e.nextElement();
       if ((child.getReferral() != null) || (child.getRemoteUrl() != null)) {
@@ -914,6 +914,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (!(node instanceof RootNode)) {
       BasicNode basicNode = (BasicNode)node;
       stopRefreshNode(basicNode);
+      synchronized (refreshQueue)
+      {
+        boolean isWorking = refreshQueue.isWorking(basicNode);
+        refreshQueue.cancelForNode(basicNode);
+        if (isWorking)
+        {
+          basicNode.setRefreshNeededOnExpansion(true);
+        }
+      }
     }
   }
 
@@ -1462,7 +1471,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           (newState == NodeRefresher.State.SEARCHING_CHILDREN)) {
         // The children search is going to start
         if (canDoDifferentialUpdate(task)) {
-          Enumeration e = node.children();
+          Enumeration<?> e = node.children();
           while (e.hasMoreElements()) {
             BasicNode child = (BasicNode)e.nextElement();
             child.setObsolete(true);

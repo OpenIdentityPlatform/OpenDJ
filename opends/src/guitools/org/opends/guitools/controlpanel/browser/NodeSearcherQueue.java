@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -125,6 +125,18 @@ class NodeSearcherQueue implements Runnable {
       task.cancel();
     }
     notify();
+  }
+
+  /**
+   * Tells whether this node is in the working list.
+   * @param node the node.
+   * @return <CODE>true</CODE> if the provided node is being refreshed and
+   * <CODE>false</CODE> otherwise.
+   */
+  public synchronized boolean isWorking(BasicNode node)
+  {
+    boolean isWorking = workingList.get(node) != null;
+    return isWorking;
   }
 
 
