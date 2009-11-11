@@ -1582,6 +1582,25 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private void refreshClicked()
   {
+    // Refresh the contents of the selected entry.
+    TreePath[] paths = treePane.getTree().getSelectionPaths();
+    if (paths != null && paths.length == 1)
+    {
+      if (entryPane.mustCheckUnsavedChanges())
+      {
+        switch (entryPane.checkUnsavedChanges())
+        {
+        case DO_NOT_SAVE:
+          break;
+        case SAVE:
+          break;
+        case CANCEL:
+          // Do nothing.
+          return;
+        }
+      }
+      updateRightPane(paths);
+    }
     entryPane.getController().startRefresh(null);
   }
 }
