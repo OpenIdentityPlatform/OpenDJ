@@ -811,7 +811,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     TreeSet<String> syntaxNames = new TreeSet<String>(lowerCaseComparator);
     HashMap<String, AttributeSyntaxTreeNode> hmSyntaxes =
       new HashMap<String, AttributeSyntaxTreeNode>();
-    for (AttributeSyntax syntax : lastSchema.getSyntaxes().values())
+    for (AttributeSyntax<?> syntax : lastSchema.getSyntaxes().values())
     {
       if (mustAdd(syntax))
       {
@@ -1030,7 +1030,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     treePane.setVisible(nElements > 0);
     if (nElements > 0)
     {
-      lNumberOfElements.setText("Number of elements: "+nElements);
+      lNumberOfElements.setText(
+          INFO_CTRL_PANEL_SCHEMA_ELEMENT_NUMBER.get(nElements).toString());
       lNumberOfElements.setVisible(true);
     }
     else
@@ -1679,7 +1680,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    * @return <CODE>true</CODE> if the attribute syntax must be added and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean mustAdd(AttributeSyntax syntax)
+  private boolean mustAdd(AttributeSyntax<?> syntax)
   {
     boolean mustAdd = true;
     String f = filter.getText().trim();
@@ -1787,7 +1788,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
 
   private HashMap<Object, ImageIcon> hmCategoryImages =
     new HashMap<Object, ImageIcon>();
-  private HashMap<Class, ImageIcon> hmImages = new HashMap<Class, ImageIcon>();
+  private HashMap<Class<?>, ImageIcon> hmImages =
+    new HashMap<Class<?>, ImageIcon>();
   {
     Object[] nodes = {attributes, objectClasses, standardObjectClasses,
         standardAttributes, configurationObjectClasses, configurationAttributes,
@@ -1801,7 +1803,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       hmCategoryImages.put(nodes[i],
           Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+paths[i]));
     }
-    Class[] classes = {ConfigurationAttributeTreeNode.class,
+    Class<?>[] classes = {ConfigurationAttributeTreeNode.class,
         StandardAttributeTreeNode.class, CustomAttributeTreeNode.class,
         ConfigurationObjectClassTreeNode.class,
         StandardObjectClassTreeNode.class, CustomObjectClassTreeNode.class,
