@@ -722,9 +722,9 @@ implements EntryReadListener
 
   /**
    * Tells whether the user chose to save the changes in the panel, to not save
-   * them or simply cancelled the selection change in the tree.
+   * them or simply canceled the selection change in the tree.
    * @return the value telling whether the user chose to save the changes in the
-   * panel, to not save them or simply cancelled the selection in the tree.
+   * panel, to not save them or simply canceled the selection in the tree.
    */
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
