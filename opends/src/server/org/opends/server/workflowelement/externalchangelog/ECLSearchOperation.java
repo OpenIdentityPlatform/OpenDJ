@@ -29,6 +29,7 @@ package org.opends.server.workflowelement.externalchangelog;
 
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
@@ -1046,25 +1047,36 @@ public class ECLSearchOperation
           uAttrs.put(attributeType, attrList);
 
         pattern = "creatorsName: ";
-        int att_cr = clearLDIFchanges.indexOf(pattern);
-        if (att_cr>0)
+        try
         {
-          int start_val_cr = clearLDIFchanges.indexOf(':', att_cr);
-          int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
-          String creatorsName =
-            clearLDIFchanges.substring(start_val_cr+2, end_val_cr);
+          int att_cr = clearLDIFchanges.indexOf(pattern);
+          if (att_cr>0)
+          {
+            int start_val_cr = clearLDIFchanges.indexOf(':', att_cr);
+            int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
+            String creatorsName =
+              clearLDIFchanges.substring(start_val_cr+2, end_val_cr);
 
-          if((attributeType =
-            DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
-            attributeType =
-              DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
-          a = Attributes.create(attributeType, creatorsName);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          if(attributeType.isOperational())
-            operationalAttrs.put(attributeType, attrList);
-          else
-            uAttrs.put(attributeType, attrList);
+            if((attributeType =
+              DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+              attributeType =
+                DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
+            a = Attributes.create(attributeType, creatorsName);
+            attrList = new ArrayList<Attribute>(1);
+            attrList.add(a);
+            if(attributeType.isOperational())
+              operationalAttrs.put(attributeType, attrList);
+            else
+              uAttrs.put(attributeType, attrList);
+          }
+        }
+        catch(Exception e)
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logError(Message.raw(Category.SYNC, Severity.MILD_ERROR,
+              "Error in External Change Log when looking for pattern \""
+              + pattern + "\" in string \""+
+              clearLDIFchanges + "\" for change " + dnString));
         }
       }
       else if (changetype.equals("modify")||changetype.equals("modrdn"))
@@ -1087,25 +1099,36 @@ public class ECLSearchOperation
         }
 
         pattern = "modifiersName: ";
-        int att_cr = clearLDIFchanges.indexOf(pattern);
-        if (att_cr>0)
+        try
         {
-          int start_val_cr = att_cr + pattern.length();
-          int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
-          String modifiersName =
-            clearLDIFchanges.substring(start_val_cr, end_val_cr);
+          int att_cr = clearLDIFchanges.indexOf(pattern);
+          if (att_cr>0)
+          {
+            int start_val_cr = att_cr + pattern.length();
+            int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
+            String modifiersName =
+              clearLDIFchanges.substring(start_val_cr, end_val_cr);
 
-          if((attributeType =
-            DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
-            attributeType =
-              DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
-          a = Attributes.create(attributeType, modifiersName);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          if(attributeType.isOperational())
-            operationalAttrs.put(attributeType, attrList);
-          else
-            uAttrs.put(attributeType, attrList);
+            if((attributeType =
+              DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+              attributeType =
+                DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
+            a = Attributes.create(attributeType, modifiersName);
+            attrList = new ArrayList<Attribute>(1);
+            attrList.add(a);
+            if(attributeType.isOperational())
+              operationalAttrs.put(attributeType, attrList);
+            else
+              uAttrs.put(attributeType, attrList);
+          }
+        }
+        catch(Exception e)
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          logError(Message.raw(Category.SYNC, Severity.MILD_ERROR,
+              "Error in External Change Log when looking for pattern \""
+              + pattern + "\" in string \""+
+              clearLDIFchanges + "\" for change " + dnString));
         }
       }
     }
