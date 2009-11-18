@@ -94,7 +94,7 @@ public class LDAPConnectionConsoleInteraction {
   // the Console application
   private ConsoleApplication app;
 
-  // Indicate if the truststore in in memory
+  // Indicate if the trust store in in memory
   private boolean trustStoreInMemory = false;
 
   // Indicate if the all certificates are accepted
@@ -103,7 +103,7 @@ public class LDAPConnectionConsoleInteraction {
   // Indicate that the trust manager was created with the parameters provided
   private boolean trustManagerInitialized;
 
-  // The truststore to use for the SSL or STARTTLS connection
+  // The trust store to use for the SSL or STARTTLS connection
   private KeyStore truststore;
 
   private String keystorePath;
@@ -835,8 +835,8 @@ public class LDAPConnectionConsoleInteraction {
 
     trustAll = secureArgsList.trustAllArg.isPresent();
 
-    // Try to use the local instance trustore, to avoid certifacte validation
-    // when both the CLI and the server are in the same instance.
+    // Try to use the local instance trust store, to avoid certificate
+    // validation when both the CLI and the server are in the same instance.
     if (weDontKnowTheTrustMethod) {
       if (addLocalTrustStore()) {
         weDontKnowTheTrustMethod = false;
@@ -883,7 +883,7 @@ public class LDAPConnectionConsoleInteraction {
           else if (result.getValue().equals(
               TrustMethod.TRUSTSTORE.getChoice()))
           {
-            // We have to ask for truststore info
+            // We have to ask for trust store info
             askForTrustStore = true;
           }
           else if (result.getValue().equals(
@@ -917,7 +917,7 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // If we do not trust all server certificates, we have to get info
-    // about truststore. First get the truststore path.
+    // about trust store. First get the trust store path.
     truststorePath = secureArgsList.trustStorePathArg.getValue();
 
     if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent()
@@ -1438,9 +1438,9 @@ public class LDAPConnectionConsoleInteraction {
   }
 
   /**
-   * Indicate if the truststore is in memory.
+   * Indicate if the trust store is in memory.
    *
-   * @return true if the truststore is in memory.
+   * @return true if the trust store is in memory.
    */
   public boolean isTrustStoreInMemory() {
     return this.trustStoreInMemory;
@@ -1933,7 +1933,7 @@ public class LDAPConnectionConsoleInteraction {
 
  /**
   * Resets the trust manager, so that next time we call the run() method
-  * the trust manager takes into account the local truststore.
+  * the trust manager takes into account the local trust store.
   */
  public void resetTrustManager()
  {
@@ -2043,7 +2043,7 @@ public class LDAPConnectionConsoleInteraction {
 
  private void initializeTrustManager() throws ArgumentException
  {
-   // Get truststore info
+   // Get trust store info
    trustManager = getTrustManagerInternal();
 
    // Check if we need client side authentication
@@ -2076,7 +2076,7 @@ public class LDAPConnectionConsoleInteraction {
  /**
   * Add the TrustStore of the administration connector of the local instance.
   *
-  *  @return true if the local trustore has been added.
+  *  @return true if the local trust store has been added.
   */
   private boolean addLocalTrustStore()
   {

@@ -1163,7 +1163,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctx2 = createInitialLdapContextInteracting(ci);
+          ctx2 = createInitialLdapContextInteracting(ci, true);
 
           if (ctx2 == null)
           {
@@ -2315,7 +2315,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctxDestination = createInitialLdapContextInteracting(ci);
+          ctxDestination = createInitialLdapContextInteracting(ci, true);
 
           if (ctxDestination == null)
           {
