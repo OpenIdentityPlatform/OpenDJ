@@ -863,6 +863,25 @@ public abstract class ConsoleApplication {
   protected InitialLdapContext createInitialLdapContextInteracting(
       LDAPConnectionConsoleInteraction ci) throws ClientException
   {
+    return createInitialLdapContextInteracting(ci, isInteractive() &&
+        ci.isTrustStoreInMemory());
+  }
+
+  /**
+   * Creates an Initial LDAP Context interacting with the user if the
+   * application is interactive.
+   * @param ci the LDAPConnectionConsoleInteraction object that is assumed
+   * to have been already run.
+   * @param promptForCertificate whether we should prompt for the certificate
+   * or not.
+   * @return the initial LDAP context or <CODE>null</CODE> if the user did
+   * not accept to trust the certificates.
+   * @throws ClientException if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createInitialLdapContextInteracting(
+      LDAPConnectionConsoleInteraction ci,
+      boolean promptForCertificate) throws ClientException
+  {
     // Interact with the user though the console to get
     // LDAP connection information
     String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
@@ -889,7 +908,7 @@ public abstract class ConsoleApplication {
         }
         catch (NamingException e)
         {
-          if ( isInteractive() && ci.isTrustStoreInMemory())
+          if (promptForCertificate)
           {
             OpendsCertificateException oce = getCertificateRootException(e);
             if (oce != null)
@@ -919,7 +938,7 @@ public abstract class ConsoleApplication {
           }
           if (e.getCause() != null)
           {
-            if (!ci.isTrustStoreInMemory() &&
+            if (!isInteractive() &&
                 !ci.isTrustAll())
             {
               if (getCertificateRootException(e) != null ||
@@ -964,7 +983,7 @@ public abstract class ConsoleApplication {
         }
         catch (NamingException e)
         {
-          if ( isInteractive() && ci.isTrustStoreInMemory())
+          if (promptForCertificate)
           {
             OpendsCertificateException oce = getCertificateRootException(e);
             if (oce != null)
@@ -1021,41 +1040,6 @@ public abstract class ConsoleApplication {
         }
         catch (NamingException e)
         {
-          if ( isInteractive() && ci.isTrustStoreInMemory())
-          {
-            OpendsCertificateException oce = getCertificateRootException(e);
-            if (oce != null)
-            {
-              String authType = null;
-              if (trustManager instanceof ApplicationTrustManager)
-              {
-                ApplicationTrustManager appTrustManager =
-                  (ApplicationTrustManager)trustManager;
-                authType = appTrustManager.getLastRefusedAuthType();
-              }
-              if (ci.checkServerCertificate(oce.getChain(), authType,
-                  hostName))
-              {
-                // If the certificate is trusted, update the trust manager.
-                trustManager = ci.getTrustManager();
-
-                // Try to connect again.
-                continue;
-              }
-              else
-              {
-                // Assume user canceled.
-                return null;
-              }
-            }
-            else
-            {
-              Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-                  hostName, String.valueOf(portNumber));
-              throw new ClientException(
-                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
-            }
-          }
           Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
               hostName, String.valueOf(portNumber));
           throw new ClientException(
