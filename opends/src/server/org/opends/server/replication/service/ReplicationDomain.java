@@ -2909,4 +2909,16 @@ public abstract class ReplicationDomain
   {
     return eClIncludes;
   }
+
+  /**
+   * Returns the ChangeNUmber of the last Change that was fully processed
+   * by this ReplicationDomain.
+   *
+   * @return The ChangeNUmber of the last Change that was fully processed
+   *         by this ReplicationDomain.
+   */
+  public ChangeNumber getLastLocalChange()
+  {
+    return state.getMaxChangeNumber(serverID);
+  }
 }

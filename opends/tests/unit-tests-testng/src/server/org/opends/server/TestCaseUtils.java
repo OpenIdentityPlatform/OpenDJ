@@ -1231,17 +1231,31 @@ public final class TestCaseUtils {
    * Deletes the provided entry from the Directory Server using an
    * internal operation.
    *
-   * @param  entry  The entry to be added.
+   * @param  entry  The entry to be deleted.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   public static void deleteEntry(Entry entry)
          throws Exception
   {
+    deleteEntry(entry.getDN());
+  }
+
+  /**
+   * Deletes the provided entry from the Directory Server using an
+   * internal operation.
+   *
+   * @param  dn  The dn of entry to be deleted
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void deleteEntry(DN dn)
+         throws Exception
+  {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    DeleteOperation deleteOperation = conn.processDelete(entry.getDN());
+    DeleteOperation deleteOperation = conn.processDelete(dn);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

@@ -26,127 +26,71 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.server.ReplServerFakeConfiguration;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.testng.annotations.BeforeClass;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test the usage of the historical data of the replication.
  */
 public class HistoricalCsnOrderingTest
-extends ReplicationTestCase
+       extends ReplicationTestCase
 {
-  /**
-   * A "person" entry
-   */
-  protected Entry personEntry;
-  private int replServerPort;
+  final int serverId = 123;
 
-  /**
-   * Set up the environment for performing the tests in this Class.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  @Override
-  public void setUp() throws Exception
+  public class TestBroker extends ReplicationBroker
   {
-    super.setUp();
+    LinkedList<ReplicationMsg> list = null;
 
-    // Create necessary backend top level entry
-    String topEntry = "dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
+    public TestBroker(LinkedList<ReplicationMsg> list)
+    {
+      super(null, null, null, 0, 0, (long) 0, (long) 0, null, (byte) 0, (long) 0);
+      this.list = list;
+    }
 
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    public void publishRecovery(ReplicationMsg msg)
+    {
+      list.add(msg);
+    }
 
-    // replication server
-    String replServerLdif =
-      "dn: cn=Replication Server, " + SYNCHRO_PLUGIN_DN + "\n"
-      + "objectClass: top\n"
-      + "objectClass: ds-cfg-replication-server\n"
-      + "cn: Replication Server\n"
-      + "ds-cfg-replication-port: " + replServerPort + "\n"
-      + "ds-cfg-replication-db-directory: HistoricalCsnOrderingTestDb\n"
-      + "ds-cfg-replication-server-id: 101\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
-    // suffix synchronized
-    String testName = "historicalCsnOrderingTest";
-    String synchroServerLdif =
-      "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
-      + "objectClass: top\n"
-      + "objectClass: ds-cfg-replication-domain\n"
-      + "cn: " + testName + "\n"
-      + "ds-cfg-base-dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
-      + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-      + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
-
-    String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
-      + "objectClass: top\n" + "objectClass: person\n"
-      + "objectClass: organizationalPerson\n"
-      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-      + "homePhone: 951-245-7634\n"
-      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-      + "mobile: 027-085-0537\n"
-      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-      + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-      + "street: 17984 Thirteenth Street\n"
-      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-      + "userPassword: password\n" + "initials: AA\n";
-    personEntry = TestCaseUtils.entryFromLdifString(personLdif);
-
-    configureReplication();
-  }
-
-  /**
-   * Add an entry in the database
-   *
-   */
-  private void addEntry(Entry entry) throws Exception
-  {
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection
-        .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-        entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
-    assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
 
   /**
@@ -182,10 +126,19 @@ extends ReplicationTestCase
    * informations.
    */
   @Test()
-  public void changesCmpTest()
+  public void buildAndPublishMissingChangesOneEntryTest()
   throws Exception
   {
-    final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
+    final int serverId = 123;
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    // Create Replication Server and Domain
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+
+    try
+    {
+      long startTime = TimeThread.getTime();
     final DN dn1 = DN.decode("cn=test1," + baseDn.toString());
     final AttributeType histType =
       DirectoryServer.getAttributeType(Historical.HISTORICALATTRIBUTENAME);
@@ -246,39 +199,183 @@ extends ReplicationTestCase
           "Second historical value:" + av.getValue().toString()));
     }
 
+    LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
+    TestBroker session = new TestBroker(opList);
+
+    boolean result =
+      rd1.buildAndPublishMissingChanges(
+          new ChangeNumber(startTime, 0, serverId),
+          session);
+    assertTrue(result, "buildAndPublishMissingChanges has failed");
+    assertEquals(opList.size(), 3, "buildAndPublishMissingChanges should return 3 operations");
+    assertTrue(opList.getFirst().getClass().equals(AddMsg.class));
+
+
     // Build a change number from the first modification
     String hv[] = histValue.split(":");
-    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-        hv[1]));
-    ChangeNumber fromChangeNumber =
-      new ChangeNumber(hv[1]);
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION, hv[1]));
+    ChangeNumber fromChangeNumber = new ChangeNumber(hv[1]);
 
-    // Retrieves the entries that have changed since the first modification
-    InternalSearchOperation op =
-      LDAPReplicationDomain.searchForChangedEntries(
-          baseDn, fromChangeNumber, null);
+    opList = new LinkedList<ReplicationMsg>();
+    session = new TestBroker(opList);
 
-    // The expected result is one entry .. the one previously modified
-    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(op.getSearchEntries().size(), 1);
-
-    // From the historical of this entry, rebuild operations
-    // Since there have been 2 modifications and 1 add, there should be 3
-    // operations rebuild from this state.
-    int updatesCnt = 0;
-    for (SearchResultEntry searchEntry : op.getSearchEntries())
-    {
-      logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-          searchEntry.toString()));
-      Iterable<FakeOperation> updates =
-        Historical.generateFakeOperations(searchEntry);
-      for (FakeOperation fop : updates)
-      {
-        logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-            fop.generateMessage().toString()));
-        updatesCnt++;
-      }
+    result =
+      rd1.buildAndPublishMissingChanges(
+          fromChangeNumber,
+          session);
+    assertTrue(result, "buildAndPublishMissingChanges has failed");
+    assertEquals(opList.size(), 1, "buildAndPublishMissingChanges should return 1 operation");
+    assertTrue(opList.getFirst().getClass().equals(ModifyMsg.class));
     }
-    assertTrue(updatesCnt == 3);
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDn);
+      rs.remove();
+    }
+  }
+
+  /**
+   * Test that we can retrieve the entries that were missed by
+   * a replication server and can  re-build operations from the historical
+   * informations.
+   */
+  @Test()
+  public void buildAndPublishMissingChangesSeveralEntriesTest()
+  throws Exception
+  {
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    TestCaseUtils.initializeTestBackend(true);
+    ReplicationServer rs = createReplicationServer();
+    // Create Replication Server and Domain
+    LDAPReplicationDomain rd1 = createReplicationDomain(serverId);
+    long startTime = TimeThread.getTime();
+
+    try
+    {
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+    "Starting replication test : changesCmpTest"));
+
+    // Add 3 entries.
+    String dnTest1 = "cn=test1," + baseDn.toString();
+    String dnTest2 = "cn=test2," + baseDn.toString();
+    String dnTest3 = "cn=test3," + baseDn.toString();
+    TestCaseUtils.addEntry(
+        "dn: " + dnTest3,
+        "displayname: Test1",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test1",
+        "sn: test"
+    );
+    TestCaseUtils.addEntry(
+        "dn: " + dnTest1,
+        "displayname: Test1",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test1",
+        "sn: test"
+    );
+    TestCaseUtils.deleteEntry(DN.decode(dnTest3));
+    TestCaseUtils.addEntry(
+        "dn: " + dnTest2,
+        "displayname: Test1",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: test1",
+        "sn: test"
+    );
+
+    // Perform modifications on the 2 entries
+    int resultCode = TestCaseUtils.applyModifications(false,
+        "dn: cn=test2," + baseDn.toString(),
+        "changetype: modify",
+        "add: description",
+    "description: foo");
+    resultCode = TestCaseUtils.applyModifications(false,
+        "dn: cn=test1," + baseDn.toString(),
+        "changetype: modify",
+        "add: description",
+    "description: foo");
+    assertEquals(resultCode, 0);
+
+    LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
+    TestBroker session = new TestBroker(opList);
+
+    // Call the buildAndPublishMissingChanges and check that this method
+    // correctly generates the 4 operations in the correct order.
+    boolean result =
+      rd1.buildAndPublishMissingChanges(
+          new ChangeNumber(startTime, 0, serverId),
+          session);
+    assertTrue(result, "buildAndPublishMissingChanges has failed");
+    assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");
+    ReplicationMsg msg = opList.removeFirst();
+    assertTrue(msg.getClass().equals(AddMsg.class));
+    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest1);
+    msg = opList.removeFirst();
+    assertTrue(msg.getClass().equals(DeleteMsg.class));
+    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest3);
+    msg = opList.removeFirst();
+    assertTrue(msg.getClass().equals(AddMsg.class));
+    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest2);
+    msg = opList.removeFirst();
+    assertTrue(msg.getClass().equals(ModifyMsg.class));
+    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest2);
+    msg = opList.removeFirst();
+    assertTrue(msg.getClass().equals(ModifyMsg.class));
+    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest1);
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDn);
+      rs.remove();
+    }
+  }
+
+  SortedSet<String> replServers = new TreeSet<String>();
+  private ReplicationServer createReplicationServer() throws ConfigException
+  {
+    int rsPort;
+    try
+    {
+      ServerSocket socket1 = TestCaseUtils.bindFreePort();
+      rsPort = socket1.getLocalPort();
+      socket1.close();
+      replServers.add("localhost:" + rsPort);
+
+
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering",
+            0, 1, 0, 100, replServers, 1, 1000, 5000);
+      ReplicationServer replicationServer = new ReplicationServer(conf);
+      replicationServer.clearDb();
+      return replicationServer;
+    }
+    catch (IOException e)
+    {
+      fail("Unable to determinate some free ports " +
+          stackTraceToSingleLineString(e));
+      return null;
+    }
+  }
+
+  private LDAPReplicationDomain createReplicationDomain(int dsId)
+          throws DirectoryException, ConfigException
+  {
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DomainFakeCfg domainConf =
+      new DomainFakeCfg(baseDn, dsId, replServers, AssuredType.NOT_ASSURED,
+      2, 1, 0, null);
+    LDAPReplicationDomain replicationDomain =
+      MultimasterReplication.createNewDomain(domainConf);
+    replicationDomain.start();
+
+    return replicationDomain;
   }
 }
