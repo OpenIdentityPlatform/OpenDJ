@@ -695,7 +695,7 @@ public class ConfigureDS
             "objectClass: top\n"+
             "objectClass: ds-cfg-trust-manager-provider\n"+
             "objectClass: ds-cfg-file-based-trust-manager-provider\n"+
-            "cn: JKS\n"+
+            "cn: JCEKS\n"+
             "ds-cfg-java-class: org.opends.server.extensions."+
             "FileBasedTrustManagerProvider\n"+
             "ds-cfg-enabled: false\n"+
