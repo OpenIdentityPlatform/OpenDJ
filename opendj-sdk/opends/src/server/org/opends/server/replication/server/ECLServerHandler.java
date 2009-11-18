@@ -569,134 +569,108 @@ public class ECLServerHandler extends ServerHandler
   {
     String crossDomainStartState;
 
-    draftCompat = true;
-
-    DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
-
-    // Any (optimizable) condition on draft changenumber in the request filter ?
-    if (startDraftCN <= 1)
+    try
     {
-      // Request filter DOES NOT contain any firstDraftCN
-      // So we'll generate from the beginning of what we have stored here.
+      draftCompat = true;
 
-      // Get starting state from first DraftCN from DraftCNdb
-      if (draftCNDb.count() == 0)
+      DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
+
+      // Any (optimizable) condition on draft CN in the request filter ?
+      if (startDraftCN <= 1)
       {
+        // Request filter DOES NOT contain any firstDraftCN
+        // So we'll generate from the beginning of what we have stored here.
+
+        // Get starting state from first DraftCN from DraftCNdb
+        if (draftCNDb.count() == 0)
+        {
         // DraftCNdb IS EMPTY hence start from what we have in the changelog db.
-        isEndOfDraftCNReached = true;
-        crossDomainStartState = null;
-      }
-      else
-      {
-        // DraftCNdb IS NOT EMPTY hence start from
-        // the generalizedServerState related to the start of the draftDb
-        crossDomainStartState = draftCNDb.getValue(draftCNDb.getFirstKey());
-
-        // And get an iterator to traverse the draftCNDb
-        try
-        {
-          draftCNDbIter =
-            draftCNDb.generateIterator(draftCNDb.getFirstKey());
-        }
-        catch(Exception e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-          if (draftCNDbIter != null)
-            draftCNDbIter.releaseCursor();
-
-          throw new DirectoryException(
-              ResultCode.OPERATIONS_ERROR,
-              Message.raw(Category.SYNC,
-                  Severity.FATAL_ERROR,"Server Error."));
-        }
-      }
-    }
-    else
-    {
-      // Request filter DOES contain a startDraftCN
-
-      // Read the draftCNDb to see whether it contains startDraftCN
-      crossDomainStartState = draftCNDb.getValue(startDraftCN);
-
-      if (crossDomainStartState != null)
-      {
-        // startDraftCN (from the request filter) is present in the draftCnDb
-        // Get an iterator to traverse the draftCNDb
-        try
-        {
-          draftCNDbIter =
-            draftCNDb.generateIterator(draftCNDb.getFirstKey());
-        }
-        catch(Exception e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-          if (draftCNDbIter != null)
-            draftCNDbIter.releaseCursor();
-
-          throw new DirectoryException(
-              ResultCode.OPERATIONS_ERROR,
-              Message.raw(Category.SYNC,
-                  Severity.FATAL_ERROR,"Server Error."));
-        }
-      }
-      else
-      {
-        // startDraftCN provided in the request IS NOT in the DraftCNDb
-
-        // Is the provided startDraftCN <= the potential last DraftCN
-
-        // Get the draftLimits (from the eligibleCN got at the beginning of
-        // the operation) in order to have the potential last DraftCN.
-        int[] limits = replicationServer.getECLDraftCNLimits(
-            eligibleCN, excludedServiceIDs);
-
-        if (startDraftCN<=limits[1])
-        {
-          // startDraftCN is between first and potential last and has never been
-          // returned yet
-          if (draftCNDb.count() == 0)
-          {
-            // db is empty
-            isEndOfDraftCNReached = true;
-            crossDomainStartState = null;
-          }
-          else
-          {
-            crossDomainStartState = draftCNDb.getValue(draftCNDb.getLastKey());
-            try
-            {
-              draftCNDbIter =
-                draftCNDb.generateIterator(draftCNDb.getLastKey());
-            }
-            catch(Exception e)
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-              if (draftCNDbIter != null)
-                draftCNDbIter.releaseCursor();
-
-              throw new DirectoryException(
-                  ResultCode.OPERATIONS_ERROR,
-                  Message.raw(Category.SYNC,
-                      Severity.FATAL_ERROR,e.getLocalizedMessage()));
-            }
-          }
-          // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
-          // this may be very long. Work on perf improvement here.
+          isEndOfDraftCNReached = true;
+          crossDomainStartState = null;
         }
         else
         {
-          // startDraftCN is > the potential last DraftCN
-          throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
+          // DraftCNdb IS NOT EMPTY hence start from
+          // the generalizedServerState related to the start of the draftDb
+          crossDomainStartState = draftCNDb.getValue(draftCNDb.getFirstKey());
+
+          // And get an iterator to traverse the draftCNDb
+          draftCNDbIter =
+              draftCNDb.generateIterator(draftCNDb.getFirstKey());
         }
       }
+      else
+      {
+        // Request filter DOES contain a startDraftCN
+
+        // Read the draftCNDb to see whether it contains startDraftCN
+        crossDomainStartState = draftCNDb.getValue(startDraftCN);
+
+        if (crossDomainStartState != null)
+        {
+          // startDraftCN (from the request filter) is present in the draftCnDb
+          // Get an iterator to traverse the draftCNDb
+          draftCNDbIter =
+            draftCNDb.generateIterator(draftCNDb.getFirstKey());
+        }
+        else
+        {
+          // startDraftCN provided in the request IS NOT in the DraftCNDb
+
+          // Is the provided startDraftCN <= the potential last DraftCN
+
+          // Get the draftLimits (from the eligibleCN got at the beginning of
+          // the operation) in order to have the potential last DraftCN.
+          int[] limits = replicationServer.getECLDraftCNLimits(
+              eligibleCN, excludedServiceIDs);
+
+          if (startDraftCN<=limits[1])
+          {
+          // startDraftCN is between first and potential last and has never been
+            // returned yet
+            if (draftCNDb.count() == 0)
+            {
+              // db is empty
+              isEndOfDraftCNReached = true;
+              crossDomainStartState = null;
+            }
+            else
+            {
+             crossDomainStartState = draftCNDb.getValue(draftCNDb.getLastKey());
+              draftCNDbIter =
+                  draftCNDb.generateIterator(draftCNDb.getLastKey());
+            }
+            // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
+            // this may be very long. Work on perf improvement here.
+          }
+          else
+          {
+            // startDraftCN is > the potential last DraftCN
+            throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
+          }
+        }
+      }
+      this.draftCompat = true;
+
+      initializeCLDomCtxts(crossDomainStartState);
     }
-    this.draftCompat = true;
-
-    initializeCLDomCtxts(crossDomainStartState);
-
+    catch(DirectoryException de)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      if (draftCNDbIter != null)
+        draftCNDbIter.releaseCursor();
+      throw(de);
+    }
+    catch(Exception e)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      if (draftCNDbIter != null)
+        draftCNDbIter.releaseCursor();
+      throw new DirectoryException(
+          ResultCode.OPERATIONS_ERROR,
+          Message.raw(Category.SYNC,
+              Severity.FATAL_ERROR,e.getLocalizedMessage()));
+    }
   }
 
   /**
