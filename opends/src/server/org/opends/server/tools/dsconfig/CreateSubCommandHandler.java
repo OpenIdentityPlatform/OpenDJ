@@ -720,8 +720,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     Message ufn = d.getUserFriendlyName();
 
+    PropertyValueEditor editor = new PropertyValueEditor(app, context);
     while (true) {
-      PropertyValueEditor editor = new PropertyValueEditor(app, context);
       // Interactively set properties if applicable.
       if (app.isInteractive()) {
         SortedSet<PropertyDefinition<?>> properties =
@@ -1156,7 +1156,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
-
     // Reset the command builder
     getCommandBuilder().clearArguments();
 

@@ -2219,8 +2219,8 @@ final class PropertyValueEditor {
 
   // The modifications performed: we assume that at most there is one
   // modification per property definition.
-  private final List<PropertyEditorModification> mods =
-    new ArrayList<PropertyEditorModification>();
+  private final List<PropertyEditorModification<?>> mods =
+    new ArrayList<PropertyEditorModification<?>>();
 
   // Whether the last type of choice made by the user in a menu is a
   // reset
@@ -2576,7 +2576,7 @@ final class PropertyValueEditor {
    * @return the modifications that have been applied during the last call of
    * the method PropertyValueEditor.edit.
    */
-  public Collection<PropertyEditorModification> getModifications()
+  public Collection<PropertyEditorModification<?>> getModifications()
   {
     return mods;
   }
