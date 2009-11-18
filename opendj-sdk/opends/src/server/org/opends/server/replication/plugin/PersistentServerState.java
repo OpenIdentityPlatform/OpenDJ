@@ -123,6 +123,18 @@ public class PersistentServerState
   }
 
   /**
+   * Checks that the ChangeNumber given as a parameter is in this ServerState.
+   *
+   * @param   covered The ChangeNumber that should be checked.
+   * @return  A boolean indicating if this ServerState contains the ChangeNumber
+   *          given in parameter.
+   */
+  public boolean cover(ChangeNumber covered)
+  {
+    return state.cover(covered);
+  }
+
+  /**
    * Update the Server State with a ChangeNumber.
    * All operations with smaller CSN and the same serverID must be committed
    * before calling this method.

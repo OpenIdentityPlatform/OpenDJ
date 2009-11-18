@@ -212,7 +212,14 @@ public class PendingChanges
       {
         numSentUpdates++;
         LDAPUpdateMsg updateMsg = firstChange.getMsg();
-        domain.publish(updateMsg);
+        if (!recoveringOldChanges)
+        {
+          domain.publish(updateMsg);
+        }
+        else
+        {
+          domain.getServerState().update(updateMsg.getChangeNumber());
+        }
       }
       pendingChanges.remove(firstChangeNumber);
 
@@ -247,5 +254,48 @@ public class PendingChanges
   {
     _commit(changeNumber, msg);
     return _pushCommittedChanges();
+  }
+
+  private boolean recoveringOldChanges = false;
+  /**
+   * Set the PendingChangesList structure in a mode where it is
+   * waiting for the RS to receive all the previous changes to
+   * be sent before starting to process the changes normally.
+   * In this mode, The Domain does not publish the changes from
+   * the pendingChanges because there are older changes that
+   * need to be published before.
+   *
+   * @param b The recovering status that must be set.
+   */
+  public void setRecovering(boolean b)
+  {
+    recoveringOldChanges = b;
+  }
+
+  /**
+   * Allows to update the recovery situation by comparing the ChangeNumber of
+   * the last change that was sent to the ReplicationServer with the
+   * ChangeNumber of the last operation that was taken out of the
+   * PendingChanges list.
+   * If he two match then the recovery is completed and normal procedure can
+   * restart. Otherwise the RSUpdate thread must continue to look for
+   * older changes and no changes can be committed from the pendingChanges list.
+   *
+   * @param recovered  The ChangeNumber of the last change that was published
+   *                   to the ReplicationServer.
+   *
+   * @return           A boolean indicating if the recovery is completed (false)
+   *                   or must continue (true).
+   */
+
+  public synchronized boolean RecoveryUntil(ChangeNumber recovered)
+  {
+    ChangeNumber lastLocalChange = domain.getLastLocalChange();
+
+    if ((recovered != null) && (recovered.newerOrEquals(lastLocalChange)))
+    {
+      recoveringOldChanges = false;
+    }
+    return recoveringOldChanges;
   }
 }
