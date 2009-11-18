@@ -263,8 +263,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     Message ufn = d.getUserFriendlyName();
 
+    PropertyValueEditor editor = new PropertyValueEditor(app, context);
     while (true) {
-      PropertyValueEditor editor = new PropertyValueEditor(app, context);
       // Interactively set properties if applicable.
       if (app.isInteractive()) {
         SortedSet<PropertyDefinition<?>> properties =
