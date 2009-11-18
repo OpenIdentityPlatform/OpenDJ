@@ -75,6 +75,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   BooleanArgument   doNotStartArg;
   BooleanArgument   enableStartTLSArg;
   BooleanArgument   generateSelfSignedCertificateArg;
+  StringArgument    hostNameArg;
   BooleanArgument   usePkcs11Arg;
   FileBasedArgument directoryManagerPwdFileArg;
   FileBasedArgument keyStorePasswordFileArg;
@@ -350,6 +351,15 @@ public class InstallDSArgumentParser extends ArgumentParser
     generateSelfSignedCertificateArg.setPropertyName(
         "generateSelfSignedCertificate");
     addArgument(generateSelfSignedCertificateArg);
+
+    hostNameArg = new StringArgument(OPTION_LONG_HOST.toLowerCase(),
+        OPTION_SHORT_HOST,
+        OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        UserData.getDefaultHostName(),
+        null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get(
+            generateSelfSignedCertificateArg.getLongIdentifier()));
+    hostNameArg.setPropertyName(OPTION_LONG_HOST);
+    addArgument(hostNameArg);
 
     usePkcs11Arg = new BooleanArgument("usePkcs11Keystore".toLowerCase(),
         null, "usePkcs11Keystore",

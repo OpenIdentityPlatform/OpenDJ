@@ -949,6 +949,7 @@ public class InstallDS extends ConsoleApplication
     }
     SecurityOptions securityOptions;
     LinkedList<String> keystoreAliases = new LinkedList<String>();
+    uData.setHostName(argParser.hostNameArg.getValue());
     if (argParser.generateSelfSignedCertificateArg.isPresent())
     {
       securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
@@ -1739,6 +1740,8 @@ public class InstallDS extends ConsoleApplication
     {
       securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
           enableSSL, enableStartTLS, ldapsPort);
+      String hostName = promptForHostNameIfRequired();
+      uData.setHostName(hostName);
     }
     else if (argParser.useJavaKeyStoreArg.isPresent())
     {
@@ -1850,6 +1853,8 @@ public class InstallDS extends ConsoleApplication
         }
         if (certType == SELF_SIGNED)
         {
+          String hostName = promptForHostNameIfRequired();
+          uData.setHostName(hostName);
           securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
                 enableSSL, enableStartTLS, ldapsPort);
         }
@@ -2710,5 +2715,37 @@ public class InstallDS extends ConsoleApplication
     {
       LOG.log(Level.WARNING, "Error resetting arguments: "+t, t);
     }
+  }
+
+  private String promptForHostNameIfRequired() throws UserDataException
+  {
+    String hostName = null;
+    if (argParser.hostNameArg.isPresent())
+    {
+      hostName = argParser.hostNameArg.getValue();
+    }
+    else
+    {
+      int nTries = 0;
+      while (hostName == null)
+      {
+        if (nTries >= CONFIRMATION_MAX_TRIES)
+        {
+          throw new UserDataException(null,
+              ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+        }
+
+        try
+        {
+          hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(),
+              argParser.hostNameArg.getDefaultValue());
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        }
+      }
+    }
+    return hostName;
   }
 }
