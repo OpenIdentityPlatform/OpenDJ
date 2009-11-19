@@ -197,7 +197,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
       this.endChangeNumber = endChangeNumber;
     }
 
-    @Override
     public void handleInternalSearchEntry(
         InternalSearchOperation searchOperation, SearchResultEntry searchEntry)
         throws DirectoryException
@@ -221,7 +220,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
       }
     }
 
-    @Override
     public void handleInternalSearchReference(
         InternalSearchOperation searchOperation,
         SearchResultReference searchReference) throws DirectoryException
