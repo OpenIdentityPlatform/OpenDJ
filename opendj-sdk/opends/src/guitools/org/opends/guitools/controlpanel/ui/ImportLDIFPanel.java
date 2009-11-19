@@ -54,7 +54,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
@@ -62,8 +64,14 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ImportLDIF;
+import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser;
+import org.opends.server.tools.dsreplication.ReplicationCliException;
+import org.opends.server.tools.dsreplication.ReplicationCliMain;
+import org.opends.server.types.DN;
+import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The panel where the user can import the contents of an LDIF file to the
@@ -640,18 +648,69 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         task.canLaunch(newTask, errors);
       }
       boolean confirmed = true;
+      boolean initializeAll = false;
       if (errors.isEmpty())
       {
-        if (overwrite.isSelected())
+        Set<DN> replicatedBaseDNs = getReplicatedBaseDNs();
+        boolean canInitialize =
+          !replicatedBaseDNs.isEmpty() && isServerRunning();
+        if (overwrite.isSelected() && !canInitialize)
         {
           confirmed = displayConfirmationDialog(
               INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
               INFO_CTRL_PANEL_CONFIRMATION_IMPORT_LDIF_DETAILS.get(
-                  backends.getSelectedItem().toString()));
+                  backendName));
+        }
+        else if (!overwrite.isSelected() && canInitialize)
+        {
+          ArrayList<String> dns = new ArrayList<String>();
+          for (DN dn : replicatedBaseDNs)
+          {
+            dns.add(dn.toString());
+          }
+          initializeAll = displayConfirmationDialog(
+              INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
+              INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_DETAILS.get(
+                  Utilities.getStringFromCollection(dns, "<br>")));
+        }
+        else if (overwrite.isSelected() && canInitialize)
+        {
+          ArrayList<String> dns = new ArrayList<String>();
+          for (DN dn : replicatedBaseDNs)
+          {
+            dns.add(dn.toString());
+          }
+          ConfirmInitializeAndImportDialog dlg =
+            new ConfirmInitializeAndImportDialog(
+                Utilities.getParentDialog(this), getInfo());
+          dlg.setMessage(INFO_CTRL_PANEL_CONFIRM_INITIALIZE_TITLE.get(),
+          INFO_CTRL_PANEL_CONFIRMATION_INITIALIZE_ALL_AND_OVERWRITE_DETAILS.get(
+                  backendName, Utilities.getStringFromCollection(dns, "<br>")));
+          dlg.setModal(true);
+          dlg.setVisible(true);
+
+          ConfirmInitializeAndImportDialog.Result result = dlg.getResult();
+          switch (result)
+          {
+          case CANCEL:
+            confirmed = false;
+            break;
+          case INITIALIZE_ALL:
+            confirmed = true;
+            initializeAll = true;
+            break;
+          case IMPORT_ONLY:
+            confirmed = true;
+            initializeAll = false;
+            break;
+            default:
+              throw new RuntimeException("Unexpected result: "+result);
+          }
         }
       }
       if ((errors.isEmpty()) && confirmed)
       {
+        newTask.setInitializeAll(initializeAll);
         launchOperation(newTask,
             INFO_CTRL_PANEL_IMPORTING_LDIF_SUMMARY.get(
                 backends.getSelectedItem().toString()),
@@ -687,6 +746,30 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     super.cancelClicked();
   }
 
+  private Set<DN> getReplicatedBaseDNs()
+  {
+    Set<DN> baseDNs = new TreeSet<DN>();
+    String backendID = (String)backends.getSelectedItem();
+    if (backendID != null)
+    {
+      for (BackendDescriptor backend :
+        getInfo().getServerDescriptor().getBackends())
+      {
+        if (backendID.equalsIgnoreCase(backend.getBackendID()))
+        {
+          for (BaseDNDescriptor baseDN : backend.getBaseDns())
+          {
+            if (baseDN.getReplicaID() != -1)
+            {
+              baseDNs.add(baseDN.getDn());
+            }
+          }
+        }
+      }
+    }
+    return baseDNs;
+  }
+
   /**
    * The class that performs the import.
    *
@@ -695,6 +778,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   {
     private Set<String> backendSet;
     private String fileName;
+    private boolean initializeAll;
+    private Set<DN> replicatedBaseDNs;
 
     /**
      * The constructor of the task.
@@ -707,6 +792,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       backendSet = new HashSet<String>();
       backendSet.add((String)backends.getSelectedItem());
       fileName = file.getText();
+      replicatedBaseDNs = getReplicatedBaseDNs();
+    }
+
+    private void setInitializeAll(boolean initializeAll)
+    {
+      this.initializeAll = initializeAll;
     }
 
     /**
@@ -849,6 +940,10 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         {
           returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream,
               errorPrintStream);
+          if (returnCode == 0 && initializeAll)
+          {
+            initializeAll();
+          }
         }
         else
         {
@@ -897,6 +992,63 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     public Set<String> getBackends()
     {
       return backendSet;
+    }
+
+    private void initializeAll() throws ReplicationCliException
+    {
+      ReplicationCliMain repl = new ReplicationCliMain(outPrintStream,
+          errorPrintStream, System.in);
+      getProgressDialog().appendProgressHtml(
+          UIFactory.HTML_SEPARATOR+"<br><br>");
+
+      String cmd = getCommandLineToInitializeAll();
+
+      getProgressDialog().appendProgressHtml(Utilities.applyFont(
+          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get().toString()+
+          "<br><b>"+cmd+"</b><br><br>",
+          ColorAndFontConstants.progressFont));
+
+      for (DN baseDN : replicatedBaseDNs)
+      {
+        Message msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN.toString(),
+            ConnectionUtils.getHostPort(getInfo().getDirContext()));
+        getProgressDialog().appendProgressHtml(Utilities.applyFont(
+            msg.toString()+"<br>", ColorAndFontConstants.progressFont));
+        repl.initializeAllSuffix(baseDN.toString(), getInfo().getDirContext(),
+            true);
+      }
+    }
+
+    private String getCommandLineToInitializeAll()
+    {
+      StringBuilder sb = new StringBuilder();
+      String cmdLineName = getCommandLinePath("dsreplication");
+      sb.append(cmdLineName);
+      ArrayList<String> args = new ArrayList<String>();
+      args.add(
+          ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
+      args.add("--hostName");
+      args.add(getInfo().getServerDescriptor().getHostname());
+      args.add("--port");
+      args.add(String.valueOf(
+          ConnectionUtils.getPort(getInfo().getDirContext())));
+      for (DN baseDN : replicatedBaseDNs)
+      {
+        args.add("--baseDN");
+        args.add(baseDN.toString());
+      }
+      args.add("--adminUID");
+      args.add("admin");
+      args.add("--adminPassword");
+      args.add(Utilities.OBFUSCATED_VALUE);
+      args.add("--trustAll");
+      args.add("--no-prompt");
+
+      for (String arg : args)
+      {
+        sb.append(" "+CommandBuilder.escapeValue(arg));
+      }
+      return sb.toString();
     }
   };
 }

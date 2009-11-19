@@ -335,8 +335,7 @@ public class ReplicationCliMain extends ConsoleApplication
     // program.
     try
     {
-      argParser = new ReplicationCliArgumentParser(CLASS_NAME);
-      argParser.initializeParser(getOutputStream());
+      createArgumenParser();
     }
     catch (ArgumentException ae)
     {
@@ -572,6 +571,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     return returnValue.getReturnCode();
+  }
+
+  private void createArgumenParser() throws ArgumentException
+  {
+    argParser = new ReplicationCliArgumentParser(CLASS_NAME);
+    argParser.initializeParser(getOutputStream());
   }
 
   /**
@@ -7588,9 +7593,29 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void initializeAllSuffix(String baseDN, InitialLdapContext ctx,
+  /**
+   * Initializes all the replicas in the topology with the contents of a
+   * given replica.
+   * @param ctx the connection to the server where the source replica of the
+   * initialization is.
+   * @param baseDN the dn of the suffix.
+   * @param displayProgress whether we want to display progress or not.
+   * @throws ReplicationCliException if an unexpected error occurs.
+   */
+  public void initializeAllSuffix(String baseDN, InitialLdapContext ctx,
   boolean displayProgress) throws ReplicationCliException
   {
+    if (argParser == null)
+    {
+      try
+      {
+        createArgumenParser();
+      }
+      catch (ArgumentException ae)
+      {
+        throw new RuntimeException("Error creating argument parser: "+ae, ae);
+      }
+    }
     int nTries = 5;
     boolean initDone = false;
     while (!initDone)
@@ -7836,9 +7861,10 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Initializes a suffix with the contents of a replica that has a given
-   * replication id.
-   * @param ctx the connection to the server whose suffix we want to initialize.
+   * Initializes all the replicas in the topology with the contents of a
+   * given replica.  This method will try to create the task only once.
+   * @param ctx the connection to the server where the source replica of the
+   * initialization is.
    * @param baseDN the dn of the suffix.
    * @param displayProgress whether we want to display progress or not.
    * @throws ApplicationException if an unexpected error occurs.
