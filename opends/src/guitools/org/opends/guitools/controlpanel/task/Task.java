@@ -520,7 +520,7 @@ public abstract class Task
   }
 
   /**
-   * Executes a command-line synchrounously.
+   * Executes a command-line synchronously.
    * @param commandLineName the command line full path.
    * @param args the arguments for the command-line.
    * @return the error code returned by the command-line.
