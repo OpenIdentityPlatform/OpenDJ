@@ -93,6 +93,9 @@ public class LDAPCompare
   // The print stream to use for standard output.
   private PrintStream out;
 
+  // Tells whether the command-line is being executed in script friendly mode
+  // or not.
+  private boolean isScriptFriendly;
 
 
   /**
@@ -196,9 +199,12 @@ public class LDAPCompare
                                      attributeType, attrValOctetStr);
 
 
-    out.println(INFO_PROCESSING_COMPARE_OPERATION.get(
-            attributeType, String.valueOf(attrValOctetStr),
-            String.valueOf(dnOctetStr)));
+    if (!isScriptFriendly())
+    {
+      out.println(INFO_PROCESSING_COMPARE_OPERATION.get(
+          attributeType, String.valueOf(attrValOctetStr),
+          String.valueOf(dnOctetStr)));
+    }
 
     if(!compareOptions.showOperations())
     {
@@ -244,12 +250,24 @@ public class LDAPCompare
       {
         if(resultCode == COMPARE_FALSE)
         {
-
-          out.println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(line));
+          if (isScriptFriendly())
+          {
+            out.println(line+": "+COMPARE_FALSE);
+          }
+          else
+          {
+            out.println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(line));
+          }
         } else if(resultCode == COMPARE_TRUE)
         {
-
-          out.println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(line));
+          if (isScriptFriendly())
+          {
+            out.println(line+": "+COMPARE_TRUE);
+          }
+          else
+          {
+            out.println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(line));
+          }
         } else
         {
 
@@ -362,6 +380,7 @@ public class LDAPCompare
     StringArgument    saslOptions            = null;
     StringArgument    trustStorePath         = null;
     StringArgument    trustStorePassword     = null;
+    BooleanArgument   scriptFriendlyArgument = null;
     StringArgument    propertiesFileArgument = null;
     BooleanArgument   noPropertiesFileArgument = null;
 
@@ -378,6 +397,15 @@ public class LDAPCompare
 
     try
     {
+      scriptFriendlyArgument = new BooleanArgument(
+          "script-friendly",
+          's',
+          "script-friendly",
+          INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendlyArgument.setPropertyName(
+          scriptFriendlyArgument.getLongIdentifier());
+      argParser.addInputOutputArgument(scriptFriendlyArgument);
+
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
           false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
@@ -949,6 +977,7 @@ public class LDAPCompare
 
 
       ldapCompare = new LDAPCompare(nextMessageID, out, err);
+      ldapCompare.isScriptFriendly = scriptFriendlyArgument.isPresent();
       if(fileNameValue == null && dnStrings.isEmpty())
       {
         // Read from stdin.
@@ -1033,6 +1062,11 @@ public class LDAPCompare
       }
     }
     return 0;
+  }
+
+  private boolean isScriptFriendly()
+  {
+    return isScriptFriendly;
   }
 
 }
