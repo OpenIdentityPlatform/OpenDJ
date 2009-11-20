@@ -27,7 +27,6 @@
 
 package org.opends.guitools.controlpanel;
 
-import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_BINDDN;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_BINDPWD;
@@ -99,12 +98,12 @@ public class ControlPanelArgumentParser extends ArgumentParser
    * The default constructor for this class.
    * @param mainClassName the class name of the main class for the command-line
    * that is being used.
+   * @param msg the usage message.
    */
-  public ControlPanelArgumentParser(String mainClassName)
+  public ControlPanelArgumentParser(String mainClassName,
+      Message msg)
   {
-    super(mainClassName,
-        INFO_CONTROL_PANEL_LAUNCHER_USAGE_DESCRIPTION.get(),
-        false);
+    super(mainClassName, msg, false);
   }
 
   /**
