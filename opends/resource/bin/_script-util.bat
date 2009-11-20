@@ -94,9 +94,15 @@ if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDSJavaHome
 goto endJavaHomeAndArgs
 
 :checkOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkJavaBin
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+if "%OPENDS_JAVA_HOME%" == "" goto checkJavaPath
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaPath
 set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto endJavaHomeAndArgs
+
+:checkJavaPath
+java.exe -version > NUL 2>&1
+if not %errorlevel% == 0 goto checkJavaBin
+set OPENDS_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaBin
@@ -106,15 +112,9 @@ set OPENDS_JAVA_BIN=%JAVA_BIN%
 goto endJavaHomeAndArgs
 
 :checkJavaHome
-if "%JAVA_HOME%" == "" goto checkJavaPath
+if "%JAVA_HOME%" == "" goto noJavaFound
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaFound
 set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto endJavaHomeAndArgs
-
-:checkJavaPath
-java.exe -version > NUL 2>&1
-if not %errorlevel% == 0 goto noJavaFound
-set OPENDS_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
 
 :noJavaFound

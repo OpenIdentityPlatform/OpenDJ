@@ -26,6 +26,101 @@
 #      Copyright 2008-2009 Sun Microsystems, Inc.
 
 #
+# Display an error message
+#
+display_java_not_found_error() {
+  echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation"
+  echo "or edit the java.properties file and then run the dsjavaproperties script to"
+  echo "specify the Java version to be used"
+}
+
+#
+# function that tests the JAVA_HOME env variable.
+#
+test_java_home() {
+  if test -z "${JAVA_HOME}"
+  then
+    display_java_not_found_error
+    exit 1
+  else
+    OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
+    if test -f "${OPENDS_JAVA_BIN}"
+    then
+      export OPENDS_JAVA_BIN
+    else
+      display_java_not_found_error
+      exit 1
+    fi
+  fi
+}
+
+#
+# function that tests the JAVA_BIN env variable.
+#
+test_java_bin() {
+  if test -z "${JAVA_BIN}"
+  then
+    test_java_home
+  else
+    OPENDS_JAVA_BIN="${JAVA_BIN}"
+    if test -f "${OPENDS_JAVA_BIN}"
+    then
+      export OPENDS_JAVA_BIN
+    else
+      test_java_home
+    fi
+  fi
+}
+
+#
+# function that tests the java executable in the PATH env variable.
+#
+test_java_path() {
+  OPENDS_JAVA_BIN=`which java 2> /dev/null`
+  if test ${?} -eq 0
+  then
+    export OPENDS_JAVA_BIN
+  else
+    test_java_bin
+  fi
+}
+
+#
+# function that tests the OPENDS_JAVA_HOME env variable.
+#
+test_opends_java_home() {
+  if test -z "${OPENDS_JAVA_HOME}"
+  then
+    test_java_path
+  else
+    OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+    if test -f "${OPENDS_JAVA_BIN}"
+    then
+      export OPENDS_JAVA_BIN
+    else
+      test_java_path
+    fi
+  fi
+}
+
+#
+# function that tests the OPENDS_JAVA_BIN env variable.
+#
+test_opends_java_bin() {
+  if test -z "${OPENDS_JAVA_BIN}"
+  then
+    test_opends_java_home
+  else
+    if test -f "${OPENDS_JAVA_BIN}"
+    then
+      export OPENDS_JAVA_BIN
+    else
+      test_opends_java_home
+    fi
+  fi
+}
+
+#
 # function that sets the java home
 #
 set_java_home_and_args() {
@@ -33,38 +128,9 @@ set_java_home_and_args() {
   then
     . "${INSTANCE_ROOT}/lib/set-java-home"
   fi
-  if test -z "${OPENDS_JAVA_BIN}"
-  then
-    if test -z "${OPENDS_JAVA_HOME}"
-    then
-      if test -z "${JAVA_BIN}"
-      then
-        if test -z "${JAVA_HOME}"
-        then
-          OPENDS_JAVA_BIN=`which java 2> /dev/null`
-          if test ${?} -eq 0
-          then
-            export OPENDS_JAVA_BIN
-          else
-            echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation"
-            echo "or edit the java.properties file and then run the dsjavaproperties script to"
-            echo "specify the Java version to be used"
-            exit 1
-          fi
-        else
-          OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
-          export OPENDS_JAVA_BIN
-        fi
-      else
-        OPENDS_JAVA_BIN="${JAVA_BIN}"
-        export OPENDS_JAVA_BIN
-      fi
-    else
-      OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-      export OPENDS_JAVA_BIN
-    fi
-  fi
+  test_opends_java_bin
 }
+
 
 # Determine whether the detected Java environment is acceptable for use.
 test_java() {
