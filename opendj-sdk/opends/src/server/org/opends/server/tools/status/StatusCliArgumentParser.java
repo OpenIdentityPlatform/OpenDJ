@@ -133,10 +133,10 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     return secureArgsList;
   }
   /**
-   * Tells whether the user specified to have an interactive uninstall or not.
+   * Tells whether the user specified to have an interactive status CLI or not.
    * This method must be called after calling parseArguments.
    * @return <CODE>true</CODE> if the user specified to have an interactive
-   * uninstall and <CODE>false</CODE> otherwise.
+   * status CLI and <CODE>false</CODE> otherwise.
    */
   public boolean isInteractive()
   {
@@ -155,8 +155,8 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the first server bind DN explicitly provided in the command-line.
-   * @return the first server bind DN explicitly provided in the command-line.
+   * Returns the bind DN explicitly provided in the command-line.
+   * @return the bind DN explicitly provided in the command-line.
    * Returns <CODE>null</CODE> if no bind DN was explicitly provided.
    */
   public String getExplicitBindDn()
@@ -170,10 +170,8 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the first server bind dn default value in the enable replication
-   * subcommand.
-   * @return the first server bind dn default value in the enable replication
-   * subcommand.
+   * Returns the bind DN default value.
+   * @return the bind DN default value.
    */
   public String getDefaultBindDn()
   {
