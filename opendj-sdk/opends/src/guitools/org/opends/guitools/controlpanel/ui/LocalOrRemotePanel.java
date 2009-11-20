@@ -59,6 +59,7 @@ import javax.swing.SwingUtilities;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.guitools.controlpanel.ControlPanelArgumentParser;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -67,6 +68,7 @@ import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -100,6 +102,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
   private boolean isLocalServerRunning;
 
+  private boolean callOKWhenVisible;
+
   private static final Logger LOG =
     Logger.getLogger(LocalOrRemotePanel.class.getName());
 
@@ -127,6 +131,76 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
+  }
+
+  /**
+   * Sets the displayed host name.
+   * @param hostName the host name.
+   */
+  public void setHostName(String hostName)
+  {
+    this.hostName.setText(hostName);
+  }
+
+  /**
+   * Sets the displayed administration port.
+   * @param port the displayed administration port.
+   */
+  public void setPort(int port)
+  {
+    this.port.setText(String.valueOf(port));
+  }
+
+  /**
+   * Sets the displayed bind DN.
+   * @param bindDN the displayed bind DN.
+   */
+  public void setBindDN(String bindDN)
+  {
+    this.dn.setText(bindDN);
+  }
+
+  /**
+   * Sets the displayed password.
+   * @param pwd the password.
+   */
+  public void setBindPassword(char[] pwd)
+  {
+    this.pwd.setText(new String(pwd));
+  }
+
+  /**
+   * Sets whether the panel should display the remote or the local server.
+   * @param remote whether the panel should display the remote or the local
+   * server.
+   */
+  public void setRemote(boolean remote)
+  {
+    int index = remote ? 1 : 0;
+    combo.setSelectedIndex(index);
+    updateComponentState();
+  }
+
+  /**
+   * Method to be called when we want the panel to call automatically okClicked
+   * method when the panel is made visible.
+   * @param callOKWhenVisible whether okClicked must be called automatically
+   * when the panel is made visible or not.
+   */
+  public void setCallOKWhenVisible(boolean callOKWhenVisible)
+  {
+    this.callOKWhenVisible = callOKWhenVisible;
+  }
+
+  /**
+   * Returns whether okClicked must be called automatically when the panel is
+   * made visible or not.
+   * @return whether okClicked must be called automatically when the panel is
+   * made visible or not.
+   */
+  public boolean isCallOKWhenVisible()
+  {
+    return callOKWhenVisible;
   }
 
   /**
@@ -172,6 +246,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     gbc.insets.left = 10;
     add(localNotRunning, gbc);
     hostName = Utilities.createMediumTextField();
+    hostName.setText(UserData.getDefaultHostName());
     add(hostName, gbc);
     gbc.insets.top = 10;
     gbc.gridy ++;
@@ -216,7 +291,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     gbc.gridx = 1;
     gbc.insets.left = 10;
     port = Utilities.createMediumTextField();
-    port.setText("4444");
+    port.setText(String.valueOf(
+        ControlPanelArgumentParser.getDefaultAdministrationPort()));
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(port, gbc);
@@ -230,7 +306,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     add(dnLabel, gbc);
     gbc.insets.left = 10;
     gbc.gridx = 1;
-    dn = Utilities.createTextField("cn=Directory Manager", 20);
+    dn = Utilities.createTextField(
+        ControlPanelArgumentParser.getDefaultBindDN(), 20);
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.left = 10;
@@ -314,11 +391,18 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           {
             comp.requestFocusInWindow();
           }
+          if (isCallOKWhenVisible())
+          {
+            okClicked();
+          }
         }
       };
       displayMessage(INFO_CTRL_PANEL_LOADING_PANEL_SUMMARY.get());
       worker.startBackgroundTask();
-      pwd.setText("");
+      if (!isCallOKWhenVisible())
+      {
+        pwd.setText("");
+      }
     }
   }
 

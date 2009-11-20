@@ -29,7 +29,6 @@ package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -42,14 +41,10 @@ import javax.swing.UIManager;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
-import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
 
 /**
  * The class that is invoked directly by the control-panel command-line.  This
@@ -60,7 +55,7 @@ import org.opends.server.util.args.BooleanArgument;
  */
 public class ControlPanelLauncher
 {
-  static private ArgumentParser argParser;
+  static private ControlPanelArgumentParser argParser;
 
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opends-control-panel-";
@@ -85,36 +80,12 @@ public class ControlPanelLauncher
       t.printStackTrace();
     }
 
-    argParser = new ArgumentParser(ControlPanelLauncher.class.getName(),
-        INFO_CONTROL_PANEL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
-    BooleanArgument showUsage;
-    String scriptName;
-    if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_CONTROLPANEL_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_CONTROLPANEL_FILE_NAME;
-    }
-    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
-    {
-      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-    }
+    argParser = new ControlPanelArgumentParser(
+        ControlPanelLauncher.class.getName());
+    //  Validate user provided data
     try
     {
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-          OPTION_LONG_HELP,
-          INFO_DESCRIPTION_USAGE.get());
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
-    }
-    catch (Throwable t)
-    {
-      System.err.println("ERROR: "+t);
-      t.printStackTrace();
-    }
-
-//  Validate user provided data
-    try
-    {
+      argParser.initializeArguments();
       argParser.parseArguments(args);
     }
     catch (ArgumentException ae)
