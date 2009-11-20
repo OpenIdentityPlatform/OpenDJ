@@ -56,7 +56,8 @@ import org.opends.server.util.Platform;
  * it cannot be retrieved this class will only accept the certificates
  * explicitly accepted by the user (and specified by calling acceptCertificate).
  *
- * NOTE: this class is not aimed to be used when we have connections in paralel.
+ * NOTE: this class is not aimed to be used when we have connections in
+ * parallel.
  */
 public class ApplicationTrustManager implements X509TrustManager
 {

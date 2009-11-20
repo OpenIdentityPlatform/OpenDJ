@@ -27,6 +27,8 @@
 
 package org.opends.guitools.controlpanel;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -38,13 +40,16 @@ import javax.swing.WindowConstants;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ControlCenterMainPane;
 import org.opends.guitools.controlpanel.ui.GenericDialog;
+import org.opends.guitools.controlpanel.ui.LocalOrRemotePanel;
 import org.opends.guitools.controlpanel.ui.MainMenuBar;
+import org.opends.guitools.controlpanel.util.BlindApplicationTrustManager;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
 import org.opends.quicksetup.Installation;
 import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.args.ArgumentException;
 
 /**
  * The class that is in charge of creating the main dialog of the ControlPanel
@@ -56,6 +61,7 @@ public class ControlPanel
 {
   private JFrame dlg;
   private ControlPanelInfo info;
+  private ControlPanelArgumentParser argParser;
   private ControlCenterMainPane controlCenterPane;
 
   /**
@@ -87,7 +93,8 @@ public class ControlPanel
    * Method that creates the ControlCenterInfo object that will be in all the
    * control panel.  Nothing is done here: the user must say whether the server
    * is local or remote.
-   * @param args the arguments that are passed in the command line.
+   * @param args the arguments that are passed in the command line.  The code
+   * assumes that the arguments have been already validated.
    */
   public void initialize(String[] args)
   {
@@ -95,6 +102,22 @@ public class ControlPanel
     // Call Installation because the LocalOrRemotePanel uses it to check
     // whether the server is running or not and to get the install path.
     Installation.getLocal();
+    argParser = new ControlPanelArgumentParser(ControlPanel.class.getName());
+    try
+    {
+      argParser.initializeArguments();
+      argParser.parseArguments(args);
+    }
+    catch (ArgumentException ae)
+    {
+      // Bug
+      throw new IllegalStateException("Arguments not correctly parsed: "+ae,
+          ae);
+    }
+    if (argParser.isTrustAll())
+    {
+      info.setTrustManager(new BlindApplicationTrustManager());
+    }
   }
 
   /**
@@ -102,10 +125,21 @@ public class ControlPanel
    */
   public void createAndDisplayGUI()
   {
-    GenericDialog localOrRemote =
+    final GenericDialog localOrRemote =
       ControlCenterMainPane.getLocalOrRemoteDialog(info);
     Utilities.centerOnScreen(localOrRemote);
+
+    if (argParser.getBindPassword() != null)
+    {
+      updateLocalOrRemotePanel(localOrRemote);
+      getLocalOrRemotePanel(localOrRemote.getContentPane()).
+      setCallOKWhenVisible(true);
+    }
+
     localOrRemote.setVisible(true);
+
+    getLocalOrRemotePanel(localOrRemote.getContentPane()).
+    setCallOKWhenVisible(false);
 
     if (info.getServerDescriptor() == null)
     {
@@ -113,7 +147,7 @@ public class ControlPanel
       // Assume that the user decided to quit the application
       menuBar.quitClicked();
     }
-    // To be sure that the dlg receives the new configuration event before
+    // To be sure that the dialog receives the new configuration event before
     // calling pack.
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -176,5 +210,56 @@ public class ControlPanel
         throw ts[0];
       }
     }
+  }
+
+  private void updateLocalOrRemotePanel(GenericDialog localOrRemote)
+  {
+    LocalOrRemotePanel panel =
+      getLocalOrRemotePanel(localOrRemote.getContentPane());
+    if (panel != null)
+    {
+      if (argParser.getExplicitHostName() != null)
+      {
+        panel.setHostName(argParser.getExplicitHostName());
+        panel.setRemote(true);
+      }
+      if (argParser.getExplicitPort() != -1)
+      {
+        panel.setPort(argParser.getExplicitPort());
+        panel.setRemote(true);
+      }
+      if (argParser.getExplicitBindDn() != null)
+      {
+        panel.setBindDN(argParser.getExplicitBindDn());
+      }
+      if (argParser.getBindPassword() != null)
+      {
+        panel.setBindPassword(argParser.getBindPassword().toCharArray());
+      }
+    }
+  }
+
+  private LocalOrRemotePanel getLocalOrRemotePanel(Container c)
+  {
+    LocalOrRemotePanel panel = null;
+    if (c instanceof LocalOrRemotePanel)
+    {
+      panel = (LocalOrRemotePanel)c;
+    }
+    else
+    {
+      for (Component comp : c.getComponents())
+      {
+        if (comp instanceof Container)
+        {
+          panel = getLocalOrRemotePanel((Container)comp);
+        }
+        if (panel != null)
+        {
+          break;
+        }
+      }
+    }
+    return panel;
   }
 }
