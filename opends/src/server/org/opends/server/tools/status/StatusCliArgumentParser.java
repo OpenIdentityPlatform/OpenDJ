@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.status;
@@ -155,10 +155,9 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the first server bind dn explicitly provided in the enable
-   * replication subcommand.
-   * @return the first server bind dn explicitly provided in the enable
-   * replication subcommand.  Returns -1 if no port was explicitly provided.
+   * Returns the first server bind DN explicitly provided in the command-line.
+   * @return the first server bind DN explicitly provided in the command-line.
+   * Returns <CODE>null</CODE> if no bind DN was explicitly provided.
    */
   public String getExplicitBindDn()
   {
