@@ -27,6 +27,9 @@
 
 package org.opends.guitools.controlpanel;
 
+import static org.opends.messages.AdminToolMessages.
+ INFO_CONTROL_PANEL_LAUNCHER_USAGE_DESCRIPTION;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.WindowAdapter;
@@ -102,7 +105,8 @@ public class ControlPanel
     // Call Installation because the LocalOrRemotePanel uses it to check
     // whether the server is running or not and to get the install path.
     Installation.getLocal();
-    argParser = new ControlPanelArgumentParser(ControlPanel.class.getName());
+    argParser = new ControlPanelArgumentParser(ControlPanel.class.getName(),
+        INFO_CONTROL_PANEL_LAUNCHER_USAGE_DESCRIPTION.get());
     try
     {
       argParser.initializeArguments();
@@ -125,7 +129,7 @@ public class ControlPanel
    */
   public void createAndDisplayGUI()
   {
-    final GenericDialog localOrRemote =
+    GenericDialog localOrRemote =
       ControlCenterMainPane.getLocalOrRemoteDialog(info);
     Utilities.centerOnScreen(localOrRemote);
 

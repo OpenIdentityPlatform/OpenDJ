@@ -81,7 +81,8 @@ public class ControlPanelLauncher
     }
 
     argParser = new ControlPanelArgumentParser(
-        ControlPanelLauncher.class.getName());
+        ControlPanelLauncher.class.getName(),
+        INFO_CONTROL_PANEL_LAUNCHER_USAGE_DESCRIPTION.get());
     //  Validate user provided data
     try
     {
