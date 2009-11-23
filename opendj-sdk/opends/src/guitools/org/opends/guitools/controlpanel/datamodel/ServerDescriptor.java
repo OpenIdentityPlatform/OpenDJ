@@ -41,6 +41,7 @@ import java.util.Set;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
 
+import org.opends.quicksetup.UserData;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -88,17 +89,7 @@ public class ServerDescriptor
 
   private boolean isAuthenticated;
 
-  private static String localHostName = "locahost";
-  static
-  {
-    try
-    {
-      localHostName = java.net.InetAddress.getLocalHost().getHostName();
-    }
-    catch (Throwable t)
-    {
-    }
-  };
+  private static String localHostName = UserData.getDefaultHostName();
 
   private String hostName = localHostName;
 
