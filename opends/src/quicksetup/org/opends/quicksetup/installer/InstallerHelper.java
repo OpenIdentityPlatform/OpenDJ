@@ -35,6 +35,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -897,7 +898,8 @@ public class InstallerHelper {
    */
   public void writeSetOpenDSJavaHome(String installPath) throws IOException
   {
-    final String initialClientHeapArg = "-Xms8m";
+    final String clientHeapArgs = "-Xms8m";
+    final String controlPanelHeapArgs = "-Xms64m -Xmx128m";
     final String serverHeapArgs = "-Xms128m -Xmx256m";
     final long serverMaxHeapBytes = 256 * 1024 * 1024;
     // Scripts to which we will pass -client argument
@@ -908,7 +910,7 @@ public class InstallerHelper {
         "import-ldif.online", "ldapcompare", "ldapdelete",
         "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
         "manage-account", "manage-tasks", "restore.online", "stop-ds",
-        "status", "control-panel", "uninstall", "setup"
+        "status", "uninstall", "setup"
     };
 
     // Scripts to which we will pass -server argument
@@ -919,37 +921,101 @@ public class InstallerHelper {
         "make-ldif", "rebuild-index", "restore.offline", "start-ds",
         "upgrade", "verify-index", "dbtest"
     };
-    writeSetOpenDSJavaHome(installPath, initialClientHeapArg,
-        serverHeapArgs, serverMaxHeapBytes, clientScripts, serverScripts);
-  }
 
-  /**
-   * Writes the set-java-home file that is used by the scripts to set the
-   * java home and the java arguments.
-   * @param installPath the install path of the server.
-   * @param initialClientHeapArg the argument to be used to set the initial
-   * heap for the client scripts.
-   * @param serverHeapArgs the argument to be used to set the server scripts
-   * heap sizes.
-   * @param serverMaxHeapBytes the maximum size of the heap for the server
-   * scripts.
-   * @param clientScripts the scripts where the client properties are set.
-   * @param serverScripts the scripts where the server properties are set.
-   * @throws IOException if an error occurred writing the file.
-   */
-  public void writeSetOpenDSJavaHome(String installPath,
-      String initialClientHeapArg,
-      String serverHeapArgs,
-      long serverMaxHeapBytes,
-      String[] clientScripts,
-      String[] serverScripts) throws IOException
-  {
     String javaHome = System.getProperty("java.home");
     if ((javaHome == null) || (javaHome.length() == 0))
     {
       javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
     }
 
+    boolean supportsClient = supportsClient(javaHome, installPath);
+    boolean supportsServer = supportsServer(javaHome, installPath);
+
+    boolean supportsClientHeap =
+      supportsOption(clientHeapArgs, javaHome, installPath);
+    boolean supportsControlPanelHeap =
+      supportsOption(controlPanelHeapArgs, javaHome, installPath);
+    boolean supportsServerHeap = false;
+    // If the current max memory is bigger than the max heap we want to set,
+    // assume that the JVM ergonomics are going to be able to allocate enough
+    // memory.
+    if (Runtime.getRuntime().maxMemory() < serverMaxHeapBytes)
+    {
+      supportsServerHeap =
+        supportsOption(serverHeapArgs, javaHome, installPath);
+    }
+
+    Map<String, String> args = new HashMap<String, String>();
+
+    StringBuffer sbClientArgs = new StringBuffer();
+    if (supportsClient)
+    {
+      sbClientArgs.append("-client");
+    }
+    if (supportsClientHeap)
+    {
+      if (sbClientArgs.length() > 0)
+      {
+        sbClientArgs.append(" ");
+      }
+      sbClientArgs.append(clientHeapArgs);
+    }
+    String clientArgs = sbClientArgs.toString();
+    for (String clientScript : clientScripts)
+    {
+      args.put(clientScript, clientArgs);
+    }
+
+    StringBuffer sbControlPanelArgs = new StringBuffer();
+    if (supportsClient)
+    {
+      sbControlPanelArgs.append("-client");
+    }
+    if (supportsControlPanelHeap)
+    {
+      if (sbControlPanelArgs.length() > 0)
+      {
+        sbControlPanelArgs.append(" ");
+      }
+      sbControlPanelArgs.append(controlPanelHeapArgs);
+    }
+    String controlPanelArgs = sbControlPanelArgs.toString();
+    args.put("control-panel", controlPanelArgs);
+
+    StringBuffer sbServerArgs = new StringBuffer();
+    if (supportsServer)
+    {
+      sbServerArgs.append("-server");
+    }
+    if (supportsServerHeap)
+    {
+      if (sbServerArgs.length() > 0)
+      {
+        sbServerArgs.append(" ");
+      }
+      sbServerArgs.append(serverHeapArgs);
+    }
+    String serverArgs = sbServerArgs.toString();
+    for (String serverScript : serverScripts)
+    {
+      args.put(serverScript, serverArgs);
+    }
+    writeSetOpenDSJavaHome(installPath, javaHome, args);
+  }
+
+  /**
+   * Writes the set-java-home file that is used by the scripts to set the
+   * java home and the java arguments.
+   * @param installPath the install path of the server.
+   * @param javaHome the java home to be used.
+   * @param arguments a Map containing as key the name of the script and as
+   * value, the java arguments to be set for the script.
+   * @throws IOException if an error occurred writing the file.
+   */
+  public void writeSetOpenDSJavaHome(String installPath,
+      String javaHome,
+      Map<String, String> arguments) throws IOException
+  {
     String configDir = Utils.getPath(Utils
         .getInstancePathFromClasspath(installPath),
         Installation.CONFIG_PATH_RELATIVE);
@@ -994,82 +1060,15 @@ public class InstallerHelper {
       writer.write("default.java-home="+javaHome);
       writer.newLine();
       writer.newLine();
-      boolean supportsClient = supportsClient(javaHome, installPath);
-      boolean supportsServer = supportsServer(javaHome, installPath);
 
-      boolean supportsClientInitialHeap =
-        supportsOption(initialClientHeapArg, javaHome, installPath);
-      boolean supportsServerInitialHeap = false;
-      // If the current max memory is bigger than the max heap we want to set,
-      // assume that the JVM ergonomics are going to be able to allocate enough
-      // memory.
-      if (Runtime.getRuntime().maxMemory() < serverMaxHeapBytes)
+      for (String scriptName : arguments.keySet())
       {
-        supportsServerInitialHeap =
-          supportsOption(serverHeapArgs, javaHome, installPath);
+        String argument = arguments.get(scriptName);
+        writer.newLine();
+        writer.write(scriptName+".java-args="+argument);
       }
 
-      if (supportsServer || supportsServerInitialHeap)
-      {
-        for (int i=0; i<serverScripts.length; i++)
-        {
-          writer.newLine();
-          String arg = "";
-          if (supportsServer)
-          {
-            arg = "-server";
-          }
-          if (supportsServerInitialHeap)
-          {
-            if (arg.length() > 0)
-            {
-              arg += " ";
-            }
-            arg += serverHeapArgs;
-          }
-          writer.write(serverScripts[i]+".java-args="+arg);
-        }
-      }
-      else
-      {
-        for (int i=0; i<serverScripts.length; i++)
-        {
-          writer.newLine();
-          writer.write(serverScripts[i]+".java-args=");
-        }
-      }
-
-      if (supportsClient || supportsClientInitialHeap)
-      {
-        for (int i=0; i<clientScripts.length; i++)
-        {
-          writer.newLine();
-          String arg = "";
-          if (supportsClient)
-          {
-            arg = "-client";
-          }
-          if (supportsClientInitialHeap)
-          {
-            if (arg.length() > 0)
-            {
-              arg += " ";
-            }
-            arg += initialClientHeapArg;
-          }
-          writer.write(clientScripts[i]+".java-args="+arg);
-        }
-      }
-      else
-      {
-        for (int i=0; i<clientScripts.length; i++)
-        {
-          writer.newLine();
-          writer.write(clientScripts[i]+".java-args=");
-        }
-      }
-
-      if (supportsClient || supportsServer || supportsClientInitialHeap)
+      if (!arguments.isEmpty())
       {
         writer.newLine();
         writer.newLine();
