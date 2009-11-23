@@ -163,7 +163,7 @@ AddressConnectionHandlerDescriptor>
     {
       if (ach.getAddress() != null)
       {
-        sb.append(ach.getAddress().getHostName()+":"+ch.getPort());
+        sb.append(ach.getAddress().getHostAddress()+":"+ch.getPort());
       }
       else
       {
@@ -201,10 +201,7 @@ AddressConnectionHandlerDescriptor>
         {
           if (cn.endsWith(
               " "+address.getHostAddress()+" port "+cch.getPort()+
-              " Statistics") ||
-              cn.endsWith(
-                  " "+address.getHostName()+" port "+cch.getPort()+
-                  " Statistics"))
+              " Statistics"))
           {
             monitoringEntry = sr;
             break;

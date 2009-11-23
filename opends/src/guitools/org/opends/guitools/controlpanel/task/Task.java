@@ -54,6 +54,7 @@ import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.UserData;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
@@ -68,21 +69,8 @@ import org.opends.server.util.cli.CommandBuilder;
  */
 public abstract class Task
 {
-  private static String localHostName = null;
+  private static String localHostName = UserData.getDefaultHostName();
   private String binDir;
-  static
-  {
-    // Do this since by default the hostname used by the connection is
-    // 0.0.0.0, so try to figure the name of the host.  This is used to
-    // display the equivalent command-line.
-    try
-    {
-      localHostName = java.net.InetAddress.getLocalHost().getHostName();
-    }
-    catch (Throwable t)
-    {
-    }
-  }
   /**
    * The different task types.
    *
