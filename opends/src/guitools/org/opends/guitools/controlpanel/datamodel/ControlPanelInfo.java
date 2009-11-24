@@ -169,13 +169,22 @@ public class ControlPanelInfo
   }
 
   /**
-   * Registers a task.  The Control Panel creates a task everytime an operation
+   * Registers a task.  The Control Panel creates a task every time an operation
    * is made and they are stored here.
    * @param task the task to be registered.
    */
   public void registerTask(Task task)
   {
     tasks.add(task);
+  }
+
+  /**
+   * Unregisters a task.
+   * @param task the task to be unregistered.
+   */
+  public void unregisterTask(Task task)
+  {
+    tasks.remove(task);
   }
 
   /**
@@ -815,6 +824,7 @@ public class ControlPanelInfo
         {
           while (!stopPooling)
           {
+            cleanupTasks();
             regenerateDescriptor();
             Thread.sleep(poolingPeriod);
           }
@@ -1234,6 +1244,26 @@ public class ControlPanelInfo
   public void setPoolingPeriod(long poolingPeriod)
   {
     this.poolingPeriod = poolingPeriod;
+  }
+
+  /**
+   * Cleans the tasks that are over.
+   */
+  private void cleanupTasks()
+  {
+    Set<Task> toClean = new HashSet<Task>();
+    for (Task task : tasks)
+    {
+      if (task.getState() == Task.State.FINISHED_SUCCESSFULLY ||
+          task.getState() == Task.State.FINISHED_WITH_ERROR)
+      {
+        toClean.add(task);
+      }
+    }
+    for (Task task : toClean)
+    {
+      unregisterTask(task);
+    }
   }
 
   /**
