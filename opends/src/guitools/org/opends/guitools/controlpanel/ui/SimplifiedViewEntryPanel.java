@@ -1345,7 +1345,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       if (!hasValue(attrName))
       {
-        setPrimaryInvalid(hmLabels.get(getConfirmPasswordKey(attrName)));
+        setPrimaryInvalid(hmLabels.get(attrName));
         errors.add(ERR_CTRL_PANEL_ATTRIBUTE_REQUIRED.get(
             hmDisplayedNames.get(attrName)));
       }
