@@ -50,7 +50,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DeadlockException;
+import com.sleepycat.je.LockConflictException;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -460,7 +460,7 @@ public class DbHandler implements Runnable
           cursor.close();
           done = true;
         }
-        catch (DeadlockException e)
+        catch (LockConflictException e)
         {
           cursor.abort();
           if (tries == DEADLOCK_RETRIES)

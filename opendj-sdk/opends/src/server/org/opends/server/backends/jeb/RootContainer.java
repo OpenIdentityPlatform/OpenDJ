@@ -637,22 +637,6 @@ public class RootContainer
   }
 
   /**
-   * Get the environment lock stats of the JE environment used in this
-   * root container.
-   *
-   * @param statsConfig The configuration to use for the EnvironmentStats
-   *                    object.
-   * @return The environment status of the JE environment.
-   * @throws DatabaseException If an error occurs while retriving the stats
-   *                           object.
-   */
-  public LockStats getEnvironmentLockStats(StatsConfig statsConfig)
-      throws DatabaseException
-  {
-    return env.getLockStats(statsConfig);
-  }
-
-  /**
    * Get the environment transaction stats of the JE environment used
    * in this root container.
    *
@@ -1059,5 +1043,15 @@ public class RootContainer
       totalCleaned += cleaned;
     }
     return totalCleaned;
+  }
+
+  /**
+   * Returns whether this container JE database environment is
+   * open, valid and can be used.
+   *
+   * @return {@code true} if valid, or {@code false} otherwise.
+   */
+  public boolean isValid() {
+    return env.isValid();
   }
 }

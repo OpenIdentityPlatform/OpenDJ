@@ -40,8 +40,10 @@ import java.util.zip.CheckedInputStream;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.RunRecoveryException;
+import com.sleepycat.je.EnvironmentFailureException;
 
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import org.opends.server.backends.jeb.importLDIF.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
@@ -312,7 +314,7 @@ public class BackendImpl
     {
       EnvironmentConfig envConfig =
           ConfigurableEnvironment.parseConfigEntry(cfg);
-      envConfig.setLockTimeout(0);
+      envConfig.setLockTimeout(0, TimeUnit.MICROSECONDS);
       rootContainer = initializeRootContainer(envConfig);
     }
 
@@ -997,7 +999,6 @@ public class BackendImpl
         envConfig.setReadOnly(true);
         envConfig.setAllowCreate(false);
         envConfig.setTransactional(false);
-        envConfig.setTxnNoSync(false);
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "true");
 
@@ -1130,7 +1131,6 @@ public class BackendImpl
       envConfig.setReadOnly(false);
       envConfig.setAllowCreate(true);
       envConfig.setTransactional(false);
-      envConfig.setTxnNoSync(false);
       envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
       envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
       envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
@@ -1273,7 +1273,6 @@ public class BackendImpl
         envConfig.setReadOnly(true);
         envConfig.setAllowCreate(false);
         envConfig.setTransactional(false);
-        envConfig.setTxnNoSync(false);
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "true");
 
@@ -1364,7 +1363,6 @@ public class BackendImpl
         envConfig.setReadOnly(false);
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        envConfig.setTxnNoSync(false);
         envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
         envConfig.setConfigParam(
                                EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
@@ -1522,18 +1520,9 @@ public class BackendImpl
       List<Message> unacceptableReasons)
   {
     // Make sure that the logging level value is acceptable.
-    String loggingLevel = cfg.getDBLoggingLevel();
-    if (! (loggingLevel.equals("OFF") ||
-           loggingLevel.equals("SEVERE") ||
-           loggingLevel.equals("WARNING") ||
-           loggingLevel.equals("INFORMATION") ||
-           loggingLevel.equals("CONFIG") ||
-           loggingLevel.equals("FINE") ||
-           loggingLevel.equals("FINER") ||
-           loggingLevel.equals("FINEST") ||
-           loggingLevel.equals("OFF")))
-    {
-
+    try {
+      Level.parse(cfg.getDBLoggingLevel());
+    } catch (Exception e) {
       Message message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
               String.valueOf(cfg.getDBLoggingLevel()),
               String.valueOf(cfg.dn()));
@@ -1665,7 +1654,6 @@ public class BackendImpl
     envConfig.setReadOnly(true);
     envConfig.setAllowCreate(false);
     envConfig.setTransactional(false);
-    envConfig.setTxnNoSync(false);
     envConfig.setConfigParam("je.env.isLocking", "true");
     envConfig.setConfigParam("je.env.runCheckpointer", "true");
 
@@ -1700,7 +1688,8 @@ public class BackendImpl
   DirectoryException createDirectoryException(DatabaseException e) {
     ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
     Message message;
-    if (e instanceof RunRecoveryException) {
+    if ((e instanceof EnvironmentFailureException) &&
+            !rootContainer.isValid()) {
       message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logError(message);
       DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),

@@ -49,7 +49,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DeadlockException;
+import com.sleepycat.je.LockConflictException;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -365,7 +365,7 @@ public class DraftCNDbHandler implements Runnable
       cursor.close();
       done = true;
     }
-    catch (DeadlockException e)
+    catch (LockConflictException e)
     {
       cursor.abort();
       if (tries == DEADLOCK_RETRIES)

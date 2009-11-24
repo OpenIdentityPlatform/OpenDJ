@@ -42,7 +42,7 @@ import com.sleepycat.je.Cursor;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Database;
-import com.sleepycat.je.DeadlockException;
+import com.sleepycat.je.LockConflictException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
@@ -130,7 +130,7 @@ public class ReplicationDB
           txn = null;
           done = true;
         }
-        catch (DeadlockException e)
+        catch (LockConflictException e)
         {
           if (txn != null)
             txn.abort();
@@ -535,7 +535,7 @@ public class ReplicationDB
         closeLockedCursor(cursor);
         cursor = null;
       }
-      catch (DeadlockException e1)
+      catch (LockConflictException e1)
       {
         // The DB documentation states that a DeadlockException
         // on the close method of a cursor that is aborting should

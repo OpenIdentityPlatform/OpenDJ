@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -49,7 +49,6 @@ import org.opends.server.types.InitializationException;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.JEVersion;
-import com.sleepycat.je.LockStats;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.TransactionStats;
 
@@ -210,14 +209,12 @@ public class DatabaseEnvironmentMonitor
   public ArrayList<Attribute> getMonitorData()
   {
     EnvironmentStats environmentStats = null;
-    LockStats lockStats = null;
     TransactionStats transactionStats = null;
     StatsConfig statsConfig = new StatsConfig();
 
     try
     {
       environmentStats = rootContainer.getEnvironmentStats(statsConfig);
-      lockStats = rootContainer.getEnvironmentLockStats(statsConfig);
       transactionStats =
           rootContainer.getEnvironmentTransactionStats(statsConfig);
     } catch (DatabaseException e)
@@ -237,7 +234,6 @@ public class DatabaseEnvironmentMonitor
     monitorAttrs.add(Attributes.create(versionType, jeVersion));
 
     addAttributesForStatsObject(monitorAttrs, environmentStats, "Environment");
-    addAttributesForStatsObject(monitorAttrs, lockStats, "Lock");
     addAttributesForStatsObject(monitorAttrs, transactionStats, "Transaction");
 
     return monitorAttrs;
