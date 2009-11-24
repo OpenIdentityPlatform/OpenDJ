@@ -314,7 +314,7 @@ public class Index extends DatabaseContainer
   private void
   deleteKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
-    OperationStatus status  = read(null, key, data, LockMode.RMW);
+    OperationStatus status  = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
       newImportIDSet.clear(false);
       newImportIDSet.remove(data.getData(), importIdSet);
@@ -337,7 +337,7 @@ public class Index extends DatabaseContainer
   private void
   insertKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
-    OperationStatus status  = read(null, key, data, LockMode.RMW);
+    OperationStatus status  = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
       newImportIDSet.clear(false);
       if (newImportIDSet.merge(data.getData(), importIdSet))

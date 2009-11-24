@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
+import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
 
@@ -370,9 +371,6 @@ public class ConfigurableEnvironment
       registerProp("je.evictor.lruOnly", ATTR_EVICTOR_LRU_ONLY);
       registerProp("je.evictor.nodesPerScan", ATTR_EVICTOR_NODES_PER_SCAN);
       registerProp("je.log.fileMax", ATTR_DATABASE_LOG_FILE_MAX);
-      registerProp("java.util.logging.FileHandler.on",
-                   ATTR_LOGGING_FILE_HANDLER_ON);
-      registerProp("java.util.logging.level", ATTR_LOGGING_LEVEL);
       registerProp("je.checkpointer.bytesInterval",
                    ATTR_CHECKPOINTER_BYTES_INTERVAL);
       registerProp("je.checkpointer.wakeupInterval",
@@ -469,9 +467,20 @@ public class ConfigurableEnvironment
 
     EnvironmentConfig envConfig = defaultConfig();
 
-    // Handle the attributes that do not have a JE property.
-    envConfig.setTxnNoSync(cfg.isDBTxnNoSync());
-    envConfig.setTxnWriteNoSync(cfg.isDBTxnWriteNoSync());
+    // Durability settings.
+    if (cfg.isDBTxnNoSync() && cfg.isDBTxnWriteNoSync())
+    {
+      throw new ConfigException(
+              ERR_CONFIG_JEB_DURABILITY_CONFLICT.get());
+    }
+    if (cfg.isDBTxnNoSync())
+    {
+      envConfig.setDurability(Durability.COMMIT_NO_SYNC);
+    }
+    if (cfg.isDBTxnWriteNoSync())
+    {
+      envConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
+    }
 
     // Iterate through the config attributes associated with a JE property.
     for (Map.Entry<String, String> mapEntry : attrMap.entrySet())
@@ -534,11 +543,6 @@ public class ConfigurableEnvironment
         // Set JE property.
         try {
           envConfig.setConfigParam(jePropertyName, jePropertyValue);
-          // This is a special case that JE cannot validate before
-          // actually setting it. Validate it before it gets to JE.
-          if (jePropertyName.equals("java.util.logging.level")) {
-            java.util.logging.Level.parse(jePropertyValue);
-          }
           // If this property shadows an existing config attribute.
           if (configAttrMap.containsKey(jePropertyName)) {
             Message message = ERR_CONFIG_JE_PROPERTY_SHADOWS_CONFIG.get(

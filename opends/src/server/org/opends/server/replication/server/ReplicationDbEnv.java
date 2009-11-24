@@ -47,6 +47,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is used to represent a Db environment that can be used
@@ -89,7 +90,6 @@ public class ReplicationDbEnv
     envConfig.setAllowCreate(true);
     envConfig.setTransactional(true);
     envConfig.setConfigParam("je.cleaner.expunge", "true");
-    envConfig.setConfigParam("java.util.logging.FileHandler.on", "true");
     envConfig.setConfigParam("je.cleaner.threads", "2");
     envConfig.setConfigParam("je.checkpointer.highPriority", "true");
 
@@ -102,7 +102,7 @@ public class ReplicationDbEnv
     // deleted at the beginning of the Replication log, this should never
     // cause any deadlock. It is therefore safe to increase the TXN timeout
     // to 10 seconds.
-    envConfig.setTxnTimeout(10000000);
+    envConfig.setTxnTimeout(10, TimeUnit.SECONDS);
     dbEnvironment = new Environment(new File(path), envConfig);
 
     /*
