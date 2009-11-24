@@ -262,6 +262,14 @@ public class ProgressDialog extends GenericDialog
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public boolean isDisposeOnClose()
+    {
+      return true;
+    }
+
+    /**
      * Appends a line to the logs (Details are) section of the panel.  The text
      * will be preceded by a new line (is similar to println()).
      * @param msg the HTML formatted text to be appended.
