@@ -26,13 +26,13 @@
  */
 package org.opends.server.protocols.asn1;
 
-import org.opends.server.types.ByteSequence;
-
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.io.OutputStream;
-import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.opends.server.types.ByteSequence;
 
 /**
  * This class is for writing ASN.1 elements directly to an
@@ -325,10 +325,7 @@ final class ASN1ByteChannelWriter implements ASN1Writer
       {
         flushLock.lock();
       }
-      while(byteBuffer.hasRemaining())
-      {
-        byteChannel.write(byteBuffer);
-      }
+      byteChannel.write(byteBuffer);
     }
     finally
     {

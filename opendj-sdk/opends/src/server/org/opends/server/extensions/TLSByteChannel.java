@@ -26,24 +26,24 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.net.ssl.*;
 
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.StaticUtils;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * A class that provides a TLS byte channel implementation.
@@ -54,19 +54,19 @@ public class TLSByteChannel implements
 
     private static final DebugTracer TRACER = getTracer();
 
-    private ClientConnection connection;
-    private SocketChannel socketChannel;
+    private final ClientConnection connection;
+    private final ByteChannel socketChannel;
 
-    private SSLEngine sslEngine;
+    private final SSLEngine sslEngine;
 
     //read copy to buffer
-    private ByteBuffer appData;
+    private final ByteBuffer appData;
     //read encrypted
-    private ByteBuffer appNetData;
+    private final ByteBuffer appNetData;
 
     //Write encrypted
-    private ByteBuffer netData, tempData;
-    private int sslBufferSize, appBufSize;
+    private final ByteBuffer netData, tempData;
+    private final int sslBufferSize, appBufSize;
     private boolean reading = false;
 
     //Map of cipher phrases to effective key size (bits). Taken from the
@@ -92,7 +92,7 @@ public class TLSByteChannel implements
     };
 
     private TLSByteChannel(LDAPConnectionHandlerCfg config, ClientConnection c,
-                         SocketChannel socketChannel, SSLContext sslContext)  {
+        ByteChannel socketChannel, SSLContext sslContext)  {
 
         this.socketChannel = socketChannel;
         this.connection = c;
@@ -159,7 +159,7 @@ public class TLSByteChannel implements
      */
     public static TLSByteChannel
     getTLSByteChannel(LDAPConnectionHandlerCfg config, ClientConnection c,
-                        SSLContext sslContext, SocketChannel socketChannel) {
+                        SSLContext sslContext, ByteChannel socketChannel) {
         return new TLSByteChannel(config, c, socketChannel, sslContext);
     }
 
@@ -375,18 +375,7 @@ public class TLSByteChannel implements
                     hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP ||
                     hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
                 doHandshakeWrite(hsStatus);
-            while (netData.hasRemaining()) {
-                int bytesWritten = socketChannel.write(netData);
-                if (bytesWritten < 0)
-                    throw new ClosedChannelException();
-                else if (bytesWritten == 0) {
-                    int bytesSent = netData.remaining();
-                    if(!StaticUtils.writeWithTimeout(connection, netData))
-                        throw new ClosedChannelException();
-                    totBytesSent += bytesSent;
-                } else
-                    totBytesSent += bytesWritten;
-            }
+            totBytesSent += socketChannel.write(netData);
         }
         return totBytesSent;
     }

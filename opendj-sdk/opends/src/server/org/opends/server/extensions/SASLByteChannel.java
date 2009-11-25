@@ -31,10 +31,8 @@ import java.nio.channels.ByteChannel;
 import java.security.cert.Certificate;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import javax.security.sasl.Sasl;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.util.StaticUtils;
 
 /**
  * This class implements a SASL byte channel that can be used during
@@ -310,14 +308,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
      *         to the socket channel, or, {@code false} if not.
      */
     private int writeChannel(ByteBuffer buffer) throws IOException {
-        int bytesWritten = channel.write(buffer);
-        if (bytesWritten < 0)
-            throw new ClosedChannelException();
-        else if (bytesWritten == 0) {
-            if(!StaticUtils.writeWithTimeout(connection, buffer))
-                throw new ClosedChannelException();
-        }
-        return bytesWritten;
+        return channel.write(buffer);
       }
 
     /**
