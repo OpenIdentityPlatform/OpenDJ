@@ -25,18 +25,10 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
-
-
-
-import static org.opends.server.loggers.AccessLogger.logConnect;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.monitors.ClientConnectionMonitorProvider;
-
 import static org.opends.messages.ProtocolMessages.*;
-
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -44,35 +36,21 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -82,18 +60,9 @@ import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.extensions.TLSByteChannel;
-import org.opends.server.types.AddressMask;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-
-
-import org.opends.server.types.HostPort;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SSLClientAuthPolicy;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.monitors.ClientConnectionMonitorProvider;
+import org.opends.server.types.*;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
@@ -1293,10 +1262,6 @@ public final class LDAPConnectionHandler extends
       }
       LDAPClientConnection c = new LDAPClientConnection(this, socketChannel,
                                                         getProtocol());
-      if(currentConfig.isUseSSL()) {
-          TLSByteChannel tlsByteChannel =  getTLSByteChannel(c, socketChannel);
-          c.enableSSL(tlsByteChannel);
-      }
       return c;
   }
 
@@ -1310,7 +1275,7 @@ public final class LDAPConnectionHandler extends
    * @throws DirectoryException If the channel cannot be created.
    */
   public TLSByteChannel
-  getTLSByteChannel(LDAPClientConnection c, SocketChannel socketChannel)
+  getTLSByteChannel(LDAPClientConnection c, ByteChannel socketChannel)
                   throws DirectoryException {
          return(TLSByteChannel.getTLSByteChannel(currentConfig, c,
                                                     sslContext,

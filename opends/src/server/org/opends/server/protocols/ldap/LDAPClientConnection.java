@@ -28,17 +28,21 @@ package org.opends.server.protocols.ldap;
 
 
 
+import static org.opends.messages.CoreMessages.ERR_ENQUEUE_BIND_IN_PROGRESS;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.AccessLogger.logDisconnect;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.types.OperationType.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Iterator;
@@ -49,23 +53,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.CoreMessages.ERR_ENQUEUE_BIND_IN_PROGRESS;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.core.AbandonOperationBasis;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.BindOperationBasis;
-import org.opends.server.core.CompareOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperationBasis;
-import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.SearchOperationBasis;
-import org.opends.server.core.UnbindOperationBasis;
+import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.extensions.ConnectionSecurityProvider;
 import org.opends.server.extensions.RedirectingByteChannel;
@@ -78,7 +68,6 @@ import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
-import static org.opends.server.util.ServerConstants.OID_START_TLS_REQUEST;
 
 
 /**
@@ -143,6 +132,138 @@ public class LDAPClientConnection extends ClientConnection implements
         if (debugEnabled())
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Channel that writes the contents of the provided buffer to the client,
+   * throwing an exception if the write is unsuccessful for too
+   * long (e.g., if the client is unresponsive or there is a network
+   * problem). If possible, it will attempt to use the selector returned
+   * by the {@code ClientConnection.getWriteSelector} method, but it is
+   * capable of working even if that method returns {@code null}. <BR>
+   *
+   * Note that the original position and limit values will not be
+   * preserved, so if that is important to the caller, then it should
+   * record them before calling this method and restore them after it
+   * returns.
+   */
+  private class TimeoutWriteByteChannel implements ByteChannel
+  {
+    public int read(ByteBuffer byteBuffer) throws IOException
+    {
+      return clientChannel.read(byteBuffer);
+    }
+
+    public boolean isOpen()
+    {
+      return clientChannel.isOpen();
+    }
+
+    public void close() throws IOException
+    {
+      clientChannel.close();
+    }
+
+    public int write(ByteBuffer byteBuffer) throws IOException
+    {
+      int bytesToWrite = byteBuffer.remaining();
+      clientChannel.write(byteBuffer);
+      if(!byteBuffer.hasRemaining())
+      {
+        return bytesToWrite;
+      }
+      long startTime = System.currentTimeMillis();
+      long waitTime = getMaxBlockedWriteTimeLimit();
+      if (waitTime <= 0)
+      {
+        // We won't support an infinite time limit, so fall back to using
+        // five minutes, which is a very long timeout given that we're
+        // blocking a worker thread.
+        waitTime = 300000L;
+      }
+
+      long stopTime = startTime + waitTime;
+
+      Selector selector = getWriteSelector();
+      if (selector == null)
+      {
+        // The client connection does not provide a selector, so we'll
+        // fall back
+        // to a more inefficient way that will work without a selector.
+        while (byteBuffer.hasRemaining()
+               && (System.currentTimeMillis() < stopTime))
+        {
+          if (clientChannel.write(byteBuffer) < 0)
+          {
+            // The client connection has been closed.
+            throw new ClosedChannelException();
+          }
+        }
+
+        if (byteBuffer.hasRemaining())
+        {
+          // If we've gotten here, then the write timed out.
+          throw new ClosedChannelException();
+        }
+
+        return bytesToWrite;
+      }
+
+      // Register with the selector for handling write operations.
+      SelectionKey key =
+          clientChannel.register(selector, SelectionKey.OP_WRITE);
+
+      try
+      {
+        selector.select(waitTime);
+        while (byteBuffer.hasRemaining())
+        {
+          long currentTime = System.currentTimeMillis();
+          if (currentTime >= stopTime)
+          {
+            // We've been blocked for too long.
+            throw new ClosedChannelException();
+          }
+          else
+          {
+            waitTime = stopTime - currentTime;
+          }
+
+          Iterator<SelectionKey> iterator =
+              selector.selectedKeys().iterator();
+          while (iterator.hasNext())
+          {
+            SelectionKey k = iterator.next();
+            if (k.isWritable())
+            {
+              int bytesWritten = clientChannel.write(byteBuffer);
+              if (bytesWritten < 0)
+              {
+                // The client connection has been closed.
+                throw new ClosedChannelException();
+              }
+
+              iterator.remove();
+            }
+          }
+
+          if (byteBuffer.hasRemaining())
+          {
+            selector.select(waitTime);
+          }
+        }
+
+        return bytesToWrite;
+      }
+      finally
+      {
+        if (key.isValid())
+        {
+          key.cancel();
+          selector.selectNow();
         }
       }
     }
@@ -216,6 +337,9 @@ public class LDAPClientConnection extends ClientConnection implements
   // The socket channel with which this client connection is associated.
   private final SocketChannel clientChannel;
 
+  // The byte channel used for blocking writes with time out.
+  private final ByteChannel timeoutClientChannel;
+
   // The string representation of the address of the client.
   private final String clientAddress;
 
@@ -269,12 +393,11 @@ public class LDAPClientConnection extends ClientConnection implements
    *          The socket channel that may be used to communicate with
    *          the client.
    * @param  protocol String representing the protocol (LDAP or LDAP+SSL).
+   * @throws DirectoryException If SSL initialisation fails.
    */
   public LDAPClientConnection(LDAPConnectionHandler connectionHandler,
-      SocketChannel clientChannel, String protocol)
+      SocketChannel clientChannel, String protocol) throws DirectoryException
   {
-    super();
-
     this.connectionHandler = connectionHandler;
     if (connectionHandler.isAdminConnectionHandler())
     {
@@ -282,6 +405,7 @@ public class LDAPClientConnection extends ClientConnection implements
     }
 
     this.clientChannel = clientChannel;
+    timeoutClientChannel = new TimeoutWriteByteChannel();
     opsInProgressLock = new Object();
     ldapVersion = 3;
     requestHandler = null;
@@ -313,12 +437,20 @@ public class LDAPClientConnection extends ClientConnection implements
     APPLICATION_BUFFER_SIZE = connectionHandler.getBufferSize();
 
     tlsChannel =
-        RedirectingByteChannel.getRedirectingByteChannel(clientChannel);
+        RedirectingByteChannel.getRedirectingByteChannel(
+            timeoutClientChannel);
     saslChannel =
         RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
     this.asn1Reader =
         ASN1.getReader(saslChannel, APPLICATION_BUFFER_SIZE, connectionHandler
             .getMaxRequestSize());
+
+
+    if (connectionHandler.useSSL())
+    {
+      enableSSL(connectionHandler.getTLSByteChannel(this,
+          timeoutClientChannel));
+    }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
     if (connectionID < 0)
@@ -2349,7 +2481,7 @@ public class LDAPClientConnection extends ClientConnection implements
     try
     {
       TLSByteChannel tlsByteChannel =
-          connectionHandler.getTLSByteChannel(this, clientChannel);
+          connectionHandler.getTLSByteChannel(this, timeoutClientChannel);
       setTLSPendingProvider(tlsByteChannel);
     }
     catch (DirectoryException de)
