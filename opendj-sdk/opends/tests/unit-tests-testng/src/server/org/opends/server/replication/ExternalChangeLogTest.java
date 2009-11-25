@@ -3067,6 +3067,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 
           lastDraftChangeNumber-firstDraftChangeNumber+1);
+      if (searchOp.getSearchEntries() != null)
+      {
+        int i=0;
+        for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
+        {
+          i++;
+          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
+        }
+      }
     }
     catch(Exception e)
     {
