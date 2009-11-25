@@ -1123,6 +1123,51 @@ public class ConfigureDS
           return 1;
         }
       }
+      else
+      {
+        try
+        {
+          if (ldapPort.isPresent())
+          {
+            // Use the key manager specified for the LDAP connection handler.
+            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapListenerDN);
+
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
+          }
+
+          if (ldapsPort.isPresent())
+          {
+            // Use the key manager specified for the LDAPS connection handler.
+            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(ldapsListenerDN);
+
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
+          }
+
+          if (jmxPort.isPresent())
+          {
+            // Use the key manager specified for the JMX connection handler.
+            DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+            ConfigEntry configEntry =
+              configHandler.getConfigEntry(jmxListenerDN);
+
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
+          }
+        }
+        catch (Exception e)
+        {
+          Message message = ERR_CONFIGDS_CANNOT_UPDATE_CERT_NICKNAME.get(
+                  String.valueOf(e));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
 
       // If a root user DN and password were specified, then update the config
       // accordingly.

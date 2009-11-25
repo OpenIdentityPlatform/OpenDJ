@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup;
 
@@ -117,7 +117,7 @@ public class SecurityOptions
    * @param enableSSL whether SSL is enabled or not.
    * @param enableStartTLS whether Start TLS is enabled or not.
    * @param sslPort the value of the LDAPS port.
-   * @param aliasToUse the alias of the certificate in the keystore to be used.
+   * @param aliasToUse the alias of the certificate in the key store to be used.
    * @return a new instance of a SecurityOptions using a Java Key Store.
    */
   public static SecurityOptions createJKSCertificateOptions(String keystorePath,
@@ -335,8 +335,8 @@ public class SecurityOptions
   }
 
   /**
-   * Returns the alias of the certificate in the keystore to be used.
-   * @return the alias of the certificate in the keystore to be used.
+   * Returns the alias of the certificate in the key store to be used.
+   * @return the alias of the certificate in the key store to be used.
    */
   public String getAliasToUse()
   {

@@ -1961,18 +1961,18 @@ public class InstallDS extends ConsoleApplication
 
   /**
    * Checks that the provided parameters are valid to access an existing
-   * keystore.  This method adds the encountered errors to the provided
+   * key store.  This method adds the encountered errors to the provided
    * list of Message.  It also adds the alias (nicknames) found to the provided
    * list of String.
-   * @param type the type of keystore.
-   * @param path the path of the keystore.
-   * @param pwd the password (PIN) to access the keystore.
+   * @param type the type of key store.
+   * @param path the path of the key store.
+   * @param pwd the password (PIN) to access the key store.
    * @param certNickname the certificate nickname that we are looking for (or
-   * null if we just one to get the one that is in the keystore).
+   * null if we just one to get the one that is in the key store).
    * @param errorMessages the list that will be updated with the errors
    * encountered.
    * @param nicknameList the list that will be updated with the nicknames found
-   * in the keystore.
+   * in the key store.
    */
   public static void checkCertificateInKeystore(
       SecurityOptions.CertificateType type,
@@ -2065,7 +2065,7 @@ public class InstallDS extends ConsoleApplication
             throw new IllegalArgumentException("Invalid type: "+type);
           }
         }
-        else
+        else if (certManager.hasRealAliases())
         {
           for (int i=0; i<aliases.length; i++)
           {
@@ -2075,7 +2075,7 @@ public class InstallDS extends ConsoleApplication
               ", ");
           if (certNickname != null)
           {
-            // Check if the cert alias is in the list.
+            // Check if the certificate alias is in the list.
             boolean found = false;
             for (int i=0; i<aliases.length && !found; i++)
             {
@@ -2096,8 +2096,8 @@ public class InstallDS extends ConsoleApplication
       }
       catch (KeyStoreException ke)
       {
-        // Could not access to the keystore: because the password is no good,
-        // because the provided file is not a valid keystore, etc.
+        // Could not access to the key store: because the password is no good,
+        // because the provided file is not a valid key store, etc.
         switch (type)
         {
         case JKS:
@@ -2268,7 +2268,7 @@ public class InstallDS extends ConsoleApplication
           keystoreAliases);
       firstTry = false;
     }
-    if (certNickname == null)
+    if ((certNickname == null) && !keystoreAliases.isEmpty())
     {
       certNickname = keystoreAliases.getFirst();
     }

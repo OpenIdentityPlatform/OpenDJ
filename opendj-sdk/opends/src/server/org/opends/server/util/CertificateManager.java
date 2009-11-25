@@ -97,6 +97,8 @@ public final class CertificateManager {
 
   private final char[] password;
 
+  private Boolean realAliases;
+
   /**
    * Always return true.
    *
@@ -437,6 +439,44 @@ public final class CertificateManager {
               }
           }
       }
+  }
+
+  /**
+   * Returns whether this certificate manager contains 'real' aliases or not.
+   * For instance, the certificate manager can contain a PKCS12 certificate
+   * with no alias.
+   * @return whether this certificate manager contains 'real' aliases or not.
+   * @throws KeyStoreException if there is a problem accessing the key store.
+   */
+  public boolean hasRealAliases() throws KeyStoreException
+  {
+    if (realAliases == null)
+    {
+      String[] aliases = getCertificateAliases();
+      if (aliases == null || aliases.length == 0)
+      {
+        realAliases = Boolean.FALSE;
+      }
+      else if (aliases.length > 1)
+      {
+        realAliases = Boolean.TRUE;
+      }
+      else
+      {
+        CertificateManager certManager2 = new CertificateManager(keyStorePath,
+            keyStoreType, new String(password));
+        String[] aliases2 = certManager2.getCertificateAliases();
+        if (aliases2 != null && aliases2.length == 1)
+        {
+          realAliases = aliases[0].equalsIgnoreCase(aliases2[0]);
+        }
+        else
+        {
+          realAliases = Boolean.FALSE;
+        }
+      }
+    }
+    return realAliases;
   }
 
   private static void ensureFileValid(File arg, String msgStr) {

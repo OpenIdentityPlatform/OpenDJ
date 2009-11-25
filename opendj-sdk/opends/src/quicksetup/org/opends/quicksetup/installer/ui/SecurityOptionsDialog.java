@@ -100,6 +100,7 @@ public class SecurityOptionsDialog extends JDialog
   private SecurityOptions securityOptions;
 
   private String[] aliases;
+  private boolean certificateHasAlias;
   private String selectedAlias;
 
   private final int DEFAULT_PORT = 636;
@@ -663,10 +664,11 @@ public class SecurityOptionsDialog extends JDialog
    */
   private void okClicked()
   {
-    BackgroundTask worker = new BackgroundTask()
+    BackgroundTask<ArrayList<Message>> worker =
+      new BackgroundTask<ArrayList<Message>>()
     {
       @Override
-      public Object processBackgroundTask()
+      public ArrayList<Message> processBackgroundTask()
       {
         ArrayList<Message> errorMsgs = new ArrayList<Message>();
 
@@ -678,7 +680,7 @@ public class SecurityOptionsDialog extends JDialog
       }
 
       @Override
-      public void backgroundTaskCompleted(Object returnValue,
+      public void backgroundTaskCompleted(ArrayList<Message> returnValue,
           Throwable throwable)
       {
         if (throwable != null)
@@ -695,16 +697,10 @@ public class SecurityOptionsDialog extends JDialog
         {
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
-          ArrayList ar = (ArrayList)returnValue;
 
-          if (ar.size() > 0)
+          if (returnValue.size() > 0)
           {
-            ArrayList<Message> errorMsgs = new ArrayList<Message>();
-            for (Object o: ar)
-            {
-              errorMsgs.add((Message)o);
-            }
-            displayError(Utils.getMessageFromCollection(errorMsgs, "\n"),
+            displayError(Utils.getMessageFromCollection(returnValue, "\n"),
                 INFO_ERROR_TITLE.get());
           }
           else
@@ -712,7 +708,13 @@ public class SecurityOptionsDialog extends JDialog
             if (rbUseExistingCertificate.isSelected() &&
                 (cbEnableSSL.isSelected() || cbEnableStartTLS.isSelected()))
             {
-              if (aliases.length > 1)
+              if (!certificateHasAlias)
+              {
+                selectedAlias = null;
+                isCancelled = false;
+                dispose();
+              }
+              else if (aliases.length > 1)
               {
                 if (aliasDlg == null)
                 {
@@ -1049,6 +1051,10 @@ public class SecurityOptionsDialog extends JDialog
               }
               pathValid = false;
             }
+          }
+          else
+          {
+            certificateHasAlias = certManager.hasRealAliases();
           }
         }
         catch (KeyStoreException ke)
