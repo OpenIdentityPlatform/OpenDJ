@@ -2625,12 +2625,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   void completeMonitorData()
   {
-    wrkMonitorData.completeComputing();
-
     // Store the new computed data as the reference
     synchronized (monitorDataLock)
     {
       // Now we have the expected answers or an error occurred
+      wrkMonitorData.completeComputing();
       monitorData = wrkMonitorData;
       wrkMonitorData = null;
       if (debugEnabled())
