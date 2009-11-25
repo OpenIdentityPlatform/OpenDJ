@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.common;
 
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,6 +41,7 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.AttributeValue;
@@ -46,6 +49,7 @@ import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -66,6 +70,7 @@ public class LastChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
+  private static final DebugTracer TRACER = getTracer();
   /**
    * Creates a new instance of this member virtual attribute provider.
    */
@@ -140,6 +145,7 @@ public class LastChangeNumberVirtualAttributeProvider
           excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
         ReplicationServer rs = eclwe.getReplicationServer();
+        rs.disableEligibility(excludedDomains);
         int[] limits = rs.getECLDraftCNLimits(
             rs.getEligibleCN(), excludedDomains);
 
@@ -148,7 +154,7 @@ public class LastChangeNumberVirtualAttributeProvider
     }
     catch(Exception e)
     {
-
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
     AttributeValue value =
       AttributeValues.create(
