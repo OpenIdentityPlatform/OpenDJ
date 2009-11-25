@@ -853,6 +853,17 @@ public abstract class Installer extends GuiApplication {
       argList.add("-q");
     }
 
+    String aliasInKeyStore = sec.getAliasToUse();
+    String aliasInTrustStore;
+    if (aliasInKeyStore == null)
+    {
+      aliasInTrustStore = SELF_SIGNED_CERT_ALIAS;
+    }
+    else
+    {
+      aliasInTrustStore = aliasInKeyStore;
+    }
+
     switch (sec.getCertificateType())
     {
     case SELF_SIGNED_CERTIFICATE:
@@ -868,8 +879,11 @@ public abstract class Installer extends GuiApplication {
       argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
       argList.add("-m");
       argList.add(sec.getKeystorePath());
-      argList.add("-a");
-      argList.add(sec.getAliasToUse());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
       break;
     case JCEKS:
       argList.add("-k");
@@ -878,28 +892,37 @@ public abstract class Installer extends GuiApplication {
       argList.add("cn=JCEKS,cn=Trust Manager Providers,cn=config");
       argList.add("-m");
       argList.add(sec.getKeystorePath());
-      argList.add("-a");
-      argList.add(sec.getAliasToUse());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
       break;
     case PKCS12:
       argList.add("-k");
       argList.add("cn=PKCS12,cn=Key Manager Providers,cn=config");
       argList.add("-t");
-      // We are going to import the PCKS12 certificate in a JKS truststore
+      // We are going to import the PCKS12 certificate in a JKS trust store
       argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
       argList.add("-m");
       argList.add(sec.getKeystorePath());
-      argList.add("-a");
-      argList.add(sec.getAliasToUse());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
       break;
     case PKCS11:
       argList.add("-k");
       argList.add("cn=PKCS11,cn=Key Manager Providers,cn=config");
       argList.add("-t");
-      // We are going to import the PCKS11 certificate in a JKS truststore
+      // We are going to import the PCKS11 certificate in a JKS trust store
       argList.add("cn=JKS,cn=Trust Manager Providers,cn=config");
-      argList.add("-a");
-      argList.add(sec.getAliasToUse());
+      if (aliasInKeyStore != null)
+      {
+        argList.add("-a");
+        argList.add(aliasInKeyStore);
+      }
       break;
     case NO_CERTIFICATE:
       // Nothing to do.
@@ -1048,14 +1071,22 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             sec.getKeystorePassword());
-        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
-            getTemporaryCertificatePath());
+        if (aliasInKeyStore != null)
+        {
+          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
+              getTemporaryCertificatePath());
+        }
+        else
+        {
+          SetupUtils.exportCertificate(certManager,
+              getTemporaryCertificatePath());
+        }
 
         trustManager = new CertificateManager(
             getTrustManagerPath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             sec.getKeystorePassword());
-        trustManager.addCertificate(sec.getAliasToUse(),
+        trustManager.addCertificate(aliasInTrustStore,
             new File(getTemporaryCertificatePath()));
         createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
@@ -1066,14 +1097,22 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_JCEKS,
             sec.getKeystorePassword());
-        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
-            getTemporaryCertificatePath());
+        if (aliasInKeyStore != null)
+        {
+          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
+              getTemporaryCertificatePath());
+        }
+        else
+        {
+          SetupUtils.exportCertificate(certManager,
+              getTemporaryCertificatePath());
+        }
 
         trustManager = new CertificateManager(
             getTrustManagerPath(),
             CertificateManager.KEY_STORE_TYPE_JCEKS,
             sec.getKeystorePassword());
-        trustManager.addCertificate(sec.getAliasToUse(),
+        trustManager.addCertificate(aliasInTrustStore,
             new File(getTemporaryCertificatePath()));
         createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
@@ -1084,14 +1123,22 @@ public abstract class Installer extends GuiApplication {
             sec.getKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_PKCS12,
             sec.getKeystorePassword());
-        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
-            getTemporaryCertificatePath());
+        if (aliasInKeyStore != null)
+        {
+          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
+              getTemporaryCertificatePath());
+        }
+        else
+        {
+          SetupUtils.exportCertificate(certManager,
+              getTemporaryCertificatePath());
+        }
 
         trustManager = new CertificateManager(
             getTrustManagerPath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             sec.getKeystorePassword());
-        trustManager.addCertificate(sec.getAliasToUse(),
+        trustManager.addCertificate(aliasInTrustStore,
             new File(getTemporaryCertificatePath()));
         createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         f = new File(getTemporaryCertificatePath());
@@ -1102,14 +1149,22 @@ public abstract class Installer extends GuiApplication {
             CertificateManager.KEY_STORE_PATH_PKCS11,
             CertificateManager.KEY_STORE_TYPE_PKCS11,
             sec.getKeystorePassword());
-        SetupUtils.exportCertificate(certManager, sec.getAliasToUse(),
-            getTemporaryCertificatePath());
+        if (aliasInKeyStore != null)
+        {
+          SetupUtils.exportCertificate(certManager, aliasInKeyStore,
+              getTemporaryCertificatePath());
+        }
+        else
+        {
+          SetupUtils.exportCertificate(certManager,
+              getTemporaryCertificatePath());
+        }
 
         trustManager = new CertificateManager(
             getTrustManagerPath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             sec.getKeystorePassword());
-        trustManager.addCertificate(sec.getAliasToUse(),
+        trustManager.addCertificate(aliasInTrustStore,
             new File(getTemporaryCertificatePath()));
         createProtectedFile(getKeystorePinPath(), sec.getKeystorePassword());
         break;
@@ -3518,7 +3573,7 @@ public abstract class Installer extends GuiApplication {
       if (adsContext.hasAdminData())
       {
         /* Check if there are already global administrators */
-        Set administrators = adsContext.readAdministratorRegistry();
+        Set<?> administrators = adsContext.readAdministratorRegistry();
         if (administrators.size() > 0)
         {
           hasGlobalAdministrators[0] = true;
@@ -3774,7 +3829,7 @@ public abstract class Installer extends GuiApplication {
     if (qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE_OPTIONS) ==
       SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES)
     {
-      Set s = (Set)qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE);
+      Set<?> s = (Set<?>)qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE);
       if (s.size() == 0)
       {
         errorMsgs.add(INFO_NO_SUFFIXES_CHOSEN_TO_REPLICATE.get());
@@ -3835,8 +3890,10 @@ public abstract class Installer extends GuiApplication {
     ArrayList<Message> errorMsgs = new ArrayList<Message>();
     Map<ServerDescriptor, AuthenticationData> servers =
       getUserData().getRemoteWithNoReplicationPort();
-    Map hm = (Map) qs.getFieldValue(FieldName.REMOTE_REPLICATION_PORT);
-    Map hmSecure = (Map) qs.getFieldValue(FieldName.REMOTE_REPLICATION_SECURE);
+    Map<?, ?> hm =
+      (Map<?, ?>) qs.getFieldValue(FieldName.REMOTE_REPLICATION_PORT);
+    Map<?, ?> hmSecure =
+      (Map<?, ?>) qs.getFieldValue(FieldName.REMOTE_REPLICATION_SECURE);
     for (ServerDescriptor server : servers.keySet())
     {
       String hostName = server.getHostName();
@@ -4435,8 +4492,9 @@ public abstract class Installer extends GuiApplication {
       }
       try
       {
-        NamingEnumeration res = ctx.search(dn, filter, searchControls);
-        SearchResult sr = (SearchResult)res.next();
+        NamingEnumeration<SearchResult> res =
+          ctx.search(dn, filter, searchControls);
+        SearchResult sr = res.next();
 
         // Get the number of entries that have been handled and
         // a percentage...
@@ -4729,8 +4787,9 @@ public abstract class Installer extends GuiApplication {
       }
       try
       {
-        NamingEnumeration res = ctx.search(dn, filter, searchControls);
-        SearchResult sr = (SearchResult)res.next();
+        NamingEnumeration<SearchResult> res =
+          ctx.search(dn, filter, searchControls);
+        SearchResult sr = res.next();
         String logMsg = getFirstValue(sr, "ds-task-log-message");
         if (logMsg != null)
         {

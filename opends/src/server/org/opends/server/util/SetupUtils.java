@@ -526,6 +526,34 @@ public class SetupUtils
 
 
   /**
+   * Export a certificate in a file.  It will export the first certificate
+   * defined.  This method is required because of the way.
+   *
+   * @param certManager Certificate manager to use.
+   * @param path Path of the output file.
+   *
+   * @throws CertificateEncodingException If the certificate manager cannot
+   * encode the certificate.
+   * @throws IOException If a problem occurs while creating or writing in the
+   * output file.
+   * @throws KeyStoreException If the certificate manager cannot retrieve the
+   * certificate to be exported.
+   */
+  public static void exportCertificate(
+    CertificateManager certManager, String path)
+    throws CertificateEncodingException, IOException, KeyStoreException
+  {
+    String[] aliases = certManager.getCertificateAliases();
+    Certificate certificate = certManager.getCertificate(aliases[0]);
+
+    byte[] certificateBytes = certificate.getEncoded();
+
+    FileOutputStream outputStream = new FileOutputStream(path, false);
+    outputStream.write(certificateBytes);
+    outputStream.close();
+  }
+
+  /**
    * Export a certificate in a file.
    *
    * @param certManager Certificate manager to use.
