@@ -909,6 +909,21 @@ public class ReplicationServer
     try
     {
       dbEnv.clearGenerationId(baseDn);
+
+      if (this.draftCNDbHandler != null)
+      {
+        try
+        {
+          try
+          {
+            draftCNDbHandler.clear(baseDn);
+          }
+          catch(Exception e){}
+          lastGeneratedDraftCN = draftCNDbHandler.getLastKey();
+        }
+        catch(Exception e) {}
+      }
+
     }
     catch(Exception e)
     {

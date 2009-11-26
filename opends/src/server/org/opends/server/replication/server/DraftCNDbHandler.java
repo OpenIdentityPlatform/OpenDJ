@@ -314,75 +314,114 @@ public class DraftCNDbHandler implements Runnable
     if (trimage == 0)
       return;
 
+    clear(null);
+  }
+
+  /**
+   * Clear the changes from this DB (from both memory cache and DB storage)
+   * for the provided serviceID.
+   * @param serviceIDToClear The serviceID for which we want to remove the
+   *         all records from the DraftCNDb.
+   * @throws DatabaseException When an exception occurs while removing the
+   * changes from the DB.
+   * @throws Exception When an exception occurs while accessing a resource
+   * from the DB.
+   *
+   */
+  public void clear(String serviceIDToClear)
+  throws DatabaseException, Exception
+  {
     if (this.count()==0)
       return;
 
+    int size = 0;
     int tries = 0;
+    boolean finished = false;
     boolean done = false;
-    DraftCNDBCursor cursor = db.openDeleteCursor();
-    try
+
+    // In case of deadlock detection by the Database, this thread can
+    // by aborted by a DeadlockException. This is a transient error and
+    // the transaction should be attempted again.
+    // We will try DEADLOCK_RETRIES times before failing.
+    while ((tries++ < DEADLOCK_RETRIES) && (!done))
     {
-      // In case of deadlock detection by the Database, this thread can
-      // by aborted by a DeadlockException. This is a transient error and
-      // the transaction should be attempted again.
-      // We will try DEADLOCK_RETRIES times before failing.
-      while ((tries++ < DEADLOCK_RETRIES) && (!done))
+      DraftCNDBCursor cursor = db.openDeleteCursor();
+      try
       {
-        // let's traverse the DraftCNDb
-        if (!cursor.next())
-          break;
-
-        // Fomr the draftCNDb change record, get the domain and changeNumber
-        String serviceID = cursor.currentServiceID();
-        ChangeNumber cn = cursor.currentChangeNumber();
-        ReplicationServerDomain domain =
-          replicationServer.getReplicationServerDomain(serviceID, false);
-
-        if (domain==null)
+        while ((size < 5000 ) &&  (!finished))
         {
-          // the domain has been removed since the record was written in the
-          // draftCNDb, thus it makes no sense to keep the record in the
-          // draftCNDb.
-          cursor.delete();
-        }
-        else
-        {
-          // let's get the eligible part of the domain
-          ServerState startSS = domain.getStartState();
-          ServerState endSS   = domain.getEligibleState(
-              replicationServer.getEligibleCN());
-          ChangeNumber fcn = startSS.getMaxChangeNumber(cn.getServerId());
-          ChangeNumber lcn = endSS.getMaxChangeNumber(cn.getServerId());
-
-          // if the draftCNDb change record, is out of the eligible part
-          //  of the domain, then it can be removed.
-          if (cn.older(fcn)||cn.newer(lcn))
+          // let's traverse the DraftCNDb
+          if (!cursor.next())
           {
-            cursor.delete();
+            finished=true;
+          }
+          else
+          {
+            ChangeNumber cn = cursor.currentChangeNumber();
+
+            // From the draftCNDb change record, get the domain and changeNumber
+            String serviceID = cursor.currentServiceID();
+
+            if ((serviceIDToClear!=null) &&
+                (serviceIDToClear.equalsIgnoreCase(serviceID)))
+            {
+              size++;
+              cursor.delete();
+              continue;
+            }
+
+            ReplicationServerDomain domain =
+              replicationServer.getReplicationServerDomain(serviceID, false);
+
+            if (domain==null)
+            {
+              // the domain has been removed since the record was written in the
+              // draftCNDb, thus it makes no sense to keep the record in the
+              // draftCNDb.
+              size++;
+              cursor.delete();
+            }
+            else
+            {
+              // let's get the eligible part of the domain
+              ServerState startSS = domain.getStartState();
+              ServerState endSS   = domain.getEligibleState(
+                  replicationServer.getEligibleCN());
+              ChangeNumber fcn = startSS.getMaxChangeNumber(cn.getServerId());
+              ChangeNumber lcn = endSS.getMaxChangeNumber(cn.getServerId());
+
+              // if the draftCNDb change record, is out of the eligible part
+              //  of the domain, then it can be removed.
+              if (cn.older(fcn)||cn.newer(lcn))
+              {
+                size++;
+                cursor.delete();
+              }
+            }
           }
         }
+        cursor.close();
+        done = true;
       }
-      cursor.close();
-      done = true;
-    }
-    catch (LockConflictException e)
-    {
-      cursor.abort();
-      if (tries == DEADLOCK_RETRIES)
+      catch (LockConflictException e)
       {
-        // could not handle the Deadlock after DEADLOCK_RETRIES tries.
-        // shutdown the ReplicationServer.
+        cursor.abort();
+        if (tries == DEADLOCK_RETRIES)
+        {
+          // could not handle the Deadlock after DEADLOCK_RETRIES tries.
+          // shutdown the ReplicationServer.
+          shutdown = true;
+          throw (e);
+        }
+      }
+      catch (DatabaseException e)
+      {
+        // mark shutdown for this db so that we don't try again to
+        // stop it from cursor.close() or methods called by cursor.close()
         shutdown = true;
+        cursor.abort();
         throw (e);
       }
-    }
-    catch (DatabaseException e)
-    {
-      // mark shutdown for this db so that we don't try again to
-      // stop it from cursor.close() or methods called by cursor.close()
-      shutdown = true;
-      cursor.abort();
-      throw (e);
     }
   }
 
