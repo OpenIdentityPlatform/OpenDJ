@@ -2595,7 +2595,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       // Then initialize the max CN for the LS that produced something
       // - from our own local db state
-      // - whatever they are directly or undirectly connected
+      // - whatever they are directly or indirectly connected
       ServerState dbServerState = getDbServerState();
       wrkMonitorData.setRSState(replicationServer.getServerId(), dbServerState);
       Iterator<Integer> it = dbServerState.iterator();

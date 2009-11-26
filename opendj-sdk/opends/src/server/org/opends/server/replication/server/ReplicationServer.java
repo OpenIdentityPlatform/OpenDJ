@@ -1606,7 +1606,11 @@ public class ReplicationServer
     expectedMonitoringMsg =
       Collections.synchronizedList(new ArrayList<GlobalServerId>());
 
-    for (ReplicationServerDomain domain : baseDNs.values())
+    // Copy the list of domains as a new domain may arrive or disappear between
+    // the initializeMonitorData and completeMonitorData calls
+    List<ReplicationServerDomain> rsdList = new ArrayList(baseDNs.values());
+
+    for (ReplicationServerDomain domain : rsdList)
     {
       domain.initializeMonitorData(expectedMonitoringMsg);
     }
@@ -1614,7 +1618,7 @@ public class ReplicationServer
     // Wait for responses
     waitMonitorDataResponses();
 
-    for (ReplicationServerDomain domain : baseDNs.values())
+    for (ReplicationServerDomain domain : rsdList)
     {
       domain.completeMonitorData();
     }
