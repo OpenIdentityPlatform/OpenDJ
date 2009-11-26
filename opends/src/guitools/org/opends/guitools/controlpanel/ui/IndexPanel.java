@@ -875,9 +875,32 @@ public class IndexPanel extends AbstractIndexPanel
 
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
+        // To add
+        Set<IndexType> toAdd = new TreeSet<IndexType>();
         for (IndexType newType : indexTypes)
         {
-          args.add("--set");
+          if (!indexToModify.getTypes().contains(newType))
+          {
+            toAdd.add(newType);
+          }
+        }
+        // To delete
+        Set<IndexType> toDelete = new TreeSet<IndexType>();
+        for (IndexType oldType : indexToModify.getTypes())
+        {
+          if (!indexTypes.contains(oldType))
+          {
+            toDelete.add(oldType);
+          }
+        }
+        for (IndexType newType : toAdd)
+        {
+          args.add("--add");
+          args.add("index-type:"+newType.toString());
+        }
+        for (IndexType newType : toDelete)
+        {
+          args.add("--remove");
           args.add("index-type:"+newType.toString());
         }
       }
