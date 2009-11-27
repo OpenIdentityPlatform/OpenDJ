@@ -22,19 +22,24 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.swing.JList;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionEvent;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Schema;
 
 /**
  * Abstract class used to refactor some code among the panels that display the
@@ -105,5 +110,74 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     return UnsavedChangesDialog.Result.DO_NOT_SAVE;
+  }
+
+  /**
+   * Method called when there is an object class selected in a list.
+   * @param list the list.
+   */
+  protected void objectClassSelected(JList list)
+  {
+    String o = (String)list.getSelectedValue();
+    if (o != null)
+    {
+      Schema schema = getInfo().getServerDescriptor().getSchema();
+      if (schema != null)
+      {
+        ObjectClass oc = schema.getObjectClass(o.toLowerCase());
+        if (oc != null)
+        {
+          notifySchemaSelectionListeners(oc);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the list of aliases for the provided attribute.
+   * @param attr the attribute.
+   * @return the list of aliases for the provided attribute.
+   */
+  protected Set<String> getAliases(AttributeType attr)
+  {
+    Set<String> aliases = new LinkedHashSet<String>();
+    Iterable<String> ocNames = attr.getNormalizedNames();
+    String primaryName = attr.getPrimaryName();
+    if (primaryName == null)
+    {
+      primaryName = "";
+    }
+    for (String name : ocNames)
+    {
+      if (!name.equalsIgnoreCase(primaryName))
+      {
+        aliases.add(name);
+      }
+    }
+    return aliases;
+  }
+
+  /**
+   * Returns the list of aliases for the provided object class.
+   * @param oc the object class.
+   * @return the list of aliases for the provided object class.
+   */
+  protected Set<String> getAliases(ObjectClass oc)
+  {
+    Set<String> aliases = new LinkedHashSet<String>();
+    Iterable<String> ocNames = oc.getNormalizedNames();
+    String primaryName = oc.getPrimaryName();
+    if (primaryName == null)
+    {
+      primaryName = "";
+    }
+    for (String name : ocNames)
+    {
+      if (!name.equalsIgnoreCase(primaryName))
+      {
+        aliases.add(name);
+      }
+    }
+    return aliases;
   }
 }

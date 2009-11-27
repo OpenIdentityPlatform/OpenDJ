@@ -197,7 +197,8 @@ public class NewAttributePanel extends StatusGenericPanel
    */
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-    ArrayList<AttributeSyntax> newSyntaxes = new ArrayList<AttributeSyntax>();
+    ArrayList<AttributeSyntax<?>> newSyntaxes =
+      new ArrayList<AttributeSyntax<?>>();
 
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
@@ -210,11 +211,11 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       schema = s;
 
-     HashMap<String, AttributeSyntax> syntaxNameMap = new HashMap<String,
-     AttributeSyntax>();
+     HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<String,
+     AttributeSyntax<?>>();
      for (String key : schema.getSyntaxes().keySet())
      {
-       AttributeSyntax syntax = schema.getSyntax(key);
+       AttributeSyntax<?> syntax = schema.getSyntax(key);
        String name = syntax.getSyntaxName();
        if (name == null)
        {
@@ -332,8 +333,8 @@ public class NewAttributePanel extends StatusGenericPanel
         {
           for (int i=0; i<syntax.getModel().getSize(); i++)
           {
-            AttributeSyntax syn =
-              (AttributeSyntax)syntax.getModel().getElementAt(i);
+            AttributeSyntax<?> syn =
+              (AttributeSyntax<?>)syntax.getModel().getElementAt(i);
             if ("DirectoryString".equals(syn.getSyntaxName()))
             {
               syntax.setSelectedIndex(i);
@@ -504,7 +505,7 @@ public class NewAttributePanel extends StatusGenericPanel
       return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
     }
 
-    for (AttributeSyntax attr : schema.getSyntaxes().values())
+    for (AttributeSyntax<?> attr : schema.getSyntaxes().values())
     {
       String n = attr.getSyntaxName();
       if (n != null)
@@ -647,7 +648,6 @@ public class NewAttributePanel extends StatusGenericPanel
         public void stateChanged(ChangeEvent e)
         {
           p.setVisible(expander.isSelected());
-          packParentDialog();
         }
       };
       expander.addChangeListener(changeListener);
@@ -681,7 +681,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private void updateDefaultMatchingRuleNames()
   {
-    AttributeSyntax syn = (AttributeSyntax)syntax.getSelectedItem();
+    AttributeSyntax<?> syn = (AttributeSyntax<?>)syntax.getSelectedItem();
     if (syn != null)
     {
       MatchingRule[] rules = {syn.getApproximateMatchingRule(),
@@ -840,7 +840,7 @@ public class NewAttributePanel extends StatusGenericPanel
         getAllNames(),
         getOID(), description.getText().trim(),
         getSuperior(),
-        (AttributeSyntax)syntax.getSelectedItem(),
+        (AttributeSyntax<?>)syntax.getSelectedItem(),
         getApproximateMatchingRule(),
         getEqualityMatchingRule(),
         getOrderingMatchingRule(),

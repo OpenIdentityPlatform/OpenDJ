@@ -63,7 +63,6 @@ import org.opends.messages.Message;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task that is launched when an entry must be deleted.
@@ -513,7 +512,6 @@ public class DeleteEntryTask extends Task
   private void printEquivalentCommandToDelete(DN dn, boolean usingControl)
   {
     ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLinePath("ldapdelete"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
@@ -523,16 +521,8 @@ public class DeleteEntryTask extends Task
       args.add(ServerConstants.OID_SUBTREE_DELETE_CONTROL);
     }
     args.add(dn.toString());
-    StringBuilder sb = new StringBuilder();
-    for (String arg : args)
-    {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
-    }
-
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ENTRY.get(dn.toString())+
-        "<br><b>"+
-        sb.toString()+"</b><br><br>",
-        ColorAndFontConstants.progressFont));
+    printEquivalentCommandLine(getCommandLinePath("ldapdelete"),
+        args,
+        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ENTRY.get(dn.toString()));
   }
 }

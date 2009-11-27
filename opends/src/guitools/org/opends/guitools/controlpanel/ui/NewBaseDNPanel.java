@@ -878,20 +878,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
              */
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLineFullPath());
-              Collection<String> args =
+              List<String> args =
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_BASE_DN.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLineFullPath(),
+                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_BASE_DN.get());
             }
           });
         }
@@ -1442,12 +1434,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
         StringBuilder sb = new StringBuilder();
         for (List<String> args : argsArray)
         {
-          sb.append(getCommandLinePath("dsconfig"));
-          args = getObfuscatedCommandLineArguments(args);
-          for (String arg : args)
-          {
-            sb.append(" "+CommandBuilder.escapeValue(arg));
-          }
+          sb.append(getEquivalentCommandLine(getCommandLinePath("dsconfig"),
+              getObfuscatedCommandLineArguments(args)));
           sb.append("<br><br>");
         }
         final String cmdLines = sb.toString();

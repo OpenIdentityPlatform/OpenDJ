@@ -71,7 +71,6 @@ import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser;
 import org.opends.server.tools.dsreplication.ReplicationCliException;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
 import org.opends.server.types.DN;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The panel where the user can import the contents of an LDIF file to the
@@ -1021,9 +1020,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     private String getCommandLineToInitializeAll()
     {
-      StringBuilder sb = new StringBuilder();
       String cmdLineName = getCommandLinePath("dsreplication");
-      sb.append(cmdLineName);
       ArrayList<String> args = new ArrayList<String>();
       args.add(
           ReplicationCliArgumentParser.INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
@@ -1044,11 +1041,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       args.add("--trustAll");
       args.add("--no-prompt");
 
-      for (String arg : args)
-      {
-        sb.append(" "+CommandBuilder.escapeValue(arg));
-      }
-      return sb.toString();
+      return Task.getEquivalentCommandLine(cmdLineName, args);
     }
   };
 }

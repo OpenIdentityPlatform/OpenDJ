@@ -716,20 +716,12 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLineName());
-              Collection<String> args =
-                getObfuscatedCommandLineArguments(
-                    getDSConfigCommandLineArguments());
+              List<String> args = getObfuscatedCommandLineArguments(
+                  getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY_VLV_INDEX.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLineName(),
+                  args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY_VLV_INDEX.get());
             }
           });
         }

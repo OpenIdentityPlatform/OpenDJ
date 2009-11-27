@@ -67,7 +67,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * Panel that appears when the user defines a new VLV index.
@@ -286,20 +285,12 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLineName());
-              Collection<String> args =
-                getObfuscatedCommandLineArguments(
-                    getDSConfigCommandLineArguments());
+              List<String> args = getObfuscatedCommandLineArguments(
+                  getDSConfigCommandLineArguments());
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_VLV_INDEX.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLineName(),
+                  args,
+                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_VLV_INDEX.get());
             }
           });
         }

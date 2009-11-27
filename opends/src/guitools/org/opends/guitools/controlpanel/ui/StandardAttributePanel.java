@@ -36,8 +36,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -140,23 +140,6 @@ public class StandardAttributePanel extends SchemaElementPanel
     requiredBy.setVisibleRowCount(5);
     optionalBy.setVisibleRowCount(9);
 
-    Message[] labels = {
-        INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_TYPE_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_APPROXIMATE_MATCHING_RULE_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get(),
-        INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get()
-    };
-    JLabel[] values = {name, parent, oid, aliases, origin, description, usage,
-        syntax, type, approximate, equality, ordering, substring};
     gbc.gridy = 0;
     gbc.gridwidth = 2;
     addErrorPane(c, gbc);
@@ -174,6 +157,25 @@ public class StandardAttributePanel extends SchemaElementPanel
     gbc.gridy ++;
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
+
+    Message[] labels = {
+        INFO_CTRL_PANEL_ATTRIBUTE_NAME_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_PARENT_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_OID_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_ALIASES_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_ORIGIN_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_DESCRIPTION_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_USAGE_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_TYPE_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_APPROXIMATE_MATCHING_RULE_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_EQUALITY_MATCHING_RULE_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_ORDERING_MATCHING_RULE_LABEL.get(),
+        INFO_CTRL_PANEL_ATTRIBUTE_SUBSTRING_MATCHING_RULE_LABEL.get()
+    };
+    JLabel[] values = {name, parent, oid, aliases, origin, description, usage,
+        syntax, type, approximate, equality, ordering, substring};
+
     for (int i=0; i < labels.length; i++)
     {
       gbc.insets.left = 0;
@@ -294,29 +296,16 @@ public class StandardAttributePanel extends SchemaElementPanel
       n = attr.getUsage().toString();
     }
     usage.setText(n);
-    ArrayList<String> otherNames = new ArrayList<String>();
-    Iterable<String> ocNames = attr.getNormalizedNames();
-    String primaryName = attr.getPrimaryName();
-    if (primaryName == null)
+    Set<String> aliases = getAliases(attr);
+    if (!aliases.isEmpty())
     {
-      primaryName = "";
-    }
-    for (String name : ocNames)
-    {
-      if (!name.equalsIgnoreCase(primaryName))
-      {
-        otherNames.add(name);
-      }
-    }
-    if (otherNames.size() > 0)
-    {
-      n = Utilities.getStringFromCollection(otherNames, ", ");
+      n = Utilities.getStringFromCollection(aliases, ", ");
     }
     else
     {
       n = NOT_APPLICABLE.toString();
     }
-    aliases.setText(n);
+    this.aliases.setText(n);
     syntax.setText(Utilities.getSyntaxText(attr.getSyntax()));
     JLabel[] labels = {approximate, equality, ordering, substring};
     MatchingRule[] rules = {attr.getApproximateMatchingRule(),
@@ -406,22 +395,5 @@ public class StandardAttributePanel extends SchemaElementPanel
       i++;
     }
     return mb.toMessage();
-  }
-
-  private void objectClassSelected(JList list)
-  {
-    String o = (String)list.getSelectedValue();
-    if (o != null)
-    {
-      Schema schema = getInfo().getServerDescriptor().getSchema();
-      if (schema != null)
-      {
-        ObjectClass oc = schema.getObjectClass(o.toLowerCase());
-        if (oc != null)
-        {
-          notifySchemaSelectionListeners(oc);
-        }
-      }
-    }
   }
 }

@@ -640,7 +640,6 @@ public class NewObjectClassPanel extends StatusGenericPanel
       public void stateChanged(ChangeEvent e)
       {
         p.setVisible(expander.isSelected());
-        packParentDialog();
       }
     };
     expander.addChangeListener(changeListener);

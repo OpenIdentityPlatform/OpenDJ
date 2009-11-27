@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -65,7 +66,6 @@ import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task used to delete a set of base DNs or backends.
@@ -286,20 +286,12 @@ public class DeleteBaseDNAndBackendTask extends Task
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLinePath(baseDNs));
-              Collection<String> args =
+              List<String> args =
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments(baseDNs));
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BASE_DN.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLinePath(baseDNs),
+                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BASE_DN.get());
             }
           });
         }
@@ -375,20 +367,12 @@ public class DeleteBaseDNAndBackendTask extends Task
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLinePath(backend));
-              Collection<String> args =
+              List<String> args =
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments(backend));
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BACKEND.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLinePath(backend),
+                 args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_BACKEND.get());
             }
           });
         }
@@ -763,23 +747,16 @@ public class DeleteBaseDNAndBackendTask extends Task
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLinePath(baseDN.getBackend()));
-              Collection<String> args =
+              List<String> args =
                 getObfuscatedCommandLineArguments(
                     getCommandLineArgumentsToDisableReplication(domainName[0]));
               args.removeAll(getConfigCommandLineArguments());
               args.add(getNoPropertiesFileArgument());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
+              printEquivalentCommandLine(
+                  getConfigCommandLinePath(baseDN.getBackend()),
+                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(
+                      baseDN.getDn().toString()));
               }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_DOMAIN.get(
-                  baseDN.getDn().toString())+"<br><b>"+
-                  sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
-            }
           });
         }
         SwingUtilities.invokeLater(new Runnable()

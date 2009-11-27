@@ -32,6 +32,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -54,7 +55,6 @@ import org.opends.server.admin.std.client.LocalDBBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The class that is used when a set of indexes must be rebuilt.
@@ -175,26 +175,17 @@ public class RebuildIndexTask extends IndexTask
 
         arguments.toArray(args);
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append(getCommandLinePath("rebuild-index"));
-        Collection<String> displayArgs = getObfuscatedCommandLineArguments(
+        final List<String> displayArgs = getObfuscatedCommandLineArguments(
             getCommandLineArguments(baseDN));
         displayArgs.removeAll(getConfigCommandLineArguments());
-        for (String arg : displayArgs)
-        {
-          sb.append(" "+CommandBuilder.escapeValue(arg));
-        }
-        sb.toString();
-        final ProgressDialog progressDialog = getProgressDialog();
 
         SwingUtilities.invokeLater(new Runnable()
         {
           public void run()
           {
-            progressDialog.appendProgressHtml(Utilities.applyFont(
-                INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_REBUILD_INDEX.get(baseDN)+
-                "<br><b>"+sb.toString()+"</b><br><br>",
-                ColorAndFontConstants.progressFont));
+            printEquivalentCommandLine(getCommandLinePath("rebuild-index"),
+                displayArgs,
+                INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_REBUILD_INDEX.get(baseDN));
           }
         });
 
@@ -309,8 +300,8 @@ public class RebuildIndexTask extends IndexTask
    */
   private void setBackendEnable(final String backendName,
       final boolean enable) throws OpenDsException
-      {
-    ArrayList<String> args = new ArrayList<String>();
+  {
+    final ArrayList<String> args = new ArrayList<String>();
     args.add("set-backend-prop");
     args.add("--backend-name");
     args.add(backendName);
@@ -321,13 +312,6 @@ public class RebuildIndexTask extends IndexTask
     args.add(getNoPropertiesFileArgument());
     args.add("--no-prompt");
 
-    final StringBuilder sb = new StringBuilder();
-    sb.append(getCommandLinePath("dsconfig"));
-    for (String arg : args)
-    {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
-    }
-
     final ProgressDialog progressDialog = getProgressDialog();
 
     SwingUtilities.invokeLater(new Runnable()
@@ -336,20 +320,18 @@ public class RebuildIndexTask extends IndexTask
       {
         if (enable)
         {
-          progressDialog.appendProgressHtml("<br><br>"+Utilities.applyFont(
-              INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ENABLE_BACKEND.get(
-                  backendName)+"<br><b>"+sb.toString()+"</b><br><br>",
-              ColorAndFontConstants.progressFont));
+          printEquivalentCommandLine(getCommandLinePath("dsconfig"),
+              args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ENABLE_BACKEND.get(
+                  backendName));
           progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
               INFO_CTRL_PANEL_ENABLING_BACKEND.get(backendName),
               ColorAndFontConstants.progressFont));
         }
         else
         {
-          progressDialog.appendProgressHtml(Utilities.applyFont(
-              INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DISABLE_BACKEND.get(
-                  backendName)+"<br><b>"+sb.toString()+"</b><br><br>",
-              ColorAndFontConstants.progressFont));
+          printEquivalentCommandLine(getCommandLinePath("dsconfig"),
+              args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DISABLE_BACKEND.get(
+                  backendName));
           progressDialog.appendProgressHtml(Utilities.getProgressWithPoints(
               INFO_CTRL_PANEL_DISABLING_BACKEND.get(backendName),
               ColorAndFontConstants.progressFont));
