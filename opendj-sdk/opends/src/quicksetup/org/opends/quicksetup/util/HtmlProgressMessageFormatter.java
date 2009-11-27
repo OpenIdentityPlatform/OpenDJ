@@ -70,7 +70,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4988885
    */
    private static final Message LINE_BREAK=
-     Message.raw(Constants.HTML_LINE_BREAK+"&#10;");
+     Message.raw("&#10;"+Constants.HTML_LINE_BREAK);
 
   /**
    * Returns the HTML representation of the text without providing any style.

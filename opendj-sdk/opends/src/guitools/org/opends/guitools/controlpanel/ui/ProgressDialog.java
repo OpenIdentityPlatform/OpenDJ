@@ -271,23 +271,14 @@ public class ProgressDialog extends GenericDialog
 
     /**
      * Appends a line to the logs (Details are) section of the panel.  The text
-     * will be preceded by a new line (is similar to println()).
+     * will have a new-line char at the end (is similar to println()).
      * @param msg the HTML formatted text to be appended.
      */
     public void appendErrorLine(String msg)
     {
-      HTMLDocument doc = (HTMLDocument)logs.getDocument();
-      msg = Utilities.applyFont(msg+"<br>", ColorAndFontConstants.progressFont);
-      try
-      {
-        msg = filterForBugID4988885(msg);
-        doc.insertBeforeStart(doc.getElement(LASTID), msg);
-      }
-      catch (Throwable t)
-      {
-        // Bug
-        t.printStackTrace();
-      }
+      msg = filterForBugID4988885(msg+"<br>");
+      msg = Utilities.applyFont(msg, ColorAndFontConstants.progressFont);
+      appendHtml(msg);
     }
 
     /**
@@ -581,7 +572,7 @@ public class ProgressDialog extends GenericDialog
     }
 
     /**
-     * Checks if the 'Close when over' checkbox is selected and if it is the
+     * Checks if the 'Close when over' check box is selected and if it is the
      * case, closes the dialog after waiting for 2 seconds (so that the user
      * can see the result, or cancel the automatic closing of the dialog).
      *
@@ -630,6 +621,6 @@ public class ProgressDialog extends GenericDialog
    */
   private static String filterForBugID4988885(String msg)
   {
-    return msg.replaceAll("<br>", "<br>&#10;");
+    return msg.replaceAll("<br>", "&#10;<br>");
   }
 }
