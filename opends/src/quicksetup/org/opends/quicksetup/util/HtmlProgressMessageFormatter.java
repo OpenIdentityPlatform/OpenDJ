@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -57,12 +57,20 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   /**
    * The constant used to separate parameters in an URL.
    */
-  private String PARAM_SEPARATOR = "&&&&";
+  private static final String PARAM_SEPARATOR = "&&&&";
 
   /**
    * The space in HTML.
    */
-  private static Message SPACE = Message.raw("&nbsp;");
+  private static final Message SPACE = Message.raw("&nbsp;");
+
+  /**
+   * The line break.
+   * The extra char is necessary because of bug:
+   * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4988885
+   */
+   private static final Message LINE_BREAK=
+     Message.raw(Constants.HTML_LINE_BREAK+"&#10;");
 
   /**
    * Returns the HTML representation of the text without providing any style.
@@ -317,7 +325,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     while (root != null)
     {
       stackBuf.append(Utils.getHtml(INFO_EXCEPTION_ROOT_CAUSE.get().toString()))
-              .append(Constants.HTML_LINE_BREAK);
+              .append(getLineBreak());
       stackBuf.append(getHtmlStack(root));
       root = root.getCause();
     }
@@ -330,10 +338,10 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     if (msg != null)
     {
       buf.append(UIFactory.applyFontToHtml(Utils.getHtml(t.getMessage()),
-              UIFactory.PROGRESS_ERROR_FONT)).append(Constants.HTML_LINE_BREAK);
+              UIFactory.PROGRESS_ERROR_FONT)).append(getLineBreak());
     } else
     {
-      buf.append(t.toString()).append(Constants.HTML_LINE_BREAK);
+      buf.append(t.toString()).append(getLineBreak());
     }
     buf.append(getErrorWithStackHtml(openDiv, hideText, showText, stackText,
         closeDiv, false));
@@ -361,7 +369,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getLineBreak()
   {
-    return Message.raw(Constants.HTML_LINE_BREAK);
+    return LINE_BREAK;
   }
 
   /**
@@ -436,7 +444,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     .append(SPACE)
     .append(SPACE)
     .append(Utils.getHtml(ex.toString()))
-    .append(Constants.HTML_LINE_BREAK);
+    .append(getLineBreak());
     StackTraceElement[] stack = ex.getStackTrace();
     for (StackTraceElement aStack : stack) {
       buf.append(SPACE)
@@ -450,7 +458,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
               .append(SPACE)
               .append(SPACE)
               .append(Utils.getHtml(aStack.toString()))
-              .append(Constants.HTML_LINE_BREAK);
+              .append(getLineBreak());
     }
     return buf.toString();
   }
@@ -506,7 +514,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
               .append("\">").append(text).append("</a>");
       if (hide)
       {
-        buf.append(Constants.HTML_LINE_BREAK).append(stackText);
+        buf.append(getLineBreak()).append(stackText);
       }
       buf.append(closeDiv);
 

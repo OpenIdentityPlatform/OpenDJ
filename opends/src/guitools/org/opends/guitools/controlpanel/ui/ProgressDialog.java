@@ -280,6 +280,7 @@ public class ProgressDialog extends GenericDialog
       msg = Utilities.applyFont(msg+"<br>", ColorAndFontConstants.progressFont);
       try
       {
+        msg = filterForBugID4988885(msg);
         doc.insertBeforeStart(doc.getElement(LASTID), msg);
       }
       catch (Throwable t)
@@ -320,6 +321,7 @@ public class ProgressDialog extends GenericDialog
 
       try
       {
+        msg = filterForBugID4988885(msg);
         doc.insertBeforeStart(doc.getElement(LASTID), msg);
       }
       catch (Throwable t)
@@ -618,5 +620,16 @@ public class ProgressDialog extends GenericDialog
         t.start();
       }
     }
+  }
+
+  /**
+   * This is necessary because of bug 4988885.
+   * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4988885
+   * @param msg the message.
+   * @return the message filtered.
+   */
+  private static String filterForBugID4988885(String msg)
+  {
+    return msg.replaceAll("<br>", "<br>&#10;");
   }
 }
