@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -63,7 +63,6 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task that is launched when a schema element must be deleted.
@@ -441,24 +440,25 @@ public class DeleteSchemaElementsTask extends Task
     else
     {
       ArrayList<String> args = new ArrayList<String>();
-      args.add(getCommandLinePath("ldapmodify"));
       args.add("-a");
       args.addAll(getObfuscatedCommandLineArguments(
           getConnectionCommandLineArguments(true, true)));
       args.add(getNoPropertiesFileArgument());
+      String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
+          args);
+
       StringBuilder sb = new StringBuilder();
-      for (String arg : args)
-      {
-        sb.append(" "+CommandBuilder.escapeValue(arg));
-      }
+      sb.append(
+          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_SCHEMA_ELEMENT_ONLINE.get()+
+          "<br><b>");
+      sb.append(equiv);
       sb.append("<br>");
       sb.append("dn: cn=schema<br>");
       sb.append("changetype: modify<br>");
       sb.append("delete: "+attrName+"<br>");
       sb.append(attrName+": "+attrValue);
-      getProgressDialog().appendProgressHtml(Utilities.applyFont(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_SCHEMA_ELEMENT_ONLINE.get()+
-          "<br><b>"+sb.toString()+"</b><br><br>",
+      sb.append("</b><br><br>");
+      getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
           ColorAndFontConstants.progressFont));
     }
   }

@@ -258,5 +258,9 @@ public class ColorAndFontConstants
    * The font to be used in the progress dialog's 'Details' section.
    */
   public static final Font progressFont = UIManager.getFont("EditorPane.font");
+  /**
+   * Specifies the font for the command-line output in the detail panel.
+   */
+  public static final Font outputFont = Font.decode("Monospaced-PLAIN-12");
 
 }

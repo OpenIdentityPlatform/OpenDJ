@@ -795,7 +795,7 @@ public abstract class Task
       boolean isStartTLS = ConnectionUtils.isStartTLS(ctx);
       String bindDN = ConnectionUtils.getBindDN(ctx);
       String bindPwd = ConnectionUtils.getBindPassword(ctx);
-      args.add("--hostname");
+      args.add("--hostName");
       args.add(hostName);
       args.add("--port");
       args.add(String.valueOf(port));
@@ -838,16 +838,10 @@ public abstract class Task
     String cmdLineName = getCommandLinePath();
     if (cmdLineName != null)
     {
-      StringBuilder sb = new StringBuilder();
-      sb.append(cmdLineName);
-      Collection<String> args =
+      List<String> args =
         getObfuscatedCommandLineArguments(getCommandLineArguments());
       args.removeAll(getConfigCommandLineArguments());
-      for (String arg : args)
-      {
-        sb.append(" "+CommandBuilder.escapeValue(arg));
-      }
-      return sb.toString();
+      return getEquivalentCommandLine(cmdLineName, args);
     }
     else
     {
@@ -908,15 +902,15 @@ public abstract class Task
       Collection<ModificationItem> mods, boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
+    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
+        args);
+
     StringBuilder sb = new StringBuilder();
-    for (String arg : args)
-    {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
-    }
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY.get()+"<br><b>");
+    sb.append(equiv);
     sb.append("<br>");
     sb.append("dn: "+dn);
     boolean firstChangeType = true;
@@ -971,9 +965,66 @@ public abstract class Task
         }
       }
     }
+    sb.append("</b><br><br>");
+
     getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY.get().toString()+"<br><b>"+
-        sb.toString()+"</b><br><br>",
+        sb.toString(), ColorAndFontConstants.progressFont));
+  }
+
+  /**
+   * The separator used to link the lines of the resulting command-lines.
+   */
+  private final static String LINE_SEPARATOR;
+  static
+  {
+    if (SetupUtils.isWindows())
+    {
+      LINE_SEPARATOR = "&nbsp;";
+    }
+    else
+    {
+      LINE_SEPARATOR =
+   "&nbsp;\\<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    }
+  }
+
+  /**
+   * Returns the equivalent command line in HTML without font properties.
+   * @param cmdName the command name.
+   * @param args the arguments for the command line.
+   * @return the equivalent command-line in HTML.
+   */
+  public static String getEquivalentCommandLine(String cmdName,
+      List<String> args)
+  {
+    StringBuilder sb = new StringBuilder(cmdName);
+    for (int i=0; i<args.size(); i++)
+    {
+      String arg = args.get(i);
+      if (arg.charAt(0) == '-')
+      {
+        sb.append(LINE_SEPARATOR);
+      }
+      else
+      {
+        sb.append(" ");
+      }
+      sb.append(CommandBuilder.escapeValue(arg));
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Prints the equivalent command line.
+   * @param cmdName the command name.
+   * @param args the arguments for the command line.
+   * @param msg the message associated with the command line.
+   */
+  protected void printEquivalentCommandLine(String cmdName, List<String> args,
+      Message msg)
+  {
+    getProgressDialog().appendProgressHtml(Utilities.applyFont(msg+"<br><b>"+
+        getEquivalentCommandLine(cmdName, args)+"</b><br><br>",
         ColorAndFontConstants.progressFont));
   }
 
@@ -1004,25 +1055,23 @@ public abstract class Task
       boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
+    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
+        args);
     StringBuilder sb = new StringBuilder();
-    for (String arg : args)
-    {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
-    }
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RENAME.get()+"<br><b>");
+    sb.append(equiv);
     sb.append("<br>");
     sb.append("dn: "+oldDN);
     sb.append("<br>");
     sb.append("changetype: moddn<br>");
     sb.append("newrdn: "+newDN.getRDN()+"<br>");
     sb.append("deleteoldrdn: 1");
-
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RENAME.get().toString()+"<br><b>"+
-        sb.toString()+"</b><br><br>",
+    sb.append("</b><br><br>");
+    getProgressDialog().appendProgressHtml(
+        Utilities.applyFont(sb.toString(),
         ColorAndFontConstants.progressFont));
   }
 

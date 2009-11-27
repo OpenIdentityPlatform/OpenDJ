@@ -57,7 +57,6 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task launched when we must create an entry.
@@ -313,16 +312,15 @@ public class NewEntryTask extends Task
   private void printEquivalentCommand()
   {
     ArrayList<String> args = new ArrayList<String>();
-    args.add(getCommandLinePath("ldapmodify"));
     args.addAll(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     args.add("--defaultAdd");
+    String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
+        args);
     StringBuilder sb = new StringBuilder();
-    for (String arg : args)
-    {
-      sb.append(" "+CommandBuilder.escapeValue(arg));
-    }
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ENTRY.get()+"<br><b>");
+    sb.append(equiv);
     sb.append("<br>");
     String[] lines = ldif.split("\n");
     for (String line : lines)
@@ -330,9 +328,8 @@ public class NewEntryTask extends Task
       sb.append(obfuscateLDIFLine(line));
       sb.append("<br>");
     }
-    getProgressDialog().appendProgressHtml(Utilities.applyFont(
-        INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ENTRY.get()+"<br><b>"+
-        sb.toString()+"</b><br><br>",
+    sb.append("</b><br>");
+    getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
         ColorAndFontConstants.progressFont));
   }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -304,6 +304,14 @@ public class UnsavedChangesDialog extends GenericDialog
     public GenericDialog.ButtonType getButtonType()
     {
       return GenericDialog.ButtonType.NO_BUTTON;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isDisposeOnClose()
+    {
+      return true;
     }
   }
 }

@@ -32,6 +32,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -54,7 +55,6 @@ import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * The task that is launched when an index must be deleted.
@@ -187,20 +187,12 @@ public class DeleteIndexTask extends Task
           {
             public void run()
             {
-              StringBuilder sb = new StringBuilder();
-              sb.append(getConfigCommandLineName(index));
-              Collection<String> args =
+             List<String> args =
                 getObfuscatedCommandLineArguments(
                     getDSConfigCommandLineArguments(index));
               args.removeAll(getConfigCommandLineArguments());
-              for (String arg : args)
-              {
-                sb.append(" "+CommandBuilder.escapeValue(arg));
-              }
-              getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                  INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_INDEX.get()+
-                  "<br><b>"+sb.toString()+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
+              printEquivalentCommandLine(getConfigCommandLineName(index),
+                  args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_INDEX.get());
             }
           });
         }

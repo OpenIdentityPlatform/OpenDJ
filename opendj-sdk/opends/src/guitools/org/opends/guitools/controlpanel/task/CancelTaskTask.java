@@ -40,13 +40,10 @@ import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.tools.ManageTasks;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.opends.server.util.cli.CommandBuilder;
 
 /**
  * Task used to cancel tasks in server.
@@ -200,17 +197,10 @@ public class CancelTaskTask extends Task
               getProgressDialog().appendProgressHtml("<br><br>");
             }
             ArrayList<String> args = new ArrayList<String>();
-            args.add(getCommandLinePath("manage-tasks"));
             args.addAll(getObfuscatedCommandLineArguments(arguments));
-            StringBuilder sb = new StringBuilder();
-            for (String arg : args)
-            {
-              sb.append(" "+CommandBuilder.escapeValue(arg));
-            }
-            getProgressDialog().appendProgressHtml(Utilities.applyFont(
-                INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CANCEL_TASK.get(task.getId())+
-                "<br><b>"+sb.toString()+"</b><br><br>",
-                ColorAndFontConstants.progressFont));
+            printEquivalentCommandLine(getCommandLinePath("manage-tasks"),
+                    args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CANCEL_TASK.get(
+                        task.getId()));
           }
         });
 
