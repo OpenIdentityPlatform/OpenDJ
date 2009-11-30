@@ -37,6 +37,9 @@ public class SecurityOptions
 
   private int sslPort = 636;
 
+  /** Alias of a self-signed certificate. */
+  public static final String SELF_SIGNED_CERT_ALIAS = "server-cert";
+
   /**
    * The different type of security options that we can have.
    */
@@ -51,19 +54,19 @@ public class SecurityOptions
      */
     SELF_SIGNED_CERTIFICATE,
     /**
-     * Use an existing JKS keystore.
+     * Use an existing JKS key store.
      */
     JKS,
     /**
-     * Use an existing JCEKS keystore.
+     * Use an existing JCEKS key store.
      */
     JCEKS,
     /**
-     * Use an existing PKCS#11 keystore.
+     * Use an existing PKCS#11 key store.
      */
     PKCS11,
     /**
-     * Use an existing PKCS#12 keystore.
+     * Use an existing PKCS#12 key store.
      */
     PKCS12
   }
@@ -106,7 +109,8 @@ public class SecurityOptions
   {
     SecurityOptions ops = new SecurityOptions();
     ops.setCertificateType(CertificateType.SELF_SIGNED_CERTIFICATE);
-    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort, null);
+    updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
+        SELF_SIGNED_CERT_ALIAS);
     return ops;
   }
 

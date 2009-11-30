@@ -182,9 +182,10 @@ public abstract class Installer extends GuiApplication {
       "org.opends.server.extensions.ConfigFileHandler";
 
   /** Alias of a self-signed certificate. */
-  protected static final String SELF_SIGNED_CERT_ALIAS = "server-cert";
+  protected static final String SELF_SIGNED_CERT_ALIAS =
+    SecurityOptions.SELF_SIGNED_CERT_ALIAS;
 
-  /** The thresold in minutes used to know whether we must display a warning
+  /** The threshold in minutes used to know whether we must display a warning
    * informing that there is a server clock difference between two servers
    * whose contents are being replicated. */
   public static final int WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES = 5;
