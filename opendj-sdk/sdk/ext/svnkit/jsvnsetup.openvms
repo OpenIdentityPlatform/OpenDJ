@@ -1,0 +1,36 @@
+$!
+$ if f$type(java) .nes. "STRING" .or. "''java'" .eqs. ""
+$  then
+$   write SYS$OUTPUT "You must have the JAVA symbol properly set before using this command"
+$   exit
+$  endif
+$ env = f$env("PROCEDURE")
+$ home = f$parse(env,,,"device") + f$parse(env,,,"directory")
+$ define/job/nolog svnkit_home 'home'
+$!
+$ define/job/nolog decc$argv_parse_style enable
+$ define/job/nolog decc$efs_case_preserve enable
+$!
+$ if f$edit(f$trnlnm("DECC$EFS_CASE_SPECIAL"),"UPCASE") .eqs. "ENABLE"
+$ then
+$    write sys$output " "
+$    write sys$output "JSVNSETUP: DECC$EFS_CASE_SPECIAL defined! Please deassign logical otherwise jsvn might not function properly!"
+$    write sys$output " "
+$ endif
+$!
+$!
+$ CP = "/svnkit_home/svnkit.jar"
+$ CP = CP + ":/svnkit_home/svnkit-cli.jar"
+$ CP = CP + ":/svnkit_home/trilead.jar"
+$ CP = CP + ":/svnkit_home/jna.jar"
+$ OPT = ""
+$! OPT = "-Djava.util.logging.config.file=/svnkit_home/logging.properties"
+$!
+$ JV = f$edit(java,"collapse")
+$ jsvn ==      "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svn.SVN"""
+$ jsvnadmin == "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svnadmin.SVNAdmin"""
+$ jsvnlook ==  "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svnlook.SVNLook"""
+$ jsvnsync ==  "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svnsync.SVNSync"""
+$ jsvndumpfilter ==  "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svndumpfilter.SVNDumpFilter"""
+$ jsvnversion ==  "''JV' ''OPT' -cp ''CP' ""org.tmatesoft.svn.cli.svnversion.SVNVersion"""
+$!
