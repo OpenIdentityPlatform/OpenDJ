@@ -119,6 +119,8 @@ public class MultimasterReplication
 
   private boolean isRegistered = false;
 
+  private static boolean initializationCompleted = true;
+
   /**
    * Finds the domain for a given DN.
    *
@@ -268,6 +270,7 @@ public class MultimasterReplication
       ReplicationSynchronizationProviderCfg configuration)
   throws ConfigException
   {
+    initializationCompleted = false;
     domains.clear();
     replicationServerListener = new ReplicationServerListener(configuration);
 
@@ -307,6 +310,8 @@ public class MultimasterReplication
 
     DirectoryServer.registerSupportedControl(
         ReplicationRepairRequestControl.OID_REPLICATION_REPAIR_CONTROL);
+
+    initializationCompleted = true;
   }
 
   /**
@@ -843,6 +848,9 @@ public class MultimasterReplication
    */
   public static boolean isLocalServerId(Integer serverId)
   {
+    if (!initializationCompleted)
+      return true;
+
     for (LDAPReplicationDomain domain : domains.values())
     {
       if (domain.getServerId() == serverId)

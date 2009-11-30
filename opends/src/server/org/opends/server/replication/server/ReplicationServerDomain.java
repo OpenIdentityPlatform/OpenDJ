@@ -164,7 +164,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private MonitorData monitorData = new MonitorData();
   private MonitorData wrkMonitorData;
-  private Object monitorDataLock = new Object();
+  private final Object monitorDataLock = new Object();
 
   /**
    * The needed info for each received assured update message we are waiting

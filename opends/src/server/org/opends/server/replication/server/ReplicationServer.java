@@ -1608,7 +1608,8 @@ public class ReplicationServer
 
     // Copy the list of domains as a new domain may arrive or disappear between
     // the initializeMonitorData and completeMonitorData calls
-    List<ReplicationServerDomain> rsdList = new ArrayList(baseDNs.values());
+    List<ReplicationServerDomain> rsdList =
+                new ArrayList<ReplicationServerDomain>(baseDNs.values());
 
     for (ReplicationServerDomain domain : rsdList)
     {
