@@ -1081,38 +1081,48 @@ public class ConfigureDS
                     INFO_LDAP_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
                 false, false, true, certNickName.getValue());
 
+          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          ConfigEntry configEntry =
+            configHandler.getConfigEntry(ldapListenerDN);
           if (ldapPort.isPresent())
           {
             // Use the key manager specified for the LDAP connection handler.
-            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(ldapListenerDN);
-
             configEntry.putConfigAttribute(certNickNameAttr);
           }
+          else
+          {
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
+          }
 
+          // Use the key manager specified for the LDAPS connection handler.
+          DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          configEntry = configHandler.getConfigEntry(ldapsListenerDN);
           if (ldapsPort.isPresent())
           {
-            // Use the key manager specified for the LDAPS connection handler.
-            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(ldapsListenerDN);
-
             configEntry.putConfigAttribute(certNickNameAttr);
           }
+          else
+          {
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
+          }
 
+          certNickNameAttr = new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME,
+              INFO_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
+                  false, false, true, certNickName.getValue());
+
+          // Use the key manager specified for the JMX connection handler.
+          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          configEntry = configHandler.getConfigEntry(jmxListenerDN);
           if (jmxPort.isPresent())
           {
-            certNickNameAttr = new StringConfigAttribute(ATTR_SSL_CERT_NICKNAME,
-                INFO_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME.get(),
-                    false, false, true, certNickName.getValue());
-
-            // Use the key manager specified for the JMX connection handler.
-            DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(jmxListenerDN);
-
             configEntry.putConfigAttribute(certNickNameAttr);
+          }
+          else
+          {
+            configEntry.removeConfigAttribute(
+                ATTR_SSL_CERT_NICKNAME.toLowerCase());
           }
         }
         catch (Exception e)
@@ -1127,38 +1137,27 @@ public class ConfigureDS
       {
         try
         {
-          if (ldapPort.isPresent())
-          {
-            // Use the key manager specified for the LDAP connection handler.
-            DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(ldapListenerDN);
+          // Use the key manager specified for the LDAP connection handler.
+          DN ldapListenerDN = DN.decode(DN_LDAP_CONNECTION_HANDLER);
+          ConfigEntry configEntry =
+            configHandler.getConfigEntry(ldapListenerDN);
 
-            configEntry.removeConfigAttribute(
-                ATTR_SSL_CERT_NICKNAME.toLowerCase());
-          }
+          configEntry.removeConfigAttribute(
+              ATTR_SSL_CERT_NICKNAME.toLowerCase());
 
-          if (ldapsPort.isPresent())
-          {
-            // Use the key manager specified for the LDAPS connection handler.
-            DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(ldapsListenerDN);
+          // Use the key manager specified for the LDAPS connection handler.
+          DN ldapsListenerDN = DN.decode(DN_LDAPS_CONNECTION_HANDLER);
+          configEntry = configHandler.getConfigEntry(ldapsListenerDN);
 
-            configEntry.removeConfigAttribute(
-                ATTR_SSL_CERT_NICKNAME.toLowerCase());
-          }
+          configEntry.removeConfigAttribute(
+              ATTR_SSL_CERT_NICKNAME.toLowerCase());
 
-          if (jmxPort.isPresent())
-          {
-            // Use the key manager specified for the JMX connection handler.
-            DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
-            ConfigEntry configEntry =
-              configHandler.getConfigEntry(jmxListenerDN);
+          // Use the key manager specified for the JMX connection handler.
+          DN jmxListenerDN = DN.decode(DN_JMX_CONNECTION_HANDLER);
+          configEntry = configHandler.getConfigEntry(jmxListenerDN);
 
-            configEntry.removeConfigAttribute(
-                ATTR_SSL_CERT_NICKNAME.toLowerCase());
-          }
+          configEntry.removeConfigAttribute(
+              ATTR_SSL_CERT_NICKNAME.toLowerCase());
         }
         catch (Exception e)
         {
