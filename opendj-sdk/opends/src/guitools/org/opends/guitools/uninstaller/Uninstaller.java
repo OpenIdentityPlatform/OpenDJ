@@ -1260,7 +1260,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                 beforeRatio);
         deleteRecursively(rootFiles[i], filter);
       }
-      deleteRecursively(instanceFile,filter);
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
     if (!isVerbose())
