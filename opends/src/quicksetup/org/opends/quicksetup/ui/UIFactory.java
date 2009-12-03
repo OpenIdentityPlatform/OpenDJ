@@ -1726,6 +1726,10 @@ public class UIFactory
       tooltip = null;
       break;
 
+    case WAIT:
+      tooltip = null;
+      break;
+
     case NO_ICON:
       tooltip = null;
       break;
