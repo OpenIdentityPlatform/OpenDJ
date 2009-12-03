@@ -2,9 +2,9 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;

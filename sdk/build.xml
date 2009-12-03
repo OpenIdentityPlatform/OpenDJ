@@ -1,0 +1,1206 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+
+<project name="OpenDS LDAP SDK" basedir="." default="package">
+    <description>
+    This is the build script for the OpenDS LDAP SDK.  See the BUILDING
+    file in this directory for build instructions.
+    </description>
+
+    <!-- Build JVM properties -->
+    <property name="MEM" value="512M" />
+
+    <!-- General server-wide properties -->
+    <property name="src.dir" location="src" />
+    <property name="srcgen.dir" location="src-generated" />
+    <property name="build.dir" location="build" />
+    <property name="classes.dir" location="${build.dir}/classes" />
+    <property name="build.lib.dir" location="${build.dir}/lib" />
+    <property name="lib.dir" location="lib" />
+    <property name="ext.dir" location="ext" />
+    <property name="package.dir" location="${build.dir}/package" />
+    <property name="javadoc.dir" location="${build.dir}/javadoc" />
+    <property name="wiki.home" value="https://www.opends.org/wiki" />
+    <property name="resource.dir" location="resource" />
+    <property name="scripts.dir" location="${resource.dir}/bin" />
+    <property name="build.debuglevel" value="lines,vars,source" />
+
+    <!-- Properties for build tools -->
+    <property name="buildtools.src.dir" location="build-tools" />
+    <property name="buildtools.classes.dir"
+              location="${build.dir}/build-tools/classes" />
+
+    <!-- Properties for use in unit testing. -->
+    <property name="unittest.testng.dir" location="tests/unit-tests-testng" />
+    <property name="unittest.testng.src.dir"
+              location="${unittest.testng.dir}/src/sdk" />
+    <property name="unittest.classes.dir"
+              location="${build.dir}/unit-tests/classes" />
+    <property name="unittest.report.dir"
+              location="${build.dir}/unit-tests/report" />
+    <property name="unittest.resource.dir"
+              location="${build.dir}/unit-tests/resource" />
+
+    <!-- Properties for coverage diff reports -->
+    <property name="cvgdiff.dir" location="build/diff" />
+    <property name="cvgdiff.report.dir" location="${cvgdiff.dir}/report" />
+
+    <!-- Properties for code coverage testing. -->
+    <property name="coverage.dir" location="build/coverage" />
+    <property name="coverage.report.dir"
+              location="${coverage.dir}/reports/unit" />
+    <property name="coverage.instr.dir"
+              location="${coverage.dir}/instrumentedcode" />
+    <property name="coverage.data.dir"
+              location="${coverage.dir}/gathereddata" />
+
+    <!-- Properties for the EMMA code coverage tool. -->
+    <property name="emma.dir" location="${ext.dir}/emma/lib" />
+
+    <!-- Properties for the TestNG unit testing  tool. -->
+    <property name="testng.dir" location="${ext.dir}/testng" />
+    <property name="testng.lib.dir" location="${testng.dir}/lib" />
+
+    <!-- Properties for the ANT build tool. -->
+    <property name="ant.dir" location="${ext.dir}/ant" />
+    <property name="ant.lib.dir" location="${ant.dir}/lib" />
+
+    <!-- Properties for the checkstyle tool. -->
+    <property name="checkstyle.dir" location="${ext.dir}/checkstyle" />
+    <property name="checkstyle.cache.dir" location=".checkstyle-cache" />
+
+    <!-- Properties for the SVNKit tool. -->
+    <property name="svnkit.dir" location="${ext.dir}/svnkit" />
+
+    <!-- Properties for OpenDS LDAP SDK version information. -->
+    <property name="dynconstants.file"
+              location="${srcgen.dir}/com/sun/opends/sdk/util/DynamicConstants.java" />
+    <property name="dynconstants.stubfile"
+              location="${resource.dir}/DynamicConstants.java.stubs" />
+    <property file="PRODUCT" />
+
+    <!-- The build target that should be used before committing code. -->
+    <target name="precommit"
+            depends="checkstyle,clean,checkprecommit,testwithcoverage"
+            description="Perform all processing needed before committing code.">
+    </target>
+
+    <!-- The build target that should be used to build everything. -->
+    <target name="all"
+            depends="checkstyle,clean,checkprecommit,srczip,javadoc,testallwithcoverage"
+            description="Build using all defined targets.">
+    </target>
+
+    <!-- Package the OpenDS LDAP SDK for distribution. -->
+    <target name="package"
+            depends="prepackage"
+            description="Package the OpenDS LDAP SDK for distribution.">
+        <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+                        filemode="644"
+                        dirmode="700" />
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
+                        excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                        filemode="644"
+                        dirmode="755" />
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh"
+                        filemode="755"
+                        dirmode="755" />
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*"
+                        excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
+                        filemode="755"
+                        dirmode="755" />
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
+                        filemode="644"
+                        dirmode="755" />
+            <zipfileset dir="${package.dir}"
+                        includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                        filemode="755"
+                        dirmode="755" />
+        </zip>
+        <property name="package.built" value="true" />
+
+        <!-- print a time stamp in Unix 'date' format -->
+        <tstamp>
+            <format property="package.built.ts"
+                    pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
+        </tstamp>
+        <echo message="Package Built: ${package.built.ts}" />
+    </target>
+
+
+    <!-- Generate Java message objects from properties. -->
+    <target name="generatemessages" depends="buildtools">
+        <typedef name="genmsg"
+                 classname="org.opends.build.tools.GenerateMessageFile">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </typedef>
+        <genmsg sourceProps="${src.dir}/com/sun/opends/sdk/util/messages.properties"
+                destJava="${srcgen.dir}/com/sun/opends/sdk/util/Messages.java">
+        </genmsg>
+    </target>
+
+    <!-- Remove all dynamically-generated build files. -->
+    <target name="clean"
+            description="Clean up any files generated during the build process">
+        <delete dir="${build.dir}" />
+        <delete includeemptydirs="true">
+            <fileset dir="${srcgen.dir}" includes="**/*" />
+        </delete>
+    </target>
+
+    <!-- Set the property valid.java.version if the java version is valid. -->
+    <target name="validjavaversion" depends="buildtools">
+        <property name="min.java.version" value="1.5.0_08" />
+        <typedef name="validjavaversion"
+                 classname="org.opends.build.tools.ValidJavaVersion">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </typedef>
+        <condition property="valid.java.version">
+            <validjavaversion minVersion="${min.java.version}" />
+        </condition>
+    </target>
+
+    <!-- Warn if the build java version is too old. -->
+    <target name="checkjavaversion"
+            depends="validjavaversion"
+            unless="valid.java.version">
+        <echo level="warning"
+              message="WARNING: Java version ${java.version} is too old." />
+        <echo level="warning"
+              message="Java version ${min.java.version} or later is required to build ${SHORT_NAME}." />
+    </target>
+
+    <!-- Perform common initialization common to several targets. -->
+    <target name="init">
+        <path id="run.classpath">
+            <pathelement location="${classes.dir}" />
+        </path>
+        <tstamp>
+            <format property="timestamp"
+                    pattern="yyyyMMddHHmmss'Z'"
+                    timezone="UTC" />
+        </tstamp>
+        <condition property="DEBUG_BUILD" value="false">
+            <not>
+                <isset property="DEBUG_BUILD" />
+            </not>
+        </condition>
+        <!--
+         ! For some reason, some Apple VMs put quotes around the value of the
+         ! java.vm.vendor property, which wreaks havoc with DynamicConstants.  This
+         ! pair of conditions attempts to work around that by detecting the quote
+         ! and surrounding the value with backslashes.
+         ! -->
+        <condition property="JVM_VENDOR" value="Apple Computer">
+            <contains string="${java.vm.vendor}"
+                      substring="Apple Computer"
+                      casesensitive="false" />
+        </condition>
+        <condition property="JVM_VENDOR" value="${java.vm.vendor}">
+            <not>
+                <isset property="JVM_VENDOR" />
+            </not>
+        </condition>
+    </target>
+
+    <!-- Build the DynamicConstants.java file and any of its dependencies. -->
+    <target name="dynamicconstants" depends="init,buildtools">
+        <!-- Get the revision number of the current Subversion workspace -->
+        <taskdef name="getsvnrevision"
+                 classname="org.opends.build.tools.GetSubversionRevision">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${svnkit.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <getsvnrevision property="REVISION_NUMBER" />
+
+        <!-- Get the url repo of the current Subversion workspace -->
+        <taskdef name="getsvnurlrepo"
+                 classname="org.opends.build.tools.GetSubversionUrlRepo">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${svnkit.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <getsvnurlrepo property="URL_REPOSITORY" />
+
+        <!-- Construct the version number string -->
+        <taskdef name="getversionnumber"
+                 classname="org.opends.build.tools.CreateVersionString">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <getversionnumber property="VERSION_NUMBER_STRING" />
+
+
+        <!--
+         ! Generate the DynamicConstants.java file.
+         !
+         ! Warning: the .stubs file references the following properties
+         ! PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
+         ! VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
+         ! java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD,
+         ! REVISION_NUMBER, URL_REPOSITORY, VERSION_NUMBER_STRING
+         !
+         ! If you change the name of any of those properties in this build.xml
+         ! you'll need to reflect the same change in the .stubs file
+         ! -->
+        <condition property="BUILD_NUMBER" value="-1">
+            <not>
+                <isset property="BUILD_NUMBER" />
+            </not>
+        </condition>
+
+        <copy file="${dynconstants.stubfile}"
+              tofile="${dynconstants.file}"
+              overwrite="true">
+            <filterchain>
+                <expandproperties />
+            </filterchain>
+        </copy>
+    </target>
+
+    <!-- Check modified files to see if any svn:eol-style or copyright updates
+       are needed. -->
+    <target name="checkprecommit" depends="buildtools">
+        <taskdef name="checkprecommit"
+                 classname="org.opends.build.tools.CheckPrecommit">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${svnkit.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+        <checkprecommit />
+    </target>
+
+    <!-- Ensure that the source code meets basic style requirements. -->
+    <target name="checkstyle">
+        <mkdir dir="${checkstyle.cache.dir}" />
+
+        <taskdef resource="checkstyletask.properties"
+                 classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
+
+        <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+                    failOnViolation="true">
+            <fileset dir="${src.dir}">
+                <include name="**/*.java" />
+            </fileset>
+            <formatter type="plain" />
+        </checkstyle>
+
+        <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
+                    failOnViolation="true">
+            <fileset dir="${src.dir}/org" includes="**/*.java" />
+            <formatter type="plain" />
+        </checkstyle>
+
+        <checkstyle config="${checkstyle.dir}/opends-unittest-checkstyle.xml"
+                    failOnViolation="true">
+            <fileset dir="${unittest.testng.src.dir}" includes="**/*.java" />
+            <formatter type="plain" />
+        </checkstyle>
+    </target>
+
+    <!-- Compile the OpenDS LDAP SDK source files. -->
+    <target name="compile"
+            depends="init,checkjavaversion,dynamicconstants,generatemessages"
+            description="Compile the OpenDS LDAP SDK source files.">
+        <mkdir dir="${classes.dir}" />
+        <mkdir dir="${build.lib.dir}" />
+
+        <javac srcdir="${src.dir}:${srcgen.dir}"
+               destdir="${classes.dir}"
+               debug="on"
+               debuglevel="${build.debuglevel}"
+               source="1.5"
+               target="1.5"
+               deprecation="true"
+               fork="true"
+               memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}">
+            <compilerarg value="-Xlint:all" />
+
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="build-tools.jar" />
+                </fileset>
+                <fileset dir="${build.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties" />
+            <fileset dir="${srcgen.dir}" includes="**/*.properties" />
+        </copy>
+    </target>
+
+    <!-- Populate the OpenDS LDAP SDK package, but don't zip it up. -->
+    <target name="prepackage" depends="clean,compile">
+        <property name="pdir"
+                  location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+
+        <mkdir dir="${pdir}" />
+        <mkdir dir="${pdir}/bat" />
+        <mkdir dir="${pdir}/bin" />
+        <mkdir dir="${pdir}/legal-notices" />
+        <mkdir dir="${pdir}/lib" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
+             basedir="${classes.dir}"
+             excludes="**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
+             basedir="${classes.dir}"
+             includes="**/*_fr.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_ja.jar"
+             basedir="${classes.dir}"
+             includes="**/*_ja.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_de.jar"
+             basedir="${classes.dir}"
+             includes="**/*_de.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_es.jar"
+             basedir="${classes.dir}"
+             includes="**/*_es.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_ko.jar"
+             basedir="${classes.dir}"
+             includes="**/*_ko.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_CN.jar"
+             basedir="${classes.dir}"
+             includes="**/*_zh_CN.properties"
+             compress="true"
+             index="true" />
+
+        <jar jarfile="${pdir}/lib/${SHORT_NAME}_zh_TW.jar"
+             basedir="${classes.dir}"
+             includes="**/*_zh_TW.properties"
+             compress="true"
+             index="true" />
+
+        <copy todir="${pdir}/lib">
+            <fileset file="${lib.dir}/*.jar" />
+        </copy>
+
+        <copy todir="${pdir}/lib">
+            <fileset file="${lib.dir}/*.exe" />
+        </copy>
+
+        <fixcrlf srcDir="${scripts.dir}"
+                 destDir="${pdir}/bin"
+                 excludes="*.bat,_client-script.sh,_script-util.sh"
+                 eol="lf" />
+        <fixcrlf srcDir="${scripts.dir}"
+                 destDir="${pdir}/lib"
+                 includes="_client-script.sh,_script-util.sh"
+                 eol="lf" />
+        <fixcrlf srcDir="${scripts.dir}"
+                 destDir="${pdir}/bat"
+                 excludes="_client-script.bat,_script-util.bat,setcp.bat"
+                 includes="*.bat"
+                 eol="crlf" />
+        <fixcrlf srcDir="${scripts.dir}"
+                 destDir="${pdir}/lib"
+                 includes="_client-script.bat,_script-util.bat,setcp.bat"
+                 eol="crlf" />
+
+        <copy todir="${pdir}/legal-notices">
+            <fileset dir="${resource.dir}/legal-notices" />
+        </copy>
+
+        <copy todir="${pdir}">
+            <fileset file="${resource.dir}/opends_logo.png" />
+        </copy>
+
+        <chmod perm="755">
+            <fileset dir="${pdir}/bin">
+            </fileset>
+        </chmod>
+        <chmod file="${pdir}/lib/_client-script.sh" perm="755" />
+        <chmod file="${pdir}/lib/_script-util.sh" perm="755" />
+    </target>
+
+    <!-- Generate JavaDoc documentation from the source files -->
+    <target name="javadoc" description="Generate JavaDoc documentation.">
+        <mkdir dir="${javadoc.dir}" />
+
+        <javadoc destdir="${javadoc.dir}"
+                 source="1.5"
+                 additionalparam="-quiet"
+                 linksource="yes"
+                 windowtitle="${PRODUCT_NAME} API Documentation"
+                 maxmemory="${MEM}">
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+
+                <dirset dir="${classes.dir}" />
+            </classpath>
+
+            <packageset dir="${src.dir}" />
+        </javadoc>
+    </target>
+
+    <!-- Internal target to prepare to generate a code coverage report. -->
+    <target name="coverage">
+        <property name="coverage.enabled" value="true" />
+
+        <mkdir dir="${coverage.dir}" />
+        <mkdir dir="${coverage.data.dir}" />
+        <mkdir dir="${coverage.instr.dir}" />
+        <mkdir dir="${coverage.report.dir}" />
+
+        <path id="run.classpath">
+            <pathelement location="${classes.dir}" />
+        </path>
+    </target>
+
+    <!-- Prepare to execute the OpenDS LDAP SDK TestNG unit tests. -->
+    <target name="test.OpenDS.package.required" depends="dynamicconstants">
+        <condition property="test.OpenDS.package.required">
+            <available file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip" />
+        </condition>
+    </target>
+
+    <target name="testinit-package"
+            depends="test.OpenDS.package.required"
+            unless="test.OpenDS.package.required">
+        <echo message="Performing full rebuild (no OpenDS zip package found)" />
+        <antcall target="package" />
+    </target>
+
+    <target name="testinit-recompile"
+            depends="test.OpenDS.package.required"
+            if="test.OpenDS.package.required">
+        <echo message="Performing partial rebuild (OpenDS zip package found)" />
+        <mkdir dir="${classes.dir}" />
+
+        <javac srcdir="${src.dir}:${srcgen.dir}"
+               destdir="${classes.dir}"
+               debug="on"
+               debuglevel="${build.debuglevel}"
+               source="1.5"
+               target="1.5"
+               deprecation="true"
+               fork="true"
+               memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}">
+            <compilerarg value="-Xlint:all" />
+
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="build-tools.jar" />
+                </fileset>
+                <fileset dir="${build.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties" />
+            <fileset dir="${srcgen.dir}" includes="**/*.properties" />
+        </copy>
+    </target>
+
+    <target name="testinit" depends="testinit-package,testinit-recompile">
+        <!-- If we are to perform coverage tests, then set that up. -->
+        <path id="emma.lib">
+            <pathelement location="${emma.dir}/emma.jar" />
+            <pathelement location="${emma.dir}/emma_ant.jar" />
+        </path>
+
+        <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+        <emma enabled="${coverage.enabled}">
+            <instr instrpathref="run.classpath"
+                   destdir="${coverage.instr.dir}"
+                   metadatafile="${coverage.data.dir}/metadata.emma"
+                   merge="true" />
+        </emma>
+
+        <!-- Compile the test cases -->
+        <mkdir dir="${unittest.classes.dir}" />
+        <javac srcdir="${unittest.testng.src.dir}"
+               destdir="${unittest.classes.dir}"
+               debug="on"
+               debuglevel="${build.debuglevel}"
+               source="1.5"
+               target="1.5"
+               deprecation="true"
+               fork="true"
+               memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}">
+            <compilerarg value="-Xlint:all" />
+
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <fileset dir="${testng.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <path refid="run.classpath" />
+            </classpath>
+        </javac>
+
+        <copy todir="${unittest.classes.dir}">
+            <fileset dir="${unittest.testng.src.dir}"
+                     includes="**/*.properties" />
+        </copy>
+
+        <!-- Prep the TestNG XML file -->
+
+        <condition property="test.groups" value="exclude=slow">
+            <not>
+                <or>
+                    <isset property="test.groups" />
+                    <isset property="test.packages" />
+                    <isset property="test.classes" />
+                    <isset property="test.methods" />
+                </or>
+            </not>
+        </condition>
+
+        <!-- do not run tests dependent upon creation of the .zip file -->
+        <condition property="test.packages"
+                   value="org.opends.sdk.*,com.sun.opends.sdk.*">
+            <and>
+                <not>
+                    <or>
+                        <isset property="test.packages" />
+                        <isset property="test.classes" />
+                        <isset property="test.methods" />
+                    </or>
+                </not>
+                <not>
+                    <equals arg1="${package.built}" arg2="true" />
+                </not>
+            </and>
+        </condition>
+
+        <!-- run tests dependent upon creation of the .zip file -->
+        <condition property="test.packages"
+                   value="org.opends.sdk.*,com.sun.opends.sdk.*">
+            <and>
+                <not>
+                    <or>
+                        <isset property="test.packages" />
+                        <isset property="test.classes" />
+                        <isset property="test.methods" />
+                    </or>
+                </not>
+                <equals arg1="${package.built}" arg2="true" />
+            </and>
+        </condition>
+
+
+        <condition property="test.classes" value="">
+            <not>
+                <or>
+                    <isset property="test.classes" />
+                    <isset property="test.methods" />
+                </or>
+            </not>
+        </condition>
+
+        <condition property="test.methods" value="">
+            <not>
+                <or>
+                    <isset property="test.methods" />
+                </or>
+            </not>
+        </condition>
+
+        <mkdir dir="${unittest.resource.dir}" />
+        <typedef name="preptestng"
+                 classname="org.opends.build.tools.PrepTestNG"
+                 classpath="${build.dir}/build-tools/build-tools.jar" />
+
+
+        <preptestng file="${testng.dir}/testng.xml"
+                    tofile="${unittest.resource.dir}/testng.xml"
+                    grouplist="${test.groups}"
+                    packagelist="${test.packages}"
+                    classList="${test.classes}"
+                    methodList="${test.methods}" />
+
+        <antcall target="testinit.checkFailedTestsOnly" />
+    </target>
+
+
+
+    <!-- If we were asked to run only the tests that failed,
+      then we overwrite the testng.xml that we just generated
+      with testng-failed.xml, which TestNG generated. -->
+    <target name="testinit.checkFailedTestsOnly" if="test.failures">
+        <!-- Ensure that some of the tests failed last time. -->
+        <available property="testng-failed.xml.exists"
+                   file="${unittest.report.dir}/testng-failed.xml" />
+        <fail message="No unit tests failed in the previous run."
+              unless="testng-failed.xml.exists" />
+
+        <!-- We replace the 'Failed suite [OpenDS]' with 'OpenDS' so we
+         don't end up with 'Failed suite [Failed suite [OpenDS]]]' etc. -->
+        <replace file="${unittest.report.dir}/testng-failed.xml"
+                 token="Failed suite [OpenDS]"
+                 value="OpenDS" />
+        <replace file="${unittest.report.dir}/testng-failed.xml"
+                 token="default(failed)"
+                 value="default" />
+
+        <copy file="${unittest.report.dir}/testng-failed.xml"
+              tofile="${unittest.resource.dir}/testng.xml"
+              overwrite="true" />
+
+        <echo message="Will run the failed unit tests only" />
+    </target>
+
+    <!-- Generate coverage diff report -->
+    <target name="coveragediff">
+        <condition property="test.diff.srcpath" value="">
+            <not>
+                <isset property="test.diff.srcpath" />
+            </not>
+        </condition>
+
+        <condition property="test.diff.enabled" value="true">
+            <not>
+                <isset property="test.diff.disable" />
+            </not>
+        </condition>
+
+        <condition property="test.diff.verbose" value="false">
+            <not>
+                <isset property="test.diff.verbose" />
+            </not>
+        </condition>
+
+        <condition property="test.diff.enabled" value="false">
+            <isset property="test.diff.disable" />
+        </condition>
+
+        <!-- The SVN revision to perform the diff against when calculating
+         the coverage diff.  It can be a revision number, a timestamp,
+         or a revision keyword (BASE, COMMITTED, and PREV make the
+         most sense).  The primary use case for this setting is to do
+         a coverage diff against the previous revision when there are
+         no changes in the working copy.  It defaults to BASE.  -->
+        <condition property="test.diff.from.revision" value="BASE">
+            <not>
+                <isset property="test.diff.from.revision" />
+            </not>
+        </condition>
+
+        <mkdir dir="${cvgdiff.report.dir}" />
+        <taskdef name="coveragediff"
+                 classname="org.opends.build.tools.CoverageDiff">
+            <classpath>
+                <fileset dir="${build.dir}/build-tools">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${emma.dir}">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="${svnkit.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <coveragediff emmadatapath="${coverage.data.dir}"
+                      outputpath="${cvgdiff.report.dir}"
+                      diffpath="${test.diff.srcpath}"
+                      enabled="${test.diff.enabled}"
+                      verbose="${test.diff.verbose}"
+                      fromrevision="${test.diff.from.revision}" />
+
+    </target>
+
+
+
+    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode. -->
+    <target name="enableTestNGAssertions">
+        <property name="TESTASSERT" value="true" />
+    </target>
+
+    <!-- Execute all of the OpenDS LDAP SDK TestNG unit tests in text mode. -->
+    <target name="testall"
+            depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
+            description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
+    </target>
+
+    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode. -->
+    <target name="test"
+            depends="testinit,runtests"
+            description="Execute the OpenDS LDAP SDK TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
+    </target>
+
+    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report. -->
+    <target name="testwithcoverage"
+            depends="coverage,test,coveragediff"
+            description="Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
+    </target>
+
+    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report and slow tests. -->
+    <target name="testallwithcoverage"
+            depends="coverage,testall,coveragediff"
+            description="The same as 'testwithcoverage' except 'testall' is run instead of 'test'.">
+    </target>
+
+    <target name="testhelp" unless="disable.test.help">
+        <echo message="About to run the unit tests.  Ant options to control the tests:" />
+        <echo message="" />
+        <echo message="  -Dorg.opends.test.suppressOutput=false" />
+        <echo message="      writes the unit test output to the screen" />
+        <echo message="" />
+        <echo message="  -Dtest.progress=&quot;default,memory&quot;" />
+        <echo message="      Unless explicity disabled using -Dtest.progress=none, the" />
+        <echo message="      tests provide continuous progress of the tests that are being" />
+        <echo message="      run.  The specific options to set for this property are" />
+        <echo message="" />
+        <echo message="        none:         no progress output" />
+        <echo message="        all:          enables all progress (slows tests)" />
+        <echo message="        default:      same as &quot;time,count,restarts&quot;" />
+        <echo message="        time:         timing information for the tests" />
+        <echo message="        count:        # of run test classes, methods, and invocations" />
+        <echo message="        memory:       running total of memory usage (slows tests)" />
+        <echo message="        threadcount:  running total of active threads" />
+        <echo message="        threadchange: +/- changes for active threads between tests" />
+        <echo message="        restarts:     running total of in-core server restarts" />
+        <echo message="" />
+        <echo message="      To specifying multiple values, nseparate them with ',' and" />
+        <echo message="      quote the entire value.  For instance, when you want the default" />
+        <echo message="      output plus more, do -Dtest.progress=&quot;default,memory&quot;." />
+        <echo message="" />
+        <echo message="      Enabling memory progress slows down the tests significantly." />
+        <echo message="      Include the otherwise undocumented property &quot;gcs&quot; to see how" />
+        <echo message="      much time each progress line spends doing garbage collections" />
+        <echo message="      to get an accurate measure of memory usage." />
+        <echo message="" />
+        <echo message="      A new line of progress is written when TestNG completes running tests" />
+        <echo message="      for a class.  This progress is reported immediately before TestNG" />
+        <echo message="      starts to run the first test of the next class.  All @BeforeClass" />
+        <echo message="      and @BeforeMethod methods will have been invoked for the next" />
+        <echo message="      class as well as the @DataProvider (if any) for the first test method." />
+        <echo message="      Keep this in mind when debugging memory usage, running times, and" />
+        <echo message="      thread creation." />
+        <echo message="" />
+        <echo message="  -Dtestng.verbosity0to5=5" />
+        <echo message="      for example has TestNG dump the maximum amount of debugging" />
+        <echo message="      output to stdout.  This output is useful to check the order" />
+        <echo message="      in which test methods are invoked.  Valid values are integer" />
+        <echo message="      values from 0 (no output) to 5 (maximum output).  Since this" />
+        <echo message="      implicitly sets -Dorg.opends.test.suppressOutput=false," />
+        <echo message="      other stderr/stdout output generated by the unit tests will" />
+        <echo message="      also be displayed." />
+        <echo message="" />
+        <echo message="  -Dorg.opends.test.pauseOnFailure=true" />
+        <echo message="      pauses the test suite whenever a failure occurs allowing you to inspect" />
+        <echo message="      the server more closely in the failure state" />
+        <echo message="" />
+        <echo message="  -Dorg.opends.test.copyClassesToTestPackage=true" />
+        <echo message="      copies the classes into the test server root.  This enables you to run" />
+        <echo message="      the server tools on the test server.  It can slow down the test startup" />
+        <echo message="      so the files are not copied by default." />
+        <echo message="" />
+        <echo message="  -Dtest.failed=true" />
+        <echo message="      runs only the tests that failed last time" />
+        <echo message="" />
+        <echo message="  -Dtest.diff.srcpath=src/org/opends/sdk/requests" />
+        <echo message="      for example includes only the classes in" />
+        <echo message="      src/org/opends/sdk/requests in the coveragediff report." />
+        <echo message="      To list multiple directories or files, separate them with" />
+        <echo message="      a space as you would an argument list to 'svn diff' and quote" />
+        <echo message="      the whole value." />
+        <echo message="" />
+        <echo message="  -Dtest.groups=exclude=slow" />
+        <echo message="      for example excludes the slow tests.  Each value is expected" />
+        <echo message="      group inclusion/exclusion clause which consists of either 'include'" />
+        <echo message="      or 'exclude' followed by the '=' character and then a group name." />
+        <echo message="      For multiple group clauses, separate them with a ',' and " />
+        <echo message="      quote the entire value. Debug logging is disabled." />
+        <echo message="" />
+        <echo message="  -Dtest.packages=org.opends.sdk.requests" />
+        <echo message="      for example runs only the tests in the requests package" />
+        <echo message="      For multiple packages, separate them with a ',' and " />
+        <echo message="      quote the entire value. Debug logging is disabled." />
+        <echo message="" />
+        <echo message="  -Dtest.classes=org.opends.sdk.TestDN" />
+        <echo message="      for example only runs the TestDN class" />
+        <echo message="      For multiple classes, separate them with a ',' and " />
+        <echo message="      quote the entire value. Debug logging is disabled." />
+        <echo message="" />
+        <echo message="  -Dtest.methods=org.opends.sdk.TestDN.testGetRDN" />
+        <echo message="      for example only runs the testGetRDN method" />
+        <echo message="      For multiple methods within the same class, append additional" />
+        <echo message="      method names to the end separating them with a ',' and " />
+        <echo message="      quote the entire value. Debug logging is disabled." />
+        <echo message="" />
+        <echo message="  -Dtest.remote.debug.port=5005" />
+        <echo message="      for example will allow you to remotely debug the unit tests from" />
+        <echo message="      the debugger of your choice by pointing it at port 5005." />
+        <echo message="      The unit tests will not start to run until the debugger is attached" />
+        <echo message="      unless you also specify -Dtest.remote.debug.suspend=n." />
+        <echo message="" />
+    </target>
+
+
+
+    <!-- Internal target to execute the OpenDS LDAP SDK TestNG unit tests in text mode after everything has been initialized. -->
+    <target name="runtests">
+        <antcall target="testhelp" />
+
+        <mkdir dir="${unittest.report.dir}" />
+
+        <taskdef resource="testngtasks">
+            <classpath>
+                <fileset dir="${testng.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <!-- This sets TESTASSERT to false if and only if it's not already set. -->
+        <condition property="TESTASSERT" value="false">
+            <not>
+                <isset property="TESTASSERT" />
+            </not>
+        </condition>
+
+        <!-- This sets testng.verbosity if it's not already set. -->
+        <condition property="testng.verbosity0to5" value="0">
+            <not>
+                <isset property="testng.verbosity0to5" />
+            </not>
+        </condition>
+
+        <!-- This sets unsuppresses the test output if and only if testng
+         is configured to dump debug output. -->
+        <condition property="org.opends.test.suppressOutput" value="false">
+            <not>
+                <equals arg1="${testng.verbosity0to5}" arg2="0" />
+            </not>
+        </condition>
+
+        <!-- This sets org.opends.test.suppressOutput if and only if it's not
+         already set. -->
+        <condition property="org.opends.test.suppressOutput" value="true">
+            <not>
+                <isset property="org.opends.test.suppressOutput" />
+            </not>
+        </condition>
+
+        <!-- This sets org.opends.test.pauseOnFailure if and only if it's not
+         already set. -->
+        <condition property="org.opends.test.pauseOnFailure" value="false">
+            <not>
+                <isset property="org.opends.test.pauseOnFailure" />
+            </not>
+        </condition>
+
+        <condition property="org.opends.test.copyClassesToTestPackage"
+                   value="false">
+            <not>
+                <isset property="org.opends.test.copyClassesToTestPackage" />
+            </not>
+        </condition>
+
+        <condition property="test.progress" value="">
+            <not>
+                <isset property="test.progress" />
+            </not>
+        </condition>
+
+
+        <!-- If the debug port was set, we pass these options into the <testng> target below:
+           -Xdebug
+           -Xnoagent
+           -Djava.compiler=NONE
+           -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005
+     -->
+        <condition property="test.remote.debug.suspend" value="y">
+            <not>
+                <isset property="test.remote.debug.suspend" />
+            </not>
+        </condition>
+        <condition property="jvm.debug.arg1"
+                   value="-Xdebug"
+                   else="-Dopends.bogus.debug.arg1">
+            <isset property="test.remote.debug.port" />
+        </condition>
+        <condition property="jvm.debug.arg2"
+                   value="-Xnoagent"
+                   else="-Dopends.bogus.debug.arg2">
+            <isset property="test.remote.debug.port" />
+        </condition>
+        <condition property="jvm.debug.arg3"
+                   value="-Djava.compiler=NONE"
+                   else="-Dopends.bogus.debug.arg3">
+            <isset property="test.remote.debug.port" />
+        </condition>
+        <condition property="jvm.debug.arg4"
+                   value="-Xrunjdwp:transport=dt_socket,server=y,suspend=${test.remote.debug.suspend},address=${test.remote.debug.port}"
+                   else="-Dopends.bogus.debug.arg4">
+            <isset property="test.remote.debug.port" />
+        </condition>
+
+
+        <!-- Cleanout the old reports.  Otherwise, the old testng-failed.xml
+         will hang around even if all of the tests pass. -->
+        <delete>
+            <fileset dir="${unittest.report.dir}" includes="*" />
+        </delete>
+
+        <!-- Our testng listener will remove this file if all of the
+         tests passed.  This allows us to generate the coverage
+         report even if the tests failed and still fail the build. -->
+        <touch file="${unittest.report.dir}/.tests-failed-marker" />
+
+        <testng outputdir="${unittest.report.dir}"
+                haltonfailure="false"
+                verbose="${testng.verbosity0to5}"
+                enableAssert="${TESTASSERT}"
+                listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter"
+                useDefaultListeners="false"
+                suiteRunnerClass="org.opends.server.SuiteRunner">
+            <classpath>
+                <pathelement location="${coverage.instr.dir}" />
+                <pathelement location="${classes.dir}" />
+                <pathelement location="${unittest.classes.dir}" />
+                <pathelement location="${resource.dir}" />
+                <path refid="run.classpath" />
+                <path refid="emma.lib" />
+
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <fileset dir="${testng.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+            </classpath>
+            <jvmarg value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
+            <jvmarg value="-Demma.coverage.out.merge=false" />
+            <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
+            <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
+            <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=${org.opends.test.copyClassesToTestPackage}" />
+            <jvmarg value="-Dtest.progress=${test.progress}" />
+            <jvmarg value="-Xms${MEM}" />
+            <jvmarg value="-Xmx${MEM}" />
+            <jvmarg value="${jvm.debug.arg1}" />
+            <jvmarg value="${jvm.debug.arg2}" />
+            <jvmarg value="${jvm.debug.arg3}" />
+            <jvmarg value="${jvm.debug.arg4}" />
+            <xmlfileset dir="${unittest.resource.dir}" includes="testng.xml" />
+        </testng>
+
+        <!-- Our testng listener will create this file if any of the
+         tests failed.  This allows us to generate the coverage
+         report even if the tests failed. -->
+        <available property="testng.tests.failed"
+                   file="${unittest.report.dir}/.tests-failed-marker" />
+
+        <!-- Delete all of the report suite sub-directories since we only
+         have a single suite. -->
+        <delete dir="${unittest.report.dir}/${SHORT_NAME}" />
+
+        <emma enabled="${coverage.enabled}">
+            <report sourcepath="${src.dir}">
+                <fileset dir="${coverage.data.dir}">
+                    <include name="unit.emma" />
+                    <include name="metadata.emma" />
+                </fileset>
+
+                <txt outfile="${coverage.report.dir}/coverage.txt" />
+                <html outfile="${coverage.report.dir}/index.html" />
+                <xml outfile="${coverage.report.dir}/coverage.xml" />
+            </report>
+
+        </emma>
+
+        <!-- We delay failing until after the coverage report is generated. -->
+        <fail message="The unit tests failed." if="testng.tests.failed" />
+
+    </target>
+
+    <target name="prepdefaultalltest">
+        <condition property="test.groups" value="">
+            <not>
+                <or>
+                    <isset property="test.groups" />
+                    <isset property="test.packages" />
+                    <isset property="test.classes" />
+                    <isset property="test.methods" />
+                </or>
+            </not>
+        </condition>
+    </target>
+
+    <target name="testreport" depends="test">
+        <junitreport todir="${unittest.report.dir}">
+            <fileset dir="${unittest.report.dir}">
+                <include name="*.xml" />
+            </fileset>
+
+            <report format="noframes" todir="${unittest.report.dir}" />
+        </junitreport>
+    </target>
+
+    <target name="buildtools" depends="init">
+
+        <mkdir dir="${buildtools.classes.dir}" />
+
+        <copy file="${resource.dir}/Messages.java.stub"
+              todir="${buildtools.classes.dir}/org/opends/build/tools/resource" />
+
+        <!--
+        <javac srcdir="${srcgen.dir}"
+               destdir="${buildtools.classes.dir}"
+               debug="on"
+               debuglevel="${build.debuglevel}"
+               source="1.5"
+               target="1.5"
+               deprecation="true"
+               fork="true"
+               memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}" />
+        -->
+        <javac srcdir="${buildtools.src.dir}"
+               destdir="${buildtools.classes.dir}"
+               debug="on"
+               debuglevel="${build.debuglevel}"
+               source="1.5"
+               target="1.5"
+               deprecation="true"
+               fork="true"
+               memoryInitialSize="${MEM}"
+               memoryMaximumSize="${MEM}">
+            <compilerarg value="-Xlint:all" />
+
+            <classpath>
+                <fileset dir="${ant.lib.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <fileset dir="${emma.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <fileset dir="${svnkit.dir}">
+                    <include name="*.jar" />
+                </fileset>
+
+                <path refid="run.classpath" />
+            </classpath>
+        </javac>
+
+        <jar jarfile="${build.dir}/build-tools/build-tools.jar"
+             basedir="${buildtools.classes.dir}"
+             compress="true"
+             index="true" />
+    </target>
+
+    <!-- Generate a src.zip file containing all the sdk source. -->
+    <target name="srczip"
+            description="Generate a src.zip file with all the sdk source.">
+        <zip destfile="${build.dir}/src.zip">
+            <zipfileset dir="${src.dir}"
+                        excludes="**/.svn"
+                        filemode="644"
+                        dirmode="755" />
+            <zipfileset dir="${srcgen.dir}"
+                        excludes="**/.svn"
+                        filemode="644"
+                        dirmode="755" />
+        </zip>
+    </target>
+</project>

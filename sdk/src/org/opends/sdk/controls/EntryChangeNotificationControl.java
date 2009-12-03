@@ -2,16 +2,16 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ECN_ILLEGAL_PREVIOUS_DN;
-import static org.opends.messages.ProtocolMessages.ERR_ECN_NO_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ECN_CANNOT_DECODE_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ECN_ILLEGAL_PREVIOUS_DN;
+import static com.sun.opends.sdk.util.Messages.ERR_ECN_NO_CONTROL_VALUE;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_INTEGER_TYPE;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;

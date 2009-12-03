@@ -28,14 +28,14 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -100,7 +100,7 @@ abstract class Argument
 
   /**
    * Creates a new argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -177,7 +177,7 @@ abstract class Argument
   /**
    * Retrieves the generic name that will be used to refer to this
    * argument.
-   * 
+   *
    * @return The generic name that will be used to refer to this
    *         argument.
    */
@@ -191,7 +191,7 @@ abstract class Argument
   /**
    * Retrieves the single-character identifier that may be used to
    * specify the value of this argument.
-   * 
+   *
    * @return The single-character identifier that may be used to specify
    *         the value of this argument, or <CODE>null</CODE> if there
    *         is none.
@@ -206,7 +206,7 @@ abstract class Argument
   /**
    * Retrieves the long (multi-character) identifier that may be used to
    * specify the value of this argument.
-   * 
+   *
    * @return The long (multi-character) identifier that may be used to
    *         specify the value of this argument.
    */
@@ -220,7 +220,7 @@ abstract class Argument
   /**
    * Indicates whether this argument is required to have at least one
    * value.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument is required to have at
    *         least one value, or <CODE>false</CODE> if it does not need
    *         to have a value.
@@ -235,7 +235,7 @@ abstract class Argument
   /**
    * Specifies whether this argument is required to have at least one
    * value.
-   * 
+   *
    * @param isRequired
    *          Indicates whether this argument is required to have at
    *          least one value.
@@ -250,7 +250,7 @@ abstract class Argument
   /**
    * Indicates whether this argument is present in the parsed set of
    * command-line arguments.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument is present in the parsed
    *         set of command-line arguments, or <CODE>false</CODE> if
    *         not.
@@ -265,7 +265,7 @@ abstract class Argument
   /**
    * Specifies whether this argument is present in the parsed set of
    * command-line arguments.
-   * 
+   *
    * @param isPresent
    *          Indicates whether this argument is present in the set of
    *          command-line arguments.
@@ -280,7 +280,7 @@ abstract class Argument
   /**
    * Indicates whether this argument should be hidden from the usage
    * information.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument should be hidden from
    *         the usage information, or <CODE>false</CODE> if not.
    */
@@ -294,7 +294,7 @@ abstract class Argument
   /**
    * Specifies whether this argument should be hidden from the usage
    * information.
-   * 
+   *
    * @param isHidden
    *          Indicates whether this argument should be hidden from the
    *          usage information.
@@ -309,7 +309,7 @@ abstract class Argument
   /**
    * Indicates whether this argument may be provided more than once on
    * the command line to specify multiple values.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument may be provided more
    *         than once on the command line to specify multiple values,
    *         or <CODE>false</CODE> if it may have at most one value.
@@ -324,7 +324,7 @@ abstract class Argument
   /**
    * Specifies whether this argument may be provided more than once on
    * the command line to specify multiple values.
-   * 
+   *
    * @param isMultiValued
    *          Indicates whether this argument may be provided more than
    *          once on the command line to specify multiple values.
@@ -339,7 +339,7 @@ abstract class Argument
   /**
    * Indicates whether a value must be provided with this argument if it
    * is present.
-   * 
+   *
    * @return <CODE>true</CODE> if a value must be provided with the
    *         argument if it is present, or <CODE>false</CODE> if the
    *         argument does not take a value and the presence of the
@@ -357,7 +357,7 @@ abstract class Argument
    * Specifies whether a value must be provided with this argument if it
    * is present. If this is changed from <CODE>false</CODE> to
    * <CODE>true</CODE>, then a value placeholder must also be provided.
-   * 
+   *
    * @param needsValue
    *          Indicates whether a value must be provided with this
    *          argument if it is present.
@@ -372,7 +372,7 @@ abstract class Argument
   /**
    * Retrieves the value placeholder that will be displayed for this
    * argument in the generated usage information.
-   * 
+   *
    * @return The value placeholder that will be displayed for this
    *         argument in the generated usage information, or
    *         <CODE>null</CODE> if there is none.
@@ -389,7 +389,7 @@ abstract class Argument
    * argument in the generated usage information. It may be
    * <CODE>null</CODE> only if <CODE>needsValue()</CODE> returns
    * <CODE>false</CODE>.
-   * 
+   *
    * @param valuePlaceholder
    *          The value placeholder that will be displayed for this
    *          argument in the generated usage information.
@@ -405,7 +405,7 @@ abstract class Argument
    * Retrieves the default value that will be used for this argument if
    * it is not specified on the command line and it is not set from a
    * properties file.
-   * 
+   *
    * @return The default value that will be used for this argument if it
    *         is not specified on the command line and it is not set from
    *         a properties file, or <CODE>null</CODE> if there is no
@@ -422,7 +422,7 @@ abstract class Argument
    * Specifies the default value that will be used for this argument if
    * it is not specified on the command line and it is not set from a
    * properties file.
-   * 
+   *
    * @param defaultValue
    *          The default value that will be used for this argument if
    *          it is not specified on the command line and it is not set
@@ -442,7 +442,7 @@ abstract class Argument
    * returned from the <CODE>getDefaultValue</CODE>, but the properties
    * file value will be overridden by a value supplied on the command
    * line.
-   * 
+   *
    * @return The name of a property in a properties file that may be
    *         used to set the default value for this argument if it is
    *         present.
@@ -457,7 +457,7 @@ abstract class Argument
   /**
    * Specifies the name of a property in a properties file that may be
    * used to set the default value for this argument if it is present.
-   * 
+   *
    * @param propertyName
    *          The name of a property in a properties file that may be
    *          used to set the default value for this argument if it is
@@ -473,7 +473,7 @@ abstract class Argument
   /**
    * Indicates whether this argument was provided in the set of
    * properties found is a properties file.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument was provided in the set
    *         of properties found is a properties file, or
    *         <CODE>false</CODE> if not.
@@ -488,7 +488,7 @@ abstract class Argument
   /**
    * Specifies whether this argument was provided in the set of
    * properties found is a properties file.
-   * 
+   *
    * @param isValueSetByProperty
    *          Specify whether this argument was provided in the set of
    *          properties found is a properties file.
@@ -502,7 +502,7 @@ abstract class Argument
 
   /**
    * Retrieves the human-readable description for this argument.
-   * 
+   *
    * @return The human-readable description for this argument.
    */
   public Message getDescription()
@@ -514,7 +514,7 @@ abstract class Argument
 
   /**
    * Indicates whether this argument has at least one value.
-   * 
+   *
    * @return <CODE>true</CODE> if this argument has at least one value,
    *         or <CODE>false</CODE> if it does not have any values.
    */
@@ -529,7 +529,7 @@ abstract class Argument
    * Retrieves the string vale for this argument. If it has multiple
    * values, then the first will be returned. If it does not have any
    * values, then the default value will be returned.
-   * 
+   *
    * @return The string value for this argument, or <CODE>null</CODE> if
    *         there are no values and no default value has been given.
    */
@@ -547,7 +547,7 @@ abstract class Argument
 
   /**
    * Retrieves the set of string values for this argument.
-   * 
+   *
    * @return The set of string values for this argument.
    */
   public LinkedList<String> getValues()
@@ -559,7 +559,7 @@ abstract class Argument
 
   /**
    * Retrieves the value of this argument as an integer.
-   * 
+   *
    * @return The value of this argument as an integer.
    * @throws ArgumentException
    *           If there are multiple values, or the value cannot be
@@ -604,7 +604,7 @@ abstract class Argument
   /**
    * Retrieves the set of values for this argument as a list of
    * integers.
-   * 
+   *
    * @return A list of the integer representations of the values for
    *         this argument.
    * @throws ArgumentException
@@ -638,7 +638,7 @@ abstract class Argument
 
   /**
    * Retrieves the value of this argument as an integer.
-   * 
+   *
    * @return The value of this argument as an integer.
    * @throws ArgumentException
    *           If there are multiple values, or the value cannot be
@@ -683,7 +683,7 @@ abstract class Argument
   /**
    * Retrieves the set of values for this argument as a list of
    * integers.
-   * 
+   *
    * @return A list of the integer representations of the values for
    *         this argument.
    * @throws ArgumentException
@@ -717,7 +717,7 @@ abstract class Argument
 
   /**
    * Retrieves the value of this argument as a <CODE>Boolean</CODE>.
-   * 
+   *
    * @return The value of this argument as a <CODE>Boolean</CODE>.
    * @throws ArgumentException
    *           If this argument cannot be interpreted as a Boolean
@@ -768,7 +768,7 @@ abstract class Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
@@ -786,7 +786,7 @@ abstract class Argument
    * Adds a value to the set of values for this argument. This should
    * only be called if the value is allowed by the
    * <CODE>valueIsAcceptable</CODE> method.
-   * 
+   *
    * @param valueString
    *          The string representation of the value to add to this
    *          argument.

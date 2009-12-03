@@ -29,7 +29,7 @@ package org.opends.sdk.util;
 
 
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

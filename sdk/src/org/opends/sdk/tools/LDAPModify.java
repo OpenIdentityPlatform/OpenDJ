@@ -29,9 +29,9 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
+import static org.opends.sdk.tools.Utils.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.ldif.*;
@@ -52,7 +51,8 @@ import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 
@@ -63,8 +63,11 @@ import org.opends.server.util.cli.ConsoleApplication;
 public final class LDAPModify extends ConsoleApplication
 {
   private Connection connection;
+
   private EntryWriter writer;
+
   private Collection<Control> controls;
+
   private BooleanArgument verbose;
 
 
@@ -144,9 +147,8 @@ public final class LDAPModify extends ConsoleApplication
     // Create the command-line argument parser for use with this
     // program.
     Message toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-        new ArgumentParser(LDAPModify.class.getName(), toolDescription,
-            false);
+    ArgumentParser argParser = new ArgumentParser(LDAPModify.class
+        .getName(), toolDescription, false);
     ArgumentParserConnectionFactory connectionFactory;
 
     BooleanArgument continueOnError;
@@ -167,112 +169,96 @@ public final class LDAPModify extends ConsoleApplication
 
     try
     {
-      connectionFactory =
-          new ArgumentParserConnectionFactory(argParser, this);
-      propertiesFileArgument =
-          new StringArgument("propertiesFilePath", null,
-              OPTION_LONG_PROP_FILE_PATH, false, false, true,
-              INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      connectionFactory = new ArgumentParserConnectionFactory(
+          argParser, this);
+      propertiesFileArgument = new StringArgument("propertiesFilePath",
+          null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
+          INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      noPropertiesFileArgument =
-          new BooleanArgument("noPropertiesFileArgument", null,
-              OPTION_LONG_NO_PROP_FILE, INFO_DESCRIPTION_NO_PROP_FILE
-                  .get());
+      noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      defaultAdd =
-          new BooleanArgument("defaultAdd", 'a', "defaultAdd",
-              INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
+      defaultAdd = new BooleanArgument("defaultAdd", 'a', "defaultAdd",
+          INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
       argParser.addArgument(defaultAdd);
 
-      filename =
-          new StringArgument("filename", OPTION_SHORT_FILENAME,
-              OPTION_LONG_FILENAME, false, false, true,
-              INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
+      filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
+          OPTION_LONG_FILENAME, false, false, true,
+          INFO_FILE_PLACEHOLDER.get(), null, null,
+          INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
       filename.setPropertyName(OPTION_LONG_FILENAME);
       argParser.addArgument(filename);
 
-      proxyAuthzID =
-          new StringArgument("proxy_authzid", OPTION_SHORT_PROXYAUTHID,
-              OPTION_LONG_PROXYAUTHID, false, false, true,
-              INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_PROXY_AUTHZID.get());
+      proxyAuthzID = new StringArgument("proxy_authzid",
+          OPTION_SHORT_PROXYAUTHID, OPTION_LONG_PROXYAUTHID, false,
+          false, true, INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_PROXY_AUTHZID.get());
       proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
       argParser.addArgument(proxyAuthzID);
 
-      assertionFilter =
-          new StringArgument("assertionfilter", null,
-              OPTION_LONG_ASSERTION_FILE, false, false, true,
-              INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_ASSERTION_FILTER.get());
+      assertionFilter = new StringArgument("assertionfilter", null,
+          OPTION_LONG_ASSERTION_FILE, false, false, true,
+          INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_ASSERTION_FILTER.get());
       assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
       argParser.addArgument(assertionFilter);
 
-      preReadAttributes =
-          new StringArgument("prereadattrs", null, "preReadAttributes",
-              false, false, true,
-              INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_PREREAD_ATTRS.get());
+      preReadAttributes = new StringArgument("prereadattrs", null,
+          "preReadAttributes", false, false, true,
+          INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_PREREAD_ATTRS.get());
       preReadAttributes.setPropertyName("preReadAttributes");
       argParser.addArgument(preReadAttributes);
 
-      postReadAttributes =
-          new StringArgument("postreadattrs", null,
-              "postReadAttributes", false, false, true,
-              INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_POSTREAD_ATTRS.get());
+      postReadAttributes = new StringArgument("postreadattrs", null,
+          "postReadAttributes", false, false, true,
+          INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_POSTREAD_ATTRS.get());
       postReadAttributes.setPropertyName("postReadAttributes");
       argParser.addArgument(postReadAttributes);
 
-      controlStr =
-          new StringArgument("control", 'J', "control", false, true,
-              true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_CONTROLS.get());
+      controlStr = new StringArgument("control", 'J', "control", false,
+          true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
-      version =
-          new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-              OPTION_LONG_PROTOCOL_VERSION, false, false, true,
-              INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
-              INFO_DESCRIPTION_VERSION.get());
+      version = new IntegerArgument("version",
+          OPTION_SHORT_PROTOCOL_VERSION, OPTION_LONG_PROTOCOL_VERSION,
+          false, false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(),
+          3, null, INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      encodingStr =
-          new StringArgument("encoding", 'i', "encoding", false, false,
-              true, INFO_ENCODING_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_ENCODING.get());
+      encodingStr = new StringArgument("encoding", 'i', "encoding",
+          false, false, true, INFO_ENCODING_PLACEHOLDER.get(), null,
+          null, INFO_DESCRIPTION_ENCODING.get());
       encodingStr.setPropertyName("encoding");
       argParser.addArgument(encodingStr);
 
-      continueOnError =
-          new BooleanArgument("continueOnError", 'c',
-              "continueOnError", INFO_DESCRIPTION_CONTINUE_ON_ERROR
-                  .get());
+      continueOnError = new BooleanArgument("continueOnError", 'c',
+          "continueOnError", INFO_DESCRIPTION_CONTINUE_ON_ERROR.get());
       continueOnError.setPropertyName("continueOnError");
       argParser.addArgument(continueOnError);
 
-      noop =
-          new BooleanArgument("no-op", OPTION_SHORT_DRYRUN,
-              OPTION_LONG_DRYRUN, INFO_DESCRIPTION_NOOP.get());
+      noop = new BooleanArgument("no-op", OPTION_SHORT_DRYRUN,
+          OPTION_LONG_DRYRUN, INFO_DESCRIPTION_NOOP.get());
       noop.setPropertyName(OPTION_LONG_DRYRUN);
       argParser.addArgument(noop);
 
-      verbose =
-          new BooleanArgument("verbose", 'v', "verbose",
-              INFO_DESCRIPTION_VERBOSE.get());
+      verbose = new BooleanArgument("verbose", 'v', "verbose",
+          INFO_DESCRIPTION_VERBOSE.get());
       verbose.setPropertyName("verbose");
       argParser.addArgument(verbose);
 
-      showUsage =
-          new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
+          OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, getOutputStream());
     }
@@ -339,8 +325,8 @@ public final class LDAPModify extends ConsoleApplication
         }
         catch (DecodeException de)
         {
-          Message message =
-              ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          Message message = ERR_TOOL_INVALID_CONTROL_STRING
+              .get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
@@ -349,8 +335,8 @@ public final class LDAPModify extends ConsoleApplication
 
     if (proxyAuthzID.isPresent())
     {
-      Control proxyControl =
-          new ProxiedAuthV2Control(proxyAuthzID.getValue());
+      Control proxyControl = new ProxiedAuthV2Control(proxyAuthzID
+          .getValue());
       controls.add(proxyControl);
     }
 
@@ -370,8 +356,8 @@ public final class LDAPModify extends ConsoleApplication
       }
       catch (LocalizedIllegalArgumentException le)
       {
-        Message message =
-            ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
+        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(le
+            .getMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
       }
@@ -393,8 +379,8 @@ public final class LDAPModify extends ConsoleApplication
     {
       String valueStr = postReadAttributes.getValue();
       StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-      PostReadControl.Request control =
-          new PostReadControl.Request(true);
+      PostReadControl.Request control = new PostReadControl.Request(
+          true);
       while (tokenizer.hasMoreTokens())
       {
         control.addAttribute(tokenizer.nextToken());
@@ -425,15 +411,13 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          reader =
-              new LDIFChangeRecordReader(new FileInputStream(filename
-                  .getValue()));
+          reader = new LDIFChangeRecordReader(new FileInputStream(
+              filename.getValue()));
         }
         catch (Exception e)
         {
-          Message message =
-              ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filename
-                  .getValue(), e.getLocalizedMessage());
+          Message message = ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(
+              filename.getValue(), e.getLocalizedMessage());
           println(message);
           return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
@@ -458,9 +442,8 @@ public final class LDAPModify extends ConsoleApplication
       }
       catch (IOException ioe)
       {
-        Message message =
-            ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe
-                .getLocalizedMessage());
+        Message message = ERR_LDIF_FILE_READ_ERROR.get(filename
+            .getValue(), ioe.getLocalizedMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
       }
@@ -502,8 +485,8 @@ public final class LDAPModify extends ConsoleApplication
       }
       else
       {
-        Message msg =
-            INFO_OPERATION_SUCCESSFUL.get(operationType, name);
+        Message msg = INFO_OPERATION_SUCCESSFUL
+            .get(operationType, name);
         println(msg);
         if ((r.getDiagnosticMessage() != null)
             && (r.getDiagnosticMessage().length() > 0))
@@ -519,8 +502,8 @@ public final class LDAPModify extends ConsoleApplication
         }
       }
 
-      Control control =
-          r.getControl(PreReadControl.OID_LDAP_READENTRY_PREREAD);
+      Control control = r
+          .getControl(PreReadControl.OID_LDAP_READENTRY_PREREAD);
       if (control != null && control instanceof PreReadControl.Response)
       {
         PreReadControl.Response dc = (PreReadControl.Response) control;
@@ -534,13 +517,12 @@ public final class LDAPModify extends ConsoleApplication
           throw new RuntimeException(ioe);
         }
       }
-      control =
-          r.getControl(PostReadControl.OID_LDAP_READENTRY_POSTREAD);
+      control = r
+          .getControl(PostReadControl.OID_LDAP_READENTRY_POSTREAD);
       if (control != null
           && control instanceof PostReadControl.Response)
       {
-        PostReadControl.Response dc =
-            (PostReadControl.Response) control;
+        PostReadControl.Response dc = (PostReadControl.Response) control;
         println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
         try
         {

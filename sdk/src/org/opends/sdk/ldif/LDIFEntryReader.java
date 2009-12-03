@@ -29,20 +29,19 @@ package org.opends.sdk.ldif;
 
 
 
-import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
-import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
-import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

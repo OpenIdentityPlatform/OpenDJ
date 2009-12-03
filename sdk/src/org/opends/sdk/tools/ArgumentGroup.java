@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

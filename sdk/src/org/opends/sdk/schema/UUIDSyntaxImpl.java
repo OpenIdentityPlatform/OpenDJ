@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_UUID_NAME;
 
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 
 

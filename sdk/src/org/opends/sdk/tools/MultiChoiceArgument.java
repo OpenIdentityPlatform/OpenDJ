@@ -28,12 +28,12 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.UtilityMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
+import static com.sun.opends.sdk.util.Messages.ERR_MCARG_VALUE_NOT_ALLOWED;
 
 import java.util.Collection;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -55,7 +55,7 @@ final class MultiChoiceArgument<T> extends Argument
 
   /**
    * Creates a new string argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -105,7 +105,7 @@ final class MultiChoiceArgument<T> extends Argument
 
   /**
    * Creates a new string argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -170,7 +170,7 @@ final class MultiChoiceArgument<T> extends Argument
   /**
    * Retrieves the set of allowed values for this argument. The contents
    * of this set must not be altered by the caller.
-   * 
+   *
    * @return The set of allowed values for this argument.
    */
   public Collection<T> getAllowedValues()
@@ -183,7 +183,7 @@ final class MultiChoiceArgument<T> extends Argument
   /**
    * Indicates whether the set of allowed values for this argument
    * should be treated in a case-sensitive manner.
-   * 
+   *
    * @return <CODE>true</CODE> if the values are to be treated in a
    *         case-sensitive manner, or <CODE>false</CODE> if not.
    */
@@ -197,7 +197,7 @@ final class MultiChoiceArgument<T> extends Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
@@ -229,7 +229,7 @@ final class MultiChoiceArgument<T> extends Argument
    * Specifies the default value that will be used for this argument if
    * it is not specified on the command line and it is not set from a
    * properties file.
-   * 
+   *
    * @param defaultValue
    *          The default value that will be used for this argument if
    *          it is not specified on the command line and it is not set
@@ -246,7 +246,7 @@ final class MultiChoiceArgument<T> extends Argument
    * Retrieves the string vale for this argument. If it has multiple
    * values, then the first will be returned. If it does not have any
    * values, then the default value will be returned.
-   * 
+   *
    * @return The string value for this argument, or <CODE>null</CODE> if
    *         there are no values and no default value has been given.
    * @throws ArgumentException

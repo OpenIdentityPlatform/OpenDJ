@@ -2,9 +2,9 @@ package org.opends.sdk.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static org.opends.messages.ExtensionMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
+import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
+import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
 import static org.opends.sdk.util.StaticUtils.formatAsGeneralizedTime;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;

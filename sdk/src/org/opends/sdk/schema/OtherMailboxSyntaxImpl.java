@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;
 
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 
 

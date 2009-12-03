@@ -2,13 +2,13 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE;
 import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
@@ -37,8 +37,8 @@ import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.Validator;
 

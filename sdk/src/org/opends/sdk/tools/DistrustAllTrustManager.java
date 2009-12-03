@@ -25,7 +25,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util.ssl;
+package org.opends.sdk.tools;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -35,7 +35,7 @@ import javax.net.ssl.X509TrustManager;
 /**
  * An X509TrustManager which trusts everything.
  */
-public class DistrustAllTrustManager implements X509TrustManager {
+final class DistrustAllTrustManager implements X509TrustManager {
 
   /**
    * {@inheritDoc}

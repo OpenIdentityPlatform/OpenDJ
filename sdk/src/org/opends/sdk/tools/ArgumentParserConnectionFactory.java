@@ -29,9 +29,8 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.AdminToolMessages.INFO_DESCRIPTION_ADMIN_UID;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,9 +49,6 @@ import javax.net.ssl.X509KeyManager;
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
 
-import org.opends.admin.ads.util.ApplicationKeyManager;
-import org.opends.messages.Message;
-import org.opends.quicksetup.Constants;
 import org.opends.sdk.*;
 import org.opends.sdk.ldap.LDAPConnectionFactory;
 import org.opends.sdk.ldap.LDAPConnectionOptions;
@@ -63,12 +59,8 @@ import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.SSLUtils;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.ssl.PromptingTrustManager;
-import org.opends.sdk.util.ssl.TrustAllTrustManager;
-import org.opends.sdk.util.ssl.TrustStoreTrustManager;
-import org.opends.server.util.SelectableCertificateKeyManager;
-import org.opends.server.util.cli.CLIException;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 
@@ -104,11 +96,6 @@ final class ArgumentParserConnectionFactory extends
    * The 'bindDN' global argument.
    */
   private StringArgument bindDnArg = null;
-
-  /**
-   * The 'adminUID' global argument.
-   */
-  private StringArgument adminUidArg = null;
 
   /**
    * The 'bindPasswordFile' global argument.
@@ -265,16 +252,6 @@ final class ArgumentParserConnectionFactory extends
             .get(), defaultBindDN, null, INFO_DESCRIPTION_BINDDN.get());
     bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
     argumentParser.addLdapConnectionArgument(bindDnArg);
-
-    // It is up to the classes that required admin UID to make this
-    // argument
-    // visible and add it.
-    adminUidArg = new StringArgument("adminUID", 'I',
-        OPTION_LONG_ADMIN_UID, false, false, true,
-        INFO_ADMINUID_PLACEHOLDER.get(), Constants.GLOBAL_ADMIN_UID,
-        null, INFO_DESCRIPTION_ADMIN_UID.get());
-    adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
-    adminUidArg.setHidden(true);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,

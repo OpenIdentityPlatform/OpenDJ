@@ -29,13 +29,13 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.CoreMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

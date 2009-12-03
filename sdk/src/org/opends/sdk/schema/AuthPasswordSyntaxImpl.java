@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_NAME;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteSequence;
 

@@ -28,11 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-import static org.opends.messages.SchemaMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteString;

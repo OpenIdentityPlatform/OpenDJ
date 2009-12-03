@@ -29,22 +29,19 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
-import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
-import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
 import org.opends.sdk.util.SubstringReader;
 import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

@@ -28,16 +28,16 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.LinkedHashMap;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -67,7 +67,7 @@ final class FileBasedArgument extends Argument
 
   /**
    * Creates a new file-based argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -105,7 +105,7 @@ final class FileBasedArgument extends Argument
 
   /**
    * Creates a new file-based argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -158,7 +158,7 @@ final class FileBasedArgument extends Argument
   /**
    * Retrieves a map between the filenames specified on the command line
    * and the first lines read from those files.
-   * 
+   *
    * @return A map between the filenames specified on the command line
    *         and the first lines read from those files.
    */
@@ -172,7 +172,7 @@ final class FileBasedArgument extends Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
@@ -267,7 +267,7 @@ final class FileBasedArgument extends Argument
    * <CODE>valueIsAcceptable</CODE> so that the value read from the file
    * may be stored in the name-to-value hash and used in place of the
    * filename here.
-   * 
+   *
    * @param valueString
    *          The string representation of the value to add to this
    *          argument.

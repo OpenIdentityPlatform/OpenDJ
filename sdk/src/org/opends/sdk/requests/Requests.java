@@ -29,15 +29,16 @@ package org.opends.sdk.requests;
 
 
 
-import static org.opends.messages.UtilityMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
+import static com.sun.opends.sdk.util.Messages.*;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.LDIFChangeRecordReader;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

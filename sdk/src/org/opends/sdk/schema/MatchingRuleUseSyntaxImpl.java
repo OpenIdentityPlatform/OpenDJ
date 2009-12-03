@@ -29,17 +29,17 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_MRUSE_NO_ATTR;
 import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
 
 import java.util.Set;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.StaticUtils;

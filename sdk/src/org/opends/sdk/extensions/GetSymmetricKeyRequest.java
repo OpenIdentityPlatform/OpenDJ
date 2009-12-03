@@ -2,12 +2,12 @@ package org.opends.sdk.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
-import static org.opends.messages.ExtensionMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
+import static com.sun.opends.sdk.util.Messages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;

@@ -33,7 +33,7 @@ import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
 import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BINARY_NAME;
 
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 
 

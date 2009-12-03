@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 

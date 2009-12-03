@@ -28,11 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static org.opends.messages.SchemaMessages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.util.Messages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;

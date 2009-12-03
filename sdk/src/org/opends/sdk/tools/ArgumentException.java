@@ -28,7 +28,7 @@ package org.opends.sdk.tools;
 
 
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.util.LocalizableException;
 
 

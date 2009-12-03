@@ -34,8 +34,8 @@ import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME;
 
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.SchemaMessages;
+import com.sun.opends.sdk.util.MessageBuilder;
+import com.sun.opends.sdk.util.Messages;
 import org.opends.sdk.util.ByteSequence;
 
 
@@ -120,7 +120,7 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
       if (valueString.charAt(0) == '*')
       {
         invalidReason
-            .append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD
+            .append(Messages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD
                 .get());
 
         return false;
@@ -138,7 +138,7 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
             && valueString.charAt(i - 1) == '*')
         {
           invalidReason
-              .append(SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
+              .append(Messages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
                   .get(valueString, i));
           return false;
         }

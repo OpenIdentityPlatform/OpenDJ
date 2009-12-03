@@ -25,33 +25,42 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util.ssl;
+package org.opends.sdk.tools;
+
+
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
 
+
+
 /**
  * An X509TrustManager which trusts everything.
  */
-public class TrustAllTrustManager implements X509TrustManager {
+final class TrustAllTrustManager implements X509TrustManager
+{
 
   /**
    * {@inheritDoc}
    */
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
-  throws CertificateException
+  public void checkClientTrusted(X509Certificate[] chain,
+      String authType) throws CertificateException
   {
   }
+
+
 
   /**
    * {@inheritDoc}
    */
-  public void checkServerTrusted(X509Certificate[] chain, String authType)
-  throws CertificateException
+  public void checkServerTrusted(X509Certificate[] chain,
+      String authType) throws CertificateException
   {
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -61,4 +70,3 @@ public class TrustAllTrustManager implements X509TrustManager {
     return new X509Certificate[0];
   }
 }
-

@@ -28,10 +28,10 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.UtilityMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
+import static com.sun.opends.sdk.util.Messages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -46,7 +46,7 @@ final class BooleanArgument extends Argument
 {
   /**
    * Creates a new Boolean argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -75,7 +75,7 @@ final class BooleanArgument extends Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
