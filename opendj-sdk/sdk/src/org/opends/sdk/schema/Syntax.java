@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.Validator;
 

@@ -50,7 +50,7 @@ final class UnsupportedMessageException extends IOException
   public UnsupportedMessageException(int id, byte tag,
       ByteString content)
   {
-    super(org.opends.messages.Message.raw(
+    super(com.sun.opends.sdk.util.Message.raw(
         "Unsupported LDAP message: id=%d, tag=%d, content=%s", id, tag,
         content).toString());
     this.id = id;

@@ -2,13 +2,13 @@ package org.opends.sdk.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
-import static org.opends.messages.ExtensionMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;

@@ -32,7 +32,7 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

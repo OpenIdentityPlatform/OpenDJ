@@ -29,7 +29,7 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.AbstractFilterVisitor;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Filter;

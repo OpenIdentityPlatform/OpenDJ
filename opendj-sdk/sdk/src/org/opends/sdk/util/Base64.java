@@ -28,11 +28,10 @@ package org.opends.sdk.util;
 
 
 
-import static org.opends.messages.UtilityMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
-import static org.opends.messages.UtilityMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
-import static org.opends.sdk.util.Validator.ensureNotNull;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.Validator.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

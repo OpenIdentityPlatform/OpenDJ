@@ -29,7 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.asn1.ASN1Constants.*;
 import static org.opends.sdk.ldap.LDAPConstants.*;
 

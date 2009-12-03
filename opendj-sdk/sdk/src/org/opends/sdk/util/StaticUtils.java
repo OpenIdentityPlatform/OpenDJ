@@ -29,9 +29,7 @@ package org.opends.sdk.util;
 
 
 
-import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
-import static org.opends.messages.UtilityMessages.ERR_HEX_DECODE_INVALID_LENGTH;
-import static org.opends.messages.UtilityMessages.ERR_INVALID_ESCAPE_CHAR;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
@@ -42,10 +40,11 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.messages.MessageDescriptor;
 import org.opends.sdk.DecodeException;
+
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
+import com.sun.opends.sdk.util.MessageDescriptor;
 
 
 
@@ -1040,7 +1039,7 @@ public final class StaticUtils
       final Message ieMsg = ie.getMessageObject();
       if (ieMsg != null)
       {
-        message.append(ieMsg.getDescriptor().getId());
+        message.append(ieMsg.getDescriptor().getOrdinal());
       }
       else
       {

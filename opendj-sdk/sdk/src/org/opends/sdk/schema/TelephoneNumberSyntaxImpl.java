@@ -29,17 +29,17 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
 import static org.opends.sdk.schema.SchemaConstants.EMR_TELEPHONE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_TELEPHONE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
 import static org.opends.sdk.util.StaticUtils.isDigit;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 
 

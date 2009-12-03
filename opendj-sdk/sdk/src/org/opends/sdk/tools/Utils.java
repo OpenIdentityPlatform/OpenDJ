@@ -28,17 +28,14 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS;
-import static org.opends.messages.UtilityMessages.INFO_TIME_IN_HOURS_MINUTES_SECONDS;
-import static org.opends.messages.UtilityMessages.INFO_TIME_IN_MINUTES_SECONDS;
-import static org.opends.messages.UtilityMessages.INFO_TIME_IN_SECONDS;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
 import org.opends.sdk.Connection;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ErrorResultException;
@@ -47,7 +44,8 @@ import org.opends.sdk.controls.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 
@@ -60,6 +58,254 @@ final class Utils
   private Utils()
   {
     // Do nothing.
+  }
+
+
+
+  /**
+   * The name of a command-line script used to launch a tool.
+   */
+  static final String PROPERTY_SCRIPT_NAME = "org.opends.sdk.tools.scriptName";
+
+  /**
+   * The column at which to wrap long lines of output in the
+   * command-line tools.
+   */
+  static final int MAX_LINE_WIDTH;
+  static
+  {
+    int columns = 80;
+    try
+    {
+      String s = System.getenv("COLUMNS");
+      if (s != null)
+      {
+        columns = Integer.parseInt(s);
+      }
+    }
+    catch (Exception e)
+    {
+      // Do nothing.
+    }
+    MAX_LINE_WIDTH = columns - 1;
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done at
+   * space boundaries and if there are no spaces within the specified
+   * width, then wrapping will be performed at the first space after the
+   * specified column.
+   *
+   * @param message
+   *          The message to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point.
+   * @return The wrapped text.
+   */
+  static String wrapText(Message message, int width)
+  {
+    return wrapText(Message.toString(message), width, 0);
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done at
+   * space boundaries and if there are no spaces within the specified
+   * width, then wrapping will be performed at the first space after the
+   * specified column.
+   *
+   * @param text
+   *          The text to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point.
+   * @return The wrapped text.
+   */
+  static String wrapText(String text, int width)
+  {
+    return wrapText(text, width, 0);
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done at
+   * space boundaries and if there are no spaces within the specified
+   * width, then wrapping will be performed at the first space after the
+   * specified column. In addition each line will be indented by the
+   * specified amount.
+   *
+   * @param message
+   *          The message to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point (including any
+   *          indentation).
+   * @param indent
+   *          The number of columns to indent each line.
+   * @return The wrapped text.
+   */
+  static String wrapText(Message message, int width, int indent)
+  {
+    return wrapText(Message.toString(message), width, indent);
+  }
+
+
+
+  /**
+   * Inserts line breaks into the provided buffer to wrap text at no
+   * more than the specified column width. Wrapping will only be done at
+   * space boundaries and if there are no spaces within the specified
+   * width, then wrapping will be performed at the first space after the
+   * specified column. In addition each line will be indented by the
+   * specified amount.
+   *
+   * @param text
+   *          The text to be wrapped.
+   * @param width
+   *          The maximum number of characters to allow on a line if
+   *          there is a suitable breaking point (including any
+   *          indentation).
+   * @param indent
+   *          The number of columns to indent each line.
+   * @return The wrapped text.
+   */
+  static String wrapText(String text, int width, int indent)
+  {
+    // Calculate the real width and indentation padding.
+    width -= indent;
+    StringBuilder pb = new StringBuilder();
+    for (int i = 0; i < indent; i++)
+    {
+      pb.append(' ');
+    }
+    String padding = pb.toString();
+
+    StringBuilder buffer = new StringBuilder();
+    if (text != null)
+    {
+      StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n",
+          true);
+      while (lineTokenizer.hasMoreTokens())
+      {
+        String line = lineTokenizer.nextToken();
+        if (line.equals("\r") || line.equals("\n"))
+        {
+          // It's an end-of-line character, so append it as-is.
+          buffer.append(line);
+        }
+        else if (line.length() < width)
+        {
+          // The line fits in the specified width, so append it as-is.
+          buffer.append(padding);
+          buffer.append(line);
+        }
+        else
+        {
+          // The line doesn't fit in the specified width, so it needs to
+          // be
+          // wrapped. Do so at space boundaries.
+          StringBuilder lineBuffer = new StringBuilder();
+          StringBuilder delimBuffer = new StringBuilder();
+          StringTokenizer wordTokenizer = new StringTokenizer(line,
+              " ", true);
+          while (wordTokenizer.hasMoreTokens())
+          {
+            String word = wordTokenizer.nextToken();
+            if (word.equals(" "))
+            {
+              // It's a space, so add it to the delim buffer only if the
+              // line
+              // buffer is not empty.
+              if (lineBuffer.length() > 0)
+              {
+                delimBuffer.append(word);
+              }
+            }
+            else if (word.length() > width)
+            {
+              // This is a long word that can't be wrapped, so we'll
+              // just have
+              // to make do.
+              if (lineBuffer.length() > 0)
+              {
+                buffer.append(padding);
+                buffer.append(lineBuffer);
+                buffer.append(EOL);
+                lineBuffer = new StringBuilder();
+              }
+              buffer.append(padding);
+              buffer.append(word);
+
+              if (wordTokenizer.hasMoreTokens())
+              {
+                // The next token must be a space, so remove it. If
+                // there are
+                // still more tokens after that, then append an EOL.
+                wordTokenizer.nextToken();
+                if (wordTokenizer.hasMoreTokens())
+                {
+                  buffer.append(EOL);
+                }
+              }
+
+              if (delimBuffer.length() > 0)
+              {
+                delimBuffer = new StringBuilder();
+              }
+            }
+            else
+            {
+              // It's not a space, so see if we can fit it on the curent
+              // line.
+              int newLineLength = lineBuffer.length()
+                  + delimBuffer.length() + word.length();
+              if (newLineLength < width)
+              {
+                // It does fit on the line, so add it.
+                lineBuffer.append(delimBuffer).append(word);
+
+                if (delimBuffer.length() > 0)
+                {
+                  delimBuffer = new StringBuilder();
+                }
+              }
+              else
+              {
+                // It doesn't fit on the line, so end the current line
+                // and start
+                // a new one.
+                buffer.append(padding);
+                buffer.append(lineBuffer);
+                buffer.append(EOL);
+
+                lineBuffer = new StringBuilder();
+                lineBuffer.append(word);
+
+                if (delimBuffer.length() > 0)
+                {
+                  delimBuffer = new StringBuilder();
+                }
+              }
+            }
+          }
+
+          // If there's anything left in the line buffer, then add it to
+          // the
+          // final buffer.
+          buffer.append(padding);
+          buffer.append(lineBuffer);
+        }
+      }
+    }
+    return buffer.toString();
   }
 
 
@@ -78,7 +324,7 @@ final class Utils
    * @throws org.opends.sdk.DecodeException
    *           If an error occurs.
    */
-  public static GenericControl getControl(String argString)
+  static GenericControl getControl(String argString)
       throws DecodeException
   {
     String controlOID = null;
@@ -231,8 +477,7 @@ final class Utils
    *           If a problem occurs while trying to read the specified
    *           file.
    */
-  public static byte[] readBytesFromFile(String filePath)
-      throws IOException
+  static byte[] readBytesFromFile(String filePath) throws IOException
   {
     byte[] val = null;
     FileInputStream fis = null;
@@ -281,7 +526,7 @@ final class Utils
    *          The error result.
    * @return The error code.
    */
-  public static int printErrorMessage(ConsoleApplication app,
+  static int printErrorMessage(ConsoleApplication app,
       ErrorResultException ere)
   {
     // if ((ere.getMessage() != null) && (ere.getMessage().length() >
@@ -332,7 +577,7 @@ final class Utils
    * @return The user-friendly representation of the specified number of
    *         seconds.
    */
-  public static Message secondsToTimeString(int numSeconds)
+  static Message secondsToTimeString(int numSeconds)
   {
     if (numSeconds < 60)
     {
@@ -367,7 +612,7 @@ final class Utils
 
 
 
-  public static void printPasswordPolicyResults(ConsoleApplication app,
+  static void printPasswordPolicyResults(ConsoleApplication app,
       Connection connection)
   {
     if (connection instanceof AuthenticatedConnection)
@@ -458,7 +703,7 @@ final class Utils
    *         original value will be returned. If the provided value was
    *         out of this range, then 255 will be returned.
    */
-  public static int filterExitCode(int exitCode)
+  static int filterExitCode(int exitCode)
   {
     if (exitCode < 0)
     {

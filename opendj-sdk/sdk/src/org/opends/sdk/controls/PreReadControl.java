@@ -29,17 +29,17 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_PREREADREQ_NO_CONTROL_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_PREREADRESP_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_PREREADRESP_NO_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PREREADREQ_NO_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PREREADRESP_CANNOT_DECODE_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PREREADRESP_NO_CONTROL_VALUE;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

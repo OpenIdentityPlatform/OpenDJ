@@ -28,18 +28,10 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_GENERAL_ARGS;
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_IO_ARGS;
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_LDAP_CONNECTION_ARGS;
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_PRODUCT_VERSION;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.EOL;
-import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
-import static org.opends.server.util.StaticUtils.getBytes;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
+import static org.opends.sdk.tools.Utils.*;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,9 +39,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.server.util.SetupUtils;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -157,44 +148,42 @@ final class ArgumentParser
    * Group for arguments that have not been explicitly grouped. These
    * will appear at the top of the usage statement without a header.
    */
-  private ArgumentGroup defaultArgGroup =
-      new ArgumentGroup(Message.EMPTY, Integer.MAX_VALUE);
+  private ArgumentGroup defaultArgGroup = new ArgumentGroup(
+      Message.EMPTY, Integer.MAX_VALUE);
 
   /**
    * Group for arguments that are related to connection through LDAP.
    * This includes options like the bind DN, the port, etc.
    */
-  private ArgumentGroup ldapArgGroup =
-      new ArgumentGroup(INFO_DESCRIPTION_LDAP_CONNECTION_ARGS.get(),
-          Integer.MIN_VALUE + 2);
+  private ArgumentGroup ldapArgGroup = new ArgumentGroup(
+      INFO_DESCRIPTION_LDAP_CONNECTION_ARGS.get(),
+      Integer.MIN_VALUE + 2);
 
   /**
    * Group for arguments that are related to utility input/output like
    * properties file, no-prompt etc. These will appear toward the bottom
    * of the usage statement.
    */
-  private ArgumentGroup ioArgGroup =
-      new ArgumentGroup(INFO_DESCRIPTION_IO_ARGS.get(),
-          Integer.MIN_VALUE + 1);
+  private ArgumentGroup ioArgGroup = new ArgumentGroup(
+      INFO_DESCRIPTION_IO_ARGS.get(), Integer.MIN_VALUE + 1);
 
   /**
    * Group for arguments that are general like help, version etc. These
    * will appear at the end of the usage statement.
    */
-  private ArgumentGroup generalArgGroup =
-      new ArgumentGroup(INFO_DESCRIPTION_GENERAL_ARGS.get(),
-          Integer.MIN_VALUE);
+  private ArgumentGroup generalArgGroup = new ArgumentGroup(
+      INFO_DESCRIPTION_GENERAL_ARGS.get(), Integer.MIN_VALUE);
 
   private final static String INDENT = "    ";
-  private final static int MAX_LENGTH =
-      SetupUtils.isWindows() ? 79 : 80;
+
+  private final static int MAX_LENGTH = 80;
 
 
 
   /**
    * Creates a new instance of this argument parser with no arguments.
    * Unnamed trailing arguments will not be allowed.
-   * 
+   *
    * @param mainClassName
    *          The fully-qualified name of the Java class that should be
    *          invoked to launch the program with which this argument
@@ -206,7 +195,7 @@ final class ArgumentParser
    *          Indicates whether long arguments should be treated in a
    *          case-sensitive manner.
    */
-  public ArgumentParser(String mainClassName, Message toolDescription,
+  ArgumentParser(String mainClassName, Message toolDescription,
       boolean longArgumentsCaseSensitive)
   {
     this.mainClassName = mainClassName;
@@ -237,7 +226,7 @@ final class ArgumentParser
   /**
    * Creates a new instance of this argument parser with no arguments
    * that may or may not be allowed to have unnamed trailing arguments.
-   * 
+   *
    * @param mainClassName
    *          The fully-qualified name of the Java class that should be
    *          invoked to launch the program with which this argument
@@ -264,7 +253,7 @@ final class ArgumentParser
    *          unnamed trailing arguments in the generated usage
    *          information.
    */
-  public ArgumentParser(String mainClassName, Message toolDescription,
+  ArgumentParser(String mainClassName, Message toolDescription,
       boolean longArgumentsCaseSensitive,
       boolean allowsTrailingArguments, int minTrailingArguments,
       int maxTrailingArguments, String trailingArgsDisplayName)
@@ -296,12 +285,12 @@ final class ArgumentParser
    * Retrieves the fully-qualified name of the Java class that should be
    * invoked to launch the program with which this argument parser is
    * associated.
-   * 
+   *
    * @return The fully-qualified name of the Java class that should be
    *         invoked to launch the program with which this argument
    *         parser is associated.
    */
-  public String getMainClassName()
+  String getMainClassName()
   {
     return mainClassName;
   }
@@ -311,11 +300,11 @@ final class ArgumentParser
   /**
    * Retrieves a human-readable description for this tool, which should
    * be included at the top of the command-line usage information.
-   * 
+   *
    * @return A human-readable description for this tool, or {@code null}
    *         if none is available.
    */
-  public Message getToolDescription()
+  Message getToolDescription()
   {
     return toolDescription;
   }
@@ -329,11 +318,11 @@ final class ArgumentParser
    * be manually parsed by the application using this parser. Note that
    * once an unnamed trailing argument has been identified, all
    * remaining arguments will be classified as such.
-   * 
+   *
    * @return <CODE>true</CODE> if this parser allows unnamed trailing
    *         arguments, or <CODE>false</CODE> if it does not.
    */
-  public boolean allowsTrailingArguments()
+  boolean allowsTrailingArguments()
   {
     return allowsTrailingArguments;
   }
@@ -343,12 +332,12 @@ final class ArgumentParser
   /**
    * Retrieves the minimum number of unnamed trailing arguments that
    * must be provided.
-   * 
+   *
    * @return The minimum number of unnamed trailing arguments that must
    *         be provided, or a value less than or equal to zero if no
    *         minimum will be enforced.
    */
-  public int getMinTrailingArguments()
+  int getMinTrailingArguments()
   {
     return minTrailingArguments;
   }
@@ -358,12 +347,12 @@ final class ArgumentParser
   /**
    * Retrieves the maximum number of unnamed trailing arguments that may
    * be provided.
-   * 
+   *
    * @return The maximum number of unnamed trailing arguments that may
    *         be provided, or a value less than or equal to zero if no
    *         maximum will be enforced.
    */
-  public int getMaxTrailingArguments()
+  int getMaxTrailingArguments()
   {
     return maxTrailingArguments;
   }
@@ -373,11 +362,11 @@ final class ArgumentParser
   /**
    * Retrieves the list of all arguments that have been defined for this
    * argument parser.
-   * 
+   *
    * @return The list of all arguments that have been defined for this
    *         argument parser.
    */
-  public LinkedList<Argument> getArgumentList()
+  LinkedList<Argument> getArgumentList()
   {
     return argumentList;
   }
@@ -386,13 +375,13 @@ final class ArgumentParser
 
   /**
    * Retrieves the argument with the specified name.
-   * 
+   *
    * @param name
    *          The name of the argument to retrieve.
    * @return The argument with the specified name, or <CODE>null</CODE>
    *         if there is no such argument.
    */
-  public Argument getArgument(String name)
+  Argument getArgument(String name)
   {
     return argumentMap.get(name);
   }
@@ -403,11 +392,11 @@ final class ArgumentParser
    * Retrieves the set of arguments mapped by the short identifier that
    * may be used to reference them. Note that arguments that do not have
    * a short identifier will not be present in this list.
-   * 
+   *
    * @return The set of arguments mapped by the short identifier that
    *         may be used to reference them.
    */
-  public HashMap<Character, Argument> getArgumentsByShortID()
+  HashMap<Character, Argument> getArgumentsByShortID()
   {
     return shortIDMap;
   }
@@ -416,13 +405,13 @@ final class ArgumentParser
 
   /**
    * Retrieves the argument with the specified short identifier.
-   * 
+   *
    * @param shortID
    *          The short ID for the argument to retrieve.
    * @return The argument with the specified short identifier, or
    *         <CODE>null</CODE> if there is no such argument.
    */
-  public Argument getArgumentForShortID(Character shortID)
+  Argument getArgumentForShortID(Character shortID)
   {
     return shortIDMap.get(shortID);
   }
@@ -433,11 +422,11 @@ final class ArgumentParser
    * Retrieves the set of arguments mapped by the long identifier that
    * may be used to reference them. Note that arguments that do not have
    * a long identifier will not be present in this list.
-   * 
+   *
    * @return The set of arguments mapped by the long identifier that may
    *         be used to reference them.
    */
-  public HashMap<String, Argument> getArgumentsByLongID()
+  HashMap<String, Argument> getArgumentsByLongID()
   {
     return longIDMap;
   }
@@ -446,13 +435,13 @@ final class ArgumentParser
 
   /**
    * Retrieves the argument with the specified long identifier.
-   * 
+   *
    * @param longID
    *          The long identifier of the argument to retrieve.
    * @return The argument with the specified long identifier, or
    *         <CODE>null</CODE> if there is no such argument.
    */
-  public Argument getArgumentForLongID(String longID)
+  Argument getArgumentForLongID(String longID)
   {
     return longIDMap.get(longID);
   }
@@ -462,11 +451,11 @@ final class ArgumentParser
   /**
    * Retrieves the set of unnamed trailing arguments that were provided
    * on the command line.
-   * 
+   *
    * @return The set of unnamed trailing arguments that were provided on
    *         the command line.
    */
-  public ArrayList<String> getTrailingArguments()
+  ArrayList<String> getTrailingArguments()
   {
     return trailingArguments;
   }
@@ -475,12 +464,12 @@ final class ArgumentParser
 
   /**
    * Retrieves the raw set of arguments that were provided.
-   * 
+   *
    * @return The raw set of arguments that were provided, or
    *         <CODE>null</CODE> if the argument list has not yet been
    *         parsed.
    */
-  public String[] getRawArguments()
+  String[] getRawArguments()
   {
     return rawArguments;
   }
@@ -489,11 +478,11 @@ final class ArgumentParser
 
   /**
    * Sets the usage group description for the default argument group.
-   * 
+   *
    * @param description
    *          for the default group
    */
-  public void setDefaultArgumentGroupDescription(Message description)
+  void setDefaultArgumentGroupDescription(Message description)
   {
     this.defaultArgGroup.setDescription(description);
   }
@@ -502,11 +491,11 @@ final class ArgumentParser
 
   /**
    * Sets the usage group description for the LDAP argument group.
-   * 
+   *
    * @param description
    *          for the LDAP group
    */
-  public void setLdapArgumentGroupDescription(Message description)
+  void setLdapArgumentGroupDescription(Message description)
   {
     this.ldapArgGroup.setDescription(description);
   }
@@ -516,11 +505,11 @@ final class ArgumentParser
   /**
    * Sets the usage group description for the input/output argument
    * group.
-   * 
+   *
    * @param description
    *          for the input/output group
    */
-  public void setInputOutputArgumentGroupDescription(Message description)
+  void setInputOutputArgumentGroupDescription(Message description)
   {
     this.ioArgGroup.setDescription(description);
   }
@@ -529,11 +518,11 @@ final class ArgumentParser
 
   /**
    * Sets the usage group description for the general argument group.
-   * 
+   *
    * @param description
    *          for the general group
    */
-  public void setGeneralArgumentGroupDescription(Message description)
+  void setGeneralArgumentGroupDescription(Message description)
   {
     this.generalArgGroup.setDescription(description);
   }
@@ -543,14 +532,14 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @throws ArgumentException
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addArgument(Argument argument) throws ArgumentException
+  void addArgument(Argument argument) throws ArgumentException
   {
     addArgument(argument, null);
   }
@@ -560,15 +549,14 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser and puts the arguement in the default group.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @throws ArgumentException
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addDefaultArgument(Argument argument)
-      throws ArgumentException
+  void addDefaultArgument(Argument argument) throws ArgumentException
   {
     addArgument(argument, defaultArgGroup);
   }
@@ -578,14 +566,14 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser and puts the argument in the LDAP connection group.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @throws ArgumentException
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addLdapConnectionArgument(Argument argument)
+  void addLdapConnectionArgument(Argument argument)
       throws ArgumentException
   {
     addArgument(argument, ldapArgGroup);
@@ -596,14 +584,14 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser and puts the argument in the input/output group.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @throws ArgumentException
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addInputOutputArgument(Argument argument)
+  void addInputOutputArgument(Argument argument)
       throws ArgumentException
   {
     addArgument(argument, ioArgGroup);
@@ -614,15 +602,14 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser and puts the arguement in the general group.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @throws ArgumentException
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addGeneralArgument(Argument argument)
-      throws ArgumentException
+  void addGeneralArgument(Argument argument) throws ArgumentException
   {
     addArgument(argument, generalArgGroup);
   }
@@ -632,7 +619,7 @@ final class ArgumentParser
   /**
    * Adds the provided argument to the set of arguments handled by this
    * parser.
-   * 
+   *
    * @param argument
    *          The argument to be added.
    * @param group
@@ -641,7 +628,7 @@ final class ArgumentParser
    *           If the provided argument conflicts with another argument
    *           that has already been defined.
    */
-  public void addArgument(Argument argument, ArgumentGroup group)
+  void addArgument(Argument argument, ArgumentGroup group)
       throws ArgumentException
   {
 
@@ -650,9 +637,8 @@ final class ArgumentParser
     {
       String conflictingName = shortIDMap.get(shortID).getName();
 
-      Message message =
-          ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getName(),
-              String.valueOf(shortID), conflictingName);
+      Message message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument
+          .getName(), String.valueOf(shortID), conflictingName);
       throw new ArgumentException(message);
     }
 
@@ -664,10 +650,10 @@ final class ArgumentParser
         // identifier.
         try
         {
-          versionArgument =
-              new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, null,
-                  OPTION_LONG_PRODUCT_VERSION,
-                  INFO_DESCRIPTION_PRODUCT_VERSION.get());
+          versionArgument = new BooleanArgument(
+              OPTION_LONG_PRODUCT_VERSION, null,
+              OPTION_LONG_PRODUCT_VERSION,
+              INFO_DESCRIPTION_PRODUCT_VERSION.get());
           this.generalArgGroup.addArgument(versionArgument);
         }
         catch (ArgumentException e)
@@ -688,9 +674,8 @@ final class ArgumentParser
       {
         String conflictingName = longIDMap.get(longID).getName();
 
-        Message message =
-            ERR_ARGPARSER_DUPLICATE_LONG_ID.get(argument.getName(),
-                argument.getLongIdentifier(), conflictingName);
+        Message message = ERR_ARGPARSER_DUPLICATE_LONG_ID.get(argument
+            .getName(), argument.getLongIdentifier(), conflictingName);
         throw new ArgumentException(message);
       }
     }
@@ -727,12 +712,12 @@ final class ArgumentParser
    * still need to check for the presence of the usage argument after
    * calling <CODE>parseArguments</CODE> to know that no further
    * processing will be required.
-   * 
+   *
    * @param argument
    *          The argument whose presence should automatically trigger
    *          the display of usage information.
    */
-  public void setUsageArgument(Argument argument)
+  void setUsageArgument(Argument argument)
   {
     usageArgument = argument;
     usageOutputStream = System.out;
@@ -750,7 +735,7 @@ final class ArgumentParser
    * still need to check for the presence of the usage argument after
    * calling <CODE>parseArguments</CODE> to know that no further
    * processing will be required.
-   * 
+   *
    * @param argument
    *          The argument whose presence should automatically trigger
    *          the display of usage information.
@@ -758,8 +743,7 @@ final class ArgumentParser
    *          The output stream to which the usage information should be
    *          written.
    */
-  public void setUsageArgument(Argument argument,
-      OutputStream outputStream)
+  void setUsageArgument(Argument argument, OutputStream outputStream)
   {
     usageArgument = argument;
     usageOutputStream = outputStream;
@@ -770,12 +754,12 @@ final class ArgumentParser
   /**
    * Sets the provided argument which will be used to identify the file
    * properties.
-   * 
+   *
    * @param argument
    *          The argument which will be used to identify the file
    *          properties.
    */
-  public void setFilePropertiesArgument(StringArgument argument)
+  void setFilePropertiesArgument(StringArgument argument)
   {
     filePropertiesPathArgument = argument;
   }
@@ -785,12 +769,12 @@ final class ArgumentParser
   /**
    * Sets the provided argument which will be used to identify the file
    * properties.
-   * 
+   *
    * @param argument
    *          The argument which will be used to indicate if we have to
    *          look for properties file.
    */
-  public void setNoPropertiesFileArgument(BooleanArgument argument)
+  void setNoPropertiesFileArgument(BooleanArgument argument)
   {
     noPropertiesFileArgument = argument;
   }
@@ -800,15 +784,14 @@ final class ArgumentParser
   /**
    * Parses the provided set of arguments and updates the information
    * associated with this parser accordingly.
-   * 
+   *
    * @param rawArguments
    *          The raw set of arguments to parse.
    * @throws ArgumentException
    *           If a problem was encountered while parsing the provided
    *           arguments.
    */
-  public void parseArguments(String[] rawArguments)
-      throws ArgumentException
+  void parseArguments(String[] rawArguments) throws ArgumentException
   {
     parseArguments(rawArguments, null);
   }
@@ -820,7 +803,7 @@ final class ArgumentParser
    * associated with this parser accordingly. Default values for
    * unspecified arguments may be read from the specified properties
    * file.
-   * 
+   *
    * @param rawArguments
    *          The set of raw arguments to parse.
    * @param propertiesFile
@@ -833,9 +816,8 @@ final class ArgumentParser
    *           If a problem was encountered while parsing the provided
    *           arguments or interacting with the properties file.
    */
-  public void parseArguments(String[] rawArguments,
-      String propertiesFile, boolean requirePropertiesFile)
-      throws ArgumentException
+  void parseArguments(String[] rawArguments, String propertiesFile,
+      boolean requirePropertiesFile) throws ArgumentException
   {
     this.rawArguments = rawArguments;
 
@@ -853,9 +835,8 @@ final class ArgumentParser
     {
       if (requirePropertiesFile)
       {
-        Message message =
-            ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
-                .valueOf(propertiesFile), getExceptionMessage(e));
+        Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE
+            .get(String.valueOf(propertiesFile), getExceptionMessage(e));
         throw new ArgumentException(message, e);
       }
     }
@@ -870,7 +851,7 @@ final class ArgumentParser
    * associated with this parser accordingly. Default values for
    * unspecified arguments may be read from the specified properties if
    * any are provided.
-   * 
+   *
    * @param rawArguments
    *          The set of raw arguments to parse.
    * @param argumentProperties
@@ -881,7 +862,7 @@ final class ArgumentParser
    *           If a problem was encountered while parsing the provided
    *           arguments.
    */
-  public void parseArguments(String[] rawArguments,
+  void parseArguments(String[] rawArguments,
       Properties argumentProperties) throws ArgumentException
   {
     this.rawArguments = rawArguments;
@@ -899,9 +880,8 @@ final class ArgumentParser
         if ((maxTrailingArguments > 0)
             && (trailingArguments.size() > maxTrailingArguments))
         {
-          Message message =
-              ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS
-                  .get(maxTrailingArguments);
+          Message message = ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS
+              .get(maxTrailingArguments);
           throw new ArgumentException(message);
         }
 
@@ -937,8 +917,8 @@ final class ArgumentParser
         else if (equalPos == 0)
         {
           // The argument starts with "--=", which is not acceptable.
-          Message message =
-              ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
+          Message message = ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME
+              .get(arg);
           throw new ArgumentException(message);
         }
         else
@@ -996,8 +976,8 @@ final class ArgumentParser
           else
           {
             // There is no such argument registered.
-            Message message =
-                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(origArgName);
+            Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID
+                .get(origArgName);
             throw new ArgumentException(message);
           }
         }
@@ -1032,9 +1012,8 @@ final class ArgumentParser
           {
             if ((i + 1) == numArguments)
             {
-              Message message =
-                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID
-                      .get(origArgName);
+              Message message = ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID
+                  .get(origArgName);
               throw new ArgumentException(message);
             }
 
@@ -1044,9 +1023,8 @@ final class ArgumentParser
           MessageBuilder invalidReason = new MessageBuilder();
           if (!a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message =
-                ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(
-                    argValue, origArgName, invalidReason.toString());
+            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID
+                .get(argValue, origArgName, invalidReason.toString());
             throw new ArgumentException(message);
           }
 
@@ -1054,9 +1032,8 @@ final class ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && (!a.isMultiValued()))
           {
-            Message message =
-                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID
-                    .get(origArgName);
+            Message message = ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID
+                .get(origArgName);
             throw new ArgumentException(message);
           }
 
@@ -1066,9 +1043,8 @@ final class ArgumentParser
         {
           if (argValue != null)
           {
-            Message message =
-                ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE
-                    .get(origArgName);
+            Message message = ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE
+                .get(origArgName);
             throw new ArgumentException(message);
           }
         }
@@ -1083,8 +1059,8 @@ final class ArgumentParser
         // -n value
         if (arg.equals("-"))
         {
-          Message message =
-              ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get();
+          Message message = ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT
+              .get();
           throw new ArgumentException(message);
         }
 
@@ -1139,9 +1115,8 @@ final class ArgumentParser
           else
           {
             // There is no such argument registered.
-            Message message =
-                ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(String
-                    .valueOf(argCharacter));
+            Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID
+                .get(String.valueOf(argCharacter));
             throw new ArgumentException(message);
           }
         }
@@ -1176,9 +1151,8 @@ final class ArgumentParser
           {
             if ((i + 1) == numArguments)
             {
-              Message message =
-                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID
-                      .get(String.valueOf(argCharacter));
+              Message message = ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID
+                  .get(String.valueOf(argCharacter));
               throw new ArgumentException(message);
             }
 
@@ -1188,9 +1162,8 @@ final class ArgumentParser
           MessageBuilder invalidReason = new MessageBuilder();
           if (!a.valueIsAcceptable(argValue, invalidReason))
           {
-            Message message =
-                ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.get(
-                    argValue, String.valueOf(argCharacter),
+            Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID
+                .get(argValue, String.valueOf(argCharacter),
                     invalidReason.toString());
             throw new ArgumentException(message);
           }
@@ -1199,9 +1172,8 @@ final class ArgumentParser
           // acceptable to have more than one.
           if (a.hasValue() && (!a.isMultiValued()))
           {
-            Message message =
-                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(String
-                    .valueOf(argCharacter));
+            Message message = ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID
+                .get(String.valueOf(argCharacter));
             throw new ArgumentException(message);
           }
 
@@ -1228,9 +1200,8 @@ final class ArgumentParser
               if (b == null)
               {
                 // There is no such argument registered.
-                Message message =
-                    ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(String
-                        .valueOf(argCharacter));
+                Message message = ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID
+                    .get(String.valueOf(argCharacter));
                 throw new ArgumentException(message);
               }
               else if (b.needsValue())
@@ -1239,9 +1210,8 @@ final class ArgumentParser
                 // a
                 // valid argument that takes a value. We don't support
                 // that.
-                Message message =
-                    ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(String
-                        .valueOf(argCharacter), argValue, String
+                Message message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES
+                    .get(String.valueOf(argCharacter), argValue, String
                         .valueOf(c));
                 throw new ArgumentException(message);
               }
@@ -1283,8 +1253,8 @@ final class ArgumentParser
         // It doesn't start with a dash and we don't allow trailing
         // arguments,
         // so this is illegal.
-        Message message =
-            ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
+        Message message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT
+            .get(arg);
         throw new ArgumentException(message);
       }
     }
@@ -1296,9 +1266,8 @@ final class ArgumentParser
     {
       if (trailingArguments.size() < minTrailingArguments)
       {
-        Message message =
-            ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS
-                .get(minTrailingArguments);
+        Message message = ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS
+            .get(minTrailingArguments);
         throw new ArgumentException(message);
       }
     }
@@ -1323,9 +1292,8 @@ final class ArgumentParser
         if ((argumentProperties != null)
             && (a.getPropertyName() != null))
         {
-          String value =
-              argumentProperties.getProperty(a.getPropertyName()
-                  .toLowerCase());
+          String value = argumentProperties.getProperty(a
+              .getPropertyName().toLowerCase());
           MessageBuilder invalidReason = new MessageBuilder();
           if (value != null)
           {
@@ -1360,8 +1328,8 @@ final class ArgumentParser
         // a problem.
         if ((!a.hasValue()) && a.isRequired())
         {
-          Message message =
-              ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
+          Message message = ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG
+              .get(a.getName());
           throw new ArgumentException(message);
         }
       }
@@ -1372,7 +1340,7 @@ final class ArgumentParser
 
   /**
    * Check if we have a properties file.
-   * 
+   *
    * @return The properties found in the properties file or null.
    * @throws ArgumentException
    *           If a problem was encountered while parsing the provided
@@ -1404,9 +1372,8 @@ final class ArgumentParser
     {
       // Check in "user home"/.opends directory
       String userDir = System.getProperty("user.home");
-      propertiesFilePath =
-          findPropertiesFile(userDir + File.separator
-              + DEFAULT_OPENDS_CONFIG_DIR);
+      propertiesFilePath = findPropertiesFile(userDir + File.separator
+          + DEFAULT_OPENDS_CONFIG_DIR);
 
       // TODO
       /*
@@ -1425,7 +1392,7 @@ final class ArgumentParser
 
     // We have a location for the properties file.
     Properties argumentProperties = new Properties();
-    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    String scriptName = System.getProperty(Utils.PROPERTY_SCRIPT_NAME);
     try
     {
       Properties p = new Properties();
@@ -1444,8 +1411,8 @@ final class ArgumentParser
         {
           if (currentPropertyName.startsWith(scriptName))
           {
-            propertyName =
-                currentPropertyName.substring(scriptName.length() + 1);
+            propertyName = currentPropertyName.substring(scriptName
+                .length() + 1);
           }
           else
           {
@@ -1461,9 +1428,8 @@ final class ArgumentParser
     }
     catch (Exception e)
     {
-      Message message =
-          ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
-              .valueOf(propertiesFilePath), getExceptionMessage(e));
+      Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(
+          String.valueOf(propertiesFilePath), getExceptionMessage(e));
       throw new ArgumentException(message, e);
     }
     return argumentProperties;
@@ -1473,7 +1439,7 @@ final class ArgumentParser
 
   /**
    * Get the absolute path of the properties file.
-   * 
+   *
    * @param directory
    *          The location in which we should look for properties file
    * @return The absolute path of the properties file or null
@@ -1481,9 +1447,8 @@ final class ArgumentParser
   private String findPropertiesFile(String directory)
   {
     // Look for the tools properties file
-    File f =
-        new File(directory, DEFAULT_OPENDS_PROPERTIES_FILE_NAME
-            + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION);
+    File f = new File(directory, DEFAULT_OPENDS_PROPERTIES_FILE_NAME
+        + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION);
     if (f.exists() && f.canRead())
     {
       return f.getAbsolutePath();
@@ -1499,12 +1464,12 @@ final class ArgumentParser
   /**
    * Appends usage information based on the defined arguments to the
    * provided buffer.
-   * 
+   *
    * @param buffer
    *          The buffer to which the usage information should be
    *          appended.
    */
-  public void getUsage(StringBuilder buffer)
+  void getUsage(StringBuilder buffer)
   {
     usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
@@ -1597,11 +1562,11 @@ final class ArgumentParser
   /**
    * Retrieves a message containing usage information based on the
    * defined arguments.
-   * 
+   *
    * @return A string containing usage information based on the defined
    *         arguments.
    */
-  public Message getUsageMessage()
+  Message getUsageMessage()
   {
     StringBuilder buffer = new StringBuilder();
     getUsage(buffer);
@@ -1616,11 +1581,11 @@ final class ArgumentParser
   /**
    * Retrieves a string containing usage information based on the
    * defined arguments.
-   * 
+   *
    * @return A string containing usage information based on the defined
    *         arguments.
    */
-  public String getUsage()
+  String getUsage()
   {
     StringBuilder buffer = new StringBuilder();
     getUsage(buffer);
@@ -1633,7 +1598,7 @@ final class ArgumentParser
   /**
    * Writes usage information based on the defined arguments to the
    * provided output stream.
-   * 
+   *
    * @param outputStream
    *          The output stream to which the usage information should be
    *          written.
@@ -1641,7 +1606,7 @@ final class ArgumentParser
    *           If a problem occurs while attempting to write the usage
    *           information to the provided output stream.
    */
-  public void getUsage(OutputStream outputStream) throws IOException
+  void getUsage(OutputStream outputStream) throws IOException
   {
     StringBuilder buffer = new StringBuilder();
     getUsage(buffer);
@@ -1655,11 +1620,11 @@ final class ArgumentParser
    * Indicates whether the version or the usage information has been
    * displayed to the end user either by an explicit argument like "-H"
    * or "--help", or by a built-in argument like "-?".
-   * 
+   *
    * @return {@code true} if the usage information has been displayed,
    *         or {@code false} if not.
    */
-  public boolean usageOrVersionDisplayed()
+  boolean usageOrVersionDisplayed()
   {
     return usageOrVersionDisplayed;
   }
@@ -1668,7 +1633,7 @@ final class ArgumentParser
 
   /**
    * Appends argument usage information to the provided buffer.
-   * 
+   *
    * @param a
    *          The argument to handle.
    * @param buffer
@@ -1713,8 +1678,8 @@ final class ArgumentParser
           newBuffer.append(a.getValuePlaceholder());
         }
 
-        int lineLength =
-            (buffer.length() - currentLength) + newBuffer.length();
+        int lineLength = (buffer.length() - currentLength)
+            + newBuffer.length();
         if (lineLength > MAX_LENGTH)
         {
           buffer.append(EOL);
@@ -1823,7 +1788,7 @@ final class ArgumentParser
   /**
    * Given an argument, returns an appropriate group. Arguments may be
    * part of one of the special groups or the default group.
-   * 
+   *
    * @param argument
    *          for which a group is requested
    * @return argument group appropriate for <code>argument</code>
@@ -1855,7 +1820,7 @@ final class ArgumentParser
   /**
    * Indicates whether or not argument group description headers should
    * be printed.
-   * 
+   *
    * @return boolean where true means print the descriptions
    */
   boolean printUsageGroupHeaders()
@@ -1884,11 +1849,10 @@ final class ArgumentParser
 
     try
     {
-      versionArgument =
-          new BooleanArgument(OPTION_LONG_PRODUCT_VERSION,
-              OPTION_SHORT_PRODUCT_VERSION,
-              OPTION_LONG_PRODUCT_VERSION,
-              INFO_DESCRIPTION_PRODUCT_VERSION.get());
+      versionArgument = new BooleanArgument(
+          OPTION_LONG_PRODUCT_VERSION, OPTION_SHORT_PRODUCT_VERSION,
+          OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION
+              .get());
       this.generalArgGroup.addArgument(versionArgument);
     }
     catch (ArgumentException e)
@@ -1905,19 +1869,15 @@ final class ArgumentParser
     if (arg != null)
     {
       String longId = arg.getLongIdentifier();
-      io =
-          OPTION_LONG_VERBOSE.equals(longId)
-              || OPTION_LONG_QUIET.equals(longId)
-              || OPTION_LONG_NO_PROMPT.equals(longId)
-              || OPTION_LONG_PROP_FILE_PATH.equals(longId)
-              || OPTION_LONG_NO_PROP_FILE.equals(longId)
-              || OPTION_LONG_SCRIPT_FRIENDLY.equals(longId)
-              || OPTION_LONG_DONT_WRAP.equals(longId)
-              || OPTION_LONG_ENCODING.equals(longId)
-              || OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT.equals(longId)
-              || OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH
-                  .equals(longId)
-              || OPTION_LONG_BATCH_FILE_PATH.equals(longId);
+      io = OPTION_LONG_VERBOSE.equals(longId)
+          || OPTION_LONG_QUIET.equals(longId)
+          || OPTION_LONG_NO_PROMPT.equals(longId)
+          || OPTION_LONG_PROP_FILE_PATH.equals(longId)
+          || OPTION_LONG_NO_PROP_FILE.equals(longId)
+          || OPTION_LONG_SCRIPT_FRIENDLY.equals(longId)
+          || OPTION_LONG_DONT_WRAP.equals(longId)
+          || OPTION_LONG_ENCODING.equals(longId)
+          || OPTION_LONG_BATCH_FILE_PATH.equals(longId);
     }
     return io;
   }
@@ -1930,29 +1890,28 @@ final class ArgumentParser
     if (arg != null)
     {
       String longId = arg.getLongIdentifier();
-      ldap =
-          OPTION_LONG_USE_SSL.equals(longId)
-              || OPTION_LONG_START_TLS.equals(longId)
-              || OPTION_LONG_HOST.equals(longId)
-              || OPTION_LONG_PORT.equals(longId)
-              || OPTION_LONG_BINDDN.equals(longId)
-              || OPTION_LONG_BINDPWD.equals(longId)
-              || OPTION_LONG_BINDPWD_FILE.equals(longId)
-              || OPTION_LONG_SASLOPTION.equals(longId)
-              || OPTION_LONG_TRUSTALL.equals(longId)
-              || OPTION_LONG_TRUSTSTOREPATH.equals(longId)
-              || OPTION_LONG_TRUSTSTORE_PWD.equals(longId)
-              || OPTION_LONG_TRUSTSTORE_PWD_FILE.equals(longId)
-              || OPTION_LONG_KEYSTOREPATH.equals(longId)
-              || OPTION_LONG_KEYSTORE_PWD.equals(longId)
-              || OPTION_LONG_KEYSTORE_PWD_FILE.equals(longId)
-              || OPTION_LONG_CERT_NICKNAME.equals(longId)
-              || OPTION_LONG_REFERENCED_HOST_NAME.equals(longId)
-              || OPTION_LONG_ADMIN_UID.equals(longId)
-              || OPTION_LONG_REPORT_AUTHZ_ID.equals(longId)
-              || OPTION_LONG_USE_PW_POLICY_CTL.equals(longId)
-              || OPTION_LONG_USE_SASL_EXTERNAL.equals(longId)
-              || OPTION_LONG_PROTOCOL_VERSION.equals(longId);
+      ldap = OPTION_LONG_USE_SSL.equals(longId)
+          || OPTION_LONG_START_TLS.equals(longId)
+          || OPTION_LONG_HOST.equals(longId)
+          || OPTION_LONG_PORT.equals(longId)
+          || OPTION_LONG_BINDDN.equals(longId)
+          || OPTION_LONG_BINDPWD.equals(longId)
+          || OPTION_LONG_BINDPWD_FILE.equals(longId)
+          || OPTION_LONG_SASLOPTION.equals(longId)
+          || OPTION_LONG_TRUSTALL.equals(longId)
+          || OPTION_LONG_TRUSTSTOREPATH.equals(longId)
+          || OPTION_LONG_TRUSTSTORE_PWD.equals(longId)
+          || OPTION_LONG_TRUSTSTORE_PWD_FILE.equals(longId)
+          || OPTION_LONG_KEYSTOREPATH.equals(longId)
+          || OPTION_LONG_KEYSTORE_PWD.equals(longId)
+          || OPTION_LONG_KEYSTORE_PWD_FILE.equals(longId)
+          || OPTION_LONG_CERT_NICKNAME.equals(longId)
+          || OPTION_LONG_REFERENCED_HOST_NAME.equals(longId)
+          || OPTION_LONG_ADMIN_UID.equals(longId)
+          || OPTION_LONG_REPORT_AUTHZ_ID.equals(longId)
+          || OPTION_LONG_USE_PW_POLICY_CTL.equals(longId)
+          || OPTION_LONG_USE_SASL_EXTERNAL.equals(longId)
+          || OPTION_LONG_PROTOCOL_VERSION.equals(longId);
     }
     return ldap;
   }
@@ -1965,9 +1924,8 @@ final class ArgumentParser
     if (arg != null)
     {
       String longId = arg.getLongIdentifier();
-      general =
-          OPTION_LONG_HELP.equals(longId)
-              || OPTION_LONG_PRODUCT_VERSION.equals(longId);
+      general = OPTION_LONG_HELP.equals(longId)
+          || OPTION_LONG_PRODUCT_VERSION.equals(longId);
     }
     return general;
   }
@@ -1977,11 +1935,11 @@ final class ArgumentParser
   /**
    * Returns whether the usage argument was provided or not. This method
    * should be called after a call to parseArguments.
-   * 
+   *
    * @return <CODE>true</CODE> if the usage argument was provided and
    *         <CODE>false</CODE> otherwise.
    */
-  public boolean isUsageArgumentPresent()
+  boolean isUsageArgumentPresent()
   {
     boolean isUsageArgumentPresent = false;
     if (usageArgument != null)
@@ -1996,11 +1954,11 @@ final class ArgumentParser
   /**
    * Returns whether the version argument was provided or not. This
    * method should be called after a call to parseArguments.
-   * 
+   *
    * @return <CODE>true</CODE> if the version argument was provided and
    *         <CODE>false</CODE> otherwise.
    */
-  public boolean isVersionArgumentPresent()
+  boolean isVersionArgumentPresent()
   {
     return versionPresent;
   }

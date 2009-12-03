@@ -29,14 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_NAME;
 import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
 import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.util.Validator;
 
 

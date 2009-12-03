@@ -28,10 +28,11 @@ package org.opends.sdk.schema;
 
 
 
+import static com.sun.opends.sdk.util.Messages.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.SchemaMessages;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
@@ -172,7 +173,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends
     if (value.length() == 0)
     {
       throw DecodeException.error(
-          SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
+          WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
     }
 
     ByteSequence initialString = null;
@@ -199,7 +200,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends
     if (reader.remaining() == 0)
     {
       throw DecodeException.error(
-          SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS
+          WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS
               .get(value.toString()));
     }
     while (true)
@@ -211,7 +212,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends
         if (bytes.length() == 0)
         {
           throw DecodeException.error(
-              SchemaMessages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
+              WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
                   .get(value.toString(), reader.pos()));
         }
         if (anyStrings == null)

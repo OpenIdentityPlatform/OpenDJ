@@ -29,9 +29,8 @@ package org.opends.sdk.sasl;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
-import static org.opends.messages.ExtensionMessages.ERR_SASL_PROTOCOL_ERROR;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -44,11 +43,11 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
-import org.opends.messages.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.Validator;
 
+import com.sun.opends.sdk.util.Message;
 import com.sun.security.auth.callback.TextCallbackHandler;
 import com.sun.security.auth.module.Krb5LoginModule;
 

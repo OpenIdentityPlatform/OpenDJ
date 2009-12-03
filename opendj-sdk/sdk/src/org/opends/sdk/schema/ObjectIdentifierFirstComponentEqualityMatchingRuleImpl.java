@@ -28,10 +28,10 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteSequence;

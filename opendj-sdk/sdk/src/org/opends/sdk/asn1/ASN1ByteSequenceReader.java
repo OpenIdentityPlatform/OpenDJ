@@ -29,21 +29,20 @@ package org.opends.sdk.asn1;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
-import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.util.ByteSequenceReader;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.ByteStringBuilder;
 import org.opends.sdk.util.StaticUtils;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

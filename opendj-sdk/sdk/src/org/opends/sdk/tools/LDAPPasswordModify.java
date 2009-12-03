@@ -1,13 +1,12 @@
 package org.opends.sdk.tools;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
+import static org.opends.sdk.tools.Utils.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.opends.messages.Message;
 import org.opends.sdk.Connection;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ErrorResultException;
@@ -16,7 +15,8 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.PasswordModifyRequest;
 import org.opends.sdk.extensions.PasswordModifyResult;
 import org.opends.sdk.util.ByteString;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 /**
  * This program provides a utility that uses the LDAP password modify extended

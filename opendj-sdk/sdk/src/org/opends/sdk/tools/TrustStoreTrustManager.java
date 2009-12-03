@@ -26,7 +26,7 @@
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 
-package org.opends.sdk.util.ssl;
+package org.opends.sdk.tools;
 
 
 
@@ -64,7 +64,7 @@ import org.opends.sdk.util.Validator;
  * retrieved this class will only accept the certificates explicitly
  * accepted by the user (and specified by calling acceptCertificate).
  */
-public class TrustStoreTrustManager implements X509TrustManager
+class TrustStoreTrustManager implements X509TrustManager
 {
   static private final Logger LOG = Logger
       .getLogger(TrustStoreTrustManager.class.getName());
@@ -79,14 +79,12 @@ public class TrustStoreTrustManager implements X509TrustManager
 
   private final String hostname;
 
-  private final boolean checkValidityDates;
-
 
 
   /**
    * The default constructor.
    */
-  public TrustStoreTrustManager(String truststorePath,
+  TrustStoreTrustManager(String truststorePath,
       String truststorePassword, String hostname,
       boolean checkValidityDates) throws KeyStoreException,
       IOException, NoSuchAlgorithmException, CertificateException
@@ -124,7 +122,7 @@ public class TrustStoreTrustManager implements X509TrustManager
     }
     this.trustManager = x509tm;
     this.hostname = hostname;
-    this.checkValidityDates = checkValidityDates;
+    // this.checkValidityDates = checkValidityDates;
   }
 
 

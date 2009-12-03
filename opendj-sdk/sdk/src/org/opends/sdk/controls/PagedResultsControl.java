@@ -2,14 +2,14 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_NULL;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
-import static org.opends.messages.ProtocolMessages.ERR_LDAP_PAGED_RESULTS_DECODE_SIZE;
+import static com.sun.opends.sdk.util.Messages.ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE;
+import static com.sun.opends.sdk.util.Messages.ERR_LDAP_PAGED_RESULTS_DECODE_NULL;
+import static com.sun.opends.sdk.util.Messages.ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
+import static com.sun.opends.sdk.util.Messages.ERR_LDAP_PAGED_RESULTS_DECODE_SIZE;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

@@ -2,12 +2,12 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 
 

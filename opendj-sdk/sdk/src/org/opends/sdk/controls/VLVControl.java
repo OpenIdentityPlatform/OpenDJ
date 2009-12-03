@@ -2,15 +2,15 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_VLVREQ_CONTROL_NO_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
-import static org.opends.messages.ProtocolMessages.INFO_VLVRES_CONTROL_NO_VALUE;
+import static com.sun.opends.sdk.util.Messages.INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE;
+import static com.sun.opends.sdk.util.Messages.INFO_VLVREQ_CONTROL_NO_VALUE;
+import static com.sun.opends.sdk.util.Messages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
+import static com.sun.opends.sdk.util.Messages.INFO_VLVRES_CONTROL_NO_VALUE;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

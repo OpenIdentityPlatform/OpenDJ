@@ -29,9 +29,8 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.*;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.ldif.EntryWriter;
@@ -53,7 +51,8 @@ import org.opends.sdk.responses.SearchResultReference;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.opends.sdk.util.StaticUtils;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 
@@ -83,7 +82,8 @@ public final class LDAPSearch extends ConsoleApplication
     {
       entryCount++;
 
-      Control control = entry.getControl(OID_ENTRY_CHANGE_NOTIFICATION);
+      Control control = entry
+          .getControl(EntryChangeNotificationControl.OID_ENTRY_CHANGE_NOTIFICATION);
       if (control != null
           && control instanceof EntryChangeNotificationControl)
       {
@@ -96,7 +96,8 @@ public final class LDAPSearch extends ConsoleApplication
           println(INFO_LDAPSEARCH_PSEARCH_PREVIOUS_DN.get(previousDN));
         }
       }
-      control = entry.getControl(OID_ACCOUNT_USABLE_CONTROL);
+      control = entry
+          .getControl(AccountUsabilityControl.OID_ACCOUNT_USABLE_CONTROL);
       if (control != null
           && control instanceof AccountUsabilityControl.Response)
       {

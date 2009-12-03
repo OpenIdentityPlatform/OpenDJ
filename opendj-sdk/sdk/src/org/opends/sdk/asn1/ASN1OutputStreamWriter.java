@@ -28,7 +28,7 @@ package org.opends.sdk.asn1;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
+import static com.sun.opends.sdk.util.Messages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
 import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
 
@@ -37,7 +37,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.util.ByteSequence;
 import org.opends.sdk.util.ByteSequenceOutputStream;
 import org.opends.sdk.util.ByteStringBuilder;

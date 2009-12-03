@@ -31,7 +31,7 @@ package org.opends.sdk.schema;
 
 import static org.opends.sdk.schema.SchemaConstants.*;
 
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.util.ByteSequence;
 
 

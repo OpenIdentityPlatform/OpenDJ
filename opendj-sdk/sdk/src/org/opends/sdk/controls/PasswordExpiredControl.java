@@ -2,9 +2,9 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_PWEXPIRED_CONTROL_INVALID_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_PWEXPIRED_CONTROL_INVALID_VALUE;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.ByteString;

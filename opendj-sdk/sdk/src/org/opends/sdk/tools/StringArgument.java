@@ -28,8 +28,8 @@ package org.opends.sdk.tools;
 
 
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 

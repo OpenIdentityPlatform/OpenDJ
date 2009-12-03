@@ -2,10 +2,10 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDREQ_CONTROL_HAS_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_AUTHZIDRESP_NO_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_AUTHZIDREQ_CONTROL_HAS_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_AUTHZIDRESP_NO_CONTROL_VALUE;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.schema.Schema;

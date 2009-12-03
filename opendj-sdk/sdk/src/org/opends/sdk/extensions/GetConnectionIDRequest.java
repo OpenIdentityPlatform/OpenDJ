@@ -4,7 +4,7 @@ package org.opends.sdk.extensions;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;

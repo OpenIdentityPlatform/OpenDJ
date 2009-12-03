@@ -29,20 +29,19 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.filterExitCode;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
+import static org.opends.sdk.tools.Utils.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Result;
-import org.opends.server.util.cli.ConsoleApplication;
 
+import com.sun.opends.sdk.util.Message;
 
 
 /**
@@ -56,7 +55,7 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * The main method for SearchRate tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    */
@@ -76,7 +75,7 @@ public final class ModRate extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the ldapsearch tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
@@ -92,7 +91,7 @@ public final class ModRate extends ConsoleApplication
   /**
    * Parses the provided command-line arguments and uses that
    * information to run the ldapsearch tool.
-   * 
+   *
    * @param args
    *          The command-line arguments provided to this program.
    * @param inStream
@@ -349,7 +348,7 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested advanced mode.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         advanced mode.
    */
@@ -363,7 +362,7 @@ public final class ModRate extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested interactive
    * behavior.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         interactive behavior.
    */
@@ -380,7 +379,7 @@ public final class ModRate extends ConsoleApplication
    * go to the error stream or not. In addition, it may also dictate
    * whether or not sub-menus should display a cancel option as well as
    * a quit option.
-   * 
+   *
    * @return Returns <code>true</code> if this console application is
    *         running in its menu-driven mode.
    */
@@ -393,7 +392,7 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested quiet output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested quiet
    *         output.
    */
@@ -407,7 +406,7 @@ public final class ModRate extends ConsoleApplication
   /**
    * Indicates whether or not the user has requested script-friendly
    * output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested
    *         script-friendly output.
    */
@@ -420,7 +419,7 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * Indicates whether or not the user has requested verbose output.
-   * 
+   *
    * @return Returns <code>true</code> if the user has requested verbose
    *         output.
    */

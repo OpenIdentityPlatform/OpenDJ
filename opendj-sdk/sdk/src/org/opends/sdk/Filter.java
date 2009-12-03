@@ -29,16 +29,15 @@ package org.opends.sdk;
 
 
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.sdk.util.StaticUtils.byteToHex;
-import static org.opends.sdk.util.StaticUtils.getBytes;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
-import org.opends.messages.Message;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.util.*;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

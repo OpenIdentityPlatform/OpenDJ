@@ -37,11 +37,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
 import org.opends.sdk.responses.Result;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 
@@ -50,34 +50,53 @@ import org.opends.server.util.cli.ConsoleApplication;
  */
 abstract class PerformanceRunner
 {
-  private final AtomicInteger operationRecentCount =
-      new AtomicInteger();
+  private final AtomicInteger operationRecentCount = new AtomicInteger();
+
   private final AtomicInteger successRecentCount = new AtomicInteger();
+
   private final AtomicInteger failedRecentCount = new AtomicInteger();
+
   private final AtomicLong waitRecentTime = new AtomicLong();
-  private final AtomicReference<ReversableArray> eTimeBuffer =
-      new AtomicReference<ReversableArray>(new ReversableArray(100000));
+
+  private final AtomicReference<ReversableArray> eTimeBuffer = new AtomicReference<ReversableArray>(
+      new ReversableArray(100000));
+
   private final ConsoleApplication app;
-  private final ThreadLocal<DataSource[]> dataSources =
-      new ThreadLocal<DataSource[]>();
+
+  private final ThreadLocal<DataSource[]> dataSources = new ThreadLocal<DataSource[]>();
 
   private volatile boolean stopRequested;
+
   private int numThreads;
+
   private int numConnections;
+
   private int targetThroughput;
+
   private int maxIterations;
+
   private boolean isAsync;
+
   private boolean noRebind;
+
   private int statsInterval;
 
   private IntegerArgument numThreadsArgument;
+
   private IntegerArgument maxIterationsArgument;
+
   private IntegerArgument statsIntervalArgument;
+
   private IntegerArgument targetThroughputArgument;
+
   private IntegerArgument numConnectionsArgument;
+
   private IntegerArgument percentilesArgument;
+
   private BooleanArgument keepConnectionsOpen;
+
   private BooleanArgument noRebindArgument;
+
   private BooleanArgument asyncArgument;
 
   private StringArgument arguments;
@@ -88,97 +107,76 @@ abstract class PerformanceRunner
       throws ArgumentException
   {
     this.app = app;
-    numThreadsArgument =
-        new IntegerArgument("numThreads", 't', "numThreads", false,
-            false, true, Message.raw("{numThreads}"), 1, null, true, 1,
-            false, 0, Message
-                .raw("number of search threads per connection"));
+    numThreadsArgument = new IntegerArgument("numThreads", 't',
+        "numThreads", false, false, true, Message.raw("{numThreads}"),
+        1, null, true, 1, false, 0, Message
+            .raw("number of search threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
     argParser.addArgument(numThreadsArgument);
 
-    numConnectionsArgument =
-        new IntegerArgument("numConnections", 'c', "numConnections",
-            false, false, true, Message.raw("{numConnections}"), 1,
-            null, true, 1, false, 0, Message
-                .raw("number of connections"));
+    numConnectionsArgument = new IntegerArgument("numConnections", 'c',
+        "numConnections", false, false, true, Message
+            .raw("{numConnections}"), 1, null, true, 1, false, 0,
+        Message.raw("number of connections"));
     numThreadsArgument.setPropertyName("numConnections");
     argParser.addArgument(numConnectionsArgument);
 
-    maxIterationsArgument =
-        new IntegerArgument("maxIterations", 'm', "maxIterations",
-            false, false, true, Message.raw("{maxIterations}"), 0,
-            null, Message
-                .raw("max searches per thread, 0 for unlimited"));
+    maxIterationsArgument = new IntegerArgument("maxIterations", 'm',
+        "maxIterations", false, false, true, Message
+            .raw("{maxIterations}"), 0, null, Message
+            .raw("max searches per thread, 0 for unlimited"));
     numThreadsArgument.setPropertyName("maxIterations");
     argParser.addArgument(maxIterationsArgument);
 
-    statsIntervalArgument =
-        new IntegerArgument(
-            "statInterval",
-            'i',
-            "statInterval",
-            false,
-            false,
-            true,
-            Message.raw("{statInterval}"),
-            5,
-            null,
-            true,
-            1,
-            false,
-            0,
-            Message
-                .raw("Display results each specified number of seconds"));
+    statsIntervalArgument = new IntegerArgument("statInterval", 'i',
+        "statInterval", false, false, true, Message
+            .raw("{statInterval}"), 5, null, true, 1, false, 0, Message
+            .raw("Display results each specified number of seconds"));
     numThreadsArgument.setPropertyName("statInterval");
     argParser.addArgument(statsIntervalArgument);
 
-    targetThroughputArgument =
-        new IntegerArgument("targetThroughput", 'M',
-            "targetThroughput", false, false, true, Message
-                .raw("{targetThroughput}"), 0, null, Message
-                .raw("Target average throughput to achieve"));
+    targetThroughputArgument = new IntegerArgument("targetThroughput",
+        'M', "targetThroughput", false, false, true, Message
+            .raw("{targetThroughput}"), 0, null, Message
+            .raw("Target average throughput to achieve"));
     targetThroughputArgument.setPropertyName("targetThroughput");
     argParser.addArgument(targetThroughputArgument);
 
-    percentilesArgument =
-        new IntegerArgument("percentile", 'e', "percentile", false,
-            true, Message.raw("{percentile}"), true, 50, true, 100,
-            Message.raw("Calculate max response time for a "
-                + "percentile of operations"));
+    percentilesArgument = new IntegerArgument("percentile", 'e',
+        "percentile", false, true, Message.raw("{percentile}"), true,
+        50, true, 100, Message.raw("Calculate max response time for a "
+            + "percentile of operations"));
     percentilesArgument.setPropertyName("percentile");
     argParser.addArgument(percentilesArgument);
 
-    keepConnectionsOpen =
-        new BooleanArgument("keepConnectionsOpen", 'f',
-            "keepConnectionsOpen", Message.raw("keep connections open"));
+    keepConnectionsOpen = new BooleanArgument("keepConnectionsOpen",
+        'f', "keepConnectionsOpen", Message
+            .raw("keep connections open"));
     keepConnectionsOpen.setPropertyName("keepConnectionsOpen");
     argParser.addArgument(keepConnectionsOpen);
 
-    noRebindArgument =
-        new BooleanArgument("noRebind", 'F', "noRebind", Message
-            .raw("keep connections open and don't rebind"));
+    noRebindArgument = new BooleanArgument("noRebind", 'F', "noRebind",
+        Message.raw("keep connections open and don't rebind"));
     keepConnectionsOpen.setPropertyName("noRebind");
     argParser.addArgument(noRebindArgument);
 
-    asyncArgument =
-        new BooleanArgument("asynchronous", 'A', "asynchronous",
-            Message.raw("asynch, don't wait for results"));
+    asyncArgument = new BooleanArgument("asynchronous", 'A',
+        "asynchronous", Message.raw("asynch, don't wait for results"));
     keepConnectionsOpen.setPropertyName("asynchronous");
     argParser.addArgument(asyncArgument);
 
-    arguments =
-        new StringArgument(
-            "arguments",
-            'g',
-            "arguments",
-            false,
-            true,
-            true,
-            Message.raw("{arguments}"),
-            null,
-            null,
-            Message
-                .raw("arguments for variables in the filter and/or base DN"));
+    arguments = new StringArgument(
+        "arguments",
+        'g',
+        "arguments",
+        false,
+        true,
+        true,
+        Message.raw("{arguments}"),
+        null,
+        null,
+        Message
+            .raw("arguments for variables in the filter and/or base DN"));
     arguments.setPropertyName("arguments");
     argParser.addArgument(arguments);
   }
@@ -239,9 +237,8 @@ abstract class PerformanceRunner
         if (keepConnectionsOpen.isPresent()
             || noRebindArgument.isPresent())
         {
-          connection =
-              connectionFactory.getAsynchronousConnection(null, null)
-                  .get();
+          connection = connectionFactory.getAsynchronousConnection(
+              null, null).get();
         }
         for (int j = 0; j < numThreads; j++)
         {
@@ -357,7 +354,9 @@ abstract class PerformanceRunner
       Thread
   {
     private int count;
+
     private final AsynchronousConnection connection;
+
     private final ConnectionFactory<?> connectionFactory;
 
 
@@ -400,8 +399,7 @@ abstract class PerformanceRunner
       AsynchronousConnection connection;
       R handler;
 
-      double targetTimeInMS =
-          (1.0 / (targetThroughput / (numThreads * numConnections))) * 1000.0;
+      double targetTimeInMS = (1.0 / (targetThroughput / (numThreads * numConnections))) * 1000.0;
       double sleepTimeInMS = 0;
       long start;
       while (!stopRequested
@@ -414,9 +412,8 @@ abstract class PerformanceRunner
         {
           try
           {
-            connection =
-                connectionFactory.getAsynchronousConnection(null, null)
-                    .get();
+            connection = connectionFactory.getAsynchronousConnection(
+                null, null).get();
           }
           catch (InterruptedException e)
           {
@@ -441,8 +438,7 @@ abstract class PerformanceRunner
           if (!noRebind
               && connection instanceof AuthenticatedAsynchronousConnection)
           {
-            AuthenticatedAsynchronousConnection ac =
-                (AuthenticatedAsynchronousConnection) connection;
+            AuthenticatedAsynchronousConnection ac = (AuthenticatedAsynchronousConnection) connection;
             try
             {
               ac.rebind(null, null).get();
@@ -464,8 +460,8 @@ abstract class PerformanceRunner
             }
           }
         }
-        future =
-            performOperation(connection, handler, dataSources.get());
+        future = performOperation(connection, handler, dataSources
+            .get());
         operationRecentCount.getAndIncrement();
         count++;
         if (!isAsync)
@@ -508,9 +504,8 @@ abstract class PerformanceRunner
             continue;
           }
 
-          sleepTimeInMS +=
-              targetTimeInMS
-                  - ((System.nanoTime() - start) / 1000000.0);
+          sleepTimeInMS += targetTimeInMS
+              - ((System.nanoTime() - start) / 1000000.0);
           if (sleepTimeInMS < -60000)
           {
             // If we fall behind by 60 seconds, just forget about
@@ -527,26 +522,41 @@ abstract class PerformanceRunner
   class StatsThread extends Thread
   {
     protected final String[] EMPTY_STRINGS = new String[0];
+
     private final MultiColumnPrinter printer;
+
     private final List<GarbageCollectorMXBean> beans;
+
     private final Set<Double> percentiles;
+
     private final int numColumns;
 
     private ReversableArray etimes = new ReversableArray(100000);
+
     private final ReversableArray array = new ReversableArray(200000);
 
     protected long totalSuccessCount;
+
     protected long totalOperationCount;
+
     protected long totalFailedCount;
+
     protected long totalWaitTime;
+
     protected int successCount;
+
     protected int searchCount;
+
     protected int failedCount;
+
     protected long waitTime;
 
     protected long lastStatTime;
+
     protected long lastGCDuration;
+
     protected double recentDuration;
+
     protected double averageDuration;
 
 
@@ -569,12 +579,10 @@ abstract class PerformanceRunner
         }
       }
       this.percentiles = pSet.descendingSet();
-      numColumns =
-          5 + this.percentiles.size() + additionalColumns.length
-              + (isAsync ? 1 : 0);
-      printer =
-          new MultiColumnPrinter(numColumns, 2, "-",
-              MultiColumnPrinter.RIGHT, app);
+      numColumns = 5 + this.percentiles.size()
+          + additionalColumns.length + (isAsync ? 1 : 0);
+      printer = new MultiColumnPrinter(numColumns, 2, "-",
+          MultiColumnPrinter.RIGHT, app);
       printer.setTitleAlign(MultiColumnPrinter.RIGHT);
 
       String[] title = new String[numColumns];
@@ -676,17 +684,15 @@ abstract class PerformanceRunner
         averageDuration -= gcDuration;
         recentDuration /= 1000.0;
         averageDuration /= 1000.0;
-        strings[0] =
-            String.format("%.1f", successCount / recentDuration);
-        strings[1] =
-            String.format("%.1f", totalSuccessCount / averageDuration);
-        strings[2] =
-            String.format("%.3f",
-                (waitTime - (gcDuration - lastGCDuration))
-                    / successCount / 1000000.0);
-        strings[3] =
-            String.format("%.3f", (totalWaitTime - gcDuration)
-                / totalSuccessCount / 1000000.0);
+        strings[0] = String.format("%.1f", successCount
+            / recentDuration);
+        strings[1] = String.format("%.1f", totalSuccessCount
+            / averageDuration);
+        strings[2] = String.format("%.3f",
+            (waitTime - (gcDuration - lastGCDuration)) / successCount
+                / 1000000.0);
+        strings[3] = String.format("%.3f", (totalWaitTime - gcDuration)
+            / totalSuccessCount / 1000000.0);
 
         boolean changed = false;
         etimes = eTimeBuffer.getAndSet(etimes);
@@ -733,28 +739,26 @@ abstract class PerformanceRunner
         int i = 4;
         for (Double percent : percentiles)
         {
-          index =
-              array.size()
-                  - (int) Math.floor((percent / 100.0)
-                      * totalSuccessCount) - 1;
+          index = array.size()
+              - (int) Math.floor((percent / 100.0) * totalSuccessCount)
+              - 1;
           if (index < 0)
           {
-            strings[i++] =
-                String.format("*%.3f", array.get(0) / 1000000.0);
+            strings[i++] = String.format("*%.3f",
+                array.get(0) / 1000000.0);
           }
           else
           {
-            strings[i++] =
-                String.format("%.3f", array.get(index) / 1000000.0);
+            strings[i++] = String.format("%.3f",
+                array.get(index) / 1000000.0);
           }
         }
-        strings[i++] =
-            String.format("%.1f", totalFailedCount / averageDuration);
+        strings[i++] = String.format("%.1f", totalFailedCount
+            / averageDuration);
         if (isAsync)
         {
-          strings[i++] =
-              String
-                  .format("%.1f", (double) searchCount / successCount);
+          strings[i++] = String.format("%.1f", (double) searchCount
+              / successCount);
         }
         for (String column : getAdditionalColumns())
         {
@@ -770,7 +774,9 @@ abstract class PerformanceRunner
   private static class ReversableArray
   {
     private final long[] array;
+
     private boolean reversed;
+
     private int size;
 
 

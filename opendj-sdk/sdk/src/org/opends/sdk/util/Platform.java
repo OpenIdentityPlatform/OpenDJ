@@ -28,7 +28,7 @@
 package org.opends.sdk.util;
 
 
-import static org.opends.messages.UtilityMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -38,7 +38,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 
 /**
  * Provides a wrapper class that collects all of the JVM vendor

@@ -2,13 +2,13 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.INFO_GETEFFECTIVERIGHTS_DECODE_ERROR;
-import static org.opends.messages.ProtocolMessages.INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID;
+import static com.sun.opends.sdk.util.Messages.INFO_GETEFFECTIVERIGHTS_DECODE_ERROR;
+import static com.sun.opends.sdk.util.Messages.INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID;
 
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;

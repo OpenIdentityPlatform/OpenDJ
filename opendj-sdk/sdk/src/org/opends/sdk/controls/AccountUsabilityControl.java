@@ -2,16 +2,16 @@ package org.opends.sdk.controls;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
-import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
-import static org.opends.messages.ProtocolMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
+import static com.sun.opends.sdk.util.Messages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ACCTUSABLERES_DECODE_ERROR;
+import static com.sun.opends.sdk.util.Messages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
+import static com.sun.opends.sdk.util.Messages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 import static org.opends.sdk.util.StaticUtils.byteToHex;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

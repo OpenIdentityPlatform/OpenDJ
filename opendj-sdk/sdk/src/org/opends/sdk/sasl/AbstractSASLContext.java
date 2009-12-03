@@ -29,7 +29,7 @@ package org.opends.sdk.sasl;
 
 
 
-import static org.opends.messages.ExtensionMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.io.IOException;
 
@@ -101,7 +101,7 @@ public abstract class AbstractSASLContext implements SASLContext,
       }
       else
       {
-        org.opends.messages.Message message =
+        com.sun.opends.sdk.util.Message message =
             INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
                 .getSASLMechanism(), String.valueOf(callback));
         throw new UnsupportedCallbackException(callback, message
@@ -141,7 +141,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(AuthorizeCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -152,7 +152,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(ChoiceCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -163,7 +163,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(ConfirmationCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -174,7 +174,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(LanguageCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -185,7 +185,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(NameCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -196,7 +196,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(PasswordCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -207,7 +207,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(RealmCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -218,7 +218,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(RealmChoiceCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -229,7 +229,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(TextInputCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
@@ -240,7 +240,7 @@ public abstract class AbstractSASLContext implements SASLContext,
   protected void handle(TextOutputCallback callback)
       throws UnsupportedCallbackException
   {
-    org.opends.messages.Message message =
+    com.sun.opends.sdk.util.Message message =
         INFO_SASL_UNSUPPORTED_CALLBACK.get(getSASLBindRequest()
             .getSASLMechanism(), String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());

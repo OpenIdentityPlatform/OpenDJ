@@ -28,13 +28,10 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.UtilityMessages.ERR_ARG_CANNOT_DECODE_AS_INT;
-import static org.opends.messages.UtilityMessages.ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND;
-import static org.opends.messages.UtilityMessages.ERR_INTARG_VALUE_ABOVE_UPPER_BOUND;
-import static org.opends.messages.UtilityMessages.ERR_INTARG_VALUE_BELOW_LOWER_BOUND;
+import static com.sun.opends.sdk.util.Messages.*;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -61,7 +58,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -104,7 +101,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -168,7 +165,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -225,7 +222,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -282,7 +279,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -360,7 +357,7 @@ final class IntegerArgument extends Argument
 
   /**
    * Creates a new integer argument with the provided information.
-   * 
+   *
    * @param name
    *          The generic name that should be used to refer to this
    *          argument.
@@ -439,7 +436,7 @@ final class IntegerArgument extends Argument
   /**
    * Indicates whether a lower bound should be enforced for values of
    * this argument.
-   * 
+   *
    * @return <CODE>true</CODE> if a lower bound should be enforced for
    *         values of this argument, or <CODE>false</CODE> if not.
    */
@@ -453,7 +450,7 @@ final class IntegerArgument extends Argument
   /**
    * Retrieves the lower bound that may be enforced for values of this
    * argument.
-   * 
+   *
    * @return The lower bound that may be enforced for values of this
    *         argument.
    */
@@ -467,7 +464,7 @@ final class IntegerArgument extends Argument
   /**
    * Indicates whether a upper bound should be enforced for values of
    * this argument.
-   * 
+   *
    * @return <CODE>true</CODE> if a upper bound should be enforced for
    *         values of this argument, or <CODE>false</CODE> if not.
    */
@@ -481,7 +478,7 @@ final class IntegerArgument extends Argument
   /**
    * Retrieves the upper bound that may be enforced for values of this
    * argument.
-   * 
+   *
    * @return The upper bound that may be enforced for values of this
    *         argument.
    */
@@ -495,7 +492,7 @@ final class IntegerArgument extends Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason

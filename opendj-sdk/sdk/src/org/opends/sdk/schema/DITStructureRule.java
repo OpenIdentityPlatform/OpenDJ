@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
+import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.util.Validator;
 
 

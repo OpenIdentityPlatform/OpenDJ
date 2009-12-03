@@ -28,11 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
+import static com.sun.opends.sdk.util.Messages.*;
 
 import java.util.*;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.util.ByteString;

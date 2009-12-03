@@ -29,14 +29,13 @@ package org.opends.sdk.tools;
 
 
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.tools.ToolConstants.*;
+import static org.opends.sdk.tools.Utils.*;
 
 import java.io.*;
 import java.util.ArrayList;
 
-import org.opends.messages.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.AssertionControl;
 import org.opends.sdk.controls.Control;
@@ -48,7 +47,8 @@ import org.opends.sdk.responses.Result;
 import org.opends.sdk.util.Base64;
 import org.opends.sdk.util.ByteString;
 import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

@@ -28,14 +28,12 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.messages.ProtocolMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static com.sun.opends.sdk.util.Messages.*;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
-import org.opends.messages.Message;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.AbstractASN1Writer;
 import org.opends.sdk.util.ByteSequence;
@@ -44,6 +42,7 @@ import org.opends.sdk.util.StaticUtils;
 
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.PoolableObject;
+import com.sun.opends.sdk.util.Message;
 
 
 

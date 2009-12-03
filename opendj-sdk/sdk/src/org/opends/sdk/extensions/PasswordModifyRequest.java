@@ -2,12 +2,12 @@ package org.opends.sdk.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
+import static com.sun.opends.sdk.util.Messages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
 import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
-import org.opends.messages.Message;
+import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;

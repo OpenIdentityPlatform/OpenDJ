@@ -42,6 +42,7 @@ import com.sun.grizzly.streams.StreamWriterDecorator;
 /**
  * SASL stream writer.
  */
+@SuppressWarnings("unchecked")
 final class SASLStreamWriter extends StreamWriterDecorator
 {
   private final SASLFilter saslFilter;
