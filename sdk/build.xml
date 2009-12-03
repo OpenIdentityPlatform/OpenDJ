@@ -176,9 +176,11 @@
     <!-- Remove all dynamically-generated build files. -->
     <target name="clean"
             description="Clean up any files generated during the build process">
-        <delete dir="${build.dir}" />
         <delete includeemptydirs="true">
             <fileset dir="${srcgen.dir}" includes="**/*" />
+        </delete>
+        <delete includeemptydirs="true">
+            <fileset dir="${build.dir}" includes="**/*" />
         </delete>
     </target>
 
