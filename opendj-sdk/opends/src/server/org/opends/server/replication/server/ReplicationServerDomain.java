@@ -3014,9 +3014,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      * publish the server id and the port number.
      */
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(Attributes.create("replication server id",
+    attributes.add(Attributes.create("replication-server-id",
         String.valueOf(replicationServer.getServerId())));
-    attributes.add(Attributes.create("replication server port",
+    attributes.add(Attributes.create("replication-server-port",
         String.valueOf(replicationServer.getReplicationPort())));
 
     /*
