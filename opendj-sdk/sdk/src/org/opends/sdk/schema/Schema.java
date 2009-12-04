@@ -61,8 +61,6 @@ public final class Schema
 {
   private static class EmptyImpl implements Impl
   {
-    private final Map<SchemaLocal<?>, Object> attachments;
-
     private final SchemaCompatOptions options;
 
 
@@ -70,28 +68,6 @@ public final class Schema
     private EmptyImpl()
     {
       this.options = SchemaCompatOptions.defaultOptions();
-      this.attachments = new WeakHashMap<SchemaLocal<?>, Object>();
-    }
-
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T getAttachment(SchemaLocal<T> attachment)
-    {
-      T o;
-      synchronized (attachments)
-      {
-        o = (T) attachments.get(attachment);
-        if (o == null)
-        {
-          o = attachment.initialValue();
-          if (o != null)
-          {
-            attachments.put(attachment, o);
-          }
-        }
-      }
-      return o;
     }
 
 
@@ -378,39 +354,12 @@ public final class Schema
     {
       return false;
     }
-
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T removeAttachment(SchemaLocal<T> attachment)
-    {
-      T o;
-      synchronized (attachments)
-      {
-        o = (T) attachments.remove(attachment);
-      }
-      return o;
-    }
-
-
-
-    public <T> void setAttachment(SchemaLocal<T> attachment, T value)
-    {
-      synchronized (attachments)
-      {
-        attachments.put(attachment, value);
-      }
-    }
   }
 
 
 
   private static interface Impl
   {
-    <T> T getAttachment(SchemaLocal<T> attachment);
-
-
-
     AttributeType getAttributeType(String name)
         throws UnknownSchemaElementException;
 
@@ -563,14 +512,6 @@ public final class Schema
 
 
     boolean isStrict();
-
-
-
-    <T> T removeAttachment(SchemaLocal<T> attachment);
-
-
-
-    <T> void setAttachment(SchemaLocal<T> attachment, T value);
   }
 
 
@@ -584,13 +525,6 @@ public final class Schema
     private NonStrictImpl(Impl strictImpl)
     {
       this.strictImpl = strictImpl;
-    }
-
-
-
-    public <T> T getAttachment(SchemaLocal<T> attachment)
-    {
-      return strictImpl.getAttachment(attachment);
     }
 
 
@@ -881,28 +815,12 @@ public final class Schema
     {
       return false;
     }
-
-
-
-    public <T> T removeAttachment(SchemaLocal<T> attachment)
-    {
-      return strictImpl.removeAttachment(attachment);
-    }
-
-
-
-    public <T> void setAttachment(SchemaLocal<T> attachment, T value)
-    {
-      strictImpl.setAttachment(attachment, value);
-    }
   }
 
 
 
   private static class StrictImpl implements Impl
   {
-    private final Map<SchemaLocal<?>, Object> attachments;
-
     private final Map<Integer, DITStructureRule> id2StructureRules;
 
     private final Map<String, List<AttributeType>> name2AttributeTypes;
@@ -994,28 +912,6 @@ public final class Schema
       this.nameForm2StructureRules = Collections
           .unmodifiableMap(nameForm2StructureRules);
       this.options = options;
-      attachments = new WeakHashMap<SchemaLocal<?>, Object>();
-    }
-
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T getAttachment(SchemaLocal<T> attachment)
-    {
-      T o;
-      synchronized (attachments)
-      {
-        o = (T) attachments.get(attachment);
-        if (o == null)
-        {
-          o = attachment.initialValue();
-          if (o != null)
-          {
-            attachments.put(attachment, o);
-          }
-        }
-      }
-      return o;
     }
 
 
@@ -1513,29 +1409,6 @@ public final class Schema
     public boolean isStrict()
     {
       return true;
-    }
-
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T removeAttachment(SchemaLocal<T> attachment)
-    {
-      T o;
-      synchronized (attachments)
-      {
-        o = (T) attachments.remove(attachment);
-      }
-      return o;
-    }
-
-
-
-    public <T> void setAttachment(SchemaLocal<T> attachment, T value)
-    {
-      synchronized (attachments)
-      {
-        attachments.put(attachment, value);
-      }
     }
   }
 
@@ -2503,29 +2376,8 @@ public final class Schema
 
 
 
-  <T> T getAttachment(SchemaLocal<T> attachment)
-  {
-    return impl.getAttachment(attachment);
-  }
-
-
-
   SchemaCompatOptions getSchemaCompatOptions()
   {
     return impl.getSchemaCompatOptions();
-  }
-
-
-
-  <T> T removeAttachment(SchemaLocal<T> attachment)
-  {
-    return impl.removeAttachment(attachment);
-  }
-
-
-
-  <T> void setAttachment(SchemaLocal<T> attachment, T value)
-  {
-    impl.setAttachment(attachment, value);
   }
 }
