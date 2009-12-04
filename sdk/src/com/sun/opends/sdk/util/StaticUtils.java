@@ -1006,21 +1006,7 @@ public final class StaticUtils
     if (t instanceof LocalizableException)
     {
       final LocalizableException ie = (LocalizableException) t;
-
-      final StringBuilder message = new StringBuilder();
-      message.append(ie.getMessageObject());
-      message.append(" (id=");
-      final Message ieMsg = ie.getMessageObject();
-      if (ieMsg != null)
-      {
-        message.append(ieMsg.getDescriptor().getOrdinal());
-      }
-      else
-      {
-        message.append(MessageDescriptor.NULL_ID);
-      }
-      message.append(")");
-      return Message.raw(message.toString());
+      return ie.getMessageObject();
     }
     else if (t instanceof NullPointerException)
     {

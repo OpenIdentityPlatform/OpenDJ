@@ -34,7 +34,6 @@ import java.util.*;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
 
-import com.sun.opends.sdk.util.Function;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -295,30 +294,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   public ByteString firstValue() throws NoSuchElementException
   {
     return iterator().next();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <T> T firstValueAsObject(
-      Function<? super ByteString, T, Void> type)
-      throws NoSuchElementException
-  {
-    return type.apply(firstValue(), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <T, P> T firstValueAsObject(
-      Function<? super ByteString, T, P> type, P p)
-      throws NoSuchElementException
-  {
-    return type.apply(firstValue(), p);
   }
 
 

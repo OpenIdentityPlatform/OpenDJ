@@ -73,15 +73,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg0(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg0(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
       message = new Message(this);
       requiresFormat = containsArgumentLiterals(getFormatString());
     }
@@ -127,15 +124,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg1(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg1(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -186,15 +180,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg2(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg2(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -249,15 +240,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg3(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg3(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -317,15 +305,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg4(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg4(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -389,15 +374,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg5(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg5(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -465,15 +447,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg6(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg6(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -545,15 +524,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg7(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg7(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -629,15 +605,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg8(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg8(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -718,15 +691,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg9(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg9(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -811,15 +781,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg10(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg10(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -908,15 +875,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg11(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public Arg11(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -987,15 +951,12 @@ public abstract class MessageDescriptor
      *          base of the backing resource bundle
      * @param key
      *          for accessing the format string from the resource bundle
-     * @param ordinal
-     *          of created messages
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public ArgN(String rbBase, String key, int ordinal,
-        ClassLoader classLoader)
+    public ArgN(String rbBase, String key, ClassLoader classLoader)
     {
-      super(rbBase, key, ordinal, classLoader);
+      super(rbBase, key, classLoader);
     }
 
 
@@ -1051,7 +1012,7 @@ public abstract class MessageDescriptor
      */
     Raw(CharSequence formatString)
     {
-      super(null, null, null, null);
+      super(null, null, null);
       this.formatString = formatString != null ? formatString
           .toString() : "";
       this.requiresFormatter = this.formatString.matches(".*%.*");
@@ -1110,34 +1071,12 @@ public abstract class MessageDescriptor
   private final String key;
 
   /**
-   * The value that makes a message unique among other messages having
-   * the same severity and category. May be null for raw messages.
-   */
-  private final Integer ordinal;
-
-  /**
    * The class loader to be used to retrieve the ResourceBundle. If null
    * the default class loader will be used.
    */
   private final ClassLoader classLoader;
 
   private final Map<Locale, String> formatStrMap = new HashMap<Locale, String>();
-
-
-
-  /**
-   * Obtains the ordinal value for this message which makes messages
-   * unique among messages defined with the same category and severity.
-   *
-   * @return int ordinal value
-   */
-  public final int getOrdinal()
-  {
-    if (this.ordinal == null)
-      return 0;
-    else
-      return this.ordinal;
-  }
 
 
 
@@ -1255,17 +1194,14 @@ public abstract class MessageDescriptor
    *          string for accessing the underlying message bundle
    * @param key
    *          for accessing the format string from the message bundle
-   * @param ordinal
-   *          of any created message
    * @param classLoader
    *          the class loader to be used to get the ResourceBundle
    */
-  private MessageDescriptor(String rbBase, String key, Integer ordinal,
+  private MessageDescriptor(String rbBase, String key,
       ClassLoader classLoader)
   {
     this.rbBase = rbBase;
     this.key = key;
-    this.ordinal = ordinal;
     this.classLoader = classLoader;
   }
 

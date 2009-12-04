@@ -34,8 +34,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import com.sun.opends.sdk.util.Function;
-
 
 
 /**
@@ -236,57 +234,6 @@ public interface Attribute extends Set<ByteString>
    *           If this attribute is empty.
    */
   ByteString firstValue() throws NoSuchElementException;
-
-
-
-  /**
-   * Returns the first attribute value in this attribute converted to a
-   * object of type {@code T} using the function {@code type}. Any
-   * run-time exceptions thrown during the conversion will be passed
-   * back to the caller (e.g. {@code IllegalArgumentException}).
-   *
-   * @param <T>
-   *          The type of object to decode the first value as.
-   * @param type
-   *          The function to use for decoding the first attribute value
-   *          as a type {@code T}.
-   * @return The first attribute value in this attribute.
-   * @throws NoSuchElementException
-   *           If this attribute is empty.
-   * @throws NullPointerException
-   *           If {@code type} was {@code null}.
-   */
-  <T> T firstValueAsObject(Function<? super ByteString, T, Void> type)
-      throws NoSuchElementException;
-
-
-
-  /**
-   * Returns the first attribute value in this attribute converted to a
-   * object of type {@code T} using the function {@code type} and
-   * passing parameter {@code p}. Any run-time exceptions thrown during
-   * the conversion will be passed back to the caller (e.g. {@code
-   * IllegalArgumentException}).
-   *
-   * @param <T>
-   *          The type of object to decode the first value as.
-   * @param <P>
-   *          The type of the additional parameter to {@code type}'s
-   *          {@code apply} method. Use {@link java.lang.Void} for
-   *          functions that do not need an additional parameter.
-   * @param type
-   *          The function to use for decoding the first attribute value
-   *          as a type {@code T}.
-   * @param p
-   *          The parameter to pass to {@code type}.
-   * @return The first attribute value in this attribute.
-   * @throws NoSuchElementException
-   *           If this attribute is empty.
-   * @throws NullPointerException
-   *           If {@code type} was {@code null}.
-   */
-  <T, P> T firstValueAsObject(Function<? super ByteString, T, P> type,
-      P p) throws NoSuchElementException;
 
 
 

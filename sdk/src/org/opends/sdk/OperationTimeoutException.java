@@ -41,7 +41,7 @@ import org.opends.sdk.responses.Result;
 @SuppressWarnings("serial")
 public class OperationTimeoutException extends ErrorResultException
 {
-  public OperationTimeoutException(Result result)
+  OperationTimeoutException(Result result)
   {
     super(result);
   }

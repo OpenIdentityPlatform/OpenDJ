@@ -40,7 +40,7 @@ import org.opends.sdk.responses.Result;
 @SuppressWarnings("serial")
 public class CancelledException extends ErrorResultException
 {
-  public CancelledException(Result result)
+  CancelledException(Result result)
   {
     super(result);
   }
