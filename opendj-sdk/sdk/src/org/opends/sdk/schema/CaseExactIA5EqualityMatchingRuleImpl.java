@@ -28,15 +28,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
-import static org.opends.sdk.util.StringPrepProfile.NO_CASE_FOLD;
-import static org.opends.sdk.util.StringPrepProfile.TRIM;
-import static org.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StringPrepProfile.*;
+
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
 
 
 

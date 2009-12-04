@@ -25,10 +25,10 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -38,7 +38,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import com.sun.opends.sdk.util.Message;
 
 /**
  * Provides a wrapper class that collects all of the JVM vendor

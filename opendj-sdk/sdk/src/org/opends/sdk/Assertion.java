@@ -29,7 +29,6 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.util.ByteSequence;
 
 
 

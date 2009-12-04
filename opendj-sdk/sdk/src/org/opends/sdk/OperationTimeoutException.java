@@ -27,15 +27,22 @@
 
 package org.opends.sdk;
 
+
+
 import org.opends.sdk.responses.Result;
 
+
+
 /**
- * Created by IntelliJ IDEA. User: boli Date: Dec 2, 2009 Time: 1:28:13 PM To
- * change this template use File | Settings | File Templates.
+ * Thrown when the result code returned in a Result indicates that the
+ * Request was aborted because it did not complete in the required time
+ * out period.
  */
+@SuppressWarnings("serial")
 public class OperationTimeoutException extends ErrorResultException
 {
-  public OperationTimeoutException(Result result) {
+  public OperationTimeoutException(Result result)
+  {
     super(result);
   }
 }

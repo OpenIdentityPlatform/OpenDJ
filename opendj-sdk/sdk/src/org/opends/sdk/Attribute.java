@@ -34,8 +34,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Function;
 
 
 

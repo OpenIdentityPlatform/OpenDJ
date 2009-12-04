@@ -28,15 +28,15 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.messages.Messages.*;
+
+import org.opends.sdk.Assertion;
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.Assertion;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.SubstringReader;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

@@ -28,24 +28,24 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.Connection;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.StaticUtils;
 
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

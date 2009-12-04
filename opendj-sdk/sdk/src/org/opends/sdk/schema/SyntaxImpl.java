@@ -29,8 +29,9 @@ package org.opends.sdk.schema;
 
 
 
+import org.opends.sdk.ByteSequence;
+
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

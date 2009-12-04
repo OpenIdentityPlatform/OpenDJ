@@ -33,9 +33,9 @@ import java.util.*;
 
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Function;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -36,7 +36,8 @@ import org.opends.sdk.DereferenceAliasesPolicy;
 import org.opends.sdk.Filter;
 import org.opends.sdk.SearchScope;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

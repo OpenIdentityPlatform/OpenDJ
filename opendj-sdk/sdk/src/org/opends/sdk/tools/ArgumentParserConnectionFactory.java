@@ -29,7 +29,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.tools.ToolConstants.*;
 
 import java.io.File;
@@ -55,12 +55,11 @@ import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.sasl.*;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.SSLUtils;
-import org.opends.sdk.util.StaticUtils;
 
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.SSLUtils;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

@@ -29,24 +29,20 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
-import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
-import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.util.StringPrepProfile.CASE_FOLD;
-import static org.opends.sdk.util.StringPrepProfile.TRIM;
-import static org.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+
 import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -29,16 +29,15 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.sdk.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
+import static org.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
@@ -53,15 +52,14 @@ import org.opends.sdk.responses.*;
 import org.opends.sdk.sasl.SASLBindRequest;
 import org.opends.sdk.sasl.SASLContext;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
 
 import com.sun.grizzly.filterchain.Filter;
 import com.sun.grizzly.filterchain.FilterChain;
 import com.sun.grizzly.filterchain.StreamTransformerFilter;
 import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.streams.StreamWriter;
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -25,11 +25,11 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
@@ -40,11 +40,11 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
-import com.sun.opends.sdk.util.MessageDescriptor;
 
 
 
@@ -672,47 +672,21 @@ public final class StaticUtils
   public static boolean compress(ByteSequence input,
       ByteStringBuilder output)
   {
-    // Avoid extra copies if possible.
-    byte[] inputBuffer;
-    int inputOffset;
-    final int inputLength = input.length();
+    byte[] inputBytes = input.toByteArray();
+    byte[] outputBytes = new byte[inputBytes.length];
 
-    if (input instanceof ByteString)
-    {
-      final ByteString byteString = (ByteString) input;
-      inputBuffer = byteString.buffer;
-      inputOffset = byteString.offset;
-    }
-    else if (input instanceof ByteStringBuilder)
-    {
-      final ByteStringBuilder builder = (ByteStringBuilder) input;
-      inputBuffer = builder.buffer;
-      inputOffset = 0;
-    }
-    else
-    {
-      inputBuffer = new byte[inputLength];
-      inputOffset = 0;
-      input.copyTo(inputBuffer);
-    }
-
-    // Make sure the free space in the destination buffer is at least
-    // as big as this.
-    output.ensureAdditionalCapacity(inputLength);
-
-    final int compressedSize = compress(inputBuffer, inputOffset,
-        inputLength, output.buffer, output.length, output.buffer.length
-            - output.length);
+    final int compressedSize = compress(inputBytes, 0,
+        inputBytes.length, outputBytes, 0, outputBytes.length);
 
     if (compressedSize != -1)
     {
       if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
       {
         StaticUtils.DEBUG_LOG.fine(String.format("Compression %d/%d%n",
-            compressedSize, inputLength));
+            compressedSize, inputBytes.length));
       }
 
-      output.length += compressedSize;
+      output.append(outputBytes, 0, compressedSize);
       return true;
     }
 
@@ -1752,53 +1726,24 @@ public final class StaticUtils
       ByteStringBuilder output, int uncompressedSize)
       throws DataFormatException
   {
-    // Avoid extra copies if possible.
-    byte[] inputBuffer;
-    int inputOffset;
-    final int inputLength = input.length();
+    byte[] inputBytes = input.toByteArray();
+    byte[] outputBytes = new byte[uncompressedSize > 0 ? uncompressedSize : 0];
 
-    if (input instanceof ByteString)
-    {
-      final ByteString byteString = (ByteString) input;
-      inputBuffer = byteString.buffer;
-      inputOffset = byteString.offset;
-    }
-    else if (input instanceof ByteStringBuilder)
-    {
-      final ByteStringBuilder builder = (ByteStringBuilder) input;
-      inputBuffer = builder.buffer;
-      inputOffset = 0;
-    }
-    else
-    {
-      inputBuffer = new byte[inputLength];
-      inputOffset = 0;
-      input.copyTo(inputBuffer);
-    }
-
-    // Resize destination buffer if a uncompressed size was provided.
-    if (uncompressedSize > 0)
-    {
-      output.ensureAdditionalCapacity(uncompressedSize);
-    }
-
-    int decompressResult = uncompress(inputBuffer, inputOffset,
-        inputLength, output.buffer, output.length, output.buffer.length
-            - output.length);
+    int decompressResult = uncompress(inputBytes, 0,
+        inputBytes.length, outputBytes, 0, outputBytes.length);
 
     if (decompressResult < 0)
     {
       // The destination buffer wasn't big enough. Resize and retry.
-      output.ensureAdditionalCapacity(-decompressResult);
-      decompressResult = uncompress(inputBuffer, inputOffset,
-          inputLength, output.buffer, output.length,
-          output.buffer.length - output.length);
+      outputBytes = new byte[-decompressResult];
+      decompressResult = uncompress(inputBytes, 0,
+          inputBytes.length, outputBytes, 0, outputBytes.length);
     }
 
     if (decompressResult >= 0)
     {
       // It was successful.
-      output.length += decompressResult;
+      output.append(outputBytes, 0, decompressResult);
       return true;
     }
 

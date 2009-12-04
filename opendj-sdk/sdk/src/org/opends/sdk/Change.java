@@ -29,8 +29,8 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -4,12 +4,12 @@ package org.opends.sdk.extensions;
 
 import java.io.IOException;
 
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.responses.AbstractExtendedResult;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
 
 
 

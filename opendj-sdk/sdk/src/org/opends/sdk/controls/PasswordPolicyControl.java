@@ -2,22 +2,22 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.byteToHex;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.Validator;
 
 
 

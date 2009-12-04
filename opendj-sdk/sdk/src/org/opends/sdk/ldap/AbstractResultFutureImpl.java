@@ -37,9 +37,10 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.ResultFuture;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Requests;
-import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.util.StaticUtils;
+import org.opends.sdk.responses.Result;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

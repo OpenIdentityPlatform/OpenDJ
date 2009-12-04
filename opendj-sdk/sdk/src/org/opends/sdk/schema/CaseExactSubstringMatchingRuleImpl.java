@@ -28,13 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.util.StringPrepProfile.NO_CASE_FOLD;
-import static org.opends.sdk.util.StringPrepProfile.TRIM;
-import static org.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static com.sun.opends.sdk.util.StringPrepProfile.*;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
 
 
 

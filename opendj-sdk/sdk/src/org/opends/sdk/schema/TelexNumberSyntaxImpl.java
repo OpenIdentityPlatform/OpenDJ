@@ -29,17 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
-import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEX_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

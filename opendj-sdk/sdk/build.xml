@@ -168,8 +168,8 @@
                 </fileset>
             </classpath>
         </typedef>
-        <genmsg sourceProps="${src.dir}/com/sun/opends/sdk/util/messages.properties"
-                destJava="${srcgen.dir}/com/sun/opends/sdk/util/Messages.java">
+        <genmsg sourceProps="${src.dir}/com/sun/opends/sdk/messages/messages.properties"
+                destJava="${srcgen.dir}/com/sun/opends/sdk/messages/Messages.java">
         </genmsg>
     </target>
 

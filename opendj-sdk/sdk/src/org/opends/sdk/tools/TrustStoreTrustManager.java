@@ -50,7 +50,8 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opends.sdk.DN;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

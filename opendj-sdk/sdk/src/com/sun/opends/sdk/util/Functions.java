@@ -25,11 +25,12 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
 
 import org.opends.sdk.AttributeDescription;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
 import org.opends.sdk.schema.Schema;
 

@@ -29,7 +29,7 @@ package org.opends.sdk.sasl;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.io.IOException;
 

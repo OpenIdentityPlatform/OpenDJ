@@ -28,9 +28,9 @@ package org.opends.sdk.schema;
 
 
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
 
 
 

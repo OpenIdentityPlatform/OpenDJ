@@ -29,14 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
-import static org.opends.sdk.schema.SchemaConstants.EMR_BIT_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BIT_STRING_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

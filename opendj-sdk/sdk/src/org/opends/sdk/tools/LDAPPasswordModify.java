@@ -1,20 +1,16 @@
 package org.opends.sdk.tools;
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.tools.ToolConstants.*;
 import static org.opends.sdk.tools.Utils.*;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.opends.sdk.Connection;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.PasswordModifyRequest;
 import org.opends.sdk.extensions.PasswordModifyResult;
-import org.opends.sdk.util.ByteString;
 
 import com.sun.opends.sdk.util.Message;
 

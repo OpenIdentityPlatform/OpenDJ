@@ -3,7 +3,8 @@ package org.opends.sdk.controls;
 
 
 import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

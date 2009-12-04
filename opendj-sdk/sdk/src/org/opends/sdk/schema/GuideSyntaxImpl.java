@@ -29,16 +29,15 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_GUIDE_NAME;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.SubstringReader;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

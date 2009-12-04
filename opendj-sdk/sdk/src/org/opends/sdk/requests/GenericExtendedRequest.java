@@ -29,11 +29,11 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.ExtendedOperation;
 import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.util.ByteString;
 
 
 

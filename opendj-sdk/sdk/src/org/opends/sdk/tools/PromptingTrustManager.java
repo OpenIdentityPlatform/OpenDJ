@@ -29,7 +29,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,10 +49,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import org.opends.sdk.util.Validator;
-
 import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.MessageBuilder;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -24,7 +24,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package org.opends.sdk;
 
 
 
@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

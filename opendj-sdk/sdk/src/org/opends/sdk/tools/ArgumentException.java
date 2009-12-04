@@ -28,8 +28,8 @@ package org.opends.sdk.tools;
 
 
 
+import com.sun.opends.sdk.util.LocalizableException;
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.LocalizableException;
 
 
 

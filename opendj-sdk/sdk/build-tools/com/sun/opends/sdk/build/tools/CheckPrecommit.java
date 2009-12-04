@@ -37,18 +37,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.FileSet;
-
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.wc.SVNPropertyData;
-import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.ISVNStatusHandler;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
-import org.tmatesoft.svn.core.wc.SVNStatus;
-import org.tmatesoft.svn.core.wc.SVNWCClient;
+import org.tmatesoft.svn.core.wc.*;
 
 
 
@@ -176,7 +168,7 @@ public class CheckPrecommit
 
     try
     {
-      long status = ourClientManager.getStatusClient().doStatus(workspacePath, SVNRevision.WORKING, 
+      ourClientManager.getStatusClient().doStatus(workspacePath, SVNRevision.WORKING,
               SVNDepth.INFINITY, false, false, false, false, this, null);
     }
     catch (Exception e)

@@ -34,10 +34,10 @@ import java.util.Collections;
 
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.SchemaNotFoundException;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Functions;
-import org.opends.sdk.util.Iterables;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Functions;
+import com.sun.opends.sdk.util.Iterables;
+import com.sun.opends.sdk.util.Validator;
 
 
 

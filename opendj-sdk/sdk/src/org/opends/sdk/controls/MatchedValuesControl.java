@@ -29,24 +29,25 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.AbstractFilterVisitor;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.Filter;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.*;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -29,8 +29,8 @@ package org.opends.sdk.schema;
 
 
 
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

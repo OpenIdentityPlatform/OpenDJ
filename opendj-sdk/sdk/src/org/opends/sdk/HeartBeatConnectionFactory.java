@@ -27,16 +27,20 @@
 
 package org.opends.sdk;
 
-import org.opends.sdk.responses.*;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.util.Validator;
-
-import java.util.List;
 import java.util.LinkedList;
-import java.util.concurrent.CountDownLatch;
+import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.GenericExtendedResult;
+import org.opends.sdk.responses.Result;
+
+import com.sun.opends.sdk.util.Validator;
 
 /**
  * An heart beat connection factory can be used to create

@@ -34,7 +34,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

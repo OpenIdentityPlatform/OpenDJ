@@ -33,9 +33,8 @@ import java.util.Comparator;
 
 import org.opends.sdk.*;
 import org.opends.sdk.RDN.AVA;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

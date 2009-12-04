@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.sdk.util.ByteString;
+import org.opends.sdk.ByteString;
 
 
 

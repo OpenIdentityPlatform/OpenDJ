@@ -29,13 +29,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

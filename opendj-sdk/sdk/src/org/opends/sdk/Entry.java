@@ -32,8 +32,8 @@ package org.opends.sdk;
 import java.util.Collection;
 
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

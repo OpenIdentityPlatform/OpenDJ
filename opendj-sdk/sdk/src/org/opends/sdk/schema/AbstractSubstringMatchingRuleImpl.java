@@ -28,18 +28,15 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ConditionResult;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.SubstringReader;
+import org.opends.sdk.*;
+
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

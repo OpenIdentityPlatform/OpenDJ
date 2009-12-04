@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -2,8 +2,7 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.Messages.INFO_PWPWARNTYPE_DESCRIPTION_GRACE_LOGINS_REMAINING;
-import static com.sun.opends.sdk.util.Messages.INFO_PWPWARNTYPE_DESCRIPTION_TIME_BEFORE_EXPIRATION;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.Arrays;
 import java.util.List;

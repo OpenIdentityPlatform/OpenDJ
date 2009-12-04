@@ -35,8 +35,8 @@ import java.util.List;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

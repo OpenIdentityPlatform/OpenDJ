@@ -33,7 +33,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

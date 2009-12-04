@@ -39,7 +39,8 @@ import org.opends.sdk.requests.AddRequest;
 import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -1,4 +1,4 @@
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -16,14 +16,6 @@ import javax.net.ssl.TrustManager;
  */
 public class SSLUtils
 {
-  private static String PROVIDER =
-        System.getProperty("org.opends.security.provider");
-  private static String KEY_STORE =
-      System.getProperty("javax.net.ssl.keyStore");
-
-  {
-
-  }
   public static SSLContext getSSLContext(TrustManager trustManager,
                                          KeyManager keyManager)
       throws KeyManagementException, NoSuchAlgorithmException {

@@ -30,7 +30,8 @@ package org.opends.sdk.responses;
 
 
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.util.Iterables;
+
+import com.sun.opends.sdk.util.Iterables;
 
 
 

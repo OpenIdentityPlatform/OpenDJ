@@ -27,18 +27,21 @@
 
 package org.opends.sdk.ldap;
 
+import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+
 import org.opends.sdk.*;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.Result;
 
-import java.util.concurrent.*;
-import java.util.Queue;
-import java.util.Stack;
-import java.util.logging.Level;
+import com.sun.opends.sdk.util.StaticUtils;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Nov 25, 2009 Time: 11:12:29
@@ -50,7 +53,7 @@ public class ConnectionPool
   private volatile int numConnections;
   private final int poolSize;
   private final Stack<AsynchronousConnection> pool;
-  private final ConcurrentLinkedQueue<PendingConnectionFuture> pendingFutures;
+  private final ConcurrentLinkedQueue<PendingConnectionFuture<?>> pendingFutures;
   private final Object lock = new Object();
 
   private class PooledConnectionWapper
@@ -108,7 +111,7 @@ public class ConnectionPool
           }
 
           // See if there waiters pending
-          PendingConnectionFuture future = pendingFutures.poll();
+          PendingConnectionFuture<?> future = pendingFutures.poll();
           if (future != null) {
             PooledConnectionWapper pooledConnection =
                 new PooledConnectionWapper(connection);
@@ -356,14 +359,14 @@ public class ConnectionPool
     this.connectionFactory = connectionFactory;
     this.poolSize = poolSize;
     this.pool = new Stack<AsynchronousConnection>();
-    this.pendingFutures = new ConcurrentLinkedQueue<PendingConnectionFuture>();
+    this.pendingFutures = new ConcurrentLinkedQueue<PendingConnectionFuture<?>>();
   }
 
   private class WrapConnectionResultHandler
       implements ConnectionResultHandler<AsynchronousConnection, Void> {
-    private final PendingConnectionFuture future;
+    private final PendingConnectionFuture<?> future;
 
-    private WrapConnectionResultHandler(PendingConnectionFuture future) {
+    private WrapConnectionResultHandler(PendingConnectionFuture<?> future) {
       this.future = future;
     }
 

@@ -34,7 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 
