@@ -521,7 +521,7 @@
                 <dirset dir="${classes.dir}" />
             </classpath>
 
-            <packageset dir="${src.dir}" />
+            <packageset dir="${src.dir}" excludes="com/**/*"/>
         </javadoc>
     </target>
 
