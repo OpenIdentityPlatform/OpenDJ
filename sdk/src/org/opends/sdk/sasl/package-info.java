@@ -26,21 +26,6 @@
  */
 
 /**
- * Classes and interfaces for reading and writing LDIF.
- *
- * <h1>TO DO</h1>
- * <ul>
- * <li>Make LDIFEntryReader concurrent and support DN reservation.
- * <li>LDIF*Reader Reject and skip support
- * <li>Remaining schema checking (e.g. binary option)
- * <li>Fix error messages (prefix with file/lineno)
- * <li>Support multiple LDIF*Reader sources
- * <li>Support EntryWriter splitting
- * <li>Support LDIFConnectionFactory
- * <li>Comments and optional charset encoding?
- * </ul>
+ * Classes and interfaces for common LDAP SASL Bind requests.
  */
-package org.opends.sdk.ldif;
-
-
-
+package org.opends.sdk.sasl;
