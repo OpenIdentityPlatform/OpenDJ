@@ -43,7 +43,7 @@
     <property name="lib.dir" location="lib" />
     <property name="ext.dir" location="ext" />
     <property name="package.dir" location="${build.dir}/package" />
-    <property name="javadoc.dir" location="${build.dir}/javadoc" />
+    <property name="javadoc.dir" location="doc" />
     <property name="wiki.home" value="https://www.opends.org/wiki" />
     <property name="resource.dir" location="resource" />
     <property name="scripts.dir" location="${resource.dir}/bin" />
@@ -501,27 +501,21 @@
 
     <!-- Generate JavaDoc documentation from the source files -->
     <target name="javadoc" description="Generate JavaDoc documentation.">
+        <delete includeemptydirs="true">
+            <fileset dir="${javadoc.dir}" includes="**/*" />
+        </delete>
+
         <mkdir dir="${javadoc.dir}" />
 
-        <javadoc destdir="${javadoc.dir}"
-                 source="1.5"
-                 additionalparam="-quiet"
-                 linksource="yes"
+        <javadoc access="protected"
                  windowtitle="${PRODUCT_NAME} API Documentation"
-                 maxmemory="${MEM}">
-            <classpath>
-                <fileset dir="${lib.dir}">
-                    <include name="*.jar" />
-                </fileset>
-
-                <fileset dir="${build.dir}/build-tools">
-                    <include name="*.jar" />
-                </fileset>
-
-                <dirset dir="${classes.dir}" />
-            </classpath>
-
-            <packageset dir="${src.dir}" excludes="com/**/*"/>
+                 maxmemory="${MEM}"
+                 classpath="${lib.dir}/grizzly.jar"
+                 destdir="${javadoc.dir}"
+                 packagenames="org.opends.sdk.*"
+                 source="1.5"
+                 sourcepath="src:src-generated">
+            <link href="http://java.sun.com/javase/6/docs/api/" />
         </javadoc>
     </target>
 
