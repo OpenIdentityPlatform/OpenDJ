@@ -18,19 +18,19 @@ import org.opends.sdk.util.ByteString;
 
 import com.sun.opends.sdk.util.Message;
 
+
+
 /**
- * This program provides a utility that uses the LDAP password modify extended
- * operation to change the password for a user.  It exposes the three primary
+ * A tool that can be used to issue LDAP password modify extended
+ * requests to the Directory Server. It exposes the three primary
  * options available for this operation, which are:
- *
  * <UL>
- *   <LI>The user identity whose password should be changed.</LI>
- *   <LI>The current password for the user.</LI>
- *   <LI>The new password for the user.
+ * <LI>The user identity whose password should be changed.</LI>
+ * <LI>The current password for the user.</LI>
+ * <LI>The new password for the user.
  * </UL>
- *
- * All of these are optional components that may be included or omitted from the
- * request.
+ * All of these are optional components that may be included or omitted
+ * from the request.
  */
 public class LDAPPasswordModify extends ConsoleApplication
 {
@@ -65,7 +65,7 @@ public class LDAPPasswordModify extends ConsoleApplication
    * @return  An integer value of zero if everything completed successfully, or
    *          a nonzero value if an error occurred.
    */
-  public static int mainPasswordModify(String[] args)
+  static int mainPasswordModify(String[] args)
   {
     return mainPasswordModify(args, System.in, System.out, System.err);
   }
@@ -91,7 +91,7 @@ public class LDAPPasswordModify extends ConsoleApplication
    *          <CODE>null</CODE> if standard error is not needed.
    * @return The error code.
    */
-  public static int mainPasswordModify(String[] args, InputStream inStream,
+  static int mainPasswordModify(String[] args, InputStream inStream,
                                        OutputStream outStream, OutputStream errStream)
   {
     return new LDAPPasswordModify(inStream, outStream, errStream).run(args);

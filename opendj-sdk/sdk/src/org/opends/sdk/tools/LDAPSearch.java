@@ -57,8 +57,8 @@ import com.sun.opends.sdk.util.Message;
 
 
 /**
- * This class provides a tool that can be used to issue search requests
- * to the Directory Server.
+ * A tool that can be used to issue Search requests to the Directory
+ * Server.
  */
 public final class LDAPSearch extends ConsoleApplication
 {
@@ -208,7 +208,7 @@ public final class LDAPSearch extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainSearch(String[] args)
+  static int mainSearch(String[] args)
   {
     return mainSearch(args, true, System.in, System.out, System.err);
   }
@@ -232,7 +232,7 @@ public final class LDAPSearch extends ConsoleApplication
    *          <CODE>null</CODE> if standard error is not needed.
    * @return The error code.
    */
-  public static int mainSearch(String[] args, InputStream inStream,
+  static int mainSearch(String[] args, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
   {
     return mainSearch(args, true, inStream, outStream, errStream);
@@ -261,7 +261,7 @@ public final class LDAPSearch extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainSearch(String[] args,
+  static int mainSearch(String[] args,
       boolean returnMatchingEntries, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
   {
