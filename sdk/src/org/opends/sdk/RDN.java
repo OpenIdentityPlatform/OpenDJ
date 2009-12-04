@@ -53,18 +53,16 @@ import com.sun.opends.sdk.util.*;
  * siblings).
  * <p>
  * The following are examples of string representations of RDNs:
- *
+ * 
  * <pre>
  * uid=12345
  * ou=Engineering
  * cn=Kurt Zeilenga+L=Redwood Shores
  * </pre>
- *
+ * 
  * The last is an example of a multi-valued RDN; that is, an RDN
  * composed of multiple AVAs.
- * <p>
- * TODO: need more constructors.
- *
+ * 
  * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC
  *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
  *      Information Models </a>
@@ -87,7 +85,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
     /**
      * Creates a new attribute value assertion (AVA) using the provided
      * attribute type and value.
-     *
+     * 
      * @param attributeType
      *          The attribute type.
      * @param attributeValue
@@ -103,6 +101,37 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
       this.attributeType = attributeType;
       this.attributeValue = attributeValue;
+    }
+
+
+
+    /**
+     * Creates a new attribute value assertion (AVA) using the provided
+     * attribute type and value decoded using the default schema.
+     * <p>
+     * If {@code attributeValue} is not an instance of {@code
+     * ByteString} then it will be converted using the
+     * {@link ByteString#valueOf(Object)} method.
+     * 
+     * @param attributeType
+     *          The attribute type.
+     * @param attributeValue
+     *          The attribute value.
+     * @throws UnknownSchemaElementException
+     *           If {@code attributeType} was not found in the default
+     *           schema.
+     * @throws NullPointerException
+     *           If {@code attributeType} or {@code attributeValue} was
+     *           {@code null}.
+     */
+    public AVA(String attributeType, Object attributeValue)
+        throws UnknownSchemaElementException, NullPointerException
+    {
+      Validator.ensureNotNull(attributeType, attributeValue);
+
+      this.attributeType = Schema.getDefaultSchema().getAttributeType(
+          attributeType);
+      this.attributeValue = ByteString.valueOf(attributeValue);
     }
 
 
@@ -149,7 +178,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
     /**
      * Returns the attribute type associated with this AVA.
-     *
+     * 
      * @return The attribute type associated with this AVA.
      */
     public AttributeType getAttributeType()
@@ -161,7 +190,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
     /**
      * Returns the attribute value associated with this AVA.
-     *
+     * 
      * @return The attribute value associated with this AVA.
      */
     public ByteString getAttributeValue()
@@ -304,7 +333,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
   /**
    * Parses the provided LDAP string representation of an RDN using the
    * default schema.
-   *
+   * 
    * @param rdn
    *          The LDAP string representation of a RDN.
    * @return The parsed RDN.
@@ -325,7 +354,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
   /**
    * Parses the provided LDAP string representation of a RDN using the
    * provided schema.
-   *
+   * 
    * @param rdn
    *          The LDAP string representation of a RDN.
    * @param schema
@@ -675,6 +704,52 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
 
 
+  /**
+   * Creates a new RDN using the provided attribute type and value.
+   * 
+   * @param attributeType
+   *          The attribute type.
+   * @param attributeValue
+   *          The attribute value.
+   * @throws NullPointerException
+   *           If {@code attributeType} or {@code attributeValue} was
+   *           {@code null}.
+   */
+  public RDN(AttributeType attributeType, ByteString attributeValue)
+      throws NullPointerException
+  {
+    this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
+  }
+
+
+
+  /**
+   * Creates a new RDN using the provided attribute type and value
+   * decoded using the default schema.
+   * <p>
+   * If {@code attributeValue} is not an instance of {@code ByteString}
+   * then it will be converted using the
+   * {@link ByteString#valueOf(Object)} method.
+   * 
+   * @param attributeType
+   *          The attribute type.
+   * @param attributeValue
+   *          The attribute value.
+   * @throws UnknownSchemaElementException
+   *           If {@code attributeType} was not found in the default
+   *           schema.
+   * @throws NullPointerException
+   *           If {@code attributeType} or {@code attributeValue} was
+   *           {@code null}.
+   */
+  public RDN(String attributeType, Object attributeValue)
+      throws UnknownSchemaElementException, NullPointerException
+  {
+    this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
+  }
+
+
+
   private RDN(AVA[] avas, String stringValue)
   {
     this.avas = avas;
@@ -749,7 +824,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
    * Returns the attribute value contained in this RDN which is
    * associated with the provided attribute type, or {@code null} if
    * this RDN does not include such an attribute value.
-   *
+   * 
    * @param attributeType
    *          The attribute type.
    * @return The attribute value.
@@ -770,7 +845,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
   /**
    * Returns the first AVA contained in this RDN.
-   *
+   * 
    * @return The first AVA contained in this RDN.
    */
   public AVA getFirstAVA()
@@ -798,7 +873,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
   /**
    * Returns {@code true} if this RDN contains more than one AVA.
-   *
+   * 
    * @return {@code true} if this RDN contains more than one AVA,
    *         otherwise {@code false}.
    */
@@ -816,7 +891,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
    * Attempts to remove AVAs using an iterator's {@code remove()} method
    * are not permitted and will result in an {@code
    * UnsupportedOperationException} being thrown.
-   *
+   * 
    * @return An iterator of the AVAs contained in this RDN.
    */
   public Iterator<AVA> iterator()
@@ -828,7 +903,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
   /**
    * Returns the number of AVAs in this RDN.
-   *
+   * 
    * @return The number of AVAs in this RDN.
    */
   public int size()
@@ -840,7 +915,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
 
   /**
    * Returns the RFC 4514 string representation of this RDN.
-   *
+   * 
    * @return The RFC 4514 string representation of this RDN.
    * @see <a href="http://tools.ietf.org/html/rfc4514">RFC 4514 -
    *      Lightweight Directory Access Protocol (LDAP): String
