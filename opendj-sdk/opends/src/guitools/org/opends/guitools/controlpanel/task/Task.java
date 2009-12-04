@@ -974,19 +974,8 @@ public abstract class Task
   /**
    * The separator used to link the lines of the resulting command-lines.
    */
-  private final static String LINE_SEPARATOR;
-  static
-  {
-    if (SetupUtils.isWindows())
-    {
-      LINE_SEPARATOR = "&nbsp;";
-    }
-    else
-    {
-      LINE_SEPARATOR =
-   "&nbsp;\\<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-    }
-  }
+  private final static String LINE_SEPARATOR =
+    CommandBuilder.HTML_LINE_SEPARATOR;
 
   /**
    * Returns the equivalent command line in HTML without font properties.

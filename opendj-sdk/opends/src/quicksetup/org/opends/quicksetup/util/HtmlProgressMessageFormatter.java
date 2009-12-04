@@ -72,6 +72,13 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    private static final Message LINE_BREAK=
      Message.raw("&#10;"+Constants.HTML_LINE_BREAK);
 
+   private static final Message TAB = new MessageBuilder(SPACE)
+   .append(SPACE)
+   .append(SPACE)
+   .append(SPACE)
+   .append(SPACE)
+   .toMessage();
+
   /**
    * Returns the HTML representation of the text without providing any style.
    * @param text the source text from which we want to get the HTML
@@ -378,12 +385,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getTab()
   {
-    return new MessageBuilder(SPACE)
-            .append(SPACE)
-            .append(SPACE)
-            .append(SPACE)
-            .append(SPACE)
-            .toMessage();
+    return TAB;
   }
 
   /**
