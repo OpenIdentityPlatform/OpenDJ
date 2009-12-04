@@ -31,7 +31,6 @@ package org.opends.sdk;
 
 import java.util.List;
 
-import org.opends.sdk.util.ByteSequence;
 
 
 /**

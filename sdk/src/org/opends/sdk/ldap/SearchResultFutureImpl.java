@@ -36,7 +36,10 @@ import org.opends.sdk.ResultFuture;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.SearchResultHandler;
 import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.responses.*;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.SearchResultReference;
 
 
 

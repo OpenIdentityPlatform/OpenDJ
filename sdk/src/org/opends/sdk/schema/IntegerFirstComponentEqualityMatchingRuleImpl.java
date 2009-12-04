@@ -28,18 +28,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static com.sun.opends.sdk.util.Messages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
+import static com.sun.opends.sdk.messages.Messages.*;
+
+import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ConditionResult;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.SubstringReader;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

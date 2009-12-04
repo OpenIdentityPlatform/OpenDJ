@@ -28,7 +28,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.MessageBuilder;

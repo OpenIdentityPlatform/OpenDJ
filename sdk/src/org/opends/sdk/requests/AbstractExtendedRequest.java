@@ -29,9 +29,9 @@ package org.opends.sdk.requests;
 
 
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.extensions.ExtendedOperation;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.ByteString;
 
 
 

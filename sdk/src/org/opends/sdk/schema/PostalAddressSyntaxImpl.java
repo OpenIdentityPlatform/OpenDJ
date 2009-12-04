@@ -29,12 +29,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_NAME;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

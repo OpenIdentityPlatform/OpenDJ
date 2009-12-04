@@ -29,20 +29,20 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
+import org.opends.sdk.ByteSequenceReader;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequenceReader;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.StaticUtils;
 
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

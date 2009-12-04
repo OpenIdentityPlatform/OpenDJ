@@ -30,7 +30,8 @@ package org.opends.sdk;
 
 
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.util.*;
+
+import com.sun.opends.sdk.util.*;
 
 
 

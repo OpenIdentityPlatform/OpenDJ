@@ -28,7 +28,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_MCARG_VALUE_NOT_ALLOWED;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.Collection;
 

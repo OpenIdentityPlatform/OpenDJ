@@ -29,17 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
-import static org.opends.sdk.schema.SchemaConstants.EMR_INTEGER_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_INTEGER_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

@@ -33,7 +33,8 @@ import org.opends.sdk.DN;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

@@ -29,16 +29,15 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.LDIFChangeRecordReader;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
 
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.Validator;
 
 
 

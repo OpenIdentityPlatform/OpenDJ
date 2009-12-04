@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +39,9 @@ import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.MatchingRuleUse;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**

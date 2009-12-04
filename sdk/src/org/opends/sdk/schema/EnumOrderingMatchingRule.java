@@ -28,12 +28,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
+import static com.sun.opends.sdk.messages.Messages.*;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

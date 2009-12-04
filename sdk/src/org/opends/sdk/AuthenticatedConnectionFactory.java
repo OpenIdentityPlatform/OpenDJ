@@ -38,7 +38,8 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

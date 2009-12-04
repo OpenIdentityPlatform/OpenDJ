@@ -29,19 +29,16 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
-import org.opends.sdk.util.ASCIICharProp;
-import org.opends.sdk.util.Iterators;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.*;
 
 
 

@@ -29,7 +29,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.tools.ToolConstants.*;
 import static org.opends.sdk.tools.Utils.*;
 
@@ -44,10 +44,9 @@ import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.Base64;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
 
+import com.sun.opends.sdk.util.Base64;
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
 
 

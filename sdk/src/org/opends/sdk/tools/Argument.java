@@ -28,8 +28,8 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;

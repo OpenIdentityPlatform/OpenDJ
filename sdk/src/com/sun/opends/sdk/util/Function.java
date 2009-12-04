@@ -25,33 +25,34 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
 
 /**
- * Predicates transform input values of type {@code M} to a boolean
- * output value and are typically used for performing filtering.
+ * Functions transform input values of type {@code M} to output values
+ * of type {@code N}.
  *
  * @param <M>
- *          The type of input values matched by this predicate.
+ *          The type of input values transformed by this function.
+ * @param <N>
+ *          The type of output values return by this function.
  * @param <P>
- *          The type of the additional parameter to this predicate's
- *          {@code matches} method. Use {@link java.lang.Void} for
- *          predicates that do not need an additional parameter.
+ *          The type of the additional parameter to this function's
+ *          {@code apply} method. Use {@link java.lang.Void} for
+ *          functions that do not need an additional parameter.
  */
-public interface Predicate<M, P>
+public interface Function<M, N, P>
 {
   /**
-   * Indicates whether or not this predicate matches the provided input
-   * value of type {@code M}.
+   * Applies this function to the provided input value of type {@code M}
+   * , returning an output value of type {@code N}.
    *
    * @param value
-   *          The input value for which to make the determination.
+   *          The value to be transformed.
    * @param p
-   *          A predicate specified parameter.
-   * @return {@code true} if this predicate matches {@code value},
-   *         otherwise {@code false}.
+   *          A function specified parameter.
+   * @return The result of the transformation.
    */
-  boolean matches(M value, P p);
+  N apply(M value, P p);
 }

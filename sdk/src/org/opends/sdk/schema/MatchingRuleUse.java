@@ -29,13 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.*;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

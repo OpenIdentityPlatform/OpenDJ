@@ -4,13 +4,14 @@ package org.opends.sdk.extensions;
 
 import java.io.IOException;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.requests.AbstractExtendedRequest;
-import org.opends.sdk.util.ByteString;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

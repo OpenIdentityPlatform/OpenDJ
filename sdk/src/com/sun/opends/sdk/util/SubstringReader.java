@@ -1,4 +1,4 @@
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 /**
  * Created by IntelliJ IDEA.

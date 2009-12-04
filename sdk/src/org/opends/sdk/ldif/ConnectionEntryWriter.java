@@ -35,7 +35,8 @@ import org.opends.sdk.Connection;
 import org.opends.sdk.Entry;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ErrorResultIOException;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

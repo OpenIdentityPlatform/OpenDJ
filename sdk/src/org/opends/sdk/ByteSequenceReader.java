@@ -24,7 +24,8 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package org.opends.sdk;
+
 
 
 

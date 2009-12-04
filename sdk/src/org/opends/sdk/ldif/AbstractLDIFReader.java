@@ -29,8 +29,8 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,10 +41,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import org.opends.sdk.*;
-import org.opends.sdk.util.*;
+
+import com.sun.opends.sdk.util.*;
 
 
 

@@ -29,18 +29,18 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.Set;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.DecodeException;
+
 import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.SubstringReader;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

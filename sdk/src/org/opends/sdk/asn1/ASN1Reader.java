@@ -32,9 +32,9 @@ package org.opends.sdk.asn1;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
 
 
 

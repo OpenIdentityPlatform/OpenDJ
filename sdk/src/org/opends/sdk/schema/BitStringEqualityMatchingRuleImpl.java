@@ -28,14 +28,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
+import static com.sun.opends.sdk.messages.Messages.*;
+
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteString;
 
 
 

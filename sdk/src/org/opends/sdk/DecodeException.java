@@ -31,8 +31,8 @@ package org.opends.sdk;
 
 import java.io.IOException;
 
+import com.sun.opends.sdk.util.LocalizableException;
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.LocalizableException;
 
 
 

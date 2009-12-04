@@ -28,20 +28,20 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteStringBuilder;
+
+import com.sun.opends.sdk.util.ByteSequenceOutputStream;
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.ByteSequenceOutputStream;
-import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**

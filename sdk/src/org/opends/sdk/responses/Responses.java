@@ -29,13 +29,10 @@ package org.opends.sdk.responses;
 
 
 
-import org.opends.sdk.DN;
-import org.opends.sdk.Entry;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.SortedEntry;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
+import org.opends.sdk.*;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.Validator;
 
 
 

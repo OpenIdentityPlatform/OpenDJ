@@ -28,7 +28,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.tools.Utils.*;
 
 import java.io.*;

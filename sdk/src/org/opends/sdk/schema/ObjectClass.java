@@ -29,15 +29,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_NAME;
-import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

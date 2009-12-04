@@ -24,14 +24,16 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
 
-import static org.opends.sdk.util.Validator.ensureNotNull;
+import static com.sun.opends.sdk.util.Validator.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
+
+import org.opends.sdk.ByteSequence;
 
 
 
@@ -571,7 +573,7 @@ public final class StringPrepProfile
    *          The buffer to which the prepared form of the string should
    *          be appended.
    * @param sequence
-   *          The {@link org.opends.sdk.util.ByteSequence} that
+   *          The {@link org.opends.sdk.ByteSequence} that
    *          needs preparation.
    * @param trim
    *          Indicates whether leading and trailing spaces should be

@@ -29,7 +29,7 @@ package org.opends.sdk.responses;
 
 
 
-import org.opends.sdk.util.ByteString;
+import org.opends.sdk.ByteString;
 
 
 

@@ -29,8 +29,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -24,13 +24,15 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package org.opends.sdk;
 
 
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

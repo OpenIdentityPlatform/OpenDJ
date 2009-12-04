@@ -28,15 +28,15 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.isAlpha;
-import static org.opends.sdk.util.StaticUtils.isDigit;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.SubstringReader;
+
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.SubstringReader;
 
 
 

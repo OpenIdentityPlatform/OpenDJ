@@ -29,12 +29,11 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OCTET_STRING_NAME;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

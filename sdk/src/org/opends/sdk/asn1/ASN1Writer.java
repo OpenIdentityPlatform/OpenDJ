@@ -32,7 +32,7 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
-import org.opends.sdk.util.ByteSequence;
+import org.opends.sdk.ByteSequence;
 
 
 

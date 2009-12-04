@@ -30,9 +30,10 @@ package org.opends.sdk;
 import org.opends.sdk.responses.Result;
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Dec 1, 2009 Time: 2:31:58 PM To
- * change this template use File | Settings | File Templates.
+ * Thrown when the result code returned in a Result indicates that the
+ * Request was unsuccessful because of a connection failure.
  */
+@SuppressWarnings("serial")
 public class ConnectionException extends ErrorResultException {
   public ConnectionException(Result result) {
     super(result);

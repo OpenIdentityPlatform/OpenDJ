@@ -28,17 +28,20 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.*;
 import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.Validator;
 
 
 

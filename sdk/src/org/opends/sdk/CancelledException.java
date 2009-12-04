@@ -27,15 +27,21 @@
 
 package org.opends.sdk;
 
+
+
 import org.opends.sdk.responses.Result;
 
+
+
 /**
- * Created by IntelliJ IDEA. User: boli Date: Dec 2, 2009 Time: 12:25:31 PM To
- * change this template use File | Settings | File Templates.
+ * Thrown when the result code returned in a Result indicates that the
+ * Request was cancelled.
  */
+@SuppressWarnings("serial")
 public class CancelledException extends ErrorResultException
 {
-  public CancelledException(Result result) {
+  public CancelledException(Result result)
+  {
     super(result);
   }
 }

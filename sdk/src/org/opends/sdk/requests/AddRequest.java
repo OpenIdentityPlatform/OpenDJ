@@ -31,16 +31,13 @@ package org.opends.sdk.requests;
 
 import java.util.Collection;
 
-import org.opends.sdk.Attribute;
-import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.DN;
-import org.opends.sdk.Entry;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 import org.opends.sdk.schema.ObjectClass;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

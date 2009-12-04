@@ -31,7 +31,7 @@ package org.opends.sdk;
 
 import java.io.IOException;
 
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

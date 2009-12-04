@@ -35,8 +35,8 @@ import java.util.List;
 
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

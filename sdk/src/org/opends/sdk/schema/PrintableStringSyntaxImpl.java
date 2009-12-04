@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.opends.sdk.ByteSequence;
+
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

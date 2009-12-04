@@ -31,8 +31,9 @@ package org.opends.sdk.ldap;
 
 import java.io.IOException;
 
-import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.responses.Response;
+
+import com.sun.opends.sdk.util.Message;
 
 
 

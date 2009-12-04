@@ -29,16 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
-import static org.opends.sdk.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DN;
-import org.opends.sdk.util.ByteSequence;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.MessageBuilder;
 
 
 

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.Validator;
 
 
 

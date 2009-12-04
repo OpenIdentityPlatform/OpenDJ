@@ -24,14 +24,17 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.Validator.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.Validator.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
+
 
 
 

@@ -29,16 +29,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_ATTR_SYNTAX_NUMERIC_STRING_EMPTY_VALUE;
-import static com.sun.opends.sdk.util.Messages.WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR;
-import static org.opends.sdk.schema.SchemaConstants.EMR_NUMERIC_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_NUMERIC_STRING_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NUMERIC_STRING_NAME;
-import static org.opends.sdk.util.StaticUtils.isDigit;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
+
+import org.opends.sdk.ByteSequence;
 
 import com.sun.opends.sdk.util.MessageBuilder;
-import org.opends.sdk.util.ByteSequence;
 
 
 

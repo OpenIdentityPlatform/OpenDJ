@@ -29,7 +29,7 @@ package org.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.tools.ToolConstants.*;
 
 import java.io.*;
@@ -48,11 +48,10 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
 
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

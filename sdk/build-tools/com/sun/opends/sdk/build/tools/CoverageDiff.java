@@ -26,23 +26,24 @@
  */
 package com.sun.opends.sdk.build.tools;
 
-import com.vladium.emma.report.*;
-import com.vladium.emma.report.html.doc.*;
-import com.vladium.emma.data.*;
-import com.vladium.util.IntObjectMap;
-
 import java.io.*;
 import java.util.*;
 
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
-
+import org.apache.tools.ant.Task;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
-import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+
+import com.vladium.emma.data.DataFactory;
+import com.vladium.emma.data.ICoverageData;
+import com.vladium.emma.data.IMergeable;
+import com.vladium.emma.data.IMetaData;
+import com.vladium.emma.report.*;
+import com.vladium.emma.report.html.doc.*;
+import com.vladium.util.IntObjectMap;
 
 public class CoverageDiff extends Task {
 
@@ -188,7 +189,7 @@ public class CoverageDiff extends Task {
 
     // So we can go over http:// and https:// when diff'ing against previous versions
     DAVRepositoryFactory.setup();
-    
+
     IReportDataView emmaDataView = null;
     try
     {
@@ -307,7 +308,7 @@ public class CoverageDiff extends Task {
     SVNRevision baseRevision = SVNRevision.parse(fromRevision);
     System.out.println("Doing coverage diff from revision: " + baseRevision.toString());
 
-    ourClientManager.getDiffClient().doDiff(workspaceRoot, baseRevision, 
+    ourClientManager.getDiffClient().doDiff(workspaceRoot, baseRevision,
             workspaceRoot, SVNRevision.WORKING, SVNDepth.INFINITY, false,
             new FileOutputStream(diffFile), null);
 
@@ -650,7 +651,6 @@ public class CoverageDiff extends Task {
     int workingCopyBegin;
     int workingCopyRange;
     int otherCopyBegin;
-    int otherCopyRange;
 
     Double[] modCoverage = new Double[4];
     modCoverage[COVERED_MOD_EXE_LINES] = 0.0;
@@ -671,15 +671,12 @@ public class CoverageDiff extends Task {
     int workingCopyEndIdx = chunkHeader.indexOf(" ", workingCopyCommaIdx);
     int otherCopyBeginIdx = chunkHeader.indexOf(otherCopyFlag);
     int otherCopyCommaIdx = chunkHeader.indexOf(",", otherCopyBeginIdx);
-    int otherCopyEndIdx = chunkHeader.indexOf(" ", otherCopyCommaIdx);
     workingCopyBegin = Integer.parseInt(
         chunkHeader.substring(workingCopyBeginIdx + 1, workingCopyCommaIdx));
     workingCopyRange = Integer.parseInt(
         chunkHeader.substring(workingCopyCommaIdx + 1, workingCopyEndIdx));
     otherCopyBegin = Integer.parseInt(
         chunkHeader.substring(otherCopyBeginIdx + 1, otherCopyCommaIdx));
-    otherCopyRange = Integer.parseInt(
-        chunkHeader.substring(otherCopyCommaIdx + 1, otherCopyEndIdx));
 
     String chunkLine;
     SrcFileItem.LineCoverageData lCoverageData = null;
@@ -804,12 +801,12 @@ public class CoverageDiff extends Task {
       return null;
     }
 
-    for(Iterator packages = rootItem.getChildren(); packages.hasNext();)
+    for(Iterator<?> packages = rootItem.getChildren(); packages.hasNext();)
     {
       IItem packageItem = (IItem)packages.next();
       if(packageItem.getName().equals(srcPackageName))
       {
-        for(Iterator sources = packageItem.getChildren(); sources.hasNext();)
+        for(Iterator<?> sources = packageItem.getChildren(); sources.hasNext();)
         {
           SrcFileItem sourceItem = (SrcFileItem)sources.next();
           if(sourceItem.getName().equals(srcFileName))

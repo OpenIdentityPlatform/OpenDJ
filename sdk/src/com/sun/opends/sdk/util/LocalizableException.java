@@ -24,35 +24,24 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
+package com.sun.opends.sdk.util;
 
-package org.opends.sdk.util;
+
+
 
 
 
 /**
- * Functions transform input values of type {@code M} to output values
- * of type {@code N}.
- *
- * @param <M>
- *          The type of input values transformed by this function.
- * @param <N>
- *          The type of output values return by this function.
- * @param <P>
- *          The type of the additional parameter to this function's
- *          {@code apply} method. Use {@link java.lang.Void} for
- *          functions that do not need an additional parameter.
+ * This interface should be implemented by any exception interfaces that
+ * expose a localizable error message.
  */
-public interface Function<M, N, P>
+public interface LocalizableException
 {
   /**
-   * Applies this function to the provided input value of type {@code M}
-   * , returning an output value of type {@code N}.
-   *
-   * @param value
-   *          The value to be transformed.
-   * @param p
-   *          A function specified parameter.
-   * @return The result of the transformation.
+   * Returns the message that explains the problem that occurred.
+   * 
+   * @return The message that explains the problem that occurred.
    */
-  N apply(M value, P p);
+  Message getMessageObject();
+
 }

@@ -42,7 +42,6 @@ import org.opends.sdk.controls.*;
 import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.Validator;
 
 import com.sun.grizzly.TransportFactory;
 import com.sun.grizzly.attributes.Attribute;
@@ -53,6 +52,7 @@ import com.sun.grizzly.ssl.SSLEngineConfigurator;
 import com.sun.grizzly.ssl.SSLFilter;
 import com.sun.grizzly.ssl.SSLHandshaker;
 import com.sun.grizzly.streams.StreamWriter;
+import com.sun.opends.sdk.util.Validator;
 
 
 

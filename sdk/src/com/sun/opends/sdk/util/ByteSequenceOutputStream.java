@@ -24,10 +24,12 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.opends.sdk.ByteStringBuilder;
 
 /**
  * An adapter class that allows writing to an byte string builder

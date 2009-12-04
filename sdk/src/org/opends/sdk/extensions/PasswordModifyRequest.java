@@ -2,19 +2,19 @@ package org.opends.sdk.extensions;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.requests.AbstractExtendedRequest;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
 
 import com.sun.opends.sdk.util.Message;
 

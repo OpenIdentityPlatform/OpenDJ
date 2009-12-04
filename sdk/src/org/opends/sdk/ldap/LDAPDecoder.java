@@ -29,7 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.asn1.ASN1Constants.*;
 import static org.opends.sdk.ldap.LDAPConstants.*;
 
@@ -43,9 +43,9 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.sasl.GenericSASLBindRequest;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.StaticUtils;
+
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

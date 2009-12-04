@@ -29,8 +29,8 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,11 +43,10 @@ import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
-import org.opends.sdk.util.Validator;
 
+import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.Validator;
 
 
 

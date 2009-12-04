@@ -24,7 +24,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.util;
+package com.sun.opends.sdk.util;
 
 import java.io.IOException;
 import java.io.InputStream;

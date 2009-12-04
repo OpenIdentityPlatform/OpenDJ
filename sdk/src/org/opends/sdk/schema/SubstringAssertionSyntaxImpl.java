@@ -29,14 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
-import static org.opends.sdk.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.opends.sdk.ByteSequence;
+
+import com.sun.opends.sdk.messages.Messages;
 import com.sun.opends.sdk.util.MessageBuilder;
-import com.sun.opends.sdk.util.Messages;
-import org.opends.sdk.util.ByteSequence;
 
 
 

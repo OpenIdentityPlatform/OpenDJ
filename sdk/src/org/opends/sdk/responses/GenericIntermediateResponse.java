@@ -29,8 +29,8 @@ package org.opends.sdk.responses;
 
 
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.util.ByteString;
 
 
 

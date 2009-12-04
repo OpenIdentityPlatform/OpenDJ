@@ -4,12 +4,12 @@ package org.opends.sdk.extensions;
 
 import javax.net.ssl.SSLContext;
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.util.ByteString;
 
 
 

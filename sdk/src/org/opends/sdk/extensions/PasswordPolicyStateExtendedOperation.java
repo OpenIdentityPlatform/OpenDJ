@@ -2,11 +2,8 @@ package org.opends.sdk.extensions;
 
 
 
-import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static com.sun.opends.sdk.util.Messages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
-import static org.opends.sdk.util.StaticUtils.formatAsGeneralizedTime;
-import static org.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,18 +11,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
-import org.opends.sdk.DN;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.AbstractExtendedResult;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.ByteStringBuilder;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Message;
+import com.sun.opends.sdk.util.Validator;
 
 
 

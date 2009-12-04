@@ -32,7 +32,8 @@ package org.opends.sdk.ldap;
 import javax.net.ssl.SSLContext;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.Validator;
+
+import com.sun.opends.sdk.util.Validator;
 
 
 

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 import org.opends.sdk.Attribute;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.Change;
 import org.opends.sdk.DN;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -42,8 +43,8 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.sasl.SASLBindRequest;
-import org.opends.sdk.util.ByteString;
-import org.opends.sdk.util.StaticUtils;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 

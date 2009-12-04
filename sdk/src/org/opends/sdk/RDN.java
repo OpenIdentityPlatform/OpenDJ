@@ -29,14 +29,14 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.Messages.*;
-import static org.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
 import org.opends.sdk.schema.*;
-import org.opends.sdk.util.*;
+
+import com.sun.opends.sdk.util.*;
 
 
 
