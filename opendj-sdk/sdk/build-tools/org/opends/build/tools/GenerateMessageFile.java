@@ -799,9 +799,12 @@ public class GenerateMessageFile extends Task
 
   private String getBase()
   {
+    String srcDir = unixifyPath(getProject().getProperty("src.dir"));
     String srcPath = unixifyPath(source.getAbsolutePath());
-    String base = srcPath.substring(srcPath.lastIndexOf("/") + 1,
+
+    String relativeSrcPath = srcPath.substring(srcDir.length() + 1,
         srcPath.length() - ".properties".length());
+    String base = relativeSrcPath.replace('/', '.');
     return base;
   }
 
