@@ -161,7 +161,7 @@
     <!-- Generate Java message objects from properties. -->
     <target name="generatemessages" depends="buildtools">
         <typedef name="genmsg"
-                 classname="org.opends.build.tools.GenerateMessageFile">
+                 classname="com.sun.opends.sdk.build.tools.GenerateMessageFile">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -188,7 +188,7 @@
     <target name="validjavaversion" depends="buildtools">
         <property name="min.java.version" value="1.5.0_08" />
         <typedef name="validjavaversion"
-                 classname="org.opends.build.tools.ValidJavaVersion">
+                 classname="com.sun.opends.sdk.build.tools.ValidJavaVersion">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -247,7 +247,7 @@
     <target name="dynamicconstants" depends="init,buildtools">
         <!-- Get the revision number of the current Subversion workspace -->
         <taskdef name="getsvnrevision"
-                 classname="org.opends.build.tools.GetSubversionRevision">
+                 classname="com.sun.opends.sdk.build.tools.GetSubversionRevision">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -262,7 +262,7 @@
 
         <!-- Get the url repo of the current Subversion workspace -->
         <taskdef name="getsvnurlrepo"
-                 classname="org.opends.build.tools.GetSubversionUrlRepo">
+                 classname="com.sun.opends.sdk.build.tools.GetSubversionUrlRepo">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -277,7 +277,7 @@
 
         <!-- Construct the version number string -->
         <taskdef name="getversionnumber"
-                 classname="org.opends.build.tools.CreateVersionString">
+                 classname="com.sun.opends.sdk.build.tools.CreateVersionString">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -319,7 +319,7 @@
        are needed. -->
     <target name="checkprecommit" depends="buildtools">
         <taskdef name="checkprecommit"
-                 classname="org.opends.build.tools.CheckPrecommit">
+                 classname="com.sun.opends.sdk.build.tools.CheckPrecommit">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />
@@ -703,7 +703,7 @@
 
         <mkdir dir="${unittest.resource.dir}" />
         <typedef name="preptestng"
-                 classname="org.opends.build.tools.PrepTestNG"
+                 classname="com.sun.opends.sdk.build.tools.PrepTestNG"
                  classpath="${build.dir}/build-tools/build-tools.jar" />
 
 
@@ -783,7 +783,7 @@
 
         <mkdir dir="${cvgdiff.report.dir}" />
         <taskdef name="coveragediff"
-                 classname="org.opends.build.tools.CoverageDiff">
+                 classname="com.sun.opends.sdk.build.tools.CoverageDiff">
             <classpath>
                 <fileset dir="${build.dir}/build-tools">
                     <include name="*.jar" />

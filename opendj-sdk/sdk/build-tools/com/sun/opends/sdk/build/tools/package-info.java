@@ -32,5 +32,5 @@
  * during the OpenDS build process.  This includes custom Ant tasks, utilities
  * to format schema files, and to facilitate running server unit tests.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 

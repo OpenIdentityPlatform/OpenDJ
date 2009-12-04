@@ -22,9 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 
 
@@ -37,7 +37,6 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.SVNURL;
 
 
 
@@ -46,7 +45,7 @@ import org.tmatesoft.svn.core.SVNURL;
  * determine the current Subversion revision number of the current working
  * copy.  The value of the revision number will be stored in an Ant property.
  */
-public class GetSubversionUrlRepo
+public class GetSubversionRevision
        extends Task
 {
   // The name of the property in which the revision number should be set.
@@ -116,27 +115,26 @@ public class GetSubversionUrlRepo
     try
     {
       SVNInfo svnInfo = ourClientManager.getWCClient().doInfo(workspacePath, SVNRevision.WORKING);
-      SVNURL url_repo = svnInfo.getURL();
+      SVNRevision revision = svnInfo.getCommittedRevision();
       
   
-      if (url_repo == null)
+      if (revision == null)
       {
-        System.err.println("WARNING:  Could not determine Subversion URL Repository " +
-                           "for current workspace.");
+        System.err.println("WARNING:  Could not determine Subversion " +
+                           "revision number for current workspace.");
         getProject().setNewProperty(propertyName, "-1");
       }
       else
       {
         getProject().setNewProperty(propertyName,
-                                    String.valueOf(url_repo));
-
+                                    String.valueOf(revision.getNumber()));
       }
   
     }
     catch (SVNException svnException)
     {
       System.err.println("WARNING:  Could not determine Subversion " +
-                         "URL repository for current workspace:  " +
+                         "revision number for current workspace:  " +
                          svnException);
       getProject().setNewProperty(propertyName, "-1");
     }

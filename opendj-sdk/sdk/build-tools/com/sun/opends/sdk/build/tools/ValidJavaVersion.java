@@ -24,7 +24,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 import org.apache.tools.ant.taskdefs.condition.Condition;
 import org.apache.tools.ant.BuildException;
