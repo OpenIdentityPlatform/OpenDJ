@@ -668,13 +668,6 @@ public class GenerateMessageFile extends Task
       {
         if (stubLine.contains("${MESSAGES}"))
         {
-          Integer globalOrdinal = null;
-          String go = properties.getProperty(GLOBAL_ORDINAL);
-          if (go != null)
-          {
-            globalOrdinal = new Integer(go);
-          }
-
           Map<MessagePropertyKey, String> keyMap = new TreeMap<MessagePropertyKey, String>();
 
           for (Object propO : properties.keySet())
@@ -685,7 +678,7 @@ public class GenerateMessageFile extends Task
               if (!DIRECTIVE_PROPERTIES.contains(propKey))
               {
                 MessagePropertyKey key = MessagePropertyKey
-                    .parseString(propKey, globalOrdinal == null);
+                    .parseString(propKey);
                 String formatString = properties.getProperty(propKey);
                 keyMap.put(key, formatString);
               }
@@ -699,32 +692,14 @@ public class GenerateMessageFile extends Task
 
           int usesOfGenericDescriptor = 0;
 
-          Set<Integer> usedOrdinals = new HashSet<Integer>();
           for (MessagePropertyKey key : keyMap.keySet())
           {
             String formatString = keyMap.get(key);
             MessageDescriptorDeclaration message = new MessageDescriptorDeclaration(
                 key, formatString);
 
-            if (globalOrdinal == null)
-            {
-              Integer ordinal = key.getOrdinal();
-              if (usedOrdinals.contains(ordinal))
-              {
-                throw new BuildException("The ordinal value \'"
-                    + ordinal + "\' in key " + key
-                    + " has been previously defined in " + source
-                    + KEY_FORM_MSG);
-              }
-              else
-              {
-                usedOrdinals.add(ordinal);
-              }
-            }
-
             message.setConstructorArguments("BASE", quote(key
-                .toString()), globalOrdinal != null ? globalOrdinal
-                .toString() : key.getOrdinal().toString());
+                .toString()));
             destWriter.println(message.toString());
             destWriter.println();
 
