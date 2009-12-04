@@ -70,6 +70,24 @@ public class ErrorResultException extends ExecutionException
 
     // TODO: choose type of exception based on result code (e.g.
     // referral).
+    if(result.getResultCode() == ResultCode.CLIENT_SIDE_SERVER_DOWN ||
+        result.getResultCode() == ResultCode.CLIENT_SIDE_CONNECT_ERROR ||
+        result.getResultCode() == ResultCode.CLIENT_SIDE_DECODING_ERROR ||
+        result.getResultCode() == ResultCode.CLIENT_SIDE_ENCODING_ERROR)
+    {
+      return new ConnectionException(result);
+    }
+
+    if(result.getResultCode() == ResultCode.CLIENT_SIDE_TIMEOUT)
+    {
+      return new OperationTimeoutException(result);
+    }
+
+    if(result.getResultCode() == ResultCode.CLIENT_SIDE_USER_CANCELLED)
+    {
+      return new CancelledException(result);
+    }
+
     return new ErrorResultException(result);
   }
 

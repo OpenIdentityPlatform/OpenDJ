@@ -38,6 +38,7 @@ import org.opends.sdk.ResultFuture;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.util.StaticUtils;
 
 
@@ -241,11 +242,12 @@ abstract class AbstractResultFutureImpl<R extends Result, P> implements
 
 
 
-  private R get0() throws CancellationException, ErrorResultException
+  private R get0() throws ErrorResultException
   {
     if (isCancelled())
     {
-      throw new CancellationException();
+      throw ErrorResultException.wrap(
+          Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED));
     }
     else if (result.getResultCode().isExceptional())
     {
