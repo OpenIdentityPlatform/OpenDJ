@@ -52,7 +52,8 @@ import com.sun.opends.sdk.util.Message;
 
 
 /**
- * Searchrate benchmarking tool.
+ * A load generation tool that can be used to load a Directory Server
+ * with Search requests using one or more LDAP connections.
  */
 public final class SearchRate extends ConsoleApplication
 {
@@ -89,7 +90,7 @@ public final class SearchRate extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainSearchRate(String[] args)
+  static int mainSearchRate(String[] args)
   {
     return mainSearchRate(args, System.in, System.out, System.err);
   }
@@ -114,7 +115,7 @@ public final class SearchRate extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainSearchRate(String[] args, InputStream inStream,
+  static int mainSearchRate(String[] args, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
 
   {

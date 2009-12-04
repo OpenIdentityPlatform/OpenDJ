@@ -44,8 +44,10 @@ import org.opends.sdk.responses.Result;
 import com.sun.opends.sdk.util.Message;
 
 
+
 /**
- * Modrate benchmarking tool.
+ * A load generation tool that can be used to load a Directory Server
+ * with Modify requests using one or more LDAP connections.
  */
 public final class ModRate extends ConsoleApplication
 {
@@ -54,7 +56,7 @@ public final class ModRate extends ConsoleApplication
 
 
   /**
-   * The main method for SearchRate tool.
+   * The main method for ModRate tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
@@ -74,14 +76,14 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * Parses the provided command-line arguments and uses that
-   * information to run the ldapsearch tool.
+   * information to run the modrate tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
    */
 
-  public static int mainSearchRate(String[] args)
+  static int mainModRate(String[] args)
   {
     return mainModRate(args, System.in, System.out, System.err);
   }
@@ -90,7 +92,7 @@ public final class ModRate extends ConsoleApplication
 
   /**
    * Parses the provided command-line arguments and uses that
-   * information to run the ldapsearch tool.
+   * information to run the modrate tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
@@ -106,7 +108,7 @@ public final class ModRate extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainModRate(String[] args, InputStream inStream,
+  static int mainModRate(String[] args, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
 
   {

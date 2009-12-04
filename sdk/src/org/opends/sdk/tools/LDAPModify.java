@@ -57,8 +57,8 @@ import com.sun.opends.sdk.util.Message;
 
 
 /**
- * This class provides a tool that can be used to issue modify requests
- * to the Directory Server.
+ * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN)
+ * requests to the Directory Server.
  */
 public final class LDAPModify extends ConsoleApplication
 {
@@ -100,7 +100,7 @@ public final class LDAPModify extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainModify(String[] args)
+  static int mainModify(String[] args)
   {
     return mainModify(args, System.in, System.out, System.err);
   }
@@ -126,7 +126,7 @@ public final class LDAPModify extends ConsoleApplication
    *          <CODE>null</CODE> if standard error is not needed.
    * @return The error code.
    */
-  public static int mainModify(String[] args, InputStream inStream,
+  static int mainModify(String[] args, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
   {
     return new LDAPModify(inStream, outStream, errStream).run(args);

@@ -53,8 +53,8 @@ import com.sun.opends.sdk.util.Message;
 
 
 /**
- * This class provides a tool that can be used to issue compare requests
- * to the Directory Server.
+ * A tool that can be used to issue Compare requests to the Directory
+ * Server.
  */
 public final class LDAPCompare extends ConsoleApplication
 {
@@ -90,7 +90,7 @@ public final class LDAPCompare extends ConsoleApplication
    * @return The error code.
    */
 
-  public static int mainCompare(String[] args)
+  static int mainCompare(String[] args)
   {
     return mainCompare(args, System.in, System.out, System.err);
   }
@@ -116,7 +116,7 @@ public final class LDAPCompare extends ConsoleApplication
    *          <CODE>null</CODE> if standard error is not needed.
    * @return The error code.
    */
-  public static int mainCompare(String[] args, InputStream inStream,
+  static int mainCompare(String[] args, InputStream inStream,
       OutputStream outStream, OutputStream errStream)
   {
     return new LDAPCompare(inStream, outStream, errStream).run(args);
