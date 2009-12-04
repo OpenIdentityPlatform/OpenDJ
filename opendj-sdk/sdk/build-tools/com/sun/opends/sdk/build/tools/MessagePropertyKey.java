@@ -52,8 +52,6 @@ public class MessagePropertyKey implements
 
   private String description;
 
-  private Integer ordinal;
-
 
 
   /**
@@ -61,49 +59,11 @@ public class MessagePropertyKey implements
    *
    * @param keyString
    *          from properties file
-   * @param includesOrdinal
-   *          when true expects ordinals to be encoded in the keystring;
-   *          when false the mandate is relaxed
    * @return MessagePropertyKey created from string
    */
-  static public MessagePropertyKey parseString(String keyString,
-      boolean includesOrdinal)
+  static public MessagePropertyKey parseString(String keyString)
   {
-
-    String description;
-    Integer ordinal = null;
-
-    String k = keyString;
-
-    if (includesOrdinal)
-    {
-      int li = k.lastIndexOf("_");
-      if (li != -1)
-      {
-        description = k.substring(0, li).toUpperCase();
-      }
-      else
-      {
-        throw new IllegalArgumentException("Incorrectly formatted key "
-            + keyString);
-      }
-
-      try
-      {
-        String ordString = k.substring(li + 1);
-        ordinal = Integer.parseInt(ordString);
-      }
-      catch (Exception nfe)
-      {
-        throw new IllegalArgumentException(
-            "Error parsing ordinal for key " + keyString);
-      }
-    }
-    else
-    {
-      description = k;
-    }
-    return new MessagePropertyKey(description, ordinal);
+    return new MessagePropertyKey(keyString);
   }
 
 
@@ -113,13 +73,10 @@ public class MessagePropertyKey implements
    *
    * @param description
    *          of this key
-   * @param ordinal
-   *          of this key
    */
-  public MessagePropertyKey(String description, Integer ordinal)
+  public MessagePropertyKey(String description)
   {
     this.description = description;
-    this.ordinal = ordinal;
   }
 
 
@@ -132,18 +89,6 @@ public class MessagePropertyKey implements
   public String getDescription()
   {
     return this.description;
-  }
-
-
-
-  /**
-   * Gets the ordinal of this key.
-   *
-   * @return ordinal of this key
-   */
-  public Integer getOrdinal()
-  {
-    return this.ordinal;
   }
 
 
@@ -188,14 +133,7 @@ public class MessagePropertyKey implements
    */
   public String getPropertyKeyName(boolean includeOrdinal)
   {
-    StringBuilder sb = new StringBuilder();
-    sb.append(description);
-    if (ordinal != null && includeOrdinal)
-    {
-      sb.append("_");
-      sb.append(ordinal);
-    }
-    return sb.toString();
+    return description;
   }
 
 
@@ -205,14 +143,7 @@ public class MessagePropertyKey implements
    */
   public int compareTo(MessagePropertyKey k)
   {
-    if (ordinal == k.ordinal)
-    {
-      return description.compareTo(k.description);
-    }
-    else
-    {
-      return ordinal.compareTo(k.ordinal);
-    }
+    return description.compareTo(k.description);
   }
 
 }
