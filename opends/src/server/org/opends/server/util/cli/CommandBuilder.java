@@ -75,6 +75,24 @@ public class CommandBuilder
   }
 
   /**
+   * The separator used to link the lines of the resulting command-lines in
+   * HTML format.
+   */
+  public final static String HTML_LINE_SEPARATOR;
+  static
+  {
+    if (SetupUtils.isWindows())
+    {
+      HTML_LINE_SEPARATOR = "&nbsp;";
+    }
+    else
+    {
+      HTML_LINE_SEPARATOR =
+     "&nbsp;\\<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    }
+  }
+
+  /**
    * The constructor for the CommandBuilder.
    * @param commandName the command name.
    */
@@ -157,17 +175,32 @@ public class CommandBuilder
    */
   public String toString()
   {
-    return toString(false);
+    return toString(false, LINE_SEPARATOR);
+  }
+
+  /**
+   * Returns the String representation of this command builder (i.e. what we
+   * want to show to the user).
+   * @param lineSeparator the String to be used to separate lines of the
+   * command-builder.
+   * @return the String representation of this command builder (i.e. what we
+   * want to show to the user).
+   */
+  public String toString(String lineSeparator)
+  {
+    return toString(false, lineSeparator);
   }
 
   /**
    * Returns the String representation of this command builder (i.e. what we
    * want to show to the user).
    * @param showObfuscated displays in clear the obfuscated values.
+   * @param lineSeparator the String to be used to separate lines of the
+   * command-builder.
    * @return the String representation of this command builder (i.e. what we
    * want to show to the user).
    */
-  private String toString(boolean showObfuscated)
+  private String toString(boolean showObfuscated, String lineSeparator)
   {
     StringBuilder builder = new StringBuilder();
     builder.append(commandName);
@@ -194,14 +227,14 @@ public class CommandBuilder
 
       if (arg instanceof BooleanArgument)
       {
-        builder.append(LINE_SEPARATOR+argName);
+        builder.append(lineSeparator+argName);
       }
       else if (arg instanceof FileBasedArgument)
       {
         for (String value :
           ((FileBasedArgument)arg).getNameToValueMap().keySet())
         {
-          builder.append(LINE_SEPARATOR+argName+" ");
+          builder.append(lineSeparator+argName+" ");
           if (isObfuscated(arg) && !showObfuscated)
           {
             value = OBFUSCATED_VALUE;
@@ -217,7 +250,7 @@ public class CommandBuilder
       {
         for (String value : arg.getValues())
         {
-          builder.append(LINE_SEPARATOR+argName+" ");
+          builder.append(lineSeparator+argName+" ");
           if (isObfuscated(arg) && !showObfuscated)
           {
             value = OBFUSCATED_VALUE;
