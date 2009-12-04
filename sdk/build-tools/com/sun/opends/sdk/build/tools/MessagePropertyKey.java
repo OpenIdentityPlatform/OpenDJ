@@ -25,7 +25,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 /**
  * OpenDS messages defined in properties files must be defined with the

@@ -24,7 +24,7 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 import com.vladium.emma.report.*;
 import com.vladium.emma.report.html.doc.*;

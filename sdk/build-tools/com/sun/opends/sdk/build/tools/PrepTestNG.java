@@ -25,7 +25,7 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;

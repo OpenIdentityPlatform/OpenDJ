@@ -24,12 +24,12 @@
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 
-import static org.opends.build.tools.Utilities.*;
+import static com.sun.opends.sdk.build.tools.Utilities.*;
 
 import java.io.File;
 import java.io.PrintWriter;

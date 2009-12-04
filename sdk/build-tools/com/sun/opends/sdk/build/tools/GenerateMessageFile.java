@@ -24,11 +24,11 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-package org.opends.build.tools;
+package com.sun.opends.sdk.build.tools;
 
 
 
-import static org.opends.build.tools.Utilities.*;
+import static com.sun.opends.sdk.build.tools.Utilities.*;
 
 import java.io.*;
 import java.util.*;
