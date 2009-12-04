@@ -26,7 +26,7 @@
  */
 
 /**
- * OpenDS SDK.
+ * Core OpenDS SDK API including connections, entries, and attributes.
  *
  * <h1>TODO</h1>
  * <ul>
@@ -44,32 +44,20 @@
  * <li>rest of output must be in ASCII
  * </ul>
  * </ul>
- * <li>Messages
  * <li>Logging?
- * <li>Single entry search, blocking search <b>[Bo]</b>
  * <li>Exceptions sub-types for ErrorResultException (e.g. referrals, assertion failures, client side errors).
- * <li>Refactor non-schema aware request / response APIs - how should they handle duplicate attribute descriptions and values? I.e. what matching should be performed: do they have List or Set semantics? [Matt]
- * <ul>
- * <li>AttributeValueSequence -> AttributeValueCollection?
- * <li>AttributeSequence -> AttributeCollection?
  * <li>SearchResultEntry must be cheap to decode in non schema case.
- * <li>Schema aware versions of these should provide set semantics w.r.t. attribute descriptions and attribute values.
- * </ul>
  * <li>How should non-default Grizzly transport be specified by the application?
  * <li>Unmodifiable requests and responses
  * <li>Check that it is possible to create SearchResultEntry objects with empty attributes.
  * <li>Nameable? All objects that have a getName() method
- * <li>DN, RDN - check APIs. <b>[Matt]</b>
- * <li>Schema - clean up abstract stuff. Ensure exception handling is correct. <b>[Matt]</b>
  * <li>Enum / GeneralizedTime parsing function
  * <li>LDAP connection request timeouts configured using LDAPConnectionOptions.
  * <li>Re-instate Connection.isValid()
  * <li>Support parameters in result handlers.
  * <li>Javadoc
  * <li>Unit tests
- * <li>Move to standalone source tree
  * <li>LDAP URL support and referral support
- * <li>Thread safe DN caching
  * <li>Escapes in substring filter
  * <li>Threading model for decoding messages and calling result handlers
  * <li>SASL for CLI tools

@@ -26,21 +26,11 @@
  */
 
 /**
- * Classes and interfaces for reading and writing LDIF.
- *
- * <h1>TO DO</h1>
- * <ul>
- * <li>Make LDIFEntryReader concurrent and support DN reservation.
- * <li>LDIF*Reader Reject and skip support
- * <li>Remaining schema checking (e.g. binary option)
- * <li>Fix error messages (prefix with file/lineno)
- * <li>Support multiple LDIF*Reader sources
- * <li>Support EntryWriter splitting
- * <li>Support LDIFConnectionFactory
- * <li>Comments and optional charset encoding?
- * </ul>
+ * Classes and interfaces for encoding and decoding ASN.1 data streams.
+ * <p>
+ * Note that this particular implementation is limited to the subset of elements
+ * that are typically used by LDAP clients. As such, it does not include all
+ * ASN.1 element types, particularly elements like OIDs, bit strings, and
+ * timestamp values.
  */
-package org.opends.sdk.ldif;
-
-
-
+package org.opends.sdk.asn1;
