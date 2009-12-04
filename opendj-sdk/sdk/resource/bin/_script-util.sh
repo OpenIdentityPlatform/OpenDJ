@@ -139,7 +139,7 @@ set_environment_vars() {
   LD_PRELOAD_64=
   export PATH LD_LIBRARY_PATH LD_LIBRARY_PATH_32 LD_LIBRARY_PATH_64 \
        LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_64
-  SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${SCRIPT_NAME}
+  SCRIPT_NAME_ARG=-Dorg.opends.sdk.tools.scriptName=${SCRIPT_NAME}
 	export SCRIPT_NAME_ARG
 }
 
