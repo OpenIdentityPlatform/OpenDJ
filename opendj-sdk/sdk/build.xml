@@ -111,7 +111,7 @@
 
     <!-- The build target that should be used to build everything. -->
     <target name="all"
-            depends="checkstyle,clean,checkprecommit,srczip,javadoc,testallwithcoverage"
+            depends="checkstyle,clean,checkprecommit,srczip,javadoc,testwithcoverage"
             description="Build using all defined targets.">
     </target>
 
@@ -803,17 +803,6 @@
 
 
     <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode. -->
-    <target name="enableTestNGAssertions">
-        <property name="TESTASSERT" value="true" />
-    </target>
-
-    <!-- Execute all of the OpenDS LDAP SDK TestNG unit tests in text mode. -->
-    <target name="testall"
-            depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
-            description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
-    </target>
-
-    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode. -->
     <target name="test"
             depends="testinit,runtests"
             description="Execute the OpenDS LDAP SDK TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
@@ -823,12 +812,6 @@
     <target name="testwithcoverage"
             depends="coverage,test,coveragediff"
             description="Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
-    </target>
-
-    <!-- Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report and slow tests. -->
-    <target name="testallwithcoverage"
-            depends="coverage,testall,coveragediff"
-            description="The same as 'testwithcoverage' except 'testall' is run instead of 'test'.">
     </target>
 
     <target name="testhelp" unless="disable.test.help">
@@ -1106,19 +1089,6 @@
         <!-- We delay failing until after the coverage report is generated. -->
         <fail message="The unit tests failed." if="testng.tests.failed" />
 
-    </target>
-
-    <target name="prepdefaultalltest">
-        <condition property="test.groups" value="">
-            <not>
-                <or>
-                    <isset property="test.groups" />
-                    <isset property="test.packages" />
-                    <isset property="test.classes" />
-                    <isset property="test.methods" />
-                </or>
-            </not>
-        </condition>
     </target>
 
     <target name="testreport" depends="test">
