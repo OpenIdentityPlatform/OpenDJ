@@ -105,6 +105,7 @@ public final class AuthenticatedConnectionFactory
         ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
         P p)
     {
+      // TODO: bug here? if allowRebind= false then bind will never happen
       ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
           allowRebinds ? request : null, handler, p);
       future.connectFuture = parentFactory.getAsynchronousConnection(
@@ -315,10 +316,10 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public void close(UnbindRequest request)
+    public void close(UnbindRequest request, String reason)
         throws NullPointerException
     {
-      connection.close(request);
+      connection.close(request, reason);
     }
 
 
@@ -463,6 +464,13 @@ public final class AuthenticatedConnectionFactory
           searchResulthandler, p);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed()
+    {
+      return connection.isClosed();
+    }
   }
 
 

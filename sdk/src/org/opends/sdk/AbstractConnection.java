@@ -254,10 +254,10 @@ public abstract class AbstractConnection implements Connection
     {
       // Got more entries than expected.
       Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN).setDiagnosticMessage(
           ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(handler.entryCount)
               .toString());
-      throw new ErrorResultException(result);
+      throw ErrorResultException.wrap(result);
     }
     else if (handler.firstReference != null)
     {
@@ -267,7 +267,7 @@ public abstract class AbstractConnection implements Connection
           ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
               handler.firstReference.getURIs().iterator().next())
               .toString());
-      throw new ErrorResultException(result);
+      throw ErrorResultException.wrap(result);
     }
     else
     {

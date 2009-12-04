@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
@@ -130,11 +131,15 @@ final class LDAPConnection implements AsynchronousConnection
                 saslContext.evaluateCredentials(result
                     .getServerSASLCredentials());
               }
-              catch (SaslException se)
+              catch (SaslException e)
               {
                 pendingBindOrStartTLS = -1;
 
-                Result errorResult = adaptException(se);
+                // FIXME: I18N need to have a better error message.
+                // FIXME: Is this the best result code?
+                Result errorResult = Responses.newResult(
+                    ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+                    "An error occurred during SASL authentication").setCause(e);
                 future.handleErrorResult(errorResult);
                 return;
               }
@@ -163,7 +168,10 @@ final class LDAPConnection implements AsynchronousConnection
                   {
                     pendingRequests.remove(messageID);
 
-                    Result errorResult = adaptException(e);
+                    // FIXME: what other sort of IOExceptions can be thrown?
+                    // FIXME: Is this the best result code?
+                    Result errorResult = Responses.newResult(
+                        ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
                     connectionErrorOccurred(errorResult);
                     future.handleErrorResult(errorResult);
                   }
@@ -251,7 +259,20 @@ final class LDAPConnection implements AsynchronousConnection
      */
     public void handleException(Throwable throwable)
     {
-      Result errorResult = adaptException(throwable);
+      Result errorResult;
+      if(throwable instanceof EOFException)
+      {
+        // FIXME: Is this the best result code?
+        errorResult = Responses.newResult(
+            ResultCode.CLIENT_SIDE_SERVER_DOWN).setCause(throwable);
+      }
+      else
+      {
+        // FIXME: what other sort of IOExceptions can be thrown?
+        // FIXME: Is this the best result code?
+        errorResult = Responses.newResult(
+            ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(throwable);
+      }
       connectionErrorOccurred(errorResult);
     }
 
@@ -625,7 +646,8 @@ final class LDAPConnection implements AsynchronousConnection
 
   private boolean isClosed = false;
 
-  private final List<ConnectionEventListener> listeners = new LinkedList<ConnectionEventListener>();
+  private final List<ConnectionEventListener> listeners =
+      new CopyOnWriteArrayList<ConnectionEventListener>();
 
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
 
@@ -702,7 +724,10 @@ final class LDAPConnection implements AsynchronousConnection
           }
           catch (IOException e)
           {
-            Result errorResult = adaptException(e);
+            // FIXME: what other sort of IOExceptions can be thrown?
+            // FIXME: Is this the best result code?
+            Result errorResult = Responses.newResult(
+                ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
             connectionErrorOccurred(errorResult);
           }
         }
@@ -754,7 +779,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -847,7 +875,11 @@ final class LDAPConnection implements AsynchronousConnection
             }
             catch (SaslException e)
             {
-              Result errorResult = adaptException(e);
+              // FIXME: I18N need to have a better error message.
+              // FIXME: Is this the best result code?
+              Result errorResult = Responses.newResult(
+                  ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+                  "An error occurred during SASL authentication").setCause(e);
               future.handleErrorResult(errorResult);
               return future;
             }
@@ -860,7 +892,8 @@ final class LDAPConnection implements AsynchronousConnection
           else
           {
             pendingRequests.remove(messageID);
-            future.handleResult(Responses.newBindResult(ResultCode.PROTOCOL_ERROR)
+            future.handleResult(Responses.newBindResult(
+                ResultCode.CLIENT_SIDE_AUTH_UNKNOWN)
                 .setDiagnosticMessage("Auth type not supported"));
           }
           asn1Writer.flush();
@@ -869,7 +902,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -890,23 +926,23 @@ final class LDAPConnection implements AsynchronousConnection
    */
   public void close()
   {
-    close(Requests.newUnbindRequest());
+    close(Requests.newUnbindRequest(), null);
   }
-
 
 
   /**
    * {@inheritDoc}
    */
-  public void close(UnbindRequest request) throws NullPointerException
-  {
+  public void close(UnbindRequest request, String reason)
+      throws NullPointerException {
     // FIXME: I18N need to internationalize this message.
     Validator.ensureNotNull(request);
 
-    close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-        .setDiagnosticMessage("Connection closed by client"));
+    close(request, false,
+        Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+            .setDiagnosticMessage("Connection closed by client" +
+            (reason != null ? ": " + reason : "")));
   }
-
 
 
   /**
@@ -950,7 +986,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1005,7 +1044,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1081,7 +1123,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1136,7 +1181,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1191,7 +1239,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1264,7 +1315,10 @@ final class LDAPConnection implements AsynchronousConnection
         {
           pendingRequests.remove(messageID);
 
-          Result errorResult = adaptException(e);
+          // FIXME: what other sort of IOExceptions can be thrown?
+          // FIXME: Is this the best result code?
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
           connectionErrorOccurred(errorResult);
           future.handleErrorResult(errorResult);
         }
@@ -1303,57 +1357,6 @@ final class LDAPConnection implements AsynchronousConnection
     FilterChain currentFilterChain = (FilterChain) connection
         .getProcessor();
     return currentFilterChain.get(2) instanceof SSLFilter;
-  }
-
-
-
-  private Result adaptException(Throwable t)
-  {
-    if (t instanceof ExecutionException)
-    {
-      ExecutionException e = (ExecutionException) t;
-      t = e.getCause();
-    }
-
-    Result errorResult;
-
-    try
-    {
-      throw t;
-    }
-    catch (SaslException e)
-    {
-      // FIXME: I18N need to have a better error message.
-      // FIXME: Is this the best result code?
-      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-          "An error occurred during SASL authentication").setCause(e);
-    }
-    catch (EOFException e)
-    {
-      // FIXME: I18N need to have a better error message.
-      // FIXME: what sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN).setDiagnosticMessage(
-          "Connection unexpectedly terminated by server").setCause(e);
-    }
-    catch (IOException e)
-    {
-      // FIXME: I18N need to have a better error message.
-      // FIXME: what sort of IOExceptions can be thrown?
-      // FIXME: Is this the best result code?
-      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-          "An error occurred whilst attempting to send a request: "
-              + e.toString()).setCause(e);
-    }
-    catch (Throwable e)
-    {
-      // FIXME: I18N need to have a better error message.
-      // FIXME: Is this the best result code?
-      errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-          "An unknown error occurred: " + e.toString()).setCause(e);
-    }
-
-    return errorResult;
   }
 
 
@@ -1489,8 +1492,8 @@ final class LDAPConnection implements AsynchronousConnection
       {
         for (ConnectionEventListener listener : listeners)
         {
-          listener.connectionErrorOccurred(false, ErrorResultException
-              .wrap(reason));
+          listener.connectionErrorOccurred(isDisconnectNotification,
+              ErrorResultException.wrap(reason));
         }
       }
     }
@@ -1506,16 +1509,16 @@ final class LDAPConnection implements AsynchronousConnection
 
 
   // TODO uncomment if we decide these methods are useful.
-  // /**
-  // * {@inheritDoc}
-  // */
-  // public boolean isClosed()
-  // {
-  // synchronized (writeLock)
-  // {
-  // return isClosed;
-  // }
-  // }
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isClosed()
+  {
+    synchronized (writeLock)
+    {
+      return isClosed;
+    }
+  }
   //
   //
   //
@@ -1645,11 +1648,23 @@ final class LDAPConnection implements AsynchronousConnection
       sslHandshaker.handshake(reader, writer, sslEngineConfigurator)
           .get();
     }
+    catch (ExecutionException ee)
+    {
+      // FIXME: what other sort of IOExceptions can be thrown?
+      // FIXME: Is this the best result code?
+      Result errorResult = Responses.newResult(
+          ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(ee.getCause());
+      connectionErrorOccurred(errorResult);
+      throw ErrorResultException.wrap(errorResult);
+    }
     catch (Exception e)
     {
-      Result result = adaptException(e);
-      connectionErrorOccurred(result);
-      throw ErrorResultException.wrap(result);
+      // FIXME: what other sort of IOExceptions can be thrown?
+      // FIXME: Is this the best result code?
+      Result errorResult = Responses.newResult(
+          ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(e);
+      connectionErrorOccurred(errorResult);
+      throw ErrorResultException.wrap(errorResult);
     }
   }
 

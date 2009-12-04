@@ -122,9 +122,10 @@ public class SynchronousConnection extends AbstractConnection
 
 
 
-  public void close(UnbindRequest request) throws NullPointerException
+  public void close(UnbindRequest request, String reason)
+      throws NullPointerException
   {
-    connection.close(request);
+    connection.close(request, reason);
   }
 
 

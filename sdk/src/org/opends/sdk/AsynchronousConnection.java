@@ -32,8 +32,9 @@ package org.opends.sdk;
 import java.io.Closeable;
 
 import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
-
+import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.Result;
 
 
 /**
@@ -260,12 +261,12 @@ public interface AsynchronousConnection extends Closeable
    * @param request
    *          The unbind request to use in the case where a physical
    *          connection is closed.
+   * @param reason
+   *          A reason describing why the connection was closed.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  void close(UnbindRequest request) throws NullPointerException;
-
-
+  void close(UnbindRequest request, String reason);
 
   /**
    * Compares an entry in the Directory Server using the provided
@@ -492,4 +493,14 @@ public interface AsynchronousConnection extends Closeable
    */
   void removeConnectionEventListener(ConnectionEventListener listener)
       throws NullPointerException;
+
+
+  /**
+   * Returns <code>true</code> if the connection is closed for
+   * <code>false</code> otherwise.
+   *
+   * @return <code>true</code> if the connection is closed for
+   *         <code>false</code> otherwise.
+   */
+  boolean isClosed();
 }

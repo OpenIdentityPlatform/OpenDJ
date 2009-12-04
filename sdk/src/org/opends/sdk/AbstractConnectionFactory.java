@@ -116,10 +116,10 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
       future.cancel(false);
 
       Result result =
-          Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+          Responses.newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
               .setCause(e)
               .setDiagnosticMessage(e.getLocalizedMessage());
-      throw new ErrorResultException(result);
+      throw ErrorResultException.wrap(result);
     }
   }
 }

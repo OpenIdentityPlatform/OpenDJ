@@ -303,10 +303,12 @@ public interface Connection extends Closeable
    * @param request
    *          The unbind request to use in the case where a physical
    *          connection is closed.
+   * @param reason
+   *          A reason describing why the connection was closed.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  void close(UnbindRequest request) throws NullPointerException;
+  void close(UnbindRequest request, String reason) throws NullPointerException;
 
 
 
