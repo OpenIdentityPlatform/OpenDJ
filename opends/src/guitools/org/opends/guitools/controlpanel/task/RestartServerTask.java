@@ -47,6 +47,8 @@ public class RestartServerTask extends StartStopTask
 {
   private boolean starting;
 
+  private StartServerTask startTask;
+
   /**
    * Constructor of the task.
    * @param info the control panel information.
@@ -55,6 +57,7 @@ public class RestartServerTask extends StartStopTask
   public RestartServerTask(ControlPanelInfo info, ProgressDialog dlg)
   {
     super(info, dlg);
+    startTask = new StartServerTask(info, dlg);
   }
 
   /**
@@ -94,7 +97,16 @@ public class RestartServerTask extends StartStopTask
    */
   private String getStartCommandLineName()
   {
-    return getCommandLinePath("start-ds");
+    return startTask.getCommandLinePath();
+  }
+
+  /**
+   * Returns the arguments of the start command-line.
+   * @return the arguments of the start command-line.
+   */
+  private ArrayList<String> getStartCommandLineArguments()
+  {
+    return startTask.getCommandLineArguments();
   }
 
   /**
@@ -120,14 +132,12 @@ public class RestartServerTask extends StartStopTask
       public void run()
       {
         String cmdLine = getStopCommandLineName();
+        printEquivalentCommandLine(cmdLine, getCommandLineArguments(),
+            INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_STOP_SERVER.get());
         dlg.setSummary(Message.raw(
             Utilities.applyFont(
             INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get().toString(),
             ColorAndFontConstants.defaultFont)));
-        dlg.appendProgressHtml(Utilities.applyFont(
-            INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_STOP_SERVER.get()+"<br><b>"+
-              cmdLine+"</b><br><br>",
-              ColorAndFontConstants.progressFont));
       }
     });
     // To display new status
@@ -158,21 +168,23 @@ public class RestartServerTask extends StartStopTask
                 "<b>"+INFO_CTRL_PANEL_SERVER_STOPPED.get()+"</b><br><br>",
                 ColorAndFontConstants.progressFont));
             String cmdLine = getStartCommandLineName();
+            printEquivalentCommandLine(cmdLine, getStartCommandLineArguments(),
+                INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_START_SERVER.get());
 
             dlg.setSummary(Message.raw(
                 Utilities.applyFont(
                 INFO_CTRL_PANEL_STARTING_SERVER_SUMMARY.get().toString(),
                 ColorAndFontConstants.defaultFont)));
-            dlg.appendProgressHtml(Utilities.applyFont(
-                INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_START_SERVER.get()+"<br><b>"+
-                  cmdLine+"</b><br><br>",
-                  ColorAndFontConstants.progressFont));
           }
         });
 
         starting = true;
         // To display new status
         getInfo().regenerateDescriptor();
+        arguments = getStartCommandLineArguments();
+        args = new String[arguments.size()];
+        arguments.toArray(args);
+
         returnCode = executeCommandLine(getStartCommandLineName(), args);
         if (returnCode != 0)
         {

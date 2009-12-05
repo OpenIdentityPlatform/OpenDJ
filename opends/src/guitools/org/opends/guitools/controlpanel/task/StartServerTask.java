@@ -22,12 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+
+import java.util.ArrayList;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -72,5 +74,16 @@ public class StartServerTask extends StartStopTask
   protected String getCommandLinePath()
   {
     return getCommandLinePath("start-ds");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected ArrayList<String> getCommandLineArguments()
+  {
+    ArrayList<String> args = new ArrayList<String>();
+    args.add("--timeout");
+    args.add("0");
+    return args;
   }
 };
