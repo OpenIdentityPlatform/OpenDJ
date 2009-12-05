@@ -329,6 +329,8 @@ public class ServerController {
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
           Utils.getPath(installation.getServerStartCommandFile())));
+      argList.add("--timeout");
+      argList.add("0");
       String[] args = new String[argList.size()];
       argList.toArray(args);
       ProcessBuilder pb = new ProcessBuilder(args);
@@ -423,22 +425,11 @@ public class ServerController {
            * to connect or since the startup process is asynchronous we will
            * have to wait for the databases and the listeners to initialize.
            * Just check if we can connect to the server.
-           * Try 10 times with an interval of 5 seconds between try.
+           * Try 30 times with an interval of 3 seconds between try.
            */
           boolean connected = false;
           Configuration config = installation.getCurrentConfiguration();
           int port = config.getAdminConnectorPort();
-          String hostName = null;
-          if (application != null)
-          {
-            hostName = application.getUserData().getHostName();
-          }
-          if (hostName == null)
-          {
-            hostName = "localhost";
-          }
-          hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
-          String ldapUrl = "ldaps://"+hostName+":" + port;
 
           // See if the application has prompted for credentials.  If
           // not we'll just try to connect anonymously.
@@ -454,20 +445,35 @@ public class ServerController {
           }
 
           InitialLdapContext ctx = null;
-          for (int i=0; i<20 && !connected; i++)
+          for (int i=0; i<50 && !connected; i++)
           {
-            if ((i == 10) || (i == 11) && !"localhost".equals(hostName))
+            String hostName = null;
+            if (application != null)
+            {
+              hostName = application.getUserData().getHostName();
+            }
+            if (hostName == null)
+            {
+              hostName = "localhost";
+            }
+
+            int dig = i % 10;
+
+            if (((dig >= 3) || (dig <= 4)) &&
+            !"localhost".equals(hostName))
             {
               // Try with local host.  This might be necessary in certain
               // network configurations.
-              ldapUrl = "ldaps://localhost:" + port;
+              hostName = "localhost";
             }
-            if ((i == 15) || (i == 16))
+            if (((dig >= 5) || (dig <= 6)))
             {
               // Try with 0.0.0.0.  This might be necessary in certain
               // network configurations.
-              ldapUrl = "ldaps://0.0.0.0:" + port;
+              hostName = "0.0.0.0";
             }
+            hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
+            String ldapUrl = "ldaps://"+hostName+":" + port;
             try
             {
               ctx = Utils.createLdapsContext(
@@ -497,7 +503,7 @@ public class ServerController {
             {
               try
               {
-                Thread.sleep(7500);
+                Thread.sleep(3000);
               }
               catch (Throwable t)
               {
