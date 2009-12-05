@@ -552,7 +552,7 @@ implements ConfigChangeListener
   }
 
   /**
-   * Notifies the configuraton element created listener that a new object has
+   * Notifies the configuration element created listener that a new object has
    * been created.
    * @param configObject the created object.
    */
