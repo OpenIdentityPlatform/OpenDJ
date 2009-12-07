@@ -27,7 +27,7 @@ rem      Copyright 2009 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.sdk.tools.SearchRate"
+set OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.SearchRate"
 set SCRIPT_NAME=searchrate
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

@@ -27,7 +27,7 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.sdk.tools.LDAPCompare"
+set OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.LDAPCompare"
 set SCRIPT_NAME=ldapcompare
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

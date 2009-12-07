@@ -44,13 +44,13 @@ import javax.security.sasl.SaslException;
 /**
  * An abstract SASL context.
  */
-public abstract class AbstractSASLContext implements SASLContext,
+abstract class AbstractSASLContext implements SASLContext,
     CallbackHandler
 {
   /**
    * The name of the default protocol used.
    */
-  protected static final String SASL_DEFAULT_PROTOCOL = "ldap";
+  static final String SASL_DEFAULT_PROTOCOL = "ldap";
 
 
 
@@ -138,7 +138,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(AuthorizeCallback callback)
+  void handle(AuthorizeCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -149,7 +149,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(ChoiceCallback callback)
+  void handle(ChoiceCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -160,7 +160,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(ConfirmationCallback callback)
+  void handle(ConfirmationCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -171,7 +171,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(LanguageCallback callback)
+  void handle(LanguageCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -182,7 +182,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(NameCallback callback)
+  void handle(NameCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -193,7 +193,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(PasswordCallback callback)
+  void handle(PasswordCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -204,7 +204,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(RealmCallback callback)
+  void handle(RealmCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -215,7 +215,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(RealmChoiceCallback callback)
+  void handle(RealmChoiceCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -226,7 +226,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(TextInputCallback callback)
+  void handle(TextInputCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =
@@ -237,7 +237,7 @@ public abstract class AbstractSASLContext implements SASLContext,
 
 
 
-  protected void handle(TextOutputCallback callback)
+  void handle(TextOutputCallback callback)
       throws UnsupportedCallbackException
   {
     com.sun.opends.sdk.util.Message message =

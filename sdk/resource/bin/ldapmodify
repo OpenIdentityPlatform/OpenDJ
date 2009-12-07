@@ -28,7 +28,7 @@
 
 # This script may be used to perform LDAP add, delete, modify, and modify DN
 # operations.
-OPENDS_INVOKE_CLASS="org.opends.sdk.tools.LDAPModify"
+OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.LDAPModify"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_NAME="ldapmodify"

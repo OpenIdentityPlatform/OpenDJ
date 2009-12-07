@@ -27,7 +27,7 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.sdk.tools.LDAPSearch"
+set OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.LDAPSearch"
 set SCRIPT_NAME=ldapsearch
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

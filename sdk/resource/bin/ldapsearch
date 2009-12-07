@@ -27,7 +27,7 @@
 
 
 # This script may be used to perform LDAP search operations.
-OPENDS_INVOKE_CLASS="org.opends.sdk.tools.LDAPSearch"
+OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.LDAPSearch"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_NAME="ldapsearch"

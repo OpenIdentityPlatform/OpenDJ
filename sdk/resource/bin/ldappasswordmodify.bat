@@ -27,7 +27,7 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.sdk.tools.LDAPPasswordModify"
+set OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.LDAPPasswordModify"
 set SCRIPT_NAME=ldappasswordmodify
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 
