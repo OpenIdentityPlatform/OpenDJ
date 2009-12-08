@@ -37,6 +37,7 @@ import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
 
 
+
 /**
  * An asynchronous connection with a Directory Server over which read
  * and update operations may be performed. See RFC 4511 for the LDAPv3
@@ -268,6 +269,8 @@ public interface AsynchronousConnection extends Closeable
    */
   void close(UnbindRequest request, String reason);
 
+
+
   /**
    * Compares an entry in the Directory Server using the provided
    * compare request.
@@ -495,12 +498,15 @@ public interface AsynchronousConnection extends Closeable
       throws NullPointerException;
 
 
+
   /**
-   * Returns <code>true</code> if the connection is closed for
-   * <code>false</code> otherwise.
+   * Indicates whether or not this connection has been explicitly closed
+   * by calling {@code close}. This method will not return {@code true}
+   * if a fatal error has occurred on the connection unless {@code
+   * close} has been called.
    *
-   * @return <code>true</code> if the connection is closed for
-   *         <code>false</code> otherwise.
+   * @return {@code true} if this connection has been explicitly closed
+   *         by calling {@code close}, or {@code false} otherwise.
    */
   boolean isClosed();
 }

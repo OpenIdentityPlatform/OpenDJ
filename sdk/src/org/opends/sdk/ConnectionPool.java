@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package org.opends.sdk;
 
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -44,19 +44,21 @@ import org.opends.sdk.responses.Result;
 import com.sun.opends.sdk.util.StaticUtils;
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Nov 25, 2009 Time: 11:12:29
- * AM To change this template use File | Settings | File Templates.
+ * A simple connection pool implementation.
  */
 public class ConnectionPool
     extends AbstractConnectionFactory<AsynchronousConnection> {
   private final ConnectionFactory<?> connectionFactory;
   private volatile int numConnections;
   private final int poolSize;
+
+  // FIXME: should use a better collection than this - CLQ?
   private final Stack<AsynchronousConnection> pool;
+
   private final ConcurrentLinkedQueue<PendingConnectionFuture<?>> pendingFutures;
   private final Object lock = new Object();
 
-  private class PooledConnectionWapper
+  private final class PooledConnectionWapper
       implements AsynchronousConnection, ConnectionEventListener {
     private AsynchronousConnection connection;
 
@@ -244,6 +246,11 @@ public class ConnectionPool
         pool.remove(this);
         numConnections--;
         connection.removeConnectionEventListener(this);
+
+        // FIXME: should still close the connection, but we need to be
+        // careful that users of the pooled connection get a sensible
+        // error if they continue to use it (i.e. not an NPE or ISE).
+
         if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
         {
           StaticUtils.DEBUG_LOG.finest(String
@@ -255,11 +262,11 @@ public class ConnectionPool
     }
   }
 
-  public class CompletedConnectionFuture
+  private static final class CompletedConnectionFuture
       implements ConnectionFuture<AsynchronousConnection> {
     private final PooledConnectionWapper connection;
 
-    public CompletedConnectionFuture(PooledConnectionWapper connection) {
+    private CompletedConnectionFuture(PooledConnectionWapper connection) {
       this.connection = connection;
     }
 
@@ -286,7 +293,7 @@ public class ConnectionPool
     }
   }
 
-  public class PendingConnectionFuture<P>
+  private final class PendingConnectionFuture<P>
       implements ConnectionFuture<AsynchronousConnection> {
     private volatile boolean isCancelled;
     private volatile PooledConnectionWapper connection;
@@ -296,12 +303,7 @@ public class ConnectionPool
     private final P p;
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    public PendingConnectionFuture() {
-      this.handler = null;
-      this.p = null;
-    }
-
-    public PendingConnectionFuture(
+    private PendingConnectionFuture(
         P p,
         ConnectionResultHandler<? super AsynchronousConnection, P> handler) {
       this.handler = handler;
@@ -355,6 +357,18 @@ public class ConnectionPool
     }
   }
 
+
+
+  /**
+   * Creates a new connection pool which will maintain {@code poolSize}
+   * connections created using the provided connection factory.
+   *
+   * @param connectionFactory
+   *          The connection factory to use for creating new
+   *          connections.
+   * @param poolSize
+   *          The maximum size of the connection pool.
+   */
   public ConnectionPool(ConnectionFactory<?> connectionFactory, int poolSize) {
     this.connectionFactory = connectionFactory;
     this.poolSize = poolSize;
@@ -362,7 +376,7 @@ public class ConnectionPool
     this.pendingFutures = new ConcurrentLinkedQueue<PendingConnectionFuture<?>>();
   }
 
-  private class WrapConnectionResultHandler
+  private final class WrapConnectionResultHandler
       implements ConnectionResultHandler<AsynchronousConnection, Void> {
     private final PendingConnectionFuture<?> future;
 

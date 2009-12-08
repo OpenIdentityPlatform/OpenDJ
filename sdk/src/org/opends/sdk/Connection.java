@@ -38,7 +38,6 @@ import org.opends.sdk.responses.*;
 
 
 
-
 /**
  * A synchronous connection with a Directory Server over which read and
  * update operations may be performed. See RFC 4511 for the LDAPv3
@@ -307,7 +306,8 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  void close(UnbindRequest request, String reason) throws NullPointerException;
+  void close(UnbindRequest request, String reason)
+      throws NullPointerException;
 
 
 
@@ -513,19 +513,19 @@ public interface Connection extends Closeable
 
 
 
-  // /**
-  // * Indicates whether or not this connection has been explicitly
-  // closed
-  // * by calling {@code close}. This method will not return {@code
-  // true}
-  // * if a fatal error has occurred on the connection unless {@code
-  // * close} has been called.
-  // *
-  // * @return {@code true} if this connection has been explicitly
-  // closed
-  // * by calling {@code close}, or {@code false} otherwise.
-  // */
-  // boolean isClosed();
+  /**
+   * Indicates whether or not this connection has been explicitly closed
+   * by calling {@code close}. This method will not return {@code true}
+   * if a fatal error has occurred on the connection unless {@code
+   * close} has been called.
+   *
+   * @return {@code true} if this connection has been explicitly closed
+   *         by calling {@code close}, or {@code false} otherwise.
+   */
+  boolean isClosed();
+
+
+
   //
   //
   //
