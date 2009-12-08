@@ -31,8 +31,6 @@ package org.opends.sdk;
 
 import java.io.IOException;
 
-import com.sun.opends.sdk.util.LocalizableException;
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -46,7 +44,7 @@ import com.sun.opends.sdk.util.Message;
 public final class DecodeException extends IOException implements
     LocalizableException
 {
-  private final Message message;
+  private final LocalizableMessage message;
 
   private final boolean isFatal;
 
@@ -60,7 +58,7 @@ public final class DecodeException extends IOException implements
    *          The message that explains the problem that occurred.
    * @return The new fatal decode exception.
    */
-  public static DecodeException fatalError(Message message)
+  public static DecodeException fatalError(LocalizableMessage message)
   {
     return new DecodeException(message, true, null);
   }
@@ -77,7 +75,7 @@ public final class DecodeException extends IOException implements
    *          The underlying cause of this exception.
    * @return The new fatal decode exception.
    */
-  public static DecodeException fatalError(Message message,
+  public static DecodeException fatalError(LocalizableMessage message,
       Throwable cause)
   {
     return new DecodeException(message, true, cause);
@@ -92,7 +90,7 @@ public final class DecodeException extends IOException implements
    *          The message that explains the problem that occurred.
    * @return The new non-fatal decode exception.
    */
-  public static DecodeException error(Message message)
+  public static DecodeException error(LocalizableMessage message)
   {
     return new DecodeException(message, false, null);
   }
@@ -109,7 +107,7 @@ public final class DecodeException extends IOException implements
    *          The underlying cause of this exception.
    * @return The new non-fatal decode exception.
    */
-  public static DecodeException error(Message message, Throwable cause)
+  public static DecodeException error(LocalizableMessage message, Throwable cause)
   {
     return new DecodeException(message, false, cause);
   }
@@ -117,7 +115,7 @@ public final class DecodeException extends IOException implements
 
 
   // Construction is provided via factory methods.
-  private DecodeException(Message message, boolean isFatal,
+  private DecodeException(LocalizableMessage message, boolean isFatal,
       Throwable cause)
   {
     super(message.toString(), cause);
@@ -130,9 +128,9 @@ public final class DecodeException extends IOException implements
   /**
    * Returns the message that explains the problem that occurred.
    *
-   * @return Message of the problem
+   * @return LocalizableMessage of the problem
    */
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return message;
   }

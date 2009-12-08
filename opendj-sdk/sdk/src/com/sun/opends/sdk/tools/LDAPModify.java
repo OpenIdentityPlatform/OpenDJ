@@ -51,8 +51,6 @@ import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -146,7 +144,7 @@ public final class LDAPModify extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    Message toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(LDAPModify.class
         .getName(), toolDescription, false);
     ArgumentParserConnectionFactory connectionFactory;
@@ -264,7 +262,7 @@ public final class LDAPModify extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -277,7 +275,7 @@ public final class LDAPModify extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -325,7 +323,7 @@ public final class LDAPModify extends ConsoleApplication
         }
         catch (DecodeException de)
         {
-          Message message = ERR_TOOL_INVALID_CONTROL_STRING
+          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING
               .get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -356,7 +354,7 @@ public final class LDAPModify extends ConsoleApplication
       }
       catch (LocalizedIllegalArgumentException le)
       {
-        Message message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(le
+        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(le
             .getMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -416,7 +414,7 @@ public final class LDAPModify extends ConsoleApplication
         }
         catch (Exception e)
         {
-          Message message = ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(
+          LocalizableMessage message = ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(
               filename.getValue(), e.getLocalizedMessage());
           println(message);
           return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -442,7 +440,7 @@ public final class LDAPModify extends ConsoleApplication
       }
       catch (IOException ioe)
       {
-        Message message = ERR_LDIF_FILE_READ_ERROR.get(filename
+        LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(filename
             .getValue(), ioe.getLocalizedMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
@@ -469,14 +467,14 @@ public final class LDAPModify extends ConsoleApplication
       if (r.getResultCode() != ResultCode.SUCCESS
           && r.getResultCode() != ResultCode.REFERRAL)
       {
-        Message msg = INFO_OPERATION_FAILED.get(operationType);
+        LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
         println(msg);
         println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(),
             r.getResultCode().toString()));
         if ((r.getDiagnosticMessage() != null)
             && (r.getDiagnosticMessage().length() > 0))
         {
-          println(Message.raw(r.getDiagnosticMessage()));
+          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
         }
         if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0)
         {
@@ -485,19 +483,19 @@ public final class LDAPModify extends ConsoleApplication
       }
       else
       {
-        Message msg = INFO_OPERATION_SUCCESSFUL
+        LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL
             .get(operationType, name);
         println(msg);
         if ((r.getDiagnosticMessage() != null)
             && (r.getDiagnosticMessage().length() > 0))
         {
-          println(Message.raw(r.getDiagnosticMessage()));
+          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
         }
         if (r.getReferralURIs() != null)
         {
           for (String uri : r.getReferralURIs())
           {
-            println(Message.raw(uri));
+            println(LocalizableMessage.raw(uri));
           }
         }
       }

@@ -22,37 +22,29 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2009 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
 
 
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
+
+import org.opends.sdk.LocalizableMessage;
 
 
 
 /**
- * Base class for all Message descriptor classes.
+ * An opaque handle to a localizable message.
  */
-public abstract class MessageDescriptor
+public abstract class LocalizableMessageDescriptor
 {
-
-  /**
-   * ID for messages that don't have a real ID.
-   */
-  public static final int NULL_ID = -1;
-
-
-
   /**
    * Subclass for creating messages with no arguments.
    */
-  static public final class Arg0 extends MessageDescriptor
+  public static final class Arg0 extends LocalizableMessageDescriptor
   {
 
     /**
@@ -60,9 +52,9 @@ public abstract class MessageDescriptor
      * away with this for the zero argument message because it is
      * immutable.
      */
-    private Message message;
+    private final LocalizableMessage message;
 
-    private boolean requiresFormat;
+    private final boolean requiresFormat;
 
 
 
@@ -79,7 +71,7 @@ public abstract class MessageDescriptor
     public Arg0(String rbBase, String key, ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
-      message = new Message(this);
+      message = newMessage(this);
       requiresFormat = containsArgumentLiterals(getFormatString());
     }
 
@@ -88,9 +80,9 @@ public abstract class MessageDescriptor
     /**
      * Creates a message.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      */
-    public Message get()
+    public LocalizableMessage get()
     {
       return message;
     }
@@ -100,7 +92,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return requiresFormat;
     }
@@ -114,7 +106,7 @@ public abstract class MessageDescriptor
    * @param <T1>
    *          The type of the first message argument.
    */
-  static public final class Arg1<T1> extends MessageDescriptor
+  public static final class Arg1<T1> extends LocalizableMessageDescriptor
   {
 
     /**
@@ -139,13 +131,13 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      */
-    public Message get(T1 a1)
+    public LocalizableMessage get(T1 a1)
     {
-      return new Message(this, a1);
+      return newMessage(this, a1);
     }
 
 
@@ -153,7 +145,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -170,7 +162,7 @@ public abstract class MessageDescriptor
    * @param <T2>
    *          The type of the second message argument.
    */
-  static public final class Arg2<T1, T2> extends MessageDescriptor
+  public static final class Arg2<T1, T2> extends LocalizableMessageDescriptor
   {
 
     /**
@@ -195,15 +187,15 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
      *          message argument
      */
-    public Message get(T1 a1, T2 a2)
+    public LocalizableMessage get(T1 a1, T2 a2)
     {
-      return new Message(this, a1, a2);
+      return newMessage(this, a1, a2);
     }
 
 
@@ -211,7 +203,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -230,7 +222,7 @@ public abstract class MessageDescriptor
    * @param <T3>
    *          The type of the third message argument.
    */
-  static public final class Arg3<T1, T2, T3> extends MessageDescriptor
+  public static final class Arg3<T1, T2, T3> extends LocalizableMessageDescriptor
   {
 
     /**
@@ -255,7 +247,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -263,9 +255,9 @@ public abstract class MessageDescriptor
      * @param a3
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3)
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3)
     {
-      return new Message(this, a1, a2, a3);
+      return newMessage(this, a1, a2, a3);
     }
 
 
@@ -273,7 +265,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -294,8 +286,8 @@ public abstract class MessageDescriptor
    * @param <T4>
    *          The type of the fourth message argument.
    */
-  static public final class Arg4<T1, T2, T3, T4> extends
-      MessageDescriptor
+  public static final class Arg4<T1, T2, T3, T4> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -320,7 +312,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -330,9 +322,9 @@ public abstract class MessageDescriptor
      * @param a4
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4)
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4)
     {
-      return new Message(this, a1, a2, a3, a4);
+      return newMessage(this, a1, a2, a3, a4);
     }
 
 
@@ -340,7 +332,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -363,8 +355,8 @@ public abstract class MessageDescriptor
    * @param <T5>
    *          The type of the fifth message argument.
    */
-  static public final class Arg5<T1, T2, T3, T4, T5> extends
-      MessageDescriptor
+  public static final class Arg5<T1, T2, T3, T4, T5> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -389,7 +381,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -401,9 +393,9 @@ public abstract class MessageDescriptor
      * @param a5
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5)
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5)
     {
-      return new Message(this, a1, a2, a3, a4, a5);
+      return newMessage(this, a1, a2, a3, a4, a5);
     }
 
 
@@ -411,7 +403,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -436,8 +428,8 @@ public abstract class MessageDescriptor
    * @param <T6>
    *          The type of the sixth message argument.
    */
-  static public final class Arg6<T1, T2, T3, T4, T5, T6> extends
-      MessageDescriptor
+  public static final class Arg6<T1, T2, T3, T4, T5, T6> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -462,7 +454,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -476,9 +468,9 @@ public abstract class MessageDescriptor
      * @param a6
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6)
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6)
     {
-      return new Message(this, a1, a2, a3, a4, a5, a6);
+      return newMessage(this, a1, a2, a3, a4, a5, a6);
     }
 
 
@@ -486,7 +478,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -513,8 +505,8 @@ public abstract class MessageDescriptor
    * @param <T7>
    *          The type of the seventh message argument.
    */
-  static public final class Arg7<T1, T2, T3, T4, T5, T6, T7> extends
-      MessageDescriptor
+  public static final class Arg7<T1, T2, T3, T4, T5, T6, T7> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -539,7 +531,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -555,9 +547,9 @@ public abstract class MessageDescriptor
      * @param a7
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7)
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7)
     {
-      return new Message(this, a1, a2, a3, a4, a5, a6, a7);
+      return newMessage(this, a1, a2, a3, a4, a5, a6, a7);
     }
 
 
@@ -565,7 +557,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -594,8 +586,8 @@ public abstract class MessageDescriptor
    * @param <T8>
    *          The type of the eighth message argument.
    */
-  static public final class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
-      extends MessageDescriptor
+  public static final class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
+      extends LocalizableMessageDescriptor
   {
 
     /**
@@ -620,7 +612,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -638,10 +630,10 @@ public abstract class MessageDescriptor
      * @param a8
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
         T8 a8)
     {
-      return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8);
+      return newMessage(this, a1, a2, a3, a4, a5, a6, a7, a8);
     }
 
 
@@ -649,7 +641,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -680,8 +672,8 @@ public abstract class MessageDescriptor
    * @param <T9>
    *          The type of the ninth message argument.
    */
-  static public final class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
-      extends MessageDescriptor
+  public static final class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+      extends LocalizableMessageDescriptor
   {
 
     /**
@@ -706,7 +698,7 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param a1
      *          message argument
      * @param a2
@@ -726,10 +718,10 @@ public abstract class MessageDescriptor
      * @param a9
      *          message argument
      */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
+    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
         T8 a8, T9 a9)
     {
-      return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+      return newMessage(this, a1, a2, a3, a4, a5, a6, a7, a8, a9);
     }
 
 
@@ -737,196 +729,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
-    {
-      return true;
-    }
-
-  }
-
-
-
-  /**
-   * Subclass for creating messages with ten arguments.
-   *
-   * @param <T1>
-   *          The type of the first message argument.
-   * @param <T2>
-   *          The type of the second message argument.
-   * @param <T3>
-   *          The type of the third message argument.
-   * @param <T4>
-   *          The type of the fourth message argument.
-   * @param <T5>
-   *          The type of the fifth message argument.
-   * @param <T6>
-   *          The type of the sixth message argument.
-   * @param <T7>
-   *          The type of the seventh message argument.
-   * @param <T8>
-   *          The type of the eighth message argument.
-   * @param <T9>
-   *          The type of the ninth message argument.
-   * @param <T10>
-   *          The type of the tenth message argument.
-   */
-  static public final class Arg10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
-      extends MessageDescriptor
-  {
-
-    /**
-     * Creates a parameterized instance.
-     *
-     * @param rbBase
-     *          base of the backing resource bundle
-     * @param key
-     *          for accessing the format string from the resource bundle
-     * @param classLoader
-     *          the class loader to be used to get the ResourceBundle
-     */
-    public Arg10(String rbBase, String key, ClassLoader classLoader)
-    {
-      super(rbBase, key, classLoader);
-    }
-
-
-
-    /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
-     *
-     * @return Message object
-     * @param a1
-     *          message argument
-     * @param a2
-     *          message argument
-     * @param a3
-     *          message argument
-     * @param a4
-     *          message argument
-     * @param a5
-     *          message argument
-     * @param a6
-     *          message argument
-     * @param a7
-     *          message argument
-     * @param a8
-     *          message argument
-     * @param a9
-     *          message argument
-     * @param a10
-     *          message argument
-     */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
-        T8 a8, T9 a9, T10 a10)
-    {
-      return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    boolean requiresFormatter()
-    {
-      return true;
-    }
-
-  }
-
-
-
-  /**
-   * Subclass for creating messages with eleven arguments.
-   *
-   * @param <T1>
-   *          The type of the first message argument.
-   * @param <T2>
-   *          The type of the second message argument.
-   * @param <T3>
-   *          The type of the third message argument.
-   * @param <T4>
-   *          The type of the fourth message argument.
-   * @param <T5>
-   *          The type of the fifth message argument.
-   * @param <T6>
-   *          The type of the sixth message argument.
-   * @param <T7>
-   *          The type of the seventh message argument.
-   * @param <T8>
-   *          The type of the eighth message argument.
-   * @param <T9>
-   *          The type of the ninth message argument.
-   * @param <T10>
-   *          The type of the tenth message argument.
-   * @param <T11>
-   *          The type of the eleventh message argument.
-   */
-  static public final class Arg11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
-      extends MessageDescriptor
-  {
-
-    /**
-     * Creates a parameterized instance.
-     *
-     * @param rbBase
-     *          base of the backing resource bundle
-     * @param key
-     *          for accessing the format string from the resource bundle
-     * @param classLoader
-     *          the class loader to be used to get the ResourceBundle
-     */
-    public Arg11(String rbBase, String key, ClassLoader classLoader)
-    {
-      super(rbBase, key, classLoader);
-    }
-
-
-
-    /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
-     *
-     * @return Message object
-     * @param a1
-     *          message argument
-     * @param a2
-     *          message argument
-     * @param a3
-     *          message argument
-     * @param a4
-     *          message argument
-     * @param a5
-     *          message argument
-     * @param a6
-     *          message argument
-     * @param a7
-     *          message argument
-     * @param a8
-     *          message argument
-     * @param a9
-     *          message argument
-     * @param a10
-     *          message argument
-     * @param a11
-     *          message argument
-     */
-    public Message get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
-        T8 a8, T9 a9, T10 a10, T11 a11)
-    {
-      return new Message(this, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
-          a11);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -941,7 +744,7 @@ public abstract class MessageDescriptor
    * defined with more arguments that can be handled with the current
    * number of subclasses
    */
-  static public final class ArgN extends MessageDescriptor
+  public static final class ArgN extends LocalizableMessageDescriptor
   {
 
     /**
@@ -966,13 +769,13 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param args
      *          message arguments
      */
-    public Message get(Object... args)
+    public LocalizableMessage get(Object... args)
     {
-      return new Message(this, args);
+      return newMessage(this, args);
     }
 
 
@@ -980,7 +783,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return true;
     }
@@ -995,12 +798,12 @@ public abstract class MessageDescriptor
    * plugins may want to use the mechanism to create messages without
    * storing their strings in resource bundles.
    */
-  static final class Raw extends MessageDescriptor
+  public static final class Raw extends LocalizableMessageDescriptor
   {
 
-    private String formatString;
+    private final String formatString;
 
-    private boolean requiresFormatter;
+    private final boolean requiresFormatter;
 
 
 
@@ -1010,7 +813,7 @@ public abstract class MessageDescriptor
      * @param formatString
      *          for created messages
      */
-    Raw(CharSequence formatString)
+    public Raw(CharSequence formatString)
     {
       super(null, null, null);
       this.formatString = formatString != null ? formatString
@@ -1025,13 +828,13 @@ public abstract class MessageDescriptor
      * specifiers in the assocated format string when the message is
      * rendered to string representation.
      *
-     * @return Message object
+     * @return LocalizableMessage object
      * @param args
      *          message arguments
      */
-    public Message get(Object... args)
+    public LocalizableMessage get(Object... args)
     {
-      return new Message(this, args);
+      return newMessage(this, args);
     }
 
 
@@ -1044,8 +847,7 @@ public abstract class MessageDescriptor
      *          ignored
      * @return format string
      */
-    @Override
-    String getFormatString(Locale locale)
+    public String getFormatString(Locale locale)
     {
       return this.formatString;
     }
@@ -1055,7 +857,7 @@ public abstract class MessageDescriptor
     /**
      * {@inheritDoc}
      */
-    boolean requiresFormatter()
+    public boolean requiresFormatter()
     {
       return this.requiresFormatter;
     }
@@ -1064,92 +866,61 @@ public abstract class MessageDescriptor
 
 
 
-  /** String for accessing backing resource bundle. */
-  private final String rbBase;
-
-  /** Used for accessing format string from the resource bundle. */
-  private final String key;
-
-  /**
-   * The class loader to be used to retrieve the ResourceBundle. If null
-   * the default class loader will be used.
-   */
-  private final ClassLoader classLoader;
-
-  private final Map<Locale, String> formatStrMap = new HashMap<Locale, String>();
-
-
-
-  /**
-   * Returns the key for accessing the message template in a resource
-   * bundle. May be null for raw messages.
-   *
-   * @return key of this message
-   */
-  public final String getKey()
+  // Container for caching the last locale specific format string.
+  private static final class CachedFormatString
   {
-    return this.key;
-  }
+    private final Locale locale;
+
+    private final String formatString;
 
 
 
-  /**
-   * Obtains the resource bundle base string used to access the resource
-   * bundle containing created message's format string. May be null for
-   * raw messages.
-   *
-   * @return string base
-   */
-  public final String getBase()
-  {
-    return this.rbBase;
-  }
-
-
-
-  /**
-   * Indicates whether or not this descriptor format string should be
-   * processed by Formatter during string rendering.
-   *
-   * @return boolean where true means Formatter should be used; false
-   *         otherwise
-   * @see java.util.Formatter
-   */
-  abstract boolean requiresFormatter();
-
-
-
-  /**
-   * Obtains the format string for constructing the string value of this
-   * message according to the default locale.
-   *
-   * @return format string
-   */
-  final String getFormatString()
-  {
-    return getFormatString(Locale.getDefault());
-  }
-
-
-
-  /**
-   * Obtains the format string for constructing the string value of this
-   * message according to the requested locale.
-   *
-   * @param locale
-   *          for the returned format string
-   * @return format string
-   */
-  String getFormatString(Locale locale)
-  {
-    String fmtStr = formatStrMap.get(locale);
-    if (fmtStr == null)
+    private CachedFormatString(Locale locale, String formatString)
     {
-      ResourceBundle bundle = getBundle(locale);
-      fmtStr = bundle.getString(this.key);
-      formatStrMap.put(locale, fmtStr);
+      this.locale = locale;
+      this.formatString = formatString;
     }
-    return fmtStr;
+  }
+
+
+
+  /**
+   * Factory interface for creating messages. Only LocalizableMessage should
+   * implement this.
+   */
+  public static interface MessageFactory
+  {
+    /**
+     * Creates a new parameterized message instance.
+     *
+     * @param descriptor
+     *          The message descriptor.
+     * @param args
+     *          The message parameters.
+     * @return The new message.
+     */
+    LocalizableMessage newMessage(LocalizableMessageDescriptor descriptor, Object... args);
+  }
+
+
+
+  /**
+   * We use a factory for creating LocalizableMessage objects in order to avoid
+   * exposing this class in the public API.
+   */
+  public static MessageFactory MESSAGE_FACTORY;
+
+  // Force MESSAGE_FACTORY to be set.
+  static
+  {
+    try
+    {
+      Class.forName("org.opends.sdk.LocalizableMessage");
+    }
+    catch (ClassNotFoundException e)
+    {
+      throw new RuntimeException(e);
+    }
   }
 
 
@@ -1161,29 +932,39 @@ public abstract class MessageDescriptor
    * not replaced by arguments.
    *
    * @param s
-   *          candiate for formatting
+   *          candidate for formatting
    * @return boolean where true indicates that the format string
    *         requires formatting
    */
-  protected final boolean containsArgumentLiterals(String s)
+  private static final boolean containsArgumentLiterals(String s)
   {
     return s.matches(".*%[n|%].*"); // match Formatter literals
   }
 
 
 
-  private ResourceBundle getBundle(Locale locale)
+  private static LocalizableMessage newMessage(LocalizableMessageDescriptor descriptor,
+      Object... args)
   {
-    if (locale == null) locale = Locale.getDefault();
-    if (classLoader == null)
-    {
-      return ResourceBundle.getBundle(this.rbBase, locale);
-    }
-    else
-    {
-      return ResourceBundle.getBundle(this.rbBase, locale, classLoader);
-    }
+    return MESSAGE_FACTORY.newMessage(descriptor, args);
   }
+
+
+
+  // String for accessing backing resource bundle.
+  private final String rbBase;
+
+  // Used for accessing format string from the resource bundle.
+  private final String key;
+
+  /*
+   * The class loader to be used to retrieve the ResourceBundle. If null
+   * the default class loader will be used.
+   */
+  private final ClassLoader classLoader;
+
+  // It's ok if there are race conditions.
+  private CachedFormatString cachedFormatString = null;
 
 
 
@@ -1197,12 +978,87 @@ public abstract class MessageDescriptor
    * @param classLoader
    *          the class loader to be used to get the ResourceBundle
    */
-  private MessageDescriptor(String rbBase, String key,
+  private LocalizableMessageDescriptor(String rbBase, String key,
       ClassLoader classLoader)
   {
     this.rbBase = rbBase;
     this.key = key;
     this.classLoader = classLoader;
+  }
+
+
+
+  /**
+   * Returns the format string which should be used when creating the
+   * string representation of this message using the specified locale.
+   *
+   * @param locale
+   *          The locale.
+   * @return The format string.
+   * @throws NullPointerException
+   *           If {@code locale} was {@code null}.
+   */
+  public String getFormatString(Locale locale)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(locale);
+
+    // Fast path.
+    final CachedFormatString cfs = cachedFormatString;
+    if (cfs != null && cfs.locale == locale)
+    {
+      return cfs.formatString;
+    }
+
+    // There's a potential race condition here but it's benign - we'll
+    // just do a bit more work than needed.
+    final ResourceBundle bundle = getBundle(locale);
+    final String formatString = bundle.getString(key);
+    cachedFormatString = new CachedFormatString(locale, formatString);
+
+    return formatString;
+  }
+
+
+
+  /**
+   * Indicates whether or not this descriptor format string should be
+   * processed by {@code Formatter} during string rendering.
+   *
+   * @return {@code true} if a {@code Formatter} should be used,
+   *         otherwise {@code false}.
+   */
+  public abstract boolean requiresFormatter();
+
+
+
+  private ResourceBundle getBundle(Locale locale)
+  {
+    if (locale == null)
+    {
+      locale = Locale.getDefault();
+    }
+    if (classLoader == null)
+    {
+      return ResourceBundle.getBundle(this.rbBase, locale);
+    }
+    else
+    {
+      return ResourceBundle.getBundle(this.rbBase, locale, classLoader);
+    }
+  }
+
+
+
+  /**
+   * Returns the format string which should be used when creating the
+   * string representation of this message using the default locale.
+   *
+   * @return The format string.
+   */
+  final String getFormatString()
+  {
+    return getFormatString(Locale.getDefault());
   }
 
 }

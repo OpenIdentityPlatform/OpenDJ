@@ -35,8 +35,6 @@ import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.LDIFChangeRecordReader;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -160,7 +158,7 @@ public final class Requests
     else
     {
       // Wrong change type.
-      Message message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
+      LocalizableMessage message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
           .get("add");
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -539,7 +537,7 @@ public final class Requests
     else
     {
       // Wrong change type.
-      Message message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
+      LocalizableMessage message = WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE
           .get("modify");
       throw new LocalizedIllegalArgumentException(message);
     }

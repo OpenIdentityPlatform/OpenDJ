@@ -29,15 +29,11 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.Change;
-import org.opends.sdk.DN;
-import org.opends.sdk.ModificationType;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

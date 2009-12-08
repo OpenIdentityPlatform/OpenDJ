@@ -38,9 +38,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -253,7 +253,7 @@ public final class Syntax extends SchemaElement
    *         with this syntax, or {@code false} if not.
    */
   public boolean valueIsAcceptable(ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     return impl.valueIsAcceptable(schema, value, invalidReason);
   }
@@ -284,7 +284,7 @@ public final class Syntax extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     this.schema = schema;
@@ -309,13 +309,13 @@ public final class Syntax extends SchemaElement
             final String value = values.next();
             if (value.equals(oid))
             {
-              final Message message =
+              final LocalizableMessage message =
                   ERR_ATTR_SYNTAX_CYCLIC_SUB_SYNTAX.get(oid);
               throw new SchemaException(message);
             }
             if (!schema.hasSyntax(value))
             {
-              final Message message =
+              final LocalizableMessage message =
                   ERR_ATTR_SYNTAX_UNKNOWN_SUB_SYNTAX.get(oid, value);
               throw new SchemaException(message);
             }
@@ -342,7 +342,7 @@ public final class Syntax extends SchemaElement
             }
             catch (final Exception e)
             {
-              final Message message =
+              final LocalizableMessage message =
                   WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN
                       .get(oid, value);
               throw new SchemaException(message);
@@ -364,7 +364,7 @@ public final class Syntax extends SchemaElement
       if (impl == null)
       {
         impl = Schema.getDefaultSyntax().impl;
-        final Message message =
+        final LocalizableMessage message =
             WARN_ATTR_SYNTAX_NOT_IMPLEMENTED.get(oid, Schema
                 .getDefaultSyntax().getOID());
         warnings.add(message);
@@ -382,7 +382,7 @@ public final class Syntax extends SchemaElement
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(impl
                 .getEqualityMatchingRule(), impl.getName());
         warnings.add(message);
@@ -398,7 +398,7 @@ public final class Syntax extends SchemaElement
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(impl
                 .getOrderingMatchingRule(), impl.getName());
         warnings.add(message);
@@ -414,7 +414,7 @@ public final class Syntax extends SchemaElement
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(impl
                 .getSubstringMatchingRule(), impl.getName());
         warnings.add(message);
@@ -430,7 +430,7 @@ public final class Syntax extends SchemaElement
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE.get(impl
                 .getApproximateMatchingRule(), impl.getName());
         warnings.add(message);

@@ -29,9 +29,10 @@ package com.sun.opends.sdk.tools;
 
 
 
+import org.opends.sdk.LocalizableException;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.messages.Messages;
-import com.sun.opends.sdk.util.LocalizableException;
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -68,7 +69,7 @@ final class CLIException extends Exception implements
    * @param message
    *          The message explaining the problem that occurred.
    */
-  CLIException(Message message)
+  CLIException(LocalizableMessage message)
   {
     super(message.toString());
     this.message = message;
@@ -84,7 +85,7 @@ final class CLIException extends Exception implements
    * @param cause
    *          The cause of this exception.
    */
-  CLIException(Message message, Throwable cause)
+  CLIException(LocalizableMessage message, Throwable cause)
   {
     super(message.toString(), cause);
     this.message = message;
@@ -92,11 +93,11 @@ final class CLIException extends Exception implements
 
 
 
-  private final Message message;
+  private final LocalizableMessage message;
 
 
 
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return message;
   }

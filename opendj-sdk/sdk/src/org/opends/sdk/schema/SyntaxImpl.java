@@ -30,8 +30,8 @@ package org.opends.sdk.schema;
 
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -141,5 +141,5 @@ public interface SyntaxImpl
    *         with this syntax, or {@code false} if not.
    */
   boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason);
+      LocalizableMessageBuilder invalidReason);
 }

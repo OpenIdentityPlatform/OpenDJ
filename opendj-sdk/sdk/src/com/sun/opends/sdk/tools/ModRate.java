@@ -41,7 +41,6 @@ import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -129,8 +128,8 @@ public final class ModRate extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    Message toolDescription =
-        Message.raw("This utility can be used to "
+    LocalizableMessage toolDescription =
+        LocalizableMessage.raw("This utility can be used to "
             + "measure modify performance");
     // TODO: correct usage
     ArgumentParser argParser =
@@ -186,7 +185,7 @@ public final class ModRate extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -200,7 +199,7 @@ public final class ModRate extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -233,7 +232,7 @@ public final class ModRate extends ConsoleApplication
     }
     catch (Exception ex1)
     {
-      println(Message.raw("Error formatting filter or base DN: "
+      println(LocalizableMessage.raw("Error formatting filter or base DN: "
           + ex1.toString()));
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }

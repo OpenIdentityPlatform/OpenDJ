@@ -31,7 +31,6 @@ package org.opends.sdk;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

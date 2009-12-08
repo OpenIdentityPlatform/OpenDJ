@@ -35,9 +35,9 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 import java.util.regex.Pattern;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -109,13 +109,13 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     final String strValue = value.toString();
     final boolean matches = pattern.matcher(strValue).matches();
     if (!matches)
     {
-      final Message message =
+      final LocalizableMessage message =
           WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(strValue,
               pattern.pattern());
       invalidReason.append(message);

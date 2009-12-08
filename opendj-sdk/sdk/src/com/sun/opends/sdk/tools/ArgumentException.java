@@ -28,8 +28,9 @@ package com.sun.opends.sdk.tools;
 
 
 
-import com.sun.opends.sdk.util.LocalizableException;
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableException;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -50,7 +51,7 @@ final class ArgumentException extends Exception implements
   private static final long serialVersionUID = 5623155045312160730L;
 
   // The I18N message associated with this exception.
-  private final Message message;
+  private final LocalizableMessage message;
 
 
 
@@ -60,7 +61,7 @@ final class ArgumentException extends Exception implements
    * @param message
    *          The message that explains the problem that occurred.
    */
-  ArgumentException(Message message)
+  ArgumentException(LocalizableMessage message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -77,7 +78,7 @@ final class ArgumentException extends Exception implements
    * @param cause
    *          The exception that was caught to trigger this exception.
    */
-  ArgumentException(Message message, Throwable cause)
+  ArgumentException(LocalizableMessage message, Throwable cause)
   {
     super(String.valueOf(message), cause);
     this.message = message;
@@ -88,7 +89,7 @@ final class ArgumentException extends Exception implements
   /**
    * {@inheritDoc}
    */
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return this.message;
   }

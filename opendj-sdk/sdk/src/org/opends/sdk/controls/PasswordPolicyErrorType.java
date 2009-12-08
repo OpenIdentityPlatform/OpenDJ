@@ -7,7 +7,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import java.util.Arrays;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -55,7 +56,7 @@ public class PasswordPolicyErrorType
     PasswordPolicyErrorType e = ELEMENTS[intValue];
     if (e == null)
     {
-      e = new PasswordPolicyErrorType(intValue, Message
+      e = new PasswordPolicyErrorType(intValue, LocalizableMessage
           .raw("undefined(" + intValue + ")"));
     }
     return e;
@@ -71,7 +72,7 @@ public class PasswordPolicyErrorType
 
 
   private static PasswordPolicyErrorType register(int intValue,
-      Message name)
+      LocalizableMessage name)
   {
     PasswordPolicyErrorType t = new PasswordPolicyErrorType(intValue,
         name);
@@ -83,11 +84,11 @@ public class PasswordPolicyErrorType
 
   private final int intValue;
 
-  private final Message name;
+  private final LocalizableMessage name;
 
 
 
-  private PasswordPolicyErrorType(int intValue, Message name)
+  private PasswordPolicyErrorType(int intValue, LocalizableMessage name)
   {
     this.intValue = intValue;
     this.name = name;

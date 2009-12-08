@@ -36,8 +36,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.LinkedHashMap;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 
 
 
@@ -85,14 +86,14 @@ final class FileBasedArgument extends Argument
    *          displayed in usage information, or <CODE>null</CODE> if
    *          this argument does not require a value.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public FileBasedArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired,
-      Message valuePlaceholder, Message description)
+      LocalizableMessage valuePlaceholder, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false,
@@ -135,15 +136,15 @@ final class FileBasedArgument extends Argument
    *          used to override the default value but will be overridden
    *          by a command-line argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public FileBasedArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      Message valuePlaceholder, String defaultValue,
-      String propertyName, Message description)
+      LocalizableMessage valuePlaceholder, String defaultValue,
+      String propertyName, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
@@ -182,7 +183,7 @@ final class FileBasedArgument extends Argument
    *         <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // First, make sure that the specified file exists.
     File valueFile;

@@ -35,9 +35,9 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -73,7 +73,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     // Make sure that there actually is a value to decode.
     if (userPasswordValue == null || userPasswordValue.length() == 0)
     {
-      final Message message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_VALUE.get();
       throw DecodeException.error(message);
     }
 
@@ -81,7 +81,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     // brace.
     if (userPasswordValue.charAt(0) != '{')
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE.get();
       throw DecodeException.error(message);
     }
@@ -90,7 +90,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
     final int closePos = userPasswordValue.indexOf('}');
     if (closePos < 0)
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE.get();
       throw DecodeException.error(message);
     }
@@ -102,7 +102,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
 
     if (schemeName.length() == 0)
     {
-      final Message message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_USERPW_NO_SCHEME.get();
       throw DecodeException.error(message);
     }
 
@@ -188,7 +188,7 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We have to accept any value here because in many cases the value
     // will not have been encoded by the time this method is called.

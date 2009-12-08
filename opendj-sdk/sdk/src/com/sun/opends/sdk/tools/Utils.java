@@ -36,15 +36,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.Connection;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.*;
 import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.responses.BindResult;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -106,9 +102,9 @@ final class Utils
    *          there is a suitable breaking point.
    * @return The wrapped text.
    */
-  static String wrapText(Message message, int width)
+  static String wrapText(LocalizableMessage message, int width)
   {
-    return wrapText(Message.toString(message), width, 0);
+    return wrapText(message.toString(), width, 0);
   }
 
 
@@ -152,9 +148,9 @@ final class Utils
    *          The number of columns to indent each line.
    * @return The wrapped text.
    */
-  static String wrapText(Message message, int width, int indent)
+  static String wrapText(LocalizableMessage message, int width, int indent)
   {
-    return wrapText(Message.toString(message), width, indent);
+    return wrapText(message.toString(), width, indent);
   }
 
 
@@ -412,7 +408,7 @@ final class Utils
       else
       {
         // TODO: I18N
-        throw DecodeException.error(Message
+        throw DecodeException.error(LocalizableMessage
             .raw("Invalid format for criticality value:" + remainder));
       }
       return new GenericControl(controlOID, controlCriticality);
@@ -431,7 +427,7 @@ final class Utils
     else
     {
       // TODO: I18N
-      throw DecodeException.error(Message
+      throw DecodeException.error(LocalizableMessage
           .raw("Invalid format for criticality value:" + critical));
     }
 
@@ -532,7 +528,7 @@ final class Utils
     // if ((ere.getMessage() != null) && (ere.getMessage().length() >
     // 0))
     // {
-    // app.println(Message.raw(ere.getMessage()));
+    // app.println(LocalizableMessage.raw(ere.getMessage()));
     // }
 
     if (ere.getResult().getResultCode().intValue() >= 0)
@@ -577,7 +573,7 @@ final class Utils
    * @return The user-friendly representation of the specified number of
    *         seconds.
    */
-  static Message secondsToTimeString(int numSeconds)
+  static LocalizableMessage secondsToTimeString(int numSeconds)
   {
     if (numSeconds < 60)
     {
@@ -625,7 +621,7 @@ final class Utils
       if (control != null)
       {
         AuthorizationIdentityControl.Response dc = (AuthorizationIdentityControl.Response) control;
-        Message message = INFO_BIND_AUTHZID_RETURNED.get(dc
+        LocalizableMessage message = INFO_BIND_AUTHZID_RETURNED.get(dc
             .getAuthorizationID());
         app.println(message);
       }
@@ -633,7 +629,7 @@ final class Utils
           .getControl(PasswordExpiredControl.OID_NS_PASSWORD_EXPIRED);
       if (control != null)
       {
-        Message message = INFO_BIND_PASSWORD_EXPIRED.get();
+        LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
         app.println(message);
       }
       control = result
@@ -641,9 +637,9 @@ final class Utils
       if (control != null)
       {
         PasswordExpiringControl dc = (PasswordExpiringControl) control;
-        Message timeString = Utils.secondsToTimeString(dc
+        LocalizableMessage timeString = Utils.secondsToTimeString(dc
             .getSecondsUntilExpiration());
-        Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
+        LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
         app.println(message);
       }
       control = result
@@ -654,32 +650,32 @@ final class Utils
         PasswordPolicyErrorType errorType = dc.getErrorType();
         if (errorType == PasswordPolicyErrorType.PASSWORD_EXPIRED)
         {
-          Message message = INFO_BIND_PASSWORD_EXPIRED.get();
+          LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
           app.println(message);
         }
         else if (errorType == PasswordPolicyErrorType.ACCOUNT_LOCKED)
         {
-          Message message = INFO_BIND_ACCOUNT_LOCKED.get();
+          LocalizableMessage message = INFO_BIND_ACCOUNT_LOCKED.get();
           app.println(message);
         }
         else if (errorType == PasswordPolicyErrorType.CHANGE_AFTER_RESET)
         {
 
-          Message message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
+          LocalizableMessage message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
           app.println(message);
         }
 
         PasswordPolicyWarningType warningType = dc.getWarningType();
         if (warningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION)
         {
-          Message timeString = Utils.secondsToTimeString(dc
+          LocalizableMessage timeString = Utils.secondsToTimeString(dc
               .getWarningValue());
-          Message message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
+          LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
           app.println(message);
         }
         else if (warningType == PasswordPolicyWarningType.GRACE_LOGINS_REMAINING)
         {
-          Message message = INFO_BIND_GRACE_LOGINS_REMAINING.get(dc
+          LocalizableMessage message = INFO_BIND_GRACE_LOGINS_REMAINING.get(dc
               .getWarningValue());
           app.println(message);
         }

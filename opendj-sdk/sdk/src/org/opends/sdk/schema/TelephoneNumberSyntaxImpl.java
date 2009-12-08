@@ -34,9 +34,9 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -97,7 +97,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.
     String valueStr;
@@ -116,7 +116,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
       // acceptable.
       if (valueStr.charAt(0) != '+')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS.get(valueStr);
         invalidReason.append(message);
         return false;
@@ -135,7 +135,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (!isSeparator(c))
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(valueStr,
                   String.valueOf(c), i);
           invalidReason.append(message);
@@ -145,7 +145,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
       if (!digitSeen)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
         invalidReason.append(message);
         return false;
@@ -167,7 +167,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
       }
 
       // If we made it here, then we didn't find any digits.
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
       invalidReason.append(message);
       return false;

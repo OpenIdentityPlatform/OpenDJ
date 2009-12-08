@@ -45,8 +45,8 @@ import javax.security.sasl.SaslException;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 import com.sun.security.auth.callback.TextCallbackHandler;
 import com.sun.security.auth.module.Krb5LoginModule;
@@ -135,7 +135,7 @@ public final class GSSAPISASLBindRequest extends
         }
 
         // This should not happen. Must be a bug.
-        Message msg =
+        LocalizableMessage msg =
             ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
                 getExceptionMessage(e));
         throw new SaslException(msg.toString(), e.getCause());
@@ -165,7 +165,7 @@ public final class GSSAPISASLBindRequest extends
         }
 
         // This should not happen. Must be a bug.
-        Message msg =
+        LocalizableMessage msg =
             ERR_SASL_PROTOCOL_ERROR.get(SASL_MECHANISM_GSSAPI,
                 getExceptionMessage(e));
         throw new SaslException(msg.toString(), e.getCause());

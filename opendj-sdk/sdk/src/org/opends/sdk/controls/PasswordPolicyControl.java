@@ -10,12 +10,12 @@ import java.io.IOException;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -278,7 +278,7 @@ public class PasswordPolicyControl
     {
       if (value != null)
       {
-        Message message = ERR_PWPOLICYREQ_CONTROL_HAS_VALUE.get();
+        LocalizableMessage message = ERR_PWPOLICYREQ_CONTROL_HAS_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -311,7 +311,7 @@ public class PasswordPolicyControl
       if (value == null)
       {
         // The response control must always have a value.
-        Message message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PWPOLICYRES_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -335,7 +335,7 @@ public class PasswordPolicyControl
           warningValue = (int) reader.readInteger();
           if (warningType == null)
           {
-            Message message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE
+            LocalizableMessage message = ERR_PWPOLICYRES_INVALID_WARNING_TYPE
                 .get(byteToHex(reader.peekType()));
             throw DecodeException.error(message);
           }
@@ -348,7 +348,7 @@ public class PasswordPolicyControl
           errorType = PasswordPolicyErrorType.valueOf(errorValue);
           if (errorType == null)
           {
-            Message message = ERR_PWPOLICYRES_INVALID_ERROR_TYPE
+            LocalizableMessage message = ERR_PWPOLICYRES_INVALID_ERROR_TYPE
                 .get(errorValue);
             throw DecodeException.error(message);
           }
@@ -372,7 +372,7 @@ public class PasswordPolicyControl
         StaticUtils.DEBUG_LOG.throwing(
             "PasswordPolicyControl.ResponseDecoder", "decode", e);
 
-        Message message = ERR_PWPOLICYRES_DECODE_ERROR
+        LocalizableMessage message = ERR_PWPOLICYRES_DECODE_ERROR
             .get(getExceptionMessage(e));
         throw DecodeException.error(message);
       }

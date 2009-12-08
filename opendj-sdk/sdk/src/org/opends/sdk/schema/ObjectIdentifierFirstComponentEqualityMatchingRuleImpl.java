@@ -30,12 +30,8 @@ package org.opends.sdk.schema;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.SubstringReader;
 
 
@@ -82,7 +78,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
     {
       // This means that the value was empty or contained only
       // whitespace. That is illegal.
-      final Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
       throw DecodeException.error(message);
     }
 
@@ -91,7 +87,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
     final char c = reader.read();
     if (c != '(')
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
               (reader.pos() - 1), String.valueOf(c));
       throw DecodeException.error(message);

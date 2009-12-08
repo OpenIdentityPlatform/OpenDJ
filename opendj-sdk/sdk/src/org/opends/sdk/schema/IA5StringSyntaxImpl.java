@@ -33,9 +33,9 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -108,7 +108,7 @@ final class IA5StringSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We will allow any value that does not contain any non-ASCII
     // characters. Empty values are acceptable as well.
@@ -119,7 +119,7 @@ final class IA5StringSyntaxImpl extends AbstractSyntaxImpl
       if ((b & 0x7F) != b)
       {
 
-        final Message message =
+        final LocalizableMessage message =
             WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(b));
         invalidReason.append(message);

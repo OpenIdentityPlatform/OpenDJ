@@ -38,9 +38,9 @@ import java.util.logging.Level;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.ByteSequenceOutputStream;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -128,7 +128,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   {
     if (stackDepth < 0)
     {
-      Message message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
+      LocalizableMessage message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
       throw new IllegalStateException(message.toString());
     }
 

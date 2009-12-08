@@ -33,7 +33,6 @@ import java.util.Collection;
 
 import org.opends.sdk.schema.ObjectClass;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

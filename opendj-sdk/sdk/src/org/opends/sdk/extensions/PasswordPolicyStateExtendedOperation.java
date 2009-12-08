@@ -18,7 +18,6 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.AbstractExtendedResult;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -1000,7 +999,7 @@ public final class PasswordPolicyStateExtendedOperation
       }
       catch (IOException ioe)
       {
-        Message message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
+        LocalizableMessage message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
             .get(getExceptionMessage(ioe));
         throw DecodeException.error(message, ioe);
       }
@@ -1036,7 +1035,7 @@ public final class PasswordPolicyStateExtendedOperation
       }
       catch (IOException ioe)
       {
-        Message message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
+        LocalizableMessage message = ERR_PWPSTATE_EXTOP_DECODE_FAILURE
             .get(getExceptionMessage(ioe));
         throw DecodeException.error(message, ioe);
       }

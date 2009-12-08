@@ -6,10 +6,7 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -17,7 +14,6 @@ import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -166,7 +162,7 @@ public final class GetSymmetricKeyRequest extends
       if (requestValue == null)
       {
         // The request must always have a value.
-        Message message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
+        LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -196,7 +192,7 @@ public final class GetSymmetricKeyRequest extends
         StaticUtils.DEBUG_LOG.throwing(
             "GetSymmetricKeyRequest.Operation", "decodeRequest", ae);
 
-        Message message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION
+        LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION
             .get(ae.getMessage());
         throw DecodeException.error(message, ae);
       }

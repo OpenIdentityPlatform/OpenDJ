@@ -6,12 +6,12 @@ import java.io.IOException;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -84,7 +84,7 @@ public final class GetConnectionIDRequest
       if (!resultCode.isExceptional()
           && ((responseValue == null) || (responseValue.length() <= 0)))
       {
-        throw DecodeException.error(Message
+        throw DecodeException.error(LocalizableMessage
             .raw("Empty response value"));
       }
 
@@ -98,7 +98,7 @@ public final class GetConnectionIDRequest
       }
       catch (IOException e)
       {
-        throw DecodeException.error(Message
+        throw DecodeException.error(LocalizableMessage
             .raw("Error decoding response value"), e);
       }
     }

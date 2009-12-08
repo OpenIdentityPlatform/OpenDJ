@@ -37,8 +37,8 @@ import java.util.HashSet;
 import java.util.StringTokenizer;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -143,7 +143,7 @@ final class DeliveryMethodSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     final String stringValue = toLowerCase(value.toString());
     final StringTokenizer tokenizer =

@@ -36,9 +36,9 @@ import java.util.Set;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
@@ -75,7 +75,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeNameForm method to determine if the value is
     // acceptable.
@@ -92,7 +92,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
@@ -105,7 +105,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), c);
         final DecodeException e = DecodeException.error(message);
@@ -181,7 +181,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",
@@ -194,7 +194,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
       // it cannot be valid.
       if (structuralClass == null)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS
                 .get(definition);
         final DecodeException e = DecodeException.error(message);
@@ -205,7 +205,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
 
       if (requiredAttributes == null || requiredAttributes.size() == 0)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("NameFormSyntax",

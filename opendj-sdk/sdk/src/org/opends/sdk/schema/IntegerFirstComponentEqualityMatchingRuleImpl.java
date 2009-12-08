@@ -32,7 +32,6 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
@@ -77,7 +76,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
           "IntegerFirstComponentEqualityMatchingRule", "getAssertion",
           e);
 
-      final Message message =
+      final LocalizableMessage message =
           ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(value
               .toString());
       throw DecodeException.error(message);
@@ -101,7 +100,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     {
       // This means that the value was empty or contained only
       // whitespace. That is illegal.
-      final Message message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
       throw DecodeException.error(message);
     }
 
@@ -110,7 +109,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     final char c = reader.read();
     if (c != '(')
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
               (reader.pos() - 1), String.valueOf(c));
       throw DecodeException.error(message);

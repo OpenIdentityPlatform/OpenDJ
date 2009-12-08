@@ -33,8 +33,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -59,7 +59,7 @@ final class IntegerOrderingMatchingRuleImpl extends
       StaticUtils.DEBUG_LOG.throwing("IntegerOrderingMatchingRule",
           "normalizeAttributeValue", e);
 
-      final Message message =
+      final LocalizableMessage message =
           WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
       throw DecodeException.error(message);
     }

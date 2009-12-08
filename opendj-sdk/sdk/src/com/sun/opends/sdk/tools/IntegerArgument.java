@@ -30,8 +30,9 @@ package com.sun.opends.sdk.tools;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 
 
 
@@ -78,14 +79,14 @@ final class IntegerArgument extends Argument
    *          displayed in usage information, or <CODE>null</CODE> if
    *          this argument does not require a value.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean needsValue,
-      Message valuePlaceholder, Message description)
+      LocalizableMessage valuePlaceholder, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false,
@@ -133,16 +134,16 @@ final class IntegerArgument extends Argument
    *          The upper bound that should be enforced for values of this
    *          argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean needsValue,
-      Message valuePlaceholder, boolean hasLowerBound,
+      LocalizableMessage valuePlaceholder, boolean hasLowerBound,
       double lowerBound, boolean hasUpperBound, double upperBound,
-      Message description) throws ArgumentException
+      LocalizableMessage description) throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false,
         needsValue, valuePlaceholder, null, null, description);
@@ -154,7 +155,7 @@ final class IntegerArgument extends Argument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(name,
               lowerBound, upperBound);
       throw new ArgumentException(message);
@@ -197,15 +198,15 @@ final class IntegerArgument extends Argument
    *          used to override the default value but will be overridden
    *          by a command-line argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder, int defaultValue,
-      String propertyName, Message description)
+      boolean needsValue, LocalizableMessage valuePlaceholder, int defaultValue,
+      String propertyName, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
@@ -254,15 +255,15 @@ final class IntegerArgument extends Argument
    *          used to override the default value but will be overridden
    *          by a command-line argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder,
-      double defaultValue, String propertyName, Message description)
+      boolean needsValue, LocalizableMessage valuePlaceholder,
+      double defaultValue, String propertyName, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
@@ -323,16 +324,16 @@ final class IntegerArgument extends Argument
    *          The upper bound that should be enforced for values of this
    *          argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder, int defaultValue,
+      boolean needsValue, LocalizableMessage valuePlaceholder, int defaultValue,
       String propertyName, boolean hasLowerBound, double lowerBound,
-      boolean hasUpperBound, double upperBound, Message description)
+      boolean hasUpperBound, double upperBound, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
@@ -346,7 +347,7 @@ final class IntegerArgument extends Argument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(name,
               lowerBound, upperBound);
       throw new ArgumentException(message);
@@ -401,17 +402,17 @@ final class IntegerArgument extends Argument
    *          The upper bound that should be enforced for values of this
    *          argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public IntegerArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder,
+      boolean needsValue, LocalizableMessage valuePlaceholder,
       double defaultValue, String propertyName, boolean hasLowerBound,
       double lowerBound, boolean hasUpperBound, double upperBound,
-      Message description) throws ArgumentException
+      LocalizableMessage description) throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
         isMultiValued, needsValue, valuePlaceholder, String
@@ -424,7 +425,7 @@ final class IntegerArgument extends Argument
 
     if (hasLowerBound && hasUpperBound && (lowerBound > upperBound))
     {
-      Message message =
+      LocalizableMessage message =
           ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(name,
               lowerBound, upperBound);
       throw new ArgumentException(message);
@@ -502,7 +503,7 @@ final class IntegerArgument extends Argument
    *         <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // First, the value must be decodable as an integer.
     double intValue;

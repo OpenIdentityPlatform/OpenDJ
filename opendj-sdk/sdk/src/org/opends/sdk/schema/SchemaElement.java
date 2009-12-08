@@ -32,7 +32,8 @@ package org.opends.sdk.schema;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -180,6 +181,6 @@ abstract class SchemaElement
 
 
 
-  abstract void validate(List<Message> warnings, Schema schema)
+  abstract void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException;
 }

@@ -33,7 +33,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -459,7 +460,7 @@ public final class DITContentRule extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     // Get the objectclass with the specified OID. If it does not exist
@@ -472,14 +473,14 @@ public final class DITContentRule extends SchemaElement
       }
       catch (final UnknownSchemaElementException e)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(
                 definition, structuralClassOID);
         throw new SchemaException(message, e);
       }
       if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.get(
                 definition, structuralClass.getOID(), structuralClass
                     .getNameOrOID(), structuralClass
@@ -502,7 +503,7 @@ public final class DITContentRule extends SchemaElement
         catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it is an unknown auxiliary class.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
                   definition, oid);
           throw new SchemaException(message, e);
@@ -510,7 +511,7 @@ public final class DITContentRule extends SchemaElement
         if (objectClass.getObjectClassType() != ObjectClassType.AUXILIARY)
         {
           // This isn't good because it isn't an auxiliary class.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.get(
                   definition, structuralClass.getOID(), structuralClass
                       .getObjectClassType().toString());
@@ -536,7 +537,7 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(definition,
                   oid);
           throw new SchemaException(message, e);
@@ -561,7 +562,7 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(definition,
                   oid);
           throw new SchemaException(message, e);
@@ -586,7 +587,7 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
                   definition, oid);
           throw new SchemaException(message, e);
@@ -601,7 +602,7 @@ public final class DITContentRule extends SchemaElement
     {
       if (structuralClass.isRequired(t))
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.get(
                 definition, t.getNameOrOID(), structuralClass
                     .getNameOrOID());
@@ -612,7 +613,7 @@ public final class DITContentRule extends SchemaElement
       {
         if (oc.isRequired(t))
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY.get(
                   definition, t.getNameOrOID(), oc.getNameOrOID());
           throw new SchemaException(message);

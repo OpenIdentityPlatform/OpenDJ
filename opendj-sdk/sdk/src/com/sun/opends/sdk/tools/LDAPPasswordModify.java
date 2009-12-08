@@ -12,7 +12,6 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.extensions.PasswordModifyRequest;
 import org.opends.sdk.extensions.PasswordModifyResult;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -105,7 +104,7 @@ public class LDAPPasswordModify extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    Message toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
         new ArgumentParser(LDAPPasswordModify.class.getName(), toolDescription,
             false);
@@ -211,7 +210,7 @@ public class LDAPPasswordModify extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -224,7 +223,7 @@ public class LDAPPasswordModify extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -266,7 +265,7 @@ public class LDAPPasswordModify extends ConsoleApplication
         }
         catch (DecodeException de)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -276,7 +275,7 @@ public class LDAPPasswordModify extends ConsoleApplication
 
     if (newPW.isPresent() && newPWFile.isPresent())
     {
-      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
           newPW.getLongIdentifier(),
           newPWFile.getLongIdentifier());
       println(message);
@@ -285,7 +284,7 @@ public class LDAPPasswordModify extends ConsoleApplication
 
     if (currentPW.isPresent() && currentPWFile.isPresent())
     {
-      Message message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
           currentPW.getLongIdentifier(),
           currentPWFile.getLongIdentifier());
       println(message);
@@ -344,7 +343,7 @@ public class LDAPPasswordModify extends ConsoleApplication
     }
     catch (ErrorResultException e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAPPWMOD_FAILED.get(e.getResult().getResultCode().intValue(),
               e.getResult().getResultCode().toString());
       println(message);
@@ -365,7 +364,7 @@ public class LDAPPasswordModify extends ConsoleApplication
       return e.getResult().getResultCode().intValue();
     }
 
-    Message message = INFO_LDAPPWMOD_SUCCESSFUL.get();
+    LocalizableMessage message = INFO_LDAPPWMOD_SUCCESSFUL.get();
     println(message);
 
     String additionalInfo = result.getDiagnosticMessage();

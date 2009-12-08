@@ -37,7 +37,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -700,7 +701,7 @@ public final class AttributeType extends SchemaElement implements
    * {@inheritDoc}
    */
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     if (superiorTypeOID != null)
@@ -711,7 +712,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (UnknownSchemaElementException e)
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE
             .get(getNameOrOID(), superiorTypeOID);
         throw new SchemaException(message);
       }
@@ -721,7 +722,7 @@ public final class AttributeType extends SchemaElement implements
       // collective, then so must the subordinate type be collective.
       if (superiorType.getUsage() != getUsage())
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE
             .get(getNameOrOID(), getUsage().toString(), superiorType
                 .getNameOrOID());
         throw new SchemaException(message);
@@ -729,7 +730,7 @@ public final class AttributeType extends SchemaElement implements
 
       if (superiorType.isCollective() != isCollective())
       {
-        Message message;
+        LocalizableMessage message;
         if (isCollective())
         {
           message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE
@@ -752,7 +753,7 @@ public final class AttributeType extends SchemaElement implements
         // never fail since the core schema is non-strict and will
         // substitute the syntax if required.
         syntax = Schema.getCoreSchema().getSyntax(syntaxOID);
-        final Message message = WARN_ATTR_TYPE_NOT_DEFINED.get(
+        final LocalizableMessage message = WARN_ATTR_TYPE_NOT_DEFINED.get(
             getNameOrOID(), syntaxOID, syntax.toString());
         warnings.add(message);
       }
@@ -778,7 +779,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (UnknownSchemaElementException e)
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR
             .get(getNameOrOID(), equalityMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -807,7 +808,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (UnknownSchemaElementException e)
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR
             .get(getNameOrOID(), orderingMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -836,7 +837,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (UnknownSchemaElementException e)
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR
             .get(getNameOrOID(), substringMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -865,7 +866,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (UnknownSchemaElementException e)
       {
-        final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR
             .get(getNameOrOID(), approximateMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -890,7 +891,7 @@ public final class AttributeType extends SchemaElement implements
     if (isCollective()
         && getUsage() != AttributeUsage.USER_APPLICATIONS)
     {
-      final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
           .get(getNameOrOID());
       warnings.add(message);
     }
@@ -900,7 +901,7 @@ public final class AttributeType extends SchemaElement implements
     if (isNoUserModification()
         && getUsage() == AttributeUsage.USER_APPLICATIONS)
     {
-      final Message message = WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL
           .get(getNameOrOID());
       warnings.add(message);
     }

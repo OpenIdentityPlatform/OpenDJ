@@ -36,9 +36,9 @@ import java.util.Set;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
@@ -89,7 +89,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeAttributeType method to determine if the
     // value is acceptable.
@@ -106,7 +106,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
             "valueIsAcceptable", e);
@@ -118,7 +118,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
@@ -184,7 +184,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",
@@ -196,7 +196,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       // Make sure that the set of attributes was defined.
       if (attributes == null || attributes.size() == 0)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleUseSyntax",

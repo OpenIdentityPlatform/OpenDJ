@@ -41,7 +41,6 @@ import org.opends.sdk.*;
 import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -108,60 +107,60 @@ abstract class PerformanceRunner
   {
     this.app = app;
     numThreadsArgument = new IntegerArgument("numThreads", 't',
-        "numThreads", false, false, true, Message.raw("{numThreads}"),
-        1, null, true, 1, false, 0, Message
+        "numThreads", false, false, true, LocalizableMessage.raw("{numThreads}"),
+        1, null, true, 1, false, 0, LocalizableMessage
             .raw("number of search threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
     argParser.addArgument(numThreadsArgument);
 
     numConnectionsArgument = new IntegerArgument("numConnections", 'c',
-        "numConnections", false, false, true, Message
+        "numConnections", false, false, true, LocalizableMessage
             .raw("{numConnections}"), 1, null, true, 1, false, 0,
-        Message.raw("number of connections"));
+        LocalizableMessage.raw("number of connections"));
     numThreadsArgument.setPropertyName("numConnections");
     argParser.addArgument(numConnectionsArgument);
 
     maxIterationsArgument = new IntegerArgument("maxIterations", 'm',
-        "maxIterations", false, false, true, Message
-            .raw("{maxIterations}"), 0, null, Message
+        "maxIterations", false, false, true, LocalizableMessage
+            .raw("{maxIterations}"), 0, null, LocalizableMessage
             .raw("max searches per thread, 0 for unlimited"));
     numThreadsArgument.setPropertyName("maxIterations");
     argParser.addArgument(maxIterationsArgument);
 
     statsIntervalArgument = new IntegerArgument("statInterval", 'i',
-        "statInterval", false, false, true, Message
-            .raw("{statInterval}"), 5, null, true, 1, false, 0, Message
+        "statInterval", false, false, true, LocalizableMessage
+            .raw("{statInterval}"), 5, null, true, 1, false, 0, LocalizableMessage
             .raw("Display results each specified number of seconds"));
     numThreadsArgument.setPropertyName("statInterval");
     argParser.addArgument(statsIntervalArgument);
 
     targetThroughputArgument = new IntegerArgument("targetThroughput",
-        'M', "targetThroughput", false, false, true, Message
-            .raw("{targetThroughput}"), 0, null, Message
+        'M', "targetThroughput", false, false, true, LocalizableMessage
+            .raw("{targetThroughput}"), 0, null, LocalizableMessage
             .raw("Target average throughput to achieve"));
     targetThroughputArgument.setPropertyName("targetThroughput");
     argParser.addArgument(targetThroughputArgument);
 
     percentilesArgument = new IntegerArgument("percentile", 'e',
-        "percentile", false, true, Message.raw("{percentile}"), true,
-        50, true, 100, Message.raw("Calculate max response time for a "
+        "percentile", false, true, LocalizableMessage.raw("{percentile}"), true,
+        50, true, 100, LocalizableMessage.raw("Calculate max response time for a "
             + "percentile of operations"));
     percentilesArgument.setPropertyName("percentile");
     argParser.addArgument(percentilesArgument);
 
     keepConnectionsOpen = new BooleanArgument("keepConnectionsOpen",
-        'f', "keepConnectionsOpen", Message
+        'f', "keepConnectionsOpen", LocalizableMessage
             .raw("keep connections open"));
     keepConnectionsOpen.setPropertyName("keepConnectionsOpen");
     argParser.addArgument(keepConnectionsOpen);
 
     noRebindArgument = new BooleanArgument("noRebind", 'F', "noRebind",
-        Message.raw("keep connections open and don't rebind"));
+        LocalizableMessage.raw("keep connections open and don't rebind"));
     keepConnectionsOpen.setPropertyName("noRebind");
     argParser.addArgument(noRebindArgument);
 
     asyncArgument = new BooleanArgument("asynchronous", 'A',
-        "asynchronous", Message.raw("asynch, don't wait for results"));
+        "asynchronous", LocalizableMessage.raw("asynch, don't wait for results"));
     keepConnectionsOpen.setPropertyName("asynchronous");
     argParser.addArgument(asyncArgument);
 
@@ -172,10 +171,10 @@ abstract class PerformanceRunner
         false,
         true,
         true,
-        Message.raw("{arguments}"),
+        LocalizableMessage.raw("{arguments}"),
         null,
         null,
-        Message
+        LocalizableMessage
             .raw("arguments for variables in the filter and/or base DN"));
     arguments.setPropertyName("arguments");
     argParser.addArgument(arguments);
@@ -196,7 +195,7 @@ abstract class PerformanceRunner
 
     if (!noRebindArgument.isPresent() && this.numThreads > 1)
     {
-      throw new ArgumentException(Message.raw("--"
+      throw new ArgumentException(LocalizableMessage.raw("--"
           + noRebindArgument.getLongIdentifier()
           + " must be used if --"
           + numThreadsArgument.getLongIdentifier() + " is > 1"));
@@ -204,7 +203,7 @@ abstract class PerformanceRunner
 
     if (!noRebindArgument.isPresent() && asyncArgument.isPresent())
     {
-      throw new ArgumentException(Message.raw("--"
+      throw new ArgumentException(LocalizableMessage.raw("--"
           + noRebindArgument.getLongIdentifier()
           + " must be used when using --"
           + asyncArgument.getLongIdentifier()));
@@ -216,7 +215,7 @@ abstract class PerformanceRunner
     }
     catch (IOException ioe)
     {
-      throw new ArgumentException(Message
+      throw new ArgumentException(LocalizableMessage
           .raw("Error occured while parsing arguments: "
               + ioe.toString()));
     }
@@ -266,7 +265,7 @@ abstract class PerformanceRunner
     catch (ErrorResultException e)
     {
       stopRequested = true;
-      app.println(Message.raw(e.getResult().getDiagnosticMessage()));
+      app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
     }
 
     return 0;
@@ -337,7 +336,7 @@ abstract class PerformanceRunner
     public void handleErrorResult(Void p, ErrorResultException error)
     {
       failedRecentCount.getAndIncrement();
-      app.println(Message.raw(error.getResult().toString()));
+      app.println(LocalizableMessage.raw(error.getResult().toString()));
     }
 
 
@@ -422,7 +421,7 @@ abstract class PerformanceRunner
           }
           catch (ErrorResultException e)
           {
-            app.println(Message.raw(e.getResult()
+            app.println(LocalizableMessage.raw(e.getResult()
                 .getDiagnosticMessage()));
             if (e.getCause() != null && app.isVerbose())
             {
@@ -450,7 +449,7 @@ abstract class PerformanceRunner
             }
             catch (ErrorResultException e)
             {
-              app.println(Message.raw(e.getResult().toString()));
+              app.println(LocalizableMessage.raw(e.getResult().toString()));
               if (e.getCause() != null && app.isVerbose())
               {
                 e.getCause().printStackTrace(app.getErrorStream());

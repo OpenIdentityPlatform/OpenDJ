@@ -38,6 +38,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import org.opends.sdk.LocalizableMessage;
+
 
 /**
  * Provides a wrapper class that collects all of the JVM vendor
@@ -146,13 +148,13 @@ public final class Platform {
             X500SignerCons =
                  X500SignerClass.getConstructor(Signature.class, X500NameClass);
           } catch (ClassNotFoundException e) {
-            Message msg = ERR_CERTMGR_CLASS_NOT_FOUND.get(e.getMessage());
+            LocalizableMessage msg = ERR_CERTMGR_CLASS_NOT_FOUND.get(e.getMessage());
             throw new ExceptionInInitializerError(msg.toString());
           } catch (SecurityException e) {
-            Message msg = ERR_CERTMGR_SECURITY.get(e.getMessage());
+            LocalizableMessage msg = ERR_CERTMGR_SECURITY.get(e.getMessage());
             throw new ExceptionInInitializerError(msg.toString());
           } catch (NoSuchMethodException e) {
-            Message msg = ERR_CERTMGR_NO_METHOD.get(e.getMessage());
+            LocalizableMessage msg = ERR_CERTMGR_NO_METHOD.get(e.getMessage());
             throw new ExceptionInInitializerError(msg.toString());
           }
         }
@@ -181,7 +183,7 @@ public final class Platform {
             String alias, char[] pwd, String dn) throws KeyStoreException {
           if(!certReqAllowed) {
             String vendor = System.getProperty("java.vendor");
-            Message msg =
+            LocalizableMessage msg =
               ERR_CERTMGR_CERT_SIGN_REQ_NOT_SUPPORTED.get(vendor);
             throw new KeyStoreException(msg.toString());
           }
@@ -194,17 +196,17 @@ public final class Platform {
             PrintStream printStream =
               new PrintStream(new FileOutputStream(csrFile.getAbsolutePath()));
             if(keyStore == null) {
-              Message msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+              LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
               throw new KeyStoreException(msg.toString());
             }
             PrivateKey privateKey = getPrivateKey(keyStore, alias, pwd);
             if(privateKey == null) {
-              Message msg =  ERR_CERTMGR_PRIVATE_KEY.get(alias);
+              LocalizableMessage msg =  ERR_CERTMGR_PRIVATE_KEY.get(alias);
               throw new KeyStoreException(msg.toString());
             }
             Certificate cert = keyStore.getCertificate(alias);
             if(cert == null) {
-              Message msg = ERR_CERTMGR_ALIAS_NO_CERTIFICATE.get(alias);
+              LocalizableMessage msg = ERR_CERTMGR_ALIAS_NO_CERTIFICATE.get(alias);
               throw new KeyStoreException(msg.toString());
             }
             Signature signature = Signature.getInstance(SIG_ALGORITHM);
@@ -221,7 +223,7 @@ public final class Platform {
             print.invoke(request, printStream);
             printStream.close();
           } catch (Exception e) {
-            Message msg = ERR_CERTMGR_CERT_REQUEST.get(alias,e.getMessage());
+            LocalizableMessage msg = ERR_CERTMGR_CERT_REQUEST.get(alias,e.getMessage());
             throw new KeyStoreException(msg.toString());
           }
           return csrFile;
@@ -241,7 +243,7 @@ public final class Platform {
             String alias, char[] pwd) throws KeyStoreException {
               try {
                   if(ks == null) {
-                      Message msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
+                      LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
                       throw new KeyStoreException(msg.toString());
                   }
                   ks.deleteEntry(alias);
@@ -249,7 +251,7 @@ public final class Platform {
                   ks.store(fs, pwd);
                   fs.close();
               } catch (Exception e) {
-                  Message msg =
+                  LocalizableMessage msg =
                       ERR_CERTMGR_DELETE_ALIAS.get(alias,e.getMessage());
                   throw new KeyStoreException(msg.toString());
               }
@@ -282,14 +284,14 @@ public final class Platform {
             }
             //Do not support certificate replies.
             if (ks.entryInstanceOf(alias ,KeyStore.PrivateKeyEntry.class)) {
-              Message msg = ERR_CERTMGR_CERT_REPLIES_INVALID.get(alias);
+              LocalizableMessage msg = ERR_CERTMGR_CERT_REPLIES_INVALID.get(alias);
               throw new KeyStoreException(msg.toString());
             } else if(!ks.containsAlias(alias) ||
                 ks.entryInstanceOf(alias,
                     KeyStore.TrustedCertificateEntry.class))
               trustedCert(alias, cf, ks, inStream);
             else {
-              Message msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
+              LocalizableMessage msg = ERR_CERTMGR_ALIAS_INVALID.get(alias);
               throw new KeyStoreException(msg.toString());
             }
             FileOutputStream fileOutStream = new FileOutputStream(ksPath);
@@ -297,7 +299,7 @@ public final class Platform {
             fileOutStream.close();
             inStream.close();
           } catch (Exception e) {
-            Message msg =
+            LocalizableMessage msg =
               ERR_CERTMGR_ADD_CERT.get(alias, e.getMessage());
             throw new KeyStoreException(msg.toString());
           }
@@ -330,7 +332,7 @@ public final class Platform {
               ks = KeyStore.getInstance(ksType);
               ks.load(null, pwd);
             } else if(ks.containsAlias(alias)) {
-              Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+              LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
               throw new KeyStoreException(msg.toString());
             }
             Object keypair =
@@ -355,7 +357,7 @@ public final class Platform {
             ks.store(fileOutStream, pwd);
             fileOutStream.close();
           } catch (Exception e) {
-            Message msg =
+            LocalizableMessage msg =
                    ERR_CERTMGR_GEN_SELF_SIGNED_CERT.get(alias, e.getMessage());
             throw new KeyStoreException(msg.toString());
           }
@@ -378,7 +380,7 @@ public final class Platform {
              KeyStore ks, InputStream in) throws KeyStoreException {
           try {
             if (ks.containsAlias(alias) == true) {
-              Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
+              LocalizableMessage msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
               throw new KeyStoreException(msg.toString());
             }
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
@@ -386,7 +388,7 @@ public final class Platform {
               cert.verify(cert.getPublicKey());
             ks.setCertificateEntry(alias, cert);
           } catch (Exception e) {
-            Message msg =
+            LocalizableMessage msg =
               ERR_CERTMGR_TRUSTED_CERT.get(alias,e.getMessage());
             throw new KeyStoreException(msg.toString());
           }
@@ -419,18 +421,18 @@ public final class Platform {
             PrivateKey key = null;
             try {
                 if(!ks.containsAlias(alias)) {
-                    Message msg = ERR_CERTMGR_ALIAS_DOES_NOT_EXIST.get(alias);
+                    LocalizableMessage msg = ERR_CERTMGR_ALIAS_DOES_NOT_EXIST.get(alias);
                     throw new KeyStoreException(msg.toString());
                 }
                 if(!ks.entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class) &&
                   !ks.entryInstanceOf(alias, KeyStore.SecretKeyEntry.class)) {
-                    Message msg =
+                    LocalizableMessage msg =
                                 ERR_CERTMGR_ALIAS_INVALID_ENTRY_TYPE.get(alias);
                     throw new KeyStoreException(msg.toString());
                 }
                 key = (PrivateKey)ks.getKey(alias, pwd);
             } catch (Exception  e) {
-                Message msg =
+                LocalizableMessage msg =
                     ERR_CERTMGR_GET_KEY.get(alias,e.getMessage());
                 throw new KeyStoreException(msg.toString());
             }

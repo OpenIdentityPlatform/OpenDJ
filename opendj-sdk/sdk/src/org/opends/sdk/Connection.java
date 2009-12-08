@@ -36,7 +36,6 @@ import java.util.List;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

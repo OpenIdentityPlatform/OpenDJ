@@ -376,7 +376,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message = ERR_RDN_TYPE_NOT_FOUND.get(rdn, e
+      final LocalizableMessage message = ERR_RDN_TYPE_NOT_FOUND.get(rdn, e
           .getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -397,7 +397,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
     // that would be invalid.
     if (reader.remaining() == 0)
     {
-      final Message message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME
           .get(reader.getString(), attribute.getNameOrOID());
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -407,7 +407,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
     char c;
     if ((c = reader.read()) != '=')
     {
-      final Message message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader
           .getString(), attribute.getNameOrOID(), c);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -444,7 +444,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         {
           if (lastWasPeriod)
           {
-            final Message message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
                 .get(reader.getString(), reader.pos() - 1);
             throw new LocalizedIllegalArgumentException(message);
           }
@@ -456,7 +456,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         else if (!isDigit(c))
         {
           // This must have been an illegal character.
-          final Message message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
               .get(reader.getString(), reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -477,7 +477,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         if (length == 0 && !isAlpha(c))
         {
           // This is an illegal character.
-          final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
               .get(reader.getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -485,7 +485,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         if (!isAlpha(c) && !isDigit(c) && c != '-')
         {
           // This is an illegal character.
-          final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
               .get(reader.getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -495,7 +495,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
     }
     else
     {
-      final Message message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(
           reader.getString(), c, reader.pos() - 1);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -532,7 +532,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
       reader.mark();
       if (reader.remaining() < 2)
       {
-        final Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
             .get(reader.getString());
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -546,7 +546,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         }
         else
         {
-          final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
               .get(reader.getString(), c);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -571,14 +571,14 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
             }
             else
             {
-              final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+              final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
                   .get(reader.getString(), c);
               throw new LocalizedIllegalArgumentException(message);
             }
           }
           else
           {
-            final Message message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT
                 .get(reader.getString());
             throw new LocalizedIllegalArgumentException(message);
           }
@@ -590,7 +590,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
         }
         else
         {
-          final Message message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT
               .get(reader.getString(), c);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -607,7 +607,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
       }
       catch (final Exception e)
       {
-        final Message message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE
             .get(reader.getString(), String.valueOf(e));
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -646,7 +646,7 @@ public final class RDN implements Iterable<RDN.AVA>, Comparable<RDN>
       if (bytes.length() == 0)
       {
         // We don't allow an empty attribute value.
-        final Message message = ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR
             .get(reader.getString(), reader.pos());
         throw new LocalizedIllegalArgumentException(message);
       }

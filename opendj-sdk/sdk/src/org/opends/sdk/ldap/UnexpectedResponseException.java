@@ -31,9 +31,9 @@ package org.opends.sdk.ldap;
 
 import java.io.IOException;
 
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.responses.Response;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -50,7 +50,7 @@ final class UnexpectedResponseException extends IOException
 
   public UnexpectedResponseException(int messageID, Response response)
   {
-    super(Message.raw("Unexpected LDAP response: id=%d, message=%s",
+    super(LocalizableMessage.raw("Unexpected LDAP response: id=%d, message=%s",
         messageID, response).toString());
     this.messageID = messageID;
     this.response = response;

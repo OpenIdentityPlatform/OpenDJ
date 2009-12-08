@@ -37,8 +37,8 @@ import java.io.IOException;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -203,7 +203,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader
   {
     if (peekType() != expectedType)
     {
-      Message message = ERR_ASN1_UNEXPECTED_TAG.get(expectedType,
+      LocalizableMessage message = ERR_ASN1_UNEXPECTED_TAG.get(expectedType,
           peekType());
       throw DecodeException.fatalError(message);
     }

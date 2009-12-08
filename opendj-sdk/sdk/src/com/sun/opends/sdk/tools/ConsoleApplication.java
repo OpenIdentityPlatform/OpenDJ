@@ -35,7 +35,8 @@ import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -357,7 +358,7 @@ abstract class ConsoleApplication
    */
   final void pressReturnToContinue()
   {
-    Message msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
+    LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
     try
     {
       readLineOfInput(msg);
@@ -386,7 +387,7 @@ abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  final void println(Message msg)
+  final void println(LocalizableMessage msg)
   {
     err.println(wrapText(msg, MAX_LINE_WIDTH));
   }
@@ -399,7 +400,7 @@ abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  final void print(Message msg)
+  final void print(LocalizableMessage msg)
   {
     err.print(wrapText(msg, MAX_LINE_WIDTH));
   }
@@ -427,7 +428,7 @@ abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  final void printProgress(Message msg)
+  final void printProgress(LocalizableMessage msg)
   {
     if (!isQuiet())
     {
@@ -446,7 +447,7 @@ abstract class ConsoleApplication
    * @param indent
    *          The number of columns to indent.
    */
-  final void println(Message msg, int indent)
+  final void println(LocalizableMessage msg, int indent)
   {
     err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
   }
@@ -459,7 +460,7 @@ abstract class ConsoleApplication
    * @param msg
    *          The verbose message.
    */
-  final void printVerboseMessage(Message msg)
+  final void printVerboseMessage(LocalizableMessage msg)
   {
     if (isVerbose() || isInteractive())
     {
@@ -480,7 +481,7 @@ abstract class ConsoleApplication
    *           If the line of input could not be retrieved for some
    *           reason.
    */
-  final String readLineOfInput(Message prompt) throws CLIException
+  final String readLineOfInput(LocalizableMessage prompt) throws CLIException
   {
     if (prompt != null)
     {
@@ -526,7 +527,7 @@ abstract class ConsoleApplication
    *           reason.
    * @return The string value read from the user.
    */
-  final String readInput(Message prompt, String defaultValue)
+  final String readInput(LocalizableMessage prompt, String defaultValue)
       throws CLIException
   {
     while (true)
@@ -576,7 +577,7 @@ abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return The string value read from the user.
    */
-  final String readInput(Message prompt, String defaultValue,
+  final String readInput(LocalizableMessage prompt, String defaultValue,
       Logger logger)
   {
     String s = defaultValue;

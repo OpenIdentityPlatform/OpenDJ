@@ -38,12 +38,12 @@ import java.util.logging.Level;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
 
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.utils.PoolableObject;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -141,7 +141,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
 
     public ChildSequenceLimiter endSequence() throws DecodeException
     {
-      Message message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
+      LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
       throw new IllegalStateException(message.toString());
     }
 
@@ -348,7 +348,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
 
     if (peekLength != 1)
     {
-      Message message = ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
+      LocalizableMessage message = ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -410,7 +410,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
 
     if ((peekLength < 1) || (peekLength > 4))
     {
-      Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -431,7 +431,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
 
     if ((peekLength < 1) || (peekLength > 8))
     {
-      Message message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -490,7 +490,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
     // Make sure that the decoded length is exactly zero byte.
     if (peekLength != 0)
     {
-      Message message = ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
+      LocalizableMessage message = ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -736,7 +736,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+      LocalizableMessage m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
       throw DecodeException.fatalError(m);
     }
@@ -773,7 +773,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
       lengthBytesNeeded = peekLength;
       if (lengthBytesNeeded > 4)
       {
-        Message message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES
+        LocalizableMessage message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES
             .get(lengthBytesNeeded);
         throw DecodeException.fatalError(message);
       }
@@ -798,7 +798,7 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      Message m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
+      LocalizableMessage m = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(
           peekLength, maxElementSize);
       throw DecodeException.fatalError(m);
     }

@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -586,7 +585,7 @@ public final class ResultCode
    * @return The new error result code.
    */
   private static ResultCode registerErrorResultCode(int intValue,
-      Message name)
+      LocalizableMessage name)
   {
     ResultCode t = new ResultCode(intValue, name, true);
     ELEMENTS[intValue] = t;
@@ -607,7 +606,7 @@ public final class ResultCode
    * @return The new success result code.
    */
   private static ResultCode registerSuccessResultCode(int intValue,
-      Message name)
+      LocalizableMessage name)
   {
     ResultCode t = new ResultCode(intValue, name, false);
     ELEMENTS[intValue] = t;
@@ -638,7 +637,7 @@ public final class ResultCode
 
     if (resultCode == null)
     {
-      resultCode = new ResultCode(intValue, Message.raw("undefined("
+      resultCode = new ResultCode(intValue, LocalizableMessage.raw("undefined("
           + intValue + ")"), true);
     }
 
@@ -664,14 +663,14 @@ public final class ResultCode
 
   private final int intValue;
 
-  private final Message name;
+  private final LocalizableMessage name;
 
   private final boolean exceptional;
 
 
 
   // Prevent direct instantiation.
-  private ResultCode(int intValue, Message name, boolean exceptional)
+  private ResultCode(int intValue, LocalizableMessage name, boolean exceptional)
   {
     this.intValue = intValue;
     this.name = name;
@@ -701,7 +700,7 @@ public final class ResultCode
    *
    * @return The short human-readable name of this result code.
    */
-  public Message getName()
+  public LocalizableMessage getName()
   {
     return name;
   }

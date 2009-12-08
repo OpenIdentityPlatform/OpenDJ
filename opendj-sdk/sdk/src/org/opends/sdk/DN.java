@@ -36,8 +36,6 @@ import java.util.*;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.SubstringReader;
 import com.sun.opends.sdk.util.Validator;
 
@@ -176,7 +174,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message = ERR_DN_TYPE_NOT_FOUND.get(reader
+      final LocalizableMessage message = ERR_DN_TYPE_NOT_FOUND.get(reader
           .getString(), e.getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }

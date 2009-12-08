@@ -36,12 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -417,7 +413,7 @@ public final class MatchingRule extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     // Try finding an implementation in the core schema
@@ -433,7 +429,7 @@ public final class MatchingRule extends SchemaElement
     if (impl == null)
     {
       impl = Schema.getDefaultMatchingRule().impl;
-      final Message message =
+      final LocalizableMessage message =
           WARN_MATCHING_RULE_NOT_IMPLEMENTED.get(oid, Schema
               .getDefaultMatchingRule().getOID());
       warnings.add(message);
@@ -446,7 +442,7 @@ public final class MatchingRule extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(getNameOrOID(),
               syntaxOID);
       throw new SchemaException(message, e);

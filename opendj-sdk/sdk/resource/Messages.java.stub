@@ -27,7 +27,7 @@
 
 package ${PACKAGE};
 
-import com.sun.opends.sdk.util.MessageDescriptor;
+import com.sun.opends.sdk.util.LocalizableMessageDescriptor;
 
 /**
  * This file contains a number of constants that are used throughout the

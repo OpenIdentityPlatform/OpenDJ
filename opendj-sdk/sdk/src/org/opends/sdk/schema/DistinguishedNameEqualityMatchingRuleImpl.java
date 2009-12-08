@@ -34,7 +34,6 @@ import java.util.Comparator;
 import org.opends.sdk.*;
 import org.opends.sdk.RDN.AVA;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

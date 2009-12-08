@@ -32,8 +32,9 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.Collection;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 
 
 
@@ -83,15 +84,15 @@ final class MultiChoiceArgument<T> extends Argument
    *          Indicates whether the set of allowed values should be
    *          treated in a case-sensitive manner.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public MultiChoiceArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean needsValue,
-      Message valuePlaceholder, Collection<T> allowedValues,
-      boolean caseSensitive, Message description)
+      LocalizableMessage valuePlaceholder, Collection<T> allowedValues,
+      boolean caseSensitive, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired, false,
@@ -145,17 +146,17 @@ final class MultiChoiceArgument<T> extends Argument
    *          Indicates whether the set of allowed values should be
    *          treated in a case-sensitive manner.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public MultiChoiceArgument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder,
+      boolean needsValue, LocalizableMessage valuePlaceholder,
       String defaultValue, String propertyName,
       Collection<T> allowedValues, boolean caseSensitive,
-      Message description) throws ArgumentException
+      LocalizableMessage description) throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, isRequired,
         isMultiValued, needsValue, valuePlaceholder, defaultValue,
@@ -207,7 +208,7 @@ final class MultiChoiceArgument<T> extends Argument
    *         <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     for (T o : allowedValues)
     {

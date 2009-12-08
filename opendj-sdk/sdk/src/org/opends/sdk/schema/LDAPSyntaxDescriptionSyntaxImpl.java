@@ -37,9 +37,9 @@ import java.util.regex.Pattern;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
@@ -76,7 +76,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeNameForm method to determine if the value is
     // acceptable.
@@ -93,7 +93,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
@@ -106,7 +106,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
@@ -163,7 +163,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
@@ -188,7 +188,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
             }
             catch (final Exception e)
             {
-              final Message message =
+              final LocalizableMessage message =
                   WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN
                       .get(oid, pattern);
               final DecodeException de =
@@ -211,7 +211,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
             {
               if (entry.equals(values.get(j)))
               {
-                final Message message =
+                final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE
                         .get(oid, entry, j);
                 final DecodeException e = DecodeException.error(message);

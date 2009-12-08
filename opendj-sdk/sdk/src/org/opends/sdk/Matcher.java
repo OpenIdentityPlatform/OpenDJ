@@ -40,7 +40,6 @@ import org.opends.sdk.schema.MatchingRuleUse;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.StaticUtils;
 
 

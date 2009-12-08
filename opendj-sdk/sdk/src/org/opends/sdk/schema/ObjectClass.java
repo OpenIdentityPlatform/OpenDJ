@@ -34,7 +34,8 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -591,7 +592,7 @@ public final class ObjectClass extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     if (validated)
@@ -617,7 +618,7 @@ public final class ObjectClass extends SchemaElement
         }
         catch (final UnknownSchemaElementException e)
         {
-          final Message message =
+          final LocalizableMessage message =
               WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(
                   oid, superClassOid);
           throw new SchemaException(message, e);
@@ -633,7 +634,7 @@ public final class ObjectClass extends SchemaElement
           // classes.
           if (superiorType != ObjectClassType.ABSTRACT)
           {
-            final Message message =
+            final LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
                     oid, objectClassType.toString(), superiorType
                         .toString(), superiorClass.getNameOrOID());
@@ -647,7 +648,7 @@ public final class ObjectClass extends SchemaElement
           if (superiorType != ObjectClassType.ABSTRACT
               && superiorType != ObjectClassType.AUXILIARY)
           {
-            final Message message =
+            final LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
                     oid, objectClassType.toString(), superiorType
                         .toString(), superiorClass.getNameOrOID());
@@ -661,7 +662,7 @@ public final class ObjectClass extends SchemaElement
           if (superiorType != ObjectClassType.ABSTRACT
               && superiorType != ObjectClassType.STRUCTURAL)
           {
-            final Message message =
+            final LocalizableMessage message =
                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.get(
                     oid, objectClassType.toString(), superiorType
                         .toString(), superiorClass.getNameOrOID());
@@ -717,7 +718,7 @@ public final class ObjectClass extends SchemaElement
     // in the superior chain.
     if (!derivesTop)
     {
-      final Message message =
+      final LocalizableMessage message =
           WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP
               .get(oid);
       throw new SchemaException(message);
@@ -755,7 +756,7 @@ public final class ObjectClass extends SchemaElement
           // This isn't good because it means that the objectclass
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR.get(
                   oid, requiredAttribute);
           throw new SchemaException(message, e);
@@ -788,7 +789,7 @@ public final class ObjectClass extends SchemaElement
           // This isn't good because it means that the objectclass
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR.get(
                   oid, optionalAttribute);
           throw new SchemaException(message, e);

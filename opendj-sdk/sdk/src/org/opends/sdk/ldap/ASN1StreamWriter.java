@@ -36,12 +36,12 @@ import java.util.logging.Level;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.AbstractASN1Writer;
 
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.PoolableObject;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -120,7 +120,7 @@ final class ASN1StreamWriter extends AbstractASN1Writer implements
 
     public SequenceBuffer endSequence() throws IOException
     {
-      Message message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
+      LocalizableMessage message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
       throw new IllegalStateException(message.toString());
     }
 

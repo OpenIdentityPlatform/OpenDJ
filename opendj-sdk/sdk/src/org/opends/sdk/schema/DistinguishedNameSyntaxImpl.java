@@ -33,9 +33,9 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DN;
+import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -77,7 +77,7 @@ final class DistinguishedNameSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     try
     {

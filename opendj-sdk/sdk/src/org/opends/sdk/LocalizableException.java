@@ -24,7 +24,8 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package com.sun.opends.sdk.util;
+package org.opends.sdk;
+
 
 
 
@@ -42,6 +43,6 @@ public interface LocalizableException
    * 
    * @return The message that explains the problem that occurred.
    */
-  Message getMessageObject();
+  LocalizableMessage getMessageObject();
 
 }
