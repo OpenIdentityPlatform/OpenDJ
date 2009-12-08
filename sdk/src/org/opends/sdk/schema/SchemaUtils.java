@@ -34,8 +34,8 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 import java.util.*;
 
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.SubstringReader;
 
 
@@ -129,7 +129,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -187,7 +187,7 @@ final class SchemaUtils
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
@@ -197,7 +197,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -235,7 +235,7 @@ final class SchemaUtils
         {
           if (lastWasPeriod)
           {
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
                     .getString(), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -258,7 +258,7 @@ final class SchemaUtils
           }
 
           // This must have been an illegal character.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                   .getString(), reader.pos() - 1);
           throw DecodeException.error(message);
@@ -272,7 +272,7 @@ final class SchemaUtils
 
       if (length == 0)
       {
-        final Message message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -282,7 +282,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -339,7 +339,7 @@ final class SchemaUtils
           if (length == 0 && !isAlpha(c))
           {
             // This is an illegal character.
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -349,7 +349,7 @@ final class SchemaUtils
               && c != '_')
           {
             // This is an illegal character.
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -366,7 +366,7 @@ final class SchemaUtils
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
@@ -380,7 +380,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -428,7 +428,7 @@ final class SchemaUtils
           {
             if (lastWasPeriod)
             {
-              final Message message =
+              final LocalizableMessage message =
                   ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
                       .getString(), reader.pos() - 1);
               throw DecodeException.error(message);
@@ -451,7 +451,7 @@ final class SchemaUtils
             }
 
             // This must have been an illegal character.
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                     .getString(), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -465,7 +465,7 @@ final class SchemaUtils
 
         if (length == 0)
         {
-          final Message message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
           throw DecodeException.error(message);
         }
       }
@@ -481,7 +481,7 @@ final class SchemaUtils
           if (length == 0 && !isAlpha(c))
           {
             // This is an illegal character.
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -491,7 +491,7 @@ final class SchemaUtils
               && c != '_')
           {
             // This is an illegal character.
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                     .valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -502,7 +502,7 @@ final class SchemaUtils
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                 .valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
@@ -524,7 +524,7 @@ final class SchemaUtils
         {
           if (!isDigit(c))
           {
-            final Message message =
+            final LocalizableMessage message =
                 ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
                     .getString(), reader.pos() - 1);
             throw DecodeException.error(message);
@@ -544,7 +544,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -586,7 +586,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -618,7 +618,7 @@ final class SchemaUtils
       char c = reader.read();
       if (c != '\'')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
                 String.valueOf(c));
         throw DecodeException.error(message);
@@ -631,7 +631,7 @@ final class SchemaUtils
         if (length == 0 && !isAlpha(c))
         {
           // This is an illegal character.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                   .valueOf(c), reader.pos() - 1);
           throw DecodeException.error(message);
@@ -641,7 +641,7 @@ final class SchemaUtils
             && c != '.')
         {
           // This is an illegal character.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
                   .valueOf(c), reader.pos() - 1);
           throw DecodeException.error(message);
@@ -658,7 +658,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -690,7 +690,7 @@ final class SchemaUtils
       final char c = reader.read();
       if (c != '\'')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
                 String.valueOf(c));
         throw DecodeException.error(message);
@@ -711,7 +711,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -748,7 +748,7 @@ final class SchemaUtils
 
       if (length == 0)
       {
-        final Message message = ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -761,14 +761,14 @@ final class SchemaUtils
       }
       catch (final NumberFormatException e)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_RULE_ID_INVALID.get(ruleID);
         throw DecodeException.error(message);
       }
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -810,7 +810,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -859,7 +859,7 @@ final class SchemaUtils
       if (token == null && reader.remaining() > 0)
       {
         reader.reset();
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(length);
         throw DecodeException.error(message);
       }
@@ -868,7 +868,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final Message message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }

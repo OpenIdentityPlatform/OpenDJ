@@ -34,9 +34,9 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -132,7 +132,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       case '$':
         break readScheme;
       default:
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
         throw DecodeException.error(message);
       }
@@ -141,7 +141,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     // The scheme must consist of at least one character.
     if (scheme.length() == 0)
     {
-      final Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME.get();
       throw DecodeException.error(message);
     }
 
@@ -158,7 +158,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
     else
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
       throw DecodeException.error(message);
     }
@@ -185,7 +185,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
         throw DecodeException.error(message);
       }
@@ -194,7 +194,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     // The authInfo element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      final Message message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
       throw DecodeException.error(message);
     }
 
@@ -211,7 +211,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
     else
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
       throw DecodeException.error(message);
     }
@@ -238,7 +238,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
         throw DecodeException.error(message);
       }
@@ -247,7 +247,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     // The authValue element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
       throw DecodeException.error(message);
     }
@@ -262,7 +262,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
         throw DecodeException.error(message);
       }
@@ -324,7 +324,7 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     try
     {

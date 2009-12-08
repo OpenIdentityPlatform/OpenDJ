@@ -270,7 +270,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     final int colonPos = ldifLine.indexOf(":");
     if (colonPos <= 0)
     {
-      final Message message = ERR_LDIF_NO_ATTR_NAME.get(
+      final LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(
           record.lineNumber, ldifLine);
       throw DecodeException.error(message);
     }
@@ -314,7 +314,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         catch (final LocalizedIllegalArgumentException e)
         {
           // The value did not have a valid base64-encoding.
-          final Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR
+          final LocalizableMessage message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR
               .get(entryDN.toString(), record.lineNumber, ldifLine, e
                   .getMessageObject());
           throw DecodeException.error(message);
@@ -338,7 +338,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         catch (final Exception e)
         {
           // The URL was malformed or had an invalid protocol.
-          final Message message = ERR_LDIF_INVALID_URL.get(entryDN
+          final LocalizableMessage message = ERR_LDIF_INVALID_URL.get(entryDN
               .toString(), record.lineNumber, attrName, String
               .valueOf(e));
           throw DecodeException.error(message);
@@ -364,7 +364,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         {
           // We were unable to read the contents of that URL for some
           // reason.
-          final Message message = ERR_LDIF_URL_IO_ERROR.get(entryDN
+          final LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(entryDN
               .toString(), record.lineNumber, attrName, String
               .valueOf(contentURL), String.valueOf(e));
           throw DecodeException.error(message);
@@ -441,7 +441,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         else if (isContinuationLine(line))
         {
           // Fatal: got a continuation line at the start of the record.
-          final Message message = ERR_LDIF_INVALID_LEADING_SPACE.get(
+          final LocalizableMessage message = ERR_LDIF_INVALID_LEADING_SPACE.get(
               lineNumber, line);
           throw DecodeException.fatalError(message);
         }
@@ -613,7 +613,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       if (validateSchema
           && attributeDescription.containsOption("binary"))
       {
-        final Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(entry
+        final LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(entry
             .getName().toString(), record.lineNumber, attrDescr);
         throw DecodeException.error(message);
       }
@@ -629,11 +629,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     {
       if (validateSchema)
       {
-        final MessageBuilder invalidReason = new MessageBuilder();
+        final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (!attributeDescription.getAttributeType().getSyntax()
             .valueIsAcceptable(value, invalidReason))
         {
-          final Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
+          final LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
               entry.getName().toString(), record.lineNumber, value
                   .toString(), attrDescr, invalidReason);
           throw DecodeException.error(message);
@@ -647,11 +647,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     {
       if (validateSchema)
       {
-        final MessageBuilder invalidReason = new MessageBuilder();
+        final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (!attributeDescription.getAttributeType().getSyntax()
             .valueIsAcceptable(value, invalidReason))
         {
-          final Message message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
+          final LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
               entry.getName().toString(), record.lineNumber, value
                   .toString(), attrDescr, invalidReason);
           throw DecodeException.error(message);
@@ -659,7 +659,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
         if (!attribute.add(value))
         {
-          final Message message = WARN_LDIF_DUPLICATE_ATTR.get(entry
+          final LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTR.get(entry
               .getName().toString(), record.lineNumber, attrDescr,
               value.toString());
           throw DecodeException.error(message);
@@ -667,7 +667,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
         if (attributeDescription.getAttributeType().isSingleValue())
         {
-          final Message message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
+          final LocalizableMessage message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
               .get(entry.getName().toString(), record.lineNumber,
                   attrDescr);
           throw DecodeException.error(message);
@@ -688,7 +688,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     int colonPos = ldifLine.indexOf(":");
     if (colonPos <= 0)
     {
-      final Message message = ERR_LDIF_NO_ATTR_NAME.get(
+      final LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(
           record.lineNumber, ldifLine.toString());
       throw DecodeException.error(message);
     }
@@ -706,7 +706,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       colonPos = ldifLine.indexOf(":");
       if (colonPos <= 0)
       {
-        final Message message = ERR_LDIF_NO_ATTR_NAME.get(
+        final LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(
             record.lineNumber, ldifLine.toString());
         throw DecodeException.error(message);
       }
@@ -716,7 +716,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
     if (!attrName.equals("dn"))
     {
-      final Message message = ERR_LDIF_NO_DN.get(record.lineNumber,
+      final LocalizableMessage message = ERR_LDIF_NO_DN.get(record.lineNumber,
           ldifLine.toString());
       throw DecodeException.error(message);
     }
@@ -751,7 +751,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       catch (final LocalizedIllegalArgumentException e)
       {
         // The value did not have a valid base64-encoding.
-        final Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_DN
+        final LocalizableMessage message = ERR_LDIF_COULD_NOT_BASE64_DECODE_DN
             .get(record.lineNumber, ldifLine, e.getMessageObject());
         throw DecodeException.error(message);
       }
@@ -775,7 +775,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     }
     catch (final LocalizedIllegalArgumentException e)
     {
-      final Message message = ERR_LDIF_INVALID_DN.get(
+      final LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
           record.lineNumber, ldifLine, e.getMessageObject());
       throw DecodeException.error(message);
     }
@@ -790,7 +790,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     final int colonPos = ldifLine.indexOf(":");
     if (colonPos <= 0)
     {
-      final Message message = ERR_LDIF_NO_ATTR_NAME.get(
+      final LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(
           record.lineNumber, ldifLine);
       throw DecodeException.error(message);
     }
@@ -802,7 +802,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     if (colonPos == length - 1)
     {
       // FIXME: improve error.
-      final Message message = Message
+      final LocalizableMessage message = LocalizableMessage
           .raw("Malformed changetype attribute");
       throw DecodeException.error(message);
     }
@@ -825,7 +825,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       {
         // The value did not have a valid base64-encoding.
         // FIXME: improve error.
-        final Message message = Message
+        final LocalizableMessage message = LocalizableMessage
             .raw("Malformed base64 changetype attribute");
         throw DecodeException.error(message);
       }
@@ -849,7 +849,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void rejectLDIFRecord(LDIFRecord record, Message message)
+  final void rejectLDIFRecord(LDIFRecord record, LocalizableMessage message)
       throws DecodeException
   {
     // FIXME: not yet implemented.
@@ -858,7 +858,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void skipLDIFRecord(LDIFRecord record, Message message)
+  final void skipLDIFRecord(LDIFRecord record, LocalizableMessage message)
   {
     // FIXME: not yet implemented.
   }

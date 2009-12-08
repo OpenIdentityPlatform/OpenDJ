@@ -34,8 +34,8 @@ import static com.sun.opends.sdk.util.StringPrepProfile.*;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -85,7 +85,7 @@ final class CaseIgnoreIA5EqualityMatchingRuleImpl extends
         // This is not a valid character for an IA5 string. If strict
         // syntax enforcement is enabled, then we'll throw an exception.
         // Otherwise, we'll get rid of the character.
-        final Message message =
+        final LocalizableMessage message =
             WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
                 value.toString(), String.valueOf(c));
         throw DecodeException.error(message);

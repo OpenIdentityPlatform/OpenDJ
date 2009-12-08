@@ -905,7 +905,7 @@ public final class AttributeDescription implements
       c = attributeDescription.charAt(i);
       if (c != ' ')
       {
-        final Message message = ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
+        final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_INTERNAL_WHITESPACE
             .get(attributeDescription);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -940,7 +940,7 @@ public final class AttributeDescription implements
     // contained whitespace.
     if (i == length)
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY
           .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -949,7 +949,7 @@ public final class AttributeDescription implements
     ASCIICharProp cp = ASCIICharProp.valueOf(c);
     if (cp == null)
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
           .get(attributeDescription, c, i);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -972,7 +972,7 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (!cp.isKeyChar())
         {
-          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+          final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
               .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -996,7 +996,7 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (c != '.' && !cp.isDigit())
         {
-          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+          final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
               .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1007,7 +1007,7 @@ public final class AttributeDescription implements
     }
     else
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
           .get(attributeDescription, c, i);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1034,7 +1034,7 @@ public final class AttributeDescription implements
 
     if (oid.length() == 0)
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_NO_TYPE
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_NO_TYPE
           .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1047,7 +1047,7 @@ public final class AttributeDescription implements
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND
           .get(attributeDescription, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1085,7 +1085,7 @@ public final class AttributeDescription implements
       cp = ASCIICharProp.valueOf(c);
       if (!cp.isKeyChar())
       {
-        final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+        final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
             .get(attributeDescription, c, i);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1120,7 +1120,7 @@ public final class AttributeDescription implements
 
     if (option.length() == 0)
     {
-      final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
           .get(attributeDescription);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1164,7 +1164,7 @@ public final class AttributeDescription implements
         cp = ASCIICharProp.valueOf(c);
         if (!cp.isKeyChar())
         {
-          final Message message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
+          final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
               .get(attributeDescription, c, i);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1198,7 +1198,7 @@ public final class AttributeDescription implements
 
       if (option.length() == 0)
       {
-        final Message message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
+        final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_EMPTY_OPTION
             .get(attributeDescription);
         throw new LocalizedIllegalArgumentException(message);
       }

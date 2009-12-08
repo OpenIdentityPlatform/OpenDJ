@@ -34,17 +34,13 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.Filter;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -75,7 +71,7 @@ public class AssertionControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_LDAPASSERT_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 

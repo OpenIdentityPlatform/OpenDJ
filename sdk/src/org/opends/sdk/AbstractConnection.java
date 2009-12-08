@@ -39,7 +39,6 @@ import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.*;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

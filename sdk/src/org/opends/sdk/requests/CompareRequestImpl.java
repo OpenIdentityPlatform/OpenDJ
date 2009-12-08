@@ -32,8 +32,8 @@ package org.opends.sdk.requests;
 import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

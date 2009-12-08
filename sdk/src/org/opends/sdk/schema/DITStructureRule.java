@@ -33,7 +33,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -302,7 +303,7 @@ public final class DITStructureRule extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     try
@@ -311,7 +312,7 @@ public final class DITStructureRule extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(definition,
               nameFormOID);
       throw new SchemaException(message, e);
@@ -330,7 +331,7 @@ public final class DITStructureRule extends SchemaElement
         }
         catch (final UnknownSchemaElementException e)
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(definition, id);
           throw new SchemaException(message, e);
         }

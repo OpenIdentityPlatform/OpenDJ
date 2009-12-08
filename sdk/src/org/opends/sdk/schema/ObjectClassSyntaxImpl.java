@@ -34,9 +34,9 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
@@ -73,7 +73,7 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeObjectClass method to determine if the value
     // is acceptable.
@@ -90,7 +90,7 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE.get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
@@ -103,7 +103,7 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
@@ -193,7 +193,7 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",

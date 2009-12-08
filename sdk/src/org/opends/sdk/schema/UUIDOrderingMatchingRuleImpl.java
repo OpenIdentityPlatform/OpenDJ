@@ -33,8 +33,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -51,7 +51,7 @@ final class UUIDOrderingMatchingRuleImpl extends
   {
     if (value.length() != 36)
     {
-      final Message message =
+      final LocalizableMessage message =
           WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value.toString(),
               value.length());
       throw DecodeException.error(message);
@@ -73,7 +73,7 @@ final class UUIDOrderingMatchingRuleImpl extends
       case 23:
         if (c != '-')
         {
-          final Message message =
+          final LocalizableMessage message =
               WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value.toString(),
                   i, String.valueOf(c));
           throw DecodeException.error(message);
@@ -121,7 +121,7 @@ final class UUIDOrderingMatchingRuleImpl extends
           builder.append('f');
           break;
         default:
-          final Message message =
+          final LocalizableMessage message =
               WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value.toString(),
                   i, String.valueOf(value.byteAt(i)));
           throw DecodeException.error(message);

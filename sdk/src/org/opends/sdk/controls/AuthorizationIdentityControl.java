@@ -7,9 +7,9 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -231,7 +231,7 @@ public class AuthorizationIdentityControl
     {
       if (value != null)
       {
-        Message message = ERR_AUTHZIDREQ_CONTROL_HAS_VALUE.get();
+        LocalizableMessage message = ERR_AUTHZIDREQ_CONTROL_HAS_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -263,7 +263,7 @@ public class AuthorizationIdentityControl
     {
       if (value == null)
       {
-        Message message = ERR_AUTHZIDRESP_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_AUTHZIDRESP_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 

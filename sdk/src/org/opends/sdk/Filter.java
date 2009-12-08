@@ -36,8 +36,6 @@ import java.util.*;
 
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -1110,7 +1108,7 @@ public final class Filter
     if ((string.length() > 1) && string.startsWith("'")
         && string.endsWith("'"))
     {
-      Message message = ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES
+      LocalizableMessage message = ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES
           .get(string);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1123,7 +1121,7 @@ public final class Filter
       }
       else
       {
-        Message message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
+        LocalizableMessage message = ERR_LDAP_FILTER_MISMATCHED_PARENTHESES.get(
             string, 1, string.length());
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1144,7 +1142,7 @@ public final class Filter
   {
     if (beginIndex >= endIndex)
     {
-      Message message = ERR_LDAP_FILTER_STRING_NULL.get();
+      LocalizableMessage message = ERR_LDAP_FILTER_STRING_NULL.get();
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -1182,7 +1180,7 @@ public final class Filter
       if ((string.charAt(index + 1) != '(')
           || (string.charAt(endIndex - 1) != ')'))
       {
-        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+        LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
             .get(string, index, endIndex - 1);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1273,7 +1271,7 @@ public final class Filter
           // the binary value.
           if ((i + 2) >= valueBytes.length)
           {
-            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+            LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                 string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
@@ -1335,7 +1333,7 @@ public final class Filter
             byteValue = (byte) 0xF0;
             break;
           default:
-            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+            LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                 string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
@@ -1396,7 +1394,7 @@ public final class Filter
             byteValue |= (byte) 0x0F;
             break;
           default:
-            Message message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
+            LocalizableMessage message = ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(
                 string, startIndex + i + 1);
             throw new LocalizedIllegalArgumentException(message);
           }
@@ -1521,7 +1519,7 @@ public final class Filter
         // can help make the switch statement more efficient. We'll fall
         // through to the default clause to reject them.
       default:
-        Message message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE
+        LocalizableMessage message = ERR_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE
             .get(attrType, String.valueOf(attrType.charAt(i)), i);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1569,7 +1567,7 @@ public final class Filter
       int colonPos = string.indexOf(':', startIndex);
       if (colonPos < 0)
       {
-        Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON
+        LocalizableMessage message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_COLON
             .get(string, startIndex);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1605,7 +1603,7 @@ public final class Filter
     // description and/or a matching rule ID.
     if ((attributeDescription == null) && (matchingRule == null))
     {
-      Message message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR
+      LocalizableMessage message = ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR
           .get(string, startIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1636,7 +1634,7 @@ public final class Filter
     if ((string.charAt(startIndex) != '(')
         || (string.charAt(endIndex - 1) != ')'))
     {
-      Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+      LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
           .get(string, startIndex, endIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1682,14 +1680,14 @@ public final class Filter
         }
         else if (pendingOpens < 0)
         {
-          Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS
+          LocalizableMessage message = ERR_LDAP_FILTER_NO_CORRESPONDING_OPEN_PARENTHESIS
               .get(string, i);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
       else if (pendingOpens <= 0)
       {
-        Message message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
+        LocalizableMessage message = ERR_LDAP_FILTER_COMPOUND_MISSING_PARENTHESES
             .get(string, startIndex, endIndex);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1699,7 +1697,7 @@ public final class Filter
     // components. The list of open parenthesis positions must be empty.
     if (pendingOpens != 0)
     {
-      Message message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS
+      LocalizableMessage message = ERR_LDAP_FILTER_NO_CORRESPONDING_CLOSE_PARENTHESIS
           .get(string, openIndex);
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -1769,7 +1767,7 @@ public final class Filter
             if (s == i)
             {
               // A zero length substring.
-              Message message = ERR_LDAP_FILTER_BAD_SUBSTRING.get(
+              LocalizableMessage message = ERR_LDAP_FILTER_BAD_SUBSTRING.get(
                   string, string.subSequence(startIndex, endIndex));
               throw new LocalizedIllegalArgumentException(message);
             }

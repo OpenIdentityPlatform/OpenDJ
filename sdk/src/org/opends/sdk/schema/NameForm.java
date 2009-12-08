@@ -33,7 +33,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -375,7 +376,7 @@ public final class NameForm extends SchemaElement
 
 
   @Override
-  void validate(List<Message> warnings, Schema schema)
+  void validate(List<LocalizableMessage> warnings, Schema schema)
       throws SchemaException
   {
     try
@@ -384,7 +385,7 @@ public final class NameForm extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.get(oid,
               structuralClassOID);
       throw new SchemaException(message, e);
@@ -393,7 +394,7 @@ public final class NameForm extends SchemaElement
     {
       // This is bad because the associated structural class type is not
       // structural.
-      final Message message =
+      final LocalizableMessage message =
           ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL
               .get(oid, structuralClass.getOID(), structuralClass
                   .getNameOrOID(), String.valueOf(structuralClass
@@ -414,7 +415,7 @@ public final class NameForm extends SchemaElement
       {
         // This isn't good because it means that the name form requires
         // an attribute type that we don't know anything about.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(
                 this.oid, oid);
         throw new SchemaException(message, e);
@@ -437,7 +438,7 @@ public final class NameForm extends SchemaElement
           // This isn't good because it means that the name form
           // requires an attribute type that we don't know anything
           // about.
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(
                   this.oid, oid);
           throw new SchemaException(message, e);

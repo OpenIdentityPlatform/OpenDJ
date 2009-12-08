@@ -34,7 +34,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -48,7 +49,7 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
 {
 
   // Description for this group of arguments
-  private Message description = null;
+  private LocalizableMessage description = null;
 
   // List of arguments belonging to this group
   private List<Argument> args = null;
@@ -69,7 +70,7 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
    *          usage statement. Groups with higher priority values appear
    *          before groups with lower priority.
    */
-  ArgumentGroup(Message description, int priority)
+  ArgumentGroup(LocalizableMessage description, int priority)
   {
     this.description = description;
     this.priority = priority;
@@ -83,7 +84,7 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
    * 
    * @return description for this argument group
    */
-  Message getDescription()
+  LocalizableMessage getDescription()
   {
     return this.description;
   }
@@ -96,7 +97,7 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
    * @param description
    *          for this argument group
    */
-  void setDescription(Message description)
+  void setDescription(LocalizableMessage description)
   {
     this.description = description;
   }

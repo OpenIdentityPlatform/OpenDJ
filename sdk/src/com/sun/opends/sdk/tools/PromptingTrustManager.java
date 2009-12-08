@@ -49,8 +49,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -84,7 +85,7 @@ final class PromptingTrustManager implements X509TrustManager
 
     private Integer choice;
 
-    private Message msg;
+    private LocalizableMessage msg;
 
 
 
@@ -96,7 +97,7 @@ final class PromptingTrustManager implements X509TrustManager
      * @param msg
      *          the message message.
      */
-    private TrustOption(int i, Message msg)
+    private TrustOption(int i, LocalizableMessage msg)
     {
       choice = i;
       this.msg = msg;
@@ -121,7 +122,7 @@ final class PromptingTrustManager implements X509TrustManager
      *
      * @return the menu message.
      */
-    Message getMenuMessage()
+    LocalizableMessage getMenuMessage()
     {
       return msg;
     }
@@ -338,7 +339,7 @@ final class PromptingTrustManager implements X509TrustManager
     {
       menuOptions.put(t.getChoice().toString(), t);
 
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
       builder.append(t.getChoice());
       builder.append(") ");
       builder.append(t.getMenuMessage());
@@ -346,7 +347,7 @@ final class PromptingTrustManager implements X509TrustManager
     }
 
     TrustOption defaultTrustMethod = TrustOption.SESSION;
-    Message promptMsg = INFO_MENU_PROMPT_SINGLE_DEFAULT
+    LocalizableMessage promptMsg = INFO_MENU_PROMPT_SINGLE_DEFAULT
         .get(defaultTrustMethod.getChoice().toString());
 
     while (true)

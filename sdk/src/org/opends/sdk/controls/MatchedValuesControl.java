@@ -44,8 +44,6 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -79,7 +77,7 @@ public class MatchedValuesControl extends Control
     public LocalizedIllegalArgumentException visitAndFilter(Filter p,
         List<Filter> subFilters)
     {
-      Message message = ERR_MVFILTER_BAD_FILTER_AND.get(p.toString());
+      LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_AND.get(p.toString());
       return new LocalizedIllegalArgumentException(message);
     }
 
@@ -92,7 +90,7 @@ public class MatchedValuesControl extends Control
     {
       if (dnAttributes)
       {
-        Message message = ERR_MVFILTER_BAD_FILTER_EXT.get(p.toString());
+        LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_EXT.get(p.toString());
         return new LocalizedIllegalArgumentException(message);
       }
       else
@@ -107,7 +105,7 @@ public class MatchedValuesControl extends Control
     public LocalizedIllegalArgumentException visitNotFilter(Filter p,
         Filter subFilter)
     {
-      Message message = ERR_MVFILTER_BAD_FILTER_NOT.get(p.toString());
+      LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_NOT.get(p.toString());
       return new LocalizedIllegalArgumentException(message);
     }
 
@@ -117,7 +115,7 @@ public class MatchedValuesControl extends Control
     public LocalizedIllegalArgumentException visitOrFilter(Filter p,
         List<Filter> subFilters)
     {
-      Message message = ERR_MVFILTER_BAD_FILTER_OR.get(p.toString());
+      LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_OR.get(p.toString());
       return new LocalizedIllegalArgumentException(message);
     }
 
@@ -127,7 +125,7 @@ public class MatchedValuesControl extends Control
     public LocalizedIllegalArgumentException visitUnrecognizedFilter(
         Filter p, byte filterTag, ByteSequence filterBytes)
     {
-      Message message = ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p
+      LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p
           .toString(), filterTag);
       return new LocalizedIllegalArgumentException(message);
     }
@@ -149,7 +147,7 @@ public class MatchedValuesControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_MATCHEDVALUES_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -159,7 +157,7 @@ public class MatchedValuesControl extends Control
         reader.readStartSequence();
         if (!reader.hasNextElement())
         {
-          Message message = ERR_MATCHEDVALUES_NO_FILTERS.get();
+          LocalizableMessage message = ERR_MATCHEDVALUES_NO_FILTERS.get();
           throw DecodeException.error(message);
         }
 
@@ -191,7 +189,7 @@ public class MatchedValuesControl extends Control
         StaticUtils.DEBUG_LOG.throwing("MatchedValuesControl.Decoder",
             "decode", e);
 
-        Message message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
+        LocalizableMessage message = ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message);
       }

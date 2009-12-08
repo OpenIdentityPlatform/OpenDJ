@@ -29,8 +29,9 @@ package org.opends.sdk.schema;
 
 
 
-import com.sun.opends.sdk.util.LocalizableException;
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableException;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -45,7 +46,7 @@ public class SchemaNotFoundException extends Exception implements
     LocalizableException
 {
   // The I18N message associated with this exception.
-  private final Message message;
+  private final LocalizableMessage message;
 
 
 
@@ -55,7 +56,7 @@ public class SchemaNotFoundException extends Exception implements
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public SchemaNotFoundException(Message message)
+  public SchemaNotFoundException(LocalizableMessage message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -75,7 +76,7 @@ public class SchemaNotFoundException extends Exception implements
    *          permitted, and indicates that the cause is nonexistent or
    *          unknown.
    */
-  public SchemaNotFoundException(Message message, Throwable cause)
+  public SchemaNotFoundException(LocalizableMessage message, Throwable cause)
   {
     super(String.valueOf(message), cause);
     this.message = message;
@@ -86,7 +87,7 @@ public class SchemaNotFoundException extends Exception implements
   /**
    * {@inheritDoc}
    */
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return this.message;
   }

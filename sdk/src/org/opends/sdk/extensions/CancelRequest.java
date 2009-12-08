@@ -7,10 +7,7 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -18,7 +15,6 @@ import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -126,7 +122,7 @@ public final class CancelRequest extends
       }
       catch (IOException e)
       {
-        Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
+        LocalizableMessage message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }

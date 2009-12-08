@@ -13,12 +13,12 @@ import java.util.StringTokenizer;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -353,7 +353,7 @@ public class ServerSideSortControl
     {
       if (value == null)
       {
-        Message message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -363,7 +363,7 @@ public class ServerSideSortControl
         reader.readStartSequence();
         if (!reader.hasNextElement())
         {
-          Message message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
+          LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_SORT_KEYS.get();
           throw DecodeException.error(message);
         }
 
@@ -396,7 +396,7 @@ public class ServerSideSortControl
       }
       catch (IOException e)
       {
-        Message message = INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE
+        LocalizableMessage message = INFO_SORTREQ_CONTROL_CANNOT_DECODE_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }
@@ -428,7 +428,7 @@ public class ServerSideSortControl
     {
       if (value == null)
       {
-        Message message = INFO_SORTRES_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_SORTRES_CONTROL_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -449,7 +449,7 @@ public class ServerSideSortControl
       }
       catch (IOException e)
       {
-        Message message = INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
+        LocalizableMessage message = INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }
@@ -519,7 +519,7 @@ public class ServerSideSortControl
       {
         if (token.length() == 0)
         {
-          Message message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
+          LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
               .get(sortOrderString);
           throw DecodeException.error(message);
         }
@@ -528,13 +528,13 @@ public class ServerSideSortControl
       }
       else if (colonPos == 0)
       {
-        Message message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
+        LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_ATTR_NAME
             .get(sortOrderString);
         throw DecodeException.error(message);
       }
       else if (colonPos == (token.length() - 1))
       {
-        Message message = INFO_SORTREQ_CONTROL_NO_MATCHING_RULE
+        LocalizableMessage message = INFO_SORTREQ_CONTROL_NO_MATCHING_RULE
             .get(sortOrderString);
         throw DecodeException.error(message);
       }

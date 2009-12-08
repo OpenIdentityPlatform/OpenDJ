@@ -6,9 +6,9 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -41,7 +41,7 @@ public class SubtreeDeleteControl extends Control
     {
       if (value != null)
       {
-        Message message = ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE
+        LocalizableMessage message = ERR_SUBTREE_DELETE_INVALID_CONTROL_VALUE
             .get();
         throw DecodeException.error(message);
       }

@@ -44,8 +44,6 @@ import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -89,7 +87,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       if (record == null)
       {
         // No change record found.
-        Message message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
+        LocalizableMessage message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -97,7 +95,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       if (reader.readChangeRecord() != null)
       {
         // Multiple change records found.
-        Message message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
+        LocalizableMessage message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -112,7 +110,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     catch (IOException e)
     {
       // This should never happen for a String based reader.
-      Message message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
+      LocalizableMessage message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
           .getMessage());
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -220,7 +218,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       // Skip if branch containing the entry DN is excluded.
       if (isBranchExcluded(entryDN))
       {
-        final Message message = Message
+        final LocalizableMessage message = LocalizableMessage
             .raw("Skipping entry because it is in excluded branch");
         skipLDIFRecord(record, message);
         continue;
@@ -232,7 +230,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         if (!record.iterator.hasNext())
         {
           // FIXME: improve error.
-          final Message message = Message.raw("Missing changetype");
+          final LocalizableMessage message = LocalizableMessage.raw("Missing changetype");
           throw DecodeException.error(message);
         }
 
@@ -275,7 +273,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
           else
           {
             // FIXME: improve error.
-            final Message message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE
+            final LocalizableMessage message = ERR_LDIF_INVALID_CHANGETYPE_ATTRIBUTE
                 .get(pair.value, "add, delete, modify, moddn, modrdn");
             throw DecodeException.error(message);
           }
@@ -474,7 +472,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     if (record.iterator.hasNext())
     {
       // FIXME: include line number in error.
-      final Message message = ERR_LDIF_INVALID_DELETE_ATTRIBUTES.get();
+      final LocalizableMessage message = ERR_LDIF_INVALID_DELETE_ATTRIBUTES.get();
       throw DecodeException.error(message);
     }
 
@@ -517,7 +515,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       else
       {
         // FIXME: improve error.
-        final Message message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(
+        final LocalizableMessage message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(
             pair.key, "add, delete, replace, increment");
         throw DecodeException.error(message);
       }
@@ -548,7 +546,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         if (validateSchema
             && attributeDescription.containsOption("binary"))
         {
-          final Message message = ERR_LDIF_INVALID_ATTR_OPTION.get(
+          final LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
               entryDN.toString(), record.lineNumber, pair.value);
           throw DecodeException.error(message);
         }
@@ -596,7 +594,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
         if (!attributeDescription2.equals(attributeDescription))
         {
           // TODO: include line number.
-          final Message message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE
+          final LocalizableMessage message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE
               .get(attributeDescription2.toString(),
                   attributeDescription.toString());
           throw DecodeException.error(message);
@@ -626,7 +624,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     if (!record.iterator.hasNext())
     {
       // TODO: include line number.
-      final Message message = ERR_LDIF_NO_MOD_DN_ATTRIBUTES.get();
+      final LocalizableMessage message = ERR_LDIF_NO_MOD_DN_ATTRIBUTES.get();
       throw DecodeException.error(message);
     }
 
@@ -636,7 +634,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     if (!toLowerCase(pair.key).equals("newrdn"))
     {
       // FIXME: improve error.
-      final Message message = Message.raw("Missing newrdn");
+      final LocalizableMessage message = LocalizableMessage.raw("Missing newrdn");
       throw DecodeException.error(message);
     }
 
@@ -647,7 +645,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     }
     catch (final LocalizedIllegalArgumentException e)
     {
-      final Message message = ERR_LDIF_INVALID_DN.get(
+      final LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
           record.lineNumber, ldifLine, e.getMessageObject());
       throw DecodeException.error(message);
     }
@@ -656,7 +654,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     if (!record.iterator.hasNext())
     {
       // TODO: include line number.
-      final Message message = ERR_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE.get();
+      final LocalizableMessage message = ERR_LDIF_NO_DELETE_OLDRDN_ATTRIBUTE.get();
       throw DecodeException.error(message);
     }
 
@@ -665,7 +663,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     if (!toLowerCase(pair.key).equals("deleteoldrdn"))
     {
       // FIXME: improve error.
-      final Message message = Message.raw("Missing deleteoldrdn");
+      final LocalizableMessage message = LocalizableMessage.raw("Missing deleteoldrdn");
       throw DecodeException.error(message);
     }
 
@@ -683,7 +681,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
     else
     {
       // FIXME: improve error.
-      final Message message = ERR_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE
+      final LocalizableMessage message = ERR_LDIF_INVALID_DELETE_OLDRDN_ATTRIBUTE
           .get(pair.value);
       throw DecodeException.error(message);
     }
@@ -696,7 +694,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       if (!toLowerCase(pair.key).equals("newsuperior"))
       {
         // FIXME: improve error.
-        final Message message = Message.raw("Missing newsuperior");
+        final LocalizableMessage message = LocalizableMessage.raw("Missing newsuperior");
         throw DecodeException.error(message);
       }
 
@@ -707,7 +705,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader
       }
       catch (final LocalizedIllegalArgumentException e)
       {
-        final Message message = ERR_LDIF_INVALID_DN.get(
+        final LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
             record.lineNumber, ldifLine, e.getMessageObject());
         throw DecodeException.error(message);
       }

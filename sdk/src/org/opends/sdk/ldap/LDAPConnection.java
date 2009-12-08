@@ -58,7 +58,6 @@ import com.sun.grizzly.filterchain.FilterChain;
 import com.sun.grizzly.filterchain.StreamTransformerFilter;
 import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.streams.StreamWriter;
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

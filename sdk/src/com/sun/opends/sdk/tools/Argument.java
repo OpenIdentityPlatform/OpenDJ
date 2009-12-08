@@ -34,8 +34,9 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 
 
 
@@ -69,7 +70,7 @@ abstract class Argument
   private Character shortIdentifier;
 
   // The unique ID of the description for this argument.
-  private Message description;
+  private LocalizableMessage description;
 
   // The set of values for this argument.
   private LinkedList<String> values;
@@ -89,7 +90,7 @@ abstract class Argument
   // The value placeholder for this argument, which will be used in
   // usage
   // information.
-  private Message valuePlaceholder;
+  private LocalizableMessage valuePlaceholder;
 
   // Indicates whether this argument was provided in the set of
   // properties
@@ -132,15 +133,15 @@ abstract class Argument
    *          used to override the default value but will be overridden
    *          by a command-line argument.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   protected Argument(String name, Character shortIdentifier,
       String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, Message valuePlaceholder,
-      String defaultValue, String propertyName, Message description)
+      boolean needsValue, LocalizableMessage valuePlaceholder,
+      String defaultValue, String propertyName, LocalizableMessage description)
       throws ArgumentException
   {
     this.name = name;
@@ -157,13 +158,13 @@ abstract class Argument
 
     if ((shortIdentifier == null) && (longIdentifier == null))
     {
-      Message message = ERR_ARG_NO_IDENTIFIER.get(name);
+      LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
       throw new ArgumentException(message);
     }
 
     if (needsValue && (valuePlaceholder == null))
     {
-      Message message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
+      LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
       throw new ArgumentException(message);
     }
 
@@ -377,7 +378,7 @@ abstract class Argument
    *         argument in the generated usage information, or
    *         <CODE>null</CODE> if there is none.
    */
-  public Message getValuePlaceholder()
+  public LocalizableMessage getValuePlaceholder()
   {
     return valuePlaceholder;
   }
@@ -394,7 +395,7 @@ abstract class Argument
    *          The value placeholder that will be displayed for this
    *          argument in the generated usage information.
    */
-  public void setValuePlaceholder(Message valuePlaceholder)
+  public void setValuePlaceholder(LocalizableMessage valuePlaceholder)
   {
     this.valuePlaceholder = valuePlaceholder;
   }
@@ -505,9 +506,9 @@ abstract class Argument
    *
    * @return The human-readable description for this argument.
    */
-  public Message getDescription()
+  public LocalizableMessage getDescription()
   {
-    return description != null ? description : Message.EMPTY;
+    return description != null ? description : LocalizableMessage.EMPTY;
   }
 
 
@@ -569,7 +570,7 @@ abstract class Argument
   {
     if (values.isEmpty())
     {
-      Message message = ERR_ARG_NO_INT_VALUE.get(name);
+      LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
       throw new ArgumentException(message);
     }
 
@@ -583,14 +584,14 @@ abstract class Argument
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
       throw new ArgumentException(message, e);
     }
 
     if (iterator.hasNext())
     {
-      Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
     else
@@ -625,7 +626,7 @@ abstract class Argument
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
         throw new ArgumentException(message, e);
       }
@@ -648,7 +649,7 @@ abstract class Argument
   {
     if (values.isEmpty())
     {
-      Message message = ERR_ARG_NO_INT_VALUE.get(name);
+      LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
       throw new ArgumentException(message);
     }
 
@@ -662,14 +663,14 @@ abstract class Argument
     }
     catch (Exception e)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
       throw new ArgumentException(message, e);
     }
 
     if (iterator.hasNext())
     {
-      Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
     else
@@ -704,7 +705,7 @@ abstract class Argument
       }
       catch (Exception e)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
         throw new ArgumentException(message, e);
       }
@@ -727,7 +728,7 @@ abstract class Argument
   {
     if (values.isEmpty())
     {
-      Message message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
+      LocalizableMessage message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
       throw new ArgumentException(message);
     }
 
@@ -747,14 +748,14 @@ abstract class Argument
     }
     else
     {
-      Message message =
+      LocalizableMessage message =
           ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
       throw new ArgumentException(message);
     }
 
     if (iterator.hasNext())
     {
-      Message message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
+      LocalizableMessage message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
     else
@@ -778,7 +779,7 @@ abstract class Argument
    *         <CODE>false</CODE> if it is not.
    */
   public abstract boolean valueIsAcceptable(String valueString,
-      MessageBuilder invalidReason);
+      LocalizableMessageBuilder invalidReason);
 
 
 

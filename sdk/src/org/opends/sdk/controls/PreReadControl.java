@@ -39,6 +39,7 @@ import java.util.Set;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
@@ -46,7 +47,6 @@ import org.opends.sdk.ldap.LDAPUtils;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -339,7 +339,7 @@ public class PreReadControl
     {
       if (value == null)
       {
-        Message message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PREREADREQ_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -359,7 +359,7 @@ public class PreReadControl
         StaticUtils.DEBUG_LOG.throwing("PreReadControl.RequestDecoder",
             "decode", ae);
 
-        Message message = ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae
+        LocalizableMessage message = ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae
             .getMessage());
         throw DecodeException.error(message, ae);
       }
@@ -394,7 +394,7 @@ public class PreReadControl
     {
       if (value == null)
       {
-        Message message = ERR_PREREADRESP_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PREREADRESP_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -409,7 +409,7 @@ public class PreReadControl
         StaticUtils.DEBUG_LOG.throwing(
             "PersistentSearchControl.ResponseDecoder", "decode", le);
 
-        Message message = ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le
+        LocalizableMessage message = ERR_PREREADRESP_CANNOT_DECODE_VALUE.get(le
             .getMessage());
         throw DecodeException.error(message, le);
       }

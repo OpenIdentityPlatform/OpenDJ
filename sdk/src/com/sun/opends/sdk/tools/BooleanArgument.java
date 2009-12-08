@@ -30,8 +30,9 @@ package com.sun.opends.sdk.tools;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
+
 
 
 
@@ -57,13 +58,13 @@ final class BooleanArgument extends Argument
    *          The long identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param description
-   *          Message for the description of this argument.
+   *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used to
    *           create this argument.
    */
   public BooleanArgument(String name, Character shortIdentifier,
-      String longIdentifier, Message description)
+      String longIdentifier, LocalizableMessage description)
       throws ArgumentException
   {
     super(name, shortIdentifier, longIdentifier, false, false, false,
@@ -85,7 +86,7 @@ final class BooleanArgument extends Argument
    *         <CODE>false</CODE> if it is not.
    */
   public boolean valueIsAcceptable(String valueString,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // This argument type should never have a value, so any value
     // provided will

@@ -32,7 +32,8 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -73,8 +74,8 @@ final class CoreSchemaImpl
 
   // Package private so that we can check for warnings in the unit
   // tests.
-  static final List<Message> CORE_SCHEMA_WARNINGS =
-      new LinkedList<Message>();
+  static final List<LocalizableMessage> CORE_SCHEMA_WARNINGS =
+      new LinkedList<LocalizableMessage>();
 
   static
   {

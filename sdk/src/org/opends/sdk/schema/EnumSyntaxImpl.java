@@ -39,9 +39,9 @@ import java.util.List;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
+import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.Message;
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -140,14 +140,14 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // The value is acceptable if it belongs to the set.
     final boolean isAllowed = entries.contains(normalize(value));
 
     if (!isAllowed)
     {
-      final Message message =
+      final LocalizableMessage message =
           WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
               .toString(), oid);
       invalidReason.append(message);

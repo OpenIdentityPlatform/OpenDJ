@@ -32,13 +32,9 @@ package org.opends.sdk.requests;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.Change;
-import org.opends.sdk.DN;
-import org.opends.sdk.LinkedAttribute;
-import org.opends.sdk.ModificationType;
+import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

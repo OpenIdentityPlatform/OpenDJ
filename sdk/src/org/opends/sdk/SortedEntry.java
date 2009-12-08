@@ -35,7 +35,6 @@ import java.util.TreeMap;
 
 import org.opends.sdk.requests.Requests;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

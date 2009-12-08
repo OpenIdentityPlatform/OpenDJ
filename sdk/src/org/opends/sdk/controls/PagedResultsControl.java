@@ -9,12 +9,12 @@ import java.io.IOException;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -51,7 +51,7 @@ public class PagedResultsControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_NULL.get();
         throw DecodeException.error(message);
       }
 
@@ -65,7 +65,7 @@ public class PagedResultsControl extends Control
         StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
             "decode", e);
 
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
             .get(String.valueOf(e));
         throw DecodeException.error(message, e);
       }
@@ -80,7 +80,7 @@ public class PagedResultsControl extends Control
         StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
             "decode", e);
 
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String
             .valueOf(e));
         throw DecodeException.error(message, e);
       }
@@ -95,7 +95,7 @@ public class PagedResultsControl extends Control
         StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
             "decode", e);
 
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE
             .get(String.valueOf(e));
         throw DecodeException.error(message, e);
       }
@@ -109,7 +109,7 @@ public class PagedResultsControl extends Control
         StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder",
             "decode", e);
 
-        Message message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
+        LocalizableMessage message = ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE
             .get(String.valueOf(e));
         throw DecodeException.error(message, e);
       }

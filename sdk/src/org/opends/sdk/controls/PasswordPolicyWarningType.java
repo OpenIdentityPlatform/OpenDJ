@@ -7,7 +7,8 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import java.util.Arrays;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -33,7 +34,7 @@ public class PasswordPolicyWarningType
     PasswordPolicyWarningType e = ELEMENTS[intValue];
     if (e == null)
     {
-      e = new PasswordPolicyWarningType(intValue, Message
+      e = new PasswordPolicyWarningType(intValue, LocalizableMessage
           .raw("undefined(" + intValue + ")"));
     }
     return e;
@@ -49,7 +50,7 @@ public class PasswordPolicyWarningType
 
 
   private static PasswordPolicyWarningType register(int intValue,
-      Message name)
+      LocalizableMessage name)
   {
     PasswordPolicyWarningType t = new PasswordPolicyWarningType(
         intValue, name);
@@ -61,11 +62,11 @@ public class PasswordPolicyWarningType
 
   private final int intValue;
 
-  private final Message name;
+  private final LocalizableMessage name;
 
 
 
-  private PasswordPolicyWarningType(int intValue, Message name)
+  private PasswordPolicyWarningType(int intValue, LocalizableMessage name)
   {
     this.intValue = intValue;
     this.name = name;

@@ -10,12 +10,12 @@ import java.io.IOException;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -518,7 +518,7 @@ public class AccountUsabilityControl
     {
       if (value != null)
       {
-        Message message = ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE.get();
+        LocalizableMessage message = ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -552,7 +552,7 @@ public class AccountUsabilityControl
       if (value == null)
       {
         // The response control must always have a value.
-        Message message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_ACCTUSABLERES_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -606,7 +606,7 @@ public class AccountUsabilityControl
               secondsBeforeUnlock);
 
         default:
-          Message message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE
+          LocalizableMessage message = ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE
               .get(byteToHex(reader.peekType()));
           throw DecodeException.error(message);
         }
@@ -616,7 +616,7 @@ public class AccountUsabilityControl
         StaticUtils.DEBUG_LOG.throwing(
             "AccountUsabilityControl.ResponseDecoder", "decode", e);
 
-        Message message = ERR_ACCTUSABLERES_DECODE_ERROR
+        LocalizableMessage message = ERR_ACCTUSABLERES_DECODE_ERROR
             .get(getExceptionMessage(e));
         throw DecodeException.error(message);
       }

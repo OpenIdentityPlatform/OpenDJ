@@ -8,16 +8,12 @@ import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DN;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -52,7 +48,7 @@ public class EntryChangeNotificationControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_ECN_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_ECN_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -71,7 +67,7 @@ public class EntryChangeNotificationControl extends Control
         {
           if (changeType != PersistentSearchChangeType.MODIFY_DN)
           {
-            Message message = ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String
+            LocalizableMessage message = ERR_ECN_ILLEGAL_PREVIOUS_DN.get(String
                 .valueOf(changeType));
             throw DecodeException.error(message);
           }
@@ -89,7 +85,7 @@ public class EntryChangeNotificationControl extends Control
         StaticUtils.DEBUG_LOG.throwing(
             "EntryChangeNotificationControl.Decoder", "decode", e);
 
-        Message message = ERR_ECN_CANNOT_DECODE_VALUE
+        LocalizableMessage message = ERR_ECN_CANNOT_DECODE_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }

@@ -9,10 +9,10 @@ import java.io.IOException;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -155,7 +155,7 @@ public abstract class VLVTarget
       return new GreaterThanOrEqual(assertionValue);
 
     default:
-      Message message = INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE
+      LocalizableMessage message = INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE
           .get(byteToHex(targetType));
       throw DecodeException.error(message);
     }

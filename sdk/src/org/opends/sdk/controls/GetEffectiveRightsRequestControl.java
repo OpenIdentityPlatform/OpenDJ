@@ -7,17 +7,13 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DN;
-import org.opends.sdk.DecodeException;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -90,7 +86,7 @@ public class GetEffectiveRightsRequestControl extends Control
             authzDN = authzIDString.substring(3);
           else
           {
-            Message message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID
+            LocalizableMessage message = INFO_GETEFFECTIVERIGHTS_INVALID_AUTHZID
                 .get(lowerAuthzIDString);
             throw DecodeException.error(message);
           }
@@ -111,7 +107,7 @@ public class GetEffectiveRightsRequestControl extends Control
         }
         catch (IOException e)
         {
-          Message message = INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e
+          LocalizableMessage message = INFO_GETEFFECTIVERIGHTS_DECODE_ERROR.get(e
               .getMessage());
           throw DecodeException.error(message);
         }

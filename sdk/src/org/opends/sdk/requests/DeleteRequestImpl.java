@@ -30,9 +30,9 @@ package org.opends.sdk.requests;
 
 
 import org.opends.sdk.DN;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

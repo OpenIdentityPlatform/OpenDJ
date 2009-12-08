@@ -35,8 +35,8 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.MessageBuilder;
 import com.sun.opends.sdk.util.SubstringReader;
 
 
@@ -93,7 +93,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.
     final String valueStr = toLowerCase(value.toString());

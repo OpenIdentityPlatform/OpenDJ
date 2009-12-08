@@ -33,12 +33,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.DN;
-import org.opends.sdk.DereferenceAliasesPolicy;
-import org.opends.sdk.Filter;
-import org.opends.sdk.SearchScope;
+import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 import com.sun.opends.sdk.util.Validator;
 
 

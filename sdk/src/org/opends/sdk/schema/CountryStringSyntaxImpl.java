@@ -34,8 +34,8 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.LocalizableMessageBuilder;
 
-import com.sun.opends.sdk.util.MessageBuilder;
 
 
 
@@ -110,7 +110,7 @@ final class CountryStringSyntaxImpl extends AbstractSyntaxImpl
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
   public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      MessageBuilder invalidReason)
+      LocalizableMessageBuilder invalidReason)
   {
     final String stringValue = toLowerCase(value.toString());
     if (stringValue.length() != 2)

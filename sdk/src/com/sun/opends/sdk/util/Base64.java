@@ -31,9 +31,7 @@ package com.sun.opends.sdk.util;
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.util.Validator.*;
 
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.*;
 
 
 
@@ -141,7 +139,7 @@ public final class Base64
     int length = base64.length();
     if ((length % 4) != 0)
     {
-      Message message = ERR_BASE64_DECODE_INVALID_LENGTH.get(base64);
+      LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH.get(base64);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -361,7 +359,7 @@ public final class Base64
           }
           break;
         default:
-          Message message =
+          LocalizableMessage message =
               ERR_BASE64_DECODE_INVALID_CHARACTER.get(base64, base64
                   .charAt(i + j));
           throw new LocalizedIllegalArgumentException(message);

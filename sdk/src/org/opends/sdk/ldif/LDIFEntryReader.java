@@ -39,8 +39,6 @@ import java.util.List;
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -80,7 +78,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       if (entry == null)
       {
         // No change record found.
-        Message message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
+        LocalizableMessage message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -88,7 +86,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       if (reader.readEntry() != null)
       {
         // Multiple change records found.
-        Message message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
+        LocalizableMessage message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -103,7 +101,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
     catch (IOException e)
     {
       // This should never happen for a String based reader.
-      Message message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
+      LocalizableMessage message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
           .getMessage());
       throw new LocalizedIllegalArgumentException(message);
     }
@@ -209,7 +207,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       // Skip if branch containing the entry DN is excluded.
       if (isBranchExcluded(entryDN))
       {
-        final Message message = Message
+        final LocalizableMessage message = LocalizableMessage
             .raw("Skipping entry because it is in excluded branch");
         skipLDIFRecord(record, message);
         continue;
@@ -234,7 +232,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       // Skip if the entry is excluded by any filters.
       if (isEntryExcluded(entry))
       {
-        final Message message = Message
+        final LocalizableMessage message = LocalizableMessage
             .raw("Skipping entry due to exclusing filters");
         skipLDIFRecord(record, message);
         continue;

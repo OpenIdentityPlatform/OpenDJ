@@ -7,9 +7,9 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -44,7 +44,7 @@ public class PasswordExpiringControl extends Control
     {
       if (value == null)
       {
-        Message message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
+        LocalizableMessage message = ERR_PWEXPIRING_NO_CONTROL_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -58,7 +58,7 @@ public class PasswordExpiringControl extends Control
         StaticUtils.DEBUG_LOG.throwing(
             "PasswordExpiringControl.Decoder", "decode", e);
 
-        Message message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
+        LocalizableMessage message = ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION
             .get(getExceptionMessage(e));
         throw DecodeException.error(message);
       }

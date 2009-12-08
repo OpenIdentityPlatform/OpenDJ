@@ -31,13 +31,9 @@ package org.opends.sdk.requests;
 
 import java.util.Collection;
 
-import org.opends.sdk.DN;
-import org.opends.sdk.DereferenceAliasesPolicy;
-import org.opends.sdk.Filter;
-import org.opends.sdk.SearchScope;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
 
 
 

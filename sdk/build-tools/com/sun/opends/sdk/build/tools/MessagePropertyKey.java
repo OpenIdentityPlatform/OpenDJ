@@ -94,7 +94,7 @@ public class MessagePropertyKey implements
 
 
   /**
-   * Gets the name of the MessageDescriptor as it should appear in the
+   * Gets the name of the LocalizableMessageDescriptor as it should appear in the
    * messages file.
    *
    * @return name of message descriptor

@@ -29,8 +29,9 @@ package org.opends.sdk.schema;
 
 
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
+import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.LocalizableMessage;
+
 
 
 
@@ -51,7 +52,7 @@ public class ConflictingSchemaElementException extends
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public ConflictingSchemaElementException(Message message)
+  public ConflictingSchemaElementException(LocalizableMessage message)
   {
     super(message);
   }

@@ -36,6 +36,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.*;
 
@@ -135,7 +137,7 @@ public final class SchemaBuilder
       {
         // This means that the definition was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -145,7 +147,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -310,7 +312,7 @@ public final class SchemaBuilder
           }
           else
           {
-            final Message message =
+            final LocalizableMessage message =
                 WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.get(
                     String.valueOf(oid), usageStr);
             throw new LocalizedIllegalArgumentException(message);
@@ -332,7 +334,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -479,7 +481,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -488,7 +490,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -578,7 +580,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -737,7 +739,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -746,7 +748,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -826,7 +828,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -834,7 +836,7 @@ public final class SchemaBuilder
 
       if (nameForm == null)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -939,7 +941,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -948,7 +950,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -1023,7 +1025,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1032,7 +1034,7 @@ public final class SchemaBuilder
       // Make sure that a syntax was specified.
       if (syntax == null)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1130,7 +1132,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1139,7 +1141,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -1214,7 +1216,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1223,7 +1225,7 @@ public final class SchemaBuilder
       // Make sure that the set of attributes was defined.
       if (attributes == null || attributes.size() == 0)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1319,7 +1321,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1329,7 +1331,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), c);
         throw new LocalizedIllegalArgumentException(message);
@@ -1414,7 +1416,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1424,7 +1426,7 @@ public final class SchemaBuilder
       // it cannot be valid.
       if (structuralClass == null)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS
                 .get(definition);
         throw new LocalizedIllegalArgumentException(message);
@@ -1432,7 +1434,7 @@ public final class SchemaBuilder
 
       if (requiredAttributes == null || requiredAttributes.size() == 0)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1535,7 +1537,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1545,7 +1547,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -1651,7 +1653,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -1915,7 +1917,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -1925,7 +1927,7 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
                 definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
@@ -1981,7 +1983,7 @@ public final class SchemaBuilder
         }
         else
         {
-          final Message message =
+          final LocalizableMessage message =
               ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
@@ -2271,11 +2273,11 @@ public final class SchemaBuilder
    *         contained in this schema builder as well as the same set of
    *         schema compatibility options
    */
-  public Schema toSchema(List<Message> errorMessages)
+  public Schema toSchema(List<LocalizableMessage> errorMessages)
   {
     if (errorMessages == null)
     {
-      errorMessages = new LinkedList<Message>();
+      errorMessages = new LinkedList<LocalizableMessage>();
     }
 
     validate(errorMessages);
@@ -2296,7 +2298,7 @@ public final class SchemaBuilder
           numericOID2AttributeTypes.get(attribute.getOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.get(attribute
                 .getNameOrOID(), attribute.getOID(),
                 conflictingAttribute.getNameOrOID());
@@ -2341,7 +2343,7 @@ public final class SchemaBuilder
           numericOID2ContentRules.get(rule.getStructuralClassOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.get(rule
                 .getNameOrOID(), rule.getStructuralClassOID(),
                 conflictingRule.getNameOrOID());
@@ -2384,7 +2386,7 @@ public final class SchemaBuilder
       conflictingRule = id2StructureRules.get(rule.getRuleID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.get(rule
                 .getNameOrRuleID(), rule.getRuleID(), conflictingRule
                 .getNameOrRuleID());
@@ -2427,7 +2429,7 @@ public final class SchemaBuilder
       conflictingRule = numericOID2MatchingRules.get(rule.getOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_MR_OID.get(rule.getNameOrOID(), rule
                 .getOID(), conflictingRule.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
@@ -2471,7 +2473,7 @@ public final class SchemaBuilder
           numericOID2MatchingRuleUses.get(use.getMatchingRuleOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.get(use
                 .getNameOrOID(), use.getMatchingRuleOID(),
                 conflictingUse.getNameOrOID());
@@ -2514,7 +2516,7 @@ public final class SchemaBuilder
       conflictingForm = numericOID2NameForms.get(form.getOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.get(form
                 .getNameOrOID(), form.getOID(), conflictingForm
                 .getNameOrOID());
@@ -2556,7 +2558,7 @@ public final class SchemaBuilder
       conflictingOC = numericOID2ObjectClasses.get(oc.getOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.get(oc
                 .getNameOrOID(), oc.getOID(), conflictingOC
                 .getNameOrOID());
@@ -2599,7 +2601,7 @@ public final class SchemaBuilder
       conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());
       if (!overwrite)
       {
-        final Message message =
+        final LocalizableMessage message =
             ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(syntax.toString(),
                 syntax.getOID(), conflictingSyntax.getOID());
         throw new ConflictingSchemaElementException(message);
@@ -2826,7 +2828,7 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void validate(List<Message> warnings)
+  private synchronized void validate(List<LocalizableMessage> warnings)
   {
     // Verify all references in all elements
     for (final Syntax syntax : numericOID2Syntaxes.values().toArray(

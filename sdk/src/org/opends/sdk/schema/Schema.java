@@ -38,8 +38,6 @@ import java.util.Map;
 import org.opends.sdk.*;
 import org.opends.sdk.responses.SearchResultEntry;
 
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
@@ -1545,7 +1543,7 @@ public final class Schema
    *           Server.
    */
   public static Schema getSchema(Connection connection, String dn,
-      List<Message> warnings) throws ErrorResultException,
+      List<LocalizableMessage> warnings) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       SchemaNotFoundException
   {

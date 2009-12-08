@@ -25,7 +25,8 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package com.sun.opends.sdk.util;
+package org.opends.sdk;
+
 
 
 
@@ -50,7 +51,7 @@ public class LocalizedIllegalArgumentException extends
     IllegalArgumentException implements LocalizableException
 {
   // The I18N message associated with this exception.
-  private final Message message;
+  private final LocalizableMessage message;
 
 
 
@@ -61,7 +62,7 @@ public class LocalizedIllegalArgumentException extends
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public LocalizedIllegalArgumentException(Message message)
+  public LocalizedIllegalArgumentException(LocalizableMessage message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -81,7 +82,7 @@ public class LocalizedIllegalArgumentException extends
    *          permitted, and indicates that the cause is nonexistent or
    *          unknown.
    */
-  public LocalizedIllegalArgumentException(Message message,
+  public LocalizedIllegalArgumentException(LocalizableMessage message,
       Throwable cause)
   {
     super(String.valueOf(message), cause);
@@ -93,7 +94,7 @@ public class LocalizedIllegalArgumentException extends
   /**
    * {@inheritDoc}
    */
-  public Message getMessageObject()
+  public LocalizableMessage getMessageObject()
   {
     return this.message;
   }

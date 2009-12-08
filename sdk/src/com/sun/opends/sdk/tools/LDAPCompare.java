@@ -46,8 +46,6 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
 import com.sun.opends.sdk.util.Base64;
-import com.sun.opends.sdk.util.LocalizedIllegalArgumentException;
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -135,7 +133,7 @@ public final class LDAPCompare extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    Message toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
+    LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
         new ArgumentParser(LDAPCompare.class.getName(),
             toolDescription, false, true, 1, 0,
@@ -246,7 +244,7 @@ public final class LDAPCompare extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -259,7 +257,7 @@ public final class LDAPCompare extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -295,7 +293,7 @@ public final class LDAPCompare extends ConsoleApplication
 
     if (attrAndDNStrings.isEmpty())
     {
-      Message message = ERR_LDAPCOMPARE_NO_ATTR.get();
+      LocalizableMessage message = ERR_LDAPCOMPARE_NO_ATTR.get();
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -328,7 +326,7 @@ public final class LDAPCompare extends ConsoleApplication
     int idx = attributeString.indexOf(":");
     if (idx == -1)
     {
-      Message message =
+      LocalizableMessage message =
           ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -393,7 +391,7 @@ public final class LDAPCompare extends ConsoleApplication
         }
         catch (DecodeException de)
         {
-          Message message =
+          LocalizableMessage message =
               ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -424,7 +422,7 @@ public final class LDAPCompare extends ConsoleApplication
       }
       catch (LocalizedIllegalArgumentException le)
       {
-        Message message =
+        LocalizableMessage message =
             ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -460,7 +458,7 @@ public final class LDAPCompare extends ConsoleApplication
       }
       catch (ErrorResultException ere)
       {
-        println(Message.raw(ere.getMessage()));
+        println(LocalizableMessage.raw(ere.getMessage()));
         return ere.getResult().getResultCode().intValue();
       }
     }
@@ -566,7 +564,7 @@ public final class LDAPCompare extends ConsoleApplication
       }
       catch (ErrorResultException ere)
       {
-        Message msg = INFO_OPERATION_FAILED.get("COMPARE");
+        LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
         println(msg);
         Result r = ere.getResult();
         println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(),
@@ -574,7 +572,7 @@ public final class LDAPCompare extends ConsoleApplication
         if ((r.getDiagnosticMessage() != null)
             && (r.getDiagnosticMessage().length() > 0))
         {
-          println(Message.raw(r.getDiagnosticMessage()));
+          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
         }
         if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0)
         {

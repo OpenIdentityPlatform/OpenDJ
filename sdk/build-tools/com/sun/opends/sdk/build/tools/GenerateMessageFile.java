@@ -89,7 +89,7 @@ public class GenerateMessageFile extends Task
       .compile(SPECIFIER_REGEX);
 
   /**
-   * Message giving formatting rules for string keys.
+   * LocalizableMessage giving formatting rules for string keys.
    */
   static public String KEY_FORM_MSG;
 
@@ -279,14 +279,14 @@ public class GenerateMessageFile extends Task
       StringBuilder sb = new StringBuilder();
       if (useGenericMessageTypeClass())
       {
-        sb.append("MessageDescriptor");
+        sb.append("LocalizableMessageDescriptor");
         sb.append(".");
         sb.append(DESCRIPTOR_CLASS_BASE_NAME);
         sb.append("N");
       }
       else
       {
-        sb.append("MessageDescriptor");
+        sb.append("LocalizableMessageDescriptor");
         sb.append(".");
         sb.append(DESCRIPTOR_CLASS_BASE_NAME);
         sb.append(classTypes.size());
@@ -711,9 +711,9 @@ public class GenerateMessageFile extends Task
             }
           }
 
-          log("  Message Generated:" + keyMap.size(),
+          log("  LocalizableMessage Generated:" + keyMap.size(),
               Project.MSG_VERBOSE);
-          log("  MessageDescriptor.ArgN:" + usesOfGenericDescriptor,
+          log("  LocalizableMessageDescriptor.ArgN:" + usesOfGenericDescriptor,
               Project.MSG_VERBOSE);
 
         }

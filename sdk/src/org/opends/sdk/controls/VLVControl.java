@@ -10,12 +10,12 @@ import java.io.IOException;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -542,7 +542,7 @@ public class VLVControl
     {
       if (value == null)
       {
-        Message message = INFO_VLVREQ_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_VLVREQ_CONTROL_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -565,7 +565,7 @@ public class VLVControl
       }
       catch (IOException e)
       {
-        Message message = INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE
+        LocalizableMessage message = INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }
@@ -596,7 +596,7 @@ public class VLVControl
     {
       if (value == null)
       {
-        Message message = INFO_VLVRES_CONTROL_NO_VALUE.get();
+        LocalizableMessage message = INFO_VLVRES_CONTROL_NO_VALUE.get();
         throw DecodeException.error(message);
       }
 
@@ -620,7 +620,7 @@ public class VLVControl
       }
       catch (IOException e)
       {
-        Message message = INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE
+        LocalizableMessage message = INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE
             .get(getExceptionMessage(e));
         throw DecodeException.error(message, e);
       }

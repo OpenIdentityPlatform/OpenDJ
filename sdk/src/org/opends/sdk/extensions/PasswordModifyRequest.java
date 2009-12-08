@@ -7,16 +7,12 @@ import static com.sun.opends.sdk.util.StaticUtils.*;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -220,7 +216,7 @@ public final class PasswordModifyRequest extends
         }
         catch (IOException e)
         {
-          Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+          LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
               .get(getExceptionMessage(e));
           throw DecodeException.error(message, e);
         }
@@ -253,7 +249,7 @@ public final class PasswordModifyRequest extends
         }
         catch (IOException e)
         {
-          Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+          LocalizableMessage message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
               .get(getExceptionMessage(e));
           throw DecodeException.error(message, e);
         }

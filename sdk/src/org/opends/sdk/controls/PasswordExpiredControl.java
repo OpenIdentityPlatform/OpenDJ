@@ -6,9 +6,9 @@ import static com.sun.opends.sdk.messages.Messages.*;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Message;
 
 
 
@@ -48,7 +48,7 @@ public class PasswordExpiredControl extends Control
         }
         catch (Exception e)
         {
-          Message message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
+          LocalizableMessage message = ERR_PWEXPIRED_CONTROL_INVALID_VALUE.get();
           throw DecodeException.error(message);
         }
       }
