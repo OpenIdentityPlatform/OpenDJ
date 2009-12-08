@@ -399,7 +399,7 @@
     </target>
 
     <!-- Populate the OpenDS LDAP SDK package, but don't zip it up. -->
-    <target name="prepackage" depends="clean,compile">
+    <target name="prepackage" depends="clean,compile,javadoc">
         <property name="pdir"
                   location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
@@ -408,6 +408,7 @@
         <mkdir dir="${pdir}/bin" />
         <mkdir dir="${pdir}/legal-notices" />
         <mkdir dir="${pdir}/lib" />
+        <mkdir dir="${pdir}/doc" />
 
         <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
              basedir="${classes.dir}"
@@ -497,6 +498,11 @@
         </chmod>
         <chmod file="${pdir}/lib/_client-script.sh" perm="755" />
         <chmod file="${pdir}/lib/_script-util.sh" perm="755" />
+
+        <copy todir="${pdir}/doc">
+            <fileset dir="${javadoc.dir}" includes="**/*" />
+        </copy>
+
     </target>
 
     <!-- Generate JavaDoc documentation from the source files -->
@@ -1160,11 +1166,9 @@
             description="Generate a src.zip file with all the sdk source.">
         <zip destfile="${build.dir}/src.zip">
             <zipfileset dir="${src.dir}"
-                        excludes="**/.svn"
                         filemode="644"
                         dirmode="755" />
             <zipfileset dir="${srcgen.dir}"
-                        excludes="**/.svn"
                         filemode="644"
                         dirmode="755" />
         </zip>
