@@ -260,4 +260,14 @@ public class SynchronousConnection extends AbstractConnection
     }
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isClosed()
+  {
+    return connection.isClosed();
+  }
+
 }
