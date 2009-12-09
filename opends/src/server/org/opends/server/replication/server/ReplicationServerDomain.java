@@ -3128,7 +3128,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     ServerState dbState = this.getDbServerState();
 
     // The result is initialized from the dbState.
-    // From it, we don't want to kepp the changes newer than eligibleCN.
+    // From it, we don't want to keep the changes newer than eligibleCN.
     result = dbState.duplicate();
 
     if (eligibleCN != null)
