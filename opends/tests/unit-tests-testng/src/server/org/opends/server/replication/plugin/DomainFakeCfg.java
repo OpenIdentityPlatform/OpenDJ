@@ -54,6 +54,12 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private int serverId;
   private SortedSet<String> replicationServers;
   private long heartbeatInterval = 1000;
+
+  // By default changeTimeHeartbeatInterval is set to 0 in order to disable
+  // this feature and not kill the tests that expect to receive special
+  // messages.
+  private long changeTimeHeartbeatInterval = 0;
+
   private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
 
   // Is assured mode enabled or not ?
@@ -197,7 +203,15 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    */
   public long getChangetimeHeartbeatInterval()
   {
-    return 0;
+    return changeTimeHeartbeatInterval;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setChangetimeHeartbeatInterval(long changeTimeHeartbeatInterval)
+  {
+    this.changeTimeHeartbeatInterval = changeTimeHeartbeatInterval;
   }
 
   /**

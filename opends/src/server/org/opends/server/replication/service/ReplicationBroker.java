@@ -2564,7 +2564,8 @@ public class ReplicationBroker
     }
     else
     {
-      TRACER.debugInfo(this +
+      if (debugEnabled())
+        TRACER.debugInfo(this +
           " is not configured to send CN heartbeat interval");
     }
   }
