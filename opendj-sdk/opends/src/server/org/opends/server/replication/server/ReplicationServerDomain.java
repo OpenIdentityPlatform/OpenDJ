@@ -1402,7 +1402,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * for the provided server Id.
    */
   public ReplicationIterator getChangelogIterator(int serverId,
-    ChangeNumber changeNumber)
+      ChangeNumber changeNumber)
   {
     DbHandler handler = sourceDbHandlers.get(serverId);
     if (handler == null)
@@ -1421,6 +1421,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       return null;
     }
+  }
+
+ /**
+  * Count the number of changes in the replication changelog for the provided
+  * serverID, between 2 provided changenumbers.
+  * @param serverId Identifier of the server for which the iterator is created.
+  * @param from lower limit changenumber.
+  * @param to   upper limit changenumber.
+  * @return the number of changes.
+  *
+  */
+  public int getCount(int serverId,
+      ChangeNumber from, ChangeNumber to)
+  {
+    DbHandler handler = sourceDbHandlers.get(serverId);
+    if (handler == null)
+      return 0;
+
+    return handler.getCount(from, to);
   }
 
   /**
@@ -3358,81 +3377,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public long getEligibleCount(ServerState startState, ChangeNumber endCN)
   {
     long res = 0;
-    ReplicationIterator ri=null;
 
     // Parses the dbState of the domain , server by server
     ServerState dbState = this.getDbServerState();
-    Iterator<Integer> it = dbState.iterator();
-    while (it.hasNext())
+    Iterator<Integer> serverIDIterator = dbState.iterator();
+    while (serverIDIterator.hasNext())
     {
-      // for each server
-      int sid = it.next();
-      DbHandler h = sourceDbHandlers.get(sid);
-
-      try
-      {
-        // Set on the change related to the startState
-        ChangeNumber startCN = null;
-        try
-        {
-          ri = h.generateIterator(startState.getMaxChangeNumber(sid));
-          if (ri.next()==true)
-          {
-            startCN = ri.getChange().getChangeNumber();
-          }
-        }
-        catch(Exception e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          startCN = null;
-        }
-        finally
-        {
-          if (ri!=null)
-          {
-            ri.releaseCursor();
-            ri = null;
-          }
-        }
-
-        if (startCN != null)
-        {
-          // Set on the change related to the endCN
-          ChangeNumber upperCN = null;
-          try
-          {
-            // Build a changenumber for this very server, with the timestamp
-            // of the endCN
-            ChangeNumber f = new ChangeNumber(endCN.getTime(), 0, sid);
-            ri = h.generateIterator(f);
-            if (ri.next()==true)
-            {
-              upperCN = ri.getChange().getChangeNumber();
-            }
-          }
-          catch(Exception e)
-          {
-            upperCN = h.getLastChange();
-          }
-          finally
-          {
-            if (ri!=null)
-            {
-              ri.releaseCursor();
-              ri = null;
-            }
-          }
-
-          long diff = upperCN.getSeqnum() - startCN.getSeqnum() + 1;
-
-          res += diff;
-        }
-        // TODO:ECL We should compute if changenumber.seqnum has turned !
-      }
-      catch(Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      // process one sid
+      int sid = serverIDIterator.next();
+      ChangeNumber startCN = null;
+      if (startState.getMaxChangeNumber(sid) != null)
+        startCN = startState.getMaxChangeNumber(sid);
+      res += getCount(sid, startCN, endCN);
     }
     return res;
   }

@@ -289,6 +289,43 @@ public class DbHandler implements Runnable
   }
 
   /**
+   * Return the number of changes between 2 provided change numbers.
+   * @param from The lower (older) change number.
+   * @param to   The upper (newer) change number.
+   * @return The computed number of changes.
+   */
+  public int getCount(ChangeNumber from, ChangeNumber to)
+  {
+    int count = 0;
+    flush();
+    ReplServerDBCursor cursor = null;
+    try
+    {
+      try
+      {
+        cursor = db.openReadCursor(from);
+      }
+      catch(Exception e)
+      {
+        return 0;
+      }
+      ChangeNumber curr = null;
+      while ((curr = cursor.nextChangeNumber())!=null)
+      {
+        if (curr.newer(to))
+          break;
+        count++;
+      }
+    }
+    finally
+    {
+      if (cursor != null)
+        cursor.abort();
+    }
+    return count;
+  }
+
+  /**
    * Removes the provided number of messages from the beginning of the msgQueue.
    *
    * @param number the number of changes to be removed.

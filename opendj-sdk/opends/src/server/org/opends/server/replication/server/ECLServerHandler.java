@@ -251,7 +251,7 @@ public class ECLServerHandler extends ServerHandler
             boolean isEligible = (newMsg.getChangeNumber().getTime()
                 <= eligibleCN.getTime());
 
-            if (debugEnabled())
+          if (debugEnabled())
               TRACER.debugInfo(" In ECLServerHandler, for " + mh.getServiceId()
                 + " getNextEligibleMessageForDomain(" + opid+ ") "
                 + "newMsg isEligible=" + isEligible + " since "
@@ -568,7 +568,6 @@ public class ECLServerHandler extends ServerHandler
   throws DirectoryException
   {
     String crossDomainStartState;
-
     try
     {
       draftCompat = true;
@@ -611,7 +610,7 @@ public class ECLServerHandler extends ServerHandler
           // startDraftCN (from the request filter) is present in the draftCnDb
           // Get an iterator to traverse the draftCNDb
           draftCNDbIter =
-            draftCNDb.generateIterator(draftCNDb.getFirstKey());
+            draftCNDb.generateIterator(startDraftCN);
         }
         else
         {
@@ -739,7 +738,10 @@ public class ECLServerHandler extends ServerHandler
             newDomainCtxt.startState = startStates.remove(rsd.getBaseDn());
             if ((providedCookie==null)||(providedCookie.length()==0)
                 ||allowUnknownDomains)
-              newDomainCtxt.startState = new ServerState();
+            {
+              if (newDomainCtxt.startState == null)
+                newDomainCtxt.startState = new ServerState();
+            }
             else
               if (newDomainCtxt.startState == null)
                 throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1121,12 +1123,6 @@ public class ECLServerHandler extends ServerHandler
     try
     {
 
-      // Search / no DraftCN / not persistent
-      // -----------------------------------
-      //  init: all domain are candidate
-      //    get one msg from each
-      //       no (null) msg returned: should not happen since we go to a state
-      //       that is computed/expected
       //  getMessage:
       //    get the oldest msg:
       //    after:
@@ -1137,7 +1133,6 @@ public class ECLServerHandler extends ServerHandler
       //       get one msg from that domain
       //       no (null) msg returned: should not happen since we go to a state
       //       that is computed/expected
-      //  step 2: send DoneMsg
 
       // Persistent:
       // ----------
@@ -1245,12 +1240,14 @@ public class ECLServerHandler extends ServerHandler
                     {
                       // let's traverse the DraftCNdb searching for the change
                       // found in the changelogDb.
+                      if (debugEnabled())
                       TRACER.debugInfo("getNextECLUpdate generating draftCN "
                           + " will skip " + cnFromDraftCNDb
                           + " and read next change from the DraftCNDb.");
 
                       isEndOfDraftCNReached = (draftCNDbIter.next()==false);
 
+                      if (debugEnabled())
                       TRACER.debugInfo("getNextECLUpdate generating draftCN "
                           + " has skiped to "
                           + " sn=" + draftCNDbIter.getDraftCN()
@@ -1290,6 +1287,7 @@ public class ECLServerHandler extends ServerHandler
                     // the change from the changelogDb is older
                     // it should have been stored lately
                     // let's continue to traverse the changelogdb
+                    if (debugEnabled())
                     TRACER.debugInfo("getNextECLUpdate: will skip "
                         + cnFromChangelogDb
                         + " and read next from the regular changelog.");

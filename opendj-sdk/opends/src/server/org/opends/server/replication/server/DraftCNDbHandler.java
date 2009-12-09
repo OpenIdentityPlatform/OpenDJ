@@ -320,8 +320,8 @@ public class DraftCNDbHandler implements Runnable
   /**
    * Clear the changes from this DB (from both memory cache and DB storage)
    * for the provided serviceID.
-   * @param serviceIDToClear The serviceID for which we want to remove the
-   *         all records from the DraftCNDb.
+   * @param serviceIDToClear The serviceID for which we want to remove
+   *         all records from the DraftCNDb - null means all.
    * @throws DatabaseException When an exception occurs while removing the
    * changes from the DB.
    * @throws Exception When an exception occurs while accessing a resource
@@ -339,6 +339,7 @@ public class DraftCNDbHandler implements Runnable
     boolean finished = false;
     boolean done = false;
 
+    ChangeNumber crossDomainEligibleCN = replicationServer.getEligibleCN();
     // In case of deadlock detection by the Database, this thread can
     // by aborted by a DeadlockException. This is a transient error and
     // the transaction should be attempted again.
@@ -385,8 +386,8 @@ public class DraftCNDbHandler implements Runnable
             {
               // let's get the eligible part of the domain
               ServerState startSS = domain.getStartState();
-              ServerState endSS   = domain.getEligibleState(
-                  replicationServer.getEligibleCN());
+              ServerState endSS= domain.getEligibleState(crossDomainEligibleCN);
+
               ChangeNumber fcn = startSS.getMaxChangeNumber(cn.getServerId());
               ChangeNumber lcn = endSS.getMaxChangeNumber(cn.getServerId());
 
