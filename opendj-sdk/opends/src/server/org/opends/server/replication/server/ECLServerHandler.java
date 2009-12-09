@@ -234,7 +234,10 @@ public class ECLServerHandler extends ServerHandler
           UpdateMsg newMsg;
           do {
             newMsg = mh.getnextMessage(false);
-            // older than latest domain trimdate ?
+            // when the replication changelog is trimmed, the last (latest) chg
+            // is left in the db (whatever its age), and we don't want this chg
+            // to be returned in the external changelog.
+            // So let's check if the chg time is older than the trim date
           } while ((newMsg!=null) &&
               (newMsg.getChangeNumber().getTime() < domainLatestTrimDate));
 
