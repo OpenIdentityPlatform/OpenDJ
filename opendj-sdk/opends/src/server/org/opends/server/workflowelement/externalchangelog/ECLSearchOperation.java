@@ -29,12 +29,14 @@ package org.opends.server.workflowelement.externalchangelog;
 
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.needsBase64Encoding;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1169,14 +1171,35 @@ public class ECLSearchOperation
           DirectoryServer.getAttributeType("targetuniqueid")) == null)
           attributeType =
               DirectoryServer.getDefaultAttributeType("targetuniqueid");
-        a = Attributes.create(attributeType,
-            ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID));
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        if(attributeType.isOperational())
-          operationalAttrs.put(attributeType, attrList);
-        else
-          uAttrs.put(attributeType, attrList);
+        String dseeValue = null;
+        try
+        {
+          ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID);
+        }
+        catch(Exception e)
+        {
+          Message errMessage =
+            NOTE_ERR_ENTRY_UID_DSEE_MAPPING.get(
+                targetDN.toNormalizedString(),
+                targetUUID,
+                e.getLocalizedMessage());
+          logError(errMessage);
+          if (debugEnabled())
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // If the mapping fails, we don't want to stop the operation
+        // or not return this entry.
+        if (dseeValue != null)
+        {
+          a = Attributes.create(attributeType, dseeValue);
+          attrList = new ArrayList<Attribute>(1);
+          attrList.add(a);
+          if(attributeType.isOperational())
+            operationalAttrs.put(attributeType, attrList);
+          else
+            uAttrs.put(attributeType, attrList);
+        }
       }
     }
 
