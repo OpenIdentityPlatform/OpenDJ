@@ -1939,6 +1939,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
+      server01.setChangeTimeHeartbeatInterval(100); //ms
       int ts = 1;
 
       // Create broker on o=test2
@@ -1946,6 +1947,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING2),  1202,
           100, replicationServerPort,
           brokerSessionTimeout, true, EMPTY_DN_GENID);
+      server02.setChangeTimeHeartbeatInterval(100); //ms
 
       // Produce update 1
       ChangeNumber cn1 =

@@ -2583,6 +2583,17 @@ public class ReplicationBroker
   }
 
   /**
+   * Set a new change time heartbeat interval to this broker.
+   * @param changeTimeHeartbeatInterval The new interval (in ms).
+   */
+  public void setChangeTimeHeartbeatInterval(int changeTimeHeartbeatInterval)
+  {
+    stopChangeTimeHeartBeatPublishing();
+    this.changeTimeHeartbeatSendInterval = changeTimeHeartbeatInterval;
+    startChangeTimeHeartBeatPublishing();
+  }
+
+  /**
    * Set the connectRequiresRecovery to the provided value.
    * This flag is used to indicate if a recovery of Update is necessary
    * after a reconnection to a RS.
