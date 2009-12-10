@@ -25,48 +25,57 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.io.IOException;
 
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.responses.Response;
-
+import org.opends.sdk.ByteString;
 
 
 
 /**
- * Thrown when an unexpected LDAP response is received.
+ * Thrown when an unsupported LDAP message is received.
  */
 @SuppressWarnings("serial")
-final class UnexpectedResponseException extends IOException
+public final class UnsupportedMessageException extends IOException
 {
-  private final int messageID;
-  private final Response response;
+  private final int id;
+  private final byte tag;
+  private final ByteString content;
 
 
 
-  public UnexpectedResponseException(int messageID, Response response)
+  public UnsupportedMessageException(int id, byte tag,
+      ByteString content)
   {
-    super(LocalizableMessage.raw("Unexpected LDAP response: id=%d, message=%s",
-        messageID, response).toString());
-    this.messageID = messageID;
-    this.response = response;
+    super(org.opends.sdk.LocalizableMessage.raw(
+        "Unsupported LDAP message: id=%d, tag=%d, content=%s", id, tag,
+        content).toString());
+    this.id = id;
+    this.tag = tag;
+    this.content = content;
   }
 
 
 
-  public int getMessageID()
+  public ByteString getContent()
   {
-    return messageID;
+    return content;
   }
 
 
 
-  public Response getResponse()
+  public int getID()
   {
-    return response;
+    return id;
+  }
+
+
+
+  public byte getTag()
+  {
+    return tag;
   }
 }

@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -34,26 +34,25 @@ import java.util.concurrent.ExecutorService;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.ResultFuture;
 import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.requests.Request;
 import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
 
 
 
 /**
- * Compare result future implementation.
+ * Result future implementation.
  */
-final class CompareResultFutureImpl<P> extends
-    AbstractResultFutureImpl<CompareResult, P> implements
-    ResultFuture<CompareResult>
+public final class ResultFutureImpl<P> extends
+    AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
 {
-  private final CompareRequest request;
+  private final Request request;
 
 
 
-  CompareResultFutureImpl(int messageID, CompareRequest request,
-      ResultHandler<? super CompareResult, P> handler, P p,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+  ResultFutureImpl(int messageID, Request request,
+      ResultHandler<Result, P> handler, P p, LDAPConnection connection,
+      ExecutorService handlerExecutor)
   {
     super(messageID, handler, p, connection, handlerExecutor);
     this.request = request;
@@ -64,16 +63,17 @@ final class CompareResultFutureImpl<P> extends
   /**
    * {@inheritDoc}
    */
-  CompareResult newErrorResult(ResultCode resultCode,
+  @Override
+  Result newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
+    return Responses.newResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
   }
 
 
 
-  CompareRequest getRequest()
+  Request getRequest()
   {
     return request;
   }

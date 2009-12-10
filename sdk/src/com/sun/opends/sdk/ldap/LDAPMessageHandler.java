@@ -25,12 +25,13 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.ldap.ResolvedSchema;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
@@ -42,7 +43,7 @@ import org.opends.sdk.schema.Schema;
 /**
  * LDAP message handler interface.
  */
-interface LDAPMessageHandler
+public interface LDAPMessageHandler
 {
   ResolvedSchema resolveSchema(String dn) throws DecodeException;
 

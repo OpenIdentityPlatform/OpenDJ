@@ -25,94 +25,64 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.io.IOException;
-
-import javax.security.sasl.SaslException;
+import java.util.concurrent.Future;
 
 import com.sun.grizzly.Buffer;
-import com.sun.grizzly.streams.StreamReader;
-import com.sun.grizzly.streams.StreamReaderDecorator;
+import com.sun.grizzly.CompletionHandler;
+import com.sun.grizzly.streams.StreamWriter;
+import com.sun.grizzly.streams.StreamWriterDecorator;
 
 
 
 /**
- * SASL stream reader.
+ * SASL stream writer.
  */
-final class SASLStreamReader extends StreamReaderDecorator
+@SuppressWarnings("unchecked")
+public final class SASLStreamWriter extends StreamWriterDecorator
 {
   private final SASLFilter saslFilter;
 
 
 
-  public SASLStreamReader(StreamReader underlyingReader,
+  public SASLStreamWriter(StreamWriter underlyingWriter,
       SASLFilter saslFilter)
   {
-    super(underlyingReader);
+    super(underlyingWriter);
     this.saslFilter = saslFilter;
   }
 
 
 
   @Override
-  public boolean appendBuffer(Buffer buffer)
+  protected Future<Integer> flush0(Buffer buffer,
+      CompletionHandler<Integer> completionHandler) throws IOException
   {
-    if (buffer == null)
+    Future<Integer> lastWriterFuture = null;
+
+    if (buffer != null)
     {
-      return false;
+      buffer.flip();
+
+      Buffer underlyingBuffer = underlyingWriter.getBuffer();
+      byte[] netBuffer = saslFilter.wrap(buffer, getConnection());
+      int remaining = netBuffer.length;
+      while (remaining > 0)
+      {
+        int writeSize = Math.min(remaining, underlyingBuffer
+            .remaining());
+        underlyingBuffer.put(netBuffer, netBuffer.length - remaining,
+            writeSize);
+        lastWriterFuture = underlyingWriter.flush();
+        remaining -= writeSize;
+      }
+      buffer.clear();
     }
 
-    byte[] appBuffer;
-    try
-    {
-      appBuffer = saslFilter.unwrap(buffer, getConnection());
-    }
-    catch (SaslException e)
-    {
-      throw new IllegalStateException(e);
-    }
-
-    if (appBuffer.length == 0)
-    {
-      return false;
-    }
-
-    Buffer newBuffer = newBuffer(appBuffer.length);
-    newBuffer.put(appBuffer);
-
-    if (super.appendBuffer(newBuffer))
-    {
-      buffer.dispose();
-      return true;
-    }
-
-    return false;
-  }
-
-
-
-  @Override
-  protected Buffer read0() throws IOException
-  {
-    return underlyingReader.readBuffer();
-  }
-
-
-
-  @Override
-  protected Buffer unwrap(Object data)
-  {
-    return (Buffer) data;
-  }
-
-
-
-  @Override
-  protected final Object wrap(Buffer buffer)
-  {
-    return buffer;
+    return lastWriterFuture;
   }
 }

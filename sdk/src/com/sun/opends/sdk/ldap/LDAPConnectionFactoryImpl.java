@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -38,6 +38,7 @@ import java.util.concurrent.*;
 import javax.net.ssl.SSLContext;
 
 import org.opends.sdk.*;
+import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.extensions.StartTLSRequest;
 import org.opends.sdk.responses.Responses;
@@ -59,7 +60,7 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * LDAP connection factory implementation.
  */
-final class LDAPConnectionFactoryImpl extends
+public final class LDAPConnectionFactoryImpl extends
     AbstractConnectionFactory<AsynchronousConnection> implements
     ConnectionFactory<AsynchronousConnection>
 {
@@ -67,7 +68,7 @@ final class LDAPConnectionFactoryImpl extends
   {
 
     @Override
-    LDAPMessageHandler getMessageHandler(
+    protected LDAPMessageHandler getMessageHandler(
         com.sun.grizzly.Connection<?> connection)
     {
       return ldapConnectionAttr.get(connection).getLDAPMessageHandler();
@@ -76,7 +77,7 @@ final class LDAPConnectionFactoryImpl extends
 
 
     @Override
-    void removeMessageHandler(com.sun.grizzly.Connection<?> connection)
+    protected void removeMessageHandler(com.sun.grizzly.Connection<?> connection)
     {
       ldapConnectionAttr.remove(connection);
     }
@@ -446,7 +447,7 @@ final class LDAPConnectionFactoryImpl extends
    * @throws NullPointerException
    *           If {@code host} or {@code options} was {@code null}.
    */
-  LDAPConnectionFactoryImpl(String host, int port,
+  public LDAPConnectionFactoryImpl(String host, int port,
       LDAPConnectionOptions options) throws NullPointerException
   {
     this(host, port, options, getTCPNIOTransport());

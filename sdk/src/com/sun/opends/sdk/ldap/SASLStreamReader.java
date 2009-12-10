@@ -25,64 +25,94 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.io.IOException;
-import java.util.concurrent.Future;
+
+import javax.security.sasl.SaslException;
 
 import com.sun.grizzly.Buffer;
-import com.sun.grizzly.CompletionHandler;
-import com.sun.grizzly.streams.StreamWriter;
-import com.sun.grizzly.streams.StreamWriterDecorator;
+import com.sun.grizzly.streams.StreamReader;
+import com.sun.grizzly.streams.StreamReaderDecorator;
 
 
 
 /**
- * SASL stream writer.
+ * SASL stream reader.
  */
-@SuppressWarnings("unchecked")
-final class SASLStreamWriter extends StreamWriterDecorator
+public final class SASLStreamReader extends StreamReaderDecorator
 {
   private final SASLFilter saslFilter;
 
 
 
-  public SASLStreamWriter(StreamWriter underlyingWriter,
+  public SASLStreamReader(StreamReader underlyingReader,
       SASLFilter saslFilter)
   {
-    super(underlyingWriter);
+    super(underlyingReader);
     this.saslFilter = saslFilter;
   }
 
 
 
   @Override
-  protected Future<Integer> flush0(Buffer buffer,
-      CompletionHandler<Integer> completionHandler) throws IOException
+  public boolean appendBuffer(Buffer buffer)
   {
-    Future<Integer> lastWriterFuture = null;
-
-    if (buffer != null)
+    if (buffer == null)
     {
-      buffer.flip();
-
-      Buffer underlyingBuffer = underlyingWriter.getBuffer();
-      byte[] netBuffer = saslFilter.wrap(buffer, getConnection());
-      int remaining = netBuffer.length;
-      while (remaining > 0)
-      {
-        int writeSize = Math.min(remaining, underlyingBuffer
-            .remaining());
-        underlyingBuffer.put(netBuffer, netBuffer.length - remaining,
-            writeSize);
-        lastWriterFuture = underlyingWriter.flush();
-        remaining -= writeSize;
-      }
-      buffer.clear();
+      return false;
     }
 
-    return lastWriterFuture;
+    byte[] appBuffer;
+    try
+    {
+      appBuffer = saslFilter.unwrap(buffer, getConnection());
+    }
+    catch (SaslException e)
+    {
+      throw new IllegalStateException(e);
+    }
+
+    if (appBuffer.length == 0)
+    {
+      return false;
+    }
+
+    Buffer newBuffer = newBuffer(appBuffer.length);
+    newBuffer.put(appBuffer);
+
+    if (super.appendBuffer(newBuffer))
+    {
+      buffer.dispose();
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+  @Override
+  protected Buffer read0() throws IOException
+  {
+    return underlyingReader.readBuffer();
+  }
+
+
+
+  @Override
+  protected Buffer unwrap(Object data)
+  {
+    return (Buffer) data;
+  }
+
+
+
+  @Override
+  protected final Object wrap(Buffer buffer)
+  {
+    return buffer;
   }
 }

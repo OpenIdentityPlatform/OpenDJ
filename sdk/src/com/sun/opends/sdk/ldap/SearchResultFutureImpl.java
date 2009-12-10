@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -46,7 +46,7 @@ import org.opends.sdk.responses.SearchResultReference;
 /**
  * Search result future implementation.
  */
-final class SearchResultFutureImpl<P> extends
+public final class SearchResultFutureImpl<P> extends
     AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
 {
 

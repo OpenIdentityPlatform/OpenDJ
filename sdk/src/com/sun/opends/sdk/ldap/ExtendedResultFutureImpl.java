@@ -25,34 +25,31 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
-import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.Request;
-import org.opends.sdk.responses.Responses;
+import org.opends.sdk.*;
+import org.opends.sdk.requests.ExtendedRequest;
 import org.opends.sdk.responses.Result;
 
 
 
 /**
- * Result future implementation.
+ * Extended result future implementation.
  */
-final class ResultFutureImpl<P> extends
-    AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
+public final class ExtendedResultFutureImpl<R extends Result, P> extends
+    AbstractResultFutureImpl<R, P> implements ResultFuture<R>
 {
-  private final Request request;
+  private final ExtendedRequest<R> request;
 
 
 
-  ResultFutureImpl(int messageID, Request request,
-      ResultHandler<Result, P> handler, P p, LDAPConnection connection,
-      ExecutorService handlerExecutor)
+  ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
+      ResultHandler<? super R, P> handler, P p,
+      LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, p, connection, handlerExecutor);
     this.request = request;
@@ -60,20 +57,29 @@ final class ResultFutureImpl<P> extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  Result newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  R decodeResponse(ResultCode resultCode, String matchedDN,
+      String diagnosticMessage, String responseName,
+      ByteString responseValue) throws DecodeException
   {
-    return Responses.newResult(resultCode).setDiagnosticMessage(
-        diagnosticMessage).setCause(cause);
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        matchedDN, diagnosticMessage, responseName, responseValue);
   }
 
 
 
-  Request getRequest()
+  /**
+   * {@inheritDoc}
+   */
+  R newErrorResult(ResultCode resultCode, String diagnosticMessage,
+      Throwable cause)
+  {
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        "", diagnosticMessage);
+  }
+
+
+
+  ExtendedRequest<R> getRequest()
   {
     return request;
   }

@@ -31,7 +31,7 @@ package org.opends.sdk.ldap;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.asn1.ASN1Constants.*;
-import static org.opends.sdk.ldap.LDAPConstants.*;
+import static com.sun.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -45,13 +45,13 @@ import org.opends.sdk.sasl.GenericSASLBindRequest;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.StaticUtils;
-
+import com.sun.opends.sdk.ldap.LDAPMessageHandler;
 
 
 /**
  * Static methods for decoding LDAP messages.
  */
-class LDAPDecoder
+public class LDAPDecoder
 {
 
   /**
@@ -66,7 +66,7 @@ class LDAPDecoder
    * @throws IOException
    *           If an error occurred while reading bytes to decode.
    */
-  static void decode(ASN1Reader reader, LDAPMessageHandler handler)
+  public static void decode(ASN1Reader reader, LDAPMessageHandler handler)
       throws IOException
   {
     reader.readStartSequence();
@@ -83,7 +83,7 @@ class LDAPDecoder
 
 
 
-  static SearchResultEntry decodeEntry(ASN1Reader reader, Schema schema)
+  public static SearchResultEntry decodeEntry(ASN1Reader reader, Schema schema)
       throws IOException
   {
     SearchResultEntry message;

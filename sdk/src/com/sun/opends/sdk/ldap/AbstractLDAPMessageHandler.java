@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -43,7 +43,7 @@ import org.opends.sdk.schema.Schema;
 /**
  * Abstract LDAP message handler.
  */
-abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
+public abstract class AbstractLDAPMessageHandler implements LDAPMessageHandler
 {
   public void handleUnrecognizedMessage(int messageID, byte messageTag,
       ByteString messageBytes) throws UnsupportedMessageException

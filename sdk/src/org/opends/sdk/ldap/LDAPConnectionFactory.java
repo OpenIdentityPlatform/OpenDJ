@@ -30,7 +30,7 @@ package org.opends.sdk.ldap;
 
 
 import org.opends.sdk.*;
-
+import com.sun.opends.sdk.ldap.LDAPConnectionFactoryImpl;
 
 
 /**
