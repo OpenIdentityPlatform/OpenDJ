@@ -3196,7 +3196,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Returns the start state of the domain, made of the first (oldest)
    * change stored for each serverId.
-   * @return t start state of the domain.
+   * Note: Because the replication changelogdb triming always keep one change
+   * whatever its date, the change contained in the returned state can be very
+   * old.
+   * @return the start state of the domain.
    */
   public ServerState getStartState()
   {
