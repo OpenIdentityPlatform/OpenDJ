@@ -1174,7 +1174,7 @@ public class ECLSearchOperation
         String dseeValue = null;
         try
         {
-          ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID);
+          dseeValue = ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID);
         }
         catch(Exception e)
         {
