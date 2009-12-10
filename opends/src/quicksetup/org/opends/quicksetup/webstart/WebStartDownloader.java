@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.webstart;
@@ -31,6 +31,8 @@ import org.opends.messages.Message;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.jnlp.DownloadService;
 import javax.jnlp.DownloadServiceListener;
@@ -56,7 +58,8 @@ import static org.opends.messages.QuickSetupMessages.*;
  * ProgressStep.DOWNLOADING step.
  */
 public class WebStartDownloader implements DownloadServiceListener {
-
+  static private final Logger LOG =
+    Logger.getLogger(WebStartDownloader.class.getName());
 
 
   /**
@@ -134,6 +137,9 @@ public class WebStartDownloader implements DownloadServiceListener {
         try
         {
           startDownload(forceDownload);
+        } catch (ApplicationException ex)
+        {
+          WebStartDownloader.this.ex = ex;
         } catch (MalformedURLException mfe)
         {
           // This is a bug
@@ -241,11 +247,13 @@ public class WebStartDownloader implements DownloadServiceListener {
    * @throws MalformedURLException if there is an error with the URLs that we
    * get from the property SetupUtils.LAZY_JAR_URLS
    * @throws IOException if a network problem occurs.
+   * @throws ApplicationException if the download service is not available.
    */
   private void startDownload(boolean forceDownload)
-      throws IOException
+      throws IOException, ApplicationException
   {
     DownloadService ds;
+    String serviceName = "javax.jnlp.DownloadService";
     try
     {
       ds =
@@ -253,97 +261,98 @@ public class WebStartDownloader implements DownloadServiceListener {
               "javax.jnlp.DownloadService");
     } catch (UnavailableServiceException e)
     {
-      ds = null;
+      LOG.log(Level.SEVERE, "Could not find service: "+serviceName, e);
+      throw new ApplicationException(
+        ReturnCode.DOWNLOAD_ERROR,
+        getThrowableMsg(
+            INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(serviceName), e), e);
     }
 
-    if (ds != null)
+    String[] urls = getJarUrls();
+    String[] versions = getJarVersions();
+
+    /*
+     * Calculate the percentages that correspond to each file.
+     * TODO ideally this should be done dynamically, but as this is just
+     * to provide progress, updating this information from time to time can
+     * be enough and does not complexify the build process.
+     */
+    int[] percentageMax = new int[urls.length];
+    int[] ratios = new int[urls.length];
+    int totalRatios = 0;
+    for (int i=0; i<percentageMax.length; i++)
     {
-      String[] urls = getJarUrls();
-      String[] versions = getJarVersions();
-
-      /*
-       * Calculate the percentages that correspond to each file.
-       * TODO ideally this should be done dynamically, but as this is just
-       * to provide progress, updating this information from time to time can
-       * be enough and does not complexify the build process.
-       */
-      int[] percentageMax = new int[urls.length];
-      int[] ratios = new int[urls.length];
-      int totalRatios = 0;
-      for (int i=0; i<percentageMax.length; i++)
+      int ratio;
+      if (urls[i].endsWith("OpenDS.jar"))
       {
-        int ratio;
-        if (urls[i].endsWith("OpenDS.jar"))
+        ratio =  23;
+      }
+      else if (urls[i].endsWith("je.jar"))
+      {
+        ratio = 11;
+      }
+      else if (urls[i].endsWith("zipped.jar"))
+      {
+        ratio = 110;
+      }
+      else if (urls[i].endsWith("aspectjrt.jar"))
+      {
+        ratio = 10;
+      }
+      else
+      {
+        ratio = (100 / urls.length);
+      }
+      ratios[i] = ratio;
+      totalRatios += ratio;
+    }
+
+    for (int i=0; i<percentageMax.length; i++)
+    {
+      int r = 0;
+      for (int j=0; j<=i; j++)
+      {
+        r += ratios[j];
+      }
+      percentageMax[i] = (100 * r)/totalRatios;
+    }
+
+
+    for (int i = 0; i < urls.length && (getException() == null); i++)
+    {
+      if (i == 0)
+      {
+        currentPercMin = 0;
+      }
+      else {
+        currentPercMin = percentageMax[i-1];
+      }
+      currentPercMax = percentageMax[i];
+
+      // determine if a particular resource is cached
+      String sUrl = urls[i];
+      String version = versions[i];
+
+      URL url = new URL(sUrl);
+      boolean cached = ds.isResourceCached(url, version);
+
+      if (cached && forceDownload)
+      {
+        try
         {
-          ratio =  23;
-        }
-        else if (urls[i].endsWith("je.jar"))
+          ds.removeResource(url, version);
+        } catch (IOException ioe)
         {
-          ratio = 11;
         }
-        else if (urls[i].endsWith("zipped.jar"))
-        {
-          ratio = 110;
-        }
-        else if (urls[i].endsWith("aspectjrt.jar"))
-        {
-          ratio = 10;
-        }
-        else
-        {
-          ratio = (100 / urls.length);
-        }
-        ratios[i] = ratio;
-        totalRatios += ratio;
+        cached = false;
       }
 
-      for (int i=0; i<percentageMax.length; i++)
+      if (!cached)
       {
-        int r = 0;
-        for (int j=0; j<=i; j++)
-        {
-          r += ratios[j];
-        }
-        percentageMax[i] = (100 * r)/totalRatios;
+        // if not in the cache load the resource into the cache
+        ds.loadResource(url, version, this);
       }
-
-
-      for (int i = 0; i < urls.length && (getException() == null); i++)
-      {
-        if (i == 0)
-        {
-          currentPercMin = 0;
-        }
-        else {
-          currentPercMin = percentageMax[i-1];
-        }
-        currentPercMax = percentageMax[i];
-
-        // determine if a particular resource is cached
-        String sUrl = urls[i];
-        String version = versions[i];
-
-        URL url = new URL(sUrl);
-        boolean cached = ds.isResourceCached(url, version);
-
-        if (cached && forceDownload)
-        {
-          try
-          {
-            ds.removeResource(url, version);
-          } catch (IOException ioe)
-          {
-          }
-          cached = false;
-        }
-
-        if (!cached)
-        {
-          // if not in the cache load the resource into the cache
-          ds.loadResource(url, version, this);
-        }
-        downloadPercentage = currentPercMax;
-      }
+      downloadPercentage = currentPercMax;
     }
     isFinished = true;
   }
