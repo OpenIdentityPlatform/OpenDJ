@@ -25,11 +25,13 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
-import static org.opends.sdk.ldap.LDAPConstants.*;
+import static com.sun.opends.sdk.ldap.LDAPConstants.*;
+import org.opends.sdk.ldap.LDAPEncoder;
+import org.opends.sdk.ldap.ResolvedSchema;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -67,7 +69,7 @@ import com.sun.opends.sdk.util.Validator;
  * <p>
  * TODO: handle illegal state exceptions.
  */
-final class LDAPConnection implements AsynchronousConnection
+public final class LDAPConnection implements AsynchronousConnection
 {
 
   private final class LDAPMessageHandlerImpl extends

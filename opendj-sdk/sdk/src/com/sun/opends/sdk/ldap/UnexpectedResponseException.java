@@ -25,35 +25,35 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.io.IOException;
 
 import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.requests.Request;
+import org.opends.sdk.responses.Response;
 
 
 
 
 /**
- * Thrown when an expected LDAP request is received.
+ * Thrown when an unexpected LDAP response is received.
  */
 @SuppressWarnings("serial")
-final class UnexpectedRequestException extends IOException
+public final class UnexpectedResponseException extends IOException
 {
   private final int messageID;
-  private final Request request;
+  private final Response response;
 
 
 
-  public UnexpectedRequestException(int messageID, Request request)
+  public UnexpectedResponseException(int messageID, Response response)
   {
-    super(LocalizableMessage.raw("Unexpected LDAP request: id=%d, message=%s",
-        messageID, request).toString());
+    super(LocalizableMessage.raw("Unexpected LDAP response: id=%d, message=%s",
+        messageID, response).toString());
     this.messageID = messageID;
-    this.request = request;
+    this.response = response;
   }
 
 
@@ -65,8 +65,8 @@ final class UnexpectedRequestException extends IOException
 
 
 
-  public Request getRequest()
+  public Response getResponse()
   {
-    return request;
+    return response;
   }
 }

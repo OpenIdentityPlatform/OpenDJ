@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -47,7 +47,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * Abstract result future implementation.
  */
-abstract class AbstractResultFutureImpl<R extends Result, P> implements
+public abstract class AbstractResultFutureImpl<R extends Result, P> implements
     ResultFuture<R>, Runnable
 {
   private final LDAPConnection connection;

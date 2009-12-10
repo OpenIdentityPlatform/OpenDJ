@@ -24,12 +24,12 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.ldap.LDAPConstants.*;
+import static com.sun.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
@@ -51,7 +51,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * Grizzly ASN1 reader implementation.
  */
-final class ASN1StreamReader extends AbstractASN1Reader implements
+public final class ASN1StreamReader extends AbstractASN1Reader implements
     PoolableObject, ASN1Reader
 {
   class ChildSequenceLimiter implements SequenceLimiter
@@ -265,13 +265,10 @@ final class ASN1StreamReader extends AbstractASN1Reader implements
     {
       return false;
     }
-    if ((state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
-        && !needAdditionalLengthBytesState(true))
-    {
-      return false;
-    }
+    return !((state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
+        && !needAdditionalLengthBytesState(true)) &&
+        peekLength <= readLimiter.remaining();
 
-    return peekLength <= readLimiter.remaining();
   }
 
 

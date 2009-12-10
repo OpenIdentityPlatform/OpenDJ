@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -44,7 +44,7 @@ import org.opends.sdk.sasl.SASLContext;
 /**
  * Bind result future implementation.
  */
-final class BindResultFutureImpl<P> extends
+public final class BindResultFutureImpl<P> extends
     AbstractResultFutureImpl<BindResult, P> implements
     ResultFuture<BindResult>
 {

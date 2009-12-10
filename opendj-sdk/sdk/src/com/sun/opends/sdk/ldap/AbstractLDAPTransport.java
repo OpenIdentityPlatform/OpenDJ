@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -36,13 +36,13 @@ import com.sun.grizzly.filterchain.*;
 import com.sun.grizzly.streams.StreamReader;
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.grizzly.utils.ConcurrentQueuePool;
-
+import org.opends.sdk.ldap.LDAPDecoder;
 
 
 /**
  * Abstract LDAP transport.
  */
-abstract class AbstractLDAPTransport
+public abstract class AbstractLDAPTransport
 {
   private class ASN1ReaderPool extends
       ConcurrentQueuePool<ASN1StreamReader>
@@ -187,7 +187,7 @@ abstract class AbstractLDAPTransport
 
 
 
-  AbstractLDAPTransport()
+  protected AbstractLDAPTransport()
   {
     this.defaultFilterChainFactory = new DefaultFilterChainFactory();
 
@@ -197,7 +197,7 @@ abstract class AbstractLDAPTransport
 
 
 
-  ASN1StreamWriter getASN1Writer(StreamWriter streamWriter)
+  public ASN1StreamWriter getASN1Writer(StreamWriter streamWriter)
   {
     ASN1StreamWriter asn1Writer = asn1WriterPool.poll();
     asn1Writer.setStreamWriter(streamWriter);
@@ -206,25 +206,26 @@ abstract class AbstractLDAPTransport
 
 
 
-  PatternFilterChainFactory getDefaultFilterChainFactory()
+  public PatternFilterChainFactory getDefaultFilterChainFactory()
   {
     return defaultFilterChainFactory;
   }
 
 
 
-  void releaseASN1Writer(ASN1StreamWriter asn1Writer)
+  public void releaseASN1Writer(ASN1StreamWriter asn1Writer)
   {
     asn1WriterPool.offer(asn1Writer);
   }
 
 
 
-  abstract LDAPMessageHandler getMessageHandler(Connection<?> connection);
+  protected abstract LDAPMessageHandler getMessageHandler(
+      Connection<?> connection);
 
 
 
-  abstract void removeMessageHandler(Connection<?> connection);
+  protected abstract void removeMessageHandler(Connection<?> connection);
 
 
 

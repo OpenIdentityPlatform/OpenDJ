@@ -25,30 +25,34 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
 import java.util.concurrent.ExecutorService;
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultFuture;
+import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.CompareRequest;
+import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.Responses;
 
 
 
 /**
- * Extended result future implementation.
+ * Compare result future implementation.
  */
-final class ExtendedResultFutureImpl<R extends Result, P> extends
-    AbstractResultFutureImpl<R, P> implements ResultFuture<R>
+public final class CompareResultFutureImpl<P> extends
+    AbstractResultFutureImpl<CompareResult, P> implements
+    ResultFuture<CompareResult>
 {
-  private final ExtendedRequest<R> request;
+  private final CompareRequest request;
 
 
 
-  ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
-      ResultHandler<? super R, P> handler, P p,
+  CompareResultFutureImpl(int messageID, CompareRequest request,
+      ResultHandler<? super CompareResult, P> handler, P p,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
     super(messageID, handler, p, connection, handlerExecutor);
@@ -57,29 +61,19 @@ final class ExtendedResultFutureImpl<R extends Result, P> extends
 
 
 
-  R decodeResponse(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        matchedDN, diagnosticMessage, responseName, responseValue);
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
-  R newErrorResult(ResultCode resultCode, String diagnosticMessage,
-      Throwable cause)
+  CompareResult newErrorResult(ResultCode resultCode,
+      String diagnosticMessage, Throwable cause)
   {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        "", diagnosticMessage);
+    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 
 
 
-  ExtendedRequest<R> getRequest()
+  CompareRequest getRequest()
   {
     return request;
   }

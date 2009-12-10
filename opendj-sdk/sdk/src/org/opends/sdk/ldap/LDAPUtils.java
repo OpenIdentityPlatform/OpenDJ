@@ -29,7 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.sdk.ldap.LDAPConstants.*;
+import static com.sun.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
 import java.util.Collections;

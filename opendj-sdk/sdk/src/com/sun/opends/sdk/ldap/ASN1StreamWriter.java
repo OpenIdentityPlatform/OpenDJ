@@ -24,7 +24,7 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -49,7 +49,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * Grizzly ASN1 writer implementation.
  */
-final class ASN1StreamWriter extends AbstractASN1Writer implements
+public final class ASN1StreamWriter extends AbstractASN1Writer implements
     ASN1Writer, PoolableObject
 {
   private class ChildSequenceBuffer implements SequenceBuffer

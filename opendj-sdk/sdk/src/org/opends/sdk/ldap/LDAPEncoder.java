@@ -29,7 +29,7 @@ package org.opends.sdk.ldap;
 
 
 
-import static org.opends.sdk.ldap.LDAPConstants.*;
+import static com.sun.opends.sdk.ldap.LDAPConstants.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -51,28 +51,9 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * Static methods for encoding LDAP messages.
  */
-final class LDAPEncoder
+public final class LDAPEncoder
 {
-  static void encodeAttribute(ASN1Writer writer, Attribute attribute)
-      throws IOException
-  {
-    writer.writeStartSequence();
-    writer
-        .writeOctetString(attribute.getAttributeDescriptionAsString());
-
-    writer.writeStartSet();
-    for (ByteString value : attribute)
-    {
-      writer.writeOctetString(value);
-    }
-    writer.writeEndSequence();
-
-    writer.writeEndSequence();
-  }
-
-
-
-  static void encodeControl(ASN1Writer writer, Control control)
+  public static void encodeControl(ASN1Writer writer, Control control)
       throws IOException
   {
     writer.writeStartSequence();
@@ -90,7 +71,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeEntry(ASN1Writer writer,
+  public static void encodeEntry(ASN1Writer writer,
       SearchResultEntry searchResultEntry) throws IOException
   {
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
@@ -107,7 +88,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeAbandonRequest(ASN1Writer writer, int messageID,
+  public static void encodeAbandonRequest(ASN1Writer writer, int messageID,
       AbandonRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -124,7 +105,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeAddRequest(ASN1Writer writer, int messageID,
+  public static void encodeAddRequest(ASN1Writer writer, int messageID,
       AddRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -151,7 +132,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeCompareRequest(ASN1Writer writer, int messageID,
+  public static void encodeCompareRequest(ASN1Writer writer, int messageID,
       CompareRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -176,7 +157,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeDeleteRequest(ASN1Writer writer, int messageID,
+  public static void encodeDeleteRequest(ASN1Writer writer, int messageID,
       DeleteRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -193,7 +174,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeExtendedRequest(ASN1Writer writer, int messageID,
+  public static void encodeExtendedRequest(ASN1Writer writer, int messageID,
       ExtendedRequest<?> request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -220,7 +201,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeBindRequest(ASN1Writer writer, int messageID,
+  public static void encodeBindRequest(ASN1Writer writer, int messageID,
       int version, GenericBindRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -246,7 +227,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeBindRequest(ASN1Writer writer, int messageID,
+  public static void encodeBindRequest(ASN1Writer writer, int messageID,
       int version, SASLBindRequest<?> request,
       ByteString saslCredentials) throws IOException
   {
@@ -278,7 +259,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeBindRequest(ASN1Writer writer, int messageID,
+  public static void encodeBindRequest(ASN1Writer writer, int messageID,
       int version, SimpleBindRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -303,7 +284,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeModifyDNRequest(ASN1Writer writer, int messageID,
+  public static void encodeModifyDNRequest(ASN1Writer writer, int messageID,
       ModifyDNRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -331,7 +312,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeModifyRequest(ASN1Writer writer, int messageID,
+  public static void encodeModifyRequest(ASN1Writer writer, int messageID,
       ModifyRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -357,7 +338,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeSearchRequest(ASN1Writer writer, int messageID,
+  public static void encodeSearchRequest(ASN1Writer writer, int messageID,
       SearchRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -390,7 +371,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeUnbindRequest(ASN1Writer writer, int messageID,
+  public static void encodeUnbindRequest(ASN1Writer writer, int messageID,
       UnbindRequest request) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -406,7 +387,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeAddResult(ASN1Writer writer, int messageID,
+  public static void encodeAddResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -423,7 +404,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeBindResult(ASN1Writer writer, int messageID,
+  public static void encodeBindResult(ASN1Writer writer, int messageID,
       BindResult result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -447,7 +428,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeCompareResult(ASN1Writer writer, int messageID,
+  public static void encodeCompareResult(ASN1Writer writer, int messageID,
       CompareResult result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -464,7 +445,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeDeleteResult(ASN1Writer writer, int messageID,
+  public static void encodeDeleteResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -481,7 +462,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeExtendedResult(ASN1Writer writer, int messageID,
+  public static void encodeExtendedResult(ASN1Writer writer, int messageID,
       ExtendedResult result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -513,7 +494,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeIntermediateResponse(ASN1Writer writer,
+  public static void encodeIntermediateResponse(ASN1Writer writer,
       int messageID, IntermediateResponse response) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -548,7 +529,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeModifyDNResult(ASN1Writer writer, int messageID,
+  public static void encodeModifyDNResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -565,7 +546,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeModifyResult(ASN1Writer writer, int messageID,
+  public static void encodeModifyResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -582,7 +563,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeSearchResult(ASN1Writer writer, int messageID,
+  public static void encodeSearchResult(ASN1Writer writer, int messageID,
       Result result) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -599,7 +580,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeSearchResultEntry(ASN1Writer writer, int messageID,
+  public static void encodeSearchResultEntry(ASN1Writer writer, int messageID,
       SearchResultEntry entry) throws IOException
   {
     if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER))
@@ -615,7 +596,7 @@ final class LDAPEncoder
 
 
 
-  static void encodeSearchResultReference(ASN1Writer writer,
+  public static void encodeSearchResultReference(ASN1Writer writer,
       int messageID, SearchResultReference reference)
       throws IOException
   {
@@ -635,6 +616,25 @@ final class LDAPEncoder
     }
     writer.writeEndSequence();
     encodeMessageFooter(writer, reference);
+  }
+
+
+
+  private static void encodeAttribute(ASN1Writer writer, Attribute attribute)
+      throws IOException
+  {
+    writer.writeStartSequence();
+    writer
+        .writeOctetString(attribute.getAttributeDescriptionAsString());
+
+    writer.writeStartSet();
+    for (ByteString value : attribute)
+    {
+      writer.writeOctetString(value);
+    }
+    writer.writeEndSequence();
+
+    writer.writeEndSequence();
   }
 
 

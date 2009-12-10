@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk.ldap;
+package com.sun.opends.sdk.ldap;
 
 
 
@@ -54,7 +54,7 @@ import com.sun.grizzly.threadpool.WorkerThread;
 /**
  * SASL filter adapter.
  */
-final class SASLFilter extends FilterAdapter implements
+public final class SASLFilter extends FilterAdapter implements
     StreamTransformerFilter
 {
   private static SASLFilter SINGLETON = new SASLFilter();
@@ -249,6 +249,8 @@ final class SASLFilter extends FilterAdapter implements
   /**
    * Obtaining incoming buffer
    *
+   * @param size
+   *          The size of the buffer to allocate
    * @param state
    *          State storage
    * @return incoming buffer
@@ -301,6 +303,8 @@ final class SASLFilter extends FilterAdapter implements
   /**
    * Obtaining outgoing buffer
    *
+   * @param size
+   *          The size of the buffer to allocate
    * @param state
    *          State storage
    * @return Outgoing buffer

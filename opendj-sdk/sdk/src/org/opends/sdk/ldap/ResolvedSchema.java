@@ -41,7 +41,7 @@ import org.opends.sdk.schema.Schema;
  * A reference to a schema which should be used when decoding incoming
  * protocol elements.
  */
-interface ResolvedSchema
+public interface ResolvedSchema
 {
   DN getInitialDN();
 
