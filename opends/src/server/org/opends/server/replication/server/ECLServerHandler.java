@@ -686,24 +686,24 @@ public class ECLServerHandler extends ServerHandler
       boolean allowUnknownDomains)
   throws DirectoryException
   {
-    HashMap<String,ServerState> startStates = new HashMap<String,ServerState>();
+    HashMap<String,ServerState> startStatesFromProvidedCookie =
+      new HashMap<String,ServerState>();
 
     ReplicationServer rs = this.replicationServer;
 
     // Parse the provided cookie and overwrite startState from it.
     if ((providedCookie != null) && (providedCookie.length()!=0))
-      startStates =
+      startStatesFromProvidedCookie =
         MultiDomainServerState.splitGenStateToServerStates(providedCookie);
 
     try
     {
-      // Now traverse all domains and build all the initial contexts :
-      // - the global one : dumpState()
-      // - the domain by domain ones : domainCtxts
       Iterator<ReplicationServerDomain> rsdi = rs.getDomainIterator();
 
-      // Creates the table that will contain the real-time info by domain.
+      // Creates the table that will contain the real-time info for each
+      // and every domain.
       HashSet<DomainContext> tmpSet = new HashSet<DomainContext>();
+      String missingDomains = "";
       int i =0;
       if (rsdi != null)
       {
@@ -738,18 +738,45 @@ public class ECLServerHandler extends ServerHandler
           }
           else
           {
-            newDomainCtxt.startState = startStates.remove(rsd.getBaseDn());
+            // let's take the start state for this domain from the provided
+            // cookie
+            newDomainCtxt.startState =
+              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+
             if ((providedCookie==null)||(providedCookie.length()==0)
                 ||allowUnknownDomains)
             {
+              // when there is no cookie provided in the request,
+              // let's start traversing this domain from the beginning of
+              // what we have in the replication changelog
               if (newDomainCtxt.startState == null)
                 newDomainCtxt.startState = new ServerState();
             }
             else
+            {
+              // when there is a cookie provided in the request,
               if (newDomainCtxt.startState == null)
-                throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_INVALID_COOKIE_FULL_RESYNC_REQUIRED.get(
-                        "missing " + rsd.getBaseDn()));
+              {
+                missingDomains += (rsd.getBaseDn() + ":;");
+                continue;
+              }
+              else if (!newDomainCtxt.startState.isEmpty())
+              {
+                // when the provided startState is older than the replication
+                // changelogdb start state, it means that the replication
+                // changelog db has been trimed and the cookie is not valid
+                // anymore.
+                if (newDomainCtxt.startState.cover(rsd.getStartState())==false)
+                {
+                  // the provided start
+                  throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                      ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(
+                          newDomainCtxt.rsd.getBaseDn()));
+                }
+              }
+            }
+
+            // Set the stop state for the domain from the eligibleCN
             newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN);
           }
           newDomainCtxt.currentState = new ServerState();
@@ -774,18 +801,34 @@ public class ECLServerHandler extends ServerHandler
           i++;
         }
       }
-      if (!startStates.isEmpty())
+
+      if (missingDomains.length()>0)
       {
+        // If there are domain missing in the provided cookie,
+        // the request is rejected and a full resync is required.
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            ERR_INVALID_COOKIE_FULL_RESYNC_REQUIRED.get(
-                "unknown " + startStates.toString()));
+          ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
+              missingDomains + " .Possible cookie:" +
+              (providedCookie + missingDomains)));
+      }
+
+      if (!startStatesFromProvidedCookie.isEmpty())
+      {
+        // After reading all the knows domains from the provided cookie, there
+        // is one (or several) domain that are not currently configured.
+        // This domain has probably been removed or replication disabled on it.
+        // The request is rejected and full resync is required.
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get(
+                startStatesFromProvidedCookie.toString()));
       }
       domainCtxts = tmpSet.toArray(new DomainContext[0]);
 
       // the next record from the DraftCNdb should be the one
       startCookie = providedCookie;
 
-      // Initializes all domain with the next(first) elligible message
+      // Initializes each and every domain with the next(first) eligible message
+      // from the domain.
       for (int j=0; j<domainCtxts.length; j++)
       {
         domainCtxts[j].getNextEligibleMessageForDomain(operationId);
@@ -793,6 +836,10 @@ public class ECLServerHandler extends ServerHandler
         if (domainCtxts[j].nextMsg == null)
           domainCtxts[j].active = false;
       }
+    }
+    catch(DirectoryException de)
+    {
+      throw de;
     }
     catch(Exception e)
     {
@@ -939,8 +986,18 @@ public class ECLServerHandler extends ServerHandler
     isPersistent  = startECLSessionMsg.isPersistent();
     lastDraftCN   = startECLSessionMsg.getLastDraftChangeNumber();
     searchPhase   = INIT_PHASE;
-    previousCookie = new MultiDomainServerState(
+    try
+    {
+      previousCookie = new MultiDomainServerState(
         startECLSessionMsg.getCrossDomainServerState());
+    }
+    catch(Exception e)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      throw new DirectoryException(
+          ResultCode.UNWILLING_TO_PERFORM,
+          ERR_INVALID_COOKIE_SYNTAX.get());
+    }
     excludedServiceIDs = startECLSessionMsg.getExcludedServiceIDs();
     replicationServer.disableEligibility(excludedServiceIDs);
     eligibleCN = replicationServer.getEligibleCN();

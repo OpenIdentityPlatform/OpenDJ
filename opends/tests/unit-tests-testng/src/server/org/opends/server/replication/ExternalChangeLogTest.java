@@ -246,6 +246,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains(); replicationServer.clearDb();
 
+    // Test ECL after changelog triming
+    ECLAfterChangelogTrim();replicationServer.clearDb();
+
     // Write changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
@@ -285,8 +288,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();replicationServer.clearDb();
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();
-    // changelogDb required NOT empty for the next test
+    ECLTwoDomains();replicationServer.clearDb();
 
     // Test ECL after changelog triming
     ECLAfterChangelogTrim();replicationServer.clearDb();
@@ -1096,6 +1098,90 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
 
+      // Test invalid cookie
+      cookie += ";o=test6:";
+
+      control =
+        new ExternalChangelogRequestControl(true,
+            new MultiDomainServerState(cookie));
+      controls = new ArrayList<Control>(0);
+      controls.add(control);
+      debugInfo(tn, "Search with bad domain in cookie=" + cookie);
+      searchOp = connection.processSearch(
+      ByteString.valueOf("cn=changelog"),
+      SearchScope.WHOLE_SUBTREE,
+      DereferencePolicy.NEVER_DEREF_ALIASES,
+      0, // Size limit
+      0, // Time limit
+      false, // Types only
+      LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
+      attributes,
+      controls,
+      null);
+      
+      waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
+      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertTrue(searchOp.getErrorMessage().toString().startsWith(
+          "Invalid syntax of the provided cookie"),
+          searchOp.getErrorMessage().toString());
+      
+      // Test unknown domain in provided cookie
+      // This case seems to be very hard to obtain in the real life 
+      // (how to remove a domain from a RS topology ?)
+      // let's do a very quick test here.
+      String newCookie = lastCookie + "o=test6:";
+
+      control =
+        new ExternalChangelogRequestControl(true,
+            new MultiDomainServerState(newCookie));
+      controls = new ArrayList<Control>(0);
+      controls.add(control);
+      debugInfo(tn, "Search with bad domain in cookie=" + cookie);
+      searchOp = connection.processSearch(
+      ByteString.valueOf("cn=changelog"),
+      SearchScope.WHOLE_SUBTREE,
+      DereferencePolicy.NEVER_DEREF_ALIASES,
+      0, // Size limit
+      0, // Time limit
+      false, // Types only
+      LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
+      attributes,
+      controls,
+      null);
+      
+      waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
+      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertTrue(searchOp.getErrorMessage().toString().startsWith(
+          "Full resync required. Reason: The provided cookie contains unknown replicated domain {o=test6=}"),
+          searchOp.getErrorMessage().toString());
+
+      // Test missing domain in provided cookie
+      newCookie = lastCookie.substring(lastCookie.indexOf(';')+1);
+      control =
+        new ExternalChangelogRequestControl(true,
+            new MultiDomainServerState(newCookie));
+      controls = new ArrayList<Control>(0);
+      controls.add(control);
+      debugInfo(tn, "Search with bad domain in cookie=" + cookie);
+      searchOp = connection.processSearch(
+      ByteString.valueOf("cn=changelog"),
+      SearchScope.WHOLE_SUBTREE,
+      DereferencePolicy.NEVER_DEREF_ALIASES,
+      0, // Size limit
+      0, // Time limit
+      false, // Types only
+      LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
+      attributes,
+      controls,
+      null);
+      
+      waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
+      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(
+          "Full resync required. Reason: The provided cookie is missing the replicated domain(s) o=test:; .Possible cookie:" 
+          + newCookie + "o=test:;"), "Server output:" +
+          searchOp.getErrorMessage().toString());
+
       s1test.stop();
       s1test2.stop();
       s2test.stop();
@@ -1113,7 +1199,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   //=======================================================
-  // Test ECL content after changelog triming
+  // Test ECL content after replication changelogdb triming
   private void ECLAfterChangelogTrim()
   {
     String tn = "ECLAfterChangelogTrim";
@@ -1121,13 +1207,59 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     try
     {
-      replicationServer.getReplicationServerDomain("o=test", false).setPurgeDelay(1);
-      replicationServer.getReplicationServerDomain("o=test2", false).setPurgeDelay(1);
+      // ---
+      // 1. Populate the changelog and read the cookie
+
+      // Creates broker on o=test
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
+          100, replicationServerPort,
+          brokerSessionTimeout, true);
+      int ts = 1;
+
+
+      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      DeleteMsg delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, tn+"uuid1");
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+
+      Thread.sleep(1000);
+
+      // Test that last cookie has been updated
+      String cookieNotEmpty = readLastCookie(tn);
+      debugInfo(tn, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
+
+      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      delMsg =
+        new DeleteMsg("uid="+tn+"2," + TEST_ROOT_DN_STRING, cn1, tn+"uuid2");
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+
+      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      delMsg =
+        new DeleteMsg("uid="+tn+"3," + TEST_ROOT_DN_STRING, cn1, tn+"uuid3");
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+
+      // Sleep longer than this delay - the changelog will be trimmed
+      Thread.sleep(1000);
+      
+      // ---
+      // 2. Now set up a very short purge delay on the replication changelogs
+      // so that this test can play with a trimmed changelog.
+      ReplicationServerDomain d1 = replicationServer.getReplicationServerDomain("o=test", false);
+      ReplicationServerDomain d2 = replicationServer.getReplicationServerDomain("o=test2", false);
+      d1.setPurgeDelay(1);
+      d2.setPurgeDelay(1);
+
+      // Sleep longer than this delay - so that the changelog is trimmed
       Thread.sleep(1000);
       //
       LDIFWriter ldifWriter = getLDIFWriter();
 
-      // Test with empty cookie : from the beginning
+      // ---
+      // 3. Assert that a request with an empty cookie returns nothing
       String cookie= "";
 
       // search on 'cn=changelog'
@@ -1135,7 +1267,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes.add("+");
       attributes.add("*");
 
-      debugInfo(tn, "Search with cookie=" + cookie + "\"");
+      debugInfo(tn, "1. Search with cookie=" + cookie + "\"");
       InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
@@ -1161,14 +1293,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ldifWriter.writeEntry(entry);
         }
       }
+
+      // Assert ECL is empty since replication changelog has been trimmed
       assertEquals(searchOp.getSearchEntries().size(), 0);
 
-      // Read last cookie
+      // 4. Assert that a request with the current last cookie returns nothing
       cookie = readLastCookie(tn);
-
-      // Test from last cookie
-      // search on 'cn=changelog'
-      debugInfo(tn, "Search with cookie=" + cookie + "\"");
+      debugInfo(tn, "2. Search with last cookie=" + cookie + "\"");
       searchOp =
         connection.processSearch(
             ByteString.valueOf("cn=changelog"),
@@ -1192,7 +1323,54 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ldifWriter.writeEntry(entry);
         }
       }
+
+      // Assert ECL is empty since replication changelog has been trimmed
       assertEquals(searchOp.getSearchEntries().size(), 0);
+      
+      // ---
+      // 5. Assert that a request with an "old" cookie - one that refers to 
+      //    changes that have been removed by the replication changelog trimming
+      //    returns the appropriate error.
+
+      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      delMsg =
+        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1, tn+"uuid1");
+      server01.publish(delMsg);
+      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+
+      attributes = new LinkedHashSet<String>();
+      attributes.add("+");
+      attributes.add("*");
+
+      debugInfo(tn, "3. Search with cookie=\"" + cookieNotEmpty + "\"");
+      debugInfo(tn, "d1 trimdate" + d1.getStartState());
+      debugInfo(tn, "d2 trimdate" + d2.getStartState());
+      searchOp =
+        connection.processSearch(
+            ByteString.valueOf("cn=changelog"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES,
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode("(targetDN=*)"),
+            attributes,
+            createControls(cookieNotEmpty),
+            null);
+
+      waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
+      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertTrue(searchOp.getErrorMessage().toString().startsWith(
+          "Full resync required. Reason: The provided cookie is older than the start of historical in the server for the replicated domain : o=test"),
+          searchOp.getErrorMessage().toString());
+
+      // Clean
+      server01.stop();
+
+      // And reset changelog purge delay for the other tests.
+      d1.setPurgeDelay(15 * 1000);
+      d2.setPurgeDelay(15 * 1000);
+      
     }
     catch(Exception e)
     {
@@ -2864,6 +3042,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
       server01.stop();
 
+      // Test with filter on draft changenumber
       filter = "(&(targetdn=*"+tn.toLowerCase()+"*,o=test)(&(changenumber>="+
       firstDraftChangeNumber+")(changenumber<="+(firstDraftChangeNumber+3)+")))";
       debugInfo(tn, " Search: " + filter);
@@ -3898,18 +4077,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
   
-  private void waitOpResult(AbstractOperation searchOp,
+  private void waitOpResult(AbstractOperation operation,
       ResultCode expectedResult)
   {
     int ii=0;
-    while((searchOp.getResultCode()==ResultCode.UNDEFINED) ||
-        (searchOp.getResultCode()!=expectedResult))
+    while((operation.getResultCode()==ResultCode.UNDEFINED) ||
+        (operation.getResultCode()!=expectedResult))
     {
       sleep(50);
       ii++;
       if (ii>10)
-        assertEquals(searchOp.getResultCode(), expectedResult, 
-            searchOp.getErrorMessage().toString());                
+        assertEquals(operation.getResultCode(), expectedResult, 
+            operation.getErrorMessage().toString());                
     }
   }
 }
