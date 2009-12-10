@@ -41,7 +41,9 @@ import javax.jnlp.UnavailableServiceException;
 
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.quicksetup.util.Utils.*;
@@ -60,7 +62,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 public class WebStartDownloader implements DownloadServiceListener {
   static private final Logger LOG =
     Logger.getLogger(WebStartDownloader.class.getName());
-
 
   /**
    * Returns the name of the zip file name that contains all the installation.
@@ -253,19 +254,28 @@ public class WebStartDownloader implements DownloadServiceListener {
       throws IOException, ApplicationException
   {
     DownloadService ds;
-    String serviceName = "javax.jnlp.DownloadService";
     try
     {
       ds =
-          (DownloadService) ServiceManager.lookup(
-              "javax.jnlp.DownloadService");
+          (DownloadService) ServiceManager.lookup(Utils.JNLP_SERVICE_NAME);
     } catch (UnavailableServiceException e)
     {
-      LOG.log(Level.SEVERE, "Could not find service: "+serviceName, e);
+      LOG.log(Level.SEVERE, "Could not find service: "+
+          Utils.JNLP_SERVICE_NAME, e);
+      String setupFile;
+      if (Utils.isWindows())
+      {
+        setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
+      }
+      else
+      {
+        setupFile = Installation.UNIX_SETUP_FILE_NAME;
+      }
       throw new ApplicationException(
         ReturnCode.DOWNLOAD_ERROR,
-        getThrowableMsg(
-            INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(serviceName), e), e);
+        getThrowableMsg(INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(
+            Utils.JNLP_SERVICE_NAME, setupFile),
+            e), e);
     }
 
     String[] urls = getJarUrls();
