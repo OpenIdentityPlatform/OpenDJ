@@ -99,6 +99,12 @@ public class Utils
   private final static String CUSTOMIZATION_CLASS_NAME =
     "org.opends.server.util.ReleaseDefinition";
 
+
+  /**
+   * The service name required by the JNLP downloader.
+   */
+  public static String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
+
   /**
    * Enumeration that specify if the operation applies to the install directory
    * only, to the instance directory only, or both.
@@ -1799,6 +1805,30 @@ public class Utils
               ERR_INCOMPATIBLE_VERSION.get(i.getVersion(), version, javaBin),
               null);
         }
+      }
+    }
+    if (Utils.isWebStart())
+    {
+      // Check that the JNLP service exists.
+      try
+      {
+        javax.jnlp.ServiceManager.lookup(JNLP_SERVICE_NAME);
+      }
+      catch (Throwable t)
+      {
+        String setupFile;
+        if (Utils.isWindows())
+        {
+          setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
+        }
+        else
+        {
+          setupFile = Installation.UNIX_SETUP_FILE_NAME;
+        }
+        throw new IncompatibleVersionException(
+            INFO_DOWNLOADING_ERROR_NO_SERVICE_FOUND.get(
+                JNLP_SERVICE_NAME, setupFile),
+            t);
       }
     }
   }
