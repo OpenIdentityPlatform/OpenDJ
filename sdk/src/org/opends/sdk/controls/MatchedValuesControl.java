@@ -86,7 +86,7 @@ public class MatchedValuesControl extends Control
     @Override
     public LocalizedIllegalArgumentException visitExtensibleMatchFilter(
         Filter p, String matchingRule, String attributeDescription,
-        ByteSequence assertionValue, boolean dnAttributes)
+        ByteString assertionValue, boolean dnAttributes)
     {
       if (dnAttributes)
       {
@@ -123,7 +123,7 @@ public class MatchedValuesControl extends Control
 
     @Override
     public LocalizedIllegalArgumentException visitUnrecognizedFilter(
-        Filter p, byte filterTag, ByteSequence filterBytes)
+        Filter p, byte filterTag, ByteString filterBytes)
     {
       LocalizableMessage message = ERR_MVFILTER_BAD_FILTER_UNRECOGNIZED.get(p
           .toString(), filterTag);
@@ -239,7 +239,7 @@ public class MatchedValuesControl extends Control
   /**
    * Creates a new matched values control using the default OID and the
    * provided criticality and set of filters.
-   * 
+   *
    * @param isCritical
    *          Indicates whether this control should be considered
    *          critical to the operation processing.
@@ -287,7 +287,7 @@ public class MatchedValuesControl extends Control
   /**
    * Returns an {@code Iterable} containing the list of filters
    * associated with this matched values control.
-   * 
+   *
    * @return An {@code Iterable} containing the list of filters.
    */
   public Iterable<Filter> getFilters()

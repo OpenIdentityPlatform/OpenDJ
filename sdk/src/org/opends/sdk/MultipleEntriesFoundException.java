@@ -35,12 +35,17 @@ import org.opends.sdk.responses.Result;
 
 /**
  * Thrown when the result code returned in a Result indicates that the
- * Request was cancelled.
+ * requested single entry search operation or read operation failed
+ * because the Directory Server returned multiple matching entries (or
+ * search references) when only a single matching entry was expected.
+ * More specifically, this exception is used for the
+ * {@link ResultCode#CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED} error
+ * result codes.
  */
 @SuppressWarnings("serial")
-public class CancelledException extends ErrorResultException
+public class MultipleEntriesFoundException extends ErrorResultException
 {
-  CancelledException(Result result)
+  MultipleEntriesFoundException(Result result)
   {
     super(result);
   }

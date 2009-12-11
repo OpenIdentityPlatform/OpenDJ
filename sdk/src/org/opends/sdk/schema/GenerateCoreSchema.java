@@ -43,10 +43,12 @@ final class GenerateCoreSchema
     return oid.startsWith(SchemaConstants.OID_OPENDS_SERVER_BASE + ".");
   }
 
-  private static final Set<String> ABBREVIATIONS =
-      new HashSet<String>(Arrays.asList("LDAP", "DN", "DIT", "RDN",
-          "JPEG", "OID", "UUID", "IA5", "UID", "UTC", "X500", "X121",
-          "C", "CN", "O", "OU", "L", "DC", "ISDN", "SN", "ST"));
+
+
+  private static final Set<String> ABBREVIATIONS = new HashSet<String>(
+      Arrays.asList("SASL", "LDAP", "DN", "DIT", "RDN", "JPEG", "OID",
+          "UUID", "IA5", "UID", "UTC", "X500", "X121", "C", "CN", "O",
+          "OU", "L", "DC", "ISDN", "SN", "ST"));
 
 
 

@@ -38,6 +38,7 @@ import java.util.List;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.*;
+import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -51,35 +52,14 @@ import com.sun.opends.sdk.util.Validator;
 public abstract class AbstractConnection implements Connection
 {
 
-  /**
-   * Creates a new abstract connection.
-   */
-  protected AbstractConnection()
-  {
-    // No implementation required.
-  }
-
-
-
   private static final class SingleEntryHandler implements
       SearchResultHandler<Void>
   {
-    // FIXME: does this need to be thread safe?
-    private SearchResultEntry firstEntry = null;
+    private volatile SearchResultEntry firstEntry = null;
 
-    private SearchResultReference firstReference = null;
+    private volatile SearchResultReference firstReference = null;
 
-    private int entryCount = 0;
-
-
-
-    public void handleReference(Void p, SearchResultReference reference)
-    {
-      if (firstReference == null)
-      {
-        firstReference = reference;
-      }
-    }
+    private volatile int entryCount = 0;
 
 
 
@@ -92,6 +72,26 @@ public abstract class AbstractConnection implements Connection
       entryCount++;
     }
 
+
+
+    public void handleReference(Void p, SearchResultReference reference)
+    {
+      if (firstReference == null)
+      {
+        firstReference = reference;
+      }
+    }
+
+  }
+
+
+
+  /**
+   * Creates a new abstract connection.
+   */
+  protected AbstractConnection()
+  {
+    // No implementation required.
   }
 
 
@@ -178,37 +178,99 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public Result search(SearchRequest request,
-      final Collection<? super SearchResultEntry> entries,
-      final Collection<? super SearchResultReference> references)
-      throws ErrorResultException, InterruptedException,
+  public SearchResultEntry readEntry(DN baseObject,
+      String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    SearchRequest request = Requests.newSearchRequest(baseObject,
+        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter(),
+        attributeDescriptions);
+    return searchSingleEntry(request);
+  }
+
+
+
+  public SearchResultEntry readEntry(String baseObject,
+      String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    Validator.ensureNotNull(request, entries);
-
-    // FIXME: does this need to be thread safe?
-    SearchResultHandler<Void> handler = new SearchResultHandler<Void>()
-    {
-
-      public void handleReference(Void p,
-          SearchResultReference reference)
-      {
-        if (references != null)
-        {
-          references.add(reference);
-        }
-      }
+    return readEntry(DN.valueOf(baseObject));
+  }
 
 
 
-      public void handleEntry(Void p, SearchResultEntry entry)
-      {
-        entries.add(entry);
-      }
-    };
+  /**
+   * {@inheritDoc}
+   */
+  public RootDSE readRootDSE() throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException
+  {
+    return RootDSE.readRootDSE(this);
+  }
 
-    return search(request, handler, null);
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchema(DN name) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException
+  {
+    return Schema.readSchema(this, name);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchema(String name) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException
+  {
+    return readSchema(DN.valueOf(name));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchemaForEntry(DN name)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException
+  {
+    return Schema.readSchemaForEntry(this, name);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchemaForEntry(String name)
+      throws ErrorResultException, InterruptedException,
+      LocalizedIllegalArgumentException, UnsupportedOperationException,
+      IllegalStateException
+  {
+    return readSchemaForEntry(DN.valueOf(name));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchemaForRootDSE() throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException
+  {
+    return readSchemaForEntry(DN.rootDN());
   }
 
 
@@ -223,6 +285,41 @@ public abstract class AbstractConnection implements Connection
       NullPointerException
   {
     return search(request, entries, null);
+  }
+
+
+
+  public Result search(SearchRequest request,
+      final Collection<? super SearchResultEntry> entries,
+      final Collection<? super SearchResultReference> references)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(request, entries);
+
+    // FIXME: does this need to be thread safe?
+    SearchResultHandler<Void> handler = new SearchResultHandler<Void>()
+    {
+
+      public void handleEntry(Void p, SearchResultEntry entry)
+      {
+        entries.add(entry);
+      }
+
+
+
+      public void handleReference(Void p,
+          SearchResultReference reference)
+      {
+        if (references != null)
+        {
+          references.add(reference);
+        }
+      }
+    };
+
+    return search(request, handler, null);
   }
 
 
@@ -249,23 +346,35 @@ public abstract class AbstractConnection implements Connection
   {
     SingleEntryHandler handler = new SingleEntryHandler();
     search(request, handler, null);
-    if (handler.entryCount > 1)
+
+    if (handler.entryCount == 0)
+    {
+      // Did not find any entries.
+      Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
+          .setDiagnosticMessage(
+              ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
+      throw ErrorResultException.wrap(result);
+    }
+    else if (handler.entryCount > 1)
     {
       // Got more entries than expected.
       Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN).setDiagnosticMessage(
-          ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(handler.entryCount)
-              .toString());
+          ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
+          .setDiagnosticMessage(
+              ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(
+                  handler.entryCount).toString());
       throw ErrorResultException.wrap(result);
     }
     else if (handler.firstReference != null)
     {
       // Got an unexpected search result reference.
       Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-          ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-              handler.firstReference.getURIs().iterator().next())
-              .toString());
+          ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
+          .setDiagnosticMessage(
+              ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
+                  handler.firstReference.getURIs().iterator().next())
+                  .toString());
       throw ErrorResultException.wrap(result);
     }
     else
@@ -284,30 +393,6 @@ public abstract class AbstractConnection implements Connection
   {
     SearchRequest request = Requests.newSearchRequest(baseObject,
         scope, filter, attributeDescriptions);
-    return searchSingleEntry(request);
-  }
-
-
-
-  public SearchResultEntry readEntry(String baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return readEntry(DN.valueOf(baseObject));
-  }
-
-
-
-  public SearchResultEntry readEntry(DN baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
-  {
-    SearchRequest request = Requests.newSearchRequest(baseObject,
-        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter(),
-        attributeDescriptions);
     return searchSingleEntry(request);
   }
 

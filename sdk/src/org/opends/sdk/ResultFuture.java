@@ -34,18 +34,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.opends.sdk.responses.Result;
-
 
 
 /**
  * A handle which can be used to retrieve the Result of an asynchronous
  * Request.
- * 
+ *
  * @param <S>
  *          The type of result returned by this future.
  */
-public interface ResultFuture<S extends Result> extends Future<S>
+public interface ResultFuture<S> extends Future<S>
 {
   /**
    * Attempts to cancel the request. This attempt will fail if the
@@ -57,7 +55,7 @@ public interface ResultFuture<S extends Result> extends Future<S>
    * always return {@code true}. Subsequent calls to
    * {@link #isCancelled} will always return {@code true} if this method
    * returned {@code true}.
-   * 
+   *
    * @param mayInterruptIfRunning
    *          {@code true} if the thread executing executing the
    *          response handler should be interrupted; otherwise,
@@ -75,19 +73,20 @@ public interface ResultFuture<S extends Result> extends Future<S>
    * the result if the request succeeded. If the request failed (i.e. a
    * non-successful result code was obtained) then the result is thrown
    * as an {@link ErrorResultException}.
-   * 
+   *
    * @return The result, but only if the result code indicates that the
    *         request succeeded.
-   * @throws CancellationException
-   *           If the request was cancelled using a call to
-   *           {@link #cancel}.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
+   * @throws CancellationException
+   *           If the request was cancelled using a call to
+   *           {@link #cancel}.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    */
-  S get() throws InterruptedException, ErrorResultException;
+  S get() throws ErrorResultException, CancellationException,
+      InterruptedException;
 
 
 
@@ -96,32 +95,32 @@ public interface ResultFuture<S extends Result> extends Future<S>
    * complete, and then returns the result if the request succeeded. If
    * the request failed (i.e. a non-successful result code was obtained)
    * then the result is thrown as an {@link ErrorResultException}.
-   * 
+   *
    * @param timeout
    *          The maximum time to wait.
    * @param unit
    *          The time unit of the timeout argument.
    * @return The result, but only if the result code indicates that the
    *         request succeeded.
-   * @throws CancellationException
-   *           If the request was cancelled using a call to
-   *           {@link #cancel}.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
    * @throws TimeoutException
    *           If the wait timed out.
+   * @throws CancellationException
+   *           If the request was cancelled using a call to
+   *           {@link #cancel}.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    */
-  S get(long timeout, TimeUnit unit) throws InterruptedException,
-      TimeoutException, ErrorResultException;
+  S get(long timeout, TimeUnit unit) throws ErrorResultException,
+      TimeoutException, CancellationException, InterruptedException;
 
 
 
   /**
    * Returns the message ID of the request.
-   * 
+   *
    * @return The message ID.
    */
   int getMessageID();
@@ -131,7 +130,7 @@ public interface ResultFuture<S extends Result> extends Future<S>
   /**
    * Returns {@code true} if the request was cancelled before it
    * completed normally.
-   * 
+   *
    * @return {@code true} if the request was cancelled before it
    *         completed normally, otherwise {@code false}.
    */
@@ -145,7 +144,7 @@ public interface ResultFuture<S extends Result> extends Future<S>
    * Completion may be due to normal termination, an exception, or
    * cancellation. In all of these cases, this method will return
    * {@code true}.
-   * 
+   *
    * @return {@code true} if the request has completed, otherwise
    *         {@code false}.
    */

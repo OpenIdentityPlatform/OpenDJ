@@ -151,7 +151,7 @@ public final class MatchingRule extends SchemaElement
    *           if the syntax of the value is not valid.
    */
   public Assertion getAssertion(ByteSequence subInitial,
-      List<ByteSequence> subAnyElements, ByteSequence subFinal)
+      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
       throws DecodeException
   {
     return impl.getAssertion(schema, subInitial, subAnyElements,

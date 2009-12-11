@@ -35,13 +35,19 @@ import org.opends.sdk.responses.Result;
 
 /**
  * Thrown when the result code returned in a Result indicates that the
- * Request was aborted because it did not complete in the required time
- * out period.
+ * Request was cancelled. More specifically, this exception is used for
+ * the following error result codes:
+ * <ul>
+ * <li>{@link ResultCode#CANCELLED} - the requested operation was
+ * cancelled.
+ * <li>{@link ResultCode#CLIENT_SIDE_USER_CANCELLED} - the requested
+ * operation was cancelled by the user.
+ * </ul>
  */
 @SuppressWarnings("serial")
-public class OperationTimeoutException extends ErrorResultException
+public class CancelledResultException extends ErrorResultException
 {
-  OperationTimeoutException(Result result)
+  CancelledResultException(Result result)
   {
     super(result);
   }

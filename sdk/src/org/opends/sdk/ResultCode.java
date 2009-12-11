@@ -37,7 +37,6 @@ import java.util.List;
 
 
 
-
 /**
  * An operation result code as defined in RFC 4511 section 4.1.9 is used
  * to indicate the final status of an operation. If a server detects
@@ -483,22 +482,23 @@ public final class ResultCode
       93, INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get());
 
   /**
-   * The client-side result code that indicates that the server did not
-   * return any results for a search operation that was expected to
-   * match at least one entry. This is for client-side use only and
-   * should never be transferred over protocol.
+   * The client-side result code that indicates that the requested
+   * single entry search operation or read operation failed because the
+   * Directory Server did not return any matching entries. This is for
+   * client-side use only and should never be transferred over protocol.
    */
   public static final ResultCode CLIENT_SIDE_NO_RESULTS_RETURNED = registerErrorResultCode(
       94, INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get());
 
   /**
-   * The client-side result code that indicates that the server has
-   * returned more matching entries for a search operation than have
-   * been processed so far. This is for client-side use only and should
-   * never be transferred over protocol.
+   * The client-side result code that the requested single entry search
+   * operation or read operation failed because the Directory Server
+   * returned multiple matching entries (or search references) when only
+   * a single matching entry was expected. This is for client-side use
+   * only and should never be transferred over protocol.
    */
-  public static final ResultCode CLIENT_SIDE_MORE_RESULTS_TO_RETURN = registerErrorResultCode(
-      95, INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get());
+  public static final ResultCode CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED = registerErrorResultCode(
+      95, INFO_RESULT_CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.get());
 
   /**
    * The client-side result code that indicates that the client detected
@@ -523,7 +523,7 @@ public final class ResultCode
    * The result code that indicates that a cancel request was
    * successful, or that the specified operation was canceled.
    */
-  public static final ResultCode CANCELED = registerErrorResultCode(
+  public static final ResultCode CANCELLED = registerErrorResultCode(
       118, INFO_RESULT_CANCELED.get());
 
   /**
@@ -637,8 +637,8 @@ public final class ResultCode
 
     if (resultCode == null)
     {
-      resultCode = new ResultCode(intValue, LocalizableMessage.raw("undefined("
-          + intValue + ")"), true);
+      resultCode = new ResultCode(intValue, LocalizableMessage
+          .raw("undefined(" + intValue + ")"), true);
     }
 
     return resultCode;
@@ -670,7 +670,8 @@ public final class ResultCode
 
 
   // Prevent direct instantiation.
-  private ResultCode(int intValue, LocalizableMessage name, boolean exceptional)
+  private ResultCode(int intValue, LocalizableMessage name,
+      boolean exceptional)
   {
     this.intValue = intValue;
     this.name = name;

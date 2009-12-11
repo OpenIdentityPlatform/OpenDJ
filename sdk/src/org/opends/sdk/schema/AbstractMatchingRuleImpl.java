@@ -108,7 +108,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 
 
   public Assertion getAssertion(Schema schema, ByteSequence subInitial,
-      List<ByteSequence> subAnyElements, ByteSequence subFinal)
+      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
       throws DecodeException
   {
     return UNDEFINED_ASSERTION;

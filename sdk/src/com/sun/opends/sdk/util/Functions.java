@@ -46,6 +46,7 @@ public final class Functions
       Function<M, N, Void>
   {
     private final Function<M, N, P> function;
+
     private final P parameter;
 
 
@@ -68,99 +69,101 @@ public final class Functions
 
   }
 
-  private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION =
-      new Function<ByteString, AttributeDescription, Schema>()
+
+
+  private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION = new Function<ByteString, AttributeDescription, Schema>()
+  {
+
+    public AttributeDescription apply(ByteString value, Schema p)
+    {
+      // FIXME: what should we do if parsing fails?
+      return AttributeDescription.valueOf(value.toString(), p);
+    }
+  };
+
+  private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN = new Function<ByteString, Boolean, Void>()
+  {
+
+    public Boolean apply(ByteString value, Void p)
+    {
+      String valueString = StaticUtils.toLowerCase(value.toString());
+
+      if (valueString.equals("true") || valueString.equals("yes")
+          || valueString.equals("on") || valueString.equals("1"))
       {
-
-        public AttributeDescription apply(ByteString value, Schema p)
-        {
-          // FIXME: what should we do if parsing fails?
-          return AttributeDescription.valueOf(value.toString(), p);
-        }
-      };
-
-  private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN =
-      new Function<ByteString, Boolean, Void>()
+        return Boolean.TRUE;
+      }
+      else if (valueString.equals("false") || valueString.equals("no")
+          || valueString.equals("off") || valueString.equals("0"))
       {
-
-        public Boolean apply(ByteString value, Void p)
-        {
-          String valueString =
-              StaticUtils.toLowerCase(value.toString());
-
-          if (valueString.equals("true") || valueString.equals("yes")
-              || valueString.equals("on") || valueString.equals("1"))
-          {
-            return Boolean.TRUE;
-          }
-          else if (valueString.equals("false")
-              || valueString.equals("no") || valueString.equals("off")
-              || valueString.equals("0"))
-          {
-            return Boolean.FALSE;
-          }
-          else
-          {
-            throw new NumberFormatException("Invalid boolean value \""
-                + valueString + "\"");
-          }
-        }
-      };
-
-  private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN =
-      new Function<ByteString, DN, Schema>()
+        return Boolean.FALSE;
+      }
+      else
       {
+        throw new NumberFormatException("Invalid boolean value \""
+            + valueString + "\"");
+      }
+    }
+  };
 
-        public DN apply(ByteString value, Schema p)
-        {
-          // FIXME: what should we do if parsing fails?
+  private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN = new Function<ByteString, DN, Schema>()
+  {
 
-          // FIXME: we should have a ByteString valueOf implementation.
-          return DN.valueOf(value.toString(), p);
-        }
-      };
+    public DN apply(ByteString value, Schema p)
+    {
+      // FIXME: what should we do if parsing fails?
 
-  private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER =
-      new Function<ByteString, Integer, Void>()
-      {
+      // FIXME: we should have a ByteString valueOf implementation.
+      return DN.valueOf(value.toString(), p);
+    }
+  };
 
-        public Integer apply(ByteString value, Void p)
-        {
-          // We do not use ByteString.toInt() as we are string based.
-          return Integer.valueOf(value.toString());
-        }
-      };
+  private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER = new Function<ByteString, Integer, Void>()
+  {
 
-  private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG =
-      new Function<ByteString, Long, Void>()
-      {
+    public Integer apply(ByteString value, Void p)
+    {
+      // We do not use ByteString.toInt() as we are string based.
+      return Integer.valueOf(value.toString());
+    }
+  };
 
-        public Long apply(ByteString value, Void p)
-        {
-          // We do not use ByteString.toLong() as we are string based.
-          return Long.valueOf(value.toString());
-        }
-      };
+  private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG = new Function<ByteString, Long, Void>()
+  {
 
-  private static final Function<ByteString, String, Void> BYTESTRING_TO_STRING =
-      new Function<ByteString, String, Void>()
-      {
+    public Long apply(ByteString value, Void p)
+    {
+      // We do not use ByteString.toLong() as we are string based.
+      return Long.valueOf(value.toString());
+    }
+  };
 
-        public String apply(ByteString value, Void p)
-        {
-          return value.toString();
-        }
-      };
+  private static final Function<ByteString, String, Void> BYTESTRING_TO_STRING = new Function<ByteString, String, Void>()
+  {
 
-  private static final Function<String, String, Void> NORMALIZE_STRING =
-      new Function<String, String, Void>()
-      {
+    public String apply(ByteString value, Void p)
+    {
+      return value.toString();
+    }
+  };
 
-        public String apply(String value, Void p)
-        {
-          return StaticUtils.toLowerCase(value).trim();
-        }
-      };
+  private static final Function<Object, ByteString, Void> OBJECT_TO_BYTESTRING = new Function<Object, ByteString, Void>()
+  {
+
+    public ByteString apply(Object value, Void p)
+    {
+      return ByteString.valueOf(value);
+    }
+  };
+
+  private static final Function<String, String, Void> NORMALIZE_STRING = new Function<String, String, Void>()
+  {
+
+    public String apply(String value, Void p)
+    {
+      return StaticUtils.toLowerCase(value).trim();
+    }
+  };
 
 
 
@@ -333,6 +336,20 @@ public final class Functions
   public static Function<ByteString, String, Void> valueToString()
   {
     return BYTESTRING_TO_STRING;
+  }
+
+
+
+  /**
+   * Returns a function which converts an {@code Object} to a {@code
+   * ByteString} using the {@link ByteString#valueOf(Object)} method.
+   *
+   * @return A function which converts an {@code Object} to a {@code
+   *         ByteString}.
+   */
+  public static Function<Object, ByteString, Void> objectToByteString()
+  {
+    return OBJECT_TO_BYTESTRING;
   }
 
 

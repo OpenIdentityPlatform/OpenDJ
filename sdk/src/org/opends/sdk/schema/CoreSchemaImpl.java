@@ -32,50 +32,52 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
-import org.opends.sdk.LocalizableMessage;
-
-
 
 
 final class CoreSchemaImpl
 {
-  private static final Map<String, List<String>> X500_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+  private static final Map<String, List<String>> X500_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("X.500"));
-  private static final Map<String, List<String>> RFC2252_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC2252_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 2252"));
-  private static final Map<String, List<String>> RFC3045_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC3045_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 3045"));
-  private static final Map<String, List<String>> RFC3112_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC3112_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 3112"));
-  private static final Map<String, List<String>> RFC4512_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC4512_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 4512"));
-  private static final Map<String, List<String>> RFC4517_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC4517_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 4517"));
-  private static final Map<String, List<String>> RFC4519_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC4519_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 4519"));
-  private static final Map<String, List<String>> RFC4530_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  private static final Map<String, List<String>> RFC4530_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("RFC 4530"));
-  static final Map<String, List<String>> OPENDS_ORIGIN =
-      Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
+
+  static final Map<String, List<String>> OPENDS_ORIGIN = Collections
+      .singletonMap(SCHEMA_PROPERTY_ORIGIN, Collections
           .singletonList("OpenDS Directory Server"));
+
   private static final String EMPTY_STRING = "".intern();
-  private static final Set<String> EMPTY_STRING_SET =
-      Collections.emptySet();
+
+  private static final Set<String> EMPTY_STRING_SET = Collections
+      .emptySet();
 
   private static final Schema SINGLETON;
-
-  // Package private so that we can check for warnings in the unit
-  // tests.
-  static final List<LocalizableMessage> CORE_SCHEMA_WARNINGS =
-      new LinkedList<LocalizableMessage>();
 
   static
   {
@@ -91,7 +93,7 @@ final class CoreSchemaImpl
     addRFC3112(builder);
     addSunProprietary(builder);
 
-    SINGLETON = builder.toSchema(CORE_SCHEMA_WARNINGS).nonStrict();
+    SINGLETON = builder.toSchema().nonStrict();
   }
 
 

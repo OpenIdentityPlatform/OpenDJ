@@ -32,10 +32,11 @@ package org.opends.sdk;
 import java.util.Iterator;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
 
 
