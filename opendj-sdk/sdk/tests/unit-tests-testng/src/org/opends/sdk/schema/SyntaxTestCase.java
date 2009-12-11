@@ -32,9 +32,10 @@ import static org.testng.Assert.fail;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import org.opends.sdk.ByteString;
 
 
 

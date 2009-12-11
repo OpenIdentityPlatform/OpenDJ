@@ -36,10 +36,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.sdk.*;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 
+import com.sun.opends.sdk.util.ResultChain;
+import com.sun.opends.sdk.util.ResultTransformer;
 import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
 
 
 
@@ -291,6 +296,13 @@ public final class Schema
 
 
 
+    public Collection<LocalizableMessage> getWarnings()
+    {
+      return Collections.emptyList();
+    }
+
+
+
     public boolean hasAttributeType(String name)
     {
       // In theory a non-strict schema always contains the requested
@@ -477,6 +489,10 @@ public final class Schema
 
 
     Collection<Syntax> getSyntaxes();
+
+
+
+    Collection<LocalizableMessage> getWarnings();
 
 
 
@@ -752,6 +768,13 @@ public final class Schema
 
 
 
+    public Collection<LocalizableMessage> getWarnings()
+    {
+      return strictImpl.getWarnings();
+    }
+
+
+
     public boolean hasAttributeType(String name)
     {
       // In theory a non-strict schema always contains the requested
@@ -858,6 +881,8 @@ public final class Schema
 
     private final SchemaCompatOptions options;
 
+    private final List<LocalizableMessage> warnings;
+
 
 
     private StrictImpl(Map<String, Syntax> numericOID2Syntaxes,
@@ -877,7 +902,7 @@ public final class Schema
         Map<String, List<DITStructureRule>> name2StructureRules,
         Map<String, List<NameForm>> objectClass2NameForms,
         Map<String, List<DITStructureRule>> nameForm2StructureRules,
-        SchemaCompatOptions options)
+        SchemaCompatOptions options, List<LocalizableMessage> warnings)
     {
       this.numericOID2Syntaxes = Collections
           .unmodifiableMap(numericOID2Syntaxes);
@@ -913,6 +938,7 @@ public final class Schema
       this.nameForm2StructureRules = Collections
           .unmodifiableMap(nameForm2StructureRules);
       this.options = options;
+      this.warnings = Collections.unmodifiableList(warnings);
     }
 
 
@@ -1315,6 +1341,13 @@ public final class Schema
 
 
 
+    public Collection<LocalizableMessage> getWarnings()
+    {
+      return warnings;
+    }
+
+
+
     public boolean hasAttributeType(String name)
     {
       if (numericOID2AttributeTypes.containsKey(name))
@@ -1458,6 +1491,294 @@ public final class Schema
       ATTR_MATCHING_RULES.toString(), ATTR_NAME_FORMS.toString(),
       ATTR_OBJECT_CLASSES.toString() };
 
+  private static final Filter SUBSCHEMA_FILTER = Filter
+      .newEqualityMatchFilter(CoreSchema.getObjectClassAttributeType()
+          .getNameOrOID(), CoreSchema.getSubschemaObjectClass()
+          .getNameOrOID());
+
+  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS = new String[] { ATTR_SUBSCHEMA_SUBENTRY
+      .toString() };
+
+
+
+  /**
+   * Reads the schema from the Directory Server contained in the named
+   * subschema sub-entry using the provided connection.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, this method will never return {@code null}.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be
+   *          read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @return The schema from the Directory Server.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code
+   *           null}.
+   */
+  public static Schema readSchema(Connection connection, DN name)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+    final Entry entry = connection.searchSingleEntry(request);
+    return valueOf(entry);
+  }
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * named entry using the provided connection.
+   * <p>
+   * If the requested entry or its associated schema are not returned by
+   * the Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, this method will
+   * never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the entry in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be
+   *          read.
+   * @param name
+   *          The distinguished name of the entry whose schema is to be
+   *          located.
+   * @return The schema from the Directory Server which applies to the
+   *         named entry.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code
+   *           null}.
+   */
+  public static Schema readSchemaForEntry(Connection connection, DN name)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
+    final Entry entry = connection.searchSingleEntry(request);
+    final DN subschemaDN = getSubschemaSubentryDN(name, entry);
+
+    return readSchema(connection, subschemaDN);
+  }
+
+
+
+  private static DN getSubschemaSubentryDN(DN name, final Entry entry)
+      throws ErrorResultException
+  {
+    final Attribute subentryAttr = entry
+        .getAttribute(ATTR_SUBSCHEMA_SUBENTRY);
+
+    if (subentryAttr == null || subentryAttr.isEmpty())
+    {
+      // Did not get the subschema sub-entry attribute.
+      Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
+          .setDiagnosticMessage(
+              ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString())
+                  .toString());
+      throw ErrorResultException.wrap(result);
+    }
+
+    String dnString = subentryAttr.iterator().next().toString();
+    DN subschemaDN;
+    try
+    {
+      subschemaDN = DN.valueOf(dnString);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
+          .setDiagnosticMessage(
+              ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(),
+                  dnString, e.getMessageObject()).toString());
+      throw ErrorResultException.wrap(result);
+    }
+    return subschemaDN;
+  }
+
+
+
+  /**
+   * Reads the schema from the Directory Server contained in the named
+   * subschema sub-entry.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, the returned future will never return {@code
+   * null}.
+   * <p>
+   * Implementations may choose to perform optimizations such as
+   * caching.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be
+   *          read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code
+   *           null}.
+   */
+  public static <P> ResultFuture<Schema> readSchema(
+      AsynchronousConnection connection, DN name,
+      ResultHandler<? super Schema, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+
+    final ResultTransformer<SearchResultEntry, Schema, P> future = new ResultTransformer<SearchResultEntry, Schema, P>(
+        handler)
+    {
+
+      protected Schema transformResult(SearchResultEntry result)
+          throws ErrorResultException
+      {
+        return valueOf(result);
+      }
+
+    };
+
+    ResultFuture<SearchResultEntry> innerFuture = connection
+        .searchSingleEntry(request, future, p);
+    future.setResultFuture(innerFuture);
+    return future;
+  }
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * named entry.
+   * <p>
+   * If the requested entry or its associated schema are not returned by
+   * the Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, the returned
+   * future will never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the entry in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be
+   *          read.
+   * @param name
+   *          The distinguished name of the entry whose schema is to be
+   *          located.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code
+   *           null}.
+   */
+  public static <P> ResultFuture<Schema> readSchemaForEntry(
+      final AsynchronousConnection connection, final DN name,
+      ResultHandler<Schema, P> handler, final P p)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final ResultChain<SearchResultEntry, Schema, P> future = new ResultChain<SearchResultEntry, Schema, P>(
+        handler)
+    {
+
+      protected ResultFuture<Schema> chainResult(
+          SearchResultEntry innerResult,
+          ResultHandler<? super Schema, P> handler)
+          throws ErrorResultException
+      {
+        final DN subschemaDN = getSubschemaSubentryDN(name, innerResult);
+        return readSchema(connection, subschemaDN, handler, p);
+      }
+
+    };
+
+    final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
+    ResultFuture<SearchResultEntry> innerFuture = connection
+        .searchSingleEntry(request, future, p);
+    future.setInnerResultFuture(innerFuture);
+    return future;
+  }
+
+
+
+  // Constructs a search request for retrieving the named subschema
+  // sub-entry.
+  private static SearchRequest getReadSchemaSearchRequest(DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
+  }
+
+
+
+  // Constructs a search request for retrieving the subschemaSubentry
+  // attribute from the named entry.
+  private static SearchRequest getReadSchemaForEntrySearchRequest(DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        SUBSCHEMA_FILTER, SUBSCHEMA_SUBENTRY_ATTRS);
+  }
+
 
 
   /**
@@ -1520,62 +1841,19 @@ public final class Schema
 
 
   /**
-   * Reads the schema associated with the provided entry from an LDAP
-   * Directory Server.
+   * Parses the provided entry as a subschema subentry. Any problems
+   * encountered while parsing the entry can be retrieved using the
+   * returned schema's {@link #getWarnings()} method.
    *
-   * @param connection
-   *          The connection to the Directory Server.
-   * @param dn
-   *          The name of the entry whose schema is to be retrieved.
-   * @param warnings
-   *          A list to which any warning messages encountered while
-   *          decoding the schema should be appended.
-   * @return The schema.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} could not be decoded using the default
-   *           schema.
-   * @throws ErrorResultException
-   *           If the server returned an error result code.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws SchemaNotFoundException
-   *           If the requested schema was not found in the Directory
-   *           Server.
+   * @param entry
+   *          The subschema subentry to be parsed.
+   * @return The parsed schema.
    */
-  public static Schema getSchema(Connection connection, String dn,
-      List<LocalizableMessage> warnings) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      SchemaNotFoundException
+  public static Schema valueOf(Entry entry)
   {
-    Validator.ensureNotNull(connection, dn, warnings);
-    SearchResultEntry result = connection.readEntry(dn,
-        ATTR_SUBSCHEMA_SUBENTRY.toString());
-    Attribute subentryAttr;
-    if ((subentryAttr = result.getAttribute(ATTR_SUBSCHEMA_SUBENTRY)) == null
-        || subentryAttr.isEmpty())
-    {
-      throw new SchemaNotFoundException(ERR_NO_SUBSCHEMA_SUBENTRY_ATTR
-          .get(dn));
-    }
-
-    String subschemaDNString = subentryAttr.iterator().next()
-        .toString();
-    DN subschemaDN;
-    try
-    {
-      subschemaDN = DN.valueOf(subschemaDNString);
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      throw new SchemaNotFoundException(
-          ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(dn,
-              subschemaDNString, e.getMessageObject()));
-    }
-    result = connection.readEntry(subschemaDN, SUBSCHEMA_ATTRS);
-
     final SchemaBuilder builder = new SchemaBuilder();
-    Attribute attr = result.getAttribute(ATTR_LDAP_SYNTAXES);
 
+    Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1586,12 +1864,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_ATTRIBUTE_TYPES);
+    attr = entry.getAttribute(ATTR_ATTRIBUTE_TYPES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1602,12 +1880,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_OBJECT_CLASSES);
+    attr = entry.getAttribute(ATTR_OBJECT_CLASSES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1618,12 +1896,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_MATCHING_RULE_USE);
+    attr = entry.getAttribute(ATTR_MATCHING_RULE_USE);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1634,12 +1912,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_MATCHING_RULES);
+    attr = entry.getAttribute(ATTR_MATCHING_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1650,12 +1928,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_DIT_CONTENT_RULES);
+    attr = entry.getAttribute(ATTR_DIT_CONTENT_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1666,12 +1944,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_DIT_STRUCTURE_RULES);
+    attr = entry.getAttribute(ATTR_DIT_STRUCTURE_RULES);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1682,12 +1960,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    attr = result.getAttribute(ATTR_NAME_FORMS);
+    attr = entry.getAttribute(ATTR_NAME_FORMS);
     if (attr != null)
     {
       for (final ByteString def : attr)
@@ -1698,12 +1976,12 @@ public final class Schema
         }
         catch (final LocalizedIllegalArgumentException e)
         {
-          warnings.add(e.getMessageObject());
+          builder.addWarning(e.getMessageObject());
         }
       }
     }
 
-    return builder.toSchema(warnings);
+    return builder.toSchema();
   }
 
 
@@ -1758,7 +2036,7 @@ public final class Schema
       Map<String, List<DITStructureRule>> name2StructureRules,
       Map<String, List<NameForm>> objectClass2NameForms,
       Map<String, List<DITStructureRule>> nameForm2StructureRules,
-      SchemaCompatOptions options)
+      SchemaCompatOptions options, List<LocalizableMessage> warnings)
   {
     impl = new StrictImpl(numericOID2Syntaxes,
         numericOID2MatchingRules, numericOID2MatchingRuleUses,
@@ -1767,7 +2045,7 @@ public final class Schema
         id2StructureRules, name2MatchingRules, name2MatchingRuleUses,
         name2AttributeTypes, name2ObjectClasses, name2NameForms,
         name2ContentRules, name2StructureRules, objectClass2NameForms,
-        nameForm2StructureRules, options);
+        nameForm2StructureRules, options, warnings);
   }
 
 
@@ -2200,6 +2478,20 @@ public final class Schema
   public Collection<Syntax> getSyntaxes()
   {
     return impl.getSyntaxes();
+  }
+
+
+
+  /**
+   * Returns an unmodifiable collection containing all of the warnings
+   * that were detected when this schema was constructed.
+   *
+   * @return An unmodifiable collection containing all of the warnings
+   *         that were detected when this schema was constructed.
+   */
+  public Collection<LocalizableMessage> getWarnings()
+  {
+    return impl.getWarnings();
   }
 
 

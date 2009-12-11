@@ -31,10 +31,11 @@ package org.opends.sdk.schema;
 import org.opends.sdk.Assertion;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.util.ByteString;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import org.opends.sdk.ByteString;
 
 
 

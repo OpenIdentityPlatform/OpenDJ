@@ -27,12 +27,6 @@
 
 package org.opends.sdk;
 
-
-
-import org.opends.sdk.responses.Result;
-
-
-
 /**
  * A completion handler for consuming the result of an asynchronous
  * operation.
@@ -46,7 +40,7 @@ import org.opends.sdk.responses.Result;
  * Implementations of these methods should complete in a timely manner
  * so as to avoid keeping the invoking thread from dispatching to other
  * completion handlers.
- * 
+ *
  * @param <S>
  *          The type of result handled by this result handler.
  * @param <P>
@@ -54,11 +48,11 @@ import org.opends.sdk.responses.Result;
  *          methods. Use {@link java.lang.Void} for visitors that do not
  *          need an additional parameter.
  */
-public interface ResultHandler<S extends Result, P>
+public interface ResultHandler<S, P>
 {
   /**
    * Invoked when the asynchronous operation has failed.
-   * 
+   *
    * @param p
    *          A handler specified parameter.
    * @param error
@@ -71,7 +65,7 @@ public interface ResultHandler<S extends Result, P>
 
   /**
    * Invoked when the asynchronous operation has completed successfully.
-   * 
+   *
    * @param p
    *          A handler specified parameter.
    * @param result

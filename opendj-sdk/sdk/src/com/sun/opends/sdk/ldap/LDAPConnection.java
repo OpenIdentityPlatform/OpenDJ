@@ -69,7 +69,8 @@ import com.sun.opends.sdk.util.Validator;
  * <p>
  * TODO: handle illegal state exceptions.
  */
-public final class LDAPConnection implements AsynchronousConnection
+public final class LDAPConnection extends
+    AbstractAsynchronousConnection implements AsynchronousConnection
 {
 
   private final class LDAPMessageHandlerImpl extends
@@ -916,16 +917,6 @@ public final class LDAPConnection implements AsynchronousConnection
     }
 
     return future;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void close()
-  {
-    close(Requests.newUnbindRequest(), null);
   }
 
 

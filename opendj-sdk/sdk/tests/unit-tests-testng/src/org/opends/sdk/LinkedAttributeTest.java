@@ -30,8 +30,9 @@ package org.opends.sdk;
 
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.util.ByteString;
 import org.testng.annotations.Test;
+
+import org.opends.sdk.ByteString;
 
 
 

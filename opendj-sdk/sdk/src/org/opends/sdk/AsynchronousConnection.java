@@ -30,11 +30,14 @@ package org.opends.sdk;
 
 
 import java.io.Closeable;
+import java.util.Collection;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.schema.Schema;
 
 
 
@@ -186,6 +189,25 @@ public interface AsynchronousConnection extends Closeable
       ResultHandler<Result, P> handler, P p)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
+
+
+
+  /**
+   * Registers the provided connection event listener so that it will be
+   * notified when this connection is closed by the application,
+   * receives an unsolicited notification, or experiences a fatal error.
+   *
+   * @param listener
+   *          The listener which wants to be notified when events occur
+   *          on this connection.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void addConnectionEventListener(ConnectionEventListener listener)
+      throws IllegalStateException, NullPointerException;
 
 
 
@@ -367,6 +389,19 @@ public interface AsynchronousConnection extends Closeable
 
 
   /**
+   * Indicates whether or not this connection has been explicitly closed
+   * by calling {@code close}. This method will not return {@code true}
+   * if a fatal error has occurred on the connection unless {@code
+   * close} has been called.
+   *
+   * @return {@code true} if this connection has been explicitly closed
+   *         by calling {@code close}, or {@code false} otherwise.
+   */
+  boolean isClosed();
+
+
+
+  /**
    * Modifies an entry in the Directory Server using the provided modify
    * request.
    *
@@ -429,6 +464,174 @@ public interface AsynchronousConnection extends Closeable
 
 
   /**
+   * Reads the named entry from the Directory Server.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * SearchRequest request = new SearchRequest(name,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
+   * connection.searchSingleEntry(request, resultHandler, p);
+   * </pre>
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param name
+   *          The distinguished name of the entry to be read.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with the entry,
+   *          which may be {@code null} or empty indicating that all
+   *          user attributes should be returned.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code name} was {@code null}.
+   */
+  <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+      Collection<String> attributeDescriptions,
+      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Reads the Root DSE from the Directory Server.
+   * <p>
+   * If the Root DSE is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  <P> ResultFuture<RootDSE> readRootDSE(
+      ResultHandler<RootDSE, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server contained in the named
+   * subschema sub-entry.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, the returned future will never return {@code
+   * null}.
+   * <p>
+   * Implementations may choose to perform optimizations such as
+   * caching.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  <P> ResultFuture<Schema> readSchema(DN name,
+      ResultHandler<Schema, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * named entry.
+   * <p>
+   * If the requested entry or its associated schema are not returned by
+   * the Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, the returned
+   * future will never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the entry in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param name
+   *          The distinguished name of the entry whose schema is to be
+   *          located.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  <P> ResultFuture<Schema> readSchemaForEntry(DN name,
+      ResultHandler<Schema, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException;
+
+
+
+  /**
+   * Removes the provided connection event listener from this connection
+   * so that it will no longer be notified when this connection is
+   * closed by the application, receives an unsolicited notification, or
+   * experiences a fatal error.
+   *
+   * @param listener
+   *          The listener which no longer wants to be notified when
+   *          events occur on this connection.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void removeConnectionEventListener(ConnectionEventListener listener)
+      throws NullPointerException;
+
+
+
+  /**
    * Searches the Directory Server using the provided search request.
    *
    * @param <P>
@@ -464,49 +667,39 @@ public interface AsynchronousConnection extends Closeable
 
 
   /**
-   * Registers the provided connection event listener so that it will be
-   * notified when this connection is closed by the application,
-   * receives an unsolicited notification, or experiences a fatal error.
+   * Searches the Directory Server for a single entry using the provided
+   * search request.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}.
+   * If multiple matching entries are returned by the Directory Server
+   * then the request will fail with an
+   * {@link MultipleEntriesFoundException}.
    *
-   * @param listener
-   *          The listener which wants to be notified when events occur
-   *          on this connection.
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param request
+   *          The search request.
+   * @param handler
+   *          A result handler which can be used to asynchronously
+   *          process the operation result when it is received, may be
+   *          {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
+   *           If the {@code request} was {@code null}.
    */
-  void addConnectionEventListener(ConnectionEventListener listener)
-      throws IllegalStateException, NullPointerException;
-
-
-
-  /**
-   * Removes the provided connection event listener from this connection
-   * so that it will no longer be notified when this connection is
-   * closed by the application, receives an unsolicited notification, or
-   * experiences a fatal error.
-   *
-   * @param listener
-   *          The listener which no longer wants to be notified when
-   *          events occur on this connection.
-   * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
-   */
-  void removeConnectionEventListener(ConnectionEventListener listener)
-      throws NullPointerException;
-
-
-
-  /**
-   * Indicates whether or not this connection has been explicitly closed
-   * by calling {@code close}. This method will not return {@code true}
-   * if a fatal error has occurred on the connection unless {@code
-   * close} has been called.
-   *
-   * @return {@code true} if this connection has been explicitly closed
-   *         by calling {@code close}, or {@code false} otherwise.
-   */
-  boolean isClosed();
+  <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+      SearchRequest request,
+      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 }

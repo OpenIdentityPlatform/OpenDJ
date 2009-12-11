@@ -29,6 +29,7 @@ package org.opends.sdk;
 
 
 
+import java.util.Collection;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,8 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -106,7 +109,8 @@ public final class AuthenticatedConnectionFactory
         ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
         P p)
     {
-      // TODO: bug here? if allowRebind= false then bind will never happen
+      // TODO: bug here? if allowRebind= false then bind will never
+      // happen
       ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
           allowRebinds ? request : null, handler, p);
       future.connectFuture = parentFactory.getAsynchronousConnection(
@@ -465,6 +469,8 @@ public final class AuthenticatedConnectionFactory
           searchResulthandler, p);
     }
 
+
+
     /**
      * {@inheritDoc}
      */
@@ -472,6 +478,72 @@ public final class AuthenticatedConnectionFactory
     {
       return connection.isClosed();
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <P> ResultFuture<RootDSE> readRootDSE(
+        ResultHandler<RootDSE, P> handler, P p)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readRootDSE(handler, p);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+        Collection<String> attributeDescriptions,
+        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.readEntry(name, attributeDescriptions,
+          resultHandler, p);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+        SearchRequest request,
+        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.searchSingleEntry(request, resultHandler, p);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <P> ResultFuture<Schema> readSchemaForEntry(DN name,
+        ResultHandler<Schema, P> handler, P p)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readSchemaForEntry(name, handler, p);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <P> ResultFuture<Schema> readSchema(DN name,
+        ResultHandler<Schema, P> handler, P p)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readSchema(name, handler, p);
+    }
+
   }
 
 

@@ -51,23 +51,43 @@ public final class SchemaBuilder
 {
 
   private Map<Integer, DITStructureRule> id2StructureRules;
+
   private Map<String, List<AttributeType>> name2AttributeTypes;
+
   private Map<String, List<DITContentRule>> name2ContentRules;
+
   private Map<String, List<MatchingRule>> name2MatchingRules;
+
   private Map<String, List<MatchingRuleUse>> name2MatchingRuleUses;
+
   private Map<String, List<NameForm>> name2NameForms;
+
   private Map<String, List<ObjectClass>> name2ObjectClasses;
+
   private Map<String, List<DITStructureRule>> name2StructureRules;
+
   private Map<String, List<DITStructureRule>> nameForm2StructureRules;
+
   private Map<String, AttributeType> numericOID2AttributeTypes;
+
   private Map<String, DITContentRule> numericOID2ContentRules;
+
   private Map<String, MatchingRule> numericOID2MatchingRules;
+
   private Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
+
   private Map<String, NameForm> numericOID2NameForms;
+
   private Map<String, ObjectClass> numericOID2ObjectClasses;
+
   private Map<String, Syntax> numericOID2Syntaxes;
+
   private Map<String, List<NameForm>> objectClass2NameForms;
+
   private SchemaCompatOptions options;
+
+  private List<LocalizableMessage> warnings;
+
   private Schema schema;
 
 
@@ -137,8 +157,8 @@ public final class SchemaBuilder
       {
         // This means that the definition was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -147,9 +167,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -173,8 +192,8 @@ public final class SchemaBuilder
       boolean isCollective = false;
       boolean isNoUserModification = false;
       AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -312,9 +331,8 @@ public final class SchemaBuilder
           }
           else
           {
-            final LocalizableMessage message =
-                WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.get(
-                    String.valueOf(oid), usageStr);
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE
+                .get(String.valueOf(oid), usageStr);
             throw new LocalizedIllegalArgumentException(message);
           }
         }
@@ -334,25 +352,25 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
 
-      final List<String> approxRules =
-          extraProperties.get(SCHEMA_PROPERTY_APPROX_RULE);
+      final List<String> approxRules = extraProperties
+          .get(SCHEMA_PROPERTY_APPROX_RULE);
       if (approxRules != null && !approxRules.isEmpty())
       {
         approximateMatchingRule = approxRules.get(0);
       }
 
-      final AttributeType attrType =
-          new AttributeType(oid, names, description, isObsolete,
-              superiorType, equalityMatchingRule, orderingMatchingRule,
-              substringMatchingRule, approximateMatchingRule, syntax,
-              isSingleValue, isCollective, isNoUserModification,
-              attributeUsage, extraProperties, definition);
+      final AttributeType attrType = new AttributeType(oid, names,
+          description, isObsolete, superiorType, equalityMatchingRule,
+          orderingMatchingRule, substringMatchingRule,
+          approximateMatchingRule, syntax, isSingleValue, isCollective,
+          isNoUserModification, attributeUsage, extraProperties,
+          definition);
 
       addAttributeType(attrType, overwrite);
     }
@@ -433,12 +451,11 @@ public final class SchemaBuilder
       Map<String, List<String>> extraProperties, boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final AttributeType attrType =
-        new AttributeType(oid, names, description, obsolete,
-            superiorType, equalityMatchingRule, orderingMatchingRule,
-            substringMatchingRule, approximateMatchingRule, syntax,
-            singleValue, collective, noUserModification,
-            attributeUsage, extraProperties, null);
+    final AttributeType attrType = new AttributeType(oid, names,
+        description, obsolete, superiorType, equalityMatchingRule,
+        orderingMatchingRule, substringMatchingRule,
+        approximateMatchingRule, syntax, singleValue, collective,
+        noUserModification, attributeUsage, extraProperties, null);
     addAttributeType(attrType, overwrite);
     return this;
   }
@@ -481,7 +498,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -490,9 +508,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -510,8 +527,8 @@ public final class SchemaBuilder
       Set<String> optionalAttributes = Collections.emptySet();
       Set<String> prohibitedAttributes = Collections.emptySet();
       Set<String> requiredAttributes = Collections.emptySet();
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -580,17 +597,16 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
 
-      final DITContentRule rule =
-          new DITContentRule(structuralClass, names, description,
-              isObsolete, auxiliaryClasses, optionalAttributes,
-              prohibitedAttributes, requiredAttributes,
-              extraProperties, definition);
+      final DITContentRule rule = new DITContentRule(structuralClass,
+          names, description, isObsolete, auxiliaryClasses,
+          optionalAttributes, prohibitedAttributes, requiredAttributes,
+          extraProperties, definition);
       addDITContentRule(rule, overwrite);
     }
     catch (final DecodeException e)
@@ -648,11 +664,10 @@ public final class SchemaBuilder
       Map<String, List<String>> extraProperties, boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final DITContentRule rule =
-        new DITContentRule(structuralClass, names, description,
-            obsolete, auxiliaryClasses, optionalAttributes,
-            prohibitedAttributes, requiredAttributes, extraProperties,
-            null);
+    final DITContentRule rule = new DITContentRule(structuralClass,
+        names, description, obsolete, auxiliaryClasses,
+        optionalAttributes, prohibitedAttributes, requiredAttributes,
+        extraProperties, null);
     addDITContentRule(rule, overwrite);
     return this;
   }
@@ -694,9 +709,9 @@ public final class SchemaBuilder
       Map<String, List<String>> extraProperties, boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final DITStructureRule rule =
-        new DITStructureRule(ruleID, names, description, obsolete,
-            nameForm, superiorRules, extraProperties, null);
+    final DITStructureRule rule = new DITStructureRule(ruleID, names,
+        description, obsolete, nameForm, superiorRules,
+        extraProperties, null);
     addDITStructureRule(rule, overwrite);
     return this;
   }
@@ -739,7 +754,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -748,9 +764,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -766,8 +781,8 @@ public final class SchemaBuilder
       boolean isObsolete = false;
       String nameForm = null;
       Set<Integer> superiorRules = Collections.emptySet();
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -828,22 +843,22 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
 
       if (nameForm == null)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM
+            .get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      final DITStructureRule rule =
-          new DITStructureRule(ruleID, names, description, isObsolete,
-              nameForm, superiorRules, extraProperties, definition);
+      final DITStructureRule rule = new DITStructureRule(ruleID, names,
+          description, isObsolete, nameForm, superiorRules,
+          extraProperties, definition);
       addDITStructureRule(rule, overwrite);
     }
     catch (final DecodeException e)
@@ -881,16 +896,16 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull((Object) enumerations);
 
-    final EnumSyntaxImpl enumImpl =
-        new EnumSyntaxImpl(oid, Arrays.asList(enumerations));
-    final Syntax enumSyntax =
-        new Syntax(oid, description, Collections.singletonMap("X-ENUM",
-            Arrays.asList(enumerations)), null, enumImpl);
-    final MatchingRule enumOMR =
-        new MatchingRule(enumImpl.getOrderingMatchingRule(),
-            Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid), "",
-            false, oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
-            new EnumOrderingMatchingRule(enumImpl));
+    final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, Arrays
+        .asList(enumerations));
+    final Syntax enumSyntax = new Syntax(oid, description, Collections
+        .singletonMap("X-ENUM", Arrays.asList(enumerations)), null,
+        enumImpl);
+    final MatchingRule enumOMR = new MatchingRule(enumImpl
+        .getOrderingMatchingRule(), Collections
+        .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
+        CoreSchemaImpl.OPENDS_ORIGIN, null,
+        new EnumOrderingMatchingRule(enumImpl));
 
     addSyntax(enumSyntax, overwrite);
     try
@@ -941,7 +956,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -950,9 +966,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -967,8 +982,8 @@ public final class SchemaBuilder
       String description = "".intern();
       boolean isObsolete = false;
       String syntax = null;
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1025,8 +1040,8 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -1034,8 +1049,8 @@ public final class SchemaBuilder
       // Make sure that a syntax was specified.
       if (syntax == null)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_NO_SYNTAX
+            .get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1087,9 +1102,9 @@ public final class SchemaBuilder
       throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(implementation);
-    final MatchingRule matchingRule =
-        new MatchingRule(oid, names, description, obsolete,
-            assertionSyntax, extraProperties, null, implementation);
+    final MatchingRule matchingRule = new MatchingRule(oid, names,
+        description, obsolete, assertionSyntax, extraProperties, null,
+        implementation);
     addMatchingRule(matchingRule, overwrite);
     return this;
   }
@@ -1132,7 +1147,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1141,9 +1157,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1158,8 +1173,8 @@ public final class SchemaBuilder
       String description = "".intern();
       boolean isObsolete = false;
       Set<String> attributes = null;
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1216,8 +1231,8 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -1225,14 +1240,14 @@ public final class SchemaBuilder
       // Make sure that the set of attributes was defined.
       if (attributes == null || attributes.size() == 0)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR
+            .get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      final MatchingRuleUse use =
-          new MatchingRuleUse(oid, names, description, isObsolete,
-              attributes, extraProperties, definition);
+      final MatchingRuleUse use = new MatchingRuleUse(oid, names,
+          description, isObsolete, attributes, extraProperties,
+          definition);
       addMatchingRuleUse(use, overwrite);
     }
     catch (final DecodeException e)
@@ -1278,9 +1293,8 @@ public final class SchemaBuilder
       Map<String, List<String>> extraProperties, boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final MatchingRuleUse use =
-        new MatchingRuleUse(oid, names, description, obsolete,
-            attributeOIDs, extraProperties, null);
+    final MatchingRuleUse use = new MatchingRuleUse(oid, names,
+        description, obsolete, attributeOIDs, extraProperties, null);
     addMatchingRuleUse(use, overwrite);
     return this;
   }
@@ -1321,8 +1335,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1331,9 +1345,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), c);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), c);
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1350,8 +1363,8 @@ public final class SchemaBuilder
       String structuralClass = null;
       Set<String> optionalAttributes = Collections.emptySet();
       Set<String> requiredAttributes = null;
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1416,8 +1429,8 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -1426,23 +1439,21 @@ public final class SchemaBuilder
       // it cannot be valid.
       if (structuralClass == null)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS
-                .get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS
+            .get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
 
       if (requiredAttributes == null || requiredAttributes.size() == 0)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR
+            .get(definition);
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      final NameForm nameForm =
-          new NameForm(oid, names, description, isObsolete,
-              structuralClass, requiredAttributes, optionalAttributes,
-              extraProperties, definition);
+      final NameForm nameForm = new NameForm(oid, names, description,
+          isObsolete, structuralClass, requiredAttributes,
+          optionalAttributes, extraProperties, definition);
       addNameForm(nameForm, overwrite);
     }
     catch (final DecodeException e)
@@ -1492,10 +1503,9 @@ public final class SchemaBuilder
       Map<String, List<String>> extraProperties, boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final NameForm nameForm =
-        new NameForm(oid, names, description, obsolete,
-            structuralClass, requiredAttributes, optionalAttributes,
-            extraProperties, null);
+    final NameForm nameForm = new NameForm(oid, names, description,
+        obsolete, structuralClass, requiredAttributes,
+        optionalAttributes, extraProperties, null);
     addNameForm(nameForm, overwrite);
     return this;
   }
@@ -1537,8 +1547,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1547,9 +1557,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1567,8 +1576,8 @@ public final class SchemaBuilder
       Set<String> requiredAttributes = Collections.emptySet();
       Set<String> optionalAttributes = Collections.emptySet();
       ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1653,8 +1662,8 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -1917,8 +1926,8 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE
+            .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1927,9 +1936,8 @@ public final class SchemaBuilder
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1941,8 +1949,8 @@ public final class SchemaBuilder
       final String oid = SchemaUtils.readOID(reader);
 
       String description = "".intern();
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections
+          .emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1983,8 +1991,8 @@ public final class SchemaBuilder
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           throw new LocalizedIllegalArgumentException(message);
         }
       }
@@ -1995,17 +2003,15 @@ public final class SchemaBuilder
       {
         if (property.getKey().equalsIgnoreCase("x-enum"))
         {
-          final EnumSyntaxImpl enumImpl =
-              new EnumSyntaxImpl(oid, property.getValue());
-          final Syntax enumSyntax =
-              new Syntax(oid, description, extraProperties, definition,
-                  enumImpl);
-          final MatchingRule enumOMR =
-              new MatchingRule(enumImpl.getOrderingMatchingRule(),
-                  Collections
-                      .singletonList(OMR_GENERIC_ENUM_NAME + oid), "",
-                  false, oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
-                  new EnumOrderingMatchingRule(enumImpl));
+          final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid,
+              property.getValue());
+          final Syntax enumSyntax = new Syntax(oid, description,
+              extraProperties, definition, enumImpl);
+          final MatchingRule enumOMR = new MatchingRule(enumImpl
+              .getOrderingMatchingRule(), Collections
+              .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false,
+              oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
+              new EnumOrderingMatchingRule(enumImpl));
 
           addSyntax(enumSyntax, overwrite);
           addMatchingRule(enumOMR, overwrite);
@@ -2240,9 +2246,6 @@ public final class SchemaBuilder
    * contained in this schema builder as well as the same set of schema
    * compatibility options.
    * <p>
-   * Any errors that were detected while validating the schema will be
-   * ignored.
-   * <p>
    * When this method returns this schema builder is empty and contains
    * a default set of compatibility options.
    *
@@ -2252,38 +2255,17 @@ public final class SchemaBuilder
    */
   public Schema toSchema()
   {
-    return toSchema(null);
+    validate();
+    final Schema builtSchema = schema;
+    initBuilder();
+    return builtSchema;
   }
 
 
 
-  /**
-   * Returns a {@code Schema} containing all of the schema elements
-   * contained in this schema builder as well as the same set of schema
-   * compatibility options.
-   * <p>
-   * When this method returns this schema builder is empty and contains
-   * a default set of compatibility options.
-   *
-   * @param errorMessages
-   *          A list into which any errors that were detected while
-   *          validating the schema will be placed, may be {@code null}
-   *          in which case any errors will be ignored.
-   * @return A {@code Schema} containing all of the schema elements
-   *         contained in this schema builder as well as the same set of
-   *         schema compatibility options
-   */
-  public Schema toSchema(List<LocalizableMessage> errorMessages)
+  void addWarning(LocalizableMessage warning)
   {
-    if (errorMessages == null)
-    {
-      errorMessages = new LinkedList<LocalizableMessage>();
-    }
-
-    validate(errorMessages);
-    final Schema builtSchema = schema;
-    initBuilder();
-    return builtSchema;
+    warnings.add(warning);
   }
 
 
@@ -2294,13 +2276,12 @@ public final class SchemaBuilder
     AttributeType conflictingAttribute;
     if (numericOID2AttributeTypes.containsKey(attribute.getOID()))
     {
-      conflictingAttribute =
-          numericOID2AttributeTypes.get(attribute.getOID());
+      conflictingAttribute = numericOID2AttributeTypes.get(attribute
+          .getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID.get(attribute
-                .getNameOrOID(), attribute.getOID(),
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID
+            .get(attribute.getNameOrOID(), attribute.getOID(),
                 conflictingAttribute.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
@@ -2339,13 +2320,12 @@ public final class SchemaBuilder
     if (numericOID2ContentRules.containsKey(rule
         .getStructuralClassOID()))
     {
-      conflictingRule =
-          numericOID2ContentRules.get(rule.getStructuralClassOID());
+      conflictingRule = numericOID2ContentRules.get(rule
+          .getStructuralClassOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.get(rule
-                .getNameOrOID(), rule.getStructuralClassOID(),
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE
+            .get(rule.getNameOrOID(), rule.getStructuralClassOID(),
                 conflictingRule.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
@@ -2386,10 +2366,9 @@ public final class SchemaBuilder
       conflictingRule = id2StructureRules.get(rule.getRuleID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.get(rule
-                .getNameOrRuleID(), rule.getRuleID(), conflictingRule
-                .getNameOrRuleID());
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID
+            .get(rule.getNameOrRuleID(), rule.getRuleID(),
+                conflictingRule.getNameOrRuleID());
         throw new ConflictingSchemaElementException(message);
       }
       removeDITStructureRule(conflictingRule);
@@ -2429,9 +2408,9 @@ public final class SchemaBuilder
       conflictingRule = numericOID2MatchingRules.get(rule.getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_MR_OID.get(rule.getNameOrOID(), rule
-                .getOID(), conflictingRule.getNameOrOID());
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID
+            .get(rule.getNameOrOID(), rule.getOID(), conflictingRule
+                .getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeMatchingRule(conflictingRule);
@@ -2469,13 +2448,12 @@ public final class SchemaBuilder
     if (numericOID2MatchingRuleUses.containsKey(use
         .getMatchingRuleOID()))
     {
-      conflictingUse =
-          numericOID2MatchingRuleUses.get(use.getMatchingRuleOID());
+      conflictingUse = numericOID2MatchingRuleUses.get(use
+          .getMatchingRuleOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.get(use
-                .getNameOrOID(), use.getMatchingRuleOID(),
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE
+            .get(use.getNameOrOID(), use.getMatchingRuleOID(),
                 conflictingUse.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
@@ -2516,9 +2494,8 @@ public final class SchemaBuilder
       conflictingForm = numericOID2NameForms.get(form.getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.get(form
-                .getNameOrOID(), form.getOID(), conflictingForm
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID
+            .get(form.getNameOrOID(), form.getOID(), conflictingForm
                 .getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
@@ -2558,9 +2535,8 @@ public final class SchemaBuilder
       conflictingOC = numericOID2ObjectClasses.get(oc.getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.get(oc
-                .getNameOrOID(), oc.getOID(), conflictingOC
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID
+            .get(oc.getNameOrOID(), oc.getOID(), conflictingOC
                 .getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
@@ -2601,9 +2577,9 @@ public final class SchemaBuilder
       conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message =
-            ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(syntax.toString(),
-                syntax.getOID(), conflictingSyntax.getOID());
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID
+            .get(syntax.toString(), syntax.getOID(), conflictingSyntax
+                .getOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeSyntax(conflictingSyntax);
@@ -2617,8 +2593,7 @@ public final class SchemaBuilder
   {
     numericOID2Syntaxes = new HashMap<String, Syntax>();
     numericOID2MatchingRules = new HashMap<String, MatchingRule>();
-    numericOID2MatchingRuleUses =
-        new HashMap<String, MatchingRuleUse>();
+    numericOID2MatchingRuleUses = new HashMap<String, MatchingRuleUse>();
     numericOID2AttributeTypes = new HashMap<String, AttributeType>();
     numericOID2ObjectClasses = new HashMap<String, ObjectClass>();
     numericOID2NameForms = new HashMap<String, NameForm>();
@@ -2626,8 +2601,7 @@ public final class SchemaBuilder
     id2StructureRules = new HashMap<Integer, DITStructureRule>();
 
     name2MatchingRules = new HashMap<String, List<MatchingRule>>();
-    name2MatchingRuleUses =
-        new HashMap<String, List<MatchingRuleUse>>();
+    name2MatchingRuleUses = new HashMap<String, List<MatchingRuleUse>>();
     name2AttributeTypes = new HashMap<String, List<AttributeType>>();
     name2ObjectClasses = new HashMap<String, List<ObjectClass>>();
     name2NameForms = new HashMap<String, List<NameForm>>();
@@ -2635,18 +2609,18 @@ public final class SchemaBuilder
     name2StructureRules = new HashMap<String, List<DITStructureRule>>();
 
     objectClass2NameForms = new HashMap<String, List<NameForm>>();
-    nameForm2StructureRules =
-        new HashMap<String, List<DITStructureRule>>();
+    nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
     options = SchemaCompatOptions.defaultOptions();
-    schema =
-        new Schema(numericOID2Syntaxes, numericOID2MatchingRules,
-            numericOID2MatchingRuleUses, numericOID2AttributeTypes,
-            numericOID2ObjectClasses, numericOID2NameForms,
-            numericOID2ContentRules, id2StructureRules,
-            name2MatchingRules, name2MatchingRuleUses,
-            name2AttributeTypes, name2ObjectClasses, name2NameForms,
-            name2ContentRules, name2StructureRules,
-            objectClass2NameForms, nameForm2StructureRules, options);
+    warnings = new LinkedList<LocalizableMessage>();
+
+    schema = new Schema(numericOID2Syntaxes, numericOID2MatchingRules,
+        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
+        numericOID2ObjectClasses, numericOID2NameForms,
+        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
+        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
+        name2NameForms, name2ContentRules, name2StructureRules,
+        objectClass2NameForms, nameForm2StructureRules, options,
+        warnings);
   }
 
 
@@ -2658,8 +2632,8 @@ public final class SchemaBuilder
     for (final String name : attributeType.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<AttributeType> attributes =
-          name2AttributeTypes.get(lowerName);
+      final List<AttributeType> attributes = name2AttributeTypes
+          .get(lowerName);
       if (attributes != null && attributes.contains(attributeType))
       {
         if (attributes.size() <= 1)
@@ -2682,8 +2656,8 @@ public final class SchemaBuilder
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<DITContentRule> rules =
-          name2ContentRules.get(lowerName);
+      final List<DITContentRule> rules = name2ContentRules
+          .get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2706,8 +2680,8 @@ public final class SchemaBuilder
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<DITStructureRule> rules =
-          name2StructureRules.get(lowerName);
+      final List<DITStructureRule> rules = name2StructureRules
+          .get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2730,8 +2704,8 @@ public final class SchemaBuilder
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<MatchingRule> rules =
-          name2MatchingRules.get(lowerName);
+      final List<MatchingRule> rules = name2MatchingRules
+          .get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2754,8 +2728,8 @@ public final class SchemaBuilder
     for (final String name : use.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<MatchingRuleUse> uses =
-          name2MatchingRuleUses.get(lowerName);
+      final List<MatchingRuleUse> uses = name2MatchingRuleUses
+          .get(lowerName);
       if (uses != null && uses.contains(use))
       {
         if (uses.size() <= 1)
@@ -2803,8 +2777,8 @@ public final class SchemaBuilder
     for (final String name : oc.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<ObjectClass> classes =
-          name2ObjectClasses.get(lowerName);
+      final List<ObjectClass> classes = name2ObjectClasses
+          .get(lowerName);
       if (classes != null && classes.contains(oc))
       {
         if (classes.size() <= 1)
@@ -2828,7 +2802,7 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void validate(List<LocalizableMessage> warnings)
+  private synchronized void validate()
   {
     // Verify all references in all elements
     for (final Syntax syntax : numericOID2Syntaxes.values().toArray(

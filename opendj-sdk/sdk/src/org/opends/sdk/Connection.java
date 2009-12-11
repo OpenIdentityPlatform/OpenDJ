@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
+import org.opends.sdk.schema.Schema;
 
 
 
@@ -123,6 +124,38 @@ public interface Connection extends Closeable
 
 
   /**
+   * Adds the provided entry to the Directory Server.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * AddRequest request = new AddRequest(entry);
+   * connection.add(request);
+   * </pre>
+   *
+   * @param entry
+   *          The entry to be added.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support add operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null} .
+   */
+  Result add(Entry entry) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
+
+
+
+  /**
    * Adds an entry to the Directory Server using the provided lines of
    * LDIF.
    * <p>
@@ -161,34 +194,21 @@ public interface Connection extends Closeable
 
 
   /**
-   * Adds the provided entry to the Directory Server.
-   * <p>
-   * This method is equivalent to the following code:
+   * Registers the provided connection event listener so that it will be
+   * notified when this connection is closed by the application,
+   * receives an unsolicited notification, or experiences a fatal error.
    *
-   * <pre>
-   * AddRequest request = new AddRequest(entry);
-   * connection.add(request);
-   * </pre>
-   *
-   * @param entry
-   *          The entry to be added.
-   * @return The result of the operation.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support add operations.
+   * @param listener
+   *          The listener which wants to be notified when events occur
+   *          on this connection.
    * @throws IllegalStateException
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code entry} was {@code null} .
+   *           If the {@code listener} was {@code null}.
    */
-  Result add(Entry entry) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+  void addConnectionEventListener(ConnectionEventListener listener)
+      throws IllegalStateException, NullPointerException;
 
 
 
@@ -513,19 +533,6 @@ public interface Connection extends Closeable
 
 
 
-  /**
-   * Indicates whether or not this connection has been explicitly closed
-   * by calling {@code close}. This method will not return {@code true}
-   * if a fatal error has occurred on the connection unless {@code
-   * close} has been called.
-   *
-   * @return {@code true} if this connection has been explicitly closed
-   *         by calling {@code close}, or {@code false} otherwise.
-   */
-  boolean isClosed();
-
-
-
   //
   //
   //
@@ -579,6 +586,19 @@ public interface Connection extends Closeable
   // */
   // boolean isValid(long timeout, TimeUnit unit)
   // throws InterruptedException, TimeoutException;
+
+  /**
+   * Indicates whether or not this connection has been explicitly closed
+   * by calling {@code close}. This method will not return {@code true}
+   * if a fatal error has occurred on the connection unless {@code
+   * close} has been called.
+   *
+   * @return {@code true} if this connection has been explicitly closed
+   *         by calling {@code close}, or {@code false} otherwise.
+   */
+  boolean isClosed();
+
+
 
   /**
    * Modifies an entry in the Directory Server using the provided modify
@@ -710,23 +730,27 @@ public interface Connection extends Closeable
 
 
   /**
-   * Searches the Directory Server using the provided search request.
-   * Any matching entries returned by the search as well as any search
-   * result references will be passed to the provided search result
-   * handler.
+   * Reads the named entry from the Directory Server.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}.
+   * <p>
+   * This method is equivalent to the following code:
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
-   * @param request
-   *          The search request.
-   * @param handler
-   *          A search result handler which can be used to process the
-   *          search result entries and references as they are received,
-   *          may be {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
-   * @return The result of the operation.
+   * <pre>
+   * SearchRequest request = new SearchRequest(name,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
+   * connection.searchSingleEntry(request);
+   * </pre>
+   *
+   * @param name
+   *          The distinguished name of the entry to be read.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with the entry,
+   *          which may be {@code null} or empty indicating that all
+   *          user attributes should be returned.
+   * @return The single search result entry returned from the search.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
    *           some reason.
@@ -738,12 +762,276 @@ public interface Connection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code request} was {@code null}.
+   *           If the {@code name} was {@code null}.
    */
-  <P> Result search(SearchRequest request,
-      SearchResultHandler<P> handler, P p) throws ErrorResultException,
+  SearchResultEntry readEntry(DN name, String... attributeDescriptions)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Reads the named entry from the Directory Server.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * SearchRequest request = new SearchRequest(name,
+   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
+   * connection.searchSingleEntry(request);
+   * </pre>
+   *
+   * @param name
+   *          The distinguished name of the entry to be read.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with the entry.
+   * @return The single search result entry returned from the search.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code baseObject} could not be decoded using the
+   *           default schema.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code name} was {@code null}.
+   */
+  SearchResultEntry readEntry(String name,
+      String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Reads the Root DSE from the Directory Server.
+   * <p>
+   * If the Root DSE is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}.
+   *
+   * @return The Directory Server's Root DSE.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  RootDSE readRootDSE() throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server contained in the named
+   * subschema sub-entry.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, this method will never return {@code null}.
+   * <p>
+   * Implementations may choose to perform optimizations such as
+   * caching.
+   *
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @return The schema from the Directory Server.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  Schema readSchema(DN name) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server contained in the named
+   * subschema sub-entry.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, this method will never return {@code null}.
+   * <p>
+   * Implementations may choose to perform optimizations such as
+   * caching.
+   *
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @return The schema from the Directory Server.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code name} could not be decoded using the default
+   *           schema.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  Schema readSchema(String name) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * named entry.
+   * <p>
+   * If the requested entry or its associated schema are not returned by
+   * the Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, this method will
+   * never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the entry in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   *
+   * @param name
+   *          The distinguished name of the entry whose schema is to be
+   *          located.
+   * @return The schema from the Directory Server which applies to the
+   *         named entry.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  Schema readSchemaForEntry(DN name) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * named entry.
+   * <p>
+   * If the requested entry or its associated schema are not returned by
+   * the Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, this method will
+   * never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the entry in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   *
+   * @param name
+   *          The distinguished name of the entry whose schema is to be
+   *          located.
+   * @return The schema from the Directory Server which applies to the
+   *         named entry.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code name} could not be decoded using the default
+   *           schema.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  Schema readSchemaForEntry(String name) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException;
+
+
+
+  /**
+   * Reads the schema from the Directory Server which applies to the
+   * Root DSE.
+   * <p>
+   * If the requested schema is not returned by the Directory Server
+   * then the request will fail with an {@link EntryNotFoundException}.
+   * More specifically, this method will never return {@code null}.
+   * <p>
+   * A typical implementation will first read the {@code
+   * subschemaSubentry} attribute of the Root DSE in order to locate the
+   * schema. However, implementations may choose to perform other
+   * optimizations, such as caching.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * connection.readSchemaForEntry(DN.rootDN());
+   * </pre>
+   *
+   * @return The schema from the Directory Server which applies to the
+   *         named entry.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   */
+  Schema readSchemaForRootDSE() throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException;
+
+
+
+  /**
+   * Removes the provided connection event listener from this connection
+   * so that it will no longer be notified when this connection is
+   * closed by the application, receives an unsolicited notification, or
+   * experiences a fatal error.
+   *
+   * @param listener
+   *          The listener which no longer wants to be notified when
+   *          events occur on this connection.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void removeConnectionEventListener(ConnectionEventListener listener)
+      throws NullPointerException;
 
 
 
@@ -833,6 +1121,44 @@ public interface Connection extends Closeable
 
 
   /**
+   * Searches the Directory Server using the provided search request.
+   * Any matching entries returned by the search as well as any search
+   * result references will be passed to the provided search result
+   * handler.
+   *
+   * @param <P>
+   *          The type of the additional parameter to the handler's
+   *          methods.
+   * @param request
+   *          The search request.
+   * @param handler
+   *          A search result handler which can be used to process the
+   *          search result entries and references as they are received,
+   *          may be {@code null}.
+   * @param p
+   *          Optional additional handler parameter.
+   * @return The result of the operation.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for
+   *           some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  <P> Result search(SearchRequest request,
+      SearchResultHandler<P> handler, P p) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
+
+
+
+  /**
    * Searches the Directory Server using the provided search parameters.
    * Any matching entries returned by the search will be added to a
    * {@code List} which is returned if the search succeeds. Search
@@ -892,9 +1218,13 @@ public interface Connection extends Closeable
 
   /**
    * Searches the Directory Server for a single entry using the provided
-   * search request. If the search returns more than one entry then an
-   * {@code ErrorResultException} is thrown. If no entry is found then
-   * this method returns {@code null}.
+   * search request.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}. If
+   * multiple matching entries are returned by the Directory Server then
+   * the request will fail with an {@link MultipleEntriesFoundException}.
    *
    * @param request
    *          The search request.
@@ -921,9 +1251,13 @@ public interface Connection extends Closeable
 
   /**
    * Searches the Directory Server for a single entry using the provided
-   * search parameters. If the search returns more than one entry then
-   * an {@code ErrorResultException} is thrown. If no entry is found
-   * then this method returns {@code null}.
+   * search parameters.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then
+   * the request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}. If
+   * multiple matching entries are returned by the Directory Server then
+   * the request will fail with an {@link MultipleEntriesFoundException}.
    * <p>
    * This method is equivalent to the following code:
    *
@@ -968,118 +1302,4 @@ public interface Connection extends Closeable
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
-
-
-
-  /**
-   * Reads the named entry from the Directory Server. If no entry is
-   * found then this method returns {@code null}.
-   * <p>
-   * This method is equivalent to the following code:
-   *
-   * <pre>
-   * SearchRequest request = new SearchRequest(baseObject,
-   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
-   * connection.searchSingleEntry(request);
-   * </pre>
-   *
-   * @param baseObject
-   *          The distinguished name of the entry to be read.
-   * @param attributeDescriptions
-   *          The names of the attributes to be included with the entry.
-   * @return The single search result entry returned from the search.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code baseObject} could not be decoded using the
-   *           default schema.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code baseObject} was {@code null}.
-   */
-  SearchResultEntry readEntry(String baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
-
-
-
-  /**
-   * Reads the named entry from the Directory Server. If no entry is
-   * found then this method returns {@code null}.
-   * <p>
-   * This method is equivalent to the following code:
-   *
-   * <pre>
-   * SearchRequest request = new SearchRequest(baseObject,
-   *     SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
-   * connection.searchSingleEntry(request);
-   * </pre>
-   *
-   * @param baseObject
-   *          The distinguished name of the entry to be read.
-   * @param attributeDescriptions
-   *          The names of the attributes to be included with the entry.
-   * @return The single search result entry returned from the search.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code baseObject} was {@code null}.
-   */
-  SearchResultEntry readEntry(DN baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
-
-
-
-  /**
-   * Registers the provided connection event listener so that it will be
-   * notified when this connection is closed by the application,
-   * receives an unsolicited notification, or experiences a fatal error.
-   *
-   * @param listener
-   *          The listener which wants to be notified when events occur
-   *          on this connection.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
-   */
-  void addConnectionEventListener(ConnectionEventListener listener)
-      throws IllegalStateException, NullPointerException;
-
-
-
-  /**
-   * Removes the provided connection event listener from this connection
-   * so that it will no longer be notified when this connection is
-   * closed by the application, receives an unsolicited notification, or
-   * experiences a fatal error.
-   *
-   * @param listener
-   *          The listener which no longer wants to be notified when
-   *          events occur on this connection.
-   * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
-   */
-  void removeConnectionEventListener(ConnectionEventListener listener)
-      throws NullPointerException;
 }

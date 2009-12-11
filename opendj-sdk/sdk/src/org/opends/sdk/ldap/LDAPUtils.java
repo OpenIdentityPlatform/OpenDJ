@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.Filter;
 import org.opends.sdk.FilterVisitor;
 import org.opends.sdk.asn1.ASN1Reader;
@@ -82,7 +83,7 @@ public final class LDAPUtils
 
 
     public IOException visitApproxMatchFilter(ASN1Writer writer,
-        String attributeDescription, ByteSequence assertionValue)
+        String attributeDescription, ByteString assertionValue)
     {
       try
       {
@@ -101,7 +102,7 @@ public final class LDAPUtils
 
 
     public IOException visitEqualityMatchFilter(ASN1Writer writer,
-        String attributeDescription, ByteSequence assertionValue)
+        String attributeDescription, ByteString assertionValue)
     {
       try
       {
@@ -121,7 +122,7 @@ public final class LDAPUtils
 
     public IOException visitExtensibleMatchFilter(ASN1Writer writer,
         String matchingRule, String attributeDescription,
-        ByteSequence assertionValue, boolean dnAttributes)
+        ByteString assertionValue, boolean dnAttributes)
     {
       try
       {
@@ -158,7 +159,7 @@ public final class LDAPUtils
 
 
     public IOException visitGreaterOrEqualFilter(ASN1Writer writer,
-        String attributeDescription, ByteSequence assertionValue)
+        String attributeDescription, ByteString assertionValue)
     {
       try
       {
@@ -177,7 +178,7 @@ public final class LDAPUtils
 
 
     public IOException visitLessOrEqualFilter(ASN1Writer writer,
-        String attributeDescription, ByteSequence assertionValue)
+        String attributeDescription, ByteString assertionValue)
     {
       try
       {
@@ -260,8 +261,8 @@ public final class LDAPUtils
 
 
     public IOException visitSubstringsFilter(ASN1Writer writer,
-        String attributeDescription, ByteSequence initialSubstring,
-        List<ByteSequence> anySubstrings, ByteSequence finalSubstring)
+        String attributeDescription, ByteString initialSubstring,
+        List<ByteString> anySubstrings, ByteString finalSubstring)
     {
       try
       {
@@ -297,7 +298,7 @@ public final class LDAPUtils
 
 
     public IOException visitUnrecognizedFilter(ASN1Writer writer,
-        byte filterTag, ByteSequence filterBytes)
+        byte filterTag, ByteString filterBytes)
     {
       try
       {
@@ -481,7 +482,7 @@ public final class LDAPUtils
       throws IOException
   {
     String attributeDescription;
-    ByteSequence assertionValue;
+    ByteString assertionValue;
 
     reader.readStartSequence(TYPE_FILTER_APPROXIMATE);
     try
@@ -505,7 +506,7 @@ public final class LDAPUtils
       throws IOException
   {
     String attributeDescription;
-    ByteSequence assertionValue;
+    ByteString assertionValue;
 
     reader.readStartSequence(TYPE_FILTER_EQUALITY);
     try
@@ -531,7 +532,7 @@ public final class LDAPUtils
     String matchingRule;
     String attributeDescription;
     boolean dnAttributes;
-    ByteSequence assertionValue;
+    ByteString assertionValue;
 
     reader.readStartSequence(TYPE_FILTER_EXTENSIBLE_MATCH);
     try
@@ -572,7 +573,7 @@ public final class LDAPUtils
       ASN1Reader reader) throws IOException
   {
     String attributeDescription;
-    ByteSequence assertionValue;
+    ByteString assertionValue;
 
     reader.readStartSequence(TYPE_FILTER_GREATER_OR_EQUAL);
     try
@@ -595,7 +596,7 @@ public final class LDAPUtils
       throws IOException
   {
     String attributeDescription;
-    ByteSequence assertionValue;
+    ByteString assertionValue;
 
     reader.readStartSequence(TYPE_FILTER_LESS_OR_EQUAL);
     try
@@ -673,9 +674,9 @@ public final class LDAPUtils
   private static Filter decodeSubstringsFilter(ASN1Reader reader)
       throws IOException
   {
-    ByteSequence initialSubstring = null;
-    List<ByteSequence> anySubstrings = null;
-    ByteSequence finalSubstring = null;
+    ByteString initialSubstring = null;
+    List<ByteString> anySubstrings = null;
+    ByteString finalSubstring = null;
     String attributeDescription;
 
     reader.readStartSequence(TYPE_FILTER_SUBSTRING);
@@ -694,7 +695,7 @@ public final class LDAPUtils
         if (reader.hasNextElement()
             && (reader.peekType() == TYPE_SUBANY))
         {
-          anySubstrings = new LinkedList<ByteSequence>();
+          anySubstrings = new LinkedList<ByteString>();
           do
           {
             anySubstrings.add(reader.readOctetString(TYPE_SUBANY));

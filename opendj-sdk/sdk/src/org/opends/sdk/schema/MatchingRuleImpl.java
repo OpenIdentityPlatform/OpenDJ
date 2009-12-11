@@ -97,7 +97,7 @@ public interface MatchingRuleImpl
    *           if an syntax error occured while parsing the value.
    */
   public Assertion getAssertion(Schema schema, ByteSequence subInitial,
-      List<ByteSequence> subAnyElements, ByteSequence subFinal)
+      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
       throws DecodeException;
 
 

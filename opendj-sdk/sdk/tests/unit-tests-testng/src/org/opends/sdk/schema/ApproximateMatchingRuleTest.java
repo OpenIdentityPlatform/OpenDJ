@@ -32,9 +32,10 @@ import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME
 import static org.testng.Assert.assertEquals;
 
 import org.opends.sdk.ConditionResult;
-import org.opends.sdk.util.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import org.opends.sdk.ByteString;
 
 
 

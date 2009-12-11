@@ -2269,7 +2269,7 @@ public final class CoreSchema
    *
    * @return A reference to the {@code supportedSASLMechanisms} Attribute Type.
    */
-  public static AttributeType getSupportedSaslMechanismsAttributeType()
+  public static AttributeType getSupportedSASLMechanismsAttributeType()
   {
     return SUPPORTED_SASL_MECHANISMS_ATTRIBUTE_TYPE;
   }

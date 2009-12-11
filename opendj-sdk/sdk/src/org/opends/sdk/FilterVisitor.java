@@ -82,7 +82,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitApproxMatchFilter(P p, String attributeDescription,
-      ByteSequence assertionValue);
+      ByteString assertionValue);
 
 
 
@@ -98,7 +98,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitEqualityMatchFilter(P p, String attributeDescription,
-      ByteSequence assertionValue);
+      ByteString assertionValue);
 
 
 
@@ -120,7 +120,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitExtensibleMatchFilter(P p, String matchingRule,
-      String attributeDescription, ByteSequence assertionValue,
+      String attributeDescription, ByteString assertionValue,
       boolean dnAttributes);
 
 
@@ -137,7 +137,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitGreaterOrEqualFilter(P p, String attributeDescription,
-      ByteSequence assertionValue);
+      ByteString assertionValue);
 
 
 
@@ -153,7 +153,7 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitLessOrEqualFilter(P p, String attributeDescription,
-      ByteSequence assertionValue);
+      ByteString assertionValue);
 
 
 
@@ -216,8 +216,8 @@ public interface FilterVisitor<R, P>
    * @return Returns a visitor specified result.
    */
   R visitSubstringsFilter(P p, String attributeDescription,
-      ByteSequence initialSubstring, List<ByteSequence> anySubstrings,
-      ByteSequence finalSubstring);
+      ByteString initialSubstring, List<ByteString> anySubstrings,
+      ByteString finalSubstring);
 
 
 
@@ -232,6 +232,6 @@ public interface FilterVisitor<R, P>
    *          The filter content.
    * @return Returns a visitor specified result.
    */
-  R visitUnrecognizedFilter(P p, byte filterTag, ByteSequence filterBytes);
+  R visitUnrecognizedFilter(P p, byte filterTag, ByteString filterBytes);
 
 }

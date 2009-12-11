@@ -33,6 +33,7 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
+import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -268,6 +269,28 @@ public class SynchronousConnection extends AbstractConnection
   public boolean isClosed()
   {
     return connection.isClosed();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Schema readSchemaForEntry(DN name)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException
+  {
+    ResultFuture<Schema> future = connection.readSchemaForEntry(name,
+        null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
   }
 
 }
