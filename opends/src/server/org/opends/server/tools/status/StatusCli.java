@@ -62,7 +62,6 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -276,10 +275,6 @@ class StatusCli extends ConsoleApplication
    * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG.
    */
   public int execute(String[] args, boolean initializeServer) {
-    if (initializeServer) {
-      DirectoryServer.bootstrapClient();
-    }
-
     argParser = new StatusCliArgumentParser(StatusCli.class.getName());
     try {
       argParser.initializeGlobalArguments(getOutputStream());
@@ -378,9 +373,7 @@ class StatusCli extends ConsoleApplication
             return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
           } catch (ClientException e) {
             println(e.getMessageObject());
-            // Display the information in the config file
-            ServerDescriptor desc = controlInfo.getServerDescriptor();
-            writeStatus(desc);
+            writeStatus(controlInfo);
             return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
           } finally {
             if (ctx != null) {
@@ -410,10 +403,9 @@ class StatusCli extends ConsoleApplication
             ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
             controlInfo.setDirContext(ctx);
             controlInfo.regenerateDescriptor();
-            ServerDescriptor desc = controlInfo.getServerDescriptor();
-            writeStatus(desc);
+            writeStatus(controlInfo);
 
-            if (!desc.getExceptions().isEmpty()) {
+            if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
               return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
                 getReturnCode();
             }
@@ -443,16 +435,54 @@ class StatusCli extends ConsoleApplication
         } else {
           // The user did not provide authentication: just display the
           // information we can get reading the config file.
-          ServerDescriptor desc = controlInfo.getServerDescriptor();
-          writeStatus(desc);
+          writeStatus(controlInfo);
         }
       } else {
-        ServerDescriptor desc = controlInfo.getServerDescriptor();
-        writeStatus(desc);
+        writeStatus(controlInfo);
       }
     }
 
     return ErrorReturnCode.SUCCESSFUL.getReturnCode();
+  }
+
+  private void writeStatus(ControlPanelInfo controlInfo)
+  {
+    if (controlInfo.getServerDescriptor() == null)
+    {
+      controlInfo.regenerateDescriptor();
+    }
+    writeStatus(controlInfo.getServerDescriptor());
+    int period = argParser.getRefreshPeriod();
+    boolean first = true;
+    while (period > 0)
+    {
+      long timeToSleep = period * 1000;
+      if (!first)
+      {
+        long t1 = System.currentTimeMillis();
+        controlInfo.regenerateDescriptor();
+        long t2 = System.currentTimeMillis();
+
+        timeToSleep = timeToSleep - t2 + t1;
+      }
+
+      if (timeToSleep > 0)
+      {
+        try
+        {
+          Thread.sleep(timeToSleep);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      getOutputStream().println();
+      getOutputStream().println(
+      "          ---------------------");
+      getOutputStream().println();
+      writeStatus(controlInfo.getServerDescriptor());
+      first = false;
+    }
   }
 
   private void writeStatus(ServerDescriptor desc)
@@ -1294,7 +1324,7 @@ class StatusCli extends ConsoleApplication
 
 
   /**
-   * Wraps a message accoring to client tool console width.
+   * Wraps a message according to client tool console width.
    * @param text to wrap
    * @return raw message representing wrapped string
    */
@@ -1302,5 +1332,10 @@ class StatusCli extends ConsoleApplication
   {
     return Message.raw(
         StaticUtils.wrapText(text, getCommandLineMaxLineWidth()));
+  }
+
+  private static void printTimeSince(String msg, long initTime)
+  {
+    System.out.println(msg+" : "+(System.currentTimeMillis() - initTime));
   }
 }

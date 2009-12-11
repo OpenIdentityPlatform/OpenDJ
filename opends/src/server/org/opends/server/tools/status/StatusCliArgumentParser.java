@@ -41,6 +41,7 @@ import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 /**
@@ -55,6 +56,11 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;
 
+
+  /**
+   * The 'refresh' argument.
+   */
+  private IntegerArgument refreshArg;
   /**
    * The 'scriptFriendly' argument.
    */
@@ -120,6 +126,12 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     setNoPropertiesFileArgument(noPropertiesFileArgument);
 
     initializeGlobalArguments(defaultArgs);
+
+    refreshArg = new IntegerArgument("refresh", 'r',
+        "refresh", false, true, INFO_PERIOD_PLACEHOLDER.get(),
+        true, 1, false, Integer.MAX_VALUE,
+        INFO_DESCRIPTION_REFRESH_PERIOD.get());
+    addGlobalArgument(refreshArg, ioArgGroup);
   }
 
   /**
@@ -152,6 +164,33 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   public boolean isScriptFriendly()
   {
     return scriptFriendlyArg.isPresent();
+  }
+
+  /**
+   * Returns the refresh period (in seconds) specified in the command-line.
+   * If no refresh period was specified, returns -1.
+   * The code assumes that the attributes have been successfully parsed.
+   * @return the specified refresh period in the command-line.
+   */
+  public int getRefreshPeriod()
+  {
+    if (refreshArg.isPresent())
+    {
+      try
+      {
+        return refreshArg.getIntValue();
+      }
+      catch (ArgumentException ae)
+      {
+        // Bug
+        throw new IllegalStateException("Error getting value, this method "+
+            "should be called after parsing the attributes: "+ae, ae);
+      }
+    }
+    else
+    {
+      return -1;
+    }
   }
 
   /**
