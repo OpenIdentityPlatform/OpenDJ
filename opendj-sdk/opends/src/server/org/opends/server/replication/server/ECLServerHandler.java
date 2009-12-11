@@ -466,7 +466,6 @@ public class ECLServerHandler extends ServerHandler
       if (this.replicationServerDomain != null)
         lockDomain(true);
 
-//    this.localGenerationId = replicationServerDomain.getGenerationId();
       this.localGenerationId = -1;
 
       // send start to remote
@@ -808,9 +807,11 @@ public class ECLServerHandler extends ServerHandler
         // the request is rejected and a full resync is required.
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
-              missingDomains + " .Possible cookie:" +
-              (providedCookie + missingDomains)));
+              missingDomains +
+              ". Possible cookie: <" + (providedCookie + missingDomains)+ ">"));
       }
+
+      domainCtxts = tmpSet.toArray(new DomainContext[0]);
 
       if (!startStatesFromProvidedCookie.isEmpty())
       {
@@ -818,11 +819,18 @@ public class ECLServerHandler extends ServerHandler
         // is one (or several) domain that are not currently configured.
         // This domain has probably been removed or replication disabled on it.
         // The request is rejected and full resync is required.
+        String unknownDomains = startStatesFromProvidedCookie.toString();
+        String possibleCookie = "";
+        for (int j=0; j<domainCtxts.length; j++)
+        {
+          possibleCookie += (domainCtxts[j].rsd.getBaseDn() + ":"
+                           + domainCtxts[j].startState + ";");
+        }
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get(
-                startStatesFromProvidedCookie.toString()));
+                unknownDomains +
+                ". Possible cookie: <" + possibleCookie+ ">"));
       }
-      domainCtxts = tmpSet.toArray(new DomainContext[0]);
 
       // the next record from the DraftCNdb should be the one
       startCookie = providedCookie;

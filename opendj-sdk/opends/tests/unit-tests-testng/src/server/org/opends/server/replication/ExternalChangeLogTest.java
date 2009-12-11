@@ -1152,9 +1152,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          "Full resync required. Reason: The provided cookie contains unknown replicated domain {o=test6=}"),
+          "Full resync required. Reason: The provided cookie contains unknown replicated domain {o=test6=}. Possible cookie: <"),
           searchOp.getErrorMessage().toString());
-
+      // The cookie value is not tested because it is build from a hashmap in
+      // the server and the order of domains is not predictable.
       // Test missing domain in provided cookie
       newCookie = lastCookie.substring(lastCookie.indexOf(';')+1);
       control =
@@ -1178,8 +1179,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(
-          "Full resync required. Reason: The provided cookie is missing the replicated domain(s) o=test:; .Possible cookie:" 
-          + newCookie + "o=test:;"), "Server output:" +
+          "Full resync required. Reason: The provided cookie is missing the replicated domain(s) o=test:;. Possible cookie: <" 
+          + newCookie + "o=test:;>"), "Server output:" +
           searchOp.getErrorMessage().toString());
 
       s1test.stop();
