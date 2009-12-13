@@ -369,7 +369,8 @@ public class SetupUtils
   /**
    * Returns {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
-   * @param hostname the host name we are analyzing.
+   * @param hostname the host name we are analyzing.  Use <CODE>null</CODE>
+   * to connect to any address.
    * @param port the port we are analyzing.
    * @return {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
@@ -380,7 +381,15 @@ public class SetupUtils
     ServerSocket serverSocket = null;
     try
     {
-      InetSocketAddress socketAddress = new InetSocketAddress(hostname, port);
+      InetSocketAddress socketAddress;
+      if (hostname != null)
+      {
+        socketAddress = new InetSocketAddress(hostname, port);
+      }
+      else
+      {
+        socketAddress = new InetSocketAddress(port);
+      }
       serverSocket = new ServerSocket();
       if (!isWindows())
       {
@@ -448,7 +457,7 @@ public class SetupUtils
    */
   public static boolean canUseAsPort(int port)
   {
-    return canUseAsPort("localhost", port);
+    return canUseAsPort(null, port);
   }
 
   /**
