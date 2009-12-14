@@ -75,6 +75,22 @@ public class ActionButton extends JButton
     buttonBorder = new EmptyBorder(5, n, 5, 25);
     Border highlightBorder =
       UIManager.getBorder("List.focusCellHighlightBorder");
+    // This is required (see issue
+    // https://opends.dev.java.net/issues/show_bug.cgi?id=4400)
+    // since in OpenJDK the CompoundBorder class does not handle properly
+    // null insets.
+    if (highlightBorder != null)
+    {
+      try
+      {
+        b.setBorder(BorderFactory.createCompoundBorder(
+          highlightBorder, buttonBorder));
+      }
+      catch (Throwable t)
+      {
+        highlightBorder = null;
+      }
+    }
     if (highlightBorder == null)
     {
       highlightBorder =
@@ -103,7 +119,7 @@ public class ActionButton extends JButton
   private static final Color pressedForeground =
     ColorAndFontConstants.pressedForeground;
 
-  static final Font actionFont = ColorAndFontConstants.defaultFont;
+  private static final Font actionFont = ColorAndFontConstants.defaultFont;
 
 
   /**
