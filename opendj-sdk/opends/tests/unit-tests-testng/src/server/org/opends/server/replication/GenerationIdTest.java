@@ -82,6 +82,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -175,7 +176,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST **" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);
@@ -511,6 +512,7 @@ public class GenerationIdTest extends ReplicationTestCase
       catch (DirectoryException e)
       {
         // success
+        debugInfo("disconnectFromReplServer:" + changelogID, e);
       }
     }
     catch(Exception e)
@@ -1137,7 +1139,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * - genId reset propagation from one RS to the others
    */
   @Test(enabled=false)
-  public void testMultiRS() throws Exception
+  public void testMultiRS(int i) throws Exception
   {
     String testCase = "testMultiRS";
     long genId;
@@ -1154,7 +1156,6 @@ public class GenerationIdTest extends ReplicationTestCase
       replServer1 = createReplicationServer(changelog1ID, true, testCase);
       replServer2 = createReplicationServer(changelog2ID, true, testCase);
       replServer3 = createReplicationServer(changelog3ID, true, testCase);
-      Thread.sleep(500);
 
       debugInfo("Connecting DS to replServer1");
       connectServer1ToChangelog(changelog1ID);
@@ -1191,7 +1192,7 @@ public class GenerationIdTest extends ReplicationTestCase
         Thread.sleep(100);
       }
       debugInfo(
-        "Expect genIds to be resetted in all servers to -1 as no more DS in topo");
+        "Expect genIds to be resetted in all servers to -1 as no more DS in topo - after 10 sec");
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), -1);
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), -1);
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), -1);
@@ -1240,8 +1241,20 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Disconnecting DS from replServer1");
       disconnectFromReplServer(changelog1ID);
 
+      debugInfo("Verifying that all replservers genIds have been reset.");
+
       debugInfo(
-        "Expect all genIds to keep their value since broker2 is still connected.");
+      "Expect all genIds to keep their value since broker2 is still connected.");
+      waitRes=0;
+      while(waitRes<100)
+      {
+        if ((replServer1.getGenerationId(baseDn.toNormalizedString())==genId)
+          && (replServer2.getGenerationId(baseDn.toNormalizedString())==genId)
+          && (replServer3.getGenerationId(baseDn.toNormalizedString())==genId))
+          break;
+        waitRes++;
+        Thread.sleep(100);
+      }
       assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), genId);
@@ -1271,7 +1284,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting DS to replServer1.");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(3000);
 
 
       debugInfo("Adding reset task to DS.");
@@ -1293,7 +1305,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), genId);
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), genId);
 
-      debugInfo("Adding reset task to DS.");
+      debugInfo("Adding reset task to DS." + genId);
       taskReset = TestCaseUtils.makeEntry(
         "dn: ds-task-id=resetgenid" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks",
@@ -1305,13 +1317,22 @@ public class GenerationIdTest extends ReplicationTestCase
         "ds-task-reset-generation-id-new-value: -1");
       addTask(taskReset, ResultCode.SUCCESS, null);
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
-      Thread.sleep(500);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
-      genId = readGenIdFromSuffixRootEntry();
-      assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), -1);
-      assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), -1);
-      assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), -1);
+      waitRes=0;
+      while(waitRes<100)
+      {
+        genId = readGenIdFromSuffixRootEntry();
+        if ((replServer1.getGenerationId(baseDn.toNormalizedString())==-1)
+          && (replServer2.getGenerationId(baseDn.toNormalizedString())==-1)
+          && (replServer3.getGenerationId(baseDn.toNormalizedString())==-1))
+          break;
+        waitRes++;
+        Thread.sleep(100);
+      }
+      assertEquals(replServer1.getGenerationId(baseDn.toNormalizedString()), -1, "test"+i);
+      assertEquals(replServer2.getGenerationId(baseDn.toNormalizedString()), -1, "test"+i);
+      assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), -1, "test"+i);
 
       debugInfo(
         "Disconnect DS from replServer1 (required in order to DEL entries).");
@@ -1477,7 +1498,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void generationIdTest() throws Exception
   {
     testSingleRS();
-    testMultiRS();
+    testMultiRS(0);
     testServerStop();
     testLoop();
   }
