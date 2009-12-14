@@ -53,7 +53,7 @@ public abstract class AbstractConnection implements Connection
 {
 
   private static final class SingleEntryHandler implements
-      SearchResultHandler<Void>
+      SearchResultHandler
   {
     private volatile SearchResultEntry firstEntry = null;
 
@@ -63,7 +63,7 @@ public abstract class AbstractConnection implements Connection
 
 
 
-    public void handleEntry(Void p, SearchResultEntry entry)
+    public void handleEntry(SearchResultEntry entry)
     {
       if (firstEntry == null)
       {
@@ -74,7 +74,7 @@ public abstract class AbstractConnection implements Connection
 
 
 
-    public void handleReference(Void p, SearchResultReference reference)
+    public void handleReference(SearchResultReference reference)
     {
       if (firstReference == null)
       {
@@ -299,18 +299,17 @@ public abstract class AbstractConnection implements Connection
     Validator.ensureNotNull(request, entries);
 
     // FIXME: does this need to be thread safe?
-    SearchResultHandler<Void> handler = new SearchResultHandler<Void>()
+    SearchResultHandler handler = new SearchResultHandler()
     {
 
-      public void handleEntry(Void p, SearchResultEntry entry)
+      public void handleEntry(SearchResultEntry entry)
       {
         entries.add(entry);
       }
 
 
 
-      public void handleReference(Void p,
-          SearchResultReference reference)
+      public void handleReference(SearchResultReference reference)
       {
         if (references != null)
         {
@@ -319,7 +318,7 @@ public abstract class AbstractConnection implements Connection
       }
     };
 
-    return search(request, handler, null);
+    return search(request, handler);
   }
 
 
@@ -345,7 +344,7 @@ public abstract class AbstractConnection implements Connection
       NullPointerException
   {
     SingleEntryHandler handler = new SingleEntryHandler();
-    search(request, handler, null);
+    search(request, handler);
 
     if (handler.entryCount == 0)
     {

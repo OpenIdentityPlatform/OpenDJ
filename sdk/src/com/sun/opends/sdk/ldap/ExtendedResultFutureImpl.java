@@ -40,18 +40,18 @@ import org.opends.sdk.responses.Result;
 /**
  * Extended result future implementation.
  */
-public final class ExtendedResultFutureImpl<R extends Result, P> extends
-    AbstractResultFutureImpl<R, P> implements ResultFuture<R>
+public final class ExtendedResultFutureImpl<R extends Result> extends
+    AbstractResultFutureImpl<R> implements ResultFuture<R>
 {
   private final ExtendedRequest<R> request;
 
 
 
   ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
-      ResultHandler<? super R, P> handler, P p,
+      ResultHandler<? super R> handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, p, connection, handlerExecutor);
+    super(messageID, handler, connection, handlerExecutor);
     this.request = request;
   }
 

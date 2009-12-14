@@ -105,16 +105,15 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ConnectionFuture<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
-        ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
-        P p)
+    public ConnectionFuture<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
+        ConnectionResultHandler<? super AuthenticatedAsynchronousConnection> handler)
     {
       // TODO: bug here? if allowRebind= false then bind will never
       // happen
-      ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
-          allowRebinds ? request : null, handler, p);
-      future.connectFuture = parentFactory.getAsynchronousConnection(
-          future, null);
+      ConnectionFutureImpl future = new ConnectionFutureImpl(
+          allowRebinds ? request : null, handler);
+      future.connectFuture = parentFactory
+          .getAsynchronousConnection(future);
       return future;
     }
 
@@ -280,12 +279,12 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public <P> ResultFuture<Result> add(AddRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> add(AddRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.add(request, handler, p);
+      return connection.add(request, handler);
     }
 
 
@@ -304,8 +303,8 @@ public final class AuthenticatedConnectionFactory
      * connections. This method will always throw {@code
      * UnsupportedOperationException}.
      */
-    public <P> ResultFuture<BindResult> bind(BindRequest request,
-        ResultHandler<? super BindResult, P> handler, P p)
+    public ResultFuture<BindResult> bind(BindRequest request,
+        ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -329,54 +328,52 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public <P> ResultFuture<CompareResult> compare(
-        CompareRequest request,
-        ResultHandler<? super CompareResult, P> handler, P p)
+    public ResultFuture<CompareResult> compare(CompareRequest request,
+        ResultHandler<? super CompareResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.compare(request, handler, p);
+      return connection.compare(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> delete(DeleteRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> delete(DeleteRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.delete(request, handler, p);
+      return connection.delete(request, handler);
     }
 
 
 
-    public <R extends Result, P> ResultFuture<R> extendedRequest(
-        ExtendedRequest<R> request,
-        ResultHandler<? super R, P> handler, P p)
+    public <R extends Result> ResultFuture<R> extendedRequest(
+        ExtendedRequest<R> request, ResultHandler<? super R> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.extendedRequest(request, handler, p);
+      return connection.extendedRequest(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modify(ModifyRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modify(ModifyRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.modify(request, handler, p);
+      return connection.modify(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modifyDN(ModifyDNRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.modifyDN(request, handler, p);
+      return connection.modifyDN(request, handler);
     }
 
 
@@ -386,15 +383,10 @@ public final class AuthenticatedConnectionFactory
      * associated with this connection. If re-authentication fails for
      * some reason then this connection will be automatically closed.
      *
-     * @param <P>
-     *          The type of the additional parameter to the handler's
-     *          methods.
      * @param handler
      *          A result handler which can be used to asynchronously
      *          process the operation result when it is received, may be
      *          {@code null}.
-     * @param p
-     *          Optional additional handler parameter.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *           If this connection does not support rebind operations.
@@ -402,8 +394,8 @@ public final class AuthenticatedConnectionFactory
      *           If this connection has already been closed, i.e. if
      *           {@code isClosed() == true}.
      */
-    public <P> ResultFuture<BindResult> rebind(
-        ResultHandler<? super BindResult, P> handler, P p)
+    public ResultFuture<BindResult> rebind(
+        ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (request == null)
@@ -413,13 +405,12 @@ public final class AuthenticatedConnectionFactory
 
       // Wrap the client handler so that we can update the connection
       // state.
-      final ResultHandler<? super BindResult, P> clientHandler = handler;
-      final P clientParameter = p;
+      final ResultHandler<? super BindResult> clientHandler = handler;
 
-      ResultHandler<BindResult, Void> handlerWrapper = new ResultHandler<BindResult, Void>()
+      ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>()
       {
 
-        public void handleErrorResult(Void p, ErrorResultException error)
+        public void handleErrorResult(ErrorResultException error)
         {
           // This connection is now unauthenticated so prevent
           // further use.
@@ -427,26 +418,26 @@ public final class AuthenticatedConnectionFactory
 
           if (clientHandler != null)
           {
-            clientHandler.handleErrorResult(clientParameter, error);
+            clientHandler.handleErrorResult(error);
           }
         }
 
 
 
-        public void handleResult(Void p, BindResult result)
+        public void handleResult(BindResult result)
         {
           // Save the result.
           AuthenticatedAsynchronousConnection.this.result = result;
 
           if (clientHandler != null)
           {
-            clientHandler.handleResult(clientParameter, result);
+            clientHandler.handleResult(result);
           }
         }
 
       };
 
-      return connection.bind(request, handlerWrapper, null);
+      return connection.bind(request, handlerWrapper);
     }
 
 
@@ -459,14 +450,14 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public <P> ResultFuture<Result> search(SearchRequest request,
-        ResultHandler<Result, P> resultHandler,
-        SearchResultHandler<P> searchResulthandler, P p)
+    public ResultFuture<Result> search(SearchRequest request,
+        ResultHandler<Result> resultHandler,
+        SearchResultHandler searchResulthandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
       return connection.search(request, resultHandler,
-          searchResulthandler, p);
+          searchResulthandler);
     }
 
 
@@ -484,11 +475,11 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<RootDSE> readRootDSE(
-        ResultHandler<RootDSE, P> handler, P p)
+    public ResultFuture<RootDSE> readRootDSE(
+        ResultHandler<RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readRootDSE(handler, p);
+      return connection.readRootDSE(handler);
     }
 
 
@@ -496,14 +487,14 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+    public ResultFuture<SearchResultEntry> readEntry(DN name,
         Collection<String> attributeDescriptions,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
       return connection.readEntry(name, attributeDescriptions,
-          resultHandler, p);
+          resultHandler);
     }
 
 
@@ -511,13 +502,13 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+    public ResultFuture<SearchResultEntry> searchSingleEntry(
         SearchRequest request,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.searchSingleEntry(request, resultHandler, p);
+      return connection.searchSingleEntry(request, resultHandler);
     }
 
 
@@ -525,11 +516,11 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchemaForEntry(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchemaForEntry(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readSchemaForEntry(name, handler, p);
+      return connection.readSchemaForEntry(name, handler);
     }
 
 
@@ -537,11 +528,11 @@ public final class AuthenticatedConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchema(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchema(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readSchema(name, handler, p);
+      return connection.readSchema(name, handler);
     }
 
   }
@@ -569,10 +560,10 @@ public final class AuthenticatedConnectionFactory
 
 
 
-  private static final class ConnectionFutureImpl<P> implements
+  private static final class ConnectionFutureImpl implements
       ConnectionFuture<AuthenticatedAsynchronousConnection>,
-      ConnectionResultHandler<AsynchronousConnection, Void>,
-      ResultHandler<BindResult, Void>
+      ConnectionResultHandler<AsynchronousConnection>,
+      ResultHandler<BindResult>
   {
     private volatile AuthenticatedAsynchronousConnection authenticatedConnection;
 
@@ -586,9 +577,7 @@ public final class AuthenticatedConnectionFactory
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler;
-
-    private final P p;
+    private final ConnectionResultHandler<? super AuthenticatedAsynchronousConnection> handler;
 
     private boolean cancelled;
 
@@ -598,12 +587,10 @@ public final class AuthenticatedConnectionFactory
 
     private ConnectionFutureImpl(
         BindRequest request,
-        ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
-        P p)
+        ConnectionResultHandler<? super AuthenticatedAsynchronousConnection> handler)
     {
       this.request = request;
       this.handler = handler;
-      this.p = p;
     }
 
 
@@ -671,16 +658,15 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public void handleConnection(Void v,
-        AsynchronousConnection connection)
+    public void handleConnection(AsynchronousConnection connection)
     {
       this.connection = connection;
-      this.bindFuture = this.connection.bind(request, this, null);
+      this.bindFuture = this.connection.bind(request, this);
     }
 
 
 
-    public void handleConnectionError(Void v, ErrorResultException error)
+    public void handleConnectionError(ErrorResultException error)
     {
       exception = error;
       latch.countDown();
@@ -688,7 +674,7 @@ public final class AuthenticatedConnectionFactory
 
 
 
-    public void handleResult(Void v, BindResult result)
+    public void handleResult(BindResult result)
     {
       // FIXME: should make the result unmodifiable.
       authenticatedConnection = new AuthenticatedAsynchronousConnection(
@@ -696,13 +682,13 @@ public final class AuthenticatedConnectionFactory
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnection(p, authenticatedConnection);
+        handler.handleConnection(authenticatedConnection);
       }
     }
 
 
 
-    public void handleErrorResult(Void v, ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       // Ensure that the connection is closed.
       try
@@ -718,7 +704,7 @@ public final class AuthenticatedConnectionFactory
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnectionError(p, exception);
+        handler.handleConnectionError(exception);
       }
     }
   }
@@ -765,11 +751,10 @@ public final class AuthenticatedConnectionFactory
 
 
 
-  public <P> ConnectionFuture<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AuthenticatedAsynchronousConnection, P> handler,
-      P p)
+  public ConnectionFuture<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AuthenticatedAsynchronousConnection> handler)
   {
-    return impl.getAsynchronousConnection(handler, p);
+    return impl.getAsynchronousConnection(handler);
   }
 
 

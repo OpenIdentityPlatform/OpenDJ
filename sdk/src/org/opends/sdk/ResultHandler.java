@@ -43,33 +43,25 @@ package org.opends.sdk;
  *
  * @param <S>
  *          The type of result handled by this result handler.
- * @param <P>
- *          The type of the additional parameter to this handler's
- *          methods. Use {@link java.lang.Void} for visitors that do not
- *          need an additional parameter.
  */
-public interface ResultHandler<S, P>
+public interface ResultHandler<S>
 {
   /**
    * Invoked when the asynchronous operation has failed.
    *
-   * @param p
-   *          A handler specified parameter.
    * @param error
    *          The error result exception indicating why the asynchronous
    *          operation has failed.
    */
-  void handleErrorResult(P p, ErrorResultException error);
+  void handleErrorResult(ErrorResultException error);
 
 
 
   /**
    * Invoked when the asynchronous operation has completed successfully.
    *
-   * @param p
-   *          A handler specified parameter.
    * @param result
    *          The result of the asynchronous operation.
    */
-  void handleResult(P p, S result);
+  void handleResult(S result);
 }

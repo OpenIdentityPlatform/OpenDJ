@@ -165,17 +165,12 @@ public interface AsynchronousConnection extends Closeable
    * Adds an entry to the Directory Server using the provided add
    * request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The add request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
@@ -185,8 +180,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<Result> add(AddRequest request,
-      ResultHandler<Result, P> handler, P p)
+  ResultFuture<Result> add(AddRequest request,
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -215,17 +210,12 @@ public interface AsynchronousConnection extends Closeable
    * Authenticates to the Directory Server using the provided bind
    * request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The bind request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
@@ -235,8 +225,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<BindResult> bind(BindRequest request,
-      ResultHandler<? super BindResult, P> handler, P p)
+  ResultFuture<BindResult> bind(BindRequest request,
+      ResultHandler<? super BindResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -297,17 +287,12 @@ public interface AsynchronousConnection extends Closeable
    * Compares an entry in the Directory Server using the provided
    * compare request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The compare request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
@@ -317,8 +302,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<CompareResult> compare(CompareRequest request,
-      ResultHandler<? super CompareResult, P> handler, P p)
+  ResultFuture<CompareResult> compare(CompareRequest request,
+      ResultHandler<? super CompareResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -328,17 +313,12 @@ public interface AsynchronousConnection extends Closeable
    * Deletes an entry from the Directory Server using the provided
    * delete request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The delete request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
@@ -348,8 +328,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<Result> delete(DeleteRequest request,
-      ResultHandler<Result, P> handler, P p)
+  ResultFuture<Result> delete(DeleteRequest request,
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -361,17 +341,12 @@ public interface AsynchronousConnection extends Closeable
    *
    * @param <R>
    *          The type of result returned by the extended request.
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The extended request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
@@ -381,9 +356,9 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <R extends Result, P> ResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResultHandler<? super R, P> handler,
-      P p) throws UnsupportedOperationException, IllegalStateException,
+  <R extends Result> ResultFuture<R> extendedRequest(
+      ExtendedRequest<R> request, ResultHandler<? super R> handler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -405,17 +380,12 @@ public interface AsynchronousConnection extends Closeable
    * Modifies an entry in the Directory Server using the provided modify
    * request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The modify request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
@@ -425,8 +395,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<Result> modify(ModifyRequest request,
-      ResultHandler<Result, P> handler, P p)
+  ResultFuture<Result> modify(ModifyRequest request,
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -436,17 +406,12 @@ public interface AsynchronousConnection extends Closeable
    * Renames an entry in the Directory Server using the provided modify
    * DN request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The modify DN request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
@@ -456,8 +421,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-      ResultHandler<Result, P> handler, P p)
+  ResultFuture<Result> modifyDN(ModifyDNRequest request,
+      ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -478,9 +443,6 @@ public interface AsynchronousConnection extends Closeable
    * connection.searchSingleEntry(request, resultHandler, p);
    * </pre>
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param name
    *          The distinguished name of the entry to be read.
    * @param attributeDescriptions
@@ -491,8 +453,6 @@ public interface AsynchronousConnection extends Closeable
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -502,9 +462,9 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If the {@code name} was {@code null}.
    */
-  <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+  ResultFuture<SearchResultEntry> readEntry(DN name,
       Collection<String> attributeDescriptions,
-      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -517,15 +477,10 @@ public interface AsynchronousConnection extends Closeable
    * request will fail with an {@link EntryNotFoundException}. More
    * specifically, the returned future will never return {@code null}.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -533,8 +488,7 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  <P> ResultFuture<RootDSE> readRootDSE(
-      ResultHandler<RootDSE, P> handler, P p)
+  ResultFuture<RootDSE> readRootDSE(ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -551,17 +505,12 @@ public interface AsynchronousConnection extends Closeable
    * Implementations may choose to perform optimizations such as
    * caching.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param name
    *          The distinguished name of the subschema sub-entry.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -569,8 +518,7 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  <P> ResultFuture<Schema> readSchema(DN name,
-      ResultHandler<Schema, P> handler, P p)
+  ResultFuture<Schema> readSchema(DN name, ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -589,18 +537,13 @@ public interface AsynchronousConnection extends Closeable
    * schema. However, implementations may choose to perform other
    * optimizations, such as caching.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param name
    *          The distinguished name of the entry whose schema is to be
    *          located.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
-   *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
+   *          {@code null}. Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -608,8 +551,8 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  <P> ResultFuture<Schema> readSchemaForEntry(DN name,
-      ResultHandler<Schema, P> handler, P p)
+  ResultFuture<Schema> readSchemaForEntry(DN name,
+      ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -634,9 +577,6 @@ public interface AsynchronousConnection extends Closeable
   /**
    * Searches the Directory Server using the provided search request.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The search request.
    * @param resultHandler
@@ -647,8 +587,6 @@ public interface AsynchronousConnection extends Closeable
    *          A search result handler which can be used to
    *          asynchronously process the search result entries and
    *          references as they are received, may be {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -658,9 +596,9 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> ResultFuture<Result> search(SearchRequest request,
-      ResultHandler<Result, P> resultHandler,
-      SearchResultHandler<P> searchResulthandler, P p)
+  ResultFuture<Result> search(SearchRequest request,
+      ResultHandler<Result> resultHandler,
+      SearchResultHandler searchResulthandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -677,17 +615,12 @@ public interface AsynchronousConnection extends Closeable
    * then the request will fail with an
    * {@link MultipleEntriesFoundException}.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The search request.
    * @param handler
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -697,9 +630,9 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If the {@code request} was {@code null}.
    */
-  <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+  ResultFuture<SearchResultEntry> searchSingleEntry(
       SearchRequest request,
-      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 }

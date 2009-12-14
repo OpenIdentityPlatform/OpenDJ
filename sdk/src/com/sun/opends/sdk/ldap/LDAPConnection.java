@@ -83,13 +83,13 @@ public final class LDAPConnection extends
     @Override
     public void handleAddResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl<?>)
+        if (pendingRequest instanceof ResultFutureImpl)
         {
-          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
           if (future.getRequest() instanceof AddRequest)
           {
             future.handleResult(result);
@@ -108,13 +108,13 @@ public final class LDAPConnection extends
     @Override
     public void handleBindResult(int messageID, BindResult result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof BindResultFutureImpl<?>)
+        if (pendingRequest instanceof BindResultFutureImpl)
         {
-          BindResultFutureImpl<?> future = ((BindResultFutureImpl<?>) pendingRequest);
+          BindResultFutureImpl future = ((BindResultFutureImpl) pendingRequest);
           BindRequest request = future.getRequest();
 
           if (request instanceof SASLBindRequest<?>)
@@ -138,8 +138,10 @@ public final class LDAPConnection extends
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
                 Result errorResult = Responses.newResult(
-                    ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-                    "An error occurred during SASL authentication").setCause(e);
+                    ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                    .setDiagnosticMessage(
+                        "An error occurred during SASL authentication")
+                    .setCause(e);
                 future.handleErrorResult(errorResult);
                 return;
               }
@@ -168,10 +170,12 @@ public final class LDAPConnection extends
                   {
                     pendingRequests.remove(messageID);
 
-                    // FIXME: what other sort of IOExceptions can be thrown?
+                    // FIXME: what other sort of IOExceptions can be
+                    // thrown?
                     // FIXME: Is this the best result code?
                     Result errorResult = Responses.newResult(
-                        ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
+                        ResultCode.CLIENT_SIDE_ENCODING_ERROR)
+                        .setCause(e);
                     connectionErrorOccurred(errorResult);
                     future.handleErrorResult(errorResult);
                   }
@@ -211,13 +215,13 @@ public final class LDAPConnection extends
     @Override
     public void handleCompareResult(int messageID, CompareResult result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof CompareResultFutureImpl<?>)
+        if (pendingRequest instanceof CompareResultFutureImpl)
         {
-          CompareResultFutureImpl<?> future = (CompareResultFutureImpl<?>) pendingRequest;
+          CompareResultFutureImpl future = (CompareResultFutureImpl) pendingRequest;
           future.handleResult(result);
         }
         else
@@ -235,13 +239,13 @@ public final class LDAPConnection extends
     @Override
     public void handleDeleteResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl<?>)
+        if (pendingRequest instanceof ResultFutureImpl)
         {
-          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
           if (future.getRequest() instanceof DeleteRequest)
           {
             future.handleResult(result);
@@ -260,7 +264,7 @@ public final class LDAPConnection extends
     public void handleException(Throwable throwable)
     {
       Result errorResult;
-      if(throwable instanceof EOFException)
+      if (throwable instanceof EOFException)
       {
         // FIXME: Is this the best result code?
         errorResult = Responses.newResult(
@@ -292,8 +296,9 @@ public final class LDAPConnection extends
                 OID_NOTICE_OF_DISCONNECTION))
         {
 
-          Result errorResult = Responses.newResult(result.getResultCode())
-              .setDiagnosticMessage(result.getDiagnosticMessage());
+          Result errorResult = Responses.newResult(
+              result.getResultCode()).setDiagnosticMessage(
+              result.getDiagnosticMessage());
           close(null, true, errorResult);
           return;
         }
@@ -317,12 +322,12 @@ public final class LDAPConnection extends
         }
       }
 
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
 
-      if (pendingRequest instanceof ExtendedResultFutureImpl<?, ?>)
+      if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
       {
-        ExtendedResultFutureImpl<?, ?> extendedFuture = ((ExtendedResultFutureImpl<?, ?>) pendingRequest);
+        ExtendedResultFutureImpl<?> extendedFuture = ((ExtendedResultFutureImpl<?>) pendingRequest);
         try
         {
           handleExtendedResult0(extendedFuture, result);
@@ -330,7 +335,8 @@ public final class LDAPConnection extends
         catch (DecodeException de)
         {
           // FIXME: should the connection be closed as well?
-          Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+          Result errorResult = Responses.newResult(
+              ResultCode.CLIENT_SIDE_DECODING_ERROR)
               .setDiagnosticMessage(de.getLocalizedMessage()).setCause(
                   de);
           extendedFuture.handleErrorResult(errorResult);
@@ -351,7 +357,7 @@ public final class LDAPConnection extends
     public void handleIntermediateResponse(int messageID,
         GenericIntermediateResponse response)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
@@ -394,13 +400,13 @@ public final class LDAPConnection extends
     @Override
     public void handleModifyDNResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl<?>)
+        if (pendingRequest instanceof ResultFutureImpl)
         {
-          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
           if (future.getRequest() instanceof ModifyDNRequest)
           {
             future.handleResult(result);
@@ -419,13 +425,13 @@ public final class LDAPConnection extends
     @Override
     public void handleModifyResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl<?>)
+        if (pendingRequest instanceof ResultFutureImpl)
         {
-          ResultFutureImpl<?> future = (ResultFutureImpl<?>) pendingRequest;
+          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
           if (future.getRequest() instanceof ModifyRequest)
           {
             future.handleResult(result);
@@ -444,13 +450,13 @@ public final class LDAPConnection extends
     @Override
     public void handleSearchResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl<?>)
+        if (pendingRequest instanceof SearchResultFutureImpl)
         {
-          ((SearchResultFutureImpl<?>) pendingRequest)
+          ((SearchResultFutureImpl) pendingRequest)
               .handleResult(result);
         }
         else
@@ -469,13 +475,13 @@ public final class LDAPConnection extends
     public void handleSearchResultEntry(int messageID,
         SearchResultEntry entry)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl<?>)
+        if (pendingRequest instanceof SearchResultFutureImpl)
         {
-          ((SearchResultFutureImpl<?>) pendingRequest)
+          ((SearchResultFutureImpl) pendingRequest)
               .handleSearchResultEntry(entry);
         }
         else
@@ -494,13 +500,13 @@ public final class LDAPConnection extends
     public void handleSearchResultReference(int messageID,
         SearchResultReference reference)
     {
-      AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
           .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl<?>)
+        if (pendingRequest instanceof SearchResultFutureImpl)
         {
-          ((SearchResultFutureImpl<?>) pendingRequest)
+          ((SearchResultFutureImpl) pendingRequest)
               .handleSearchResultReference(reference);
         }
         else
@@ -646,14 +652,13 @@ public final class LDAPConnection extends
 
   private boolean isClosed = false;
 
-  private final List<ConnectionEventListener> listeners =
-      new CopyOnWriteArrayList<ConnectionEventListener>();
+  private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<ConnectionEventListener>();
 
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
 
   private volatile int pendingBindOrStartTLS = -1;
 
-  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?, ?>> pendingRequests = new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?, ?>>();
+  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests = new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
 
   private final InetSocketAddress serverAddress;
 
@@ -694,7 +699,7 @@ public final class LDAPConnection extends
    */
   public void abandon(AbandonRequest request)
   {
-    AbstractResultFutureImpl<?, ?> pendingRequest = pendingRequests
+    AbstractResultFutureImpl<?> pendingRequest = pendingRequests
         .remove(request.getMessageID());
     if (pendingRequest != null)
     {
@@ -744,12 +749,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Result> add(AddRequest request,
-      ResultHandler<Result, P> handler, P p)
+  public ResultFuture<Result> add(AddRequest request,
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
-        request, handler, p, this, connFactory.getHandlerInvokers());
+    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+        handler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -764,9 +769,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -823,13 +828,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<BindResult> bind(BindRequest request,
-      ResultHandler<? super BindResult, P> handler, P p)
+  public ResultFuture<BindResult> bind(BindRequest request,
+      ResultHandler<? super BindResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    BindResultFutureImpl<P> future = new BindResultFutureImpl<P>(
-        messageID, request, handler, p, this, connFactory
-            .getHandlerInvokers());
+    BindResultFutureImpl future = new BindResultFutureImpl(messageID,
+        request, handler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -844,16 +848,16 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newBindResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         if (!pendingRequests.isEmpty())
         {
-          future
-              .handleResult(Responses.newBindResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("There are other operations pending on this connection"));
+          future.handleResult(Responses.newBindResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "There are other operations pending on this connection"));
           return future;
         }
 
@@ -878,8 +882,10 @@ public final class LDAPConnection extends
               // FIXME: I18N need to have a better error message.
               // FIXME: Is this the best result code?
               Result errorResult = Responses.newResult(
-                  ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-                  "An error occurred during SASL authentication").setCause(e);
+                  ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                  .setDiagnosticMessage(
+                      "An error occurred during SASL authentication")
+                  .setCause(e);
               future.handleErrorResult(errorResult);
               return future;
             }
@@ -920,31 +926,33 @@ public final class LDAPConnection extends
   }
 
 
+
   /**
    * {@inheritDoc}
    */
   public void close(UnbindRequest request, String reason)
-      throws NullPointerException {
+      throws NullPointerException
+  {
     // FIXME: I18N need to internationalize this message.
     Validator.ensureNotNull(request);
 
-    close(request, false,
-        Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-            .setDiagnosticMessage("Connection closed by client" +
-            (reason != null ? ": " + reason : "")));
+    close(request, false, Responses.newResult(
+        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
+        "Connection closed by client"
+            + (reason != null ? ": " + reason : "")));
   }
+
 
 
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<CompareResult> compare(
-      CompareRequest request,
-      ResultHandler<? super CompareResult, P> handler, P p)
+  public ResultFuture<CompareResult> compare(CompareRequest request,
+      ResultHandler<? super CompareResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    CompareResultFutureImpl<P> future = new CompareResultFutureImpl<P>(
-        messageID, request, handler, p, this, connFactory
+    CompareResultFutureImpl future = new CompareResultFutureImpl(
+        messageID, request, handler, this, connFactory
             .getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -960,9 +968,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newCompareResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newCompareResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -998,12 +1006,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Result> delete(DeleteRequest request,
-      ResultHandler<Result, P> handler, P p)
+  public ResultFuture<Result> delete(DeleteRequest request,
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
-        request, handler, p, this, connFactory.getHandlerInvokers());
+    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+        handler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -1018,9 +1026,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1056,13 +1064,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <R extends Result, P> ResultFuture<R> extendedRequest(
-      ExtendedRequest<R> request, ResultHandler<? super R, P> handler,
-      P p)
+  public <R extends Result> ResultFuture<R> extendedRequest(
+      ExtendedRequest<R> request, ResultHandler<? super R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ExtendedResultFutureImpl<R, P> future = new ExtendedResultFutureImpl<R, P>(
-        messageID, request, handler, p, this, connFactory
+    ExtendedResultFutureImpl<R> future = new ExtendedResultFutureImpl<R>(
+        messageID, request, handler, this, connFactory
             .getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1135,12 +1142,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Result> modify(ModifyRequest request,
-      ResultHandler<Result, P> handler, P p)
+  public ResultFuture<Result> modify(ModifyRequest request,
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
-        request, handler, p, this, connFactory.getHandlerInvokers());
+    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+        handler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -1155,9 +1162,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1193,12 +1200,12 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-      ResultHandler<Result, P> handler, P p)
+  public ResultFuture<Result> modifyDN(ModifyDNRequest request,
+      ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl<P> future = new ResultFutureImpl<P>(messageID,
-        request, handler, p, this, connFactory.getHandlerInvokers());
+    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+        handler, this, connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -1213,9 +1220,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1267,14 +1274,14 @@ public final class LDAPConnection extends
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Result> search(SearchRequest request,
-      ResultHandler<Result, P> resultHandler,
-      SearchResultHandler<P> searchResulthandler, P p)
+  public ResultFuture<Result> search(SearchRequest request,
+      ResultHandler<Result> resultHandler,
+      SearchResultHandler searchResulthandler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    SearchResultFutureImpl<P> future = new SearchResultFutureImpl<P>(
-        messageID, request, resultHandler, searchResulthandler, p,
-        this, connFactory.getHandlerInvokers());
+    SearchResultFutureImpl future = new SearchResultFutureImpl(
+        messageID, request, resultHandler, searchResulthandler, this,
+        connFactory.getHandlerInvokers());
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
 
@@ -1289,9 +1296,9 @@ public final class LDAPConnection extends
         }
         if (pendingBindOrStartTLS > 0)
         {
-          future
-              .handleResult(Responses.newResult(ResultCode.OPERATIONS_ERROR)
-                  .setDiagnosticMessage("Bind or Start TLS operation in progress"));
+          future.handleResult(Responses.newResult(
+              ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+              "Bind or Start TLS operation in progress"));
           return future;
         }
         pendingRequests.put(messageID, future);
@@ -1391,7 +1398,7 @@ public final class LDAPConnection extends
       }
 
       // First abort all outstanding requests.
-      for (AbstractResultFutureImpl<?, ?> future : pendingRequests
+      for (AbstractResultFutureImpl<?> future : pendingRequests
           .values())
       {
         if (pendingBindOrStartTLS <= 0)
@@ -1509,6 +1516,9 @@ public final class LDAPConnection extends
       return isClosed;
     }
   }
+
+
+
   //
   //
   //
@@ -1556,8 +1566,8 @@ public final class LDAPConnection extends
 
   // Needed in order to expose type information.
   private <R extends Result> void handleExtendedResult0(
-      ExtendedResultFutureImpl<R, ?> future,
-      GenericExtendedResult result) throws DecodeException
+      ExtendedResultFutureImpl<R> future, GenericExtendedResult result)
+      throws DecodeException
   {
     R decodedResponse = future.decodeResponse(result.getResultCode(),
         result.getMatchedDN(), result.getDiagnosticMessage(), result
@@ -1587,11 +1597,12 @@ public final class LDAPConnection extends
 
 
   private void handleIncorrectResponse(
-      AbstractResultFutureImpl<?, ?> pendingRequest)
+      AbstractResultFutureImpl<?> pendingRequest)
   {
     // FIXME: I18N need to have a better error message.
-    Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
-        .setDiagnosticMessage("LDAP response message did not match request");
+    Result errorResult = Responses.newResult(
+        ResultCode.CLIENT_SIDE_DECODING_ERROR).setDiagnosticMessage(
+        "LDAP response message did not match request");
 
     pendingRequest.handleErrorResult(errorResult);
     connectionErrorOccurred(errorResult);

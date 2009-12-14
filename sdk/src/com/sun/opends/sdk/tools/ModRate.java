@@ -273,7 +273,7 @@ public final class ModRate extends ConsoleApplication
 
 
     private class ModifyWorkerThread extends
-        WorkerThread<ResultHandler<Result, Void>>
+        WorkerThread<ResultHandler<Result>>
     {
       private ModifyRequest mr;
       private Object[] data;
@@ -288,7 +288,7 @@ public final class ModRate extends ConsoleApplication
 
 
 
-      public ResultHandler<Result, Void> getHandler(long startTime)
+      public ResultHandler<Result> getHandler(long startTime)
       {
         return new UpdateStatsResultHandler<Result>(startTime);
       }
@@ -297,14 +297,14 @@ public final class ModRate extends ConsoleApplication
 
       public ResultFuture<?> performOperation(
           AsynchronousConnection connection,
-          ResultHandler<Result, Void> handler, DataSource[] dataSources)
+          ResultHandler<Result> handler, DataSource[] dataSources)
       {
         if (dataSources != null)
         {
           data = DataSource.generateData(dataSources, data);
         }
         mr = newModifyRequest(data);
-        return connection.modify(mr, handler, null);
+        return connection.modify(mr, handler);
       }
 
 

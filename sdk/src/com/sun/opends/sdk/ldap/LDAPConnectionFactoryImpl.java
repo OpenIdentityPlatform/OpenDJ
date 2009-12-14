@@ -77,7 +77,8 @@ public final class LDAPConnectionFactoryImpl extends
 
 
     @Override
-    protected void removeMessageHandler(com.sun.grizzly.Connection<?> connection)
+    protected void removeMessageHandler(
+        com.sun.grizzly.Connection<?> connection)
     {
       ldapConnectionAttr.remove(connection);
     }
@@ -139,10 +140,10 @@ public final class LDAPConnectionFactoryImpl extends
 
 
 
-  private class ConnectionFutureImpl<P> implements
+  private class ConnectionFutureImpl implements
       ConnectionFuture<AsynchronousConnection>,
       com.sun.grizzly.CompletionHandler<com.sun.grizzly.Connection>,
-      ResultHandler<Result, Void>
+      ResultHandler<Result>
   {
     private volatile AsynchronousConnection connection;
 
@@ -154,20 +155,16 @@ public final class LDAPConnectionFactoryImpl extends
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super AsynchronousConnection, P> handler;
+    private final ConnectionResultHandler<? super AsynchronousConnection> handler;
 
     private boolean cancelled;
-
-    private final P p;
 
 
 
     private ConnectionFutureImpl(
-        ConnectionResultHandler<? super AsynchronousConnection, P> handler,
-        P p)
+        ConnectionResultHandler<? super AsynchronousConnection> handler)
     {
       this.handler = handler;
-      this.p = p;
     }
 
 
@@ -258,8 +255,7 @@ public final class LDAPConnectionFactoryImpl extends
       {
         StartTLSRequest startTLS = new StartTLSRequest(options
             .getSSLContext());
-        sslFuture = this.connection.extendedRequest(startTLS, this,
-            null);
+        sslFuture = this.connection.extendedRequest(startTLS, this);
       }
       else if (options.getSSLContext() != null)
       {
@@ -271,7 +267,7 @@ public final class LDAPConnectionFactoryImpl extends
           latch.countDown();
           if (handler != null)
           {
-            handler.handleConnection(p, this.connection);
+            handler.handleConnection(this.connection);
           }
         }
         catch (CancellationException ce)
@@ -285,7 +281,7 @@ public final class LDAPConnectionFactoryImpl extends
           latch.countDown();
           if (handler != null)
           {
-            handler.handleConnectionError(p, exception);
+            handler.handleConnectionError(exception);
           }
         }
       }
@@ -294,7 +290,7 @@ public final class LDAPConnectionFactoryImpl extends
         latch.countDown();
         if (handler != null)
         {
-          handler.handleConnection(p, this.connection);
+          handler.handleConnection(this.connection);
         }
       }
     }
@@ -311,7 +307,7 @@ public final class LDAPConnectionFactoryImpl extends
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnectionError(p, exception);
+        handler.handleConnectionError(exception);
       }
     }
 
@@ -329,25 +325,25 @@ public final class LDAPConnectionFactoryImpl extends
 
 
     // This is called when the StartTLS request is successful
-    public void handleResult(Void v, Result result)
+    public void handleResult(Result result)
     {
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnection(p, connection);
+        handler.handleConnection(connection);
       }
     }
 
 
 
     // This is called when the StartTLS request is not successful
-    public void handleErrorResult(Void v, ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       exception = error;
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnectionError(p, exception);
+        handler.handleConnectionError(exception);
       }
     }
   }
@@ -486,12 +482,10 @@ public final class LDAPConnectionFactoryImpl extends
   /**
    * {@inheritDoc}
    */
-  public <P> ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection, P> handler,
-      P p)
+  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AsynchronousConnection> handler)
   {
-    ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
-        handler, p);
+    ConnectionFutureImpl future = new ConnectionFutureImpl(handler);
 
     try
     {
@@ -590,7 +584,8 @@ public final class LDAPConnectionFactoryImpl extends
       t = t.getCause();
     }
 
-    Result result = Responses.newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(t)
+    Result result = Responses.newResult(
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(t)
         .setDiagnosticMessage(t.getMessage());
     return ErrorResultException.wrap(result);
   }

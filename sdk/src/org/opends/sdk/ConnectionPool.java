@@ -60,7 +60,7 @@ public class ConnectionPool extends
   // FIXME: should use a better collection than this - CLQ?
   private final Stack<AsynchronousConnection> pool;
 
-  private final ConcurrentLinkedQueue<PendingConnectionFuture<?>> pendingFutures;
+  private final ConcurrentLinkedQueue<PendingConnectionFuture> pendingFutures;
 
   private final Object lock = new Object();
 
@@ -94,8 +94,8 @@ public class ConnectionPool extends
 
 
 
-    public <P> ResultFuture<Result> add(AddRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> add(AddRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -103,13 +103,13 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.add(request, handler, p);
+      return connection.add(request, handler);
     }
 
 
 
-    public <P> ResultFuture<BindResult> bind(BindRequest request,
-        ResultHandler<? super BindResult, P> handler, P p)
+    public ResultFuture<BindResult> bind(BindRequest request,
+        ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -117,7 +117,7 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.bind(request, handler, p);
+      return connection.bind(request, handler);
     }
 
 
@@ -145,7 +145,7 @@ public class ConnectionPool extends
           }
 
           // See if there waiters pending
-          PendingConnectionFuture<?> future = pendingFutures.poll();
+          PendingConnectionFuture future = pendingFutures.poll();
           if (future != null)
           {
             PooledConnectionWapper pooledConnection = new PooledConnectionWapper(
@@ -195,9 +195,8 @@ public class ConnectionPool extends
 
 
 
-    public <P> ResultFuture<CompareResult> compare(
-        CompareRequest request,
-        ResultHandler<? super CompareResult, P> handler, P p)
+    public ResultFuture<CompareResult> compare(CompareRequest request,
+        ResultHandler<? super CompareResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -205,13 +204,13 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.compare(request, handler, p);
+      return connection.compare(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> delete(DeleteRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> delete(DeleteRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -219,14 +218,13 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.delete(request, handler, p);
+      return connection.delete(request, handler);
     }
 
 
 
-    public <R extends Result, P> ResultFuture<R> extendedRequest(
-        ExtendedRequest<R> request,
-        ResultHandler<? super R, P> handler, P p)
+    public <R extends Result> ResultFuture<R> extendedRequest(
+        ExtendedRequest<R> request, ResultHandler<? super R> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -234,13 +232,13 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.extendedRequest(request, handler, p);
+      return connection.extendedRequest(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modify(ModifyRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modify(ModifyRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -248,13 +246,13 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.modify(request, handler, p);
+      return connection.modify(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modifyDN(ModifyDNRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -262,14 +260,14 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.modifyDN(request, handler, p);
+      return connection.modifyDN(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> search(SearchRequest request,
-        ResultHandler<Result, P> resultHandler,
-        SearchResultHandler<P> searchResulthandler, P p)
+    public ResultFuture<Result> search(SearchRequest request,
+        ResultHandler<Result> resultHandler,
+        SearchResultHandler searchResulthandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -278,7 +276,7 @@ public class ConnectionPool extends
         throw new IllegalStateException();
       }
       return connection.search(request, resultHandler,
-          searchResulthandler, p);
+          searchResulthandler);
     }
 
 
@@ -286,9 +284,9 @@ public class ConnectionPool extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+    public ResultFuture<SearchResultEntry> readEntry(DN name,
         Collection<String> attributeDescriptions,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -297,7 +295,7 @@ public class ConnectionPool extends
         throw new IllegalStateException();
       }
       return connection.readEntry(name, attributeDescriptions,
-          resultHandler, p);
+          resultHandler);
     }
 
 
@@ -305,9 +303,9 @@ public class ConnectionPool extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+    public ResultFuture<SearchResultEntry> searchSingleEntry(
         SearchRequest request,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -315,7 +313,7 @@ public class ConnectionPool extends
       {
         throw new IllegalStateException();
       }
-      return connection.searchSingleEntry(request, resultHandler, p);
+      return connection.searchSingleEntry(request, resultHandler);
     }
 
 
@@ -323,15 +321,15 @@ public class ConnectionPool extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<RootDSE> readRootDSE(
-        ResultHandler<RootDSE, P> handler, P p)
+    public ResultFuture<RootDSE> readRootDSE(
+        ResultHandler<RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (connection == null)
       {
         throw new IllegalStateException();
       }
-      return connection.readRootDSE(handler, p);
+      return connection.readRootDSE(handler);
     }
 
 
@@ -339,15 +337,15 @@ public class ConnectionPool extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchemaForEntry(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchemaForEntry(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (connection == null)
       {
         throw new IllegalStateException();
       }
-      return connection.readSchemaForEntry(name, handler, p);
+      return connection.readSchemaForEntry(name, handler);
     }
 
 
@@ -355,15 +353,15 @@ public class ConnectionPool extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchema(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchema(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (connection == null)
       {
         throw new IllegalStateException();
       }
-      return connection.readSchema(name, handler, p);
+      return connection.readSchema(name, handler);
     }
 
 
@@ -493,7 +491,7 @@ public class ConnectionPool extends
 
 
 
-  private final class PendingConnectionFuture<P> implements
+  private final class PendingConnectionFuture implements
       ConnectionFuture<AsynchronousConnection>
   {
     private volatile boolean isCancelled;
@@ -502,20 +500,16 @@ public class ConnectionPool extends
 
     private volatile ErrorResultException err;
 
-    private final ConnectionResultHandler<? super AsynchronousConnection, P> handler;
-
-    private final P p;
+    private final ConnectionResultHandler<? super AsynchronousConnection> handler;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
 
 
     private PendingConnectionFuture(
-        P p,
-        ConnectionResultHandler<? super AsynchronousConnection, P> handler)
+        ConnectionResultHandler<? super AsynchronousConnection> handler)
     {
       this.handler = handler;
-      this.p = p;
     }
 
 
@@ -573,7 +567,7 @@ public class ConnectionPool extends
       this.connection = connection;
       if (handler != null)
       {
-        handler.handleConnection(p, connection);
+        handler.handleConnection(connection);
       }
       latch.countDown();
     }
@@ -585,7 +579,7 @@ public class ConnectionPool extends
       this.err = e;
       if (handler != null)
       {
-        handler.handleConnectionError(p, e);
+        handler.handleConnectionError(e);
       }
       latch.countDown();
     }
@@ -609,28 +603,26 @@ public class ConnectionPool extends
     this.connectionFactory = connectionFactory;
     this.poolSize = poolSize;
     this.pool = new Stack<AsynchronousConnection>();
-    this.pendingFutures = new ConcurrentLinkedQueue<PendingConnectionFuture<?>>();
+    this.pendingFutures = new ConcurrentLinkedQueue<PendingConnectionFuture>();
   }
 
 
 
   private final class WrapConnectionResultHandler implements
-      ConnectionResultHandler<AsynchronousConnection, Void>
+      ConnectionResultHandler<AsynchronousConnection>
   {
-    private final PendingConnectionFuture<?> future;
+    private final PendingConnectionFuture future;
 
 
 
-    private WrapConnectionResultHandler(
-        PendingConnectionFuture<?> future)
+    private WrapConnectionResultHandler(PendingConnectionFuture future)
     {
       this.future = future;
     }
 
 
 
-    public void handleConnection(java.lang.Void p,
-        AsynchronousConnection connection)
+    public void handleConnection(AsynchronousConnection connection)
     {
       PooledConnectionWapper pooledConnection = new PooledConnectionWapper(
           connection);
@@ -639,8 +631,7 @@ public class ConnectionPool extends
 
 
 
-    public void handleConnectionError(java.lang.Void p,
-        ErrorResultException error)
+    public void handleConnectionError(ErrorResultException error)
     {
       future.error(error);
     }
@@ -648,9 +639,8 @@ public class ConnectionPool extends
 
 
 
-  public <P> ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection, P> handler,
-      P p)
+  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AsynchronousConnection> handler)
   {
     synchronized (lock)
     {
@@ -673,13 +663,13 @@ public class ConnectionPool extends
             conn);
         if (handler != null)
         {
-          handler.handleConnection(p, pooledConnection);
+          handler.handleConnection(pooledConnection);
         }
         return new CompletedConnectionFuture(pooledConnection);
       }
 
-      PendingConnectionFuture<P> pendingFuture = new PendingConnectionFuture<P>(
-          p, handler);
+      PendingConnectionFuture pendingFuture = new PendingConnectionFuture(
+          handler);
       // Pool was empty. Maybe a new connection if pool size is not
       // reached
       if (numConnections < poolSize)
@@ -687,7 +677,7 @@ public class ConnectionPool extends
         numConnections++;
         WrapConnectionResultHandler wrapHandler = new WrapConnectionResultHandler(
             pendingFuture);
-        connectionFactory.getAsynchronousConnection(wrapHandler, null);
+        connectionFactory.getAsynchronousConnection(wrapHandler);
         if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
         {
           StaticUtils.DEBUG_LOG

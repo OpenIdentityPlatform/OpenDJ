@@ -47,22 +47,22 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * Abstract result future implementation.
  */
-public abstract class AbstractResultFutureImpl<R extends Result, P> implements
-    ResultFuture<R>, Runnable
+public abstract class AbstractResultFutureImpl<R extends Result>
+    implements ResultFuture<R>, Runnable
 {
   private final LDAPConnection connection;
 
-  private final ResultHandler<? super R, P> handler;
+  private final ResultHandler<? super R> handler;
 
   private final ExecutorService handlerExecutor;
 
   private final int messageID;
 
+  // Use a semaphore instead of a lock because semaphores can be
+  // released by different thread to acquirer.
   private final Semaphore invokerLock;
 
   private final CountDownLatch latch = new CountDownLatch(1);
-
-  private final P p;
 
   private volatile boolean isCancelled = false;
 
@@ -71,12 +71,11 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
 
 
   AbstractResultFutureImpl(int messageID,
-      ResultHandler<? super R, P> handler, P p,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+      ResultHandler<? super R> handler, LDAPConnection connection,
+      ExecutorService handlerExecutor)
   {
     this.messageID = messageID;
     this.handler = handler;
-    this.p = p;
     this.connection = connection;
     this.handlerExecutor = handlerExecutor;
     if (handlerExecutor == null)
@@ -155,17 +154,17 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
     if (result.getResultCode().isExceptional())
     {
       ErrorResultException e = ErrorResultException.wrap(result);
-      handler.handleErrorResult(p, e);
+      handler.handleErrorResult(e);
     }
     else
     {
-      handler.handleResult(p, result);
+      handler.handleResult(result);
     }
   }
 
 
 
-  synchronized void handleErrorResult(Result result)
+  final void handleErrorResult(Result result)
   {
     R errorResult = newErrorResult(result.getResultCode(), result
         .getDiagnosticMessage(), result.getCause());
@@ -179,7 +178,7 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
 
 
 
-  void handleResult(R result)
+  final void handleResult(R result)
   {
     if (!isDone())
     {
@@ -194,7 +193,7 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
 
 
 
-  protected void invokeHandler(final Runnable runnable)
+  final void invokeHandler(final Runnable runnable)
   {
     try
     {
@@ -238,6 +237,9 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
             "Invoke thread interrupted: %s", StaticUtils
                 .getExceptionMessage(e)));
       }
+
+      // Reset interrupt status.
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -247,8 +249,8 @@ public abstract class AbstractResultFutureImpl<R extends Result, P> implements
   {
     if (isCancelled())
     {
-      throw ErrorResultException.wrap(
-          Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED));
+      throw ErrorResultException.wrap(Responses
+          .newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED));
     }
     else if (result.getResultCode().isExceptional())
     {

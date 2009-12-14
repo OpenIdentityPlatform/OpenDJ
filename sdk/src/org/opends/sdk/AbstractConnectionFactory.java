@@ -59,8 +59,8 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
   /**
    * {@inheritDoc}
    */
-  public abstract <P> ConnectionFuture<? extends C> getAsynchronousConnection(
-      ConnectionResultHandler<? super C, P> handler, P p);
+  public abstract ConnectionFuture<? extends C> getAsynchronousConnection(
+      ConnectionResultHandler<? super C> handler);
 
 
 
@@ -104,8 +104,7 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
   protected final C blockingGetAsynchronousConnection()
       throws ErrorResultException
   {
-    ConnectionFuture<? extends C> future =
-        getAsynchronousConnection(null, null);
+    ConnectionFuture<? extends C> future = getAsynchronousConnection(null);
     try
     {
       return future.get();
@@ -115,10 +114,9 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
       // Cancel the request if possible.
       future.cancel(false);
 
-      Result result =
-          Responses.newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
-              .setCause(e)
-              .setDiagnosticMessage(e.getLocalizedMessage());
+      Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(e)
+          .setDiagnosticMessage(e.getLocalizedMessage());
       throw ErrorResultException.wrap(result);
     }
   }

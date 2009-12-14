@@ -27,8 +27,6 @@
 
 package org.opends.sdk;
 
-
-
 /**
  * A connection factory provides an interface for obtaining a connection
  * to a Directory Server. Connection factories can be used to wrap other
@@ -79,17 +77,12 @@ public interface ConnectionFactory<C extends AsynchronousConnection>
    * ConnectionResultHandler} is provided, the handler will be notified
    * when the connection is available and ready for use.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param handler
    *          The completion handler, or {@code null} if no handler is
    *          to be used.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future which can be used to retrieve the asynchronous
    *         connection.
    */
-  <P> ConnectionFuture<? extends C> getAsynchronousConnection(
-      ConnectionResultHandler<? super C, P> handler, P p);
+  ConnectionFuture<? extends C> getAsynchronousConnection(
+      ConnectionResultHandler<? super C> handler);
 }

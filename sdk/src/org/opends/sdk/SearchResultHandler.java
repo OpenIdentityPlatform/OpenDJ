@@ -48,35 +48,26 @@ import org.opends.sdk.responses.SearchResultReference;
  * Implementations of these methods should complete in a timely manner
  * so as to avoid keeping the invoking thread from dispatching to other
  * completion handlers.
- * 
- * @param <P>
- *          The type of the additional parameter to this handler's
- *          methods. Use {@link java.lang.Void} for visitors that do not
- *          need an additional parameter.
  */
-public interface SearchResultHandler<P>
+public interface SearchResultHandler
 {
   /**
    * Invoked each time a search result entry is returned from an
    * asynchronous search operation.
-   * 
-   * @param p
-   *          A handler specified parameter.
+   *
    * @param entry
    *          The search result entry.
    */
-  void handleEntry(P p, SearchResultEntry entry);
+  void handleEntry(SearchResultEntry entry);
 
 
 
   /**
    * Invoked each time a search result reference is returned from an
    * asynchronous search operation.
-   * 
-   * @param p
-   *          A handler specified parameter.
+   *
    * @param reference
    *          The search result reference.
    */
-  void handleReference(P p, SearchResultReference reference);
+  void handleReference(SearchResultReference reference);
 }

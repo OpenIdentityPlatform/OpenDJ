@@ -33,6 +33,7 @@ import org.opends.sdk.*;
 import com.sun.opends.sdk.ldap.LDAPConnectionFactoryImpl;
 
 
+
 /**
  * LDAP connection factory implementation.
  */
@@ -113,11 +114,10 @@ public final class LDAPConnectionFactory implements
 
 
 
-  public <P> ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection, P> handler,
-      P p)
+  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AsynchronousConnection> handler)
   {
-    return impl.getAsynchronousConnection(handler, p);
+    return impl.getAsynchronousConnection(handler);
   }
 
 

@@ -43,8 +43,8 @@ import org.opends.sdk.responses.Responses;
 /**
  * Compare result future implementation.
  */
-public final class CompareResultFutureImpl<P> extends
-    AbstractResultFutureImpl<CompareResult, P> implements
+public final class CompareResultFutureImpl extends
+    AbstractResultFutureImpl<CompareResult> implements
     ResultFuture<CompareResult>
 {
   private final CompareRequest request;
@@ -52,10 +52,10 @@ public final class CompareResultFutureImpl<P> extends
 
 
   CompareResultFutureImpl(int messageID, CompareRequest request,
-      ResultHandler<? super CompareResult, P> handler, P p,
+      ResultHandler<? super CompareResult> handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, p, connection, handlerExecutor);
+    super(messageID, handler, connection, handlerExecutor);
     this.request = request;
   }
 

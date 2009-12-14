@@ -1126,17 +1126,12 @@ public interface Connection extends Closeable
    * result references will be passed to the provided search result
    * handler.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param request
    *          The search request.
    * @param handler
    *          A search result handler which can be used to process the
    *          search result entries and references as they are received,
    *          may be {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return The result of the operation.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for
@@ -1151,10 +1146,10 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <P> Result search(SearchRequest request,
-      SearchResultHandler<P> handler, P p) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+  Result search(SearchRequest request, SearchResultHandler handler)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
