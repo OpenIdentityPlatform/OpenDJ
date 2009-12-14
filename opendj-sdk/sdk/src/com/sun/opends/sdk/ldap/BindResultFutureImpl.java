@@ -44,8 +44,8 @@ import org.opends.sdk.sasl.SASLContext;
 /**
  * Bind result future implementation.
  */
-public final class BindResultFutureImpl<P> extends
-    AbstractResultFutureImpl<BindResult, P> implements
+public final class BindResultFutureImpl extends
+    AbstractResultFutureImpl<BindResult> implements
     ResultFuture<BindResult>
 {
   private final BindRequest request;
@@ -55,10 +55,10 @@ public final class BindResultFutureImpl<P> extends
 
 
   BindResultFutureImpl(int messageID, BindRequest request,
-      ResultHandler<? super BindResult, P> handler, P p,
+      ResultHandler<? super BindResult> handler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, handler, p, connection, handlerExecutor);
+    super(messageID, handler, connection, handlerExecutor);
     this.request = request;
   }
 

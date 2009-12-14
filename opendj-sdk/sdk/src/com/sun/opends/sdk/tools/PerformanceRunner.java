@@ -237,7 +237,7 @@ abstract class PerformanceRunner
             || noRebindArgument.isPresent())
         {
           connection = connectionFactory.getAsynchronousConnection(
-              null, null).get();
+              null).get();
         }
         for (int j = 0; j < numThreads; j++)
         {
@@ -299,7 +299,7 @@ abstract class PerformanceRunner
 
 
   class UpdateStatsResultHandler<S extends Result> implements
-      ResultHandler<S, Void>
+      ResultHandler<S>
   {
     private long eTime;
 
@@ -312,7 +312,7 @@ abstract class PerformanceRunner
 
 
 
-    public void handleResult(Void p, S result)
+    public void handleResult(S result)
     {
       successRecentCount.getAndIncrement();
       eTime = System.nanoTime() - eTime;
@@ -333,7 +333,7 @@ abstract class PerformanceRunner
 
 
 
-    public void handleErrorResult(Void p, ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       failedRecentCount.getAndIncrement();
       app.println(LocalizableMessage.raw(error.getResult().toString()));
@@ -349,7 +349,7 @@ abstract class PerformanceRunner
 
 
 
-  abstract class WorkerThread<R extends ResultHandler<?, ?>> extends
+  abstract class WorkerThread<R extends ResultHandler<?>> extends
       Thread
   {
     private int count;
@@ -412,7 +412,7 @@ abstract class PerformanceRunner
           try
           {
             connection = connectionFactory.getAsynchronousConnection(
-                null, null).get();
+                null).get();
           }
           catch (InterruptedException e)
           {
@@ -440,7 +440,7 @@ abstract class PerformanceRunner
             AuthenticatedAsynchronousConnection ac = (AuthenticatedAsynchronousConnection) connection;
             try
             {
-              ac.rebind(null, null).get();
+              ac.rebind(null).get();
             }
             catch (InterruptedException e)
             {

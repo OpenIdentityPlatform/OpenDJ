@@ -136,7 +136,7 @@ public class HeartBeatConnectionFactory extends
    */
   private final class AsynchronousConnectionImpl implements
       AsynchronousConnection, ConnectionEventListener,
-      ResultHandler<Result, Void>
+      ResultHandler<Result>
   {
     private final AsynchronousConnection connection;
 
@@ -158,22 +158,22 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public <P> ResultFuture<Result> add(AddRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> add(AddRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.add(request, handler, p);
+      return connection.add(request, handler);
     }
 
 
 
-    public <P> ResultFuture<BindResult> bind(BindRequest request,
-        ResultHandler<? super BindResult, P> handler, P p)
+    public ResultFuture<BindResult> bind(BindRequest request,
+        ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.bind(request, handler, p);
+      return connection.bind(request, handler);
     }
 
 
@@ -203,66 +203,64 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public <P> ResultFuture<CompareResult> compare(
-        CompareRequest request,
-        ResultHandler<? super CompareResult, P> handler, P p)
+    public ResultFuture<CompareResult> compare(CompareRequest request,
+        ResultHandler<? super CompareResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.compare(request, handler, p);
+      return connection.compare(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> delete(DeleteRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> delete(DeleteRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.delete(request, handler, p);
+      return connection.delete(request, handler);
     }
 
 
 
-    public <R extends Result, P> ResultFuture<R> extendedRequest(
-        ExtendedRequest<R> request,
-        ResultHandler<? super R, P> handler, P p)
+    public <R extends Result> ResultFuture<R> extendedRequest(
+        ExtendedRequest<R> request, ResultHandler<? super R> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.extendedRequest(request, handler, p);
+      return connection.extendedRequest(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modify(ModifyRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modify(ModifyRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.modify(request, handler, p);
+      return connection.modify(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> modifyDN(ModifyDNRequest request,
-        ResultHandler<Result, P> handler, P p)
+    public ResultFuture<Result> modifyDN(ModifyDNRequest request,
+        ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.modifyDN(request, handler, p);
+      return connection.modifyDN(request, handler);
     }
 
 
 
-    public <P> ResultFuture<Result> search(SearchRequest request,
-        ResultHandler<Result, P> resultHandler,
-        SearchResultHandler<P> searchResultHandler, P p)
+    public ResultFuture<Result> search(SearchRequest request,
+        ResultHandler<Result> resultHandler,
+        SearchResultHandler searchResultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
       return connection.search(request, resultHandler,
-          searchResultHandler, p);
+          searchResultHandler);
     }
 
 
@@ -270,14 +268,14 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+    public ResultFuture<SearchResultEntry> readEntry(DN name,
         Collection<String> attributeDescriptions,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
       return connection.readEntry(name, attributeDescriptions,
-          resultHandler, p);
+          resultHandler);
     }
 
 
@@ -285,13 +283,13 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+    public ResultFuture<SearchResultEntry> searchSingleEntry(
         SearchRequest request,
-        ResultHandler<? super SearchResultEntry, P> resultHandler, P p)
+        ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.searchSingleEntry(request, resultHandler, p);
+      return connection.searchSingleEntry(request, resultHandler);
     }
 
 
@@ -299,11 +297,11 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<RootDSE> readRootDSE(
-        ResultHandler<RootDSE, P> handler, P p)
+    public ResultFuture<RootDSE> readRootDSE(
+        ResultHandler<RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readRootDSE(handler, p);
+      return connection.readRootDSE(handler);
     }
 
 
@@ -311,11 +309,11 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchemaForEntry(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchemaForEntry(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readSchemaForEntry(name, handler, p);
+      return connection.readSchemaForEntry(name, handler);
     }
 
 
@@ -323,11 +321,11 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public <P> ResultFuture<Schema> readSchema(DN name,
-        ResultHandler<Schema, P> handler, P p)
+    public ResultFuture<Schema> readSchema(DN name,
+        ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
-      return connection.readSchema(name, handler, p);
+      return connection.readSchema(name, handler);
     }
 
 
@@ -379,7 +377,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public void handleErrorResult(Void aVoid, ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       // TODO: I18N
       if (error instanceof TimeoutResultException)
@@ -390,7 +388,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public void handleResult(Void aVoid, Result result)
+    public void handleResult(Result result)
     {
       // Do nothing
     }
@@ -399,7 +397,7 @@ public class HeartBeatConnectionFactory extends
 
     private void sendHeartBeat()
     {
-      search(heartBeat, this, null, null);
+      search(heartBeat, this, null);
     }
   }
 
@@ -439,9 +437,9 @@ public class HeartBeatConnectionFactory extends
 
 
 
-  private final class ConnectionFutureImpl<P> implements
+  private final class ConnectionFutureImpl implements
       ConnectionFuture<AsynchronousConnection>,
-      ConnectionResultHandler<AsynchronousConnection, Void>
+      ConnectionResultHandler<AsynchronousConnection>
   {
     private volatile AsynchronousConnectionImpl heartBeatConnection;
 
@@ -451,20 +449,16 @@ public class HeartBeatConnectionFactory extends
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super AsynchronousConnectionImpl, P> handler;
-
-    private final P p;
+    private final ConnectionResultHandler<? super AsynchronousConnectionImpl> handler;
 
     private boolean cancelled;
 
 
 
     private ConnectionFutureImpl(
-        ConnectionResultHandler<? super AsynchronousConnectionImpl, P> handler,
-        P p)
+        ConnectionResultHandler<? super AsynchronousConnectionImpl> handler)
     {
       this.handler = handler;
-      this.p = p;
     }
 
 
@@ -530,8 +524,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public void handleConnection(Void v,
-        AsynchronousConnection connection)
+    public void handleConnection(AsynchronousConnection connection)
     {
       heartBeatConnection = new AsynchronousConnectionImpl(connection);
       synchronized (activeConnections)
@@ -541,19 +534,19 @@ public class HeartBeatConnectionFactory extends
       }
       if (handler != null)
       {
-        handler.handleConnection(p, heartBeatConnection);
+        handler.handleConnection(heartBeatConnection);
       }
       latch.countDown();
     }
 
 
 
-    public void handleConnectionError(Void v, ErrorResultException error)
+    public void handleConnectionError(ErrorResultException error)
     {
       exception = error;
       if (handler != null)
       {
-        handler.handleConnectionError(p, error);
+        handler.handleConnectionError(error);
       }
       latch.countDown();
     }
@@ -561,14 +554,12 @@ public class HeartBeatConnectionFactory extends
 
 
 
-  public <P> ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection, P> handler,
-      P p)
+  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
+      ConnectionResultHandler<? super AsynchronousConnection> handler)
   {
-    ConnectionFutureImpl<P> future = new ConnectionFutureImpl<P>(
-        handler, p);
-    future.connectFuture = parentFactory.getAsynchronousConnection(
-        future, null);
+    ConnectionFutureImpl future = new ConnectionFutureImpl(handler);
+    future.connectFuture = parentFactory
+        .getAsynchronousConnection(future);
     return future;
   }
 }

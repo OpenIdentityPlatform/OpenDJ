@@ -51,17 +51,14 @@ import org.opends.sdk.ResultHandler;
  *          The type of the inner result.
  * @param <N>
  *          The type of the outer result.
- * @param <P>
- *          The type of the additional parameter to the handler's
- *          methods.
  */
-public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
-    ResultHandler<M, P>
+public abstract class ResultChain<M, N> implements ResultFuture<N>,
+    ResultHandler<M>
 {
 
   private ErrorResultException errorResult;
 
-  private final ResultHandler<? super N, P> handler;
+  private final ResultHandler<? super N> handler;
 
   private final Object stateLock = new Object();
 
@@ -82,7 +79,7 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
    * @param handler
    *          The outer result handler.
    */
-  protected ResultChain(ResultHandler<? super N, P> handler)
+  protected ResultChain(ResultHandler<? super N> handler)
   {
     this.handler = handler;
   }
@@ -168,7 +165,7 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public void handleErrorResult(P p, ErrorResultException error)
+  public void handleErrorResult(ErrorResultException error)
   {
     synchronized (stateLock)
     {
@@ -181,7 +178,7 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
         errorResult = e;
         if (handler != null)
         {
-          handler.handleErrorResult(p, errorResult);
+          handler.handleErrorResult(errorResult);
         }
         latch.countDown();
       }
@@ -193,7 +190,7 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public void handleResult(P p, M result)
+  public void handleResult(M result)
   {
     synchronized (stateLock)
     {
@@ -206,7 +203,7 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
         errorResult = e;
         if (handler != null)
         {
-          handler.handleErrorResult(p, errorResult);
+          handler.handleErrorResult(errorResult);
         }
         latch.countDown();
       }
@@ -288,8 +285,8 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
    *           should terminate.
    */
   protected ResultFuture<N> chainErrorResult(
-      ErrorResultException innerError,
-      ResultHandler<? super N, P> handler) throws ErrorResultException
+      ErrorResultException innerError, ResultHandler<? super N> handler)
+      throws ErrorResultException
   {
     throw innerError;
   }
@@ -310,6 +307,6 @@ public abstract class ResultChain<M, N, P> implements ResultFuture<N>,
    *           should terminate.
    */
   protected abstract ResultFuture<N> chainResult(M innerResult,
-      ResultHandler<? super N, P> handler) throws ErrorResultException;
+      ResultHandler<? super N> handler) throws ErrorResultException;
 
 }

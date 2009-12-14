@@ -1640,9 +1640,6 @@ public final class Schema
    * Implementations may choose to perform optimizations such as
    * caching.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param connection
    *          A connection to the Directory Server whose schema is to be
    *          read.
@@ -1652,8 +1649,6 @@ public final class Schema
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -1664,15 +1659,15 @@ public final class Schema
    *           If the {@code connection} or {@code name} was {@code
    *           null}.
    */
-  public static <P> ResultFuture<Schema> readSchema(
+  public static ResultFuture<Schema> readSchema(
       AsynchronousConnection connection, DN name,
-      ResultHandler<? super Schema, P> handler, P p)
+      ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
     final SearchRequest request = getReadSchemaSearchRequest(name);
 
-    final ResultTransformer<SearchResultEntry, Schema, P> future = new ResultTransformer<SearchResultEntry, Schema, P>(
+    final ResultTransformer<SearchResultEntry, Schema> future = new ResultTransformer<SearchResultEntry, Schema>(
         handler)
     {
 
@@ -1685,7 +1680,7 @@ public final class Schema
     };
 
     ResultFuture<SearchResultEntry> innerFuture = connection
-        .searchSingleEntry(request, future, p);
+        .searchSingleEntry(request, future);
     future.setResultFuture(innerFuture);
     return future;
   }
@@ -1706,9 +1701,6 @@ public final class Schema
    * schema. However, implementations may choose to perform other
    * optimizations, such as caching.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param connection
    *          A connection to the Directory Server whose schema is to be
    *          read.
@@ -1719,8 +1711,6 @@ public final class Schema
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -1731,30 +1721,30 @@ public final class Schema
    *           If the {@code connection} or {@code name} was {@code
    *           null}.
    */
-  public static <P> ResultFuture<Schema> readSchemaForEntry(
+  public static ResultFuture<Schema> readSchemaForEntry(
       final AsynchronousConnection connection, final DN name,
-      ResultHandler<Schema, P> handler, final P p)
+      ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final ResultChain<SearchResultEntry, Schema, P> future = new ResultChain<SearchResultEntry, Schema, P>(
+    final ResultChain<SearchResultEntry, Schema> future = new ResultChain<SearchResultEntry, Schema>(
         handler)
     {
 
       protected ResultFuture<Schema> chainResult(
           SearchResultEntry innerResult,
-          ResultHandler<? super Schema, P> handler)
+          ResultHandler<? super Schema> handler)
           throws ErrorResultException
       {
         final DN subschemaDN = getSubschemaSubentryDN(name, innerResult);
-        return readSchema(connection, subschemaDN, handler, p);
+        return readSchema(connection, subschemaDN, handler);
       }
 
     };
 
     final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
     ResultFuture<SearchResultEntry> innerFuture = connection
-        .searchSingleEntry(request, future, p);
+        .searchSingleEntry(request, future);
     future.setInnerResultFuture(innerFuture);
     return future;
   }

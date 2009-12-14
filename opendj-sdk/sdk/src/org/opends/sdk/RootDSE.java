@@ -140,9 +140,6 @@ public final class RootDSE
    * request will fail with an {@link EntryNotFoundException}. More
    * specifically, the returned future will never return {@code null}.
    *
-   * @param <P>
-   *          The type of the additional parameter to the handler's
-   *          methods.
    * @param connection
    *          A connection to the Directory Server whose Root DSE is to
    *          be read.
@@ -150,8 +147,6 @@ public final class RootDSE
    *          A result handler which can be used to asynchronously
    *          process the operation result when it is received, may be
    *          {@code null}.
-   * @param p
-   *          Optional additional handler parameter.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
@@ -161,14 +156,14 @@ public final class RootDSE
    * @throws NullPointerException
    *           If the {@code connection} was {@code null}.
    */
-  public static <P> ResultFuture<RootDSE> readRootDSE(
+  public static ResultFuture<RootDSE> readRootDSE(
       AsynchronousConnection connection,
-      ResultHandler<RootDSE, P> handler, P p)
+      ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final ResultTransformer<SearchResultEntry, RootDSE, P> future =
-      new ResultTransformer<SearchResultEntry, RootDSE, P>(handler)
+    final ResultTransformer<SearchResultEntry, RootDSE> future =
+      new ResultTransformer<SearchResultEntry, RootDSE>(handler)
     {
 
       protected RootDSE transformResult(SearchResultEntry result)
@@ -180,7 +175,7 @@ public final class RootDSE
     };
 
     ResultFuture<SearchResultEntry> innerFuture = connection
-        .searchSingleEntry(SEARCH_REQUEST, future, p);
+        .searchSingleEntry(SEARCH_REQUEST, future);
     future.setResultFuture(innerFuture);
     return future;
   }

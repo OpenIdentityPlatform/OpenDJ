@@ -65,8 +65,7 @@ public final class LDAPSearch extends ConsoleApplication
 
 
 
-  private class LDAPSearchResultHandler implements
-      SearchResultHandler<Void>
+  private class LDAPSearchResultHandler implements SearchResultHandler
   {
     private int entryCount = 0;
 
@@ -75,7 +74,7 @@ public final class LDAPSearch extends ConsoleApplication
     /**
      * {@inheritDoc}
      */
-    public void handleEntry(Void p, SearchResultEntry entry)
+    public void handleEntry(SearchResultEntry entry)
     {
       entryCount++;
 
@@ -168,7 +167,7 @@ public final class LDAPSearch extends ConsoleApplication
     /**
      * {@inheritDoc}
      */
-    public void handleReference(Void p, SearchResultReference reference)
+    public void handleReference(SearchResultReference reference)
     {
       println(LocalizableMessage.raw(reference.toString()));
     }
@@ -1041,7 +1040,7 @@ public final class LDAPSearch extends ConsoleApplication
         Result result;
         try
         {
-          result = connection.search(search, resultHandler, null);
+          result = connection.search(search, resultHandler);
         }
         catch (InterruptedException e)
         {

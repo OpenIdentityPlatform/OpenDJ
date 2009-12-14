@@ -55,11 +55,11 @@ public abstract class AbstractAsynchronousConnection implements
     AsynchronousConnection
 {
 
-  private static final class SingleEntryFuture<P> implements
-      ResultFuture<SearchResultEntry>, ResultHandler<Result, P>,
-      SearchResultHandler<P>
+  private static final class SingleEntryFuture implements
+      ResultFuture<SearchResultEntry>, ResultHandler<Result>,
+      SearchResultHandler
   {
-    private final ResultHandler<? super SearchResultEntry, P> handler;
+    private final ResultHandler<? super SearchResultEntry> handler;
 
     private volatile SearchResultEntry firstEntry = null;
 
@@ -72,7 +72,7 @@ public abstract class AbstractAsynchronousConnection implements
 
 
     private SingleEntryFuture(
-        ResultHandler<? super SearchResultEntry, P> handler)
+        ResultHandler<? super SearchResultEntry> handler)
     {
       this.handler = handler;
     }
@@ -152,7 +152,7 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public void handleEntry(P p, SearchResultEntry entry)
+    public void handleEntry(SearchResultEntry entry)
     {
       if (firstEntry == null)
       {
@@ -163,17 +163,17 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public void handleErrorResult(P p, ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       if (handler != null)
       {
-        handler.handleErrorResult(p, error);
+        handler.handleErrorResult(error);
       }
     }
 
 
 
-    public void handleReference(P p, SearchResultReference reference)
+    public void handleReference(SearchResultReference reference)
     {
       if (firstReference == null)
       {
@@ -183,17 +183,17 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public void handleResult(P p, Result result)
+    public void handleResult(Result result)
     {
       if (handler != null)
       {
         try
         {
-          handler.handleResult(p, get0());
+          handler.handleResult(get0());
         }
         catch (ErrorResultException e)
         {
-          handler.handleErrorResult(p, e);
+          handler.handleErrorResult(e);
         }
       }
     }
@@ -245,16 +245,16 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<SearchResultEntry> readEntry(DN name,
+  public ResultFuture<SearchResultEntry> readEntry(DN name,
       Collection<String> attributeDescriptions,
-      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
     SearchRequest request = Requests.newSearchRequest(name,
         SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter())
         .addAttribute(attributeDescriptions);
-    return searchSingleEntry(request, handler, p);
+    return searchSingleEntry(request, handler);
   }
 
 
@@ -262,11 +262,11 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<RootDSE> readRootDSE(
-      ResultHandler<RootDSE, P> handler, P p)
+  public ResultFuture<RootDSE> readRootDSE(
+      ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
-    return RootDSE.readRootDSE(this, handler, p);
+    return RootDSE.readRootDSE(this, handler);
   }
 
 
@@ -274,11 +274,11 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Schema> readSchema(DN name,
-      ResultHandler<Schema, P> handler, P p)
+  public ResultFuture<Schema> readSchema(DN name,
+      ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
-    return Schema.readSchema(this, name, handler, p);
+    return Schema.readSchema(this, name, handler);
   }
 
 
@@ -286,11 +286,11 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<Schema> readSchemaForEntry(DN name,
-      ResultHandler<Schema, P> handler, P p)
+  public ResultFuture<Schema> readSchemaForEntry(DN name,
+      ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
-    return Schema.readSchema(this, name, handler, p);
+    return Schema.readSchema(this, name, handler);
   }
 
 
@@ -298,16 +298,15 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <P> ResultFuture<SearchResultEntry> searchSingleEntry(
+  public ResultFuture<SearchResultEntry> searchSingleEntry(
       SearchRequest request,
-      ResultHandler<? super SearchResultEntry, P> handler, P p)
+      ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final SingleEntryFuture<P> innerFuture = new SingleEntryFuture<P>(
-        handler);
+    final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
     final ResultFuture<Result> future = search(request, innerFuture,
-        innerFuture, p);
+        innerFuture);
     innerFuture.setResultFuture(future);
     return innerFuture;
   }

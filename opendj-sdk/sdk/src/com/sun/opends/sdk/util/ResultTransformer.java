@@ -47,15 +47,12 @@ import org.opends.sdk.ResultHandler;
  *          The type of the inner result.
  * @param <N>
  *          The type of the outer result.
- * @param <P>
- *          The type of the additional parameter to the handler's
- *          methods.
  */
-public abstract class ResultTransformer<M, N, P> implements
-    ResultFuture<N>, ResultHandler<M, P>
+public abstract class ResultTransformer<M, N> implements
+    ResultFuture<N>, ResultHandler<M>
 {
 
-  private final ResultHandler<? super N, P> handler;
+  private final ResultHandler<? super N> handler;
 
   private volatile ResultFuture<M> future = null;
 
@@ -98,7 +95,7 @@ public abstract class ResultTransformer<M, N, P> implements
    * @param handler
    *          The outer result handler.
    */
-  protected ResultTransformer(ResultHandler<? super N, P> handler)
+  protected ResultTransformer(ResultHandler<? super N> handler)
   {
     this.handler = handler;
   }
@@ -108,11 +105,11 @@ public abstract class ResultTransformer<M, N, P> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleErrorResult(P p, ErrorResultException error)
+  public final void handleErrorResult(ErrorResultException error)
   {
     if (handler != null)
     {
-      handler.handleErrorResult(p, error);
+      handler.handleErrorResult(error);
     }
   }
 
@@ -121,17 +118,17 @@ public abstract class ResultTransformer<M, N, P> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleResult(P p, M result)
+  public final void handleResult(M result)
   {
     if (handler != null)
     {
       try
       {
-        handler.handleResult(p, transformResult(result));
+        handler.handleResult(transformResult(result));
       }
       catch (ErrorResultException e)
       {
-        handler.handleErrorResult(p, e);
+        handler.handleErrorResult(e);
       }
     }
   }

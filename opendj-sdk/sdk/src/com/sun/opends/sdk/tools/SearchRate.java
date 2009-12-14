@@ -328,8 +328,7 @@ public final class SearchRate extends ConsoleApplication
 
 
     private class SearchStatsHandler extends
-        UpdateStatsResultHandler<Result> implements
-        SearchResultHandler<Void>
+        UpdateStatsResultHandler<Result> implements SearchResultHandler
     {
       private SearchStatsHandler(long eTime)
       {
@@ -338,15 +337,14 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-      public void handleEntry(Void p, SearchResultEntry entry)
+      public void handleEntry(SearchResultEntry entry)
       {
         entryRecentCount.getAndIncrement();
       }
 
 
 
-      public void handleReference(Void p,
-          SearchResultReference reference)
+      public void handleReference(SearchResultReference reference)
       {
       }
     }
@@ -402,7 +400,7 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, handler, handler, null);
+        return connection.search(sr, handler, handler);
       }
     }
 

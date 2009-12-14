@@ -46,32 +46,29 @@ import org.opends.sdk.responses.SearchResultReference;
 /**
  * Search result future implementation.
  */
-public final class SearchResultFutureImpl<P> extends
-    AbstractResultFutureImpl<Result, P> implements ResultFuture<Result>
+public final class SearchResultFutureImpl extends
+    AbstractResultFutureImpl<Result> implements ResultFuture<Result>
 {
 
-  private final SearchResultHandler<P> searchResultHandler;
-
-  private final P p;
+  private final SearchResultHandler searchResultHandler;
 
   private final SearchRequest request;
 
 
 
   SearchResultFutureImpl(int messageID, SearchRequest request,
-      ResultHandler<Result, P> resultHandler,
-      SearchResultHandler<P> searchResultHandler, P p,
+      ResultHandler<Result> resultHandler,
+      SearchResultHandler searchResultHandler,
       LDAPConnection connection, ExecutorService handlerExecutor)
   {
-    super(messageID, resultHandler, p, connection, handlerExecutor);
+    super(messageID, resultHandler, connection, handlerExecutor);
     this.request = request;
     this.searchResultHandler = searchResultHandler;
-    this.p = p;
   }
 
 
 
-  synchronized void handleSearchResultEntry(
+  void handleSearchResultEntry(
       final SearchResultEntry entry)
   {
     if (!isDone())
@@ -82,7 +79,7 @@ public final class SearchResultFutureImpl<P> extends
         {
           public void run()
           {
-            searchResultHandler.handleEntry(p, entry);
+            searchResultHandler.handleEntry(entry);
           }
         });
       }
@@ -91,7 +88,7 @@ public final class SearchResultFutureImpl<P> extends
 
 
 
-  synchronized void handleSearchResultReference(
+  void handleSearchResultReference(
       final SearchResultReference reference)
   {
     if (!isDone())
@@ -102,7 +99,7 @@ public final class SearchResultFutureImpl<P> extends
         {
           public void run()
           {
-            searchResultHandler.handleReference(p, reference);
+            searchResultHandler.handleReference(reference);
           }
         });
       }
