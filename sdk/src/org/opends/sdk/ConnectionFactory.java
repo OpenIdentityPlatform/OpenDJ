@@ -72,9 +72,9 @@ public interface ConnectionFactory<C extends AsynchronousConnection>
   /**
    * Initiates an asynchronous connection request to the Directory
    * Server associated with this connection factory. The returned
-   * {@code ConnectionFuture} can be used to retrieve the completed
+   * {@code FutureResult} can be used to retrieve the completed
    * asynchronous connection. Alternatively, if a {@code
-   * ConnectionResultHandler} is provided, the handler will be notified
+   * ResultHandler} is provided, the handler will be notified
    * when the connection is available and ready for use.
    *
    * @param handler
@@ -83,6 +83,6 @@ public interface ConnectionFactory<C extends AsynchronousConnection>
    * @return A future which can be used to retrieve the asynchronous
    *         connection.
    */
-  ConnectionFuture<? extends C> getAsynchronousConnection(
-      ConnectionResultHandler<? super C> handler);
+  FutureResult<? extends C> getAsynchronousConnection(
+      ResultHandler<? super C> handler);
 }

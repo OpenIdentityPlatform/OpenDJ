@@ -74,7 +74,7 @@ public class SynchronousConnection extends AbstractConnection
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    ResultFuture<Result> future = connection.add(request, null);
+    FutureResult<Result> future = connection.add(request, null);
     try
     {
       return future.get();
@@ -102,7 +102,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<BindResult> future = connection.bind(request, null);
+    FutureResult<BindResult> future = connection.bind(request, null);
     try
     {
       return future.get();
@@ -136,7 +136,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<CompareResult> future = connection.compare(request,
+    FutureResult<CompareResult> future = connection.compare(request,
         null);
     try
     {
@@ -156,7 +156,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<Result> future = connection.delete(request, null);
+    FutureResult<Result> future = connection.delete(request, null);
     try
     {
       return future.get();
@@ -175,7 +175,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<R> future = connection.extendedRequest(request, null);
+    FutureResult<R> future = connection.extendedRequest(request, null);
     try
     {
       return future.get();
@@ -194,7 +194,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<Result> future = connection.modify(request, null);
+    FutureResult<Result> future = connection.modify(request, null);
     try
     {
       return future.get();
@@ -213,7 +213,7 @@ public class SynchronousConnection extends AbstractConnection
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    ResultFuture<Result> future = connection.modifyDN(request, null);
+    FutureResult<Result> future = connection.modifyDN(request, null);
     try
     {
       return future.get();
@@ -243,7 +243,7 @@ public class SynchronousConnection extends AbstractConnection
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    ResultFuture<Result> future = connection.search(request, null,
+    FutureResult<Result> future = connection.search(request, null,
         handler);
     try
     {
@@ -275,7 +275,7 @@ public class SynchronousConnection extends AbstractConnection
       throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException
   {
-    ResultFuture<Schema> future = connection.readSchemaForEntry(name,
+    FutureResult<Schema> future = connection.readSchemaForEntry(name,
         null);
     try
     {

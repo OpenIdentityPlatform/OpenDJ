@@ -29,46 +29,71 @@ package com.sun.opends.sdk.util;
 
 
 
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.ResultFuture;
+import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
 
 
 
 /**
- * A base class which can be used to transform the result of an inner
- * asynchronous request to another result type.
- * <p>
- * FIXME: I don't think that this is right. There's too much locking for
- * a start.
+ * An implementation of the {@code FutureResult} interface which can be
+ * used to combine a sequence of two asynchronous operations into a
+ * single future result. Implementations should override the methods
+ * {@link #chainResult} and {@link #chainErrorResult} in order to define
+ * the second asynchronous operation.
  *
  * @param <M>
  *          The type of the inner result.
  * @param <N>
  *          The type of the outer result.
  */
-public abstract class ResultChain<M, N> implements ResultFuture<N>,
-    ResultHandler<M>
+public abstract class RecursiveFutureResult<M, N> implements
+    FutureResult<N>, ResultHandler<M>
 {
+  private final class FutureResultImpl extends AbstractFutureResult<N>
+  {
+    private FutureResultImpl(ResultHandler<? super N> handler)
+    {
+      super(handler);
+    }
 
-  private ErrorResultException errorResult;
 
-  private final ResultHandler<? super N> handler;
 
-  private final Object stateLock = new Object();
+    public int getRequestID()
+    {
+      return innerFuture.getRequestID();
+    }
 
-  private final CountDownLatch latch = new CountDownLatch(1);
 
-  private ResultFuture<N> outerFuture = null;
 
-  private boolean cancelled = false;
+    /**
+     * {@inheritDoc}
+     */
+    protected ErrorResultException handleCancelRequest(
+        boolean mayInterruptIfRunning)
+    {
+      innerFuture.cancel(mayInterruptIfRunning);
+      if (outerFuture != null)
+      {
+        outerFuture.cancel(mayInterruptIfRunning);
+      }
+      return null;
+    }
 
-  private volatile ResultFuture<M> innerFuture = null;
+  }
+
+
+
+  private final FutureResultImpl impl;
+
+  private volatile FutureResult<M> innerFuture = null;
+
+  // This does not need to be volatile since the inner future acts as a
+  // memory barrier.
+  private FutureResult<N> outerFuture = null;
 
 
 
@@ -79,9 +104,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
    * @param handler
    *          The outer result handler.
    */
-  protected ResultChain(ResultHandler<? super N> handler)
+  protected RecursiveFutureResult(ResultHandler<? super N> handler)
   {
-    this.handler = handler;
+    this.impl = new FutureResultImpl(handler);
   }
 
 
@@ -89,26 +114,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public boolean cancel(boolean mayInterruptIfRunning)
+  public final boolean cancel(boolean mayInterruptIfRunning)
   {
-    synchronized (stateLock)
-    {
-      if (!isDone())
-      {
-        cancelled = true;
-        innerFuture.cancel(mayInterruptIfRunning);
-        if (outerFuture != null)
-        {
-          outerFuture.cancel(mayInterruptIfRunning);
-        }
-        latch.countDown();
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
+    return impl.cancel(mayInterruptIfRunning);
   }
 
 
@@ -116,11 +124,10 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public N get() throws ErrorResultException, CancellationException,
+  public final N get() throws ErrorResultException,
       InterruptedException
   {
-    latch.await();
-    return get0();
+    return impl.get();
   }
 
 
@@ -128,15 +135,11 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public N get(long timeout, TimeUnit unit)
+  public final N get(long timeout, TimeUnit unit)
       throws ErrorResultException, TimeoutException,
-      CancellationException, InterruptedException
+      InterruptedException
   {
-    if (!latch.await(timeout, unit))
-    {
-      throw new TimeoutException();
-    }
-    return get0();
+    return impl.get(timeout, unit);
   }
 
 
@@ -144,20 +147,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public int getMessageID()
+  public final int getRequestID()
   {
-    // Best effort.
-    synchronized (stateLock)
-    {
-      if (outerFuture != null)
-      {
-        return outerFuture.getMessageID();
-      }
-      else
-      {
-        return innerFuture.getMessageID();
-      }
-    }
+    return impl.getRequestID();
   }
 
 
@@ -165,23 +157,15 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public void handleErrorResult(ErrorResultException error)
+  public final void handleErrorResult(ErrorResultException error)
   {
-    synchronized (stateLock)
+    try
     {
-      try
-      {
-        outerFuture = chainErrorResult(error, handler);
-      }
-      catch (ErrorResultException e)
-      {
-        errorResult = e;
-        if (handler != null)
-        {
-          handler.handleErrorResult(errorResult);
-        }
-        latch.countDown();
-      }
+      outerFuture = chainErrorResult(error, impl);
+    }
+    catch (final ErrorResultException e)
+    {
+      impl.handleErrorResult(e);
     }
   }
 
@@ -190,23 +174,15 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public void handleResult(M result)
+  public final void handleResult(M result)
   {
-    synchronized (stateLock)
+    try
     {
-      try
-      {
-        outerFuture = chainResult(result, handler);
-      }
-      catch (ErrorResultException e)
-      {
-        errorResult = e;
-        if (handler != null)
-        {
-          handler.handleErrorResult(errorResult);
-        }
-        latch.countDown();
-      }
+      outerFuture = chainResult(result, impl);
+    }
+    catch (final ErrorResultException e)
+    {
+      impl.handleErrorResult(e);
     }
   }
 
@@ -215,9 +191,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public boolean isCancelled()
+  public final boolean isCancelled()
   {
-    return isDone() && cancelled;
+    return impl.isCancelled();
   }
 
 
@@ -225,9 +201,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
   /**
    * {@inheritDoc}
    */
-  public boolean isDone()
+  public final boolean isDone()
   {
-    return latch.getCount() == 0;
+    return impl.isDone();
   }
 
 
@@ -239,30 +215,9 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
    * @param future
    *          The inner future.
    */
-  public final void setInnerResultFuture(ResultFuture<M> future)
+  public final void setFutureResult(FutureResult<M> future)
   {
-    innerFuture = future;
-  }
-
-
-
-  private N get0() throws ErrorResultException, CancellationException,
-      InterruptedException
-  {
-    synchronized (stateLock)
-    {
-      if (cancelled)
-      {
-        throw new CancellationException();
-      }
-
-      if (errorResult != null)
-      {
-        throw errorResult;
-      }
-
-      return outerFuture.get();
-    }
+    this.innerFuture = future;
   }
 
 
@@ -284,7 +239,7 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
    *           If the outer request could not be invoked and processing
    *           should terminate.
    */
-  protected ResultFuture<N> chainErrorResult(
+  protected FutureResult<N> chainErrorResult(
       ErrorResultException innerError, ResultHandler<? super N> handler)
       throws ErrorResultException
   {
@@ -306,7 +261,7 @@ public abstract class ResultChain<M, N> implements ResultFuture<N>,
    *           If the outer request could not be invoked and processing
    *           should terminate.
    */
-  protected abstract ResultFuture<N> chainResult(M innerResult,
+  protected abstract FutureResult<N> chainResult(M innerResult,
       ResultHandler<? super N> handler) throws ErrorResultException;
 
 }

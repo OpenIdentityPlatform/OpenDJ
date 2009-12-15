@@ -32,7 +32,6 @@ package org.opends.sdk;
 import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.util.Collection;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -56,7 +55,7 @@ public abstract class AbstractAsynchronousConnection implements
 {
 
   private static final class SingleEntryFuture implements
-      ResultFuture<SearchResultEntry>, ResultHandler<Result>,
+      FutureResult<SearchResultEntry>, ResultHandler<Result>,
       SearchResultHandler
   {
     private final ResultHandler<? super SearchResultEntry> handler;
@@ -67,7 +66,7 @@ public abstract class AbstractAsynchronousConnection implements
 
     private volatile int entryCount = 0;
 
-    private volatile ResultFuture<Result> future = null;
+    private volatile FutureResult<Result> future = null;
 
 
 
@@ -87,7 +86,7 @@ public abstract class AbstractAsynchronousConnection implements
 
 
     public SearchResultEntry get() throws ErrorResultException,
-        CancellationException, InterruptedException
+        InterruptedException
     {
       future.get();
       return get0();
@@ -97,7 +96,7 @@ public abstract class AbstractAsynchronousConnection implements
 
     public SearchResultEntry get(long timeout, TimeUnit unit)
         throws ErrorResultException, TimeoutException,
-        CancellationException, InterruptedException
+        InterruptedException
     {
       future.get(timeout, unit);
       return get0();
@@ -145,9 +144,9 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public int getMessageID()
+    public int getRequestID()
     {
-      return future.getMessageID();
+      return future.getRequestID();
     }
 
 
@@ -214,7 +213,7 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    private void setResultFuture(ResultFuture<Result> future)
+    private void setResultFuture(FutureResult<Result> future)
     {
       this.future = future;
     }
@@ -245,7 +244,7 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public ResultFuture<SearchResultEntry> readEntry(DN name,
+  public FutureResult<SearchResultEntry> readEntry(DN name,
       Collection<String> attributeDescriptions,
       ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
@@ -262,7 +261,7 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public ResultFuture<RootDSE> readRootDSE(
+  public FutureResult<RootDSE> readRootDSE(
       ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
@@ -274,7 +273,7 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public ResultFuture<Schema> readSchema(DN name,
+  public FutureResult<Schema> readSchema(DN name,
       ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
@@ -286,7 +285,7 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public ResultFuture<Schema> readSchemaForEntry(DN name,
+  public FutureResult<Schema> readSchemaForEntry(DN name,
       ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
@@ -298,14 +297,14 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public ResultFuture<SearchResultEntry> searchSingleEntry(
+  public FutureResult<SearchResultEntry> searchSingleEntry(
       SearchRequest request,
       ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
     final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
-    final ResultFuture<Result> future = search(request, innerFuture,
+    final FutureResult<Result> future = search(request, innerFuture,
         innerFuture);
     innerFuture.setResultFuture(future);
     return innerFuture;

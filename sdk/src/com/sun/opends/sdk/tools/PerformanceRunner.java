@@ -370,7 +370,7 @@ abstract class PerformanceRunner
 
 
 
-    public abstract ResultFuture<?> performOperation(
+    public abstract FutureResult<?> performOperation(
         AsynchronousConnection connection, R handler,
         DataSource[] dataSources);
 
@@ -394,7 +394,7 @@ abstract class PerformanceRunner
         }
       }
 
-      ResultFuture<?> future;
+      FutureResult<?> future;
       AsynchronousConnection connection;
       R handler;
 

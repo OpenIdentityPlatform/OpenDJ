@@ -114,8 +114,8 @@ public final class LDAPConnectionFactory implements
 
 
 
-  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection> handler)
+  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<? super AsynchronousConnection> handler)
   {
     return impl.getAsynchronousConnection(handler);
   }

@@ -158,7 +158,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<Result> add(AddRequest request,
+    public FutureResult<Result> add(AddRequest request,
         ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -168,7 +168,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<BindResult> bind(BindRequest request,
+    public FutureResult<BindResult> bind(BindRequest request,
         ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -203,7 +203,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<CompareResult> compare(CompareRequest request,
+    public FutureResult<CompareResult> compare(CompareRequest request,
         ResultHandler<? super CompareResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -213,7 +213,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<Result> delete(DeleteRequest request,
+    public FutureResult<Result> delete(DeleteRequest request,
         ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -223,7 +223,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public <R extends Result> ResultFuture<R> extendedRequest(
+    public <R extends Result> FutureResult<R> extendedRequest(
         ExtendedRequest<R> request, ResultHandler<? super R> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -233,7 +233,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<Result> modify(ModifyRequest request,
+    public FutureResult<Result> modify(ModifyRequest request,
         ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -243,7 +243,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<Result> modifyDN(ModifyDNRequest request,
+    public FutureResult<Result> modifyDN(ModifyDNRequest request,
         ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -253,7 +253,7 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public ResultFuture<Result> search(SearchRequest request,
+    public FutureResult<Result> search(SearchRequest request,
         ResultHandler<Result> resultHandler,
         SearchResultHandler searchResultHandler)
         throws UnsupportedOperationException, IllegalStateException,
@@ -268,7 +268,7 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public ResultFuture<SearchResultEntry> readEntry(DN name,
+    public FutureResult<SearchResultEntry> readEntry(DN name,
         Collection<String> attributeDescriptions,
         ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
@@ -283,7 +283,7 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public ResultFuture<SearchResultEntry> searchSingleEntry(
+    public FutureResult<SearchResultEntry> searchSingleEntry(
         SearchRequest request,
         ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
@@ -297,7 +297,7 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public ResultFuture<RootDSE> readRootDSE(
+    public FutureResult<RootDSE> readRootDSE(
         ResultHandler<RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
@@ -309,7 +309,7 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public ResultFuture<Schema> readSchemaForEntry(DN name,
+    public FutureResult<Schema> readSchemaForEntry(DN name,
         ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
@@ -321,7 +321,7 @@ public class HeartBeatConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public ResultFuture<Schema> readSchema(DN name,
+    public FutureResult<Schema> readSchema(DN name,
         ResultHandler<Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
@@ -437,26 +437,26 @@ public class HeartBeatConnectionFactory extends
 
 
 
-  private final class ConnectionFutureImpl implements
-      ConnectionFuture<AsynchronousConnection>,
-      ConnectionResultHandler<AsynchronousConnection>
+  private final class ResultFutureImpl implements
+      FutureResult<AsynchronousConnection>,
+      ResultHandler<AsynchronousConnection>
   {
     private volatile AsynchronousConnectionImpl heartBeatConnection;
 
     private volatile ErrorResultException exception;
 
-    private volatile ConnectionFuture<?> connectFuture;
+    private volatile FutureResult<?> connectFuture;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super AsynchronousConnectionImpl> handler;
+    private final ResultHandler<? super AsynchronousConnectionImpl> handler;
 
     private boolean cancelled;
 
 
 
-    private ConnectionFutureImpl(
-        ConnectionResultHandler<? super AsynchronousConnectionImpl> handler)
+    private ResultFutureImpl(
+        ResultHandler<? super AsynchronousConnectionImpl> handler)
     {
       this.handler = handler;
     }
@@ -524,7 +524,14 @@ public class HeartBeatConnectionFactory extends
 
 
 
-    public void handleConnection(AsynchronousConnection connection)
+    public int getRequestID()
+    {
+      return -1;
+    }
+
+
+
+    public void handleResult(AsynchronousConnection connection)
     {
       heartBeatConnection = new AsynchronousConnectionImpl(connection);
       synchronized (activeConnections)
@@ -534,19 +541,19 @@ public class HeartBeatConnectionFactory extends
       }
       if (handler != null)
       {
-        handler.handleConnection(heartBeatConnection);
+        handler.handleResult(heartBeatConnection);
       }
       latch.countDown();
     }
 
 
 
-    public void handleConnectionError(ErrorResultException error)
+    public void handleErrorResult(ErrorResultException error)
     {
       exception = error;
       if (handler != null)
       {
-        handler.handleConnectionError(error);
+        handler.handleErrorResult(error);
       }
       latch.countDown();
     }
@@ -554,10 +561,10 @@ public class HeartBeatConnectionFactory extends
 
 
 
-  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection> handler)
+  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<? super AsynchronousConnection> handler)
   {
-    ConnectionFutureImpl future = new ConnectionFutureImpl(handler);
+    ResultFutureImpl future = new ResultFutureImpl(handler);
     future.connectFuture = parentFactory
         .getAsynchronousConnection(future);
     return future;

@@ -64,11 +64,7 @@ public final class ModRate extends ConsoleApplication
   public static void main(String[] args)
   {
     int retCode = mainModRate(args, System.in, System.out, System.err);
-
-    if (retCode != 0)
-    {
-      System.exit(filterExitCode(retCode));
-    }
+    System.exit(filterExitCode(retCode));
   }
 
 
@@ -295,7 +291,7 @@ public final class ModRate extends ConsoleApplication
 
 
 
-      public ResultFuture<?> performOperation(
+      public FutureResult<?> performOperation(
           AsynchronousConnection connection,
           ResultHandler<Result> handler, DataSource[] dataSources)
       {

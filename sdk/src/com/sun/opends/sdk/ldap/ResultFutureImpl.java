@@ -29,10 +29,8 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.ExecutorService;
-
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
+import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Request;
 import org.opends.sdk.responses.Responses;
@@ -44,17 +42,16 @@ import org.opends.sdk.responses.Result;
  * Result future implementation.
  */
 public final class ResultFutureImpl extends
-    AbstractResultFutureImpl<Result> implements ResultFuture<Result>
+    AbstractResultFutureImpl<Result> implements FutureResult<Result>
 {
   private final Request request;
 
 
 
   ResultFutureImpl(int messageID, Request request,
-      ResultHandler<Result> handler, LDAPConnection connection,
-      ExecutorService handlerExecutor)
+      ResultHandler<Result> handler, LDAPConnection connection)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, connection);
     this.request = request;
   }
 

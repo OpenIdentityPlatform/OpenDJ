@@ -88,7 +88,7 @@ public final class LDAPConnectionFactoryImpl extends
 
 
   private static class FailedImpl implements
-      ConnectionFuture<AsynchronousConnection>
+      FutureResult<AsynchronousConnection>
   {
     private volatile ErrorResultException exception;
 
@@ -136,12 +136,19 @@ public final class LDAPConnectionFactoryImpl extends
     {
       return false;
     }
+
+
+
+    public int getRequestID()
+    {
+      return -1;
+    }
   }
 
 
 
-  private class ConnectionFutureImpl implements
-      ConnectionFuture<AsynchronousConnection>,
+  private class ResultFutureImpl implements
+      FutureResult<AsynchronousConnection>,
       com.sun.grizzly.CompletionHandler<com.sun.grizzly.Connection>,
       ResultHandler<Result>
   {
@@ -151,18 +158,18 @@ public final class LDAPConnectionFactoryImpl extends
 
     private volatile Future<com.sun.grizzly.Connection> connectFuture;
 
-    private volatile ResultFuture<?> sslFuture;
+    private volatile FutureResult<?> sslFuture;
 
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final ConnectionResultHandler<? super AsynchronousConnection> handler;
+    private final ResultHandler<? super AsynchronousConnection> handler;
 
     private boolean cancelled;
 
 
 
-    private ConnectionFutureImpl(
-        ConnectionResultHandler<? super AsynchronousConnection> handler)
+    private ResultFutureImpl(
+        ResultHandler<? super AsynchronousConnection> handler)
     {
       this.handler = handler;
     }
@@ -232,6 +239,13 @@ public final class LDAPConnectionFactoryImpl extends
 
 
 
+    public int getRequestID()
+    {
+      return -1;
+    }
+
+
+
     /**
      * {@inheritDoc}
      */
@@ -267,7 +281,7 @@ public final class LDAPConnectionFactoryImpl extends
           latch.countDown();
           if (handler != null)
           {
-            handler.handleConnection(this.connection);
+            handler.handleResult(this.connection);
           }
         }
         catch (CancellationException ce)
@@ -281,7 +295,7 @@ public final class LDAPConnectionFactoryImpl extends
           latch.countDown();
           if (handler != null)
           {
-            handler.handleConnectionError(exception);
+            handler.handleErrorResult(exception);
           }
         }
       }
@@ -290,7 +304,7 @@ public final class LDAPConnectionFactoryImpl extends
         latch.countDown();
         if (handler != null)
         {
-          handler.handleConnection(this.connection);
+          handler.handleResult(this.connection);
         }
       }
     }
@@ -307,7 +321,7 @@ public final class LDAPConnectionFactoryImpl extends
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnectionError(exception);
+        handler.handleErrorResult(exception);
       }
     }
 
@@ -330,7 +344,7 @@ public final class LDAPConnectionFactoryImpl extends
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnection(connection);
+        handler.handleResult(connection);
       }
     }
 
@@ -343,7 +357,7 @@ public final class LDAPConnectionFactoryImpl extends
       latch.countDown();
       if (handler != null)
       {
-        handler.handleConnectionError(exception);
+        handler.handleErrorResult(exception);
       }
     }
   }
@@ -363,7 +377,6 @@ public final class LDAPConnectionFactoryImpl extends
     if (TCP_NIO_TRANSPORT == null)
     {
       // Create a default transport using the Grizzly framework.
-      //
       TCP_NIO_TRANSPORT = TransportFactory.getInstance()
           .createTCPTransport();
       try
@@ -382,28 +395,40 @@ public final class LDAPConnectionFactoryImpl extends
         @Override
         public void run()
         {
-          try
-          {
-            TCP_NIO_TRANSPORT.stop();
-          }
-          catch (Exception e)
-          {
-            // Ignore.
-          }
-
-          try
-          {
-            TCP_NIO_TRANSPORT.getWorkerThreadPool().shutdown();
-          }
-          catch (Exception e)
-          {
-            // Ignore.
-          }
+          ShutdownTCPNIOTransport();
         }
 
       });
     }
     return TCP_NIO_TRANSPORT;
+  }
+
+
+
+  private synchronized static void ShutdownTCPNIOTransport()
+  {
+    if (TCP_NIO_TRANSPORT != null)
+    {
+      try
+      {
+        TCP_NIO_TRANSPORT.stop();
+      }
+      catch (Exception e)
+      {
+        // Ignore.
+      }
+
+      // try
+      // {
+      // TCP_NIO_TRANSPORT.getWorkerThreadPool().shutdown();
+      // }
+      // catch (Exception e)
+      // {
+      // // Ignore.
+      // }
+
+      TCP_NIO_TRANSPORT = null;
+    }
   }
 
 
@@ -482,10 +507,10 @@ public final class LDAPConnectionFactoryImpl extends
   /**
    * {@inheritDoc}
    */
-  public ConnectionFuture<AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection> handler)
+  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<? super AsynchronousConnection> handler)
   {
-    ConnectionFutureImpl future = new ConnectionFutureImpl(handler);
+    ResultFutureImpl future = new ResultFutureImpl(handler);
 
     try
     {

@@ -59,8 +59,8 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
   /**
    * {@inheritDoc}
    */
-  public abstract ConnectionFuture<? extends C> getAsynchronousConnection(
-      ConnectionResultHandler<? super C> handler);
+  public abstract FutureResult<? extends C> getAsynchronousConnection(
+      ResultHandler<? super C> handler);
 
 
 
@@ -104,7 +104,7 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
   protected final C blockingGetAsynchronousConnection()
       throws ErrorResultException
   {
-    ConnectionFuture<? extends C> future = getAsynchronousConnection(null);
+    FutureResult<? extends C> future = getAsynchronousConnection(null);
     try
     {
       return future.get();

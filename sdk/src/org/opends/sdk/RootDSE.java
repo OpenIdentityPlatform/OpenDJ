@@ -156,14 +156,14 @@ public final class RootDSE
    * @throws NullPointerException
    *           If the {@code connection} was {@code null}.
    */
-  public static ResultFuture<RootDSE> readRootDSE(
+  public static FutureResult<RootDSE> readRootDSE(
       AsynchronousConnection connection,
       ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final ResultTransformer<SearchResultEntry, RootDSE> future =
-      new ResultTransformer<SearchResultEntry, RootDSE>(handler)
+    final FutureResultTransformer<SearchResultEntry, RootDSE> future =
+      new FutureResultTransformer<SearchResultEntry, RootDSE>(handler)
     {
 
       protected RootDSE transformResult(SearchResultEntry result)
@@ -174,9 +174,9 @@ public final class RootDSE
 
     };
 
-    ResultFuture<SearchResultEntry> innerFuture = connection
+    FutureResult<SearchResultEntry> innerFuture = connection
         .searchSingleEntry(SEARCH_REQUEST, future);
-    future.setResultFuture(innerFuture);
+    future.setFutureResult(innerFuture);
     return future;
   }
 

@@ -29,10 +29,8 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.ExecutorService;
-
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
+import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.SearchResultHandler;
 import org.opends.sdk.requests.SearchRequest;
@@ -46,8 +44,8 @@ import org.opends.sdk.responses.SearchResultReference;
 /**
  * Search result future implementation.
  */
-public final class SearchResultFutureImpl extends
-    AbstractResultFutureImpl<Result> implements ResultFuture<Result>
+final class SearchResultFutureImpl extends
+    AbstractResultFutureImpl<Result> implements FutureResult<Result>
 {
 
   private final SearchResultHandler searchResultHandler;
@@ -58,50 +56,43 @@ public final class SearchResultFutureImpl extends
 
   SearchResultFutureImpl(int messageID, SearchRequest request,
       ResultHandler<Result> resultHandler,
-      SearchResultHandler searchResultHandler,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+      SearchResultHandler searchResultHandler, LDAPConnection connection)
   {
-    super(messageID, resultHandler, connection, handlerExecutor);
+    super(messageID, resultHandler, connection);
     this.request = request;
     this.searchResultHandler = searchResultHandler;
   }
 
 
 
-  void handleSearchResultEntry(
-      final SearchResultEntry entry)
+  void handleSearchResultEntry(SearchResultEntry entry)
   {
+    // FIXME: there's a potential race condition here - the future could
+    // get cancelled between the isDone() call and the handler
+    // invocation. We'd need to add support for intermediate handlers in
+    // the synchronizer.
     if (!isDone())
     {
       if (searchResultHandler != null)
       {
-        invokeHandler(new Runnable()
-        {
-          public void run()
-          {
-            searchResultHandler.handleEntry(entry);
-          }
-        });
+        searchResultHandler.handleEntry(entry);
       }
     }
   }
 
 
 
-  void handleSearchResultReference(
-      final SearchResultReference reference)
+  void handleSearchResultReference(SearchResultReference reference)
   {
+    // FIXME: there's a potential race condition here - the future could
+    // get cancelled between the isDone() call and the handler
+    // invocation. We'd need to add support for intermediate handlers in
+    // the synchronizer.
     if (!isDone())
     {
       if (searchResultHandler != null)
       {
-        invokeHandler(new Runnable()
-        {
-          public void run()
-          {
-            searchResultHandler.handleReference(reference);
-          }
-        });
+        searchResultHandler.handleReference(reference);
       }
     }
   }

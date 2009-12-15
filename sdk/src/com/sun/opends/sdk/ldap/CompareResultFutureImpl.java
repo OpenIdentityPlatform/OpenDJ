@@ -29,10 +29,8 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.ExecutorService;
-
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
+import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.responses.CompareResult;
@@ -43,9 +41,9 @@ import org.opends.sdk.responses.Responses;
 /**
  * Compare result future implementation.
  */
-public final class CompareResultFutureImpl extends
+final class CompareResultFutureImpl extends
     AbstractResultFutureImpl<CompareResult> implements
-    ResultFuture<CompareResult>
+    FutureResult<CompareResult>
 {
   private final CompareRequest request;
 
@@ -53,9 +51,9 @@ public final class CompareResultFutureImpl extends
 
   CompareResultFutureImpl(int messageID, CompareRequest request,
       ResultHandler<? super CompareResult> handler,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+      LDAPConnection connection)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, connection);
     this.request = request;
   }
 

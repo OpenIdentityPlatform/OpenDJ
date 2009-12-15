@@ -349,8 +349,8 @@ final class ArgumentParserConnectionFactory extends
   /**
    * {@inheritDoc}
    */
-  public ConnectionFuture<? extends AsynchronousConnection> getAsynchronousConnection(
-      ConnectionResultHandler<? super AsynchronousConnection> handler)
+  public FutureResult<? extends AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<? super AsynchronousConnection> handler)
   {
     return connFactory.getAsynchronousConnection(handler);
   }
