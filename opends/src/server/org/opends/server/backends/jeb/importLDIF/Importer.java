@@ -4682,8 +4682,8 @@ public class Importer
      * Check if the specified DN is contained in the temporary DN cache.
      *
      * @param dn A DN check for.
-     * @return  {@code true if the specified DN is in the temporary DN cache, or
-     *          {@code false) if it is not.
+     * @return  {@code true} if the specified DN is in the temporary DN cache,
+     *          or {@code false} if it is not.
      */
     public boolean contains(DN dn)
     {
