@@ -37,7 +37,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.StaticUtils;
@@ -128,10 +127,6 @@ public final class AttributeType extends SchemaElement implements
   // The syntax for this attribute type.
   private Syntax syntax;
 
-  // The attribute description representing this attribute type with no
-  // options.
-  private final AttributeDescription attributeDescription;
-
 
 
   AttributeType(String oid, List<String> names, String description,
@@ -174,7 +169,6 @@ public final class AttributeType extends SchemaElement implements
 
     this.isObjectClassType = oid.equals("2.5.4.0");
     this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
-    this.attributeDescription = AttributeDescription.create(this);
   }
 
 
@@ -206,21 +200,6 @@ public final class AttributeType extends SchemaElement implements
 
     this.isObjectClassType = oid.equals("2.5.4.0");
     this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
-    this.attributeDescription = AttributeDescription.create(this);
-  }
-
-
-
-  /**
-   * Returns an attribute description comprising of this attribute type
-   * and no options.
-   *
-   * @return An attribute description comprising of this attribute type
-   *         and no options.
-   */
-  public AttributeDescription asAttributeDescription()
-  {
-    return attributeDescription;
   }
 
 
