@@ -29,9 +29,15 @@ package org.opends.server.backends.jeb.importLDIF;
 import org.opends.server.backends.jeb.EntryID;
 import org.opends.server.backends.jeb.JebFormat;
 
+import java.nio.ByteBuffer;
+
 
 /**
- * An import ID set backed by an array of integers.
+ * This class manages the set of ID that are to be eventually added to an index
+ * database. It is responsible for determining if the number of IDs is above
+ * the configured ID limit. If the limit it reached, the class stops tracking
+ * individual IDs and marks the set as undefined. This class is not thread
+ * safe.
  */
 public class ImportIDSet {
 
@@ -46,17 +52,19 @@ public class ImportIDSet {
    */
   private int count = 0;
 
-
   //Boolean to keep track if the instance is defined or not.
   private boolean isDefined=true;
-
 
   //Size of the undefined if count is kept.
   private long undefinedSize = 0;
 
   //Key related to an ID set.
-  private byte[] key;
+  private ByteBuffer key;
+
+  //The entry limit size.
   private int limit = -1;
+
+  //Set to true if a count of ids above the entry limit should be kept.
   private boolean doCount = false;
 
 
@@ -75,13 +83,15 @@ public class ImportIDSet {
     this.doCount = doCount;
   }
 
+
   /**
    * Create an empty import instance.
-  */
+   */
   public ImportIDSet()
   {
 
   }
+
 
   /**
    * Clear the set so it can be reused again. The boolean indexParam specifies
@@ -102,6 +112,7 @@ public class ImportIDSet {
     }
   }
 
+
   /**
    * Return if an import ID set is defined or not.
    *
@@ -112,6 +123,7 @@ public class ImportIDSet {
     return isDefined;
   }
 
+
   /**
    * Return the undefined size of an import ID set.
    *
@@ -121,6 +133,7 @@ public class ImportIDSet {
   {
     return undefinedSize;
   }
+
 
   /**
    * Set an import ID set to undefined.
@@ -157,7 +170,7 @@ public class ImportIDSet {
     {
       if(doCount)
       {
-          undefinedSize += importIDSet.size();
+        undefinedSize += importIDSet.size();
       }
     }
     else if(!importIDSet.isDefined()) //other undefined
@@ -197,7 +210,8 @@ public class ImportIDSet {
     addEntryID(entryID.longValue());
   }
 
-    /**
+
+  /**
    * Add the specified long value to an import ID set.
    *
    * @param l The long value to add to an import ID set.
@@ -209,7 +223,8 @@ public class ImportIDSet {
       }
       return;
     }
-    if(isDefined() && ((count + 1) > limit)) {
+    if((l < 0) || (isDefined() && ((count + 1) > limit)))
+    {
       isDefined = false;
       array = null;
       if(doCount)  {
@@ -230,24 +245,24 @@ public class ImportIDSet {
     boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
 
     if(dbUndefined && (!importIdSet.isDefined()))  {
-       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
-                                                 importIdSet.getUndefinedSize();
-       isDefined=false;
+      undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+              importIdSet.getUndefinedSize();
+      isDefined=false;
     } else if(dbUndefined && (importIdSet.isDefined()))  {
-       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
-                                                 importIdSet.size();
-       isDefined=false;
+      undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+              importIdSet.size();
+      isDefined=false;
     } else if(!importIdSet.isDefined()) {
-       int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
-       undefinedSize = dbSize + importIdSet.getUndefinedSize();
-       isDefined = false;
-       incrementLimitCount = true;
+      int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
+      undefinedSize = dbSize + importIdSet.getUndefinedSize();
+      isDefined = false;
+      incrementLimitCount = true;
     } else {
       array = JebFormat.entryIDListFromDatabase(dBbytes);
       if(array.length + importIdSet.size() > limit) {
-          undefinedSize = array.length + importIdSet.size();
-          isDefined=false;
-          incrementLimitCount=true;
+        undefinedSize = array.length + importIdSet.size();
+        isDefined=false;
+        incrementLimitCount=true;
       } else {
         count = array.length;
         addAll(importIdSet);
@@ -525,11 +540,11 @@ public class ImportIDSet {
   public byte[] toDatabase()
   {
     if(isDefined) {
-       return encode(null);
-     } else {
-       return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
-     }
-   }
+      return encode(null);
+    } else {
+      return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
+    }
+  }
 
 
   private byte[] encode(byte[] bytes)
@@ -552,22 +567,24 @@ public class ImportIDSet {
     return bytes;
   }
 
+
   /**
    * Set the DB key related to an import ID set.
    *
    * @param key Byte array containing the key.
    */
-  public void setKey(byte[] key)
+  public void setKey(ByteBuffer key)
   {
     this.key = key;
   }
+
 
   /**
    * Return the DB key related to an import ID set.
    *
    * @return  The byte array containing the key.
    */
-  public byte[] getKey()
+  public ByteBuffer getKey()
   {
     return key;
   }

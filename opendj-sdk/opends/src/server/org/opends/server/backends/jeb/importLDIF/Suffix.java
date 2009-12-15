@@ -30,38 +30,37 @@ package org.opends.server.backends.jeb.importLDIF;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.backends.jeb.importLDIF.Importer.*;
 import org.opends.messages.Message;
-import org.opends.messages.Category;
-import org.opends.messages.Severity;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
-
+import static org.opends.messages.JebMessages.*;
 
 /**
- * The class represents a suffix. OpenDS backends can have multiple suffixes.
+ * The class represents a suffix that is to be loaded during an import, or
+ * rebuild index process. Multiple instances of this class can be instantiated
+ * during and import to support multiple suffixes in a backend. A rebuild
+ * index has only one of these instances.
  */
 public class Suffix
 {
-  private final List<DN> includeBranches;
-  private final List<DN> excludeBranches;
+  private final List<DN> includeBranches, excludeBranches;
   private final DN baseDN;
   private final EntryContainer srcEntryContainer;
   private EntryContainer entryContainer;
   private final Object synchObject = new Object();
-  private static final int PARENT_ID_MAP_SIZE = 4096;
+  private static final int PARENT_ID_SET_SIZE = 16 * KB;
   private ConcurrentHashMap<DN, CountDownLatch> pendingMap =
-                                    new ConcurrentHashMap<DN, CountDownLatch>();
-  private HashMap<DN,EntryID> parentIDMap =
-    new HashMap<DN,EntryID>(PARENT_ID_MAP_SIZE);
-
+          new ConcurrentHashMap<DN, CountDownLatch>();
+  private Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
   private DN parentDN;
   private ArrayList<EntryID> IDs;
+
 
   private
   Suffix(EntryContainer entryContainer, EntryContainer srcEntryContainer,
@@ -89,6 +88,7 @@ public class Suffix
     }
   }
 
+
   /**
    * Creates a suffix instance using the specified parameters.
    *
@@ -104,12 +104,13 @@ public class Suffix
   public static Suffix
   createSuffixContext(EntryContainer entryContainer,
                       EntryContainer srcEntryContainer,
-        List<DN> includeBranches, List<DN> excludeBranches)
-        throws InitializationException, ConfigException
+                      List<DN> includeBranches, List<DN> excludeBranches)
+          throws InitializationException, ConfigException
   {
     return new Suffix(entryContainer, srcEntryContainer,
-                      includeBranches, excludeBranches);
+            includeBranches, excludeBranches);
   }
+
 
   /**
    * Returns the DN2ID instance pertaining to a suffix instance.
@@ -122,11 +123,11 @@ public class Suffix
   }
 
 
-    /**
+  /**
    * Returns the ID2Entry instance pertaining to a suffix instance.
    *
    * @return A ID2Entry instance that can be used to manipulate the ID2Entry
-     *       database.
+   *       database.
    */
   public ID2Entry getID2Entry()
   {
@@ -134,11 +135,11 @@ public class Suffix
   }
 
 
-   /**
+  /**
    * Returns the DN2URI instance pertaining to a suffix instance.
    *
    * @return A DN2URI instance that can be used to manipulate the DN2URI
-    *        database.
+   *        database.
    */
   public DN2URI getDN2URI()
   {
@@ -146,7 +147,7 @@ public class Suffix
   }
 
 
-    /**
+  /**
    * Returns the entry container pertaining to a suffix instance.
    *
    * @return The entry container used to create a suffix instance.
@@ -170,11 +171,11 @@ public class Suffix
 
 
   /**
-   * Check if the parent DN is in the pending map.
+   * Make sure the specified parent DN is not in the pending map.
    *
    * @param parentDN The DN of the parent.
    */
-  private void checkPending(DN parentDN)  throws InterruptedException
+  private void assureNotPending(DN parentDN)  throws InterruptedException
   {
     CountDownLatch l;
     if((l=pendingMap.get(parentDN)) != null)
@@ -182,6 +183,7 @@ public class Suffix
       l.await();
     }
   }
+
 
   /**
    * Add specified DN to the pending map.
@@ -192,6 +194,7 @@ public class Suffix
   {
     pendingMap.putIfAbsent(dn, new CountDownLatch(1));
   }
+
 
   /**
    * Remove the specified DN from the pending map, it may not exist if the
@@ -210,46 +213,65 @@ public class Suffix
 
 
   /**
-   * Return the entry ID related to the specified entry DN. First the instance's
-   * cache of parent IDs is checked, if it isn't found then the DN2ID is
-   * searched.
+   * Return {@code true} if the specified dn is contained in the parent set, or
+   * in the specifed DN cache. This would indicate that the parent has already
+   * been processesd. It returns {@code false} otherwise.
    *
-   * @param parentDN The DN to get the id for.
-   * @return The entry ID related to the parent DN, or null if the id wasn't
-   *         found in the cache or dn2id database.
+   * It will optionally check the dn2id database for the dn if the specifed
+   * cleared backend boolean is {@code true}.
    *
-   * @throws DatabaseException If an error occurred search the dn2id database.
+   * @param dn The DN to check for.
+   * @param dnCache The importer DN cache.
+   * @param clearedBackend Set to {@code true} if the import process cleared the
+   *                       backend before processing.
+   * @return {@code true} if the dn is contained in the parent ID, or
+   *         {@code false} otherwise.
+   *
+   * @throws DatabaseException If an error occurred searching the DN cache, or
+   *                           dn2id database.
+   * @throws InterruptedException If an error occurred processing the pending
+   *                              map.
    */
   public
-  EntryID getParentID(DN parentDN) throws DatabaseException {
-    EntryID parentID;
+  boolean isParentProcessed(DN dn, DNCache dnCache, boolean clearedBackend)
+                            throws DatabaseException, InterruptedException {
     synchronized(synchObject) {
-      parentID = parentIDMap.get(parentDN);
-      if (parentID != null) {
-        return parentID;
+      if(parentSet.contains(dn))
+      {
+        return true;
       }
     }
+    //The DN was not in the parent set. Make sure it isn't pending.
     try {
-      checkPending(parentDN);
-    } catch (Exception e) {
-      Message message = Message.raw(Category.JEB, Severity.SEVERE_ERROR,
-              "Exception thrown in parentID check");
+      assureNotPending(dn);
+    } catch (InterruptedException e) {
+      Message message = ERR_JEB_IMPORT_LDIF_PENDING_ERR.get(e.getMessage());
       logError(message);
-      return null;
+      throw e;
     }
-    parentID = entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
-    //If the parent is in dn2id, add it to the cache.
-    if (parentID != null) {
+    //Check the DN cache.
+    boolean parentThere = dnCache.contains(dn);
+    //If the parent isn't found in the DN cache, then check the dn2id database
+    //for the DN only if the backend wasn't cleared.
+    if(!parentThere && !clearedBackend)
+    {
+      if(getDN2ID().get(null, dn, LockMode.DEFAULT) != null)
+      {
+        parentThere = true;
+      }
+    }
+    //Add the DN to the parent set if needed.
+    if (parentThere) {
       synchronized(synchObject) {
-        if (parentIDMap.size() >= PARENT_ID_MAP_SIZE) {
-          Iterator<DN> iterator = parentIDMap.keySet().iterator();
+        if (parentSet.size() >= PARENT_ID_SET_SIZE) {
+          Iterator<DN> iterator = parentSet.iterator();
           iterator.next();
           iterator.remove();
         }
-        parentIDMap.put(parentDN, parentID);
+        parentSet.add(dn);
       }
     }
-    return parentID;
+    return parentThere;
   }
 
 
@@ -307,6 +329,7 @@ public class Suffix
     }
   }
 
+
   /**
    * Get the parent DN of the last entry added to a suffix.
    *
@@ -327,6 +350,7 @@ public class Suffix
   {
     this.parentDN = parentDN;
   }
+
 
   /**
    * Get the entry ID list of the last entry added to a suffix.
@@ -349,6 +373,7 @@ public class Suffix
     this.IDs = IDs;
   }
 
+
   /**
    * Return a src entry container.
    *
@@ -358,6 +383,7 @@ public class Suffix
   {
     return this.srcEntryContainer;
   }
+
 
   /**
    * Return include branches.
@@ -369,6 +395,7 @@ public class Suffix
     return this.includeBranches;
   }
 
+
   /**
    * Return exclude branches.
    *
@@ -378,6 +405,7 @@ public class Suffix
   {
     return this.excludeBranches;
   }
+
 
   /**
    * Return base DN.

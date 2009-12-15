@@ -31,34 +31,40 @@ package org.opends.server.backends.jeb.importLDIF;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+
 import org.opends.server.backends.jeb.*;
+import com.sleepycat.util.PackedInteger;
 
 
 /**
- * This class is used to hold the keys read from the LDIF file during
- * phase 1. The keys are sorted and written to an temporary index file.
+ * This class represents a index buffer used to store the keys and entry IDs
+ * processed from the LDIF file during phase one of an import, or rebuild index
+ * process. Each key and ID is stored in a record in the buffer.
+ *
+ * The records in the buffer are eventually sorted, based on the key, when the
+ * maximum size of the buffer is reached and no more records will fit into the
+ * buffer. The buffer is the scheduled to be flushed to an indexes scratch file
+ * and then re-cycled by the import, or rebuild-index process.
+ *
+ * The records are packed as much as possible, to optimize the buffer space.
+ * This class is not thread safe.
  *
  */
 public class IndexBuffer implements Comparable<IndexBuffer> {
 
-    /**
+  /**
   * Enumeration used when sorting a buffer.
   */
   private enum CompareOp {
     LT, GT, LE, GE, EQ
   }
 
-  private static final int REC_OVERHEAD = 20;
+  //The record over head.
+  private static final int REC_OVERHEAD = 5;
 
-  /**
-  * Insert constant -- used when the key should be inserted in a DB.
-  */
-  public static final int INSERT = 0x0000;
-
-  /**
-  * Delete constant -- used when the key should be deleted from a DB.
-  */
-  public static final int DELETE = 0x0001;
+  //Buffer records are either insert records or delete records.
+  private static final byte DEL = 0, INS = 1;
 
   //The size of a buffer.
   private final int size;
@@ -67,12 +73,11 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   private final byte buffer[];
 
   //id is used to break a tie (keys equal) when the buffers are being merged
-  //when writing.
+  //for writing to the index scratch file.
   private long id;
 
-  //Temporary buffers.
+  //Temporary buffer used to store integer values.
   private final byte[] intBytes = new byte[4];
-  private final byte[] idBytes = new byte[8];
 
   /*
     keyOffset - offSet where next key is written
@@ -82,12 +87,27 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   private int keyOffset =0, recordOffset=0, bytesLeft = 0;
 
   //keys - number of keys in the buffer
-  //position - used to iterate over the buffer when writing to a file.
+  //position - used to iterate over the buffer when writing to a scratch file.
   private int keys = 0, position = 0;
 
-  //Various things needed to process a buffer.
+  //The comparator to use sort the keys.
   private ComparatorBuffer<byte[]> comparator;
+
+  //This is used to make sure that an instance of this class is put on the
+  //correct scratch file writer work queue for processing.
   private Importer.IndexKey indexKey;
+
+  //Initial capacity of re-usable buffer used in key compares.
+  private static final int CAP = 32;
+
+  //This buffer is reused during key compares. It's main purpose is to keep
+  //memory footprint as small as possible.
+  private ByteBuffer keyBuffer = ByteBuffer.allocate(CAP);
+
+  //Set to {@code true} if the buffer should not be recycled. Used when the
+  //importer/rebuild index process is doing phase one cleanup and flushing
+  //buffers not completed.
+  private boolean discard = false;
 
 
   private IndexBuffer(int size) {
@@ -96,6 +116,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     this.bytesLeft = size;
     this.recordOffset = size - 1;
   }
+
 
   /**
    * Create an instance of a IndexBuffer using the specified size.
@@ -108,8 +129,9 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return new IndexBuffer(size);
   }
 
+
   /**
-   * Reset an IndexBuffer so it can be re-used.
+   * Reset an IndexBuffer so it can be re-cycled.
    */
   public void reset() {
     bytesLeft = size;
@@ -121,6 +143,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     indexKey = null;
   }
 
+
   /**
    * Set the ID of a buffer to the specified value.
    *
@@ -131,17 +154,6 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     this.id = id;
   }
 
-  /**
-   * Determines if a buffer is a poison buffer. A poison buffer is used to
-   * shutdown work queues when the LDIF reader is completed. A poison buffer
-   * has a 0 size.
-   *
-   * @return <CODE>True</CODE> if a buffer is a poison buffer.
-   */
-  public boolean isPoison()
-  {
-    return (size == 0);
-  }
 
   /**
    * Return the ID of a buffer.
@@ -153,21 +165,59 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return this.id;
   }
 
+
   /**
-   * Determine is there enough space available to write the specified byte array
-   * in the buffer.
+   * Determines if a buffer is a poison buffer. A poison buffer is used to
+   * shutdown work queues when import/rebuild index phase one is completed.
+   * A poison buffer has a 0 size.
    *
-   * @param keyBytes The byte array to check space against.
-   * @return <CODE>True</CODE> if there is space to write the byte array in a
-   *         buffer.
+   * @return {@code true} if a buffer is a poison buffer, or {@code false}
+   *         otherwise.
    */
-  public boolean isSpaceAvailable(byte[] keyBytes) {
-    return (keyBytes.length + REC_OVERHEAD + 4) < bytesLeft;
+  public boolean isPoison()
+  {
+    return (size == 0);
   }
+
+
+  /**
+   * Determines of a buffer should be re-cycled.
+   *
+   * @return {@code true} if buffer should be recycled, or {@code false} if it
+   *          should not.
+   */
+  public boolean isDiscard()
+  {
+    return discard;
+  }
+
+
+  /**
+   * Set the discard flag to {@code true}.
+   */
+  public void setDiscard()
+  {
+    discard = true;
+  }
+
+
+  /**
+   * Returns {@code true} if there is enough space available to write the
+   * specified byte array in the buffer. It returns {@code false} otherwise.
+   *
+   * @param kBytes The byte array to check space against.
+   * @param id The id value to check space against.
+   * @return {@code true} if there is space to write the byte array in a
+   *         buffer, or {@code false} otherwise.
+   */
+  public boolean isSpaceAvailable(byte[] kBytes, long id) {
+    return (getRecordSize(kBytes.length, id) + 4) < bytesLeft;
+  }
+
 
   /**
    * Set the comparator to be used in the buffer processing to the specified
-   * value.
+   * comparator.
    *
    * @param comparator The comparator to set the buffer's comparator to.
    */
@@ -187,8 +237,9 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return position;
   }
 
+
   /**
-   * Set a buffer's position value to the specified value.
+   * Set a buffer's position value to the specified position.
    *
    * @param position The value to set the position to.
    */
@@ -197,12 +248,14 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     this.position = position;
   }
 
+
   /**
    * Sort the buffer.
    */
   public void sort() {
     sort(0, keys);
   }
+
 
   /**
    * Add the specified key byte array and EntryID to the buffer.
@@ -212,65 +265,75 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * @param indexID The index ID the record belongs.
    * @param insert <CODE>True</CODE> if key is an insert, false otherwise.
    */
+
   public void add(byte[] keyBytes, EntryID IDEntry, int indexID,
                   boolean insert) {
-    byte[] idBytes = JebFormat.entryIDToDatabase(IDEntry.longValue());
-    recordOffset -=  keyBytes.length + REC_OVERHEAD;
+    recordOffset = addRecord(keyBytes, IDEntry.longValue(), indexID, insert);
     System.arraycopy(getIntBytes(recordOffset), 0, buffer, keyOffset, 4);
     keyOffset += 4;
-    System.arraycopy(getIntBytes(indexID), 0, buffer, recordOffset, 4);
-    System.arraycopy(getIntBytes(keyBytes.length), 0, buffer,
-                     (recordOffset + 4), 4);
-    System.arraycopy(keyBytes, 0, buffer, (recordOffset + 8), keyBytes.length);
-    if(insert)
-    {
-      System.arraycopy(getIntBytes(INSERT), 0, buffer,
-                      (recordOffset + 8 + keyBytes.length), 4);
-    }
-    else
-    {
-      System.arraycopy(getIntBytes(DELETE), 0, buffer,
-                      (recordOffset + 8 + keyBytes.length), 4);
-    }
-    System.arraycopy(idBytes, 0, buffer,
-                     (recordOffset + 12 + keyBytes.length), 8);
     bytesLeft = recordOffset - keyOffset;
     keys++;
   }
 
 
-  /**
-   * Return the byte array representing the entry ID
-   * at the specified index value.
-   *
-   * @param index The index value to retrieve.
-   * @return The byte array at the index value.
-   */
-  public byte[] getIDBytes(int index)
+  private int addRecord(byte[]key, long id, int indexID, boolean insert)
   {
-    int recOffset = getIntValue(index * 4);
-    int keyLen = getIntValue(recOffset + 4);
-    System.arraycopy(buffer, recOffset + 12 + keyLen, idBytes, 0, 8);
-    return idBytes;
+     byte opType = INS;
+     int retOffset = recordOffset - getRecordSize(key.length, id);
+     int offSet = retOffset;
+     if(!insert)
+     {
+       opType = DEL;
+     }
+     buffer[offSet++] = opType;
+     System.arraycopy(getIntBytes(indexID), 0, buffer, offSet, 4);
+     offSet += 4;
+     offSet = PackedInteger.writeLong(buffer, offSet, id);
+     offSet = PackedInteger.writeInt(buffer, offSet, key.length);
+     System.arraycopy(key, 0, buffer, offSet, key.length);
+     return retOffset;
+  }
+
+
+  private int getRecordSize(int keyLen, long id)
+  {
+     return PackedInteger.getWriteIntLength(keyLen) +  keyLen +
+            PackedInteger.getWriteLongLength(id) + REC_OVERHEAD;
   }
 
 
   /**
-   * Return if the record specified by the index is an insert or not.
+   * Write record at specified index to the specified output stream. Used when
+   * when writing the index scratch files.
+
+   * @param stream The stream to write the record at the index to.
+   * @param index The index of the record to write.
+   */
+  public void writeID(ByteArrayOutputStream stream, int index)
+  {
+    int offSet = getIntegerValue(index * 4);
+    int len = PackedInteger.getReadLongLength(buffer, offSet + REC_OVERHEAD);
+    stream.write(buffer, offSet + REC_OVERHEAD, len);
+  }
+
+
+  /**
+   * Return {@code true} if the record specified by the index is an insert
+   * record, or {@code false} if it a delete record.
+   *
    * @param index The index of the record.
    *
-   * @return <CODE>True</CODE> if the record is an insert, false otherwise.
+   * @return {@code true} if the record is an insert record, or {@code false}
+   *          if it is a delete record.
    */
   public boolean isInsert(int index)
   {
     boolean returnCode = true;
-    int recOffset = getIntValue(index * 4);
-    int keyLen = getIntValue(recOffset + 4);
-    if(getIntValue(recOffset + 8 + keyLen) == DELETE)
+    int recOffset = getIntegerValue(index * 4);
+    if(buffer[recOffset] == DEL)
     {
       returnCode = false;
     }
-
     return returnCode;
   }
 
@@ -282,105 +345,39 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    */
   public int getKeySize()
   {
-    int recOffset = getIntValue(position * 4);
-    return getIntValue(recOffset + 4);
-  }
-
-
-  private int getIndexID(int x)
-  {
-    return getIntValue(getIntValue(x * 4));
+    int offSet = getIntegerValue(position * 4) + REC_OVERHEAD;
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    return PackedInteger.readInt(buffer, offSet);
   }
 
 
   /**
-   * Return index id associated with the current position's record.
-   *
-   * @return The index id.
-   */
-  public int getIndexID()
-   {
-     return getIntValue(getIntValue(position * 4));
-   }
-
-    /**
-     * Write a record to the specified data output stream using the specified
-     * parameters.
-     *
-     * @param key  The key byte array.
-     * @param indexID The index ID.
-     * @param insertByteStream The byte stream containing insert  ids.
-     * @param deleteByteStream The byte stream containing delete ids.
-     * @param dataStream The data output stream to write to.
-     * @return The record size written.
-     * @throws IOException If an I/O error occurs writing the record.
-     */
-    public static int writeRecord(byte[] key, int indexID,
-                                  ByteArrayOutputStream insertByteStream,
-                                  ByteArrayOutputStream deleteByteStream,
-                                  DataOutputStream dataStream)
-            throws IOException
-    {
-        dataStream.writeInt(indexID);
-        dataStream.writeInt(key.length);
-        dataStream.write(key);
-        dataStream.writeInt(insertByteStream.size());
-        if(insertByteStream.size() > 0)
-        {
-            insertByteStream.writeTo(dataStream);
-        }
-        dataStream.writeInt(deleteByteStream.size());
-        if(deleteByteStream.size() > 0)
-        {
-            deleteByteStream.writeTo(dataStream);
-        }
-        return (key.length + insertByteStream.size() +
-                deleteByteStream.size() + (REC_OVERHEAD - 4));
-    }
-
-  /**
-   * Write a record to specified output stream using the record pointed to by
-   * the current position and the specified byte stream of ids.
-   *
-   * @param insertByteStream The byte stream containing the ids.
-   * @param deleteByteStream The byte stream containing the ids.
-   * @param dataStream The data output stream to write to.
-   * @return The record size written.
-   *
-   * @throws IOException If an I/O error occurs writing the record.
-   */
-  public int writeRecord(ByteArrayOutputStream insertByteStream,
-                         ByteArrayOutputStream deleteByteStream,
-                         DataOutputStream dataStream) throws IOException
-  {
-    int recOffset = getIntValue(position * 4);
-    int indexID = getIntValue(recOffset);
-    int keyLen = getIntValue(recOffset + 4);
-    dataStream.writeInt(indexID);
-    dataStream.writeInt(keyLen);
-    dataStream.write(buffer, recOffset + 8, keyLen);
-    dataStream.writeInt(insertByteStream.size());
-    if(insertByteStream.size() > 0)
-    {
-      insertByteStream.writeTo(dataStream);
-    }
-    dataStream.writeInt(deleteByteStream.size());
-    if(deleteByteStream.size() > 0)
-    {
-      deleteByteStream.writeTo(dataStream);
-    }
-    return (getKeySize() + insertByteStream.size() +
-            deleteByteStream.size() + (REC_OVERHEAD - 4));
-  }
-
-  /**
-   * Return the key value part of a record specified by the buffer position.
+   * Return the key value part of a record indicated by the current buffer
+   * position.
    *
    * @return byte array containing the key value.
    */
-  public byte[] getKeyBytes()
+  public byte[] getKey()
   {
-    return getKeyBytes(position);
+    return getKey(position);
+  }
+
+  //Used to minimized memory usage when comparing keys.
+  private ByteBuffer getKeyBuf(int x)
+  {
+    keyBuffer.clear();
+    int offSet = getIntegerValue(x * 4) + REC_OVERHEAD;
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    int keyLen = PackedInteger.readInt(buffer, offSet);
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    //Re-allocate if the key is bigger than the capacity.
+    if(keyLen > keyBuffer.capacity())
+    {
+      keyBuffer = ByteBuffer.allocate(keyLen);
+    }
+    keyBuffer.put(buffer, offSet, keyLen);
+    keyBuffer.flip();
+    return keyBuffer;
   }
 
 
@@ -390,98 +387,126 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * @param x index to return.
    * @return byte array containing the key value.
    */
-  private byte[] getKeyBytes(int x)
+  private byte[] getKey(int x)
   {
-    int recOffset = getIntValue(x * 4);
-    int keyLen = getIntValue(recOffset + 4);
-    byte[] keyBytes = new byte[keyLen];
-    System.arraycopy(buffer, recOffset + 8, keyBytes, 0, keyLen);
-    return keyBytes;
+    int offSet = getIntegerValue(x * 4) + REC_OVERHEAD;
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    int keyLen = PackedInteger.readInt(buffer, offSet);
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    byte[] key = new byte[keyLen];
+    System.arraycopy(buffer, offSet, key, 0, keyLen);
+    return key;
   }
+
+
+  private int getIndexID(int x)
+  {
+    return getIntegerValue(getIntegerValue(x * 4) + 1);
+  }
+
+
+  /**
+   * Return index id associated with the current position's record.
+   *
+   * @return The index id.
+   */
+  public int getIndexID()
+  {
+     return getIntegerValue(getIntegerValue(position * 4) + 1);
+  }
+
 
   private boolean is(int x, int y, CompareOp op)
   {
-    int xRecOffset = getIntValue(x * 4);
-    int xIndexID = getIntValue(xRecOffset);
-    int xKeyLen = getIntValue(xRecOffset + 4);
-    int xKey =  xRecOffset + 8;
-    int yRecOffset = getIntValue(y * 4);
-    int yIndexID = getIntValue(yRecOffset);
-    int yKeyLen = getIntValue(yRecOffset + 4);
-    int yKey = yRecOffset + 8;
+    int xoffSet = getIntegerValue(x * 4);
+    int xIndexID = getIntegerValue(xoffSet + 1);
+    xoffSet += REC_OVERHEAD;
+    xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
+    int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
+    int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
+    int yoffSet = getIntegerValue(y * 4);
+    int yIndexID = getIntegerValue(yoffSet + 1);
+    yoffSet += REC_OVERHEAD;
+    yoffSet += PackedInteger.getReadIntLength(buffer, yoffSet);
+    int yKeyLen = PackedInteger.readInt(buffer, yoffSet);
+    int yKey = PackedInteger.getReadIntLength(buffer, yoffSet) + yoffSet;
     return evaluateReturnCode(comparator.compare(buffer, xKey, xKeyLen,
                               xIndexID, yKey, yKeyLen, yIndexID), op);
   }
 
 
-  private boolean is(int x, byte[] yBytes, CompareOp op, int yIndexID)
+  private boolean is(int x, byte[] yKey, CompareOp op, int yIndexID)
   {
-    int xRecOffset = getIntValue(x * 4);
-    int xIndexID = getIntValue(xRecOffset);
-    int xKeyLen = getIntValue(xRecOffset + 4);
-    int xKey = xRecOffset + 8;
+    int xoffSet = getIntegerValue(x * 4);
+    int xIndexID = getIntegerValue(xoffSet + 1);
+    xoffSet += REC_OVERHEAD;
+    xoffSet += PackedInteger.getReadIntLength(buffer, xoffSet);
+    int xKeyLen = PackedInteger.readInt(buffer, xoffSet);
+    int xKey = PackedInteger.getReadIntLength(buffer, xoffSet) + xoffSet;
     return evaluateReturnCode(comparator.compare(buffer, xKey, xKeyLen,
-                              xIndexID, yBytes, yIndexID), op);
+                        xIndexID, yKey, yKey.length, yIndexID), op);
   }
 
 
   /**
    * Compare the byte array at the current position with the specified one and
-   * using the specified index id.
+   * using the specified index id. It will return {@code true} if the byte
+   * array at the current possition is equal to the specified byte array as
+   * determined by the comparator and the index ID is is equal. It will
+   * return {@code false} otherwise.
    *
    * @param b The byte array to compare.
    * @param bIndexID The index key.
    * @return <CODE>True</CODE> if the byte arrays are equal.
    */
-  public boolean compare(byte[] b, int bIndexID)
+  public boolean compare(byte[]b, int bIndexID)
   {
-    boolean returnCode = false;
-    int xRecOffset = getIntValue(position * 4);
-    int xIndexID = getIntValue(xRecOffset);
-    int xKeyLen = getIntValue(xRecOffset + 4);
-    if( comparator.compare(buffer, xRecOffset + 8, xKeyLen, b) == 0)
+    int offset = getIntegerValue(position * 4);
+    int indexID = getIntegerValue(offset + 1);
+    offset += REC_OVERHEAD;
+    offset += PackedInteger.getReadIntLength(buffer, offset);
+    int keyLen = PackedInteger.readInt(buffer, offset);
+    int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
+    if( comparator.compare(buffer, key, keyLen, b, b.length) == 0)
     {
-      if(xIndexID == bIndexID)
+      if(indexID == bIndexID)
       {
-        returnCode = true;
+        return true;
       }
     }
-    return returnCode;
+    return false;
   }
 
-   /**
-   * Compare the byte array at the current position with the byte array at the
-   * specified index.
-   *
-   * @param i The index pointing to the byte array to compare.
-   * @return <CODE>True</CODE> if the byte arrays are equal.
-   */
-  public boolean compare(int i)
-  {
-      return is(i, position, CompareOp.EQ);
-  }
 
   /**
-   * Compare current IndexBuffer to the one in the specified argument. The key
-   * at the value of position in both buffers are used in the compare.
+   * Compare current IndexBuffer to the specified index buffer using both the
+   * comparator and index ID of both buffers.
+   *
+   * The key at the value of position in both buffers are used in the compare.
    *
    * @param b The IndexBuffer to compare to.
    * @return  0 if the buffers are equal, -1 if the current buffer is less
    *          than the specified buffer, or 1 if it is greater.
    */
-  public int compareTo(IndexBuffer b) {
-    byte[] key2 = b.getKeyBytes(b.getPosition());
-    int xRecOffset = getIntValue(position * 4);
-    int xIndexID = getIntValue(xRecOffset);
-    int xLen = getIntValue(xRecOffset + 4);
-    int returnCode = comparator.compare(buffer, xRecOffset + 8, xLen, key2);
+  public int compareTo(IndexBuffer b)
+  {
+    ByteBuffer keyBuf = b.getKeyBuf(b.position);
+    int offset = getIntegerValue(position * 4);
+    int indexID = getIntegerValue(offset + 1);
+    offset += REC_OVERHEAD;
+    offset += PackedInteger.getReadIntLength(buffer, offset);
+    int keyLen = PackedInteger.readInt(buffer, offset);
+    int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
+    int returnCode = comparator.compare(buffer, key, keyLen, keyBuf.array(),
+                                        keyBuf.limit());
     if(returnCode == 0)
     {
       int bIndexID = b.getIndexID();
-      if(xIndexID == bIndexID)
+      if(indexID == bIndexID)
       {
         long otherBufferID = b.getBufferID();
-        //Used in Remove.
+        //This is tested in a tree set remove when a buffer is removed from
+        //the tree set.
         if(this.id == otherBufferID)
         {
           returnCode = 0;
@@ -495,7 +520,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
           returnCode = 1;
         }
       }
-      else if(xIndexID < bIndexID)
+      else if(indexID < bIndexID)
       {
         returnCode = -1;
       }
@@ -509,7 +534,39 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
 
 
   /**
-   * Return the number of keys in an index buffer.
+   * Write a record to specified output stream using the record pointed to by
+   * the current position and the specified byte stream of ids.
+   *
+   * @param dataStream The data output stream to write to.
+   *
+   * @throws IOException If an I/O error occurs writing the record.
+   */
+  public void writeKey(DataOutputStream dataStream) throws IOException
+  {
+    int offSet = getIntegerValue(position * 4) + REC_OVERHEAD;
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    int keyLen = PackedInteger.readInt(buffer, offSet);
+    offSet += PackedInteger.getReadIntLength(buffer, offSet);
+    dataStream.write(buffer, offSet, keyLen);
+  }
+
+
+   /**
+   * Compare the byte array at the current position with the byte array at the
+   * specified index.
+   *
+   * @param i The index pointing to the byte array to compare.
+   * @return {@code true} if the byte arrays are equal, or {@code false}
+    *                     otherwise.
+   */
+  public boolean compare(int i)
+  {
+      return is(i, position, CompareOp.EQ);
+  }
+
+
+  /**
+   * Return the current number of keys.
    *
    * @return The number of keys currently in an index buffer.
    */
@@ -520,24 +577,28 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
 
 
   /**
-   * Return if the buffer has more data. Used when iterating over the
-   * buffer examining keys.
+   * Return {@code true} if the buffer has more data to process, or
+   * {@code false} otherwise. Used when iterating over the buffer writing the
+   * scratch index file.
    *
-   * @return <CODE>True</CODE> if the buffer has more data to process.
+   * @return {@code true} if a buffer has more data to process, or
+   *         {@code false} otherwise.
    */
   public boolean hasMoreData()
    {
      return (position + 1) < keys;
    }
 
+
   /**
-   * Move to the next record in the buffer. Used when iterating over the
-   * buffer examining keys.
+   * Advance the position pointer to the next record in the buffer. Used when
+   * iterating over the buffer examining keys.
    */
    public void getNextRecord()
    {
      position++;
    }
+
 
   private byte[] getIntBytes(int val)
   {
@@ -548,7 +609,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return intBytes;
   }
 
-  private int getIntValue(int index)
+
+  private int getIntegerValue(int index)
   {
     int answer = 0;
     for (int i = 0; i < 4; i++) {
@@ -558,7 +620,6 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     }
     return answer;
   }
-
 
 
   private int med3(int a, int b, int c)
@@ -591,13 +652,13 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
       m = med3(l, m, n);
     }
 
-    byte[] mKey = getKeyBytes(m);
+    byte[] mKey = getKey(m);
     int mIndexID = getIndexID(m);
 
     int a = off, b = a, c = off + len - 1, d = c;
     while(true)
     {
-      while (b <= c && is(b, mKey, CompareOp.LE, mIndexID))
+      while ((b <= c) && is(b, mKey, CompareOp.LE, mIndexID))
       {
         if (is(b, mKey, CompareOp.EQ, mIndexID))
           swap(a++, b);
@@ -632,17 +693,19 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   private void swap(int a, int b)
   {
     int aOffset = a * 4;
-    int bOffset = b * 4;
-    int bVal = getIntValue(bOffset);
-    System.arraycopy(buffer, aOffset, buffer, bOffset, 4);
-    System.arraycopy(getIntBytes(bVal), 0, buffer, aOffset, 4);
+     int bOffset = b * 4;
+     int bVal = getIntegerValue(bOffset);
+     System.arraycopy(buffer, aOffset, buffer, bOffset, 4);
+     System.arraycopy(getIntBytes(bVal), 0, buffer, aOffset, 4);
   }
+
 
   private void vectorSwap(int a, int b, int n)
   {
     for (int i=0; i<n; i++, a++, b++)
       swap(a, b);
   }
+
 
   private boolean evaluateReturnCode(int rc, CompareOp op)
   {
@@ -667,6 +730,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     return returnCode;
   }
 
+
   /**
    * Interface that defines two methods used to compare keys used in this
    * class. The Comparator interface cannot be used in this class, so this
@@ -675,6 +739,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * @param <T> object to use in the compare
    */
   public static interface ComparatorBuffer<T> {
+
+
      /**
      * Compare two offsets in an object, usually a byte array.
      *
@@ -690,7 +756,9 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
      */
     int compare(T o, int offset, int length, int indexID, int otherOffset,
                 int otherLength, int otherIndexID);
-       /**
+
+
+    /**
      * Compare an offset in an object with the specified object.
      *
      * @param o The first object.
@@ -698,13 +766,15 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
      * @param length The first length.
      * @param indexID The first index id.
      * @param other The second object.
+     * @param otherLength The length of the second object.
      * @param otherIndexID The second index id.
      * @return a negative integer, zero, or a positive integer as the first
      *         offset value is less than, equal to, or greater than the second
      *         object.
      */
     int compare(T o, int offset, int length, int indexID, T other,
-                int otherIndexID);
+                int otherLength, int otherIndexID);
+
 
     /**
      * Compare an offset in an object with the specified object.
@@ -713,23 +783,29 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
      * @param offset The first offset.
      * @param length The first length.
      * @param other The second object.
+     * @param otherLen The length of the second object.
      * @return a negative integer, zero, or a positive integer as the first
      *         offset value is less than, equal to, or greater than the second
      *         object.
      */
-    int compare(T o, int offset, int length, T other);
+    int compare(T o, int offset, int length, T other,
+                int otherLen);
 
   }
 
+
   /**
    * Implementation of ComparatorBuffer interface. Used to compare keys when
-   * they are DNs.
+   * they are DN index is being processed.
    */
   public static
   class DNComparator implements IndexBuffer.ComparatorBuffer<byte[]>
   {
+
     /**
      * Compare two offsets in an byte array using the DN compare algorithm.
+     * The specified index ID is used in the comparision if the byte arrays
+     * are equal.
      *
      * @param b The byte array.
      * @param offset The first offset.
@@ -745,7 +821,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
                        int otherOffset, int otherLength, int otherIndexID)
     {
       for (int i = length - 1, j = otherLength - 1;
-      i >= 0 && j >= 0; i--, j--) {
+           i >= 0 && j >= 0; i--, j--) {
         if (b[offset + i] > b[otherOffset + j])
         {
           return 1;
@@ -755,6 +831,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
           return -1;
         }
       }
+      //The arrays are equal, make sure they are in the same index since
+      //multiple suffixes might have the same key.
       if(length == otherLength)
       {
         if(indexID == otherIndexID)
@@ -780,6 +858,65 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
       }
     }
 
+
+    /**
+     * Compare an offset in an byte array with the specified byte array,
+     * using the DN compare algorithm. The specified index ID is used in the
+     * comparision if the byte arrays are equal.
+     *
+     * @param b The byte array.
+     * @param offset The first offset.
+     * @param length The first length.
+     * @param indexID The first index id.
+     * @param other The second byte array to compare to.
+     * @param otherLength The second object's length.
+     * @param otherIndexID The second index id.
+     * @return a negative integer, zero, or a positive integer as the first
+     *         offset value is less than, equal to, or greater than the second
+     *         byte array.
+     */
+    public int compare(byte[] b, int offset, int length, int indexID,
+                       byte[]other, int otherLength, int otherIndexID)
+    {
+      for (int i = length - 1, j = otherLength - 1;
+           i >= 0 && j >= 0; i--, j--) {
+        if (b[offset + i] > other[j])
+        {
+          return 1;
+        }
+        else if (b[offset + i] < other[j])
+        {
+          return -1;
+        }
+      }
+     //The arrays are equal, make sure they are in the same index since
+      //multiple suffixes might have the same key.
+      if(length == otherLength)
+      {
+        if(indexID == otherIndexID)
+        {
+          return 0;
+        }
+        else if(indexID > otherIndexID)
+        {
+          return 1;
+        }
+        else
+        {
+          return -1;
+        }
+      }
+      if(length > otherLength)
+      {
+        return 1;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+
+
     /**
      * Compare an offset in an byte array with the specified byte array,
      * using the DN compare algorithm.
@@ -787,19 +924,17 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
      * @param b The byte array.
      * @param offset The first offset.
      * @param length The first length.
-     * @param indexID The first index id.
      * @param other The second byte array to compare to.
-     * @param otherIndexID The second index id.
+     * @param otherLength The second object's length.
      * @return a negative integer, zero, or a positive integer as the first
-     *         offset value is less than, equal to, or greater than the second
-     *         byte array.
+     *         offset value is less than, equal to, or greater than the
+     *         second byte array.
      */
-    public int compare(byte[] b, int offset, int length, int indexID,
-                       byte[]other, int otherIndexID)
+    public int compare(byte[] b, int offset, int length, byte[] other,
+                       int otherLength)
     {
-      int otherLength = other.length;
       for (int i = length - 1, j = otherLength - 1;
-      i >= 0 && j >= 0; i--, j--) {
+           i >= 0 && j >= 0; i--, j--) {
         if (b[offset + i] > other[j])
         {
           return 1;
@@ -811,18 +946,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
       }
       if(length == otherLength)
       {
-        if(indexID == otherIndexID)
-        {
-          return 0;
-        }
-        else if(indexID > otherIndexID)
-        {
-          return 1;
-        }
-        else
-        {
-          return -1;
-        }
+        return 0;
       }
       if(length > otherLength)
       {
@@ -833,58 +957,21 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
         return -1;
       }
     }
-
-      /**
-       * Compare an offset in an byte array with the specified byte array,
-       * using the DN compare algorithm.
-       *
-       * @param b The byte array.
-       * @param offset The first offset.
-       * @param length The first length.
-       * @param other The second byte array to compare to.
-       * @return a negative integer, zero, or a positive integer as the first
-       *         offset value is less than, equal to, or greater than the
-       *         second byte array.
-       */
-      public int compare(byte[] b, int offset, int length, byte[] other)
-      {
-          int otherLength = other.length;
-          for (int i = length - 1, j = otherLength - 1;
-               i >= 0 && j >= 0; i--, j--) {
-              if (b[offset + i] > other[j])
-              {
-                  return 1;
-              }
-              else if (b[offset + i] < other[j])
-              {
-                  return -1;
-              }
-          }
-          if(length == otherLength)
-          {
-              return 0;
-          }
-          if(length > otherLength)
-          {
-              return 1;
-          }
-          else
-          {
-              return -1;
-          }
-      }
   }
 
-/**
+
+  /**
    * Implementation of ComparatorBuffer interface. Used to compare keys when
-   * they are regular indexes.
+   * they are non-DN indexes.
    */
   public static
   class IndexComparator implements IndexBuffer.ComparatorBuffer<byte[]>
   {
-   /**
+
+    /**
      * Compare two offsets in an byte array using the index compare
-     * algorithm.
+     * algorithm.  The specified index ID is used in the comparision if the
+     * byte arrays are equal.
      *
      * @param b The byte array.
      * @param offset The first offset.
@@ -910,6 +997,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
           return -1;
         }
       }
+      //The arrays are equal, make sure they are in the same index since
+      //multiple suffixes might have the same key.
       if(length == otherLength)
       {
         if(indexID == otherIndexID)
@@ -935,24 +1024,26 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
       }
     }
 
+
     /**
      * Compare an offset in an byte array with the specified byte array,
-     * using the DN compare algorithm.
+     * using the DN compare algorithm.   The specified index ID is used in the
+     * comparision if the byte arrays are equal.
      *
      * @param b The byte array.
      * @param offset The first offset.
      * @param length The first length.
      * @param indexID The first index id.
      * @param other The second byte array to compare to.
+     * @param otherLength The second byte array's length.
      * @param otherIndexID The second index id.
      * @return a negative integer, zero, or a positive integer as the first
      *         offset value is less than, equal to, or greater than the second
      *         byte array.
      */
     public int compare(byte[] b, int offset, int length, int indexID,
-                       byte[] other, int otherIndexID)
+                       byte[] other, int otherLength, int otherIndexID)
     {
-      int otherLength = other.length;
       for(int i = 0; i < length && i < otherLength; i++)
       {
         if(b[offset + i] > other[i])
@@ -964,6 +1055,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
           return -1;
         }
       }
+      //The arrays are equal, make sure they are in the same index since
+      //multiple suffixes might have the same key.
       if(length == otherLength)
       {
         if(indexID == otherIndexID)
@@ -989,7 +1082,8 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
       }
     }
 
-        /**
+
+    /**
      * Compare an offset in an byte array with the specified byte array,
      * using the DN compare algorithm.
      *
@@ -997,13 +1091,14 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
      * @param offset The first offset.
      * @param length The first length.
      * @param other The second byte array to compare to.
+     * @param otherLength The second byte array's length.
      * @return a negative integer, zero, or a positive integer as the first
      *         offset value is less than, equal to, or greater than the second
      *         byte array.
      */
-    public int compare(byte[] b, int offset, int length, byte[] other)
+    public int compare(byte[] b, int offset, int length, byte[] other,
+                       int otherLength)
     {
-      int otherLength = other.length;
       for(int i = 0; i < length && i < otherLength; i++)
       {
         if(b[offset + i] > other[i])
@@ -1030,6 +1125,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
     }
   }
 
+
   /**
    * Set the index key associated with an index buffer.
    *
@@ -1039,6 +1135,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   {
     this.indexKey = indexKey;
   }
+
 
   /**
    * Return the index key of an index buffer.
