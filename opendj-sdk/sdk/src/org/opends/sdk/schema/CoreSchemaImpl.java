@@ -81,7 +81,7 @@ final class CoreSchemaImpl
 
   static
   {
-    final SchemaBuilder builder = new SchemaBuilder();
+    final SchemaBuilder builder = new SchemaBuilder("Core Schema");
     defaultSyntaxes(builder);
     defaultMatchingRules(builder);
     defaultAttributeTypes(builder);

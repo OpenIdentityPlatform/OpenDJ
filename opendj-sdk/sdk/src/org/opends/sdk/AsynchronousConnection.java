@@ -50,10 +50,10 @@ import org.opends.sdk.schema.Schema;
  * <h3>Operation processing</h3>
  * <p>
  * All operations are performed asynchronously and return a
- * {@link ResultFuture} or sub-type thereof which can be used for
- * retrieving the result using the {@link ResultFuture#get} method.
+ * {@link FutureResult} or sub-type thereof which can be used for
+ * retrieving the result using the {@link FutureResult#get} method.
  * Operation failures, for whatever reason, are signalled by the
- * {@link ResultFuture#get()} method throwing an
+ * {@link FutureResult#get()} method throwing an
  * {@link ErrorResultException}.
  * <p>
  * Synchronous operations are easily simulated by immediately getting
@@ -75,9 +75,9 @@ import org.opends.sdk.schema.Schema;
  * Connection connection2 = ...;
  * AddRequest request = ...;
  * // Add the entry to the first server (don't block).
- * ResultFuture future1 = connection1.add(request);
+ * FutureResult future1 = connection1.add(request);
  * // Add the entry to the second server (in parallel).
- * ResultFuture future2 = connection2.add(request);
+ * FutureResult future2 = connection2.add(request);
  * // Total time = is O(1) instead of O(n).
  * future1.get();
  * future2.get();
@@ -142,7 +142,7 @@ public interface AsynchronousConnection extends Closeable
    * abandon request.
    * <p>
    * <b>Note:</b> a more convenient approach to abandoning unfinished
-   * operations is provided via the {@link ResultFuture#cancel(boolean)}
+   * operations is provided via the {@link FutureResult#cancel(boolean)}
    * method.
    *
    * @param request
@@ -180,7 +180,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<Result> add(AddRequest request,
+  FutureResult<Result> add(AddRequest request,
       ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -225,7 +225,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<BindResult> bind(BindRequest request,
+  FutureResult<BindResult> bind(BindRequest request,
       ResultHandler<? super BindResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -302,7 +302,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<CompareResult> compare(CompareRequest request,
+  FutureResult<CompareResult> compare(CompareRequest request,
       ResultHandler<? super CompareResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -328,7 +328,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<Result> delete(DeleteRequest request,
+  FutureResult<Result> delete(DeleteRequest request,
       ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -356,7 +356,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  <R extends Result> ResultFuture<R> extendedRequest(
+  <R extends Result> FutureResult<R> extendedRequest(
       ExtendedRequest<R> request, ResultHandler<? super R> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -395,7 +395,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<Result> modify(ModifyRequest request,
+  FutureResult<Result> modify(ModifyRequest request,
       ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -421,7 +421,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<Result> modifyDN(ModifyDNRequest request,
+  FutureResult<Result> modifyDN(ModifyDNRequest request,
       ResultHandler<Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -462,7 +462,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If the {@code name} was {@code null}.
    */
-  ResultFuture<SearchResultEntry> readEntry(DN name,
+  FutureResult<SearchResultEntry> readEntry(DN name,
       Collection<String> attributeDescriptions,
       ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
@@ -488,7 +488,7 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  ResultFuture<RootDSE> readRootDSE(ResultHandler<RootDSE> handler)
+  FutureResult<RootDSE> readRootDSE(ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -518,7 +518,7 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  ResultFuture<Schema> readSchema(DN name, ResultHandler<Schema> handler)
+  FutureResult<Schema> readSchema(DN name, ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -551,7 +551,7 @@ public interface AsynchronousConnection extends Closeable
    *           If this connection has already been closed, i.e. if
    *           {@code isClosed() == true}.
    */
-  ResultFuture<Schema> readSchemaForEntry(DN name,
+  FutureResult<Schema> readSchemaForEntry(DN name,
       ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
@@ -596,7 +596,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  ResultFuture<Result> search(SearchRequest request,
+  FutureResult<Result> search(SearchRequest request,
       ResultHandler<Result> resultHandler,
       SearchResultHandler searchResulthandler)
       throws UnsupportedOperationException, IllegalStateException,
@@ -630,7 +630,7 @@ public interface AsynchronousConnection extends Closeable
    * @throws NullPointerException
    *           If the {@code request} was {@code null}.
    */
-  ResultFuture<SearchResultEntry> searchSingleEntry(
+  FutureResult<SearchResultEntry> searchSingleEntry(
       SearchRequest request,
       ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,

@@ -29,7 +29,6 @@ package org.opends.sdk;
 
 
 
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -37,21 +36,13 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve a requested {@code
- * AsynchronousConnection}.
- * <p>
- * TODO: Do we want to throw an ErrorResultException? I think we do
- * because exceptions are not limited to connection related errors. For
- * example, a transacted connection would already have a physical
- * connection; an error could occur when sending the start txn extended
- * op.
+ * A handle which can be used to retrieve the Result of an asynchronous
+ * Request.
  *
- * @param <C>
- *          The type of asynchronous connection returned by this
- *          connection future.
+ * @param <S>
+ *          The type of result returned by this future.
  */
-public interface ConnectionFuture<C extends AsynchronousConnection>
-    extends Future<C>
+public interface FutureResult<S> extends Future<S>
 {
   /**
    * Attempts to cancel the request. This attempt will fail if the
@@ -77,74 +68,77 @@ public interface ConnectionFuture<C extends AsynchronousConnection>
 
 
   /**
-   * Waits if necessary for the connection request to complete, and then
-   * returns the asynchronous connection if the connection request
-   * succeeded. If the connection request failed (i.e. a non-successful
-   * result code was obtained) then a {@link ErrorResultException} is
-   * thrown.
+   * Waits if necessary for the request to complete, and then returns
+   * the result if the request succeeded. If the request failed (i.e. a
+   * non-successful result code was obtained) then the result is thrown
+   * as an {@link ErrorResultException}.
    *
-   * @return The asynchronous connection, but only if the the connection
+   * @return The result, but only if the result code indicates that the
    *         request succeeded.
-   * @throws CancellationException
-   *           If the connection request was cancelled using a call to
-   *           {@link #cancel}.
    * @throws ErrorResultException
-   *           If the connection request failed for some reason.
+   *           If the result code indicates that the request failed for
+   *           some reason.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    */
-  C get() throws InterruptedException, ErrorResultException;
+  S get() throws ErrorResultException, InterruptedException;
 
 
 
   /**
-   * Waits if necessary for at most the given time for the connection
-   * request to complete, and then returns the asynchronous connection
-   * if the connection request succeeded. If the connection request
-   * failed (i.e. a non-successful result code was obtained) then a
-   * {@link ErrorResultException} is thrown.
+   * Waits if necessary for at most the given time for the request to
+   * complete, and then returns the result if the request succeeded. If
+   * the request failed (i.e. a non-successful result code was obtained)
+   * then the result is thrown as an {@link ErrorResultException}.
    *
    * @param timeout
    *          The maximum time to wait.
    * @param unit
    *          The time unit of the timeout argument.
-   * @return The asynchronous connection, but only if the the connection
+   * @return The result, but only if the result code indicates that the
    *         request succeeded.
-   * @throws CancellationException
-   *           If the connection request was cancelled using a call to
-   *           {@link #cancel}.
    * @throws ErrorResultException
-   *           If the connection request failed for some reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
+   *           If the result code indicates that the request failed for
+   *           some reason.
    * @throws TimeoutException
    *           If the wait timed out.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    */
-  C get(long timeout, TimeUnit unit) throws InterruptedException,
-      TimeoutException, ErrorResultException;
+  S get(long timeout, TimeUnit unit) throws ErrorResultException,
+      TimeoutException, InterruptedException;
 
 
 
   /**
-   * Returns {@code true} if the connection request was cancelled before
-   * it completed normally.
+   * Returns the request ID of the request if appropriate.
    *
-   * @return {@code true} if the connection request was cancelled before
-   *         it completed normally, otherwise {@code false}.
+   * @return The request ID, or {@code -1} if there is no request ID.
+   */
+  int getRequestID();
+
+
+
+  /**
+   * Returns {@code true} if the request was cancelled before it
+   * completed normally.
+   *
+   * @return {@code true} if the request was cancelled before it
+   *         completed normally, otherwise {@code false}.
    */
   boolean isCancelled();
 
 
 
   /**
-   * Returns {@code true} if the connection request has completed.
+   * Returns {@code true} if the request has completed.
    * <p>
    * Completion may be due to normal termination, an exception, or
    * cancellation. In all of these cases, this method will return
    * {@code true}.
    *
-   * @return {@code true} if the connection request has completed,
-   *         otherwise {@code false}.
+   * @return {@code true} if the request has completed, otherwise
+   *         {@code false}.
    */
   boolean isDone();
 }

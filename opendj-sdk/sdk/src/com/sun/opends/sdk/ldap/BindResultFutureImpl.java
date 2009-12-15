@@ -29,10 +29,8 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.ExecutorService;
-
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultFuture;
+import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.responses.BindResult;
@@ -44,9 +42,9 @@ import org.opends.sdk.sasl.SASLContext;
 /**
  * Bind result future implementation.
  */
-public final class BindResultFutureImpl extends
+final class BindResultFutureImpl extends
     AbstractResultFutureImpl<BindResult> implements
-    ResultFuture<BindResult>
+    FutureResult<BindResult>
 {
   private final BindRequest request;
 
@@ -56,9 +54,9 @@ public final class BindResultFutureImpl extends
 
   BindResultFutureImpl(int messageID, BindRequest request,
       ResultHandler<? super BindResult> handler,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+      LDAPConnection connection)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, connection);
     this.request = request;
   }
 

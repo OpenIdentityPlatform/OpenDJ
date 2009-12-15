@@ -31,6 +31,7 @@ package com.sun.opends.sdk.tools;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
+import static com.sun.opends.sdk.tools.Utils.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -186,11 +187,7 @@ public final class LDAPSearch extends ConsoleApplication
   {
     int retCode = mainSearch(args, false, System.in, System.out,
         System.err);
-
-    if (retCode != 0)
-    {
-      System.exit(Utils.filterExitCode(retCode));
-    }
+    System.exit(filterExitCode(retCode));
   }
 
 

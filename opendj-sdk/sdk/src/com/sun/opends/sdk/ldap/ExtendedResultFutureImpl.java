@@ -29,8 +29,6 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import java.util.concurrent.ExecutorService;
-
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ExtendedRequest;
 import org.opends.sdk.responses.Result;
@@ -40,18 +38,17 @@ import org.opends.sdk.responses.Result;
 /**
  * Extended result future implementation.
  */
-public final class ExtendedResultFutureImpl<R extends Result> extends
-    AbstractResultFutureImpl<R> implements ResultFuture<R>
+final class ExtendedResultFutureImpl<R extends Result> extends
+    AbstractResultFutureImpl<R> implements FutureResult<R>
 {
   private final ExtendedRequest<R> request;
 
 
 
   ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
-      ResultHandler<? super R> handler,
-      LDAPConnection connection, ExecutorService handlerExecutor)
+      ResultHandler<? super R> handler, LDAPConnection connection)
   {
-    super(messageID, handler, connection, handlerExecutor);
+    super(messageID, handler, connection);
     this.request = request;
   }
 

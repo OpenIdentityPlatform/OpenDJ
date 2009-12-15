@@ -41,11 +41,7 @@ public class LDAPPasswordModify extends ConsoleApplication
   public static void main(String[] args)
   {
     int retCode = mainPasswordModify(args, System.in, System.out, System.err);
-
-    if (retCode != 0)
-    {
-      System.exit(filterExitCode(retCode));
-    }
+    System.exit(filterExitCode(retCode));
   }
 
 

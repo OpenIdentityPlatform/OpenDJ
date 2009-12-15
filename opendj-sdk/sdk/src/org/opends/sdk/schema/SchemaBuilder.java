@@ -33,13 +33,16 @@ import static com.sun.opends.sdk.messages.Messages.*;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
-import com.sun.opends.sdk.util.*;
+import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.SubstringReader;
+import com.sun.opends.sdk.util.Validator;
 
 
 
@@ -90,6 +93,10 @@ public final class SchemaBuilder
 
   private Schema schema;
 
+  // A unique ID which can be used to uniquely identify schemas
+  // constructed without a name.
+  private final AtomicInteger nextSchemaID = new AtomicInteger();
+
 
 
   /**
@@ -98,7 +105,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder()
   {
-    initBuilder();
+    initBuilder(null);
   }
 
 
@@ -106,7 +113,7 @@ public final class SchemaBuilder
   /**
    * Creates a new schema builder containing all of the schema elements
    * from the provided schema and its compatibility options.
-   *
+   * 
    * @param schema
    *          The initial contents of the schema builder.
    * @throws NullPointerException
@@ -114,8 +121,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder(Schema schema) throws NullPointerException
   {
-    Validator.ensureNotNull(schema);
-    initBuilder();
+    initBuilder(schema.getSchemaName());
     setSchemaCompatOptions(schema.getSchemaCompatOptions());
     addSchema(schema, true);
   }
@@ -123,8 +129,23 @@ public final class SchemaBuilder
 
 
   /**
+   * Creates a new schema builder with no schema elements and default
+   * compatibility options.
+   * 
+   * @param schemaName
+   *          The user-friendly name of this schema which may be used
+   *          for debugging purposes.
+   */
+  public SchemaBuilder(String schemaName)
+  {
+    initBuilder(schemaName);
+  }
+
+
+
+  /**
    * Adds the provided attribute type definition to this schema builder.
-   *
+   * 
    * @param definition
    *          The attribute type definition.
    * @param overwrite
@@ -386,7 +407,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided attribute type definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the attribute type definition.
    * @param names
@@ -465,7 +486,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT content rule definition to this schema
    * builder.
-   *
+   * 
    * @param definition
    *          The DIT content rule definition.
    * @param overwrite
@@ -622,7 +643,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT content rule definition to this schema
    * builder.
-   *
+   * 
    * @param structuralClass
    *          The name of the structural object class to which the DIT
    *          content rule applies.
@@ -677,7 +698,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT structure rule definition to this schema
    * builder.
-   *
+   * 
    * @param ruleID
    *          The rule identifier of the DIT structure rule.
    * @param names
@@ -721,7 +742,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided DIT structure rule definition to this schema
    * builder.
-   *
+   * 
    * @param definition
    *          The DIT structure rule definition.
    * @param overwrite
@@ -874,7 +895,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided enumeration syntax definition to this schema
    * builder.
-   *
+   * 
    * @param oid
    *          The OID of the enumeration syntax definition.
    * @param description
@@ -923,7 +944,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   *
+   * 
    * @param definition
    *          The matching rule definition.
    * @param overwrite
@@ -1070,7 +1091,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the matching rule definition.
    * @param names
@@ -1114,7 +1135,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided matching rule use definition to this schema
    * builder.
-   *
+   * 
    * @param definition
    *          The matching rule use definition.
    * @param overwrite
@@ -1263,7 +1284,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided matching rule use definition to this schema
    * builder.
-   *
+   * 
    * @param oid
    *          The OID of the matching rule use definition.
    * @param names
@@ -1303,7 +1324,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   *
+   * 
    * @param definition
    *          The name form definition.
    * @param overwrite
@@ -1468,7 +1489,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the name form definition.
    * @param names
@@ -1514,7 +1535,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   *
+   * 
    * @param definition
    *          The object class definition.
    * @param overwrite
@@ -1699,7 +1720,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the object class definition.
    * @param names
@@ -1762,7 +1783,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided pattern syntax definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the pattern syntax definition.
    * @param description
@@ -1795,7 +1816,7 @@ public final class SchemaBuilder
   /**
    * Adds all of the schema elements in the provided schema to this
    * schema builder.
-   *
+   * 
    * @param schema
    *          The schema to be copied into this schema builder.
    * @param overwrite
@@ -1862,7 +1883,7 @@ public final class SchemaBuilder
   /**
    * Adds the provided substitution syntax definition to this schema
    * builder.
-   *
+   * 
    * @param oid
    *          The OID of the substitution syntax definition.
    * @param description
@@ -1894,7 +1915,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   *
+   * 
    * @param definition
    *          The syntax definition.
    * @param overwrite
@@ -2034,7 +2055,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   *
+   * 
    * @param oid
    *          The OID of the syntax definition.
    * @param description
@@ -2068,7 +2089,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named attribute type from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the attribute type to be removed.
    * @return {@code true} if the attribute type was found.
@@ -2087,7 +2108,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named DIT content rule from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the DIT content rule to be removed.
    * @return {@code true} if the DIT content rule was found.
@@ -2106,7 +2127,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the specified DIT structure rule from this schema builder.
-   *
+   * 
    * @param ruleID
    *          The ID of the DIT structure rule to be removed.
    * @return {@code true} if the DIT structure rule was found.
@@ -2125,7 +2146,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the matching rule to be removed.
    * @return {@code true} if the matching rule was found.
@@ -2144,7 +2165,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule use from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the matching rule use to be removed.
    * @return {@code true} if the matching rule use was found.
@@ -2163,7 +2184,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named name form from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the name form to be removed.
    * @return {@code true} if the name form was found.
@@ -2182,7 +2203,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named object class from this schema builder.
-   *
+   * 
    * @param name
    *          The name or OID of the object class to be removed.
    * @return {@code true} if the object class was found.
@@ -2201,7 +2222,7 @@ public final class SchemaBuilder
 
   /**
    * Removes the named syntax from this schema builder.
-   *
+   * 
    * @param numericOID
    *          The name of the syntax to be removed.
    * @return {@code true} if the syntax was found.
@@ -2223,7 +2244,7 @@ public final class SchemaBuilder
    * schema builder maintains its own set of compatibility options, so
    * subsequent changes to the provided set of options will not impact
    * this schema builder.
-   *
+   * 
    * @param options
    *          The set of schema compatibility options that this schema
    *          builder should use.
@@ -2248,7 +2269,7 @@ public final class SchemaBuilder
    * <p>
    * When this method returns this schema builder is empty and contains
    * a default set of compatibility options.
-   *
+   * 
    * @return A {@code Schema} containing all of the schema elements
    *         contained in this schema builder as well as the same set of
    *         schema compatibility options
@@ -2257,15 +2278,8 @@ public final class SchemaBuilder
   {
     validate();
     final Schema builtSchema = schema;
-    initBuilder();
+    initBuilder(null);
     return builtSchema;
-  }
-
-
-
-  void addWarning(LocalizableMessage warning)
-  {
-    warnings.add(warning);
   }
 
 
@@ -2589,7 +2603,7 @@ public final class SchemaBuilder
 
 
 
-  private void initBuilder()
+  private void initBuilder(String schemaName)
   {
     numericOID2Syntaxes = new HashMap<String, Syntax>();
     numericOID2MatchingRules = new HashMap<String, MatchingRule>();
@@ -2613,14 +2627,20 @@ public final class SchemaBuilder
     options = SchemaCompatOptions.defaultOptions();
     warnings = new LinkedList<LocalizableMessage>();
 
-    schema = new Schema(numericOID2Syntaxes, numericOID2MatchingRules,
-        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
-        numericOID2ObjectClasses, numericOID2NameForms,
-        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
-        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
-        name2NameForms, name2ContentRules, name2StructureRules,
-        objectClass2NameForms, nameForm2StructureRules, options,
-        warnings);
+    if (schemaName == null)
+    {
+      schemaName = String.format("Schema#%d", nextSchemaID
+          .getAndIncrement());
+    }
+
+    schema = new Schema(schemaName, numericOID2Syntaxes,
+        numericOID2MatchingRules, numericOID2MatchingRuleUses,
+        numericOID2AttributeTypes, numericOID2ObjectClasses,
+        numericOID2NameForms, numericOID2ContentRules,
+        id2StructureRules, name2MatchingRules, name2MatchingRuleUses,
+        name2AttributeTypes, name2ObjectClasses, name2NameForms,
+        name2ContentRules, name2StructureRules, objectClass2NameForms,
+        nameForm2StructureRules, options, warnings);
   }
 
 
@@ -2972,5 +2992,12 @@ public final class SchemaBuilder
       }
     }
 
+  }
+
+
+
+  void addWarning(LocalizableMessage warning)
+  {
+    warnings.add(warning);
   }
 }
