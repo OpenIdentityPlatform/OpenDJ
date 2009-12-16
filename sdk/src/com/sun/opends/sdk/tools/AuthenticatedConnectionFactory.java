@@ -25,12 +25,13 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  */
 
-package org.opends.sdk;
+package com.sun.opends.sdk.tools;
 
 
 
 import java.util.Collection;
 
+import org.opends.sdk.*;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
@@ -66,7 +67,7 @@ import com.sun.opends.sdk.util.Validator;
  * then the connection attempt will fail and an {@code
  * ErrorResultException} will be thrown.
  */
-public final class AuthenticatedConnectionFactory
+final class AuthenticatedConnectionFactory
     implements
     ConnectionFactory<AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection>
 {

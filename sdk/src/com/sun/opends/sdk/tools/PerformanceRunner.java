@@ -38,8 +38,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.sdk.*;
-import org.opends.sdk.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
 import org.opends.sdk.responses.Result;
+
+import com.sun.opends.sdk.tools.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
 
 
 
