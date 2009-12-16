@@ -73,9 +73,9 @@ public interface ConnectionFactory<C extends AsynchronousConnection>
    * Initiates an asynchronous connection request to the Directory
    * Server associated with this connection factory. The returned
    * {@code FutureResult} can be used to retrieve the completed
-   * asynchronous connection. Alternatively, if a {@code
-   * ResultHandler} is provided, the handler will be notified
-   * when the connection is available and ready for use.
+   * asynchronous connection. Alternatively, if a {@code ResultHandler}
+   * is provided, the handler will be notified when the connection is
+   * available and ready for use.
    *
    * @param handler
    *          The completion handler, or {@code null} if no handler is

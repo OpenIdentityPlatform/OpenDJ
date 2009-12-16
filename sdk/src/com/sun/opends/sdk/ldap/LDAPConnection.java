@@ -83,13 +83,13 @@ public final class LDAPConnection extends
     @Override
     public void handleAddResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof LDAPFutureResultImpl)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          LDAPFutureResultImpl future = (LDAPFutureResultImpl) pendingRequest;
           if (future.getRequest() instanceof AddRequest)
           {
             future.setResultOrError(result);
@@ -108,13 +108,13 @@ public final class LDAPConnection extends
     @Override
     public void handleBindResult(int messageID, BindResult result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof BindResultFutureImpl)
+        if (pendingRequest instanceof LDAPBindFutureResultImpl)
         {
-          BindResultFutureImpl future = ((BindResultFutureImpl) pendingRequest);
+          LDAPBindFutureResultImpl future = ((LDAPBindFutureResultImpl) pendingRequest);
           BindRequest request = future.getRequest();
 
           if (request instanceof SASLBindRequest<?>)
@@ -215,13 +215,13 @@ public final class LDAPConnection extends
     @Override
     public void handleCompareResult(int messageID, CompareResult result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof CompareResultFutureImpl)
+        if (pendingRequest instanceof LDAPCompareFutureResultImpl)
         {
-          CompareResultFutureImpl future = (CompareResultFutureImpl) pendingRequest;
+          LDAPCompareFutureResultImpl future = (LDAPCompareFutureResultImpl) pendingRequest;
           future.setResultOrError(result);
         }
         else
@@ -239,13 +239,13 @@ public final class LDAPConnection extends
     @Override
     public void handleDeleteResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof LDAPFutureResultImpl)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          LDAPFutureResultImpl future = (LDAPFutureResultImpl) pendingRequest;
           if (future.getRequest() instanceof DeleteRequest)
           {
             future.setResultOrError(result);
@@ -322,12 +322,12 @@ public final class LDAPConnection extends
         }
       }
 
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
 
-      if (pendingRequest instanceof ExtendedResultFutureImpl<?>)
+      if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>)
       {
-        ExtendedResultFutureImpl<?> extendedFuture = ((ExtendedResultFutureImpl<?>) pendingRequest);
+        LDAPExtendedFutureResultImpl<?> extendedFuture = ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
         try
         {
           handleExtendedResult0(extendedFuture, result);
@@ -357,7 +357,7 @@ public final class LDAPConnection extends
     public void handleIntermediateResponse(int messageID,
         GenericIntermediateResponse response)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
@@ -365,10 +365,10 @@ public final class LDAPConnection extends
 
         // FIXME: intermediate responses can occur for all operations.
 
-        // if (pendingRequest instanceof ExtendedResultFutureImpl)
+        // if (pendingRequest instanceof LDAPExtendedFutureResultImpl)
         // {
-        // ExtendedResultFutureImpl extendedFuture =
-        // ((ExtendedResultFutureImpl) pendingRequest);
+        // LDAPExtendedFutureResultImpl extendedFuture =
+        // ((LDAPExtendedFutureResultImpl) pendingRequest);
         // ExtendedRequest request = extendedFuture.getRequest();
         //
         // try
@@ -400,13 +400,13 @@ public final class LDAPConnection extends
     @Override
     public void handleModifyDNResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof LDAPFutureResultImpl)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          LDAPFutureResultImpl future = (LDAPFutureResultImpl) pendingRequest;
           if (future.getRequest() instanceof ModifyDNRequest)
           {
             future.setResultOrError(result);
@@ -425,13 +425,13 @@ public final class LDAPConnection extends
     @Override
     public void handleModifyResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof ResultFutureImpl)
+        if (pendingRequest instanceof LDAPFutureResultImpl)
         {
-          ResultFutureImpl future = (ResultFutureImpl) pendingRequest;
+          LDAPFutureResultImpl future = (LDAPFutureResultImpl) pendingRequest;
           if (future.getRequest() instanceof ModifyRequest)
           {
             future.setResultOrError(result);
@@ -450,13 +450,13 @@ public final class LDAPConnection extends
     @Override
     public void handleSearchResult(int messageID, Result result)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .remove(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof LDAPSearchFutureResultImpl)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((LDAPSearchFutureResultImpl) pendingRequest)
               .setResultOrError(result);
         }
         else
@@ -475,13 +475,13 @@ public final class LDAPConnection extends
     public void handleSearchResultEntry(int messageID,
         SearchResultEntry entry)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof LDAPSearchFutureResultImpl)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((LDAPSearchFutureResultImpl) pendingRequest)
               .handleSearchResultEntry(entry);
         }
         else
@@ -500,13 +500,13 @@ public final class LDAPConnection extends
     public void handleSearchResultReference(int messageID,
         SearchResultReference reference)
     {
-      AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+      AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
           .get(messageID);
       if (pendingRequest != null)
       {
-        if (pendingRequest instanceof SearchResultFutureImpl)
+        if (pendingRequest instanceof LDAPSearchFutureResultImpl)
         {
-          ((SearchResultFutureImpl) pendingRequest)
+          ((LDAPSearchFutureResultImpl) pendingRequest)
               .handleSearchResultReference(reference);
         }
         else
@@ -658,7 +658,7 @@ public final class LDAPConnection extends
 
   private volatile int pendingBindOrStartTLS = -1;
 
-  private final ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>> pendingRequests = new ConcurrentHashMap<Integer, AbstractResultFutureImpl<?>>();
+  private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests = new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
 
   private final InetSocketAddress serverAddress;
 
@@ -697,7 +697,7 @@ public final class LDAPConnection extends
    */
   public void abandon(AbandonRequest request)
   {
-    AbstractResultFutureImpl<?> pendingRequest = pendingRequests
+    AbstractLDAPFutureResultImpl<?> pendingRequest = pendingRequests
         .remove(request.getMessageID());
     if (pendingRequest != null)
     {
@@ -751,7 +751,7 @@ public final class LDAPConnection extends
       ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+    LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID, request,
         handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -830,7 +830,7 @@ public final class LDAPConnection extends
       ResultHandler<? super BindResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    BindResultFutureImpl future = new BindResultFutureImpl(messageID,
+    LDAPBindFutureResultImpl future = new LDAPBindFutureResultImpl(messageID,
         request, handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -949,7 +949,7 @@ public final class LDAPConnection extends
       ResultHandler<? super CompareResult> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    CompareResultFutureImpl future = new CompareResultFutureImpl(
+    LDAPCompareFutureResultImpl future = new LDAPCompareFutureResultImpl(
         messageID, request, handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1007,7 +1007,7 @@ public final class LDAPConnection extends
       ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+    LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID, request,
         handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1065,7 +1065,7 @@ public final class LDAPConnection extends
       ExtendedRequest<R> request, ResultHandler<? super R> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ExtendedResultFutureImpl<R> future = new ExtendedResultFutureImpl<R>(
+    LDAPExtendedFutureResultImpl<R> future = new LDAPExtendedFutureResultImpl<R>(
         messageID, request, handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1142,7 +1142,7 @@ public final class LDAPConnection extends
       ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+    LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID, request,
         handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1200,7 +1200,7 @@ public final class LDAPConnection extends
       ResultHandler<Result> handler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    ResultFutureImpl future = new ResultFutureImpl(messageID, request,
+    LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID, request,
         handler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1275,7 +1275,7 @@ public final class LDAPConnection extends
       SearchResultHandler searchResulthandler)
   {
     int messageID = nextMsgID.getAndIncrement();
-    SearchResultFutureImpl future = new SearchResultFutureImpl(
+    LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(
         messageID, request, resultHandler, searchResulthandler, this);
     ASN1StreamWriter asn1Writer = connFactory
         .getASN1Writer(streamWriter);
@@ -1393,7 +1393,7 @@ public final class LDAPConnection extends
       }
 
       // First abort all outstanding requests.
-      for (AbstractResultFutureImpl<?> future : pendingRequests
+      for (AbstractLDAPFutureResultImpl<?> future : pendingRequests
           .values())
       {
         if (pendingBindOrStartTLS <= 0)
@@ -1561,7 +1561,7 @@ public final class LDAPConnection extends
 
   // Needed in order to expose type information.
   private <R extends Result> void handleExtendedResult0(
-      ExtendedResultFutureImpl<R> future, GenericExtendedResult result)
+      LDAPExtendedFutureResultImpl<R> future, GenericExtendedResult result)
       throws DecodeException
   {
     R decodedResponse = future.decodeResponse(result.getResultCode(),
@@ -1592,7 +1592,7 @@ public final class LDAPConnection extends
 
 
   private void handleIncorrectResponse(
-      AbstractResultFutureImpl<?> pendingRequest)
+      AbstractLDAPFutureResultImpl<?> pendingRequest)
   {
     // FIXME: I18N need to have a better error message.
     Result errorResult = Responses.newResult(

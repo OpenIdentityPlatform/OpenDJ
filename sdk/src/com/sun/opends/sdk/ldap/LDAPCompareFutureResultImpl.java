@@ -32,28 +32,25 @@ package com.sun.opends.sdk.ldap;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.FutureResult;
 import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.BindRequest;
-import org.opends.sdk.responses.BindResult;
+import org.opends.sdk.requests.CompareRequest;
+import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.sasl.SASLContext;
 
 
 
 /**
- * Bind result future implementation.
+ * Compare result future implementation.
  */
-final class BindResultFutureImpl extends
-    AbstractResultFutureImpl<BindResult> implements
-    FutureResult<BindResult>
+final class LDAPCompareFutureResultImpl extends
+    AbstractLDAPFutureResultImpl<CompareResult> implements
+    FutureResult<CompareResult>
 {
-  private final BindRequest request;
-
-  private SASLContext saslContext;
+  private final CompareRequest request;
 
 
 
-  BindResultFutureImpl(int messageID, BindRequest request,
-      ResultHandler<? super BindResult> handler,
+  LDAPCompareFutureResultImpl(int messageID, CompareRequest request,
+      ResultHandler<? super CompareResult> handler,
       LDAPConnection connection)
   {
     super(messageID, handler, connection);
@@ -65,32 +62,17 @@ final class BindResultFutureImpl extends
   /**
    * {@inheritDoc}
    */
-  @Override
-  BindResult newErrorResult(ResultCode resultCode,
+  CompareResult newErrorResult(ResultCode resultCode,
       String diagnosticMessage, Throwable cause)
   {
-    return Responses.newBindResult(resultCode).setDiagnosticMessage(
+    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
   }
 
 
 
-  BindRequest getRequest()
+  CompareRequest getRequest()
   {
     return request;
-  }
-
-
-
-  void setSASLContext(SASLContext saslContext)
-  {
-    this.saslContext = saslContext;
-  }
-
-
-
-  SASLContext getSASLContext()
-  {
-    return saslContext;
   }
 }

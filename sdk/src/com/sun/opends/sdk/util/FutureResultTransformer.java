@@ -55,7 +55,7 @@ public abstract class FutureResultTransformer<M, N> implements
 
   private final ResultHandler<? super N> handler;
 
-  private volatile FutureResult<M> future = null;
+  private volatile FutureResult<? extends M> future = null;
 
   // These do not need to be volatile since the future acts as a memory
   // barrier.
@@ -194,7 +194,7 @@ public abstract class FutureResultTransformer<M, N> implements
    * @param future
    *          The inner future.
    */
-  public final void setFutureResult(FutureResult<M> future)
+  public final void setFutureResult(FutureResult<? extends M> future)
   {
     this.future = future;
   }

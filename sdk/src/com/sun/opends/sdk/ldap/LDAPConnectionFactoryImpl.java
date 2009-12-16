@@ -33,17 +33,20 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import javax.net.ssl.SSLContext;
 
 import org.opends.sdk.*;
-import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.extensions.StartTLSRequest;
+import org.opends.sdk.ldap.LDAPConnectionOptions;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
+import com.sun.grizzly.CompletionHandler;
+import com.sun.grizzly.Connection;
 import com.sun.grizzly.TransportFactory;
 import com.sun.grizzly.attributes.Attribute;
 import com.sun.grizzly.filterchain.PatternFilterChainFactory;
@@ -53,6 +56,9 @@ import com.sun.grizzly.ssl.SSLEngineConfigurator;
 import com.sun.grizzly.ssl.SSLFilter;
 import com.sun.grizzly.ssl.SSLHandshaker;
 import com.sun.grizzly.streams.StreamWriter;
+import com.sun.opends.sdk.util.CompletedFutureResult;
+import com.sun.opends.sdk.util.FutureResultTransformer;
+import com.sun.opends.sdk.util.RecursiveFutureResult;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -69,7 +75,7 @@ public final class LDAPConnectionFactoryImpl extends
 
     @Override
     protected LDAPMessageHandler getMessageHandler(
-        com.sun.grizzly.Connection<?> connection)
+        Connection<?> connection)
     {
       return ldapConnectionAttr.get(connection).getLDAPMessageHandler();
     }
@@ -77,8 +83,7 @@ public final class LDAPConnectionFactoryImpl extends
 
 
     @Override
-    protected void removeMessageHandler(
-        com.sun.grizzly.Connection<?> connection)
+    protected void removeMessageHandler(Connection<?> connection)
     {
       ldapConnectionAttr.remove(connection);
     }
@@ -87,161 +92,96 @@ public final class LDAPConnectionFactoryImpl extends
 
 
 
-  private static class FailedImpl implements
-      FutureResult<AsynchronousConnection>
+  private final class FutureResultImpl implements
+      CompletionHandler<Connection>
   {
-    private volatile ErrorResultException exception;
+    private final FutureResultTransformer<Result, AsynchronousConnection> futureStartTLSResult;
+
+    private final RecursiveFutureResult<LDAPConnection, Result> futureConnectionResult;
+
+    private LDAPConnection connection;
 
 
 
-    private FailedImpl(ErrorResultException exception)
-    {
-      this.exception = exception;
-    }
-
-
-
-    public boolean cancel(boolean mayInterruptIfRunning)
-    {
-      return false;
-    }
-
-
-
-    public AsynchronousConnection get() throws InterruptedException,
-        ErrorResultException
-    {
-      throw exception;
-    }
-
-
-
-    public AsynchronousConnection get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException,
-        ErrorResultException
-    {
-      throw exception;
-    }
-
-
-
-    public boolean isCancelled()
-    {
-      return false;
-    }
-
-
-
-    public boolean isDone()
-    {
-      return false;
-    }
-
-
-
-    public int getRequestID()
-    {
-      return -1;
-    }
-  }
-
-
-
-  private class ResultFutureImpl implements
-      FutureResult<AsynchronousConnection>,
-      com.sun.grizzly.CompletionHandler<com.sun.grizzly.Connection>,
-      ResultHandler<Result>
-  {
-    private volatile AsynchronousConnection connection;
-
-    private volatile ErrorResultException exception;
-
-    private volatile Future<com.sun.grizzly.Connection> connectFuture;
-
-    private volatile FutureResult<?> sslFuture;
-
-    private final CountDownLatch latch = new CountDownLatch(1);
-
-    private final ResultHandler<? super AsynchronousConnection> handler;
-
-    private boolean cancelled;
-
-
-
-    private ResultFutureImpl(
+    private FutureResultImpl(
         ResultHandler<? super AsynchronousConnection> handler)
     {
-      this.handler = handler;
-    }
-
-
-
-    public boolean cancel(boolean mayInterruptIfRunning)
-    {
-      cancelled = connectFuture.cancel(mayInterruptIfRunning)
-          || sslFuture != null
-          && sslFuture.cancel(mayInterruptIfRunning);
-      if (cancelled)
+      this.futureStartTLSResult = new FutureResultTransformer<Result, AsynchronousConnection>(
+          handler)
       {
-        latch.countDown();
-      }
-      return cancelled;
-    }
+
+        protected ErrorResultException transformErrorResult(
+            ErrorResultException errorResult)
+        {
+          // Ensure that the connection is closed.
+          try
+          {
+            connection.close();
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+          return errorResult;
+        }
 
 
 
-    public AsynchronousConnection get() throws InterruptedException,
-        ErrorResultException
-    {
-      latch.await();
-      if (cancelled)
+        protected LDAPConnection transformResult(Result result)
+            throws ErrorResultException
+        {
+          return connection;
+        }
+
+      };
+
+      this.futureConnectionResult = new RecursiveFutureResult<LDAPConnection, Result>(
+          futureStartTLSResult)
       {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return connection;
-    }
 
+        protected FutureResult<? extends Result> chainResult(
+            LDAPConnection innerResult,
+            ResultHandler<? super Result> handler)
+            throws ErrorResultException
+        {
+          connection = innerResult;
 
+          if (options.getSSLContext() != null && options.useStartTLS())
+          {
+            StartTLSRequest startTLS = new StartTLSRequest(options
+                .getSSLContext());
+            return connection.extendedRequest(startTLS, handler);
+          }
 
-    public AsynchronousConnection get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException,
-        ErrorResultException
-    {
-      latch.await(timeout, unit);
-      if (cancelled)
-      {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return connection;
-    }
+          if (options.getSSLContext() != null)
+          {
+            try
+            {
+              connection.installFilter(sslFilter);
+              connection.performSSLHandshake(sslHandshaker,
+                  sslEngineConfigurator);
+            }
+            catch (ErrorResultException errorResult)
+            {
+              try
+              {
+                connection.close();
+                connection = null;
+              }
+              catch (Exception ignored)
+              {
+              }
+              throw errorResult;
+            }
+          }
 
+          handler.handleResult(null);
+          return new CompletedFutureResult<Result>((Result) null);
+        }
 
+      };
 
-    public boolean isCancelled()
-    {
-      return cancelled;
-    }
-
-
-
-    public boolean isDone()
-    {
-      return latch.getCount() == 0;
-    }
-
-
-
-    public int getRequestID()
-    {
-      return -1;
+      futureStartTLSResult.setFutureResult(futureConnectionResult);
     }
 
 
@@ -249,7 +189,7 @@ public final class LDAPConnectionFactoryImpl extends
     /**
      * {@inheritDoc}
      */
-    public void cancelled(com.sun.grizzly.Connection connection)
+    public void cancelled(Connection connection)
     {
       // Ignore this.
     }
@@ -259,54 +199,9 @@ public final class LDAPConnectionFactoryImpl extends
     /**
      * {@inheritDoc}
      */
-    public void completed(com.sun.grizzly.Connection connection,
-        com.sun.grizzly.Connection result)
+    public void completed(Connection connection, Connection result)
     {
-      LDAPConnection ldapConn = adaptConnection(connection);
-      this.connection = adaptConnection(connection);
-
-      if (options.getSSLContext() != null && options.useStartTLS())
-      {
-        StartTLSRequest startTLS = new StartTLSRequest(options
-            .getSSLContext());
-        sslFuture = this.connection.extendedRequest(startTLS, this);
-      }
-      else if (options.getSSLContext() != null)
-      {
-        try
-        {
-          ldapConn.installFilter(sslFilter);
-          ldapConn.performSSLHandshake(sslHandshaker,
-              sslEngineConfigurator);
-          latch.countDown();
-          if (handler != null)
-          {
-            handler.handleResult(this.connection);
-          }
-        }
-        catch (CancellationException ce)
-        {
-          // Handshake cancelled.
-          latch.countDown();
-        }
-        catch (ErrorResultException throwable)
-        {
-          exception = throwable;
-          latch.countDown();
-          if (handler != null)
-          {
-            handler.handleErrorResult(exception);
-          }
-        }
-      }
-      else
-      {
-        latch.countDown();
-        if (handler != null)
-        {
-          handler.handleResult(this.connection);
-        }
-      }
+      futureConnectionResult.handleResult(adaptConnection(connection));
     }
 
 
@@ -314,15 +209,10 @@ public final class LDAPConnectionFactoryImpl extends
     /**
      * {@inheritDoc}
      */
-    public void failed(com.sun.grizzly.Connection connection,
-        Throwable throwable)
+    public void failed(Connection connection, Throwable throwable)
     {
-      exception = adaptConnectionException(throwable);
-      latch.countDown();
-      if (handler != null)
-      {
-        handler.handleErrorResult(exception);
-      }
+      futureConnectionResult
+          .handleErrorResult(adaptConnectionException(throwable));
     }
 
 
@@ -330,36 +220,11 @@ public final class LDAPConnectionFactoryImpl extends
     /**
      * {@inheritDoc}
      */
-    public void updated(com.sun.grizzly.Connection connection,
-        com.sun.grizzly.Connection result)
+    public void updated(Connection connection, Connection result)
     {
       // Ignore this.
     }
 
-
-
-    // This is called when the StartTLS request is successful
-    public void handleResult(Result result)
-    {
-      latch.countDown();
-      if (handler != null)
-      {
-        handler.handleResult(connection);
-      }
-    }
-
-
-
-    // This is called when the StartTLS request is not successful
-    public void handleErrorResult(ErrorResultException error)
-    {
-      exception = error;
-      latch.countDown();
-      if (handler != null)
-      {
-        handler.handleErrorResult(exception);
-      }
-    }
   }
 
 
@@ -510,17 +375,18 @@ public final class LDAPConnectionFactoryImpl extends
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
       ResultHandler<? super AsynchronousConnection> handler)
   {
-    ResultFutureImpl future = new ResultFutureImpl(handler);
+    FutureResultImpl future = new FutureResultImpl(handler);
 
     try
     {
-      future.connectFuture = transport.connect(socketAddress, future);
-      return future;
+      future.futureConnectionResult.setFutureResult(transport.connect(
+          socketAddress, future));
+      return future.futureStartTLSResult;
     }
     catch (IOException e)
     {
       ErrorResultException result = adaptConnectionException(e);
-      return new FailedImpl(result);
+      return new CompletedFutureResult<AsynchronousConnection>(result);
     }
   }
 
@@ -583,8 +449,7 @@ public final class LDAPConnectionFactoryImpl extends
 
 
 
-  private LDAPConnection adaptConnection(
-      com.sun.grizzly.Connection<?> connection)
+  private LDAPConnection adaptConnection(Connection<?> connection)
   {
     // Test shows that its much faster with non block writes but risk
     // running out of memory if the server is slow.

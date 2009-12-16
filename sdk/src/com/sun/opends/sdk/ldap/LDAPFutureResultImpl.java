@@ -29,24 +29,27 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.ExtendedRequest;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.FutureResult;
+import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.Request;
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
 
 
 /**
- * Extended result future implementation.
+ * Result future implementation.
  */
-final class ExtendedResultFutureImpl<R extends Result> extends
-    AbstractResultFutureImpl<R> implements FutureResult<R>
+public final class LDAPFutureResultImpl extends
+    AbstractLDAPFutureResultImpl<Result> implements FutureResult<Result>
 {
-  private final ExtendedRequest<R> request;
+  private final Request request;
 
 
 
-  ExtendedResultFutureImpl(int messageID, ExtendedRequest<R> request,
-      ResultHandler<? super R> handler, LDAPConnection connection)
+  LDAPFutureResultImpl(int messageID, Request request,
+      ResultHandler<Result> handler, LDAPConnection connection)
   {
     super(messageID, handler, connection);
     this.request = request;
@@ -54,29 +57,20 @@ final class ExtendedResultFutureImpl<R extends Result> extends
 
 
 
-  R decodeResponse(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
-  {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        matchedDN, diagnosticMessage, responseName, responseValue);
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
-  R newErrorResult(ResultCode resultCode, String diagnosticMessage,
-      Throwable cause)
+  @Override
+  Result newErrorResult(ResultCode resultCode,
+      String diagnosticMessage, Throwable cause)
   {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        "", diagnosticMessage);
+    return Responses.newResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 
 
 
-  ExtendedRequest<R> getRequest()
+  Request getRequest()
   {
     return request;
   }

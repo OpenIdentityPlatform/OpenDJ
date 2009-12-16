@@ -41,12 +41,12 @@ import com.sun.opends.sdk.util.AbstractFutureResult;
 
 
 /**
- * Abstract result future implementation.
+ * Abstract future result implementation.
  *
  * @param <S>
  *          The type of result returned by this future.
  */
-abstract class AbstractResultFutureImpl<S extends Result> extends
+abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
     AbstractFutureResult<S> implements FutureResult<S>
 {
   private final LDAPConnection connection;
@@ -65,7 +65,7 @@ abstract class AbstractResultFutureImpl<S extends Result> extends
    * @param connection
    *          The client connection.
    */
-  AbstractResultFutureImpl(int messageID,
+  AbstractLDAPFutureResultImpl(int messageID,
       ResultHandler<? super S> handler, LDAPConnection connection)
   {
     super(handler);
@@ -78,7 +78,8 @@ abstract class AbstractResultFutureImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  protected final ErrorResultException handleCancelRequest()
+  protected final ErrorResultException handleCancelRequest(
+      boolean mayInterruptIfRunning)
   {
     connection.abandon(Requests.newAbandonRequest(messageID));
     return null;

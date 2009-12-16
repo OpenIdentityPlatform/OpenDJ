@@ -29,6 +29,7 @@ package com.sun.opends.sdk.util;
 
 
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -64,7 +65,15 @@ public abstract class RecursiveFutureResult<M, N> implements
 
     public int getRequestID()
     {
-      return innerFuture.getRequestID();
+      if (innerFuture instanceof FutureResult<?>)
+      {
+        FutureResult<?> tmp = (FutureResult<?>) innerFuture;
+        return tmp.getRequestID();
+      }
+      else
+      {
+        return -1;
+      }
     }
 
 
@@ -89,11 +98,11 @@ public abstract class RecursiveFutureResult<M, N> implements
 
   private final FutureResultImpl impl;
 
-  private volatile FutureResult<M> innerFuture = null;
+  private volatile Future<?> innerFuture = null;
 
   // This does not need to be volatile since the inner future acts as a
   // memory barrier.
-  private FutureResult<N> outerFuture = null;
+  private FutureResult<? extends N> outerFuture = null;
 
 
 
@@ -215,7 +224,7 @@ public abstract class RecursiveFutureResult<M, N> implements
    * @param future
    *          The inner future.
    */
-  public final void setFutureResult(FutureResult<M> future)
+  public final void setFutureResult(Future<?> future)
   {
     this.innerFuture = future;
   }
@@ -239,7 +248,7 @@ public abstract class RecursiveFutureResult<M, N> implements
    *           If the outer request could not be invoked and processing
    *           should terminate.
    */
-  protected FutureResult<N> chainErrorResult(
+  protected FutureResult<? extends N> chainErrorResult(
       ErrorResultException innerError, ResultHandler<? super N> handler)
       throws ErrorResultException
   {
@@ -261,7 +270,8 @@ public abstract class RecursiveFutureResult<M, N> implements
    *           If the outer request could not be invoked and processing
    *           should terminate.
    */
-  protected abstract FutureResult<N> chainResult(M innerResult,
-      ResultHandler<? super N> handler) throws ErrorResultException;
+  protected abstract FutureResult<? extends N> chainResult(
+      M innerResult, ResultHandler<? super N> handler)
+      throws ErrorResultException;
 
 }

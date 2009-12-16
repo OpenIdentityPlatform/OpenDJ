@@ -32,15 +32,12 @@ package org.opends.sdk;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
+import com.sun.opends.sdk.util.FutureResultTransformer;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -437,126 +434,37 @@ public class HeartBeatConnectionFactory extends
 
 
 
-  private final class ResultFutureImpl implements
-      FutureResult<AsynchronousConnection>,
+  private final class FutureResultImpl
+      extends
+      FutureResultTransformer<AsynchronousConnection, AsynchronousConnection>
+      implements FutureResult<AsynchronousConnection>,
       ResultHandler<AsynchronousConnection>
   {
-    private volatile AsynchronousConnectionImpl heartBeatConnection;
 
-    private volatile ErrorResultException exception;
-
-    private volatile FutureResult<?> connectFuture;
-
-    private final CountDownLatch latch = new CountDownLatch(1);
-
-    private final ResultHandler<? super AsynchronousConnectionImpl> handler;
-
-    private boolean cancelled;
-
-
-
-    private ResultFutureImpl(
-        ResultHandler<? super AsynchronousConnectionImpl> handler)
+    private FutureResultImpl(
+        ResultHandler<? super AsynchronousConnection> handler)
     {
-      this.handler = handler;
+      super(handler);
     }
 
 
 
-    public boolean cancel(boolean mayInterruptIfRunning)
+    /**
+     * {@inheritDoc}
+     */
+    protected AsynchronousConnection transformResult(
+        AsynchronousConnection connection) throws ErrorResultException
     {
-      cancelled = connectFuture.cancel(mayInterruptIfRunning);
-      if (cancelled)
-      {
-        latch.countDown();
-      }
-      return cancelled;
-    }
-
-
-
-    public AsynchronousConnectionImpl get()
-        throws InterruptedException, ErrorResultException
-    {
-      latch.await();
-      if (cancelled)
-      {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return heartBeatConnection;
-    }
-
-
-
-    public AsynchronousConnectionImpl get(long timeout, TimeUnit unit)
-        throws InterruptedException, TimeoutException,
-        ErrorResultException
-    {
-      latch.await(timeout, unit);
-      if (cancelled)
-      {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return heartBeatConnection;
-    }
-
-
-
-    public boolean isCancelled()
-    {
-      return cancelled;
-    }
-
-
-
-    public boolean isDone()
-    {
-      return latch.getCount() == 0;
-    }
-
-
-
-    public int getRequestID()
-    {
-      return -1;
-    }
-
-
-
-    public void handleResult(AsynchronousConnection connection)
-    {
-      heartBeatConnection = new AsynchronousConnectionImpl(connection);
+      AsynchronousConnectionImpl heartBeatConnection = new AsynchronousConnectionImpl(
+          connection);
       synchronized (activeConnections)
       {
         connection.addConnectionEventListener(heartBeatConnection);
         activeConnections.add(heartBeatConnection);
       }
-      if (handler != null)
-      {
-        handler.handleResult(heartBeatConnection);
-      }
-      latch.countDown();
+      return heartBeatConnection;
     }
 
-
-
-    public void handleErrorResult(ErrorResultException error)
-    {
-      exception = error;
-      if (handler != null)
-      {
-        handler.handleErrorResult(error);
-      }
-      latch.countDown();
-    }
   }
 
 
@@ -564,9 +472,9 @@ public class HeartBeatConnectionFactory extends
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
       ResultHandler<? super AsynchronousConnection> handler)
   {
-    ResultFutureImpl future = new ResultFutureImpl(handler);
-    future.connectFuture = parentFactory
-        .getAsynchronousConnection(future);
+    FutureResultImpl future = new FutureResultImpl(handler);
+    future.setFutureResult(parentFactory
+        .getAsynchronousConnection(future));
     return future;
   }
 }
