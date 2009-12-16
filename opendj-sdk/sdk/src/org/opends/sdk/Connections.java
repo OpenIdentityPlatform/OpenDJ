@@ -132,6 +132,7 @@ public final class Connections
    */
   public static ConnectionFactory<AsynchronousConnection> newHeartBeatConnectionFactory(
       ConnectionFactory<?> factory, long timeout, TimeUnit unit)
+      throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory, unit);
     Validator.ensureTrue(timeout >= 0, "negative timeout");
@@ -164,7 +165,8 @@ public final class Connections
    */
   public static ConnectionFactory<AsynchronousConnection> newHeartBeatConnectionFactory(
       ConnectionFactory<?> factory, long timeout, TimeUnit unit,
-      SearchRequest heartBeat) throws NullPointerException
+      SearchRequest heartBeat) throws IllegalArgumentException,
+      NullPointerException
   {
     Validator.ensureNotNull(factory, unit, heartBeat);
     Validator.ensureTrue(timeout >= 0, "negative timeout");
