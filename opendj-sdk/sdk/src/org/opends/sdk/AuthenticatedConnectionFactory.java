@@ -30,10 +30,6 @@ package org.opends.sdk;
 
 
 import java.util.Collection;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
@@ -42,6 +38,8 @@ import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.Schema;
 
+import com.sun.opends.sdk.util.FutureResultTransformer;
+import com.sun.opends.sdk.util.RecursiveFutureResult;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -108,13 +106,10 @@ public final class AuthenticatedConnectionFactory
     public FutureResult<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
         ResultHandler<? super AuthenticatedAsynchronousConnection> handler)
     {
-      // TODO: bug here? if allowRebind= false then bind will never
-      // happen
-      ResultFutureImpl future = new ResultFutureImpl(
-          allowRebinds ? request : null, handler);
-      future.connectFuture = parentFactory
-          .getAsynchronousConnection(future.connectionHandler);
-      return future;
+      FutureResultImpl future = new FutureResultImpl(request, handler);
+      future.futureConnectionResult.setFutureResult(parentFactory
+          .getAsynchronousConnection(future.futureConnectionResult));
+      return future.futureBindResult;
     }
 
 
@@ -560,169 +555,68 @@ public final class AuthenticatedConnectionFactory
 
 
 
-  private static final class ResultFutureImpl implements
-      FutureResult<AuthenticatedAsynchronousConnection>
+  private static final class FutureResultImpl
   {
-    private final class ConnectionResultHandler implements
-        ResultHandler<AsynchronousConnection>
-    {
-      public void handleResult(AsynchronousConnection conn)
-      {
-        connection = conn;
-        bindFuture = connection.bind(request, bindHandler);
-      }
+    private final FutureResultTransformer<BindResult, AuthenticatedAsynchronousConnection> futureBindResult;
+
+    private final RecursiveFutureResult<AsynchronousConnection, BindResult> futureConnectionResult;
+
+    private final BindRequest bindRequest;
+
+    private AsynchronousConnection connection;
 
 
 
-      public void handleErrorResult(ErrorResultException error)
-      {
-        exception = error;
-        latch.countDown();
-      }
-    }
-
-
-
-    private final class BindRequestResultHandler implements
-        ResultHandler<BindResult>
-    {
-      public void handleResult(BindResult result)
-      {
-        // FIXME: should make the result unmodifiable.
-        authenticatedConnection = new AuthenticatedAsynchronousConnection(
-            connection, request, result);
-        latch.countDown();
-        if (handler != null)
-        {
-          handler.handleResult(authenticatedConnection);
-        }
-      }
-
-
-
-      public void handleErrorResult(ErrorResultException error)
-      {
-        // Ensure that the connection is closed.
-        try
-        {
-          connection.close();
-        }
-        catch (Exception e)
-        {
-          // Ignore.
-        }
-
-        exception = error;
-        latch.countDown();
-        if (handler != null)
-        {
-          handler.handleErrorResult(exception);
-        }
-      }
-    }
-
-
-
-    private final ResultHandler<BindResult> bindHandler = new BindRequestResultHandler();
-
-    private final ResultHandler<AsynchronousConnection> connectionHandler = new ConnectionResultHandler();
-
-    private volatile AuthenticatedAsynchronousConnection authenticatedConnection;
-
-    private volatile AsynchronousConnection connection;
-
-    private volatile ErrorResultException exception;
-
-    private volatile FutureResult<?> connectFuture;
-
-    private volatile FutureResult<BindResult> bindFuture;
-
-    private final CountDownLatch latch = new CountDownLatch(1);
-
-    private final ResultHandler<? super AuthenticatedAsynchronousConnection> handler;
-
-    private boolean cancelled;
-
-    private final BindRequest request;
-
-
-
-    private ResultFutureImpl(
+    private FutureResultImpl(
         BindRequest request,
         ResultHandler<? super AuthenticatedAsynchronousConnection> handler)
     {
-      this.request = request;
-      this.handler = handler;
-    }
-
-
-
-    public boolean cancel(boolean mayInterruptIfRunning)
-    {
-      cancelled = connectFuture.cancel(mayInterruptIfRunning)
-          || bindFuture != null
-          && bindFuture.cancel(mayInterruptIfRunning);
-      if (cancelled)
+      this.bindRequest = request;
+      this.futureBindResult = new FutureResultTransformer<BindResult, AuthenticatedAsynchronousConnection>(
+          handler)
       {
-        latch.countDown();
-      }
-      return cancelled;
-    }
+
+        protected ErrorResultException transformErrorResult(
+            ErrorResultException errorResult)
+        {
+          // Ensure that the connection is closed.
+          try
+          {
+            connection.close();
+            connection = null;
+          }
+          catch (Exception e)
+          {
+            // Ignore.
+          }
+          return errorResult;
+        }
 
 
 
-    public AuthenticatedAsynchronousConnection get()
-        throws InterruptedException, ErrorResultException
-    {
-      latch.await();
-      if (cancelled)
+        protected AuthenticatedAsynchronousConnection transformResult(
+            BindResult result) throws ErrorResultException
+        {
+          // FIXME: should make the result unmodifiable.
+          return new AuthenticatedAsynchronousConnection(connection,
+              bindRequest, result);
+        }
+
+      };
+      this.futureConnectionResult = new RecursiveFutureResult<AsynchronousConnection, BindResult>(
+          futureBindResult)
       {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return authenticatedConnection;
-    }
 
-
-
-    public AuthenticatedAsynchronousConnection get(long timeout,
-        TimeUnit unit) throws InterruptedException, TimeoutException,
-        ErrorResultException
-    {
-      latch.await(timeout, unit);
-      if (cancelled)
-      {
-        throw new CancellationException();
-      }
-      if (exception != null)
-      {
-        throw exception;
-      }
-      return authenticatedConnection;
-    }
-
-
-
-    public boolean isCancelled()
-    {
-      return cancelled;
-    }
-
-
-
-    public boolean isDone()
-    {
-      return latch.getCount() == 0;
-    }
-
-
-
-    public int getRequestID()
-    {
-      return -1;
+        protected FutureResult<? extends BindResult> chainResult(
+            AsynchronousConnection innerResult,
+            ResultHandler<? super BindResult> handler)
+            throws ErrorResultException
+        {
+          connection = innerResult;
+          return connection.bind(bindRequest, handler);
+        }
+      };
+      futureBindResult.setFutureResult(futureConnectionResult);
     }
 
   }

@@ -29,27 +29,24 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.Request;
-import org.opends.sdk.responses.Responses;
+import org.opends.sdk.*;
+import org.opends.sdk.requests.ExtendedRequest;
 import org.opends.sdk.responses.Result;
 
 
 
 /**
- * Result future implementation.
+ * Extended result future implementation.
  */
-public final class ResultFutureImpl extends
-    AbstractResultFutureImpl<Result> implements FutureResult<Result>
+final class LDAPExtendedFutureResultImpl<R extends Result> extends
+    AbstractLDAPFutureResultImpl<R> implements FutureResult<R>
 {
-  private final Request request;
+  private final ExtendedRequest<R> request;
 
 
 
-  ResultFutureImpl(int messageID, Request request,
-      ResultHandler<Result> handler, LDAPConnection connection)
+  LDAPExtendedFutureResultImpl(int messageID, ExtendedRequest<R> request,
+      ResultHandler<? super R> handler, LDAPConnection connection)
   {
     super(messageID, handler, connection);
     this.request = request;
@@ -57,20 +54,29 @@ public final class ResultFutureImpl extends
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  Result newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  R decodeResponse(ResultCode resultCode, String matchedDN,
+      String diagnosticMessage, String responseName,
+      ByteString responseValue) throws DecodeException
   {
-    return Responses.newResult(resultCode).setDiagnosticMessage(
-        diagnosticMessage).setCause(cause);
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        matchedDN, diagnosticMessage, responseName, responseValue);
   }
 
 
 
-  Request getRequest()
+  /**
+   * {@inheritDoc}
+   */
+  R newErrorResult(ResultCode resultCode, String diagnosticMessage,
+      Throwable cause)
+  {
+    return request.getExtendedOperation().decodeResponse(resultCode,
+        "", diagnosticMessage);
+  }
+
+
+
+  ExtendedRequest<R> getRequest()
   {
     return request;
   }
