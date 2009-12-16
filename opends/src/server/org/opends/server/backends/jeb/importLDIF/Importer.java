@@ -781,9 +781,9 @@ public class Importer
       long finishTime = System.currentTimeMillis();
       long importTime = (finishTime - startTime);
       float rate = 0;
-      message = NOTE_JEB_IMPORT_PHASE_STATS.get(importTime,
-                        (phaseOneFinishTime - startTime),
-                        (phaseTwoFinishTime - phaseTwoTime));
+      message = NOTE_JEB_IMPORT_PHASE_STATS.get(importTime/1000,
+                        (phaseOneFinishTime - startTime)/1000,
+                        (phaseTwoFinishTime - phaseTwoTime)/1000);
       logError(message);
       if (importTime > 0)
         rate = 1000f * reader.getEntriesRead() / importTime;
@@ -931,16 +931,14 @@ public class Importer
 
   private int getBufferCount(int dbThreads)
   {
-    int c = 0;
     int buffers = 0;
-    //Count DN buffers first, since they are processed first.
-    while(c < DNIndexMgrList.size() && c < dbThreads)
+
+    List<IndexManager> totList = new LinkedList<IndexManager>(DNIndexMgrList);
+    totList.addAll(indexMgrList);
+    Collections.sort(totList, Collections.reverseOrder());
+    for(int i = 0; i < dbThreads; i ++)
     {
-      buffers += DNIndexMgrList.get(c++).getBufferList().size();
-    }
-    while(c < indexMgrList.size() && c < dbThreads)
-    {
-      buffers += indexMgrList.get(c++).getBufferList().size();
+      buffers += totList.get(i).getBufferList().size();
     }
     return buffers;
   }
@@ -2850,7 +2848,7 @@ public class Importer
    *
    *   3. It manages opening and closing the scratch index files.
    */
-  private final class IndexManager
+  private final class IndexManager implements Comparable<IndexManager>
   {
     private final File file;
     private RandomAccessFile rFile = null;
@@ -2984,6 +2982,23 @@ public class Importer
     public int getLimit()
     {
       return limit;
+    }
+
+
+    public int compareTo(IndexManager mgr)
+    {
+      if(bufferList.size() == mgr.getBufferList().size())
+      {
+         return 0;
+      }
+      else if (bufferList.size() < mgr.getBufferList().size())
+      {
+        return -1;
+      }
+      else
+      {
+        return 1;
+      }
     }
   }
 
