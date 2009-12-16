@@ -48,7 +48,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * A simple connection pool implementation.
  */
-public final class ConnectionPool extends
+final class ConnectionPool extends
     AbstractConnectionFactory<AsynchronousConnection>
 {
   private final ConnectionFactory<?> connectionFactory;
@@ -499,15 +499,14 @@ public final class ConnectionPool extends
   /**
    * Creates a new connection pool which will maintain {@code poolSize}
    * connections created using the provided connection factory.
-   * 
+   *
    * @param connectionFactory
    *          The connection factory to use for creating new
    *          connections.
    * @param poolSize
    *          The maximum size of the connection pool.
    */
-  public ConnectionPool(ConnectionFactory<?> connectionFactory,
-      int poolSize)
+  ConnectionPool(ConnectionFactory<?> connectionFactory, int poolSize)
   {
     this.connectionFactory = connectionFactory;
     this.poolSize = poolSize;

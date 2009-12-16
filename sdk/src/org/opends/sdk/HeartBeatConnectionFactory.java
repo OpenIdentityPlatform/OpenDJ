@@ -32,13 +32,13 @@ package org.opends.sdk;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.FutureResultTransformer;
-import com.sun.opends.sdk.util.Validator;
 
 
 
@@ -46,12 +46,12 @@ import com.sun.opends.sdk.util.Validator;
  * An heart beat connection factory can be used to create connections
  * that sends a periodic search request to a Directory Server.
  */
-public class HeartBeatConnectionFactory extends
+final class HeartBeatConnectionFactory extends
     AbstractConnectionFactory<AsynchronousConnection>
 {
   private final SearchRequest heartBeat;
 
-  private final int interval;
+  private final long interval;
 
   private final List<AsynchronousConnectionImpl> activeConnections;
 
@@ -63,8 +63,6 @@ public class HeartBeatConnectionFactory extends
 
   // FIXME: use a single global scheduler?
 
-  // FIXME: change timeout parameters to long+TimeUnit.
-
   /**
    * Creates a new heart-beat connection factory which will create
    * connections using the provided connection factory and periodically
@@ -73,13 +71,15 @@ public class HeartBeatConnectionFactory extends
    *
    * @param connectionFactory
    *          The connection factory to use for creating connections.
-   * @param interval
-   *          The period between keepalive pings.
+   * @param timeout
+   *          The time to wait between keepalive pings.
+   * @param unit
+   *          The time unit of the timeout argument.
    */
-  public HeartBeatConnectionFactory(
-      ConnectionFactory<?> connectionFactory, int interval)
+  HeartBeatConnectionFactory(ConnectionFactory<?> connectionFactory,
+      long timeout, TimeUnit unit)
   {
-    this(connectionFactory, DEFAULT_SEARCH, interval);
+    this(connectionFactory, timeout, unit, DEFAULT_SEARCH);
   }
 
 
@@ -98,18 +98,18 @@ public class HeartBeatConnectionFactory extends
    *
    * @param connectionFactory
    *          The connection factory to use for creating connections.
+   * @param timeout
+   *          The time to wait between keepalive pings.
+   * @param unit
+   *          The time unit of the timeout argument.
    * @param heartBeat
    *          The search request to use when pinging connections.
-   * @param interval
-   *          The period between keepalive pings.
    */
-  public HeartBeatConnectionFactory(
-      ConnectionFactory<?> connectionFactory, SearchRequest heartBeat,
-      int interval)
+  HeartBeatConnectionFactory(ConnectionFactory<?> connectionFactory,
+      long timeout, TimeUnit unit, SearchRequest heartBeat)
   {
-    Validator.ensureNotNull(connectionFactory, heartBeat);
     this.heartBeat = heartBeat;
-    this.interval = interval;
+    this.interval = unit.toMillis(timeout);
     this.activeConnections = new LinkedList<AsynchronousConnectionImpl>();
     this.parentFactory = connectionFactory;
 
