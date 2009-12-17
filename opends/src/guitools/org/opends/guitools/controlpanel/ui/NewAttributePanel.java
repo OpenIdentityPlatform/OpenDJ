@@ -37,15 +37,12 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingException;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -56,12 +53,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
-import org.opends.guitools.controlpanel.task.OnlineUpdateException;
-import org.opends.guitools.controlpanel.task.SchemaTask;
+import org.opends.guitools.controlpanel.event.
+ ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.task.NewSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import
@@ -78,18 +74,8 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.CommonSchemaElements;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.OpenDsException;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -207,22 +193,39 @@ public class NewAttributePanel extends StatusGenericPanel
     final boolean[] repack = {firstSchema};
     final boolean[] error = {false};
 
-    if (s != null)
+    boolean schemaChanged;
+    if (schema != null && s != null)
+    {
+      schemaChanged = !ServerDescriptor.areSchemasEqual(s, schema);
+    }
+    else if (schema == null && s != null)
+    {
+      schemaChanged = true;
+    }
+    else if (s == null && schema != null)
+    {
+      schemaChanged = false;
+    }
+    else
+    {
+      schemaChanged = false;
+    }
+    if (schemaChanged)
     {
       schema = s;
 
-     HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<String,
-     AttributeSyntax<?>>();
-     for (String key : schema.getSyntaxes().keySet())
-     {
-       AttributeSyntax<?> syntax = schema.getSyntax(key);
-       String name = syntax.getSyntaxName();
-       if (name == null)
-       {
-         name = syntax.getOID();
-       }
-       syntaxNameMap.put(name, syntax);
-     }
+      HashMap<String, AttributeSyntax<?>> syntaxNameMap = new HashMap<String,
+      AttributeSyntax<?>>();
+      for (String key : schema.getSyntaxes().keySet())
+      {
+        AttributeSyntax<?> syntax = schema.getSyntax(key);
+        String name = syntax.getSyntaxName();
+        if (name == null)
+        {
+          name = syntax.getOID();
+        }
+        syntaxNameMap.put(name, syntax);
+      }
 
       SortedSet<String> orderedKeys =
         new TreeSet<String>(syntaxNameMap.keySet());
@@ -310,7 +313,7 @@ public class NewAttributePanel extends StatusGenericPanel
         updateComboBoxModel(el, model);
       }
     }
-    else
+    else if (schema == null)
     {
       updateErrorPane(errorPane,
           ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(),
@@ -383,10 +386,12 @@ public class NewAttributePanel extends StatusGenericPanel
     if (n.length() == 0)
     {
       errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_REQUIRED.get());
+      setPrimaryInvalid(lName);
     }
     else if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
     {
       errors.add(ERR_CTRL_PANEL_INVALID_ATTRIBUTE_NAME.get(err.toString()));
+      setPrimaryInvalid(lName);
       err = new MessageBuilder();
     }
     else
@@ -396,6 +401,7 @@ public class NewAttributePanel extends StatusGenericPanel
       {
         errors.add(ERR_CTRL_PANEL_ATTRIBUTE_NAME_ALREADY_IN_USE.get(n,
             elementType.toString()));
+        setPrimaryInvalid(lName);
       }
     }
 
@@ -405,6 +411,7 @@ public class NewAttributePanel extends StatusGenericPanel
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
       {
         errors.add(ERR_CTRL_PANEL_OID_NOT_VALID.get(err.toString()));
+        setPrimaryInvalid(lOID);
         err = new MessageBuilder();
       }
       else
@@ -414,6 +421,7 @@ public class NewAttributePanel extends StatusGenericPanel
         {
           errors.add(ERR_CTRL_PANEL_OID_ALREADY_IN_USE.get(n,
               elementType.toString()));
+          setPrimaryInvalid(lOID);
         }
       }
     }
@@ -428,6 +436,7 @@ public class NewAttributePanel extends StatusGenericPanel
           if (alias.trim().length() == 0)
           {
             errors.add(ERR_CTRL_PANEL_EMPTY_ALIAS.get());
+            setPrimaryInvalid(lAliases);
           }
           else
           {
@@ -436,9 +445,20 @@ public class NewAttributePanel extends StatusGenericPanel
             {
               errors.add(ERR_CTRL_PANEL_ALIAS_ALREADY_IN_USE.get(n,
                   elementType.toString()));
+              setPrimaryInvalid(lAliases);
             }
           }
         }
+      }
+    }
+
+    setPrimaryValid(lUsage);
+    if (nonModifiable.isSelected())
+    {
+      if (AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
+      {
+        errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
+        setPrimaryInvalid(lUsage);
       }
     }
 
@@ -446,13 +466,22 @@ public class NewAttributePanel extends StatusGenericPanel
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get(), getInfo());
-    NewAttributeTask newTask = null;
+    NewSchemaElementsTask newTask = null;
     if (errors.size() == 0)
     {
-      newTask = new NewAttributeTask(getInfo(), dlg);
+      LinkedHashSet<AttributeType> attributes =
+        new LinkedHashSet<AttributeType>();
+      attributes.add(getAttribute());
+      LinkedHashSet<ObjectClass> ocs = new LinkedHashSet<ObjectClass>(0);
+      newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, attributes);
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
+      }
+      for (ConfigurationElementCreatedListener listener :
+        getConfigurationElementCreatedListeners())
+      {
+        newTask.addConfigurationElementCreatedListener(listener);
       }
     }
     if (errors.size() == 0)
@@ -834,11 +863,17 @@ public class NewAttributePanel extends StatusGenericPanel
     return map;
   }
 
+  private String getDescription()
+  {
+    return description.getText().trim();
+  }
+
   private AttributeType getAttribute()
   {
     AttributeType attr = new AttributeType("", getAttributeName(),
         getAllNames(),
-        getOID(), description.getText().trim(),
+        getOID(),
+        getDescription(),
         getSuperior(),
         (AttributeSyntax<?>)syntax.getSelectedItem(),
         getApproximateMatchingRule(),
@@ -851,229 +886,5 @@ public class NewAttributePanel extends StatusGenericPanel
         getExtraProperties());
 
     return attr;
-  }
-
-  /**
-   * The task in charge of creating the attribute.
-   *
-   */
-  protected class NewAttributeTask extends SchemaTask
-  {
-    private AttributeType attribute;
-    private String attributeName;
-    private String attributeDefinition;
-    private String attributeWithoutFileDefinition;
-
-    /**
-     * The constructor of the task.
-     * @param info the control panel info.
-     * @param dlg the progress dialog that shows the progress of the task.
-     */
-    public NewAttributeTask(ControlPanelInfo info, ProgressDialog dlg)
-    {
-      super(info, dlg);
-      attributeName = getAttributeName();
-      attributeDefinition = attribute.toString();
-      AttributeType attr = getAttribute();
-      attr.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME,
-          (String)null);
-      attributeWithoutFileDefinition = attr.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Type getType()
-    {
-      return Type.NEW_ATTRIBUTE;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected CommonSchemaElements getSchemaElement()
-    {
-      if (attribute == null)
-      {
-        attribute = getAttribute();
-      }
-      return attribute;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Message getTaskDescription()
-    {
-      return INFO_CTRL_PANEL_NEW_ATTRIBUTE_TASK_DESCRIPTION.get(attributeName);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected String getSchemaFileAttributeName()
-    {
-      return "attributeTypes";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected String getSchemaFileAttributeValue()
-    {
-      if (isServerRunning())
-      {
-        return attributeDefinition;
-      }
-      else
-      {
-        return attributeWithoutFileDefinition;
-      }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected void updateSchema() throws OpenDsException
-    {
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        public void run()
-        {
-          printEquivalentCommandToAdd();
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(
-                      attributeName),
-                  ColorAndFontConstants.progressFont));
-        }
-      });
-
-      if (isServerRunning())
-      {
-        try
-        {
-          BasicAttribute attr =
-            new BasicAttribute(getSchemaFileAttributeName());
-          attr.add(getSchemaFileAttributeValue());
-          ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE,
-              attr);
-          getInfo().getDirContext().modifyAttributes(
-              ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-              new ModificationItem[]  { mod });
-        }
-        catch (NamingException ne)
-        {
-          throw new OnlineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne.toString()), ne);
-        }
-      }
-      else
-      {
-        updateSchemaFile();
-      }
-      notifyConfigurationElementCreated(attribute);
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        public void run()
-        {
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont));
-        }
-      });
-    }
-
-    /**
-     * Updates the contents of the schema file.
-     * @throws OpenDsException if an error occurs updating the schema file.
-     */
-    private void updateSchemaFile() throws OpenDsException
-    {
-      if (isSchemaFileDefined)
-      {
-        LDIFExportConfig exportConfig =
-          new LDIFExportConfig(schemaFile,
-                               ExistingFileBehavior.OVERWRITE);
-        LDIFReader reader = null;
-        Entry schemaEntry = null;
-        try
-        {
-          reader = new LDIFReader(new LDIFImportConfig(schemaFile));
-          schemaEntry = reader.readEntry();
-
-          Modification mod = new Modification(ModificationType.ADD,
-              Attributes.create(getSchemaFileAttributeName().toLowerCase(),
-                  getSchemaFileAttributeValue()));
-          schemaEntry.applyModification(mod);
-          LDIFWriter writer = new LDIFWriter(exportConfig);
-          writer.writeEntry(schemaEntry);
-          exportConfig.getWriter().newLine();
-        }
-        catch (Throwable t)
-        {
-        }
-        finally
-        {
-          if (reader != null)
-          {
-            try
-            {
-              reader.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-          if (exportConfig != null)
-          {
-            try
-            {
-              exportConfig.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-        }
-      }
-      else
-      {
-        LDIFExportConfig exportConfig =
-          new LDIFExportConfig(schemaFile,
-                               ExistingFileBehavior.FAIL);
-        try
-        {
-          ArrayList<String> lines = getSchemaEntryLines();
-          for (String line : lines)
-          {
-            LDIFWriter.writeLDIFLine(new StringBuilder(line),
-                exportConfig.getWriter(), exportConfig.getWrapColumn() > 1,
-                exportConfig.getWrapColumn());
-          }
-          exportConfig.getWriter().newLine();
-        }
-        catch (Throwable t)
-        {
-          throw new OfflineUpdateException(
-              ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(t.toString()), t);
-        }
-        finally
-        {
-          if (exportConfig != null)
-          {
-            try
-            {
-              exportConfig.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-        }
-      }
-    }
   }
 }

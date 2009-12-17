@@ -45,6 +45,9 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
+import org.opends.guitools.controlpanel.event.
+ ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.PrintStreamListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -150,21 +153,17 @@ public abstract class Task
      */
     JAVA_SETTINGS_UPDATE,
     /**
-     * Creating a new attribute in the schema.
+     * Creating a new element in the schema.
      */
-    NEW_ATTRIBUTE,
+    NEW_SCHEMA_ELEMENT,
     /**
-     * Creating a new objectclass in the schema.
+     * Deleting an schema element.
      */
-    NEW_OBJECTCLASS,
+    DELETE_SCHEMA_ELEMENT,
     /**
-     * Deleting an attribute in the schema.
+     * Modify an schema element.
      */
-    DELETE_ATTRIBUTE,
-    /**
-     * Deleting an objectclass in the schema.
-     */
-    DELETE_OBJECTCLASS,
+    MODIFY_SCHEMA_ELEMENT,
     /**
      * Modifying an entry.
      */
@@ -268,6 +267,9 @@ public abstract class Task
   private ServerDescriptor server;
 
   private ProgressDialog progressDialog;
+
+  private ArrayList<ConfigurationElementCreatedListener> confListeners =
+    new ArrayList<ConfigurationElementCreatedListener>();
 
   private static int MAX_BINARY_LENGTH_TO_DISPLAY = 1024;
 
@@ -422,6 +424,40 @@ public abstract class Task
    * @return the description of the task.
    */
   public abstract Message getTaskDescription();
+
+  /**
+   * Adds a configuration element created listener.
+   * @param listener the listener.
+   */
+  public void addConfigurationElementCreatedListener(
+      ConfigurationElementCreatedListener listener)
+  {
+    confListeners.add(listener);
+  }
+
+  /**
+   * Removes a configuration element created listener.
+   * @param listener the listener.
+   */
+  public void removeConfigurationElementCreatedListener(
+      ConfigurationElementCreatedListener listener)
+  {
+    confListeners.remove(listener);
+  }
+
+  /**
+   * Notifies the configuration element created listener that a new object has
+   * been created.
+   * @param configObject the created object.
+   */
+  protected void notifyConfigurationElementCreated(Object configObject)
+  {
+    for (ConfigurationElementCreatedListener listener : confListeners)
+    {
+      listener.elementCreated(
+          new ConfigurationElementCreatedEvent(this, configObject));
+    }
+  }
 
   /**
    * Returns a String representation of a value.  In general this is called

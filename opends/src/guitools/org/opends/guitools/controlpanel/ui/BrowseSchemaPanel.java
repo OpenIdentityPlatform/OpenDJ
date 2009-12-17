@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -86,6 +87,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
@@ -518,6 +520,14 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         selectElementUnder(root, element, model);
       }
     });
+    entryPane.addConfigurationElementCreatedListener(
+        new ConfigurationElementCreatedListener()
+        {
+          public void elementCreated(ConfigurationElementCreatedEvent ev)
+          {
+            configurationElementCreated(ev);
+          }
+        });
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
@@ -632,32 +642,49 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     final boolean forceScroll = lastSchema == null;
-    if ((lastSchema == null) ||
-        !ServerDescriptor.areSchemasEqual(lastSchema, desc.getSchema())||
-        true)
+    Schema schema = desc.getSchema();
+    boolean schemaChanged;
+    if (schema != null && lastSchema != null)
     {
-      lastSchema = desc.getSchema();
-      if (lastSchema != null)
+      schemaChanged = !ServerDescriptor.areSchemasEqual(lastSchema, schema);
+    }
+    else if (schema == null && lastSchema != null)
+    {
+      schemaChanged = false;
+    }
+    else if (lastSchema == null && schema != null)
+    {
+      schemaChanged = true;
+    }
+    else
+    {
+      schemaChanged = false;
+    }
+    if (schemaChanged)
+    {
+      lastSchema = schema;
+      SwingUtilities.invokeLater(new Runnable()
       {
-        SwingUtilities.invokeLater(new Runnable()
+        public void run()
         {
-          public void run()
+          repopulateTree(treePane.getTree(), forceScroll);
+          if (errorPane.isVisible())
           {
-            repopulateTree(treePane.getTree(), forceScroll);
+            errorPane.setVisible(false);
           }
-        });
-      }
-      else
-      {
-        updateErrorPane(errorPane,
-            ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(),
-            ColorAndFontConstants.errorTitleFont,
-            ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get(),
-            ColorAndFontConstants.defaultFont);
-        if (!errorPane.isVisible())
-        {
-          errorPane.setVisible(true);
         }
+      });
+    }
+    else if (lastSchema == null)
+    {
+      updateErrorPane(errorPane,
+          ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(),
+          ColorAndFontConstants.errorTitleFont,
+          ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get(),
+          ColorAndFontConstants.defaultFont);
+      if (!errorPane.isVisible())
+      {
+        errorPane.setVisible(true);
       }
     }
   }
@@ -1099,8 +1126,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       else if (node instanceof CustomObjectClassTreeNode)
       {
-        entryPane.updateCustomObjectClass(
-            ((CustomObjectClassTreeNode)node).getObjectClass(), lastSchema);
+        ObjectClass oc = ((CustomObjectClassTreeNode)node).getObjectClass();
+        entryPane.updateCustomObjectClass(oc, lastSchema);
       }
       else if (node instanceof StandardAttributeTreeNode)
       {
@@ -1114,8 +1141,8 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       else if (node instanceof CustomAttributeTreeNode)
       {
-        entryPane.updateCustomAttribute(
-            ((CustomAttributeTreeNode)node).getAttribute(), lastSchema);
+        AttributeType attr = ((CustomAttributeTreeNode)node).getAttribute();
+        entryPane.updateCustomAttribute(attr, lastSchema);
       }
       else if (node instanceof MatchingRuleTreeNode)
       {
@@ -1248,146 +1275,20 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     }
 
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    ArrayList<String> ocNames = new ArrayList<String>();
-    ArrayList<String> attrNames = new ArrayList<String>();
-    if (schema != null)
-    {
-//    Analyze objectClasses
-      for (ObjectClass objectClass : ocsToDelete)
-      {
-        ArrayList<ObjectClass> childClasses = new ArrayList<ObjectClass>();
-        for (ObjectClass o : schema.getObjectClasses().values())
-        {
-          if (objectClass.equals(o.getSuperiorClass()))
-          {
-            childClasses.add(o);
-          }
-        }
-        childClasses.removeAll(ocsToDelete);
-        if (!childClasses.isEmpty())
-        {
-          ArrayList<String> childNames = new ArrayList<String>();
-          for (ObjectClass oc : childClasses)
-          {
-            childNames.add(oc.getNameOrOID());
-          }
-          String ocName = objectClass.getNameOrOID();
-          errors.add(ERR_CANNOT_DELETE_PARENT_OBJECTCLASS.get(ocName,
-              Utilities.getStringFromCollection(childNames, ", "), ocName));
-        }
-        ocNames.add(objectClass.getNameOrOID());
-      }
-//    Analyze attributes
-      for (AttributeType attribute : attrsToDelete)
-      {
-        String attrName = attribute.getNameOrOID();
-        ArrayList<AttributeType> childAttributes =
-          new ArrayList<AttributeType>();
-        for (AttributeType attr : schema.getAttributeTypes().values())
-        {
-          if (attribute.equals(attr.getSuperiorType()))
-          {
-            childAttributes.add(attr);
-          }
-        }
-        childAttributes.removeAll(attrsToDelete);
-        if (!childAttributes.isEmpty())
-        {
-          ArrayList<String> childNames = new ArrayList<String>();
-          for (AttributeType attr : childAttributes)
-          {
-            childNames.add(attr.getNameOrOID());
-          }
-          errors.add(ERR_CANNOT_DELETE_PARENT_ATTRIBUTE.get(attrName,
-              Utilities.getStringFromCollection(childNames, ", "), attrName));
-        }
-
-        ArrayList<String> dependentClasses = new ArrayList<String>();
-        for (ObjectClass o : schema.getObjectClasses().values())
-        {
-          if (o.getRequiredAttributeChain().contains(attribute))
-          {
-            dependentClasses.add(o.getNameOrOID());
-          }
-        }
-        dependentClasses.removeAll(ocsToDelete);
-        if (!dependentClasses.isEmpty())
-        {
-          errors.add(ERR_CANNOT_DELETE_ATTRIBUTE_WITH_DEPENDENCIES.get(
-              attrName,
-              Utilities.getStringFromCollection(dependentClasses, ", "),
-              attrName));
-        }
-        attrNames.add(attribute.getNameOrOID());
-      }
-    }
-    else
+    if (schema == null)
     {
       errors.add(ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get());
     }
     if (errors.isEmpty())
     {
-      // Reorder objectClasses and attributes to delete them in the proper
-      // order.
-      ArrayList<ObjectClass> orderedObjectClasses =
-        new ArrayList<ObjectClass>();
-      for (ObjectClass oc : ocsToDelete)
-      {
-        int index = -1;
-        for (int i=0; i<orderedObjectClasses.size(); i++)
-        {
-          ObjectClass parent = orderedObjectClasses.get(i).getSuperiorClass();
-          while ((parent != null) && (index == -1))
-          {
-            if (parent.equals(oc))
-            {
-              index = i+1;
-            }
-            else
-            {
-              parent = parent.getSuperiorClass();
-            }
-          }
-        }
-        if (index == -1)
-        {
-          orderedObjectClasses.add(oc);
-        }
-        else
-        {
-          orderedObjectClasses.add(index, oc);
-        }
-      }
+      Message confirmationMessage =
+        getConfirmationMessage(ocsToDelete, attrsToDelete, schema);
 
-      ArrayList<AttributeType> orderedAttributes =
-        new ArrayList<AttributeType>();
-      for (AttributeType attr : attrsToDelete)
-      {
-        int index = -1;
-        for (int i=0; i<orderedAttributes.size(); i++)
-        {
-          AttributeType parent = orderedAttributes.get(i).getSuperiorType();
-          while ((parent != null) && (index == -1))
-          {
-            if (parent.equals(attr))
-            {
-              index = i+1;
-            }
-            else
-            {
-              parent = parent.getSuperiorType();
-            }
-          }
-        }
-        if (index == -1)
-        {
-          orderedAttributes.add(attr);
-        }
-        else
-        {
-          orderedAttributes.add(index, attr);
-        }
-      }
+      LinkedHashSet<AttributeType> orderedAttributes =
+        getOrderedAttributesToDelete(attrsToDelete);
+      LinkedHashSet<ObjectClass> orderedObjectClasses =
+        getOrderedObjectClassesToDelete(ocsToDelete);
+
       Message title;
       if (orderedAttributes.isEmpty())
       {
@@ -1414,11 +1315,6 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       if (errors.isEmpty())
       {
         ArrayList<String> allNames = new ArrayList<String>();
-        allNames.addAll(ocNames);
-        allNames.addAll(attrNames);
-        Message confirmationMessage =
-          INFO_CTRL_PANEL_CONFIRMATION_DELETE_SCHEMA_ELEMENTS_DETAILS.get(
-          Utilities.getStringFromCollection(allNames, ", "));
         if (displayConfirmationDialog(
             INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
             confirmationMessage))
@@ -1474,7 +1370,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
    * do the filtering based on the name.
    * @param oc the object class.
    * @param ocName the name provided by the user.
-   * @return <CODE>true</CODE> if the objectclass must be added and
+   * @return <CODE>true</CODE> if the object class must be added and
    * <CODE>false</CODE> otherwise.
    */
   private boolean mustAddObjectClassName(ObjectClass oc, String ocName)
@@ -1749,11 +1645,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
           {
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
-              Object o = ev.getConfigurationObject();
-              if (o instanceof CommonSchemaElements)
-              {
-                lastCreatedElement = (CommonSchemaElements)o;
-              }
+              configurationElementCreated(ev);
             }
           });
     }
@@ -1775,15 +1667,20 @@ public class BrowseSchemaPanel extends StatusGenericPanel
           {
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
-              Object o = ev.getConfigurationObject();
-              if (o instanceof CommonSchemaElements)
-              {
-                lastCreatedElement = (CommonSchemaElements)o;
-              }
+              configurationElementCreated(ev);
             }
           });
     }
     newObjectClassDialog.setVisible(true);
+  }
+
+  private void configurationElementCreated(ConfigurationElementCreatedEvent ev)
+  {
+    Object o = ev.getConfigurationObject();
+    if (o instanceof CommonSchemaElements)
+    {
+      lastCreatedElement = (CommonSchemaElements)o;
+    }
   }
 
   private HashMap<Object, ImageIcon> hmCategoryImages =
@@ -1849,5 +1746,199 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       return icon;
     }
+  }
+
+  private LinkedHashSet<ObjectClass> getOrderedObjectClassesToDelete(
+      Collection<ObjectClass> ocsToDelete)
+  {
+    ArrayList<ObjectClass> lOrderedOcs = new ArrayList<ObjectClass>();
+    // Reorder objectClasses and attributes to delete them in the proper
+    // order.
+    for (ObjectClass oc : ocsToDelete)
+    {
+      int index = -1;
+      for (int i=0; i<lOrderedOcs.size(); i++)
+      {
+        ObjectClass parent = lOrderedOcs.get(i).getSuperiorClass();
+        while ((parent != null) && (index == -1))
+        {
+          if (parent.equals(oc))
+          {
+            index = i+1;
+          }
+          else
+          {
+            parent = parent.getSuperiorClass();
+          }
+        }
+      }
+      if (index == -1)
+      {
+        lOrderedOcs.add(oc);
+      }
+      else
+      {
+        lOrderedOcs.add(index, oc);
+      }
+    }
+    return new LinkedHashSet<ObjectClass>(lOrderedOcs);
+  }
+
+  private LinkedHashSet<AttributeType> getOrderedAttributesToDelete(
+      Collection<AttributeType> attrsToDelete)
+  {
+    ArrayList<AttributeType> lOrderedAttributes =
+      new ArrayList<AttributeType>();
+    for (AttributeType attr : attrsToDelete)
+    {
+      int index = -1;
+      for (int i=0; i<lOrderedAttributes.size(); i++)
+      {
+        AttributeType parent = lOrderedAttributes.get(i).getSuperiorType();
+        while ((parent != null) && (index == -1))
+        {
+          if (parent.equals(attr))
+          {
+            index = i+1;
+          }
+          else
+          {
+            parent = parent.getSuperiorType();
+          }
+        }
+      }
+      if (index == -1)
+      {
+        lOrderedAttributes.add(attr);
+      }
+      else
+      {
+        lOrderedAttributes.add(index, attr);
+      }
+    }
+    return new LinkedHashSet<AttributeType>(lOrderedAttributes);
+  }
+
+  private Message getConfirmationMessage(
+      Collection<ObjectClass> ocsToDelete,
+      Collection<AttributeType> attrsToDelete,
+      Schema schema)
+  {
+    ArrayList<ObjectClass> childClasses = new ArrayList<ObjectClass>();
+    // Analyze objectClasses
+    for (ObjectClass objectClass : ocsToDelete)
+    {
+      for (ObjectClass o : schema.getObjectClasses().values())
+      {
+        if (objectClass.equals(o.getSuperiorClass()))
+        {
+          childClasses.add(o);
+        }
+      }
+      childClasses.removeAll(ocsToDelete);
+    }
+
+    ArrayList<AttributeType> childAttributes = new ArrayList<AttributeType>();
+    TreeSet<String> dependentClasses = new TreeSet<String>();
+    // Analyze attributes
+    for (AttributeType attribute : attrsToDelete)
+    {
+      for (AttributeType attr : schema.getAttributeTypes().values())
+      {
+        if (attribute.equals(attr.getSuperiorType()))
+        {
+          childAttributes.add(attr);
+        }
+      }
+      childAttributes.removeAll(attrsToDelete);
+
+      for (ObjectClass o : schema.getObjectClasses().values())
+      {
+        if (o.getRequiredAttributeChain().contains(attribute))
+        {
+          dependentClasses.add(o.getNameOrOID());
+        }
+        else if (o.getOptionalAttributeChain().contains(attribute))
+        {
+          dependentClasses.add(o.getNameOrOID());
+        }
+      }
+      for (ObjectClass oc : ocsToDelete)
+      {
+        dependentClasses.remove(oc.getNameOrOID());
+      }
+    }
+
+    MessageBuilder mb = new MessageBuilder();
+    if (!childClasses.isEmpty())
+    {
+      TreeSet<String> childNames = new TreeSet<String>();
+      for (ObjectClass oc : childClasses)
+      {
+        childNames.add(oc.getNameOrOID());
+      }
+      if (ocsToDelete.size() == 1)
+      {
+        mb.append(INFO_OBJECTCLASS_IS_SUPERIOR.get(
+            ocsToDelete.iterator().next().getNameOrOID(),
+            Utilities.getStringFromCollection(childNames, ", ")));
+      }
+      else
+      {
+        mb.append(INFO_OBJECTCLASSES_ARE_SUPERIOR.get(
+            Utilities.getStringFromCollection(childNames, ", ")));
+      }
+      mb.append("<br>");
+    }
+    if (!childAttributes.isEmpty())
+    {
+      TreeSet<String> childNames = new TreeSet<String>();
+      for (AttributeType attr : childAttributes)
+      {
+        childNames.add(attr.getNameOrOID());
+      }
+      if (attrsToDelete.size() == 1)
+      {
+        mb.append(INFO_ATTRIBUTE_IS_SUPERIOR.get(
+            attrsToDelete.iterator().next().getNameOrOID(),
+            Utilities.getStringFromCollection(childNames, ", ")));
+      }
+      else
+      {
+        mb.append(INFO_ATTRIBUTES_ARE_SUPERIOR.get(
+            Utilities.getStringFromCollection(childNames, ", ")));
+      }
+      mb.append("<br>");
+    }
+    if (!dependentClasses.isEmpty())
+    {
+      if (attrsToDelete.size() == 1)
+      {
+        mb.append(INFO_ATTRIBUTE_WITH_DEPENDENCIES.get(
+            attrsToDelete.iterator().next().getNameOrOID(),
+            Utilities.getStringFromCollection(dependentClasses, ", ")));
+      }
+      else
+      {
+        mb.append(INFO_ATTRIBUTES_WITH_DEPENDENCIES.get(
+            Utilities.getStringFromCollection(dependentClasses, ", ")));
+      }
+      mb.append("<br>");
+    }
+
+    ArrayList<String> allNames = new ArrayList<String>();
+    for (ObjectClass ocToDelete : ocsToDelete)
+    {
+      allNames.add(ocToDelete.getNameOrOID());
+    }
+    for (AttributeType attrToDelete : attrsToDelete)
+    {
+      allNames.add(attrToDelete.getNameOrOID());
+    }
+    Message confirmationMessage =
+      INFO_CTRL_PANEL_CONFIRMATION_DELETE_SCHEMA_ELEMENTS_MSG.get(
+          Utilities.getStringFromCollection(allNames, ", "));
+    mb.append(confirmationMessage);
+    return mb.toMessage();
   }
 }

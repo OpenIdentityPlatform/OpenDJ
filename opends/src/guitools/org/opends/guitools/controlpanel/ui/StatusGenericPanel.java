@@ -47,6 +47,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,6 +56,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
@@ -142,6 +145,9 @@ implements ConfigChangeListener
 
   private static final String MAIN_PANEL = "mainPanel";
   private static final String MESSAGE_PANEL = "messagePanel";
+
+  private static final Logger LOG =
+    Logger.getLogger(StatusGenericPanel.class.getName());
 
   /**
    * The error pane.
@@ -538,7 +544,7 @@ implements ConfigChangeListener
   public void addConfigurationElementCreatedListener(
       ConfigurationElementCreatedListener listener)
   {
-    confListeners.add(listener);
+    getConfigurationElementCreatedListeners().add(listener);
   }
 
   /**
@@ -548,7 +554,7 @@ implements ConfigChangeListener
   public void removeConfigurationElementCreatedListener(
       ConfigurationElementCreatedListener listener)
   {
-    confListeners.remove(listener);
+    getConfigurationElementCreatedListeners().remove(listener);
   }
 
   /**
@@ -558,11 +564,22 @@ implements ConfigChangeListener
    */
   protected void notifyConfigurationElementCreated(Object configObject)
   {
-    for (ConfigurationElementCreatedListener listener : confListeners)
+    for (ConfigurationElementCreatedListener listener :
+      getConfigurationElementCreatedListeners())
     {
       listener.elementCreated(
           new ConfigurationElementCreatedEvent(this, configObject));
     }
+  }
+
+  /**
+   * Returns the list of configuration listeners.
+   * @return the list of configuration listeners.
+   */
+  protected List<ConfigurationElementCreatedListener>
+  getConfigurationElementCreatedListeners()
+  {
+    return confListeners;
   }
 
   /**
@@ -1404,6 +1421,20 @@ implements ConfigChangeListener
   protected void updateComboBoxModel(final Collection<?> newElements,
       final DefaultComboBoxModel model)
   {
+    updateComboBoxModel(newElements, model, null);
+  }
+
+  /**
+   * Updates a combo box model with a number of items.
+   * @param newElements the new items for the combo box model.
+   * @param model the combo box model to be updated.
+   * @param comparator the object that will be used to compare the objects in
+   * the model.  If <CODE>null</CODE>, the equals method will be used.
+   */
+  protected void updateComboBoxModel(final Collection<?> newElements,
+      final DefaultComboBoxModel model,
+      final Comparator<Object> comparator)
+  {
     SwingUtilities.invokeLater(new Runnable()
     {
       public void run()
@@ -1414,7 +1445,15 @@ implements ConfigChangeListener
           int i = 0;
           for (Object newElement : newElements)
           {
-            changed = !newElement.equals(model.getElementAt(i));
+            if (comparator == null)
+            {
+              changed = !newElement.equals(model.getElementAt(i));
+            }
+            else
+            {
+              changed =
+                comparator.compare(newElement, model.getElementAt(i)) != 0;
+            }
             if (changed)
             {
               break;
@@ -1799,6 +1838,7 @@ implements ConfigChangeListener
 
           if (t != null)
           {
+            LOG.log(Level.WARNING, "Error occurred running task: "+t, t);
             if ((task.getReturnCode() != null) &&
                 (errorDetailCode != null))
             {
