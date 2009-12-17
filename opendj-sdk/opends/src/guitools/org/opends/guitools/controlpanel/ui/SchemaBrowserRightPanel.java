@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -37,6 +37,8 @@ import javax.swing.JPanel;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.event.
+ ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
@@ -74,8 +76,9 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
 
   private final SchemaElementPanel[] panels =
   {   standardObjectClassPanel, configurationObjectClassPanel,
-      customObjectClassPanel, standardAttributePanel,
-      configurationAttributePanel, customAttributePanel, matchingRulePanel,
+      customObjectClassPanel,
+      standardAttributePanel, configurationAttributePanel, customAttributePanel,
+      matchingRulePanel,
       attributeSyntaxPanel
   };
 
@@ -141,6 +144,34 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
     for (SchemaElementPanel panel : panels)
     {
       panel.removeSchemaElementSelectionListener(listener);
+    }
+  }
+
+  /**
+   * Adds a configuration element created listener.
+   * @param listener the listener.
+   */
+  public void addConfigurationElementCreatedListener(
+      ConfigurationElementCreatedListener listener)
+  {
+    super.addConfigurationElementCreatedListener(listener);
+    for (SchemaElementPanel panel : panels)
+    {
+      panel.addConfigurationElementCreatedListener(listener);
+    }
+  }
+
+  /**
+   * Removes a configuration element created listener.
+   * @param listener the listener.
+   */
+  public void removeConfigurationElementCreatedListener(
+      ConfigurationElementCreatedListener listener)
+  {
+    super.removeConfigurationElementCreatedListener(listener);
+    for (SchemaElementPanel panel : panels)
+    {
+      panel.removeConfigurationElementCreatedListener(listener);
     }
   }
 
@@ -242,7 +273,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    * @param syntax the attribute syntax.
    * @param schema the schema.
    */
-  public void updateAttributeSyntax(AttributeSyntax syntax, Schema schema)
+  public void updateAttributeSyntax(AttributeSyntax<?> syntax, Schema schema)
   {
     attributeSyntaxPanel.update(syntax, schema);
     schemaElementPanel = attributeSyntaxPanel;
@@ -348,9 +379,9 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
 
   /**
    * Tells whether the user chose to save the changes in the panel, to not save
-   * them or simply cancelled the selection in the tree.
+   * them or simply canceled the selection in the tree.
    * @return the value telling whether the user chose to save the changes in the
-   * panel, to not save them or simply cancelled the selection in the tree.
+   * panel, to not save them or simply canceled the selection in the tree.
    */
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {

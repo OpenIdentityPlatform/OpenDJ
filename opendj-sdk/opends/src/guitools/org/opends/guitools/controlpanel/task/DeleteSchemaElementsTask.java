@@ -32,8 +32,12 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
@@ -60,6 +64,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Schema;
 import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -69,24 +74,94 @@ import org.opends.server.util.LDIFWriter;
  */
 public class DeleteSchemaElementsTask extends Task
 {
-  ArrayList<ObjectClass> ocsToDelete = new ArrayList<ObjectClass>();
-  ArrayList<AttributeType> attrsToDelete = new ArrayList<AttributeType>();
-  private Set<String> backendSet;
+  // The list of object classes that the user asked to delete.
+  LinkedHashSet<ObjectClass> providedOcsToDelete =
+    new LinkedHashSet<ObjectClass>();
+  // The list of attributes that the user asked to delete.
+  LinkedHashSet<AttributeType> providedAttrsToDelete =
+    new LinkedHashSet<AttributeType>();
+  // The list of object classes that will be actually deleted (some might be
+  // recreated).
+  LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<ObjectClass>();
+  // The list of attributes that will be actually deleted (some might be
+  // recreated).
+  LinkedHashSet<AttributeType> attrsToDelete =
+    new LinkedHashSet<AttributeType>();
+  // The list of object classes that will be recreated.
+  LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+  // The list of attributes that will be recreated.
+  LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<AttributeType>();
 
   /**
    * Constructor of the task.
    * @param info the control panel information.
    * @param dlg the progress dialog where the task progress will be displayed.
-   * @param ocsToDelete the object classes that must be deleted.
-   * @param attrsToDelete the attributes that must be deleted.
+   * @param ocsToDelete the object classes that must be deleted (ordered).
+   * @param attrsToDelete the attributes that must be deleted (ordered).
    */
   public DeleteSchemaElementsTask(ControlPanelInfo info, ProgressDialog dlg,
-      List<ObjectClass> ocsToDelete, List<AttributeType> attrsToDelete)
+      LinkedHashSet<ObjectClass> ocsToDelete,
+      LinkedHashSet<AttributeType> attrsToDelete)
   {
     super(info, dlg);
-    this.ocsToDelete.addAll(ocsToDelete);
-    this.attrsToDelete.addAll(attrsToDelete);
-    backendSet = new HashSet<String>();
+
+    this.providedOcsToDelete.addAll(ocsToDelete);
+    this.providedAttrsToDelete.addAll(attrsToDelete);
+
+    Schema schema = info.getServerDescriptor().getSchema();
+    LinkedHashSet<AttributeType> allAttrsToDelete =
+      DeleteSchemaElementsTask.getOrderedAttributesToDelete(attrsToDelete,
+          schema);
+    LinkedHashSet<ObjectClass> allOcsToDelete = null;
+    if (!attrsToDelete.isEmpty())
+    {
+      allOcsToDelete =
+        DeleteSchemaElementsTask.getOrderedObjectClassesToDeleteFromAttrs(
+          attrsToDelete, schema);
+    }
+    if (!ocsToDelete.isEmpty())
+    {
+      if (allOcsToDelete == null)
+      {
+      allOcsToDelete =
+        DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(
+            ocsToDelete, schema);
+      }
+      else
+      {
+        allOcsToDelete.addAll(
+            DeleteSchemaElementsTask.getOrderedObjectClassesToDelete(
+                ocsToDelete, schema));
+      }
+    }
+    ArrayList<AttributeType> lAttrsToDelete =
+      new ArrayList<AttributeType>(allAttrsToDelete);
+    for (int i = lAttrsToDelete.size() - 1; i >= 0; i--)
+    {
+      AttributeType attrToDelete = lAttrsToDelete.get(i);
+      if (!attrsToDelete.contains(attrToDelete))
+      {
+        AttributeType attrToAdd = getAttributeToAdd(attrToDelete);
+        if (attrToAdd != null)
+        {
+          attrsToAdd.add(attrToAdd);
+        }
+      }
+    }
+
+    ArrayList<ObjectClass> lOcsToDelete =
+      new ArrayList<ObjectClass>(allOcsToDelete);
+    for (int i = lOcsToDelete.size() - 1; i >= 0; i--)
+    {
+      ObjectClass ocToDelete = lOcsToDelete.get(i);
+      if (!ocsToDelete.contains(ocToDelete))
+      {
+        ocsToAdd.add(getObjectClassToAdd(lOcsToDelete.get(i)));
+      }
+    }
+
+    this.ocsToDelete.addAll(allOcsToDelete);
+    this.attrsToDelete.addAll(allAttrsToDelete);
   }
 
   /**
@@ -94,7 +169,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   public Set<String> getBackends()
   {
-    return backendSet;
+    return Collections.emptySet();
   }
 
   /**
@@ -103,7 +178,17 @@ public class DeleteSchemaElementsTask extends Task
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<Message> incompatibilityReasons)
   {
-    return true;
+    boolean canLaunch = true;
+    if (state == State.RUNNING &&
+        (taskToBeLaunched.getType() == Task.Type.DELETE_SCHEMA_ELEMENT ||
+         taskToBeLaunched.getType() == Task.Type.MODIFY_SCHEMA_ELEMENT ||
+         taskToBeLaunched.getType() == Task.Type.NEW_SCHEMA_ELEMENT))
+    {
+      incompatibilityReasons.add(getIncompatibilityMessage(this,
+            taskToBeLaunched));
+      canLaunch = false;
+    }
+    return canLaunch;
   }
 
   /**
@@ -111,18 +196,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   public Type getType()
   {
-    if (attrsToDelete.isEmpty())
-    {
-      return Type.DELETE_OBJECTCLASS;
-    }
-    else if (ocsToDelete.isEmpty())
-    {
-      return Type.DELETE_ATTRIBUTE;
-    }
-    else
-    {
-      return Type.DELETE_OBJECTCLASS;
-    }
+    return Type.NEW_SCHEMA_ELEMENT;
   }
 
   /**
@@ -156,9 +230,9 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
-  protected ArrayList<String> getCommandLineArguments()
+  protected List<String> getCommandLineArguments()
   {
-    return new ArrayList<String>();
+    return Collections.emptyList();
   }
 
   /**
@@ -178,8 +252,9 @@ public class DeleteSchemaElementsTask extends Task
     final boolean[] isFirst = {true};
     final int totalNumber = ocsToDelete.size() + attrsToDelete.size();
     int numberDeleted = 0;
-    for (final ObjectClass objectClass : ocsToDelete)
+    for (ObjectClass objectClass : ocsToDelete)
     {
+      final ObjectClass fObjectclass = objectClass;
       SwingUtilities.invokeLater(new Runnable()
       {
         public void run()
@@ -189,11 +264,11 @@ public class DeleteSchemaElementsTask extends Task
             getProgressDialog().appendProgressHtml("<br><br>");
           }
           isFirst[0] = false;
-          printEquivalentCommandToDelete(objectClass);
+          printEquivalentCommandToDelete(fObjectclass);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
                   INFO_CTRL_PANEL_DELETING_OBJECTCLASS.get(
-                  objectClass.getNameOrOID()),
+                      fObjectclass.getNameOrOID()),
                   ColorAndFontConstants.progressFont));
         }
       });
@@ -236,8 +311,9 @@ public class DeleteSchemaElementsTask extends Task
       });
     }
 
-    for (final AttributeType attribute : attrsToDelete)
+    for (AttributeType attribute : attrsToDelete)
     {
+      final AttributeType fAttribute = attribute;
       SwingUtilities.invokeLater(new Runnable()
       {
         public void run()
@@ -247,11 +323,11 @@ public class DeleteSchemaElementsTask extends Task
             getProgressDialog().appendProgressHtml("<br><br>");
           }
           isFirst[0] = false;
-          printEquivalentCommandToDelete(attribute);
+          printEquivalentCommandToDelete(fAttribute);
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressWithPoints(
                   INFO_CTRL_PANEL_DELETING_ATTRIBUTE.get(
-                  attribute.getNameOrOID()),
+                      fAttribute.getNameOrOID()),
                   ColorAndFontConstants.progressFont));
         }
       });
@@ -296,6 +372,25 @@ public class DeleteSchemaElementsTask extends Task
       });
     }
 
+    if (!ocsToAdd.isEmpty() || !attrsToAdd.isEmpty())
+    {
+      SwingUtilities.invokeLater(new Runnable()
+      {
+        public void run()
+        {
+          getProgressDialog().appendProgressHtml(Utilities.applyFont(
+              "<br><br>"+
+              INFO_CTRL_PANEL_EXPLANATION_TO_DELETE_REFERENCED_ELEMENTS.get()+
+              "<br><br>",
+              ColorAndFontConstants.progressFont));
+        }
+      });
+
+      NewSchemaElementsTask createTask =
+        new NewSchemaElementsTask(getInfo(), getProgressDialog(), ocsToAdd,
+            attrsToAdd);
+      createTask.runTask();
+    }
   }
 
   /**
@@ -431,9 +526,19 @@ public class DeleteSchemaElementsTask extends Task
     String attrValue = getSchemaFileAttributeValue(element);
     if (!isServerRunning())
     {
+      Message msg;
+      if (element instanceof AttributeType)
+      {
+        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_OFFLINE.get(
+            element.getNameOrOID(), schemaFile);
+      }
+      else
+      {
+        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_OFFLINE.get(
+            element.getNameOrOID(), schemaFile);
+      }
       getProgressDialog().appendProgressHtml(Utilities.applyFont(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_SCHEMA_ELEMENT_OFFLINE.get(
-              schemaFile)+"<br><b>"+
+          msg+"<br><b>"+
           attrName+": "+attrValue+"</b><br><br>",
           ColorAndFontConstants.progressFont));
     }
@@ -447,10 +552,21 @@ public class DeleteSchemaElementsTask extends Task
       String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
           args);
 
+      Message msg;
+      if (element instanceof AttributeType)
+      {
+        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_ONLINE.get(
+            element.getNameOrOID());
+      }
+      else
+      {
+        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_ONLINE.get(
+            element.getNameOrOID());
+      }
+
       StringBuilder sb = new StringBuilder();
       sb.append(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_SCHEMA_ELEMENT_ONLINE.get()+
-          "<br><b>");
+          msg+"<br><b>");
       sb.append(equiv);
       sb.append("<br>");
       sb.append("dn: cn=schema<br>");
@@ -461,5 +577,263 @@ public class DeleteSchemaElementsTask extends Task
       getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
           ColorAndFontConstants.progressFont));
     }
+  }
+
+  private AttributeType getAttributeToAdd(AttributeType attrToDelete)
+  {
+    AttributeType attrToAdd;
+    boolean isSuperior = false;
+    AttributeType newSuperior = attrToDelete.getSuperiorType();
+    for (AttributeType attr : providedAttrsToDelete)
+    {
+      if (attr.equals(attrToDelete.getSuperiorType()))
+      {
+        isSuperior = true;
+        newSuperior = attr.getSuperiorType();
+        while (newSuperior != null &&
+            providedAttrsToDelete.contains(newSuperior))
+        {
+          newSuperior = newSuperior.getSuperiorType();
+        }
+        break;
+      }
+    }
+    if (isSuperior)
+    {
+      ArrayList<String> allNames = new ArrayList<String>();
+      for (String str : attrToDelete.getNormalizedNames())
+      {
+        allNames.add(str);
+      }
+      Map<String, List<String>> extraProperties =
+        cloneExtraProperties(attrToDelete);
+      attrToAdd = new AttributeType(
+          "",
+          attrToDelete.getPrimaryName(),
+          allNames,
+          attrToDelete.getOID(),
+          attrToDelete.getDescription(),
+          null,
+          attrToDelete.getSyntax(),
+          attrToDelete.getApproximateMatchingRule(),
+          attrToDelete.getEqualityMatchingRule(),
+          attrToDelete.getOrderingMatchingRule(),
+          attrToDelete.getSubstringMatchingRule(),
+          attrToDelete.getUsage(),
+          attrToDelete.isCollective(),
+          attrToDelete.isNoUserModification(),
+          attrToDelete.isObsolete(),
+          attrToDelete.isSingleValue(),
+          extraProperties);
+    }
+    else
+    {
+      // Nothing to be changed in the definition of the attribute itself.
+      attrToAdd = attrToDelete;
+    }
+    return attrToAdd;
+  }
+
+  private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
+  {
+    ObjectClass ocToAdd;
+    boolean containsAttribute = false;
+    for (AttributeType attr : providedAttrsToDelete)
+    {
+      if(ocToDelete.getRequiredAttributeChain().contains(attr) ||
+      ocToDelete.getOptionalAttributeChain().contains(attr))
+      {
+        containsAttribute = true;
+        break;
+      }
+    }
+    boolean hasSuperior = false;
+    ObjectClass newSuperior = ocToDelete.getSuperiorClass();
+    for (ObjectClass oc : providedOcsToDelete)
+    {
+      if (ocToDelete.getSuperiorClass().equals(oc))
+      {
+        hasSuperior = true;
+        newSuperior = oc.getSuperiorClass();
+        while (newSuperior != null &&
+            providedOcsToDelete.contains(newSuperior))
+        {
+          newSuperior = newSuperior.getSuperiorClass();
+        }
+        break;
+      }
+    }
+    if (containsAttribute || hasSuperior)
+    {
+      ArrayList<String> allNames = new ArrayList<String>();
+      for (String str : ocToDelete.getNormalizedNames())
+      {
+        allNames.add(str);
+      }
+      Map<String, List<String>> extraProperties =
+        cloneExtraProperties(ocToDelete);
+      Set<AttributeType> required;
+      Set<AttributeType> optional;
+      if (containsAttribute)
+      {
+        required = new HashSet<AttributeType>(
+            ocToDelete.getRequiredAttributes());
+        optional = new HashSet<AttributeType>(
+            ocToDelete.getOptionalAttributes());
+        required.removeAll(providedAttrsToDelete);
+        optional.removeAll(providedAttrsToDelete);
+      }
+      else
+      {
+        required = ocToDelete.getRequiredAttributes();
+        optional = ocToDelete.getOptionalAttributes();
+      }
+      ocToAdd = new ObjectClass("",
+          ocToDelete.getPrimaryName(),
+          allNames,
+          ocToDelete.getOID(),
+          ocToDelete.getDescription(),
+          newSuperior,
+          required,
+          optional,
+          ocToDelete.getObjectClassType(),
+          ocToDelete.isObsolete(),
+          extraProperties);
+    }
+    else
+    {
+      // Nothing to be changed in the definition of the object class itself.
+      ocToAdd = ocToDelete;
+    }
+    return ocToAdd;
+  }
+
+
+  /**
+   * Returns an ordered set of the attributes that must be deleted.
+   * @param attrsToDelete the attributes to be deleted.
+   * @param schema the server schema.
+   * @return an ordered list of the attributes that must be deleted.
+   */
+  public static LinkedHashSet<AttributeType> getOrderedAttributesToDelete(
+      Collection<AttributeType> attrsToDelete, Schema schema)
+  {
+    LinkedHashSet<AttributeType> orderedAttributes =
+      new LinkedHashSet<AttributeType>();
+    for (AttributeType attribute : attrsToDelete)
+    {
+      orderedAttributes.addAll(getOrderedChildrenToDelete(attribute, schema));
+      orderedAttributes.add(attribute);
+    }
+    return orderedAttributes;
+  }
+
+  /**
+   * Returns an ordered list of the object classes that must be deleted.
+   * @param ocsToDelete the object classes to be deleted.
+   * @param schema the server schema.
+   * @return an ordered list of the object classes that must be deleted.
+   */
+  public static LinkedHashSet<ObjectClass> getOrderedObjectClassesToDelete(
+      Collection<ObjectClass> ocsToDelete, Schema schema)
+  {
+    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<ObjectClass>();
+    for (ObjectClass oc : ocsToDelete)
+    {
+      orderedOcs.addAll(getOrderedChildrenToDelete(oc, schema));
+      orderedOcs.add(oc);
+    }
+    return orderedOcs;
+  }
+
+  /**
+   * Returns an ordered list of the object classes that must be deleted when
+   * deleting a list of attributes that must be deleted.
+   * @param attrsToDelete the attributes to be deleted.
+   * @param schema the server schema.
+   * @return an ordered list of the object classes that must be deleted when
+   * deleting a list of attributes that must be deleted.
+   */
+  public static LinkedHashSet<ObjectClass>
+  getOrderedObjectClassesToDeleteFromAttrs(
+      Collection<AttributeType> attrsToDelete, Schema schema)
+  {
+    LinkedHashSet<ObjectClass> orderedOcs = new LinkedHashSet<ObjectClass>();
+    ArrayList<ObjectClass> dependentClasses = new ArrayList<ObjectClass>();
+    for (AttributeType attr : attrsToDelete)
+    {
+      for (ObjectClass oc : schema.getObjectClasses().values())
+      {
+        if (oc.getRequiredAttributeChain().contains(attr))
+        {
+          dependentClasses.add(oc);
+        }
+        else if (oc.getOptionalAttributeChain().contains(attr))
+        {
+          dependentClasses.add(oc);
+        }
+      }
+    }
+    for (ObjectClass oc : dependentClasses)
+    {
+      orderedOcs.addAll(getOrderedChildrenToDelete(oc, schema));
+      orderedOcs.add(oc);
+    }
+    return orderedOcs;
+  }
+
+  /**
+   * Clones the extra properties of the provided schema element.  This can
+   * be used when copying schema elements.
+   * @param element the schema element.
+   * @return the extra properties of the provided schema element.
+   */
+  public static Map<String, List<String>> cloneExtraProperties(
+      CommonSchemaElements element)
+  {
+    Map<String, List<String>> extraProperties =
+      new HashMap<String, List<String>>();
+    for (String name : element.getExtraPropertyNames())
+    {
+      List<String> values = new ArrayList<String>();
+      Iterable<String> properties = element.getExtraProperty(name);
+      for (String v : properties)
+      {
+        values.add(v);
+      }
+      extraProperties.put(name, values);
+    }
+    return extraProperties;
+  }
+
+
+  private static LinkedHashSet<AttributeType> getOrderedChildrenToDelete(
+      AttributeType attribute, Schema schema)
+  {
+    LinkedHashSet<AttributeType> children = new LinkedHashSet<AttributeType>();
+    for (AttributeType attr : schema.getAttributeTypes().values())
+    {
+      if (attribute.equals(attr.getSuperiorType()))
+      {
+        children.addAll(getOrderedChildrenToDelete(attr, schema));
+        children.add(attr);
+      }
+    }
+    return children;
+  }
+
+  private static LinkedHashSet<ObjectClass> getOrderedChildrenToDelete(
+      ObjectClass objectClass, Schema schema)
+  {
+    LinkedHashSet<ObjectClass> children = new LinkedHashSet<ObjectClass>();
+    for (ObjectClass oc : schema.getObjectClasses().values())
+    {
+      if (objectClass.equals(oc.getSuperiorClass()))
+      {
+        children.addAll(getOrderedChildrenToDelete(oc, schema));
+        children.add(oc);
+      }
+    }
+    return children;
   }
 }
