@@ -936,7 +936,8 @@ public class Importer
     List<IndexManager> totList = new LinkedList<IndexManager>(DNIndexMgrList);
     totList.addAll(indexMgrList);
     Collections.sort(totList, Collections.reverseOrder());
-    for(int i = 0; i < dbThreads; i ++)
+    int limit = Math.min(dbThreads, totList.size());
+    for(int i = 0; i < limit; i ++)
     {
       buffers += totList.get(i).getBufferList().size();
     }
