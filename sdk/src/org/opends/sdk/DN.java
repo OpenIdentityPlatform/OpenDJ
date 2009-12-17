@@ -48,12 +48,12 @@ import com.sun.opends.sdk.util.Validator;
  * Directory.
  * <p>
  * The following are examples of string representations of DNs:
- * 
+ *
  * <pre>
  * UID=nobody@example.com,DC=example,DC=com CN=John
  * Smith,OU=Sales,O=ACME Limited,L=Moab,ST=Utah,C=US
  * </pre>
- * 
+ *
  * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC
  *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
  *      Information Models </a>
@@ -86,7 +86,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns the Root DN. The Root DN does not contain and RDN
    * components and is superior to all other DNs.
-   * 
+   *
    * @return The Root DN.
    */
   public static DN rootDN()
@@ -99,7 +99,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Parses the provided LDAP string representation of a DN using the
    * default schema.
-   * 
+   *
    * @param dn
    *          The LDAP string representation of a DN.
    * @return The parsed DN.
@@ -120,7 +120,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Parses the provided LDAP string representation of a DN using the
    * provided schema.
-   * 
+   *
    * @param dn
    *          The LDAP string representation of a DN.
    * @param schema
@@ -259,7 +259,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns a DN which is subordinate to this DN and having the
    * additional RDN components contained in the provided DN.
-   * 
+   *
    * @param dn
    *          The DN containing the RDN components to be added to this
    *          DN.
@@ -301,7 +301,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns a DN which is an immediate child of this DN and having the
    * specified RDN.
-   * 
+   *
    * @param rdn
    *          The RDN for the child DN.
    * @return The child DN.
@@ -320,7 +320,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * Returns a DN which is subordinate to this DN and having the
    * additional RDN components contained in the provided DN decoded
    * using the default schema.
-   * 
+   *
    * @param dn
    *          The DN containing the RDN components to be added to this
    *          DN.
@@ -389,7 +389,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is an immediate child of the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential parent DN.
    * @return {@code true} if this DN is the immediate child of the
@@ -408,7 +408,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is an immediate child of the
    * provided DN decoded using the default schema.
-   * 
+   *
    * @param dn
    *          The potential parent DN.
    * @return {@code true} if this DN is the immediate child of the
@@ -431,7 +431,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is the immediate parent of the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is the immediate parent of the
@@ -450,7 +450,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is the immediate parent of the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is the immediate parent of the
@@ -472,7 +472,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
   /**
    * Returns {@code true} if this DN is the Root DN.
-   * 
+   *
    * @return {@code true} if this DN is the Root DN, otherwise {@code
    *         false}.
    */
@@ -486,7 +486,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is subordinate to or equal to the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is subordinate to or equal to the
@@ -517,7 +517,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is subordinate to or equal to the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is subordinate to or equal to the
@@ -539,7 +539,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is superior to or equal to the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is superior to or equal to the
@@ -569,7 +569,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is superior to or equal to the
    * provided DN.
-   * 
+   *
    * @param dn
    *          The potential child DN.
    * @return {@code true} if this DN is superior to or equal to the
@@ -596,7 +596,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * Attempts to remove RDNs using an iterator's {@code remove()} method
    * are not permitted and will result in an {@code
    * UnsupportedOperationException} being thrown.
-   * 
+   *
    * @return An iterator of the RDNs contained in this DN.
    */
   public Iterator<RDN> iterator()
@@ -642,11 +642,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * null} if this DN is the Root DN.
    * <p>
    * This method is equivalent to:
-   * 
+   *
    * <pre>
    * parent(1);
    * </pre>
-   * 
+   *
    * @return The DN which is the immediate parent of this DN, or {@code
    *         null} if this DN is the Root DN.
    */
@@ -661,7 +661,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * Returns the DN which is equal to this DN with the specified number
    * of RDNs removed. Note that if {@code index} is zero then this DN
    * will be returned (identity).
-   * 
+   *
    * @param index
    *          The number of RDNs to be removed.
    * @return The DN which is equal to this DN with the specified number
@@ -689,7 +689,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns the RDN of this DN, or {@code null} if this DN is the Root
    * DN.
-   * 
+   *
    * @return The RDN of this DN, or {@code null} if this DN is the Root
    *         DN.
    */
@@ -702,19 +702,19 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
   /**
    * Returns the number of RDN components in this DN.
-   * 
+   *
    * @return The number of RDN components in this DN.
    */
   public int size()
   {
-    return size();
+    return size;
   }
 
 
 
   /**
    * Returns the normalized string representation of this DN.
-   * 
+   *
    * @return The normalized string representation of this DN.
    */
   public String toNormalizedString()
@@ -737,7 +737,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
   /**
    * Returns the RFC 4514 string representation of this DN.
-   * 
+   *
    * @return The RFC 4514 string representation of this DN.
    * @see <a href="http://tools.ietf.org/html/rfc4514">RFC 4514 -
    *      Lightweight Directory Access Protocol (LDAP): String
