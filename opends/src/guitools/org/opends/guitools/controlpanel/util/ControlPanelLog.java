@@ -61,7 +61,7 @@ public class ControlPanelLog
       for (String packageName : packages)
       {
         Logger logger = Logger.getLogger(packageName);
-        //logger.setUseParentHandlers(false); // disable logging to console
+        logger.setUseParentHandlers(false); // disable logging to console
         logger.addHandler(fileHandler);
       }
       Logger logger = Logger.getLogger(packages[0]);
@@ -78,7 +78,7 @@ public class ControlPanelLog
    */
   static public void initPackage(String packageName) throws IOException {
     Logger logger = Logger.getLogger(packageName);
-    //logger.setUseParentHandlers(false); // disable logging to console
+    logger.setUseParentHandlers(false); // disable logging to console
     logger.addHandler(fileHandler);
     logger.log(Level.INFO, getInitialLogRecord());
   }
