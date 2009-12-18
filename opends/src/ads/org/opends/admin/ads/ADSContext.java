@@ -469,7 +469,8 @@ public class ADSContext
       updateServerGroup(ALL_SERVERGROUP_NAME, serverGroupProperties);
 
       // Update the server property "GROUPS"
-      Set rawGroupList = (Set) serverProperties.get(ServerProperty.GROUPS);
+      Set<?> rawGroupList = (Set<?>)
+      serverProperties.get(ServerProperty.GROUPS);
       Set<String> groupList = new HashSet<String>();
       if (rawGroupList != null) {
         for (Object elm : rawGroupList.toArray()) {
@@ -605,7 +606,7 @@ public class ADSContext
     // Unregister the server in server groups
     try
     {
-      NamingEnumeration ne;
+      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       String serverID = getServerID(serverProperties);
@@ -617,18 +618,19 @@ public class ADSContext
         ne = dirContext.search(getServerGroupContainerDN(), filter, sc);
         while (ne.hasMore())
         {
-          SearchResult sr = (SearchResult)ne.next();
+          SearchResult sr = ne.next();
           String groupDn = sr.getNameInNamespace();
           BasicAttribute newAttr = new BasicAttribute(memberAttrName);
-          NamingEnumeration attrs = sr.getAttributes().getAll();
+          NamingEnumeration<? extends Attribute> attrs =
+            sr.getAttributes().getAll();
           while (attrs.hasMore())
           {
-            Attribute attr = (Attribute)attrs.next();
+            Attribute attr = attrs.next();
             String attrID = attr.getID();
 
             if (attrID.equalsIgnoreCase(memberAttrName))
             {
-              NamingEnumeration ae = attr.getAll();
+              NamingEnumeration<?> ae = attr.getAll();
               while (ae.hasMore())
               {
                 String value = (String)ae.next();
@@ -760,7 +762,7 @@ public class ADSContext
         return result;
       }
       Attributes attrs = srs.next().getAttributes();
-      NamingEnumeration ne = attrs.getAll();
+      NamingEnumeration<? extends Attribute> ne = attrs.getAll();
       while (ne.hasMore())
       {
         Attribute attr = (Attribute)ne.next();
@@ -773,7 +775,7 @@ public class ADSContext
         }
 
         // We have the members list
-        NamingEnumeration ae = attr.getAll();
+        NamingEnumeration<?> ae = attr.getAll();
         while (ae.hasMore())
         {
           result.add((String)ae.next());
@@ -814,14 +816,14 @@ public class ADSContext
       new HashSet<Map<ServerProperty,Object>>();
     try
     {
-      NamingEnumeration ne;
+      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       ne = dirContext.search(getServerContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
-        SearchResult sr = (SearchResult)ne.next();
+        SearchResult sr = ne.next();
         Map<ServerProperty,Object> properties =
           makePropertiesFromServerAttrs(sr.getAttributes());
         Object keyId = properties.get(ServerProperty.INSTANCE_KEY_ID);
@@ -1038,7 +1040,7 @@ public class ADSContext
       new HashSet<Map<ServerGroupProperty, Object>>();
     try
     {
-      NamingEnumeration ne;
+      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
@@ -1046,7 +1048,7 @@ public class ADSContext
           sc);
       while (ne.hasMore())
       {
-        SearchResult sr = (SearchResult)ne.next();
+        SearchResult sr = ne.next();
         Map<ServerGroupProperty, Object> properties =
           makePropertiesFromServerGroupAttrs(sr.getAttributes());
         result.add(properties);
@@ -1082,7 +1084,7 @@ public class ADSContext
     Set<Map<AdministratorProperty, Object>> result =
       new HashSet<Map<AdministratorProperty, Object>>();
     try {
-      NamingEnumeration ne;
+      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
@@ -1093,7 +1095,7 @@ public class ADSContext
           sc);
       while (ne.hasMore())
       {
-        SearchResult sr = (SearchResult)ne.next();
+        SearchResult sr = ne.next();
 
         Map<AdministratorProperty, Object> properties =
           makePropertiesFromAdministratorAttrs(
@@ -1182,19 +1184,33 @@ public class ADSContext
    */
   public void removeAdminData() throws ADSContextException
   {
-    LdapName dn = nameFromDN(getServerContainerDN());
+    String[] dns = {getServerContainerDN(),
+        getServerGroupContainerDN(),
+        getInstanceKeysContainerDN(),
+        getAdministratorContainerDN()};
     try
     {
       Control[] controls = new Control[] { new SubtreeDeleteControl() };
       LdapContext tmpContext = dirContext.newInstance(controls);
       try
       {
-        tmpContext.destroySubcontext(dn);
+        for (String dn : dns)
+        {
+          LdapName ldapName = nameFromDN(dn);
+          if (isExistingEntry(ldapName))
+          {
+            tmpContext.destroySubcontext(dn);
+          }
+        }
       }
       finally
       {
         tmpContext.close();
       }
+      // Recreate the container entries:
+      createContainerEntry(getServerContainerDN());
+      createContainerEntry(getServerGroupContainerDN());
+      createContainerEntry(getInstanceKeysContainerDN());
     }
     catch(NamingException x)
     {
@@ -1339,16 +1355,16 @@ public class ADSContext
 
       // if modification includes 'privilege', we have to get first the
       // current privileges list.
-      NamingEnumeration currentPrivileges = null;
+      NamingEnumeration<?> currentPrivileges = null;
       if (adminProperties.containsKey(AdministratorProperty.PRIVILEGE))
       {
         SearchControls sc = new SearchControls();
         sc.setSearchScope(SearchControls.OBJECT_SCOPE);
         String[] attList = {"ds-privilege-name"};
         sc.setReturningAttributes(attList);
-        NamingEnumeration ne = dirContext.search(
+        NamingEnumeration<SearchResult> ne = dirContext.search(
             dnCentralAdmin, "(objectclass=*)", sc);
-        SearchResult sr = (SearchResult)ne.next();
+        SearchResult sr = ne.next();
 
         currentPrivileges = sr.getAttributes().get("ds-privilege-name")
         .getAll();
@@ -1534,7 +1550,7 @@ public class ADSContext
    */
   private static BasicAttributes makeAttrsFromAdministratorProperties(
       Map<AdministratorProperty, Object> adminProperties,
-      boolean passwordRequired, NamingEnumeration currentPrivileges)
+      boolean passwordRequired, NamingEnumeration<?> currentPrivileges)
   throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
@@ -1567,7 +1583,7 @@ public class ADSContext
         }
       }
 
-      LinkedList privileges = (LinkedList)
+      LinkedList<?> privileges = (LinkedList<?>)
       adminProperties.get(AdministratorProperty.PRIVILEGE);
       for( Object o : privileges)
       {
@@ -1669,7 +1685,7 @@ public class ADSContext
       break;
     case GROUPS:
       result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
-      for (Object o : ((Set) value)) {
+      for (Object o : ((Set<?>) value)) {
         result.add(o);
       }
       break;
@@ -1740,7 +1756,7 @@ public class ADSContext
     case MEMBERS:
       result = new BasicAttribute(
           ServerGroupProperty.MEMBERS.getAttributeName());
-      for (Object o : ((Set) value)) {
+      for (Object o : ((Set<?>) value)) {
         result.add(o);
       }
       break;
@@ -1778,7 +1794,7 @@ public class ADSContext
         {
 
           Set<String> set = new HashSet<String>();
-          NamingEnumeration ae = attr.getAll();
+          NamingEnumeration<?> ae = attr.getAll();
           while (ae.hasMore())
           {
             set.add((String)ae.next());
@@ -1814,10 +1830,10 @@ public class ADSContext
       new HashMap<ServerProperty, Object>();
     try
     {
-      NamingEnumeration ne = attrs.getAll();
+      NamingEnumeration<? extends Attribute> ne = attrs.getAll();
       while (ne.hasMore())
       {
-        Attribute attr = (Attribute)ne.next();
+        Attribute attr = ne.next();
         String attrID = attr.getID();
         Object value;
 
@@ -1846,7 +1862,7 @@ public class ADSContext
           if (attr.size() >= 1 && MULTIVALUED_SERVER_PROPERTIES.contains(prop))
           {
             Set<String> set = new HashSet<String>();
-            NamingEnumeration ae = attr.getAll();
+            NamingEnumeration<?> ae = attr.getAll();
             while (ae.hasMore())
             {
               set.add((String)ae.next());
@@ -1917,7 +1933,7 @@ public class ADSContext
         else if (attrID.equalsIgnoreCase("ds-privilege-name"))
         {
           LinkedHashSet<String> privileges = new LinkedHashSet<String>();
-          NamingEnumeration attValueList = attr.getAll();
+          NamingEnumeration<?> attValueList = attr.getAll();
           while (attValueList.hasMoreElements())
           {
             privileges.add(attValueList.next().toString());
