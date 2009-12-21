@@ -532,7 +532,7 @@ public class ArgumentParser
 
   /**
    * Adds the provided argument to the set of arguments handled by this parser
-   * and puts the arguement in the default group.
+   * and puts the argument in the default group.
    *
    * @param  argument  The argument to be added.
    *
