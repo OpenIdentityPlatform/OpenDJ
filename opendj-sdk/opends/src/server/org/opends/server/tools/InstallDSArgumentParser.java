@@ -359,7 +359,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get(
             generateSelfSignedCertificateArg.getLongIdentifier()));
     hostNameArg.setPropertyName(OPTION_LONG_HOST);
-    addArgument(hostNameArg);
+    addDefaultArgument(hostNameArg);
 
     usePkcs11Arg = new BooleanArgument("usePkcs11Keystore".toLowerCase(),
         null, "usePkcs11Keystore",
