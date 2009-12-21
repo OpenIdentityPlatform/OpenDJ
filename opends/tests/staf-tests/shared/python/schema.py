@@ -39,10 +39,13 @@ class OIDDict:
   of both objeclasses, and attributtypes"""
   
   def __init__(self, schema=None):
-    self.dict = {}
+    self.attrDict = {}
+    self.objDict = {}
     self.sup = {}
     self.may = {}
     self.must = {}
+    self.allmay = []
+    self.allmust = []
 
   def _getOID(self, line):
     """given a schema entry definition for objectclass/attributtype
@@ -50,6 +53,7 @@ class OIDDict:
     the List of aliases starts from list of names[1:] when exist. for ex :
        attributeTypes: ( 2.5.4.4 NAME ( 'sn' 'surname' ) SUP name X-ORIGIN 'RFC 4519' )
        (2.5.4.4,['sn','surname']
+    More details : https://www.opends.org/wiki/page/AttributeTypeDescriptionFormat
     """
     pNdx = line.find('(')
     nNdx = line.find('NAME',pNdx)
@@ -58,11 +62,17 @@ class OIDDict:
     # populate the NAME to OID : "dict" dictionary
     NAMES = self._getStr(line,'NAME')
     if NAMES:
-      # TODO encoded schema is not handled for now
-      self.dict.update({OID:NAMES})
-      for name in NAMES:
-        self.dict.update({name:OID})
-    # populate SUP and MUST / MAY, : "sup", "may", "must" dictionaries
+      if line.startswith('objectClasses:'):
+        # TODO encoded schema is not handled for now
+        self.objDict.update({OID:NAMES})
+        for name in NAMES:
+          self.objDict.update({name:OID})
+      elif line.startswith('attributeTypes:'):
+         # TODO encoded schema is not handled for now
+        self.attrDict.update({OID:NAMES})
+        for name in NAMES:
+          self.attrDict.update({name:OID})
+   # populate SUP and MUST / MAY, : "sup", "may", "must" dictionaries
     if line.startswith('objectClasses:'):
       r = self._getStr(line,'SUP')
       if r:
@@ -70,9 +80,15 @@ class OIDDict:
       r = self._getStr(line,'MUST')
       if r:
         self.must.update({NAMES[0]:r})
+        for m in r:
+          if not m in self.allmust:
+            self.allmust.append(m)
       r = self._getStr(line,'MAY')
       if r:
         self.may.update({NAMES[0]:r})
+        for m in r:
+          if not m in self.allmay:
+            self.allmay.append(m)
 
     return OID, NAMES
 
@@ -111,7 +127,7 @@ class OIDDict:
           elif s[0] != '$' and s[0] != '|':
             if s[0] == '\'' and s[-1] == '\'':
               s = s[1:-1]
-            realStrs.append(s)
+            realStrs.append(s.lower())
     return realStrs
 
   def getMust(self, objectclassname):
@@ -160,38 +176,46 @@ class OIDDict:
     and attributetypes only."""
     lines=[]
     line=''
-    for f in ref_content:
+    for f in ref_content.splitlines():
       if len(line) == 0 and \
          not (f.startswith("objectClasses") or \
               f.startswith("attributeTypes")):
         # not handled for now
         continue
-      elif len(line) > 0 and f[0].isspace():
+      elif len(line) > 0 and len(f) > 0 and f[0].isspace():
           # line continuation aggregated into 'line'
-          line += f[1:-1]
+          line += f[1:]
 
       elif f.startswith("objectClasses") or f.startswith("attributeTypes"):
         if len(line) > 0:
           lines.append(line)
           # populate the OID <-> Names dictionary
           self._getOID(line)
-        line =f[:-1]
-        line = f.strip()
+        line = f[:-1]
+        line = f
     if len(line) > 0:
+      # parsing the last line
+      self._getOID(line)
       lines.append(line)
+    f=open('/tmp/lines.ldif','w')
+    f.write('\n'.join(lines))
+    f.close()
 
 if __name__ == '__main__':
    """get example schema.ldif file with :
-      ldapsearch -b 'cn=schema' -Dcn=directory\ manager -s base -wpassword objectclass=* objectClasses attributeTypes
+      ldapsearch -b 'cn=schema' -Dcn=directory\ manager -s base -wpassword objectclass=* objectClasses attributeTypes > /tmp/schema.ldif
    """
    objectClassesFileName='/tmp/schema.ldif'
    f = open(objectClassesFileName)
    fc = f.readlines()
    f.close()
    oidDict = OIDDict()
-   oidDict.parseSchema(fc)
-   print '[ dictionary ]'.center(80, '-')
-   for k,v in oidDict.dict.items():
+   oidDict.parseSchema(''.join(fc))
+   print '[ Objectclasses dictionary ]'.center(80, '-')
+   for k,v in oidDict.objDict.items():
+     print "%s\t%s"%(k,v)
+   print '[ AttributeTypes dictionary ]'.center(80, '-')
+   for k,v in oidDict.attrDict.items():
      print "%s\t%s"%(k,v)
    print '[ must ]'.center(80, '-')
    for k,v in oidDict.must.items():
@@ -214,3 +238,15 @@ if __name__ == '__main__':
        print 'MAY',oidDict.getMay(cn)
      except Exception, e:
        print e.message
+   print '[ all must ]'.center(80,'-')
+   mustSize = 0
+   for m in oidDict.allmust:
+     mustSize += len(m)
+   print 'got %s MUSTs size = %sKb' % (len(oidDict.allmust),mustSize/1024.0)
+   print oidDict.allmust
+   print '[ all may ]'.center(80,'-')
+   maySize = 0
+   for m in oidDict.allmay:
+     maySize += len(m)
+   print 'got %s MAYs size = %sKb' % (len(oidDict.allmay),maySize/1024.0)
+   print oidDict.allmay

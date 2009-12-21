@@ -39,30 +39,20 @@
       <script>
         listOfChildren=[]
 
-        xml=xmldoc_service()
-        
-        builder = xml.createBlankDocument()
-        
-        doc = builder.newDocument()
-        root = doc.createElement("qa")
-        doc.appendChild(root)
-        ft = doc.createElement("%s" % TESTS_TYPE)
-        root.appendChild(ft);
-        results = doc.createElement("results")
-        ft.appendChild(results);
-        
-        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+        my_path='%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
+        my_report='%s/results2.xml' % logs.reports
+        my_info={}
+        my_info['jvm label']=TEST_JVM_STRING
+        my_info['os label']=TEST_OS_STRING
+        my_info['server package']='%s/%s' % (ZIPPATH,ZIPNAME)
+        my_info['snmp jarfile']=SNMP_OPENDMK_JARFILE
 
-        class groupToRun:
-          def __init__(self, name):
-            self.name = name
-
-          def getName(self):
-            return self.name
+        xml_create_report(PRODUCTNAME,TESTS_TYPE,my_path, \
+          DSInfo.ServerDict,my_info,local.directory,my_report)
 
         groupsToRun = []
         for line in TEST_PLAN_CUSTOM.split(","):
-          groupsToRun.append(groupToRun(line.rstrip()))
+          groupsToRun.append(group_to_run(line.rstrip()))
       </script>
 
       <!-- TODO: If no groupsToRun then iterate will throw exception -->

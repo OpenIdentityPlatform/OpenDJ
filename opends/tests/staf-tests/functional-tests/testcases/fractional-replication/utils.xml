@@ -373,7 +373,7 @@
     </sequence>
   </function>
 
-  <function name="getSchemaDict">
+  <function name="getSchemaDict" scope="local">
     <function-prolog>
       check the schema for the equivalent of a given argument
       if argument is OID then returns literal
@@ -400,8 +400,9 @@
         }
       </call>
       <script>
-         oidDict = OIDDict()
-         oidDict.parseSchema(STAXResult[0][1])
+        schemaContent = STAXResult[0][1]
+        oidDict = OIDDict()
+        oidDict.parseSchema(schemaContent)
       </script>
       <return>oidDict</return>
     </sequence>
@@ -515,7 +516,7 @@
       </if>
       <if expr="RC == 0">
         <sequence>
-          <call function="'LdifDiffWithScript'">
+          <call function="'LdifDiffWithScript-new'">
             { 'location'            : dsMaster.getHostname(),
               'dsPath'              : dsMasterPath,
               'sourceLdif' : '%s/%s' % (remote.temp, filteredRefTree),
@@ -523,35 +524,37 @@
               'outputLdif' : '%s/%s' % (remote.temp,treeDiffs)
             }
           </call>
+          <if expr="STAXResult == 0">
+            <sequence>
+              <return>0, None</return>
+            </sequence>
+            <else>
+              <sequence>
+                <script>
+                  import time
+                  tmstamp = time.time()
+                </script>
+                <call function="'copyFile'">
+                  { 'location' : dsMaster.getHostname(),
+                    'srcfile'  : '%s/%s' % (remote.temp,treeDiffs),
+                    'destfile' : '%s/%s.%s' % (remote.temp,treeDiffs,tmstamp)
+                  }
+                </call>
+                <call function="'getFile'">
+                  { 'location' : dsMaster.getHostname(),
+                    'filename' : '%s/%s' % (remote.temp,treeDiffs)
+                  }
+                </call>
+                <if expr="RC == 0">
+                  <return>1, STAXResult[1]</return>
+                  <else>
+                    <return>1, None</return>
+                  </else>
+                </if>
+              </sequence>
+            </else>
+          </if>
         </sequence>
-      </if>
-      <if expr="RC == 0">
-        <return>0, None</return>
-        <else>
-          <sequence>
-            <script>
-              import time
-              tmstamp = time.time()
-            </script>
-            <call function="'copyFile'">
-              { 'location' : dsMaster.getHostname(),
-                'srcfile'  : '%s/%s' % (remote.temp,treeDiffs),
-                'destfile' : '%s/%s.%s' % (remote.temp,treeDiffs,tmstamp)
-              }
-            </call>
-            <call function="'getFile'">
-              { 'location' : dsMaster.getHostname(),
-                'filename' : '%s/%s' % (remote.temp,treeDiffs)
-              }
-            </call>
-            <if expr="RC == 0">
-              <return>1, STAXResult[1]</return>
-              <else>
-                <return>1, None</return>
-              </else>
-            </if>
-          </sequence>
-        </else>
       </if>
     </sequence>
   </function>

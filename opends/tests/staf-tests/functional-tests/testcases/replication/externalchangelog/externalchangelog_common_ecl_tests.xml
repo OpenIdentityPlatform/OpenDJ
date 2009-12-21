@@ -2362,15 +2362,20 @@
                 else:
                   lastIndexAttr = 'lastchangenumber'
                 
-                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <call function="'ldapSearchWithScript'">
-                { 'location'       : server.getHostname(),
-                  'dsPath'         : serverPath,
-                  'dsInstanceHost' : server.getHostname(),
-                  'dsInstancePort' : server.getPort(),
-                  'dsInstanceDn'   : server.getRootDn(),
-                  'dsInstancePswd' : server.getRootPwd(),
+                { 'location'       : replServer.getHostname(),
+                  'dsPath'         : replServerPath,
+                  'dsInstanceHost' : replServer.getHostname(),
+                  'dsInstancePort' : replServer.getPort(),
+                  'dsInstanceDn'   : replServer.getRootDn(),
+                  'dsInstancePswd' : replServer.getRootPwd(),
                   'dsScope'        : 'base',
                   'dsBaseDN'       : ' ',
                   'dsFilter'       : 'objectclass=*',
@@ -4815,9 +4820,69 @@
                   </call>
                 </sequence>
               </if>
+          
+              <if expr="globalSplitServers">
+                <sequence>
+                  <script>
+                    if master.isOnlyLdapServer():
+                      masterReplPort = None
+                    else:
+                      masterReplPort = masterReplicationServer.getPort()
+                    
+                    replServer = _topologyReplServerList[indx]
+                    replServerReplPort = replServer.getChangelogServer().getPort()
+                    
+                    replicatedDnList = [newReplSuffix]
+                  </script>
+                  
+                  <message>
+                    'Enable replication for server:\nHost: %s\nLdap port: %s\n\
+                    Replication port: %s\nReplicated DN list: %s' \
+                      % (replServer.getHostname(), replServer.getPort(), 
+                         replServerReplPort, replicatedDnList)
+                  </message>
+                  
+                  <call function="'enableReplication'">
+                    { 'location'             : clientHost,
+                      'dsPath'               : clientPath,
+                      'refInstanceHost'      : masterHost,
+                      'refInstanceAdminPort' : master.getAdminPort(),
+                      'refInstanceDn'        : master.getRootDn(),
+                      'refInstancePswd'      : master.getRootPwd(),
+                      'refReplicationPort'   : masterReplPort,
+                      'refSecureReplication' : secureReplication,
+                      'refOnlyLdapServer'    : master.isOnlyLdapServer(),
+                      'refOnlyReplServer'    : master.isOnlyReplServer(),
+                      'dsInstanceHost'       : replServer.getHostname(),
+                      'dsInstanceAdminPort'  : replServer.getAdminPort(),
+                      'dsInstanceDn'         : replServer.getRootDn(),
+                      'dsInstancePswd'       : replServer.getRootPwd(),
+                      'dsReplicationPort'    : replServerReplPort,
+                      'dsSecureReplication'  : secureReplication,
+                      'dsOnlyLdapServer'     : replServer.isOnlyLdapServer(),
+                      'dsOnlyReplServer'     : replServer.isOnlyReplServer(),
+                      'replicationDnList'    : replicatedDnList
+                    }
+                  </call>
+                </sequence>
+              </if>
             </sequence>
           </iterate>
 
+          
+          <!-- Add new entries -->
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : newReplSuffix,
+              'listAttributes' : newRootEntryAttrs
+            }
+          </call>
+          
           <script>
             firstSearchIndex  = searchIndex
             
@@ -4895,13 +4960,21 @@
 
               <!-- New replicated suffix added => resync required => 
                !   Retrieve lastExternalChangelogCookie from root DSE -->
+              <script>
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[0]
+                else:
+                  replServer = master
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
               <call function="'ldapSearchWithScript'">
-                { 'location'       : masterHost,
-                  'dsPath'         : masterPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
+                { 'location'       : replServer.getHostname(),
+                  'dsPath'         : replServerPath,
+                  'dsInstanceHost' : replServer.getHostname(),
+                  'dsInstancePort' : replServer.getPort(),
+                  'dsInstanceDn'   : replServer.getRootDn(),
+                  'dsInstancePswd' : replServer.getRootPwd(),
                   'dsScope'        : 'base',
                   'dsBaseDN'       : ' ',
                   'dsFilter'       : 'objectclass=*',
@@ -4947,18 +5020,6 @@
             </sequence>
           </if>
           
-          <!-- Add new entries -->
-          <call function="'addAnEntry'">
-            { 'location'       : masterHost,
-              'dsPath'         : masterPath,
-              'dsInstanceHost' : masterHost,
-              'dsInstancePort' : master.getPort(),
-              'dsInstanceDn'   : master.getRootDn(),
-              'dsInstancePswd' : master.getRootPwd(),
-              'DNToAdd'        : newReplSuffix,
-              'listAttributes' : newRootEntryAttrs
-            }
-          </call>
           <call function="'addAnEntry'">
             { 'location'       : masterHost,
               'dsPath'         : masterPath,
@@ -5017,7 +5078,12 @@
                 { 'ldifEntries' : searchResult }
               </call>
               <script>
-                addedEntries += STAXResult
+                if ecl_mode == 'opends':
+                  # because of the resync, the first add will be missed when
+                  # searching the ECL
+                  addedEntries += STAXResult[1:]
+                else:
+                  addedEntries += STAXResult
               </script>
             </sequence>
             <else>
@@ -5059,6 +5125,9 @@
               </message>
                 
               <!-- Search for entry add -->
+              <!-- In draft-mode, this may fail because of issue #4329:
+               !   draft mode: after adding new suffix, can not search ECL 
+               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5070,7 +5139,8 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : '4329'
                 }                
               </call>
               <script>
@@ -5386,6 +5456,9 @@
               </message>
                 
               <!-- Search for entry adds in synchroSuffix -->
+              <!-- In draft-mode, this may fail because of issue #4329:
+               !   draft mode: after adding new suffix, can not search ECL 
+               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5397,7 +5470,8 @@
                   'dsBaseDN'           : eclSearchBaseDn,
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : '4329'
                 }                
               </call>
               <script>
@@ -5594,6 +5668,9 @@
               </message>
                 
               <!-- Search for entry adds in newReplSuffix -->
+              <!-- In draft-mode, this may fail because of issue #4329:
+               !   draft mode: after adding new suffix, can not search ECL 
+               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5605,7 +5682,8 @@
                   'dsBaseDN'           : eclSearchBaseDn,
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : '4329'
                 }                
               </call>
               <script>
@@ -5787,6 +5865,24 @@
               'replicationDnList'   : [newReplSuffix]
             }
           </call>
+
+          <if expr="globalSplitServers">
+            <sequence>
+              <script>
+                replServer     = _topologyReplServerList[indx]
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              <call function="'disableReplication'">
+                { 'location'            : replServer.getHostname(),
+                  'dsPath'              : replServerPath,
+                  'dsInstanceHost'      : replServer.getHostname(),
+                  'dsInstanceAdminPort' : replServer.getAdminPort(),
+                  'replicationDnList'   : [newReplSuffix]
+                }
+              </call>
+            </sequence>
+          </if>          
+
           
           <!-- Remove newReplSuffix -->
           <message>

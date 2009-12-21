@@ -344,12 +344,12 @@
           <call function="'stopServers'">
             [ Pservers ]
           </call>
-         <!-- server 1 import basic-master.ldif -->
+          <!-- server 1 import basic-master.ldif -->
           <call function="'ImportLdifWithScript'">
             { "location"          : Pservers[0].getHostname(),
               "dsPath"            : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
               "dsBackEnd"         : "userRoot",
-              "dsLdifFile"        : "%s/%s/fractional-replication/basic-master.ldif" % \
+              "dsTemplateFile"    : "%s/%s/fractional-replication/basic-master.template" % \
                                     (Pservers[0].getDir(),remote.reldatadir),
               "dsReplaceExisting" : True,
             }
@@ -448,7 +448,7 @@
             }
           </call>
 
-         <call function="'ImportLdifWithScript'">
+          <call function="'ImportLdifWithScript'">
             { 'location'            : Pservers[0].getHostname(),
               'dsPath'              : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
               'dsInstanceHost'      : Pservers[0].getHostname(),
@@ -459,11 +459,11 @@
               'dsAppend'            : True,
               'dsRejectFile'        : '%s/basic-masterOnlineImport.rejected' % remote.temp,
               'dsOverWriteRejects'  : True,
-              'dsLdifFile'          : '%s/%s/fractional-replication/basic-masterOnlineImport.ldif' % \
+              'dsTemplateFile'          : '%s/%s/fractional-replication/basic-masterOnlineImport.template' % \
                                       (Pservers[0].getDir(),remote.reldatadir)
             }
           </call>
-         <call function="'ImportLdifWithScript'">
+          <call function="'ImportLdifWithScript'">
             { 'location'            : Pservers[1].getHostname(),
               'dsPath'              : '%s/%s' % (Pservers[1].getDir(),OPENDSNAME),
               'dsInstanceHost'      : Pservers[1].getHostname(),
@@ -474,7 +474,7 @@
               'dsAppend'            : True,
               'dsRejectFile'        : '%s/basic-masterOnlineImport.rejected' % remote.temp,
               'dsOverWriteRejects'  : True,
-              'dsLdifFile'          : '%s/%s/fractional-replication/basic-masterOnlineImport.ldif' % \
+              'dsTemplateFile'          : '%s/%s/fractional-replication/basic-masterOnlineImport.template' % \
                                       (Pservers[1].getDir(),remote.reldatadir)
             }
           </call>

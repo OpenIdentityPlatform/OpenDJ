@@ -21,7 +21,62 @@
 #
 
 dn: uid=user.0,ou=People,o=example
-changetype: modify
-replace: postalCode
-postalCode: 70000
+changeType: modify
+replace: description
+description: Yet another description added by ldapmodify.
+
+dn: uid=user.1,ou=People,o=example
+changeType: modify
+replace: description
+description: Yet another description added by ldapmodify.
+
+dn: uid=user.2,ou=People,o=example
+changeType: modify
+replace: description
+description: Yet another description added by ldapmodify.
+
+dn: uid=user.0,ou=People,o=example
+changeType: modify
+replace: description;lang-fr
+description;lang-fr:: VW5lIG5vdXZlbGxlIGRlc2NyaXB0aW9uIGVuIEZyYW7Dp2Fpcy4=
+
+dn: uid=user.1,ou=People,o=example
+changeType: modify
+replace: description;lang-fr
+description;lang-fr:: VW5lIG5vdXZlbGxlIGRlc2NyaXB0aW9uIGVuIEZyYW7Dp2Fpcy4=
+
+dn: uid=user.2,ou=People,o=example
+changeType: modify
+replace: description;lang-fr
+description;lang-fr:: VW5lIG5vdXZlbGxlIGRlc2NyaXB0aW9uIGVuIEZyYW7Dp2Fpcy4=
+
+dn: uid=user.0,ou=People,o=example
+changeType: modify
+replace: description;lang-es
+description;lang-es:: VW5hIG90cmEgZXMgbGEgRGVzY3JpcGNpw7NuIGVuIEVzcGHDsW9sLg==
+
+dn: uid=user.1,ou=People,o=example
+changeType: modify
+replace: description;lang-es
+description;lang-es:: VW5hIG90cmEgZXMgbGEgRGVzY3JpcGNpw7NuIGVuIEVzcGHDsW9sLg==
+
+dn: uid=user.2,ou=People,o=example
+changeType: modify
+replace: description;lang-es
+description;lang-es:: VW5hIG90cmEgZXMgbGEgRGVzY3JpcGNpw7NuIGVuIEVzcGHDsW9sLg==
+
+dn: uid=user.0,ou=People,o=example
+changeType: modify
+replace: description;lang-jp
+description;lang-jp:: MuaXpeacrOiqnuOBruiqrOaYjuOBp+OBmeOAgg==
+
+dn: uid=user.1,ou=People,o=example
+changeType: modify
+replace: description;lang-jp
+description;lang-jp:: MuaXpeacrOiqnuOBruiqrOaYjuOBp+OBmeOAgg==
+
+dn: uid=user.2,ou=People,o=example
+changeType: modify
+replace: description;lang-jp
+description;lang-jp:: MuaXpeacrOiqnuOBruiqrOaYjuOBp+OBmeOAgg==
 

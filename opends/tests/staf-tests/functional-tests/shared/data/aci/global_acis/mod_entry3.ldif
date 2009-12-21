@@ -1,3 +1,6 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
 # Common Development and Distribution License, Version 1.0 only
 # (the "License").  You may not use this file except in compliance
 # with the License.
@@ -20,15 +23,7 @@
 #      Copyright 2009 Sun Microsystems, Inc.
 #
 
-dn: cn=added-user.1,ou=People,o=example
-objectClass: person
-objectClass: inetorgperson
-objectClass: organizationalperson
-description: This is the description for added-user.1
-description: This is another description
-description;lang-fr:: Q2VjaSBlc3QgbGEgZGVzY3JpcHRpb24gZW4gRnJhbsOnYWlzIHBvdXIgYWRkZWQtdXNlci4w
-description;lang-es:: RXNvIGVzIGxhIERlc2NyaXBjacOzbiBlbiBFc3Bhw7FvbCBwYXJhIGFkZGVkLXVzZXIuMA==
-description;lang-jp:: YWRkZWQtdXNlci4w44Gu5pel5pys6Kqe44Gu6Kqs5piO44Gn44GZ44CC
-cn: added-user.1
-sn: Amar
-
+dn: uid=auser, ou=People, o=ACI Tests, dc=example,dc=com
+changetype: modify
+replace: telephoneNumber
+telephoneNumber: +33 01234567890

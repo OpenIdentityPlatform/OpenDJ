@@ -865,16 +865,16 @@
                   #@TestIssue                 1402
                   #@TestPurpose               Modify self against default global acis
                   #@TestPreamble              none
-                  #@TestStep                  Client modifies attribute in the user entry.
+                  #@TestStep                  Client modifies allowed attribute in the user entry.
                   #@TestPostamble             none
                   #@TestResult                Success if OpenDS returns 0.
               -->
-              <testcase name="getTestCaseName('Self Modify')">
+              <testcase name="getTestCaseName('Self Modify Allow')">
                 <sequence>
                   <call function="'testCase_Preamble'"/>
                             
                   <message>
-                     'ACI: Global: Self Modify, user modifying itself'
+                     'ACI: Global: Self Modify Allow, user modifying itself'
                   </message>
       
                   <call function="'modifyEntry'">
@@ -882,7 +882,41 @@
                       'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                       'dsInstancePswd'        : 'ACIRules' ,
-                      'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % remote.data }
+                      'entryToBeModified'     : '%s/aci/global_acis/mod_entry3.ldif' % remote.data }
+                  </call>
+                
+                  <call function="'testCase_Postamble'"/>
+      
+                </sequence>
+              </testcase>
+
+              <!---
+                  Place test-specific test information here.
+                  The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                  #@TestMarker                ACI Global Tests
+                  #@TestName                  Global ACI Modify Self
+                  #@TestIssue                 1402
+                  #@TestPurpose               Modify self against default global acis
+                  #@TestPreamble              none
+                  #@TestStep                  Client modifies denied attribute in the user entry.
+                  #@TestPostamble             none
+                  #@TestResult                Success if OpenDS returns 50.
+              -->
+              <testcase name="getTestCaseName('Self Modify Deny')">
+                <sequence>
+                  <call function="'testCase_Preamble'"/>
+                            
+                  <message>
+                     'ACI: Global: Self Modify Deny, user modifying itself'
+                  </message>
+      
+                  <call function="'modifyEntry'">
+                    { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                      'dsInstancePswd'        : 'ACIRules' ,
+                      'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % remote.data ,
+                      'expectedRC'            : 50 }
                   </call>
                 
                   <call function="'testCase_Postamble'"/>

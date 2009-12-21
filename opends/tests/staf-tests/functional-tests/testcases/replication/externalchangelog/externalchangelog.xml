@@ -33,61 +33,71 @@
     <sequence>
       <block name="'externalchangelog'">
         <sequence>
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='replication'
-            CurrentTestPath['suite']=STAXCurrentBlock
-            
-            _group = 'replication'
-            _suite = 'externalchangelog'
-          </script>
-            
-          <call function="'testSuite_Preamble'"/>
-            
-          <!--- Test Suite information
-          #@TestSuiteName       Replication External Changelog Tests
-          #@TestSuitePurpose    Test the event notification system provided by
-                                the External Changelog.
-          #@TestSuiteID         External Changelog Tests
-          #@TestSuiteGroup      External Changelog
-          #@TestGroup           Replication
-          #@TestScript          replication_externalchangelog.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
-          -->
           
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_setup.xml' 
-                        % (TESTS_DIR)"/>
-          <call function="'replication_setup'"/>
+          <!-- Do not run the tests if servers are split, as it is not supported
+           !   by External Changelog to have RS separated from DS -->
+          <if expr="globalSplitServers != True">
+            <sequence>
+              
+              <script>
+                if not CurrentTestPath.has_key('group'):
+                  CurrentTestPath['group']='replication'
+                CurrentTestPath['suite']=STAXCurrentBlock
+                
+                _group = 'replication'
+                _suite = 'externalchangelog'
+              </script>
+                
+              <call function="'testSuite_Preamble'"/>
+                
+              <!--- Test Suite information
+              #@TestSuiteName       Replication External Changelog Tests
+              #@TestSuitePurpose    Test the event notification system provided by
+                                    the External Changelog.
+              #@TestSuiteID         External Changelog Tests
+              #@TestSuiteGroup      External Changelog
+              #@TestGroup           Replication
+              #@TestScript          replication_externalchangelog.xml
+              #@TestHTMLLink        http://opends.dev.java.net/
+              -->
 
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/replication/replication_setup.xml' 
+                            % (TESTS_DIR)"/>
+              <call function="'replication_setup'"/>
+    
+    
+    
+              <!-- Run common set of ECL tests in opends proprietary mode -->
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
+                            % (TESTS_DIR, _group, _suite, _suite)"/>
+              <call function="'common_ecl_tests'">
+                { 'ecl_mode' : 'opends' }
+              </call>
+    
+    
+              <!-- Run common set of ECL tests in changelog draft-compatible
+               !   mode -->
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
+                            % (TESTS_DIR, _group, _suite, _suite)"/>
+              <call function="'common_ecl_tests'">
+                { 'ecl_mode' : 'draft' }
+              </call>
+    
+    
+    
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/replication/replication_cleanup.xml' 
+                            % (TESTS_DIR)"/>
+              <call function="'replication_cleanup'" />
 
-
-          <!-- Run common set of ECL tests in opends proprietary mode -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
-                        % (TESTS_DIR, _group, _suite, _suite)"/>
-          <call function="'common_ecl_tests'">
-            { 'ecl_mode' : 'opends' }
-          </call>
-
-
-          <!-- Run common set of ECL tests in changelog draft-compatible
-           !   mode -->
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/%s/%s/%s_common_ecl_tests.xml' 
-                        % (TESTS_DIR, _group, _suite, _suite)"/>
-          <call function="'common_ecl_tests'">
-            { 'ecl_mode' : 'draft' }
-          </call>
-
-
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_cleanup.xml' 
-                        % (TESTS_DIR)"/>
-          <call function="'replication_cleanup'" />
-
-          <call function="'testSuite_Postamble'"/>
+              <call function="'testSuite_Postamble'"/>
+              
+            </sequence>
+          </if>
+          
         </sequence>
       </block>
     </sequence>

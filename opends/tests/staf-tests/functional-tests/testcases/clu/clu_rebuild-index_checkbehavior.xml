@@ -424,8 +424,7 @@
                   {
                   'dsBaseDN'      : 'dc=com' ,
                   'dsIndexList'   : [ 'st' ] ,
-                  'dsCountErrors' : 'TRUE' ,
-                  'knownIssue'    : 4293
+                  'dsCountErrors' : 'TRUE'
                   }
                 </call>
 
@@ -446,7 +445,7 @@
                 </call>
 
                 <script>
-                  msg1 = 'Statistics for entries that have'
+                  msg1 = 'Statistics for records that have'
                   msg2 = 'exceeded the entry limit:'
                 </script>
                 <call function="'checktestString'">
@@ -457,7 +456,7 @@
                 </call>
 
                 <script>
-                  msg1 = 'File dc_com_st.equality has 51 such entrie\(s\)'
+                  msg1 = 'File dc_com_st.equality has 51 such record\(s\)'
                   msg2 = 'min=14 max=31 median=20'
                 </script>
                 <call function="'checktestString'">
