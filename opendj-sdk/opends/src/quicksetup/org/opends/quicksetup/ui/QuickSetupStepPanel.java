@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.ui;
 
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -62,13 +63,18 @@ import static org.opends.messages.QuickSetupMessages.*;
 public abstract class QuickSetupStepPanel extends QuickSetupPanel
 implements HyperlinkListener
 {
+  private JPanel inputContainer;
   private Component inputPanel;
 
-  private JLabel checkingLabel;
   private HashSet<ButtonActionListener> buttonListeners =
     new HashSet<ButtonActionListener>();
 
   private ProgressMessageFormatter formatter;
+
+  private static final String INPUT_PANEL = "input";
+  private static final String CHECKING_PANEL = "checking";
+
+  private boolean isCheckingVisible;
 
   /* We can use a HashMap (not multi-thread safe) because all
   the calls to this object are done in the event-thread.
@@ -185,7 +191,7 @@ implements HyperlinkListener
 
   /**
    * Returns the minimum width of the panel.  This is used to calculate the
-   * minimum widht of the dialog.
+   * minimum width of the dialog.
    * @return the minimum width of the panel.
    */
   public int getMinimumWidth()
@@ -233,15 +239,34 @@ implements HyperlinkListener
   }
 
   /**
-   * This method sets up an icon on the bottom left side of the dialog.
-   * Generally this method is called with an animated gif that is passed to
-   * display progress.
-   * @param iconType the icon type to be set.
+   * This method displays a working progress icon in the panel.
+   * @param visible whether the icon must be displayed or not.
    */
-  public void setIcon(UIFactory.IconType iconType)
+  public void setCheckingVisible(boolean visible)
   {
-    checkingLabel.setIcon(UIFactory.getImageIcon(iconType));
-    checkingLabel.setText(String.valueOf(getTextForIcon(iconType)));
+    if (visible != isCheckingVisible && inputContainer != null)
+    {
+      CardLayout cl = (CardLayout) inputContainer.getLayout();
+      if (visible)
+      {
+        cl.show(inputContainer, CHECKING_PANEL);
+      }
+      else
+      {
+        cl.show(inputContainer, INPUT_PANEL);
+      }
+      isCheckingVisible = visible;
+    }
+  }
+
+  /**
+   * Tells whether a working progress icon is being displayed in the panel.
+   * @return <CODE>true</CODE> if a working progress icon is being displayed in
+   * the panel and <CODE>false</CODE> otherwise.
+   */
+  public boolean isCheckingVisible()
+  {
+      return isCheckingVisible;
   }
 
   /**
@@ -280,7 +305,7 @@ implements HyperlinkListener
    * Creates the layout of the panel.
    *
    */
-  private void createLayout()
+  protected void createLayout()
   {
     setLayout(new GridBagLayout());
 
@@ -310,7 +335,7 @@ implements HyperlinkListener
     {
       if (somethingAdded)
       {
-        gbc.insets.top = UIFactory.TOP_INSET_INSTRUCTIONS_SUBPANEL;
+        gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
       } else
       {
         gbc.insets.top = 0;
@@ -319,7 +344,7 @@ implements HyperlinkListener
       gbc.weightx = 1.0;
       gbc.weighty = 0.0;
       gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbc.fill = GridBagConstraints.HORIZONTAL;
+      gbc.fill = GridBagConstraints.BOTH;
       gbc.anchor = GridBagConstraints.NORTHWEST;
       add(instructionsPanel, gbc);
       somethingAdded = true;
@@ -327,6 +352,26 @@ implements HyperlinkListener
 
     if (inputPanel != null)
     {
+      inputContainer = new JPanel(new CardLayout());
+
+      if (requiresScroll())
+      {
+        inputContainer.add(UIFactory.createBorderLessScrollBar(inputPanel),
+            INPUT_PANEL);
+      }
+      else
+      {
+        inputContainer.add(inputPanel, INPUT_PANEL);
+      }
+
+      JPanel checkingPanel = UIFactory.makeJPanel();
+      checkingPanel.setLayout(new GridBagLayout());
+      checkingPanel.add(UIFactory.makeJLabel(UIFactory.IconType.WAIT,
+          INFO_GENERAL_CHECKING_DATA.get(),
+          UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+          new GridBagConstraints());
+      inputContainer.add(checkingPanel, CHECKING_PANEL);
+
       if (somethingAdded)
       {
         gbc.insets.top = UIFactory.TOP_INSET_INPUT_SUBPANEL;
@@ -340,24 +385,12 @@ implements HyperlinkListener
       gbc.fill = GridBagConstraints.BOTH;
       gbc.anchor = GridBagConstraints.NORTHWEST;
       gbc.insets.left = 0;
-      add(inputPanel, gbc);
+      add(inputContainer, gbc);
       somethingAdded = true;
-    } else
+    }
+    else
     {
       addVerticalGlue(this);
-    }
-
-    checkingLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-            Message.EMPTY, UIFactory.TextStyle.PROGRESS);
-    if (hasCheckingLabel())
-    {
-      gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
-      gbc.insets.bottom = 0;
-      gbc.insets.left = 0;
-      gbc.weighty = 0.0;
-      gbc.anchor = GridBagConstraints.NORTHWEST;
-      gbc.fill = GridBagConstraints.HORIZONTAL;
-      add(checkingLabel, gbc);
     }
   }
 
@@ -396,21 +429,22 @@ implements HyperlinkListener
   }
 
   /**
-   * Tells whether we must add a label at the bottom left of the panel
-   * containing an icon that will show that we are doing some checkings.
-   * @return true if the checking label must be added and false otherwise.
-   */
-  protected boolean hasCheckingLabel()
-  {
-    return false;
-  }
-  /**
    * This method is called by the URLWorker when it has finished its task.
    * @param worker the URLWorker that finished its task.
    */
   public void urlWorkerFinished(URLWorker worker)
   {
     hmURLWorkers.remove(worker.getURL());
+  }
+
+  /**
+   * Tells whether the input panel should have a scroll or not.
+   * @return <CODE>true</CODE> if the input panel should have a scroll and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean requiresScroll()
+  {
+    return true;
   }
 
   /**

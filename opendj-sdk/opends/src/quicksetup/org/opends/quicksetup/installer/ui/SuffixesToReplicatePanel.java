@@ -43,7 +43,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
@@ -170,11 +169,7 @@ implements Comparator<SuffixDescriptor>
     gbc.anchor = GridBagConstraints.NORTH;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
-    scroll = new JScrollPane(checkBoxPanel);
-    scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
-    scroll.setViewportBorder(new EmptyBorder(0, 0, 0, 0));
-    scroll.setOpaque(false);
-    scroll.getViewport().setOpaque(false);
+    scroll = UIFactory.createBorderLessScrollBar(checkBoxPanel);
 
     panel.add(scroll, gbc);
 
@@ -192,6 +187,14 @@ implements Comparator<SuffixDescriptor>
     labelGlue.setVisible(false);
 
     return panel;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean requiresScroll()
+  {
+    return false;
   }
 
   /**

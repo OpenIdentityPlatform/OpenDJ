@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -46,7 +46,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 
 import org.opends.admin.ads.ServerDescriptor;
@@ -163,6 +162,14 @@ implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
+  protected boolean requiresScroll()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public int compare(ServerDescriptor desc1, ServerDescriptor desc2)
   {
     return desc1.getHostPort(true).compareTo(desc2.getHostPort(true));
@@ -186,11 +193,7 @@ implements Comparator<ServerDescriptor>
     gbc.fill = GridBagConstraints.BOTH;
     fieldsPanel = new JPanel(new GridBagLayout());
     fieldsPanel.setOpaque(false);
-    scroll = new JScrollPane(fieldsPanel);
-    scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
-    scroll.setViewportBorder(new EmptyBorder(0, 0, 0, 0));
-    scroll.setOpaque(false);
-    scroll.getViewport().setOpaque(false);
+    scroll = UIFactory.createBorderLessScrollBar(fieldsPanel);
 
     panel.add(scroll, gbc);
 

@@ -85,7 +85,6 @@ public class ColorAndFontConstants
     try
     {
       JScrollPane scroll = new JScrollPane();
-      Utilities.setScrollIncrementUnit(scroll);
       border = scroll.getBorder();
       // If the border is of class MetalBorders$ScrollPaneBorder it cannot
       // be used.
