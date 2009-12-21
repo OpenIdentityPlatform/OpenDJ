@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2009 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="group_setup"/>
+
+  <function name="group_setup">
+    <function-map-args>
+      <function-arg-def name="startDS" type="optional" default="True">
+        <function-arg-description>
+          Optional start the Directory Server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>  
+      <function-arg-def name="loadBackend" type="optional" default="True">
+        <function-arg-description>
+          Specifies whether the backend should be loaded with some data.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>            
+      <function-arg-def name="globalAcis" type="optional" default="True">
+        <function-arg-description>
+          Specifies whether the test should use global acis.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+    </function-map-args>
+      
+    <sequence>
+  
+      <block name="'setup'">
+        <sequence>
+
+          <if expr="globalAcis == True">
+
+            <sequence>
+              <message>'Adding global ACIs.'</message>
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : '%s/groups/global_acis.ldif' % remote.data
+                }
+              </call>
+            </sequence>
+          <else>
+            <sequence>
+              <message>'Adding entry ACIs.'</message>
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : '%s/groups/entry_acis.ldif' % remote.data
+                }
+              </call>
+            </sequence>
+          </else>
+          </if>
+ 
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+
+</stax>

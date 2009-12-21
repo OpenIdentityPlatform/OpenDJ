@@ -1105,7 +1105,7 @@
         
         qa = doc.getDocumentElement()
         ft = qa.getChildNodes().item(1)
-        results = ft.getChildNodes().item(1)
+        results = ft.getChildNodes().item(3)
         
         #Create testgroup element
         xml.testgroup = doc.createElement("testgroup")

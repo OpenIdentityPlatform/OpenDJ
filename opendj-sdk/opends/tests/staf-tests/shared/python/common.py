@@ -47,7 +47,9 @@ __all__ = [ "format_testcase",
             "list2dn",
             "dn2rfcmailaddr",
             "java_properties",
-            "xmldoc_service" ]
+            "xmldoc_service" ,
+            "xml_create_report" ,
+            "group_to_run" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -681,4 +683,66 @@ class xmldoc_service:
       tag.setAttributeNode(newAttribute)
     except:
       print "exception: %s" % traceback.format_exception(*sys.exc_info())
+  
+def xml_add_text_node(doc,parent,name,ntext):
+
+  node = doc.createElement(name)
+  text = doc.createTextNode('%s' % ntext)
+  node.appendChild(text)
+  parent.appendChild(node)
+
+def xml_create_report(pname,type,path,info,misc,testdir,report):
+
+  xml=xmldoc_service()
+        
+  builder = xml.createBlankDocument()
+  
+  doc = builder.newDocument()
+  root = doc.createElement("qa")
+  doc.appendChild(root)
+  ft = doc.createElement("%s" % type)
+  root.appendChild(ft);
+  
+  # Identification
+  id = doc.createElement("identification")
+  ft.appendChild(id)
+
+  sut = doc.createElement("sut")
+  xml.createAttr(doc,sut,"product","opends")
+  id.appendChild(sut)
+
+  xml_add_text_node(doc,sut,'name',pname)
+  xml_add_text_node(doc,sut,'path',path)
+  xml_add_text_node(doc,sut,'version',info['server version'])
+  xml_add_text_node(doc,sut,'buildid',info['server buildid'])      
+  xml_add_text_node(doc,sut,'revision',info['svn revision'])
+  xml_add_text_node(doc,sut,'hostname',info['system name'])
+  xml_add_text_node(doc,sut,'platform',info['system os'])
+  xml_add_text_node(doc,sut,'jvm-version',info['jvm version'])  
+  xml_add_text_node(doc,sut,'jvm-label',misc['jvm label'])
+  xml_add_text_node(doc,sut,'jvm-vendor',info['jvm vendor'])
+  xml_add_text_node(doc,sut,'jvm-arch',info['jvm architecture'])
+  xml_add_text_node(doc,sut,'jvm-args','TBD')
+  xml_add_text_node(doc,sut,'jvm-home','TBD')
+  xml_add_text_node(doc,sut,'jvm-bin','TDB')
+  xml_add_text_node(doc,sut,'os-label',misc['os label'])
+  xml_add_text_node(doc,sut,'server-package',misc['server package'])
+  xml_add_text_node(doc,sut,'snmp-jarfile',misc['snmp jarfile'])
+  xml_add_text_node(doc,sut,'md5-sum','TBD')
+
+  xml_add_text_node(doc,id,'tests-dir',testdir)
+
+  # Test Results
+  results = doc.createElement("results")
+  ft.appendChild(results)
+  
+  xml.writeXMLfile(doc,report)
+
+class group_to_run:
+  def __init__(self, name):
+    self.name = name
+
+  def getName(self):
+    return self.name
+
                                                          

@@ -50,5 +50,8 @@ st: <file:states>
 postalCode: <random:numeric:5>
 postalAddress: {cn} - {street} - {l}, {st}  {postalCode}
 description: This is the description for {cn}.
+description;lang-fr: Ceci est la description en Français pour {cn}
+description;lang-es: Eso es la Descripción en Español para {cn}
+description;lang-jp: {cn}の日本語の説明です。
 jpegPhoto:: <random:base64:1000>
 
