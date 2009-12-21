@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
+import javax.swing.SwingUtilities;
+
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.NewEntryTask;
@@ -47,8 +49,8 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
 /**
- * Abstract class used to refactor some code among the different panels that are
- * used to create a new entry.
+ * Abstract class used to re-factor some code among the different panels that
+ * are used to create a new entry.
  *
  */
 public abstract class AbstractNewEntryPanel extends StatusGenericPanel
@@ -180,7 +182,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
     }
     if (errors.size() == 0)
     {
-      ProgressDialog dlg = new ProgressDialog(
+      final ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(), Utilities.getParentDialog(this),
           getProgressDialogTitle(), getInfo());
       try
@@ -204,6 +206,13 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
               dlg);
           dlg.setVisible(true);
           Utilities.getParentDialog(this).setVisible(false);
+          SwingUtilities.invokeLater(new Runnable()
+          {
+            public void run()
+            {
+              dlg.toFront();
+            }
+          });
         }
       }
       catch (Throwable t)
