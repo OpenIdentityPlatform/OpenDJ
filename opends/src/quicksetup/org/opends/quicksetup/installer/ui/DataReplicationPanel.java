@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -318,15 +318,6 @@ public class DataReplicationPanel extends QuickSetupStepPanel
       text = super.getTextForIcon(iconType);
     }
     return text;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  protected boolean hasCheckingLabel()
-  {
-    return true;
   }
 
   /**

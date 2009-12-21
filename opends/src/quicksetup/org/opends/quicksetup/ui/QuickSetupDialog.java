@@ -22,12 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
 
-import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashSet;
@@ -147,17 +146,6 @@ public class QuickSetupDialog
     frame.pack();
     Utilities.centerOnScreen(frame);
     setFocusOnButton(ButtonName.NEXT);
-    int minWidth = (int) frame.getPreferredSize().getWidth();
-    int minHeight = (int) frame.getPreferredSize().getHeight();
-
-    ComponentListener[] listeners = frame.getComponentListeners();
-    for (ComponentListener listener : listeners) {
-      if (listener instanceof MinimumSizeComponentListener) {
-        frame.removeComponentListener(listener);
-      }
-    }
-    frame.addComponentListener(new MinimumSizeComponentListener(frame,
-        minWidth, minHeight));
   }
 
   /**
@@ -536,7 +524,6 @@ public class QuickSetupDialog
 
   private void displayWorkingProgressImage(boolean display)
   {
-    getCurrentStepPanel().setIcon(display ?
-          UIFactory.IconType.WAIT : UIFactory.IconType.NO_ICON);
+    getCurrentStepPanel().setCheckingVisible(display);
   }
 }

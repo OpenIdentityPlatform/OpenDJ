@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -239,16 +239,14 @@ public class CurrentStepPanel extends QuickSetupPanel
   }
 
   /**
-   * This method sets up an icon on the bottom left side of the dialog.
-   * Generally this method is called with an animated gif that is passed to
-   * display progress.
-   * @param iconType the icon type to be set.
+   * This method displays a working progress icon in the panel.
+   * @param visible whether the icon must be displayed or not.
    */
-  public void setIcon(UIFactory.IconType iconType)
+  public void setCheckingVisible(boolean visible)
   {
     for (WizardStep s : hmPanels.keySet())
     {
-      getPanel(s).setIcon(iconType);
+      getPanel(s).setCheckingVisible(visible);
     }
   }
 

@@ -723,8 +723,15 @@ implements ConfigChangeListener
             null,
             ERR_CTRL_PANEL_REBUILDING_INDEXES_ERROR_DETAILS,
             progressDialog, false);
-        progressDialog.toFront();
+        if (progressDialog.isModal())
+        {
+          progressDialog.toFront();
+        }
         progressDialog.setVisible(true);
+        if (!progressDialog.isModal())
+        {
+          progressDialog.toFront();
+        }
       }
       if (errors.size() > 0)
       {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -177,6 +177,14 @@ public class ProgressPanel extends QuickSetupStepPanel
   protected Message getTitle()
   {
     return INFO_PROGRESS_PANEL_TITLE.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean requiresScroll()
+  {
+    return false;
   }
 
   /**

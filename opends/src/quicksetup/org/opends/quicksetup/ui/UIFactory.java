@@ -1226,6 +1226,42 @@ public class UIFactory
   }
 
   /**
+   * Returns a JScrollPane that contains the provided component.  The scroll
+   * pane will not contain any border.
+   * @param comp the component contained in the scroll pane.
+   * @return a JScrollPane that contains the provided component.  The scroll
+   * pane will not contain any border.
+   */
+  public static JScrollPane createBorderLessScrollBar(Component comp)
+  {
+    JScrollPane scroll = new JScrollPane(comp);
+    scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+    scroll.setViewportBorder(new EmptyBorder(0, 0, 0, 0));
+    scroll.setOpaque(false);
+    scroll.getViewport().setOpaque(false);
+    scroll.getViewport().setBackground(DEFAULT_BACKGROUND);
+    scroll.setBackground(DEFAULT_BACKGROUND);
+    setScrollIncrementUnit(scroll);
+    return scroll;
+  }
+
+  /**
+   * Sets the scroll increment unit for the scroll.
+   * @param scroll the scroll to be updated.
+   */
+  public static void setScrollIncrementUnit(JScrollPane scroll)
+  {
+    if (scroll.getVerticalScrollBar() != null)
+    {
+      int increment = scroll.getVerticalScrollBar().getUnitIncrement();
+      if (increment < 16)
+      {
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+      }
+    }
+  }
+
+  /**
    * Return empty insets.
    * @return empty insets.
    */

@@ -134,6 +134,14 @@ public class InstallLicensePanel extends QuickSetupStepPanel
   }
 
   /**
+   * {@inheritDoc}
+   */
+  protected boolean requiresScroll()
+  {
+    return false;
+  }
+
+  /**
    * Adds the required action listeners to the fields.
    */
   private void addActionListeners()
