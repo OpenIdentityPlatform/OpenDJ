@@ -416,7 +416,8 @@ public final class LDAPEncoder
     encodeMessageHeader(writer, messageID);
     encodeResultHeader(writer, OP_TYPE_BIND_RESPONSE, result);
 
-    if (result.getServerSASLCredentials().length() > 0)
+    ByteString saslCredentials = result.getServerSASLCredentials();
+    if (saslCredentials !=null && saslCredentials.length() > 0)
     {
       writer.writeOctetString(TYPE_SERVER_SASL_CREDENTIALS, result
           .getServerSASLCredentials());
