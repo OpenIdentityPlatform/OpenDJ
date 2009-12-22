@@ -1,9 +1,11 @@
 package org.opends.sdk;
 
 import com.sun.opends.sdk.util.Validator;
+import com.sun.opends.sdk.util.StaticUtils;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 /**
  * Created by IntelliJ IDEA. User: digitalperk Date: Dec 15, 2009 Time: 3:49:17
@@ -70,6 +72,15 @@ public abstract class AbstractLoadBalancingAlgorithm
           {
             resultHandler.handleErrorResult(error);
           }
+          if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+          {
+            StaticUtils.DEBUG_LOG
+                .warning(String
+                    .format(
+                    "Connection factory " + factory +
+                        " is no longer operational: "
+                        + error.getMessage()));
+          }
         }
 
         public void handleResult(AsynchronousConnection result)
@@ -78,6 +89,14 @@ public abstract class AbstractLoadBalancingAlgorithm
           if(resultHandler != null)
           {
             resultHandler.handleResult(result);
+          }
+          if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+          {
+            StaticUtils.DEBUG_LOG
+                .warning(String
+                    .format(
+                    "Connection factory " + factory +
+                        " is now operational"));
           }
         }
       };
@@ -100,8 +119,13 @@ public abstract class AbstractLoadBalancingAlgorithm
         for(MonitoredConnectionFactory f : factoryList)
         {
           if(!f.isOperational && (f.pendingConnectFuture == null ||
-                                  f.pendingConnectFuture.isDone()))
+              f.pendingConnectFuture.isDone()))
           {
+            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+            {
+              StaticUtils.DEBUG_LOG
+                  .finest(String.format("Attempting connect on factory " + f));
+            }
             f.pendingConnectFuture = f.factory.getAsynchronousConnection(f);
           }
         }

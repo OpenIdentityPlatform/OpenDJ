@@ -32,9 +32,6 @@ package org.opends.sdk.ldap;
 import javax.net.ssl.SSLContext;
 
 import org.opends.sdk.schema.Schema;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.SearchScope;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -45,17 +42,11 @@ import com.sun.opends.sdk.util.Validator;
  */
 public final class LDAPConnectionOptions
 {
-  private static final SearchRequest DEFAULT_PING = Requests
-      .newSearchRequest("", SearchScope.BASE_OBJECT, "(objectClass=*)",
-                        "1.1");
-
   private Schema schema = Schema.getDefaultSchema();
 
   private SSLContext sslContext = null;
 
   private boolean useStartTLS = false;
-
-  private SearchRequest pingRequest = DEFAULT_PING;
 
 
 
@@ -206,29 +197,7 @@ public final class LDAPConnectionOptions
     return this;
   }
 
-  /**
-   * Retrieves the search request used to verify the validity of a
-   * LDAP connection. By default, the root DSE is retrieved without any
-   * attributes.
-   *
-   * @return The search request.
-   */
-  public SearchRequest getPingRequest()
-  {
-    return pingRequest;
-  }
 
-  /**
-   * Sets the search request used to verify the validity of a
-   * LDAP connection.
-   *
-   * @param pingRequest The search request that can be used to verify the
-   *                    validity of a LDAP connection.
-   */
-  public void setPingRequest(SearchRequest pingRequest)
-  {
-    this.pingRequest = pingRequest;
-  }
 
   // Assigns the provided options to this set of options.
   LDAPConnectionOptions assign(LDAPConnectionOptions options)
