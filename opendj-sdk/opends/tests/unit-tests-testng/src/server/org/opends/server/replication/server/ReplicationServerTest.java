@@ -703,7 +703,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         reader[i].start();
       }
       debugInfo("multipleWriterMultipleReader produces and readers started");
-      Thread.sleep(2000);
+      //Thread.sleep(2000);
     }
     finally
     {
@@ -1168,7 +1168,11 @@ public class ReplicationServerTest extends ReplicationTestCase
             numMsgRcv++;
             broker.updateWindowAfterReplay();
           }
-          if ((msg == null) || (numMsgRcv >= numMsgExpected))
+          // if ((msg == null) || (numMsgRcv >= numMsgExpected))
+          // Terminating this thread when the nb of msg received is reached
+          // may prevent to process a WindowMsg that would unblock the dual
+          // writer thread.
+          if (msg == null)
             break;
         }
       } catch (SocketTimeoutException e)
@@ -1188,6 +1192,7 @@ public class ReplicationServerTest extends ReplicationTestCase
             "a BrokerReader received an Exception" + e.getMessage()
             + stackTraceToSingleLineString(e);
       }
+      assert(numMsgRcv >= numMsgExpected);
     }
   }
 
