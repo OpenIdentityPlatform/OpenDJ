@@ -1056,6 +1056,7 @@ public class TopologyViewTest extends ReplicationTestCase
    */
   private void checkTopoView(int[] dsIdList, TopoView theoricalTopoView)
   {
+   sleep(500);
    for(int currentDsId : dsIdList)
    {
      LDAPReplicationDomain rd = null;
@@ -1115,7 +1116,7 @@ public class TopologyViewTest extends ReplicationTestCase
       * Compare to what is the expected view
       */
 
-     assertEquals(dsTopoView, theoricalTopoView);
+     assertEquals(dsTopoView, theoricalTopoView, " in DSid=" + currentDsId);
    }
   }
 
