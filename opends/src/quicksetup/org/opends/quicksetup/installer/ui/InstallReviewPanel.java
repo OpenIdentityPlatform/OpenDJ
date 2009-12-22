@@ -37,13 +37,17 @@ import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -67,6 +71,15 @@ public class InstallReviewPanel extends ReviewPanel {
   private JCheckBox startCheckBox;
   private JCheckBox enableWindowsServiceCheckBox;
   private JLabel warningLabel;
+
+  private JComboBox viewCombo;
+  private final Message DISPLAY_TEXT = INFO_REVIEW_DISPLAY_TEXT.get();
+  private final Message DISPLAY_EQUIVALENT_COMMAND =
+    INFO_REVIEW_DISPLAY_EQUIVALENT_COMMAND.get();
+
+  private JComponent cardLayoutPanel;
+
+  private JEditorPane equivalentCommandPane;
 
   /**
    * Constructor of the panel.
@@ -127,6 +140,88 @@ public class InstallReviewPanel extends ReviewPanel {
       getLabel(FieldName.REPLICATION_PORT).setVisible(true);
     }
     checkStartWarningLabel();
+    updateEquivalentCommand(userData);
+  }
+
+  /**
+   * Creates and returns the instructions panel.
+   * @return the instructions panel.
+   */
+  protected Component createInstructionsPanel()
+  {
+    JPanel instructionsPanel = new JPanel(new GridBagLayout());
+    instructionsPanel.setOpaque(false);
+    Message instructions = getInstructions();
+    JLabel l = new JLabel(instructions.toString());
+    l.setFont(UIFactory.INSTRUCTIONS_FONT);
+
+    Message[] values = {
+      DISPLAY_TEXT,
+      DISPLAY_EQUIVALENT_COMMAND
+    };
+    DefaultComboBoxModel model = new DefaultComboBoxModel(values);
+    viewCombo = new JComboBox();
+    viewCombo.setModel(model);
+    viewCombo.setSelectedIndex(0);
+
+    viewCombo.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        updateInputPanel();
+      }
+    });
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.anchor = GridBagConstraints.WEST;
+    instructionsPanel.add(l, gbc);
+    gbc.gridx = 1;
+    gbc.weightx = 1.0;
+    instructionsPanel.add(Box.createHorizontalGlue(), gbc);
+    gbc.gridx = 2;
+    gbc.weightx = 0.0;
+    gbc.insets.left = UIFactory.LEFT_INSET_BROWSE;
+    instructionsPanel.add(viewCombo);
+
+    return instructionsPanel;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean requiresScroll()
+  {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected Component createInputPanel()
+  {
+    JPanel panel = UIFactory.makeJPanel();
+    panel.setLayout(new GridBagLayout());
+
+    GridBagConstraints gbc = new GridBagConstraints();
+
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.BOTH;
+    panel.add(createFieldsPanel(), gbc);
+
+    JComponent chk = getBottomComponent();
+    if (chk != null) {
+      gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+      gbc.weighty = 0.0;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      panel.add(chk, gbc);
+    }
+
+    return panel;
   }
 
   /**
@@ -160,6 +255,12 @@ public class InstallReviewPanel extends ReviewPanel {
   protected Message getTitle()
   {
     return INFO_REVIEW_PANEL_TITLE.get();
+  }
+
+  private void updateInputPanel()
+  {
+    CardLayout cl = (CardLayout)cardLayoutPanel.getLayout();
+    cl.show(cardLayoutPanel, viewCombo.getSelectedItem().toString());
   }
 
   /**
@@ -361,6 +462,35 @@ public class InstallReviewPanel extends ReviewPanel {
    */
   protected JPanel createFieldsPanel()
   {
+    JPanel fieldsPanel = new JPanel(new GridBagLayout());
+    fieldsPanel.setOpaque(false);
+
+    GridBagConstraints gbc = new GridBagConstraints();
+
+    cardLayoutPanel = new JPanel(new CardLayout());
+
+    JComponent p = createReadOnlyPanel();
+    p.setBorder(new EmptyBorder(UIFactory.LEFT_INSET_SECONDARY_FIELD,
+        UIFactory.LEFT_INSET_SECONDARY_FIELD,
+        UIFactory.LEFT_INSET_SECONDARY_FIELD,
+        UIFactory.LEFT_INSET_SECONDARY_FIELD));
+
+    cardLayoutPanel.add(new JScrollPane(p), DISPLAY_TEXT.toString());
+    cardLayoutPanel.add(new JScrollPane(createEquivalentCommandPanel()),
+        DISPLAY_EQUIVALENT_COMMAND.toString());
+
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.gridwidth = 3;
+    gbc.fill = GridBagConstraints.BOTH;
+    fieldsPanel.add(cardLayoutPanel, gbc);
+    return fieldsPanel;
+  }
+
+  private JComponent createReadOnlyPanel()
+  {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
@@ -421,7 +551,19 @@ public class InstallReviewPanel extends ReviewPanel {
       panel.add(getField(fieldNames[i]), gbc);
     }
 
+    gbc.weighty = 1.0;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.fill = GridBagConstraints.VERTICAL;
+    panel.add(Box.createVerticalGlue(), gbc);
+
     return panel;
+  }
+
+  private Component createEquivalentCommandPanel()
+  {
+    equivalentCommandPane = UIFactory.makeHtmlPane(Message.EMPTY,
+        UIFactory.INSTRUCTIONS_FONT);
+    return equivalentCommandPane;
   }
 
   /**
@@ -515,5 +657,91 @@ public class InstallReviewPanel extends ReviewPanel {
       visible = rep.getType() != DataReplicationOptions.Type.STANDALONE;
     }
     getWarningLabel().setVisible(visible);
+  }
+
+  private void updateEquivalentCommand(UserData userData)
+  {
+    HtmlProgressMessageFormatter formatter =
+      new HtmlProgressMessageFormatter();
+    StringBuilder sb = new StringBuilder();
+    try
+    {
+      equivalentCommandPane.getDocument().remove(0,
+          equivalentCommandPane.getDocument().getLength());
+    }
+    catch (BadLocationException ble)
+    {
+      throw new RuntimeException("Unexpected error: "+ble, ble);
+    }
+    sb.append(formatter.getFormattedProgress(
+        INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()));
+    sb.append(formatter.getLineBreak());
+    sb.append("<b>"+Utils.getFormattedEquivalentCommandLine(
+        Utils.getSetupEquivalentCommandLine(userData), formatter)+
+        "</b>");
+    if (userData.getReplicationOptions().getType() ==
+      DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
+    {
+      sb.append(formatter.getTaskSeparator());
+      ArrayList<ArrayList<String>> cmdLines =
+        Utils.getDsReplicationEnableEquivalentCommandLines(userData);
+      if (cmdLines.size() == 1)
+      {
+        sb.append(formatter.getFormattedProgress(
+          INFO_INSTALL_ENABLE_REPLICATION_EQUIVALENT_COMMAND_LINE.get()));
+      }
+      else if (cmdLines.size() > 1)
+      {
+        sb.append(formatter.getFormattedProgress(
+            INFO_INSTALL_ENABLE_REPLICATION_EQUIVALENT_COMMAND_LINES.get()));
+      }
+      for (ArrayList<String> cmdLine : cmdLines)
+      {
+        sb.append(formatter.getLineBreak());
+        sb.append("<b>"+
+                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
+            "</b>");
+      }
+
+      sb.append(formatter.getLineBreak());
+      sb.append(formatter.getLineBreak());
+      cmdLines =
+        Utils.getDsReplicationInitializeEquivalentCommandLines(userData);
+      if (cmdLines.size() == 1)
+      {
+        sb.append(formatter.getFormattedProgress(
+            INFO_INSTALL_INITIALIZE_REPLICATION_EQUIVALENT_COMMAND_LINE.get()));
+      }
+      else if (cmdLines.size() > 1)
+      {
+        sb.append(formatter.getFormattedProgress(
+           INFO_INSTALL_INITIALIZE_REPLICATION_EQUIVALENT_COMMAND_LINES.get()));
+      }
+
+      for (ArrayList<String> cmdLine : cmdLines)
+      {
+        sb.append(formatter.getLineBreak());
+        sb.append("<b>"+
+                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
+            "</b>");
+      }
+    }
+    else if (userData.getReplicationOptions().getType() ==
+      DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
+    {
+      sb.append(formatter.getTaskSeparator());
+      sb.append(formatter.getFormattedProgress(
+          INFO_INSTALL_ENABLE_REPLICATION_EQUIVALENT_COMMAND_LINES.get()));
+      ArrayList<ArrayList<String>> cmdLines =
+        Utils.getDsConfigReplicationEnableEquivalentCommandLines(userData);
+      for (ArrayList<String> cmdLine : cmdLines)
+      {
+        sb.append(formatter.getLineBreak());
+        sb.append("<b>"+
+                Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
+            "</b>");
+      }
+    }
+    equivalentCommandPane.setText(sb.toString());
   }
 }
