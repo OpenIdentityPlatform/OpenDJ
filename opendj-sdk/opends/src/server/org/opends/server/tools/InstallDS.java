@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.logging.Level;
@@ -180,6 +181,8 @@ public class InstallDS extends ConsoleApplication
     CONTINUE(1),
     // Provide information again
     PROVIDE_INFORMATION_AGAIN(2),
+    // Display equivalent command-line
+    PRINT_EQUIVALENT_COMMAND_LINE(3),
     // Cancel the install
     CANCEL(3);
 
@@ -510,8 +513,18 @@ public class InstallDS extends ConsoleApplication
           return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
         }
       }
-      if (isInteractive())
+      boolean promptAgain = true;
+      if (!isInteractive())
       {
+        userApproved = true;
+      }
+      else
+      {
+        printSummary(uData);
+      }
+      while (isInteractive() && promptAgain)
+      {
+        promptAgain = false;
         ConfirmCode confirm = askForConfirmation(uData);
         switch (confirm)
         {
@@ -521,6 +534,10 @@ public class InstallDS extends ConsoleApplication
         case CANCEL:
           LOG.log(Level.INFO, "User cancelled setup.");
           return ErrorReturnCode.ERROR_USER_CANCELLED.getReturnCode();
+        case PRINT_EQUIVALENT_COMMAND_LINE:
+          printEquivalentCommandLine(uData);
+          promptAgain = true;
+          break;
         default:
           // Reset the arguments
           try
@@ -534,7 +551,7 @@ public class InstallDS extends ConsoleApplication
           userApproved = false;
         }
       }
-      else
+      if (!isInteractive())
       {
         userApproved = true;
       }
@@ -2509,17 +2526,11 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method asks the user to confirm to continue the setup.  It basically
-   * displays the information provided by the user and at the end proposes a
-   * menu with the different options to choose from.
+   * It displays the information provided by the user.
    * @param uData the UserData that the user provided.
-   * @return the answer provided by the user: cancel setup, continue setup or
-   * provide information again.
    */
-  private ConfirmCode askForConfirmation(UserData uData)
+  private void printSummary(UserData uData)
   {
-    ConfirmCode returnValue;
-
     println();
     println();
     println(INFO_INSTALLDS_SUMMARY.get());
@@ -2605,6 +2616,30 @@ public class InstallDS extends ConsoleApplication
         println(INFO_INSTALLDS_DO_NOT_ENABLE_WINDOWS_SERVICE.get());
       }
     }
+  }
+
+  private void printEquivalentCommandLine(UserData uData)
+  {
+    println();
+
+    println(INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get());
+    println();
+    ArrayList<String> cmd = Utils.getSetupEquivalentCommandLine(uData);
+    println(Message.raw(
+        Utils.getFormattedEquivalentCommandLine(cmd, formatter)));
+  }
+
+  /**
+   * This method asks the user to confirm to continue the setup.  It basically
+   * displays the information provided by the user and at the end proposes a
+   * menu with the different options to choose from.
+   * @param uData the UserData that the user provided.
+   * @return the answer provided by the user: cancel setup, continue setup or
+   * provide information again.
+   */
+  private ConfirmCode askForConfirmation(UserData uData)
+  {
+    ConfirmCode returnValue;
 
     println();
     println();
@@ -2612,6 +2647,7 @@ public class InstallDS extends ConsoleApplication
     Message[] msgs = new Message[] {
         INFO_INSTALLDS_CONFIRM_INSTALL.get(),
         INFO_INSTALLDS_PROVIDE_DATA_AGAIN.get(),
+        INFO_INSTALLDS_PRINT_EQUIVALENT_COMMAND_LINE.get(),
         INFO_INSTALLDS_CANCEL.get()
       };
 

@@ -61,10 +61,14 @@ import javax.naming.ldap.LdapName;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
@@ -2182,6 +2186,588 @@ public class Utils
     {
       return buf.toString();
     }
+  }
+
+  /**
+   * Returns a String representation of the provided command-line.
+   * @param cmd the command-line arguments.
+   * @param formatter the formatted to be used to create the String
+   * representation.
+   * @return a String representation of the provided command-line.
+   */
+  public static String getFormattedEquivalentCommandLine(ArrayList<String> cmd,
+      ProgressMessageFormatter formatter)
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append(formatter.getFormattedProgress(Message.raw(cmd.get(0))));
+    int initialIndex = 1;
+    StringBuilder sbSeparator = new StringBuilder();
+    if (Utils.isWindows())
+    {
+      sbSeparator.append(formatter.getSpace());
+    }
+    else
+    {
+      sbSeparator.append(formatter.getSpace());
+      sbSeparator.append("\\");
+      sbSeparator.append(formatter.getLineBreak());
+      for (int i=0 ; i < 10 ; i++)
+      {
+        sbSeparator.append(formatter.getSpace());
+      }
+    }
+
+    String lineSeparator = sbSeparator.toString();
+    for (int i=initialIndex ; i<cmd.size(); i++)
+    {
+      String s = cmd.get(i);
+      if (s.startsWith("-") && i > initialIndex)
+      {
+        builder.append(lineSeparator);
+        builder.append(formatter.getFormattedProgress(Message.raw(s)));
+      }
+      else
+      {
+        builder.append(formatter.getSpace());
+        builder.append(formatter.getFormattedProgress(Message.raw(
+            escapeValue(s))));
+      }
+    }
+    return builder.toString();
+  }
+
+  //Chars that require special treatment when passing them to command-line.
+  private final static char[] charsToEscape = {' ', '\t', '\n', '|', ';', '<',
+    '>', '(', ')', '$', '`', '\\', '"', '\''};
+  private static final String OBFUSCATED_VALUE = "******";
+
+  /**
+   * This method simply takes a value and tries to transform it (with escape or
+   * '"') characters so that it can be used in a command line.
+   * @param value the String to be treated.
+   * @return the transformed value.
+   */
+  private static String escapeValue(String value)
+  {
+    StringBuilder b = new StringBuilder();
+    if (Utils.isUnix())
+    {
+      for (int i=0 ; i<value.length(); i++)
+      {
+        char c = value.charAt(i);
+        boolean charToEscapeFound = false;
+        for (int j=0; j<charsToEscape.length && !charToEscapeFound; j++)
+        {
+          charToEscapeFound = c == charsToEscape[j];
+        }
+        if (charToEscapeFound)
+        {
+          b.append('\\');
+        }
+        b.append(c);
+      }
+    }
+    else
+    {
+      b.append('"').append(value).append('"');
+    }
+
+    return b.toString();
+  }
+
+  /**
+   * Returns the equivalent setup CLI command-line.  Note that this command-line
+   * does not cover all the replication part of the GUI install.  Note also
+   * that to avoid problems in the WebStart setup, all the Strings are
+   * hard-coded in the implementation of this method.
+   * @param userData the user data.
+   * @return the equivalent setup command-line.
+   */
+  public static ArrayList<String> getSetupEquivalentCommandLine(
+      UserData userData)
+  {
+    ArrayList<String> cmdLine = new ArrayList<String>();
+    String setupFile;
+    if (Utils.isWindows())
+    {
+      setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
+    }
+    else
+    {
+      setupFile = Installation.UNIX_SETUP_FILE_NAME;
+    }
+    cmdLine.add(setupFile);
+    cmdLine.add("--cli");
+
+    for (String baseDN : getBaseDNs(userData))
+    {
+      cmdLine.add("--baseDN");
+      cmdLine.add(baseDN);
+    }
+
+    switch (userData.getNewSuffixOptions().getType())
+    {
+    case CREATE_BASE_ENTRY:
+      cmdLine.add("--addBaseEntry");
+      break;
+    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+      cmdLine.add("--sampleData");
+      cmdLine.add(String.valueOf(
+          userData.getNewSuffixOptions().getNumberEntries()));
+      break;
+    case IMPORT_FROM_LDIF_FILE:
+      for (String ldifFile : userData.getNewSuffixOptions().getLDIFPaths())
+      {
+        cmdLine.add("--ldifFile");
+        cmdLine.add(ldifFile);
+      }
+      String rejectFile = userData.getNewSuffixOptions().getRejectedFile();
+      if (rejectFile != null)
+      {
+        cmdLine.add("--rejectFile");
+        cmdLine.add(rejectFile);
+      }
+      String skipFile = userData.getNewSuffixOptions().getSkippedFile();
+      if (skipFile != null)
+      {
+        cmdLine.add("--skipFile");
+        cmdLine.add(skipFile);
+      }
+      break;
+    }
+
+    cmdLine.add("--ldapPort");
+    cmdLine.add(String.valueOf(userData.getServerPort()));
+    cmdLine.add("--adminConnectorPort");
+    cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
+    if (userData.getServerJMXPort() != -1)
+    {
+      cmdLine.add("--jmxPort");
+      cmdLine.add(String.valueOf(userData.getServerJMXPort()));
+    }
+    cmdLine.add("--rootUserDN");
+    cmdLine.add(userData.getDirectoryManagerDn());
+    cmdLine.add("--rootUserPassword");
+    cmdLine.add(OBFUSCATED_VALUE);
+
+    if (userData.getReplicationOptions().getType() ==
+      DataReplicationOptions.Type.STANDALONE &&
+      !userData.getStartServer())
+    {
+      cmdLine.add("--doNotStart");
+    }
+
+    if (userData.getSecurityOptions().getEnableStartTLS())
+    {
+      cmdLine.add("--enableStartTLS");
+    }
+    if (userData.getSecurityOptions().getEnableSSL())
+    {
+      cmdLine.add("--ldapsPort");
+      cmdLine.add(String.valueOf(userData.getSecurityOptions().getSslPort()));
+    }
+    switch (userData.getSecurityOptions().getCertificateType())
+    {
+    case SELF_SIGNED_CERTIFICATE:
+      cmdLine.add("--generateSelfSignedCertificate");
+      cmdLine.add("--hostName");
+      cmdLine.add(userData.getHostName());
+      break;
+    case JKS:
+      cmdLine.add("--useJavaKeystore");
+      cmdLine.add(userData.getSecurityOptions().getKeystorePath());
+      if (userData.getSecurityOptions().getKeystorePassword() != null)
+      {
+        cmdLine.add("--keyStorePassword");
+        cmdLine.add(OBFUSCATED_VALUE);
+      }
+      if (userData.getSecurityOptions().getAliasToUse() != null)
+      {
+        cmdLine.add("--certNickname");
+        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
+      }
+      break;
+    case JCEKS:
+      cmdLine.add("--useJCEKS");
+      cmdLine.add(userData.getSecurityOptions().getKeystorePath());
+      if (userData.getSecurityOptions().getKeystorePassword() != null)
+      {
+        cmdLine.add("--keyStorePassword");
+        cmdLine.add(OBFUSCATED_VALUE);
+      }
+      if (userData.getSecurityOptions().getAliasToUse() != null)
+      {
+        cmdLine.add("--certNickname");
+        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
+      }
+      break;
+    case PKCS12:
+      cmdLine.add("--usePkcs12keyStore");
+      cmdLine.add(userData.getSecurityOptions().getKeystorePath());
+      if (userData.getSecurityOptions().getKeystorePassword() != null)
+      {
+        cmdLine.add("--keyStorePassword");
+        cmdLine.add(OBFUSCATED_VALUE);
+      }
+      if (userData.getSecurityOptions().getAliasToUse() != null)
+      {
+        cmdLine.add("--certNickname");
+        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
+      }
+      break;
+    case PKCS11:
+      cmdLine.add("--usePkcs11Keystore");
+      if (userData.getSecurityOptions().getKeystorePassword() != null)
+      {
+        cmdLine.add("--keyStorePassword");
+        cmdLine.add(OBFUSCATED_VALUE);
+      }
+      if (userData.getSecurityOptions().getAliasToUse() != null)
+      {
+        cmdLine.add("--certNickname");
+        cmdLine.add(userData.getSecurityOptions().getAliasToUse());
+      }
+      break;
+    }
+
+    cmdLine.add("--no-prompt");
+    cmdLine.add("--noPropertiesFile");
+    return cmdLine;
+  }
+
+  /**
+   * Returns the list of equivalent command-lines that must be executed to
+   * enable replication as the setup does.
+   * @param userData the user data.
+   * @return the list of equivalent command-lines that must be executed to
+   * enable replication as the setup does.
+   */
+  public static ArrayList<ArrayList<String>>
+  getDsReplicationEnableEquivalentCommandLines(
+      UserData userData)
+  {
+    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
+    Map<ServerDescriptor, Set<String>> hmServerBaseDNs =
+      getServerDescriptorBaseDNMap(userData);
+    for (ServerDescriptor server : hmServerBaseDNs.keySet())
+    {
+      cmdLines.add(getDsReplicationEnableEquivalentCommandLine(userData,
+          hmServerBaseDNs.get(server), server));
+    }
+    return cmdLines;
+  }
+
+  /**
+   * Returns the list of equivalent command-lines that must be executed to
+   * initialize replication as the setup does.
+   * @param userData the user data.
+   * @return the list of equivalent command-lines that must be executed to
+   * initialize replication as the setup does.
+   */
+  public static ArrayList<ArrayList<String>>
+  getDsReplicationInitializeEquivalentCommandLines(
+      UserData userData)
+  {
+    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
+    Map<ServerDescriptor, Set<String>> hmServerBaseDNs =
+      getServerDescriptorBaseDNMap(userData);
+    for (ServerDescriptor server : hmServerBaseDNs.keySet())
+    {
+      cmdLines.add(getDsReplicationInitializeEquivalentCommandLine(userData,
+          hmServerBaseDNs.get(server), server));
+    }
+    return cmdLines;
+  }
+
+  private static ArrayList<String> getDsReplicationEnableEquivalentCommandLine(
+      UserData userData, Set<String> baseDNs, ServerDescriptor server)
+  {
+    ArrayList<String> cmdLine = new ArrayList<String>();
+    String cmdName;
+    if (Utils.isWindows())
+    {
+      cmdName = "dsreplication.bat";
+    }
+    else
+    {
+      cmdName = "dsreplication";
+    }
+    cmdLine.add(cmdName);
+    cmdLine.add("enable");
+
+    DataReplicationOptions replOptions = userData.getReplicationOptions();
+    cmdLine.add("--host1");
+    cmdLine.add(server.getHostName());
+    cmdLine.add("--port1");
+    cmdLine.add(String.valueOf(server.getEnabledAdministrationPorts().get(0)));
+
+    AuthenticationData authData =
+      userData.getReplicationOptions().getAuthenticationData();
+    if (!Utils.areDnsEqual(authData.getDn(),
+        ADSContext.getAdministratorDN(userData.getGlobalAdministratorUID())))
+    {
+      cmdLine.add("--bindDN1");
+      cmdLine.add(authData.getDn());
+      cmdLine.add("--bindPassword1");
+      cmdLine.add(OBFUSCATED_VALUE);
+    }
+    for (ServerDescriptor s :
+      userData.getRemoteWithNoReplicationPort().keySet())
+    {
+      if (s.getAdminConnectorURL().equals(server.getAdminConnectorURL()))
+      {
+        AuthenticationData remoteRepl =
+          userData.getRemoteWithNoReplicationPort().get(server);
+        int remoteReplicationPort = remoteRepl.getPort();
+
+        cmdLine.add("--replicationPort1");
+        cmdLine.add(String.valueOf(remoteReplicationPort));
+        if (remoteRepl.useSecureConnection())
+        {
+          cmdLine.add("--secureReplication1");
+        }
+      }
+    }
+    cmdLine.add("--host2");
+    cmdLine.add(userData.getHostName());
+    cmdLine.add("--port2");
+    cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
+    cmdLine.add("--bindDN2");
+    cmdLine.add(userData.getDirectoryManagerDn());
+    cmdLine.add("--bindPassword2");
+    cmdLine.add(OBFUSCATED_VALUE);
+    if (replOptions.getReplicationPort() != -1)
+    {
+      cmdLine.add("--replicationPort2");
+      cmdLine.add(
+         String.valueOf(replOptions.getReplicationPort()));
+      if (replOptions.useSecureReplication())
+      {
+        cmdLine.add("--secureReplication2");
+      }
+    }
+
+    for (String baseDN : baseDNs)
+    {
+      cmdLine.add("--baseDN");
+      cmdLine.add(baseDN);
+    }
+
+    cmdLine.add("--adminUID");
+    cmdLine.add(userData.getGlobalAdministratorUID());
+    cmdLine.add("--adminPassword");
+    cmdLine.add(OBFUSCATED_VALUE);
+
+    cmdLine.add("--trustAll");
+    cmdLine.add("--no-prompt");
+    cmdLine.add("--noPropertiesFile");
+    return cmdLine;
+  }
+
+  private static ArrayList<String>
+  getDsReplicationInitializeEquivalentCommandLine(
+      UserData userData, Set<String> baseDNs, ServerDescriptor server)
+  {
+    ArrayList<String> cmdLine = new ArrayList<String>();
+    String cmdName;
+    if (Utils.isWindows())
+    {
+      cmdName = "dsreplication.bat";
+    }
+    else
+    {
+      cmdName = "dsreplication";
+    }
+    cmdLine.add(cmdName);
+    cmdLine.add("initialize");
+
+    cmdLine.add("--hostSource");
+    cmdLine.add(server.getHostName());
+    cmdLine.add("--portSource");
+    cmdLine.add(String.valueOf(server.getEnabledAdministrationPorts().get(0)));
+
+    cmdLine.add("--hostDestination");
+    cmdLine.add(userData.getHostName());
+    cmdLine.add("--portDestination");
+    cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
+
+    for (String baseDN : baseDNs)
+    {
+      cmdLine.add("--baseDN");
+      cmdLine.add(baseDN);
+    }
+
+    cmdLine.add("--adminUID");
+    cmdLine.add(userData.getGlobalAdministratorUID());
+    cmdLine.add("--adminPassword");
+    cmdLine.add(OBFUSCATED_VALUE);
+
+    cmdLine.add("--trustAll");
+    cmdLine.add("--no-prompt");
+    cmdLine.add("--noPropertiesFile");
+    return cmdLine;
+  }
+
+  private static ArrayList<String> getBaseDNs(UserData userData)
+  {
+    ArrayList<String> baseDNs = new ArrayList<String>();
+
+    DataReplicationOptions repl = userData.getReplicationOptions();
+    SuffixesToReplicateOptions suf = userData.getSuffixesToReplicateOptions();
+
+    boolean createSuffix =
+      repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY ||
+      repl.getType() == DataReplicationOptions.Type.STANDALONE ||
+      suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+
+    if (createSuffix)
+    {
+      NewSuffixOptions options = userData.getNewSuffixOptions();
+      baseDNs.addAll(options.getBaseDns());
+    }
+    else
+    {
+      Set<SuffixDescriptor> suffixes = suf.getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        baseDNs.add(suffix.getDN());
+      }
+    }
+    return baseDNs;
+  }
+
+  private static Map<ServerDescriptor, Set<String>>
+  getServerDescriptorBaseDNMap(UserData userData)
+  {
+    Map<ServerDescriptor, Set<String>> hm =
+      new HashMap<ServerDescriptor, Set<String>>();
+
+    Set<SuffixDescriptor> suffixes =
+      userData.getSuffixesToReplicateOptions().getSuffixes();
+    AuthenticationData authData =
+      userData.getReplicationOptions().getAuthenticationData();
+    String ldapURL = ConnectionUtils.getLDAPUrl(authData.getHostName(),
+        authData.getPort(), authData.useSecureConnection());
+    for (SuffixDescriptor suffix : suffixes)
+    {
+      boolean found = false;
+      for (ReplicaDescriptor replica : suffix.getReplicas())
+      {
+        if (ldapURL.equalsIgnoreCase(
+            replica.getServer().getAdminConnectorURL()))
+        {
+          found = true;
+          Set<String> baseDNs = hm.get(replica.getServer());
+          if (baseDNs == null)
+          {
+            baseDNs = new LinkedHashSet<String>();
+            hm.put(replica.getServer(), baseDNs);
+          }
+          baseDNs.add(suffix.getDN());
+          break;
+        }
+      }
+      if (!found)
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          if (hm.keySet().contains(replica.getServer()))
+          {
+            hm.get(replica.getServer()).add(suffix.getDN());
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found)
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          Set<String> baseDNs = new LinkedHashSet<String>();
+          hm.put(replica.getServer(), baseDNs);
+          baseDNs.add(suffix.getDN());
+          break;
+        }
+      }
+    }
+    return hm;
+  }
+
+  /**
+   * Returns the equivalent dsconfig command-line required to configure
+   * the first replicated server in the topology.
+   * @param userData the user data.
+   * @return the equivalent dsconfig command-line required to configure
+   * the first replicated server in the topology.
+   */
+  public static ArrayList<ArrayList<String>>
+  getDsConfigReplicationEnableEquivalentCommandLines(
+      UserData userData)
+  {
+    ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
+
+    String cmdName;
+    if (Utils.isWindows())
+    {
+      cmdName = "dsconfig.bat";
+    }
+    else
+    {
+      cmdName = "dsconfig";
+    }
+
+    ArrayList<String> connectionArgs = new ArrayList<String>();
+    connectionArgs.add("--hostName");
+    connectionArgs.add(userData.getHostName());
+    connectionArgs.add("--port");
+    connectionArgs.add(String.valueOf(userData.getAdminConnectorPort()));
+    connectionArgs.add("--bindDN");
+    connectionArgs.add(userData.getDirectoryManagerDn());
+    connectionArgs.add("--bindPassword");
+    connectionArgs.add(OBFUSCATED_VALUE);
+    connectionArgs.add("--trustAll");
+    connectionArgs.add("--no-prompt");
+    connectionArgs.add("--noPropertiesFile");
+
+    ArrayList<String> cmdReplicationServer = new ArrayList<String>();
+    cmdReplicationServer.add(cmdName);
+    cmdReplicationServer.add("create-replication-server");
+    cmdReplicationServer.add("--provider-name");
+    cmdReplicationServer.add("Multimaster Synchronization");
+    cmdReplicationServer.add("--set");
+    cmdReplicationServer.add("replication-port:"+
+        userData.getReplicationOptions().getReplicationPort());
+    cmdReplicationServer.add("--set");
+    cmdReplicationServer.add("replication-server-id:1");
+    cmdReplicationServer.add("--type");
+    cmdReplicationServer.add("generic");
+    cmdReplicationServer.addAll(connectionArgs);
+
+    cmdLines.add(cmdReplicationServer);
+
+    for (String baseDN : getBaseDNs(userData))
+    {
+      ArrayList<String> cmdDomain = new ArrayList<String>();
+      cmdDomain.add(cmdName);
+      cmdDomain.add("create-replication-domain");
+      cmdDomain.add("--provider-name");
+      cmdDomain.add("Multimaster Synchronization");
+      cmdDomain.add("--set");
+      cmdDomain.add("base-dn:"+baseDN);
+      cmdDomain.add("--set");
+      cmdDomain.add("replication-server:"+userData.getHostName()+":"+
+          userData.getReplicationOptions().getReplicationPort());
+      cmdDomain.add("--set");
+      cmdDomain.add("server-id:1");
+      cmdDomain.add("--type");
+      cmdDomain.add("generic");
+      cmdDomain.add("--domain-name");
+      cmdDomain.add(baseDN);
+      cmdDomain.addAll(connectionArgs);
+      cmdLines.add(cmdDomain);
+    }
+
+    return cmdLines;
   }
 }
 

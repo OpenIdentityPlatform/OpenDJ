@@ -509,7 +509,7 @@ implements HyperlinkListener
    * Creates and returns the instructions panel.
    * @return the instructions panel.
    */
-  private Component createInstructionsPanel()
+  protected Component createInstructionsPanel()
   {
     Component instructionsPanel = null;
     Message instructions = getInstructions();
