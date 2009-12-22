@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.io.Closeable;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
@@ -376,6 +377,21 @@ public interface AsynchronousConnection extends Closeable
 
 
 
+  /**
+   * Returns true if the connection has not been closed and is still valid.
+   * The implementation shall submit a search on the connection or use some
+   * other mechanism that positively verifies the connection is still valid
+   * when this method is called.
+   *
+   * The query submitted by the driver to validate the connection shall be
+   * executed in the authentication context.
+   *
+   * @return {@code true} if the connection is valid, {@code false} otherwise.
+   */
+  boolean isValid();
+
+
+  
   /**
    * Modifies an entry in the Directory Server using the provided modify
    * request.
