@@ -222,7 +222,7 @@
       <script>
         DSMLName='%s' % DSML_WARNAME
         DSMLPackage='%s' % DSML_WARPATH
-        DSMLContainer='%s %s' % (WC_TYPE,WC_VERSION)
+        DSMLContainer=WC_TYPE
       </script>
 
       <!-- Get the location of where the test logs are -->

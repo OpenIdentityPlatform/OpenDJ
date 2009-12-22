@@ -368,6 +368,7 @@ opends.admin.pwd=${opends.admin.pwd.input}
 snmp.opendmk.lib.dir=${snmp.opendmk.lib.dir.input}
 ldclt.dir=${ldclt.dir.input}
 verbose.mode=${verbose.mode.input}
+wc.type=tomcat
 test.plan.custom=${test.plan.custom}</echo>
   </target>
 

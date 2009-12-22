@@ -255,6 +255,33 @@
     <var name="http.archive" value="HTTPV${http.version}.zip"/>
     <var name="tomcat.url" value="http://archive.apache.org/dist/tomcat/tomcat-6/v${tomcat.version}/bin"/>
     <var name="tomcat.archive" value="apache-tomcat-${tomcat.version}.zip"/>
+    <var name="glassfish.url" value="http://download.java.net/glassfish/${glassfish.version}/release"/>
+    <var name="glassfish.archive" value="glassfish-${glassfish.version}.zip"/>
+    <var name="sunwebserver.url" value="${sunwebserver.url}"/>
+    <var name="sunwebserver.archive" value="sjsws-${sunwebserver.version}-${os.myname}.zip"/>
+
+    <switch value="${wc.type}">
+      <case value="glassfish">
+        <!-- Glassfish webcontainer -->
+        <var name="wc.url" value="${glassfish.url}"/>
+        <var name="wc.archive" value="${glassfish.archive}"/>
+        <var name="wc.version" value="${glassfish.version}"/>
+      </case>
+      <case value="sunwebserver">
+        <!-- SunWebserver webcontainer -->
+        <var name="wc.url" value="${sunwebserver.url}"/>
+        <var name="wc.archive" value="${sunwebserver.archive}"/>
+        <var name="wc.version" value="${sunwebserver.version}"/>
+      </case>
+      <default>
+        <!-- Tomcat webcontainer -->
+        <var name="wc.url" value="${tomcat.url}"/>
+        <var name="wc.archive" value="${tomcat.archive}"/>
+        <var name="wc.version" value="${tomcat.version}"/>
+      </default>
+    </switch>
+
+
   </target>
 
   <!-- ######### -->

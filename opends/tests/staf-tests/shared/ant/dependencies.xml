@@ -36,7 +36,7 @@
     <!-- STAF and other services -->
     <var name="list" value="${staf.archive},${stax.archive},${email.archive}"/>
     <var name="list" value="${list},${event.archive},${eventmanager.archive}"/>
-    <var name="list" value="${list},${http.archive},${tomcat.archive}"/>
+    <var name="list" value="${list},${http.archive},${wc.archive}"/>
     <mkdir dir="${tmp.dir}"/>
     <for list="${list}" param="archive">
       <sequential>
@@ -88,10 +88,10 @@
           </or>
           <then>
             <if>
-              <equals arg1="@{archive}" arg2="${tomcat.archive}"/>
+              <equals arg1="@{archive}" arg2="${wc.archive}"/>
               <then>
                 <!-- Tomcat url -->
-                <var name="url" value="${tomcat.url}"/>
+                <var name="url" value="${wc.url}"/>
               </then>
               <else>
                 <!-- Other url -->
@@ -118,7 +118,7 @@
       <include name="${event.archive}"/>
       <include name="${eventmanager.archive}"/>
       <include name="${http.archive}"/>
-      <include name="${tomcat.archive}"/>
+      <include name="${wc.archive}"/>
     </delete>
   </target>
 
@@ -131,7 +131,7 @@
       <exclude name="${event.archive}"/>
       <exclude name="${eventmanager.archive}"/>
       <exclude name="${http.archive}"/>
-      <exclude name="${tomcat.archive}"/>
+      <exclude name="${wc.archive}"/>
     </delete>
   </target>
 
