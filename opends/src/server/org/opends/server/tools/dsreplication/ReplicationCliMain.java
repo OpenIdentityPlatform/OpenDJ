@@ -5682,10 +5682,13 @@ public class ReplicationCliMain extends ConsoleApplication
     ServerDescriptor server;
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
-    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
-    for (String dn : uData.getBaseDNs())
+    if (!uData.disableAll())
     {
-      filter.addBaseDNToSearch(dn);
+      filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+      for (String dn : uData.getBaseDNs())
+      {
+        filter.addBaseDNToSearch(dn);
+      }
     }
     try
     {
@@ -5712,9 +5715,12 @@ public class ReplicationCliMain extends ConsoleApplication
         cache.setPreferredConnections(
             PreferredConnection.getPreferredConnections(ctx));
         cache.getFilter().setSearchMonitoringInformation(false);
-        for (String dn : uData.getBaseDNs())
+        if (!uData.disableAll())
         {
-          cache.getFilter().addBaseDNToSearch(dn);
+          for (String dn : uData.getBaseDNs())
+          {
+            cache.getFilter().addBaseDNToSearch(dn);
+          }
         }
         cache.reloadTopology();
       }
@@ -6001,7 +6007,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (uData.disableAll())
     {
-      suffixesToDisable.clear();
       for (ReplicaDescriptor replica : server.getReplicas())
       {
         if (replica.isReplicated())
