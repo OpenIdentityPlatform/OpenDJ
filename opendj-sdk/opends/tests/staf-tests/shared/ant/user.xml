@@ -75,6 +75,18 @@
         <input message="   Enter Tomcat service version:"
                defaultvalue="${tomcat.version}"
                addproperty="tomcat.version.input"/>
+
+        <input message="   Enter Glassfish service version:"
+               defaultvalue="${glassfish.version}"
+               addproperty="glassfish.version.input"/>
+
+        <input message="   Enter SunWebserver download url:"
+               defaultvalue="${sunwebserver.url}"
+               addproperty="sunwebserver.url.input"/>
+
+        <input message="   Enter SunWebserver service version:"
+               defaultvalue="${sunwebserver.version}"
+               addproperty="sunwebserver.version.input"/>
       </then>
       <else>
         <property name="staf.version.input" value="${staf.version}"/>
@@ -85,6 +97,9 @@
         <property name="eventmanager.version.input" value="${eventmanager.version}"/>
         <property name="http.version.input" value="${http.version}"/>
         <property name="tomcat.version.input" value="${tomcat.version}"/>
+        <property name="glassfish.version.input" value="${glassfish.version}"/>
+        <property name="sunwebserver.url.input" value="${sunwebserver.url}"/>
+        <property name="sunwebserver.version.input" value="${sunwebserver.version}"/>
       </else>
     </if>
 
@@ -158,6 +173,9 @@ event.version=${event.version.input}
 eventmanager.version=${eventmanager.version.input}
 http.version=${http.version.input}
 tomcat.version=${tomcat.version.input}
+glassfish.version=${glassfish.version.input}
+sunwebserver.url=${sunwebserver.url.input}
+sunwebserver.version=${sunwebserver.version.input}
 proxy.enabled=${proxy.enabled.input}
 proxy.host=${proxy.host.input}
 proxy.port=${proxy.port.input}

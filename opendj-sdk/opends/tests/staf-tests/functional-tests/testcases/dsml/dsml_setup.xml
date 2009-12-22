@@ -496,13 +496,66 @@
               <message>
                 'Update DSML gateway web.xml file on host %s' % STAF_REMOTE_HOSTNAME
               </message>
-              <call function="'copyFile'">
-                { 'location' : STAXServiceMachine,
-                  'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
-                  'srcfile' : '%s/WEB-INF/web.xml.out' % myTmpDir,
-                  'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION)
-                 }
-              </call>
+              <script>
+                # create the autodeploy webapp path
+                destWebXml = None
+                if WC_TYPE == 'tomcat':
+                  destWebXml = os.path.join(WC_DIRECTORY, 'apache-%s-%s' % (WC_TYPE, WC_VERSION), 'webapps',
+                                            'dsml', 'WEB-INF', 'web.xml')
+                elif WC_TYPE == 'glassfish':
+                  destWebXml = os.path.join(WC_DIRECTORY, 'glassfishv3', 'glassfish',
+                                            'domains', 'domain1', 'applications',
+                                            'dsml', 'WEB-INF', 'web.xml')
+                elif WC_TYPE == 'sunwebserver':
+                  destWebXml = os.path.join(WC_DIRECTORY, '%s-%s' % (WC_TYPE, WC_VERSION), 'https-%s' % STAF_REMOTE_HOSTNAME,
+                                 'generated', STAF_REMOTE_HOSTNAME, 'dsml', 'WEB-INF', 'web.xml')
+
+                nbLoop = 10
+                loopSleep = 1000 # 1000 millisecondes
+              </script>
+              <message>'checking presence of deployed dsml %s' % destWebXml</message>
+              <loop from="0" to="nbLoop" while="RC == 48">
+                <sequence>
+                  <call function="'Sleep'">
+                    {'sleepForMilliSeconds' : loopSleep }
+                  </call>
+                  <message>'going to sleep for 2 secondes'</message>
+                  <call function="'GetEntry'">
+                  { 
+                  'location' : STAF_REMOTE_HOSTNAME,
+                  'entry'    : destWebXml,
+                  'attribute': 'TYPE'
+                  }
+                  </call>
+                </sequence>
+              </loop>
+              <if expr="RC == 0">
+                <sequence>
+                  <message>
+                    'going to copy %s:%s/WEB-INF/web.xml.out to %s:%s' % (STAXServiceMachine,myTmpDir,STAF_REMOTE_HOSTNAME,destWebXml)
+                  </message>
+                  <call function="'copyFile'">
+                    { 'location' : STAXServiceMachine,
+                      'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
+                      'srcfile' : '%s/WEB-INF/web.xml.out' % myTmpDir,
+                      'destfile' : destWebXml
+                     }
+                  </call>
+                  <call function="'checktestRC'">
+                    {
+                    'returncode' : RC ,
+                    'result'     : STAXResult
+                    }
+                  </call>
+                  <call function="'stopWebcontainerWithScript'"/>
+                  <call function="'startWebcontainerWithScript'"/>
+                </sequence>
+              <else>
+                <message>
+                  'the target %s is not available after %sms' % (destWebXml, (nbLoop*loopSleep))
+                </message>
+              </else>
+              </if>
               <call function="'checktestRC'">
                 {
                 'returncode' : RC ,
