@@ -309,6 +309,13 @@ final class AuthenticatedConnectionFactory
 
 
 
+    public boolean isValid()
+    {
+      return connection.isValid();
+    }
+
+
+
     public void close()
     {
       connection.close();

@@ -460,7 +460,7 @@ public final class LDAPConnectionFactoryImpl extends
         .getDefaultFilterChainFactory().getFilterChainPattern());
 
     LDAPConnection ldapConnection = new LDAPConnection(connection,
-        socketAddress, options.getSchema(), this);
+        socketAddress, options.getSchema(), options.getPingRequest(), this);
     ldapConnectionAttr.set(connection, ldapConnection);
     return ldapConnection;
   }
