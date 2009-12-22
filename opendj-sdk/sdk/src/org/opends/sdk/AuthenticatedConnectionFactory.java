@@ -253,6 +253,15 @@ final class AuthenticatedConnectionFactory extends
     /**
      * {@inheritDoc}
      */
+    public boolean isValid() {
+      return connection.isValid();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public boolean isClosed()
     {
       return connection.isClosed();

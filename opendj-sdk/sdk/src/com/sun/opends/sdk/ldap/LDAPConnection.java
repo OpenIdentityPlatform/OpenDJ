@@ -37,7 +37,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
@@ -59,7 +61,7 @@ import com.sun.grizzly.filterchain.StreamTransformerFilter;
 import com.sun.grizzly.ssl.*;
 import com.sun.grizzly.streams.StreamWriter;
 import com.sun.opends.sdk.util.Validator;
-import com.sun.opends.sdk.util.StaticUtils;
+
 
 
 /**
@@ -664,8 +666,6 @@ public final class LDAPConnection extends
 
   private final Object writeLock = new Object();
 
-  private final SearchRequest pingRequest;
-
   /**
    * Creates a new LDAP connection.
    *
@@ -676,22 +676,18 @@ public final class LDAPConnection extends
    * @param schema
    *          The schema which will be used to decode responses from the
    *          server.
-   * @param pingRequest
-   *          The search request to use to verify the validity of
-   *          this connection.
    * @param connFactory
    *          The associated connection factory.
    */
   LDAPConnection(com.sun.grizzly.Connection<?> connection,
       InetSocketAddress serverAddress, Schema schema,
-      SearchRequest pingRequest, LDAPConnectionFactoryImpl connFactory)
+      LDAPConnectionFactoryImpl connFactory)
   {
     this.connection = connection;
     this.serverAddress = serverAddress;
     this.schema = schema;
     this.connFactory = connFactory;
     this.streamWriter = getFilterChainStreamWriter();
-    this.pingRequest = pingRequest;
   }
 
 
@@ -1345,17 +1341,13 @@ public final class LDAPConnection extends
 
 
   private void close(UnbindRequest unbindRequest,
-                     boolean isDisconnectNotification, Result reason)
+      boolean isDisconnectNotification, Result reason)
   {
     boolean notifyClose = false;
     boolean notifyErrorOccurred = false;
 
     synchronized (writeLock)
     {
-      if(reason == null && unbindRequest == null)
-      {
-        System.out.println("Something is wrong!");
-      }
       if (isClosed)
       {
         // Already closed.
@@ -1503,27 +1495,7 @@ public final class LDAPConnection extends
    */
   public boolean isValid()
   {
-    if(!isClosed && connectionInvalidReason == null)
-    {
-      try
-      {
-        search(pingRequest, null, null).get(5, TimeUnit.SECONDS);
-        return true;
-      }
-      catch (ErrorResultException e)
-      {
-        StaticUtils.DEBUG_LOG.warning("Validity check returned error: " +
-                                      e.getResult());
-      }
-      catch (TimeoutException e)
-      {
-        StaticUtils.DEBUG_LOG.warning("Validity check timed out");
-      }
-      catch (InterruptedException e)
-      {
-      }
-    }
-    return false;
+    return connectionInvalidReason == null && !isClosed;
   }
   //
   //
