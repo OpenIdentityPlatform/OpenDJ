@@ -2221,7 +2221,7 @@ public class Utils
     for (int i=initialIndex ; i<cmd.size(); i++)
     {
       String s = cmd.get(i);
-      if (s.startsWith("-") && i > initialIndex)
+      if (s.startsWith("-"))
       {
         builder.append(lineSeparator);
         builder.append(formatter.getFormattedProgress(Message.raw(s)));
@@ -2296,7 +2296,7 @@ public class Utils
     {
       setupFile = Installation.UNIX_SETUP_FILE_NAME;
     }
-    cmdLine.add(setupFile);
+    cmdLine.add(getInstallDir() + setupFile);
     cmdLine.add("--cli");
 
     for (String baseDN : getBaseDNs(userData))
@@ -2350,6 +2350,10 @@ public class Utils
     cmdLine.add("--rootUserPassword");
     cmdLine.add(OBFUSCATED_VALUE);
 
+    if (Utils.isWindows() && userData.getEnableWindowsService())
+    {
+      cmdLine.add("--enableWindowsService");
+    }
     if (userData.getReplicationOptions().getType() ==
       DataReplicationOptions.Type.STANDALONE &&
       !userData.getStartServer())
@@ -2483,15 +2487,7 @@ public class Utils
       UserData userData, Set<String> baseDNs, ServerDescriptor server)
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
-    String cmdName;
-    if (Utils.isWindows())
-    {
-      cmdName = "dsreplication.bat";
-    }
-    else
-    {
-      cmdName = "dsreplication";
-    }
+    String cmdName = getCommandLinePath("dsreplication");
     cmdLine.add(cmdName);
     cmdLine.add("enable");
 
@@ -2564,20 +2560,87 @@ public class Utils
     return cmdLine;
   }
 
+  /**
+   * Returns the full path of the command-line for a given script name.
+   * @param scriptBasicName the script basic name (with no extension).
+   * @return the full path of the command-line for a given script name.
+   */
+  private static String getCommandLinePath(String scriptBasicName)
+  {
+    String cmdLineName;
+    if (isWindows())
+    {
+      cmdLineName = getBinaryDir()+scriptBasicName+".bat";
+    }
+    else
+    {
+      cmdLineName = getBinaryDir()+scriptBasicName;
+    }
+    return cmdLineName;
+  }
+
+  private static String binDir;
+  /**
+   * Returns the binary/script directory.
+   * @return the binary/script directory.
+   */
+  private static String getBinaryDir()
+  {
+    if (binDir == null)
+    {
+      File f = Installation.getLocal().getBinariesDirectory();
+      try
+      {
+        binDir = f.getCanonicalPath();
+      }
+      catch (Throwable t)
+      {
+        binDir = f.getAbsolutePath();
+      }
+      if (binDir.lastIndexOf(File.separatorChar) != (binDir.length() - 1))
+      {
+        binDir += File.separatorChar;
+      }
+    }
+
+    return binDir;
+  }
+
+  private static String installDir;
+  /**
+   * Returns the installation directory.
+   * @return the installation directory.
+   */
+  private static String getInstallDir()
+  {
+    if (installDir == null)
+    {
+      File f =
+        org.opends.quicksetup.Installation.getLocal().getRootDirectory();
+      try
+      {
+        installDir = f.getCanonicalPath();
+      }
+      catch (Throwable t)
+      {
+        installDir = f.getAbsolutePath();
+      }
+      if (installDir.lastIndexOf(File.separatorChar) !=
+        (installDir.length() - 1))
+      {
+        installDir += File.separatorChar;
+      }
+    }
+
+    return installDir;
+  }
+
   private static ArrayList<String>
   getDsReplicationInitializeEquivalentCommandLine(
       UserData userData, Set<String> baseDNs, ServerDescriptor server)
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
-    String cmdName;
-    if (Utils.isWindows())
-    {
-      cmdName = "dsreplication.bat";
-    }
-    else
-    {
-      cmdName = "dsreplication";
-    }
+    String cmdName = getCommandLinePath("dsreplication");
     cmdLine.add(cmdName);
     cmdLine.add("initialize");
 
@@ -2706,15 +2769,7 @@ public class Utils
   {
     ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
 
-    String cmdName;
-    if (Utils.isWindows())
-    {
-      cmdName = "dsconfig.bat";
-    }
-    else
-    {
-      cmdName = "dsconfig";
-    }
+    String cmdName = getCommandLinePath("dsconfig");
 
     ArrayList<String> connectionArgs = new ArrayList<String>();
     connectionArgs.add("--hostName");
