@@ -32,6 +32,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -42,7 +43,6 @@ import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -80,6 +80,8 @@ public class InstallReviewPanel extends ReviewPanel {
   private JComponent cardLayoutPanel;
 
   private JEditorPane equivalentCommandPane;
+
+  private UserData lastUserData;
 
   /**
    * Constructor of the panel.
@@ -141,6 +143,8 @@ public class InstallReviewPanel extends ReviewPanel {
     }
     checkStartWarningLabel();
     updateEquivalentCommand(userData);
+
+    lastUserData = userData;
   }
 
   /**
@@ -476,8 +480,9 @@ public class InstallReviewPanel extends ReviewPanel {
         UIFactory.LEFT_INSET_SECONDARY_FIELD));
 
     cardLayoutPanel.add(new JScrollPane(p), DISPLAY_TEXT.toString());
-    cardLayoutPanel.add(new JScrollPane(createEquivalentCommandPanel()),
-        DISPLAY_EQUIVALENT_COMMAND.toString());
+    JScrollPane scroll = new JScrollPane();
+    createEquivalentCommandPanel(scroll);
+    cardLayoutPanel.add(scroll, DISPLAY_EQUIVALENT_COMMAND.toString());
 
     gbc.gridx = 0;
     gbc.gridy = 0;
@@ -559,10 +564,11 @@ public class InstallReviewPanel extends ReviewPanel {
     return panel;
   }
 
-  private Component createEquivalentCommandPanel()
+  private Component createEquivalentCommandPanel(JScrollPane scroll)
   {
-    equivalentCommandPane = UIFactory.makeHtmlPane(Message.EMPTY,
-        UIFactory.INSTRUCTIONS_FONT);
+    equivalentCommandPane = UIFactory.makeProgressPane(scroll);
+    equivalentCommandPane.setAutoscrolls(true);
+    scroll.setViewportView(equivalentCommandPane);
     return equivalentCommandPane;
   }
 
@@ -623,6 +629,8 @@ public class InstallReviewPanel extends ReviewPanel {
         public void actionPerformed(ActionEvent ev)
         {
           checkStartWarningLabel();
+          lastUserData.setStartServer(startCheckBox.isSelected());
+          updateEquivalentCommand(lastUserData);
         }
       });
     }
@@ -639,6 +647,18 @@ public class InstallReviewPanel extends ReviewPanel {
               UIFactory.TextStyle.CHECKBOX);
       enableWindowsServiceCheckBox.setSelected(
           getApplication().getUserData().getEnableWindowsService());
+      enableWindowsServiceCheckBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          if (Utils.isWindows())
+          {
+            lastUserData.setEnableWindowsService(
+                enableWindowsServiceCheckBox.isSelected());
+            updateEquivalentCommand(lastUserData);
+          }
+        }
+      });
     }
     return enableWindowsServiceCheckBox;
   }
@@ -664,15 +684,6 @@ public class InstallReviewPanel extends ReviewPanel {
     HtmlProgressMessageFormatter formatter =
       new HtmlProgressMessageFormatter();
     StringBuilder sb = new StringBuilder();
-    try
-    {
-      equivalentCommandPane.getDocument().remove(0,
-          equivalentCommandPane.getDocument().getLength());
-    }
-    catch (BadLocationException ble)
-    {
-      throw new RuntimeException("Unexpected error: "+ble, ble);
-    }
     sb.append(formatter.getFormattedProgress(
         INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()));
     sb.append(formatter.getLineBreak());
@@ -741,6 +752,19 @@ public class InstallReviewPanel extends ReviewPanel {
                 Utils.getFormattedEquivalentCommandLine(cmdLine, formatter)+
             "</b>");
       }
+    }
+
+    if (userData.getReplicationOptions().getType() !=
+      DataReplicationOptions.Type.STANDALONE &&
+      !userData.getStartServer())
+    {
+      sb.append(formatter.getTaskSeparator());
+      String cmd =
+        Utils.getPath(Installation.getLocal().getServerStopCommandFile());
+      sb.append(formatter.getFormattedProgress(
+          INFO_INSTALL_STOP_SERVER_EQUIVALENT_COMMAND_LINE.get()));
+      sb.append(formatter.getLineBreak());
+      sb.append("<b>"+formatter.getFormattedProgress(Message.raw(cmd))+"</b>");
     }
     equivalentCommandPane.setText(sb.toString());
   }
