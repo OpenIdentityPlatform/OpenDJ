@@ -642,6 +642,9 @@ public class ReplicationServerTest extends ReplicationTestCase
           clientBroker[i].stop();
       }
 
+      assertTrue(reader.errDetails==null,
+          reader.exc + " " + reader.errDetails);
+
       replicationServer.clearDb();
       TestCaseUtils.initializeTestBackend(true);
     }
@@ -658,7 +661,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(dependsOnMethods = { "searchBackend"})
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void multipleWriterMultipleReader() throws Exception
   {
     debugInfo("Starting multipleWriterMultipleReader");
@@ -723,8 +726,6 @@ public class ReplicationServerTest extends ReplicationTestCase
         if (reader[i] != null)
           reader[i].join(10000);
         // kill the thread in case it is not yet stopped.
-        assertTrue(reader[i].exc==null,
-            reader[i].exc + " " + reader[i].errDetails);
         reader[i].interrupt();
       }
       debugInfo("multipleWriterMultipleReader reader's ended, now stop brokers");
@@ -737,6 +738,13 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       replicationServer.clearDb();
       TestCaseUtils.initializeTestBackend(true);
+
+      for (int i = 0; i< THREADS; i++)
+      {
+        if (reader[i] != null)
+          assertTrue(reader[i].errDetails==null,
+            reader[i].exc + " " + reader[i].errDetails);
+      }
     }
     debugInfo("Ending multipleWriterMultipleReader");
   }
@@ -1136,7 +1144,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     private int numMsgRcv = 0;
     private final int numMsgExpected;
     public Exception exc;
-    public String errDetails;
+    public String errDetails = null;
 
     /**
      * Creates a new Stress Test Reader
@@ -1192,7 +1200,6 @@ public class ReplicationServerTest extends ReplicationTestCase
             "a BrokerReader received an Exception" + e.getMessage()
             + stackTraceToSingleLineString(e);
       }
-      assert(numMsgRcv >= numMsgExpected);
     }
   }
 
