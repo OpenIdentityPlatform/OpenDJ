@@ -609,7 +609,7 @@ public class SearchOperationBasis
 
     // Determine whether the provided entry is a subentry and if so whether it
     // should be returned.
-    if (entry.isLDAPSubentry())
+    if (entry.isSubentry() || entry.isLDAPSubentry())
     {
       if ((getScope() != SearchScope.BASE_OBJECT) &&
               (! isReturnLDAPSubentries()))
@@ -1494,7 +1494,11 @@ public class SearchOperationBasis
       if (filter.getAttributeType().isObjectClassType())
       {
         AttributeValue v = filter.getAssertionValue();
-        if (toLowerCase(v.getValue().toString()).equals("ldapsubentry"))
+        // FIXME : technically this is not correct since the presense
+        // of draft oc would trigger rfc oc visibility and visa versa.
+        String stringValueLC = toLowerCase(v.getValue().toString());
+        if (stringValueLC.equals(OC_LDAP_SUBENTRY_LC) ||
+            stringValueLC.equals(OC_SUBENTRY))
         {
           setReturnLDAPSubentries(true);
         }

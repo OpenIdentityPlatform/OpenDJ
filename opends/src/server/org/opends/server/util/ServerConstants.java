@@ -224,6 +224,69 @@ public final class ServerConstants
 
 
   /**
+   * The name of the standard "subtreeSpecification" attribute type,
+   * formatted in camel case.
+   */
+  public static final String ATTR_SUBTREE_SPEC = "subtreeSpecification";
+
+
+
+  /**
+   * The name of the standard "subtreeSpecification" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_SUBTREE_SPEC_LC = "subtreespecification";
+
+
+
+  /**
+   * The name of the standard "collectiveExclusions" attribute type,
+   * formatted in camel case.
+   */
+  public static final String ATTR_COLLECTIVE_EXCLUSIONS =
+          "collectiveExclusions";
+
+
+
+  /**
+   * The name of the standard "collectiveExclusions" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_COLLECTIVE_EXCLUSIONS_LC =
+          "collectiveexclusions";
+
+
+
+  /**
+   * The value of the standard "excludeAllCollectiveAttributes" attribute
+   * value of the standard "collectiveExclusions" attribute type,
+   * formatted in camel case.
+   */
+  public static final String VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL =
+          "excludeAllCollectiveAttributes";
+
+
+
+  /**
+   * The value of the standard "excludeAllCollectiveAttributes" attribute
+   * value of the standard "collectiveExclusions" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC =
+          "excludeallcollectiveattributes";
+
+
+
+  /**
+   * The OID of the standard "excludeAllCollectiveAttributes" attribute
+   * value of the standard "collectiveExclusions" attribute type.
+   */
+  public static final String OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL =
+          "2.5.18.0";
+
+
+
+  /**
    * The name of the monitor attribute that is used to hold a backend ID.
    */
   public static final String ATTR_MONITOR_BACKEND_ID = "ds-backend-id";
@@ -833,6 +896,35 @@ public final class ServerConstants
    * in all lowercase.
    */
   public static final String OC_LDAP_SUBENTRY_LC = "ldapsubentry";
+
+
+
+  /**
+   * The name of the RFC 3672 "subentry" objectclass (which is a special
+   * type of objectclass that makes a kind of "operational" entry),
+   * formatted in all lowercase.
+   */
+  public static final String OC_SUBENTRY = "subentry";
+
+
+
+  /**
+   * The name of the RFC 3671 "collectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of shared
+   * attributes subentry), formatted in camel case.
+   */
+  public static final String OC_COLLECTIVE_ATTR_SUBENTRY =
+          "collectiveAttributeSubentry";
+
+
+
+  /**
+   * The name of the RFC 3671 "collectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of shared
+   * attributes subentry), formatted in all lowercase.
+   */
+  public static final String OC_COLLECTIVE_ATTR_SUBENTRY_LC =
+          "collectiveattributesubentry";
 
 
 

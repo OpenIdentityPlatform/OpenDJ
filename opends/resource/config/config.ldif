@@ -2460,6 +2460,16 @@ ds-cfg-conflict-behavior: virtual-overrides-real
 ds-cfg-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 ds-cfg-allow-retrieving-membership: false
 
+dn: cn=Collective Attribute Subentries,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-collective-attribute-subentries-virtual-attribute
+cn: Collective Attribute Subentries
+ds-cfg-java-class: org.opends.server.extensions.CollectiveAttributeSubentriesVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: collectiveAttributeSubentries
+ds-cfg-conflict-behavior: virtual-overrides-real
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

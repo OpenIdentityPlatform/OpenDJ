@@ -594,6 +594,9 @@ public class DirectoryServer
   // The group manager for the Directory Server.
   private GroupManager groupManager;
 
+  // The subentry manager for the Directory Server.
+  private SubentryManager subentryManager;
+
   // The configuration manager for identity mappers.
   private IdentityMapperConfigManager identityMapperConfigManager;
 
@@ -1418,6 +1421,13 @@ public class DirectoryServer
       // Initialize the root DNs.
       rootDNConfigManager = new RootDNConfigManager();
       rootDNConfigManager.initializeRootDNs();
+
+
+      // Initialize the subentry manager.
+      subentryManager = new SubentryManager();
+      // The configuration backend has already been registered at this point
+      // so we need to handle it explicitly.
+      subentryManager.performBackendInitializationProcessing(configHandler);
 
 
       // Initialize the group manager.
@@ -2666,6 +2676,18 @@ public class DirectoryServer
   public static GroupManager getGroupManager()
   {
     return directoryServer.groupManager;
+  }
+
+
+
+  /**
+   * Retrieves the Directory Server subentry manager.
+   *
+   * @return  The Directory Server subentry manager.
+   */
+  public static SubentryManager getSubentryManager()
+  {
+    return directoryServer.subentryManager;
   }
 
 

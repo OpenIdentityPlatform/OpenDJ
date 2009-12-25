@@ -4151,4 +4151,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.234
          ds-cfg-enabled )
   MAY  ( ds-cfg-ecl-include )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.235
+  NAME 'ds-cfg-collective-attribute-subentries-virtual-attribute'
+  SUP ds-cfg-virtual-attribute
+  STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 

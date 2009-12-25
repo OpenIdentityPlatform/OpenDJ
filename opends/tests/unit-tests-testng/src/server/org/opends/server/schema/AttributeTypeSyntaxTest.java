@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -81,13 +81,13 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE userApplications )",
-          false}, // Collective can't inherit from non-collective
+          true}, // Collective can inherit from non-collective
         {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " COLLECTIVE USAGE directoryOperation )",
-          false}, // Collective can't be operational
+          true}, // Collective can be operational
         {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
           " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
           " SUBSTR caseIgnoreSubstringsMatch" +

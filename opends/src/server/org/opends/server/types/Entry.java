@@ -1763,7 +1763,10 @@ public class Entry
     {
       if (a.optionsEqual(options))
       {
-        return a.contains(value);
+        if (a.contains(value))
+        {
+          return true;
+        }
       }
     }
 
@@ -3304,6 +3307,92 @@ public class Entry
 
 
   /**
+   * Indicates whether this entry meets the criteria to consider it
+   * an RFC 3672 LDAP subentry (i.e., it contains the "subentry"
+   * objectclass).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it an RFC 3672 LDAP subentry, or <CODE>false
+   *          </CODE> if not.
+   */
+  public boolean isSubentry()
+  {
+    ObjectClass subentryOC =
+         DirectoryServer.getObjectClass(OC_SUBENTRY);
+    if (subentryOC == null)
+    {
+      // This should not happen -- The server doesn't
+      // have a subentry objectclass defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(OC_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this
+    // entry has the subentry objectclass.
+    return objectClasses.containsKey(subentryOC);
+  }
+
+
+
+  /**
+   * Indicates whether the entry meets the criteria to consider it an
+   * RFC 3671 LDAP collective attributes subentry (i.e., it contains
+   * the "collectiveAttributeSubentry" objectclass).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it an RFC 3671 LDAP collective attributes
+   *          subentry, or <CODE>false</CODE> if not.
+   */
+  public boolean isCollectiveAttributeSubentry()
+  {
+    ObjectClass collectiveAttributeSubentryOC =
+         DirectoryServer.getObjectClass(OC_COLLECTIVE_ATTR_SUBENTRY);
+    if (collectiveAttributeSubentryOC == null)
+    {
+      // This should not happen -- The server doesn't have
+      // a collectiveAttributeSubentry objectclass defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_COLLECTIVE_ATTR_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(OC_COLLECTIVE_ATTR_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this entry
+    // has the collectiveAttributeSubentry objectclass.
+    return objectClasses.containsKey(collectiveAttributeSubentryOC);
+  }
+
+
+
+  /**
    * Indicates whether this entry falls within the range of the
    * provided search base DN and scope.
    *
@@ -3322,12 +3411,185 @@ public class Entry
 
 
   /**
+   * Performs any necessary collective attribute processing for this
+   * entry.  This should only be called at the time the entry is
+   * decoded or created within the backend.
+   */
+  private void processCollectiveAttributes()
+  {
+    if (this.isSubentry() || this.isLDAPSubentry())
+    {
+      return;
+    }
+
+    // Get applicable collective subentries.
+    List<SubEntry> collectiveAttrSubentries =
+            DirectoryServer.getSubentryManager(
+            ).getCollectiveSubentries(this);
+    if ((collectiveAttrSubentries == null) ||
+         collectiveAttrSubentries.isEmpty())
+    {
+      // Nothing to see here, move along.
+      return;
+    }
+
+    // Get collective attribute exclusions.
+    AttributeType exclusionsType = DirectoryServer.getAttributeType(
+            ATTR_COLLECTIVE_EXCLUSIONS_LC);
+    List<Attribute> exclusionsAttrList =
+            operationalAttributes.get(exclusionsType);
+    Set<String> exclusionsNameSet = new HashSet<String>();
+    if ((exclusionsAttrList != null) && !exclusionsAttrList.isEmpty())
+    {
+      for (Attribute attr : exclusionsAttrList)
+      {
+        for (AttributeValue attrValue : attr)
+        {
+          String exclusionsName = attrValue.toString().toLowerCase();
+          if (exclusionsName.equals(
+                  VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC) ||
+                  exclusionsName.equals(
+                  OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL))
+          {
+            return;
+          }
+          exclusionsNameSet.add(exclusionsName);
+        }
+      }
+    }
+
+    // Process collective attributes.
+    for (SubEntry subEntry : collectiveAttrSubentries)
+    {
+      if (subEntry.isCollective())
+      {
+        List<Attribute> collectiveAttrList =
+                subEntry.getCollectiveAttributes();
+        for (Attribute collectiveAttr : collectiveAttrList)
+        {
+          AttributeType attributeType =
+                  collectiveAttr.getAttributeType();
+          if (exclusionsNameSet.contains(
+                  attributeType.getNormalizedPrimaryNameOrOID()))
+          {
+            continue;
+          }
+          List<Attribute> attrList =
+                  userAttributes.get(attributeType);
+          if ((attrList == null) || attrList.isEmpty())
+          {
+            attrList = operationalAttributes.get(attributeType);
+            if ((attrList == null) || attrList.isEmpty())
+            {
+              // There aren't any conflicts, so we can just add the
+              // attribute to the entry.
+              attrList = new LinkedList<Attribute>();
+              attrList.add(collectiveAttr);
+              if (attributeType.isOperational())
+              {
+                operationalAttributes.put(attributeType, attrList);
+              }
+              else
+              {
+                userAttributes.put(attributeType, attrList);
+              }
+            }
+            else
+            {
+              // There is a conflict with an existing operational
+              // attribute.
+              if (attrList.get(0).isVirtual())
+              {
+                // The existing attribute is already virtual,
+                // so we've got a different conflict, but
+                // we'll let the first win.
+                // FIXME -- Should we handle this differently?
+                continue;
+              }
+
+              // The conflict is with a real attribute.  See what the
+              // conflict behavior is and figure out how to handle it.
+              switch (subEntry.getConflictBehavior())
+              {
+                case REAL_OVERRIDES_VIRTUAL:
+                  // We don't need to update the entry because
+                  // the real attribute will take precedence.
+                  break;
+
+                case VIRTUAL_OVERRIDES_REAL:
+                  // We need to move the real attribute to the
+                  // suppressed list and replace it with the
+                  // virtual attribute.
+                  suppressedAttributes.put(attributeType, attrList);
+                  attrList = new LinkedList<Attribute>();
+                  attrList.add(collectiveAttr);
+                  operationalAttributes.put(attributeType, attrList);
+                  break;
+
+                case MERGE_REAL_AND_VIRTUAL:
+                  // We need to add the virtual attribute to the
+                  // list and keep the existing real attribute(s).
+                  attrList.add(collectiveAttr);
+                  break;
+              }
+            }
+          }
+          else
+          {
+            // There is a conflict with an existing user attribute.
+            if (attrList.get(0).isVirtual())
+            {
+              // The existing attribute is already virtual,
+              // so we've got a different conflict, but
+              // we'll let the first win.
+              // FIXME -- Should we handle this differently?
+              continue;
+            }
+
+            // The conflict is with a real attribute.  See what the
+            // conflict behavior is and figure out how to handle it.
+            switch (subEntry.getConflictBehavior())
+            {
+              case REAL_OVERRIDES_VIRTUAL:
+                // We don't need to update the entry because the real
+                // attribute will take precedence.
+                break;
+
+              case VIRTUAL_OVERRIDES_REAL:
+                // We need to move the real attribute to the
+                // suppressed list and replace it with the
+                // virtual attribute.
+                suppressedAttributes.put(attributeType, attrList);
+                attrList = new LinkedList<Attribute>();
+                attrList.add(collectiveAttr);
+                userAttributes.put(attributeType, attrList);
+                break;
+
+              case MERGE_REAL_AND_VIRTUAL:
+                // We need to add the virtual attribute to the
+                // list and keep the existing real attribute(s).
+                attrList.add(collectiveAttr);
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+
+  /**
    * Performs any necessary virtual attribute processing for this
    * entry.  This should only be called at the time the entry is
    * decoded or created within the backend.
    */
   public void processVirtualAttributes()
   {
+    // Collective attributes.
+    processCollectiveAttributes();
+
+    // Virtual attributes.
     for (VirtualAttributeRule rule :
          DirectoryServer.getVirtualAttributes(this))
     {

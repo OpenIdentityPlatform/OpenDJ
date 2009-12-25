@@ -381,6 +381,43 @@ attributeTypes: ( 1.3.6.1.4.1.7628.5.4.1 NAME 'inheritable'
 attributeTypes: ( 1.3.6.1.4.1.7628.5.4.2 NAME 'blockInheritance'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE NO-USER-MODIFICATION
   USAGE dSAOperation X-ORIGIN 'draft-ietf-ldup-subentry' )
+attributeTypes: ( 2.5.18.6 NAME 'subtreeSpecification'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.45 SINGLE-VALUE
+  USAGE directoryOperation X-ORIGIN 'RFC 3672' )
+attributeTypes: ( 2.5.18.12 NAME 'collectiveAttributeSubentries'
+  EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  USAGE directoryOperation NO-USER-MODIFICATION X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.18.7 NAME 'collectiveExclusions'
+  EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  USAGE directoryOperation X-ORIGIN 'RFC 3671' )
+ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
+  X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real'
+  'merge-real-and-virtual' ) )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.606
+  NAME 'collectiveConflictBehavior' SYNTAX 1.3.6.1.4.1.26027.1.3.6
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 2.5.4.7.1 NAME 'c-l' SUP l COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.8.1 NAME 'c-st' SUP st COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.9.1 NAME 'c-street' SUP street COLLECTIVE
+  X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.10.1 NAME 'c-o' SUP o COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.11.1 NAME 'c-ou' SUP ou COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.16.1 NAME 'c-PostalAddress' SUP postalAddress
+  COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.17.1 NAME 'c-PostalCode' SUP postalCode COLLECTIVE
+  X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.18.1 NAME 'c-PostOfficeBox' SUP postOfficeBox
+  COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.19.1 NAME 'c-PhysicalDeliveryOfficeName'
+  SUP physicalDeliveryOfficeName COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.20.1 NAME 'c-TelephoneNumber' SUP telephoneNumber
+  COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.21.1 NAME 'c-TelexNumber' SUP telexNumber COLLECTIVE
+  X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.23.1 NAME 'c-FacsimileTelephoneNumber'
+  SUP facsimileTelephoneNumber COLLECTIVE X-ORIGIN 'RFC 3671' )
+attributeTypes: ( 2.5.4.25.1 NAME 'c-InternationalISDNNumber'
+  SUP internationalISDNNumber COLLECTIVE X-ORIGIN 'RFC 3671' )
 attributeTypes: ( 2.16.840.1.113730.3.1.55 NAME 'aci'
   DESC 'Sun-defined access control information attribute type'
   EQUALITY octetStringMatch
@@ -613,6 +650,12 @@ objectClasses: ( 1.3.6.1.4.1.7628.5.6.1.1 NAME 'inheritableLDAPSubEntry'
   DESC 'Inheritable LDAP Subentry class, version 1'  SUP ldapSubEntry
   STRUCTURAL  MUST ( inheritable )  MAY  ( blockInheritance )
   X-ORIGIN 'draft-ietf-ldup-subentry' )
+objectClasses: ( 2.5.17.0 NAME 'subentry'
+  DESC 'LDAP Subentry class' SUP top STRUCTURAL MUST ( cn $
+  subtreeSpecification ) X-ORIGIN 'RFC 3672' )
+objectClasses: ( 2.5.17.2 NAME 'collectiveAttributeSubentry'
+  DESC 'LDAP Collective Attributes Subentry class' AUXILIARY
+  X-ORIGIN 'RFC 3671' )
 objectClasses: ( 2.16.840.1.113730.3.2.33 NAME 'groupOfURLs'
   DESC 'Sun-defined objectclass' SUP top STRUCTURAL MUST ( cn )
   MAY ( memberURL $ businessCategory $ description $ o $ ou $ owner $ seeAlso )
