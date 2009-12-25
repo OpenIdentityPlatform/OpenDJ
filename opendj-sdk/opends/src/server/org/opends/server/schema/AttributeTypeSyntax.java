@@ -983,32 +983,17 @@ public class AttributeTypeSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
-      if (superiorType.isCollective() != isCollective)
+      if (superiorType.isCollective())
       {
-        Message message;
-        if (isCollective)
+        if (!isCollective)
         {
-          message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE.get(
-                  oid, superiorType.getNameOrOID());
-        }
-        else
-        {
-          message =
+          Message message =
                   WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
                     oid, superiorType.getNameOrOID());
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  message);
         }
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
-    }
-
-
-    // If the attribute type is COLLECTIVE, then it must have a usage of
-    // userApplications.
-    if (isCollective && (attributeUsage != AttributeUsage.USER_APPLICATIONS))
-    {
-      Message message =
-          WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL.get(oid);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
 
