@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel;
@@ -32,17 +32,21 @@ import static org.opends.messages.AdminToolMessages.
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ControlCenterMainPane;
-import org.opends.guitools.controlpanel.ui.GenericDialog;
+import org.opends.guitools.controlpanel.ui.GenericFrame;
 import org.opends.guitools.controlpanel.ui.LocalOrRemotePanel;
 import org.opends.guitools.controlpanel.ui.MainMenuBar;
 import org.opends.guitools.controlpanel.util.BlindApplicationTrustManager;
@@ -129,8 +133,10 @@ public class ControlPanel
    */
   public void createAndDisplayGUI()
   {
-    GenericDialog localOrRemote =
-      ControlCenterMainPane.getLocalOrRemoteDialog(info);
+    LocalOrRemotePanel localOrRemotePanel = new LocalOrRemotePanel();
+    localOrRemotePanel.setInfo(info);
+    final GenericFrame localOrRemote = new GenericFrame(localOrRemotePanel);
+    localOrRemote.pack();
     Utilities.centerOnScreen(localOrRemote);
 
     if (argParser.getBindPassword() != null)
@@ -140,17 +146,32 @@ public class ControlPanel
       setCallOKWhenVisible(true);
     }
 
+    ComponentListener listener = new ComponentAdapter()
+    {
+      /**
+       * {@inheritDoc}
+       */
+      public void componentHidden(ComponentEvent e)
+      {
+        handleWindowClosed(localOrRemote, info);
+      }
+    };
+    localOrRemote.addComponentListener(listener);
     localOrRemote.setVisible(true);
+  }
 
-    getLocalOrRemotePanel(localOrRemote.getContentPane()).
-    setCallOKWhenVisible(false);
-
+  private void handleWindowClosed(GenericFrame localOrRemote,
+      final ControlPanelInfo info)
+  {
     if (info.getServerDescriptor() == null)
     {
       MainMenuBar menuBar = new MainMenuBar(info);
       // Assume that the user decided to quit the application
       menuBar.quitClicked();
     }
+
+    updateSharedLocalOrRemotePanel(localOrRemote, info);
+
     // To be sure that the dialog receives the new configuration event before
     // calling pack.
     SwingUtilities.invokeLater(new Runnable()
@@ -216,7 +237,7 @@ public class ControlPanel
     }
   }
 
-  private void updateLocalOrRemotePanel(GenericDialog localOrRemote)
+  private void updateLocalOrRemotePanel(RootPaneContainer localOrRemote)
   {
     LocalOrRemotePanel panel =
       getLocalOrRemotePanel(localOrRemote.getContentPane());
@@ -239,6 +260,39 @@ public class ControlPanel
       if (argParser.getBindPassword() != null)
       {
         panel.setBindPassword(argParser.getBindPassword().toCharArray());
+      }
+    }
+  }
+
+  /**
+   * A method used to update the contents of the dialog displayed when the user
+   * selects 'Server To Administer...'.  This is done because this class
+   * displays a GenericFrame and in the rest of the UI a GenericDialog is
+   * shown.
+   * @param localOrRemote the frame displayed by this class.
+   * @param info the generic info.
+   */
+  private void updateSharedLocalOrRemotePanel(RootPaneContainer localOrRemote,
+      ControlPanelInfo info)
+  {
+    LocalOrRemotePanel panel =
+      getLocalOrRemotePanel(localOrRemote.getContentPane());
+    LocalOrRemotePanel panelToUpdate = getLocalOrRemotePanel(
+        ControlCenterMainPane.getLocalOrRemoteDialog(info));
+    if (panel != null && panelToUpdate != null)
+    {
+      panelToUpdate.setRemote(panel.isRemote());
+      if (panel.getHostName() != null)
+      {
+        panelToUpdate.setHostName(panel.getHostName());
+      }
+      if (panel.getPort() != -1)
+      {
+        panelToUpdate.setPort(panel.getPort());
+      }
+      if (panel.getBindDN() != null)
+      {
+        panelToUpdate.setBindDN(panel.getBindDN());
       }
     }
   }

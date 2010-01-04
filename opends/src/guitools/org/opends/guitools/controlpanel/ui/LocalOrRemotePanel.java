@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -131,6 +131,61 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
+  }
+
+  /**
+   * Returns the displayed host name.
+   * @return the displayed host name.
+   */
+  public String getHostName()
+  {
+    return hostName.getText();
+  }
+
+  /**
+   * Returns the displayed administration port.
+   * @return the displayed administration port.
+   */
+  public int getPort()
+  {
+    int port = -1;
+    try
+    {
+      port = new Integer(this.port.getText().trim());
+    }
+    catch (Exception ex)
+    {
+      // Ignore
+    }
+    return port;
+  }
+
+  /**
+   * Returns the displayed bind DN.
+   * @return the displayed bind DN.
+   */
+  public String getBindDN()
+  {
+    return dn.getText();
+  }
+
+  /**
+   * Returns the displayed password.
+   * @return the displayed password.
+   */
+  public char[] getBindPassword()
+  {
+    return pwd.getPassword();
+  }
+
+  /**
+   * Returns whether the panel displays the remote or the local server.
+   * @return whether the panel displays the remote or the local server.
+   */
+  public boolean isRemote()
+  {
+    int index = combo.getSelectedIndex();
+    return index == 1;
   }
 
   /**
