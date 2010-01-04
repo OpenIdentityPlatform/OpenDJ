@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.doc;
 
@@ -67,6 +67,7 @@ import org.opends.server.admin.TopCfgDefn;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.DynamicConstants;
 
 /**
  *  This class allow Configuration Guide documentation generation (html format).
@@ -253,7 +254,8 @@ public class ConfigGuideGeneration {
   private void genManagedObjectInheritanceTree(
     TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
 
-    htmlHeader("OpenDS Configuration Reference - Inheritance View");
+    htmlHeader(DynamicConstants.PRODUCT_NAME + " " +
+            "Configuration Reference - Inheritance View");
     tabMenu(INHERITANCE_TREE_FILE);
     viewHelp("This view represents the inheritance relationships between " +
       "configuration components.");
@@ -319,7 +321,8 @@ public class ConfigGuideGeneration {
   private void genManagedObjectRelationTree(
     TreeMap <String, TreeMap<String, RelationDefinition>> list) {
 
-    htmlHeader("OpenDS Configuration Reference - Structure View");
+    htmlHeader(DynamicConstants.PRODUCT_NAME +
+            " Configuration Reference - Structure View");
     tabMenu(RELATION_TREE_FILE);
     viewHelp("This view represents the structural relationships between " +
       "components and indicates how certain components can exist only within " +
@@ -412,7 +415,7 @@ public class ConfigGuideGeneration {
 
     homeLink();
     String title = mo.getUserFriendlyName().toString();
-    htmlHeader("OpenDS - " + title);
+    htmlHeader(DynamicConstants.PRODUCT_NAME + " - " + title);
 
     // title
     heading2(title);
@@ -865,7 +868,8 @@ public class ConfigGuideGeneration {
   private void genManagedObjectList(
     TreeMap<String, AbstractManagedObjectDefinition> list) {
 
-    htmlHeader("OpenDS Configuration Reference - Components View");
+    htmlHeader(DynamicConstants.PRODUCT_NAME
+            + " Configuration Reference - Components View");
     tabMenu(MO_LIST_FILE);
     viewHelp("This view provides a list of all configuration components, " +
       "in alphabetical order.");
@@ -926,7 +930,8 @@ public class ConfigGuideGeneration {
 
     String indexBody = htmlBuff.toString();
     htmlBuff = new StringBuffer();
-    htmlHeader("OpenDS Configuration Reference - Properties View");
+    htmlHeader(DynamicConstants.PRODUCT_NAME +
+            " Configuration Reference - Properties View");
     tabMenu(PROPERTIES_INDEX_FILE);
     viewHelp("This view provides a list of all configuration properties, " +
       "in alphabetical order, and indicates the configuration component to " +
@@ -940,10 +945,12 @@ public class ConfigGuideGeneration {
   }
 
     private void genWelcomePage() {
-    htmlHeader("OpenDS Configuration Reference - Welcome");
+    htmlHeader(DynamicConstants.PRODUCT_NAME +
+            " Configuration Reference - Welcome");
     heading2("About This Reference");
     paragraph("This reference " +
-      "describes the OpenDS configuration properties that can be manipulated " +
+      "describes the " + DynamicConstants.PRODUCT_NAME +
+      " configuration properties that can be manipulated " +
       "with the dsconfig command.");
     paragraph("Configuration components are grouped according to the area of " +
       "the server in which they are used, as follows:");
@@ -977,7 +984,9 @@ public class ConfigGuideGeneration {
     endList();
 
     newline();
-    paragraph("When you set up OpenDS, certain components are created in the " +
+    paragraph("When you set up " +
+            DynamicConstants.PRODUCT_NAME +
+            ", certain components are created in the " +
       "configuration by default. These components are configured with " +
       "specific values, which are not necessarily the same as the " +
       "\"default values\" of new components that you create using dsconfig. " +
@@ -990,15 +999,19 @@ public class ConfigGuideGeneration {
   }
 
   private void genMainTopPage() {
-    htmlHeader("OpenDS Configuration Reference - Main Top");
+    htmlHeader(DynamicConstants.PRODUCT_NAME +
+            " Configuration Reference - Main Top");
     htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" +
       "<a href=\"" + opendsWiki + "\" target=\"_parent\">" +
       "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" +
-      "Back to OpenDS Wiki</a></span>&nbsp;&nbsp;</div>\n");
+      "Back to " +
+      DynamicConstants.PRODUCT_NAME + " Wiki</a></span>&nbsp;&nbsp;</div>\n");
     htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " +
       "width=\"100%\">\n");
     htmlBuff.append("<tbody><tr>\n");
-    htmlBuff.append("  <td><h2>OpenDS Configuration Reference</h2></td>\n");
+    htmlBuff.append("  <td><h2>"+
+            DynamicConstants.PRODUCT_NAME +
+            " Configuration Reference</h2></td>\n");
     htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
       "<a href=\"" + opendsHome + "\" target=\"_parent\">" +
       "<img src=\"opends_logo_sm.png\" alt=\"OpenDS Logo\" align=\"bottom\" " +
@@ -1012,7 +1025,8 @@ public class ConfigGuideGeneration {
   }
 
   private void genIndexPage() {
-    htmlBuff.append(getHtmlHeader("OpenDS Configuration Reference"));
+    htmlBuff.append(getHtmlHeader(
+            DynamicConstants.PRODUCT_NAME + " Configuration Reference"));
 
     htmlBuff.append("<frameset rows=\"80,*\" framespacing=\"1\" " +
       "frameborder=\"yes\" border=\"1\" bordercolor=\"#333333\">\n");
