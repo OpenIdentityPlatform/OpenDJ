@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1280,30 +1280,27 @@ implements ConfigChangeListener
     }
     if (!text.equals(lastDisplayedError))
     {
-      JEditorPane pane1 = Utilities.makeHtmlPane(null, pane.getFont());
-      String text1;
+      Message wrappedTitle = Utilities.wrapHTML(title, 80);
+      Message wrappedDetails = Utilities.wrapHTML(details, 90);
+
+      JEditorPane wrappedPane = Utilities.makeHtmlPane(null, pane.getFont());
+      String wrappedText;
       switch (type)
       {
       case ERROR:
-        text1 = Utilities.getFormattedError(title, titleFont,
-            null, detailsFont);
+        wrappedText = Utilities.getFormattedError(wrappedTitle, titleFont,
+            wrappedDetails, detailsFont);
         break;
       default:
-        text1 = Utilities.getFormattedSuccess(title, titleFont,
-            null, detailsFont);
+        wrappedText = Utilities.getFormattedSuccess(wrappedTitle, titleFont,
+            wrappedDetails, detailsFont);
         break;
       }
-      pane1.setText(text1);
-      Dimension d1 = pane1.getPreferredSize();
-      JEditorPane pane2 = Utilities.makeHtmlPane(null, pane.getFont());
-      pane2.setText(details.toString());
-      String plainText = details.toString().replaceAll("<br>",
-          ServerConstants.EOL);
-      Utilities.updatePreferredSize(pane2, 100, plainText, detailsFont, true);
-      Dimension d2 = pane2.getPreferredSize();
+      wrappedPane.setText(wrappedText);
+      Dimension d = wrappedPane.getPreferredSize();
+
       pane.setText(text);
-      pane.setPreferredSize(new Dimension(Math.max(d1.width, d2.width),
-          d1.height + d2.height));
+      pane.setPreferredSize(d);
 
       lastDisplayedError = text;
     }

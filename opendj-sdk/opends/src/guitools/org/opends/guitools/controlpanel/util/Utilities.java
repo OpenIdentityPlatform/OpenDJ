@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -988,7 +988,7 @@ public class Utilities
   }
 
   /**
-   * Updates the preferredsize of an editor pane.
+   * Updates the preferred size of an editor pane.
    * @param pane the panel to be updated.
    * @param nCols the number of columns that the panel must have.
    * @param plainText the text to be displayed (plain text).
@@ -1014,6 +1014,176 @@ public class Utilities
       frame.getRootPane().revalidate();
       frame.getRootPane().repaint();
     }
+  }
+
+  private final static String HTML_SPACE = "&nbsp;";
+  /**
+   * Wraps the contents of the provided message using the specified number of
+   * columns.
+   * @param msg the message to be wrapped.
+   * @param nCols the number of columns.
+   * @return the wrapped message.
+   */
+  public static Message wrapHTML(Message msg, int nCols)
+  {
+    String s = msg.toString();
+    StringBuilder sb = new StringBuilder();
+    StringBuilder lastLine = new StringBuilder();
+    int lastOpenTag = -1;
+    boolean inTag = false;
+    int lastSpace = -1;
+    int lastLineLengthInLastSpace = 0;
+    int lastLineLength = 0;
+    for (int i=0; i<s.length() ; i++)
+    {
+      boolean isNormalChar = false;
+      char c = s.charAt(i);
+      if (c == '<')
+      {
+        inTag = true;
+        lastOpenTag = i;
+        lastLine.append(c);
+      }
+      else if (c == '>')
+      {
+        if (lastOpenTag != -1)
+        {
+          inTag = false;
+          String tag = s.substring(lastOpenTag, i+1);
+          lastOpenTag = -1;
+          if (isLineBreakTag(tag))
+          {
+            lastLine.append(c);
+            sb.append(lastLine);
+            lastLine.delete(0, lastLine.length());
+            lastLineLength = 0;
+            lastSpace = -1;
+            lastLineLengthInLastSpace = 0;
+          }
+          else
+          {
+            lastLine.append(c);
+          }
+        }
+        else
+        {
+          isNormalChar = true;
+        }
+      }
+      else if (inTag)
+      {
+        lastLine.append(c);
+      }
+      else if (c == HTML_SPACE.charAt(0))
+      {
+        if (s.length() >= i + HTML_SPACE.length())
+        {
+          if (s.substring(i, i + HTML_SPACE.length()).equalsIgnoreCase(
+              HTML_SPACE))
+          {
+            if (lastLineLength < nCols)
+            {
+              // Only count as 1 space
+              lastLine.append(HTML_SPACE);
+              lastSpace = lastLine.length() - HTML_SPACE.length();
+              lastLineLength ++;
+              lastLineLengthInLastSpace = lastLineLength;
+              i += HTML_SPACE.length() - 1;
+            }
+            else
+            {
+              // Insert a line break
+              sb.append(lastLine);
+              sb.append("<br>");
+              lastLine.delete(0, lastLine.length());
+              lastLineLength = 0;
+              lastSpace = -1;
+              lastLineLengthInLastSpace = 0;
+              i += HTML_SPACE.length() - 1;
+            }
+          }
+          else
+          {
+            isNormalChar = true;
+          }
+        }
+        else
+        {
+          isNormalChar = true;
+        }
+      }
+      else if (c == ' ')
+      {
+        if (lastLineLength < nCols)
+        {
+          // Only count as 1 space
+          lastLine.append(c);
+          lastSpace = lastLine.length() - 1;
+          lastLineLength ++;
+          lastLineLengthInLastSpace = lastLineLength;
+        }
+        else
+        {
+          // Insert a line break
+          sb.append(lastLine);
+          sb.append("<br>");
+          lastLine.delete(0, lastLine.length());
+          lastLineLength = 0;
+          lastSpace = -1;
+          lastLineLengthInLastSpace = 0;
+        }
+      }
+      else
+      {
+        isNormalChar = true;
+      }
+
+      if (isNormalChar)
+      {
+        if (lastLineLength < nCols)
+        {
+          lastLine.append(c);
+          lastLineLength ++;
+        }
+        else
+        {
+          // Check where to insert a line break
+          if (lastSpace != -1)
+          {
+            sb.append(lastLine.subSequence(0, lastSpace));
+            sb.append("<br>");
+            lastLine.delete(0, lastSpace + 1);
+            lastLine.append(c);
+            lastLineLength = lastLineLength - lastLineLengthInLastSpace + 1;
+            lastLineLengthInLastSpace = 0;
+            lastSpace = -1;
+          }
+          else
+          {
+            // Force the line break.
+            sb.append(lastLine);
+            sb.append("<br>");
+            lastLine.delete(0, lastLine.length());
+            lastLine.append(c);
+            lastLineLength = 1;
+          }
+        }
+      }
+    }
+    if (lastLine.length() > 0)
+    {
+      sb.append(lastLine);
+    }
+    return Message.raw(sb.toString());
+  }
+
+  private static boolean isLineBreakTag(String tag)
+  {
+    return tag.equalsIgnoreCase("<br>") ||
+    tag.equalsIgnoreCase("</br>") ||
+    tag.equalsIgnoreCase("</div>") ||
+    tag.equalsIgnoreCase("<p>") ||
+    tag.equalsIgnoreCase("</p>");
   }
 
   /**
