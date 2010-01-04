@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -1775,11 +1775,17 @@
           <import>
             org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider
           </import>
+          <import>
+            org.opends.server.admin.DefaultBehaviorProvider
+          </import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
           <import>
             org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider
+          </import>
+          <import>
+            org.opends.server.admin.DefaultBehaviorProvider
           </import>
           <xsl:for-each
             select="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
