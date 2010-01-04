@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -71,9 +71,11 @@ import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.testng.annotations.BeforeClass;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.DataProvider;
@@ -171,12 +173,14 @@ public class AssuredReplicationPluginTest
    */
   private void addEntry(Entry entry) throws Exception
   {
+    debugInfo("AddEntry " + entry.getDN());
     AddOperationBasis addOp = new AddOperationBasis(connection,
       InternalClientConnection.nextOperationID(), InternalClientConnection.
       nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
       entry.getUserAttributes(), entry.getOperationalAttributes());
     addOp.setInternalOperation(true);
     addOp.run();
+    waitOpResult(addOp, ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
 
@@ -308,27 +312,31 @@ public class AssuredReplicationPluginTest
     private boolean scenarioExecuted = false;
 
     private ChangeNumberGenerator gen = null;
+    private String testcase;
 
     // Constructor for RS receiving updates in SR assured mode or not assured
     // The assured boolean means:
     // - true: SR mode
     // - false: not assured
-    public FakeReplicationServer(byte groupId, int port, int serverId, boolean assured)
+    public FakeReplicationServer(byte groupId, int port, int serverId, boolean assured,
+        String testcase)
     {
 
       this.groupId = groupId;
       this.port = port;
       this.serverId = serverId;
+      this.testcase = testcase;
 
       if (assured)
       {
         this.isAssured = true;
-        this.assuredMode = AssuredMode.SAFE_READ_MODE;
       }
+      this.assuredMode = AssuredMode.SAFE_READ_MODE;
     }
 
     // Constructor for RS receiving updates in SD assured mode
-    public FakeReplicationServer(byte groupId, int port, int serverId, int safeDataLevel)
+    public FakeReplicationServer(byte groupId, int port, int serverId, int safeDataLevel,
+        String testcase)
     {
       this.groupId = groupId;
       this.port = port;
@@ -337,6 +345,12 @@ public class AssuredReplicationPluginTest
       this.isAssured = true;
       this.assuredMode = AssuredMode.SAFE_DATA_MODE;
       this.safeDataLevel = (byte) safeDataLevel;
+      this.testcase = testcase;
+    }
+
+    public void setAssured(boolean assured)
+    {
+      this.isAssured = assured;
     }
 
     /**
@@ -488,10 +502,13 @@ public class AssuredReplicationPluginTest
         // Sanity checking for assured parameters
         boolean receivedIsAssured = startSessionMsg.isAssured();
         assertEquals(receivedIsAssured, isAssured);
-        AssuredMode receivedAssuredMode = startSessionMsg.getAssuredMode();
-        assertEquals(receivedAssuredMode, assuredMode);
-        byte receivedSafeDataLevel = startSessionMsg.getSafeDataLevel();
-        assertEquals(receivedSafeDataLevel, safeDataLevel);
+        if (isAssured)
+        {
+          AssuredMode receivedAssuredMode = startSessionMsg.getAssuredMode();
+          assertEquals(receivedAssuredMode, assuredMode);
+          byte receivedSafeDataLevel = startSessionMsg.getSafeDataLevel();
+          assertEquals(receivedSafeDataLevel, safeDataLevel);
+        }
         ServerStatus receivedServerStatus = startSessionMsg.getStatus();
         assertEquals(receivedServerStatus, ServerStatus.NORMAL_STATUS);
         List<String> receivedReferralsURLs = startSessionMsg.getReferralsURLs();
@@ -546,7 +563,7 @@ public class AssuredReplicationPluginTest
      */
     private void handleClientConnection()
     {
-
+      debugInfo("handleClientConnection " + testcase + " " + scenario);
       // Handle DS connexion
       if (!performHandshake())
       {
@@ -599,6 +616,7 @@ public class AssuredReplicationPluginTest
         default:
           fail("Unknown scenario: " + scenario);
       }
+      debugInfo("handleClientConnection " + testcase + " " + scenario + " done");
     }
 
     /*
@@ -676,7 +694,8 @@ public class AssuredReplicationPluginTest
       } catch (Exception e)
       {
         fail("Unexpected exception in fake replication server executeTimeoutScenario " +
-          "processing: " + e);
+          "processing: " + e + " testcase= " + testcase +
+          " groupId=" + groupId);
       }
     }
 
@@ -712,9 +731,14 @@ public class AssuredReplicationPluginTest
      */
     private void checkUpdateAssuredParameters(UpdateMsg updateMsg)
     {
-      assertEquals(updateMsg.isAssured(), isAssured);
-      assertEquals(updateMsg.getAssuredMode(), assuredMode);
-      assertEquals(updateMsg.getSafeDataLevel(), safeDataLevel);
+      assertEquals(updateMsg.isAssured(), isAssured, 
+          "msg=" + ((updateMsg instanceof AddMsg)?
+              ((AddMsg)updateMsg).getDn():updateMsg.getChangeNumber()));
+      if (isAssured)
+      {
+        assertEquals(updateMsg.getAssuredMode(), assuredMode);
+        assertEquals(updateMsg.getSafeDataLevel(), safeDataLevel);
+      }
       debugInfo("Received update assured parameters are ok.");
     }
 
@@ -869,29 +893,49 @@ public class AssuredReplicationPluginTest
   {
 
     int TIMEOUT = 5000;
-    String testcase = "testSafeDataModeTimeout";
+    String testcase = "testSafeDataModeTimeout" + rsGroupId;
     try
     {
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 2
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
-        1);
+        1, testcase);
+      if (rsGroupId != (byte)1)
+        replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
+      long startTime = System.currentTimeMillis();
       // Create a safe data assured domain
-      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 1,
+      if (rsGroupId == (byte)1)
+      {
+        safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 1,
         TIMEOUT);
-      // Wait for connection of domain to RS
-      waitForConnectionToRs(testcase, replicationServer);
+        // Wait for connection of domain to RS
+        waitForConnectionToRs(testcase, replicationServer);
 
-      // Make an LDAP update (add an entry)
-      long startTime = System.currentTimeMillis(); // Time the update has been initiated
-      String entry = "dn: ou=assured-sd-timeout-entry," + SAFE_DATA_DN + "\n" +
+        // Make an LDAP update (add an entry)
+        startTime = System.currentTimeMillis(); // Time the update has been initiated
+        String entry = "dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + SAFE_DATA_DN + "\n" +
+          "objectClass: top\n" +
+          "objectClass: organizationalUnit\n";
+        addEntry(TestCaseUtils.entryFromLdifString(entry));
+      }
+      else
+      {
+        safeDataDomainCfgEntry = createNotAssuredDomain();
+        // Wait for connection of domain to RS
+        waitForConnectionToRs(testcase, replicationServer);
+
+        // Make an LDAP update (add an entry)
+        startTime = System.currentTimeMillis(); // Time the update has been initiated
+        String entry = "dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN + "\n" +
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
-
+        addEntry(TestCaseUtils.entryFromLdifString(entry));
+      }
       long endTime = System.currentTimeMillis();
+
+      waitForScenarioExecutedOnRs(testcase, replicationServer);
 
       if (rsGroupId == (byte)1)
       {
@@ -934,7 +978,7 @@ public class AssuredReplicationPluginTest
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
         sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDn = DN.decode(SAFE_DATA_DN);
+        DN baseDn = DN.decode(NOT_ASSURED_DN);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
@@ -954,7 +998,7 @@ public class AssuredReplicationPluginTest
       }
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -969,28 +1013,50 @@ public class AssuredReplicationPluginTest
   {
 
     int TIMEOUT = 5000;
-    String testcase = "testSafeReadModeTimeout";
+    String testcase = "testSafeReadModeTimeout" + rsGroupId;;
     try
     {
       // Create and start a RS expecting clients in safe read assured mode
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
-        true);
+        true, testcase);
+      if (rsGroupId != (byte)1)
+        replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
-      // Create a safe read assured domain
-      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
-        TIMEOUT);
-      // Wait for connection of domain to RS
-      waitForConnectionToRs(testcase, replicationServer);
+      long startTime = 0;
 
-      // Make an LDAP update (add an entry)
-      long startTime = System.currentTimeMillis(); // Time the update has been initiated
-      String entry = "dn: ou=assured-sr-timeout-entry," + SAFE_READ_DN + "\n" +
+      // Create a safe data assured domain
+      if (rsGroupId == (byte)1)
+      {
+        // Create a safe read assured domain
+        safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
+            TIMEOUT);
+        // Wait for connection of domain to RS
+        waitForConnectionToRs(testcase, replicationServer);
+
+        // Make an LDAP update (add an entry)
+        startTime = System.currentTimeMillis(); // Time the update has been initiated
+        String entry = "dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + SAFE_READ_DN + "\n" +
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+        addEntry(TestCaseUtils.entryFromLdifString(entry));
+      }
+      else
+      {
+        safeReadDomainCfgEntry = createNotAssuredDomain();
+        // Wait for connection of domain to RS
+        waitForConnectionToRs(testcase, replicationServer);
 
+        // Make an LDAP update (add an entry)
+        startTime = System.currentTimeMillis(); // Time the update has been initiated
+        String entry = "dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN + "\n" +
+        "objectClass: top\n" +
+        "objectClass: organizationalUnit\n";
+        addEntry(TestCaseUtils.entryFromLdifString(entry));        
+      }
       long endTime = System.currentTimeMillis();
+
+      waitForScenarioExecutedOnRs(testcase, replicationServer);
 
       if (rsGroupId == (byte)1)
       {
@@ -1033,7 +1099,7 @@ public class AssuredReplicationPluginTest
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
         sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
-        DN baseDn = DN.decode(SAFE_READ_DN);
+        DN baseDn = DN.decode(NOT_ASSURED_DN);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sr-not-acknowledged-updates"), 0);
@@ -1048,12 +1114,12 @@ public class AssuredReplicationPluginTest
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-sent-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-acknowledged-updates"), 0);
         assertEquals(getMonitorAttrValue(baseDn, "assured-sd-timeout-updates"), 0);
-        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_DATA_MODE);
+        errorsByServer = getErrorsByServers(baseDn, AssuredMode.SAFE_READ_MODE);
         assertTrue(errorsByServer.isEmpty());
       }
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1070,7 +1136,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting not assured clients
       replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
-        false);
+        false, testcase);
       replicationServer.start(NOT_ASSURED_SCENARIO);
 
       // Create a not assured domain
@@ -1090,7 +1156,7 @@ public class AssuredReplicationPluginTest
       // No more test to do here
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1126,8 +1192,9 @@ public class AssuredReplicationPluginTest
     } while (!rs.isScenarioExecuted());
   }
 
-  private void endTest()
+  private void endTest(String testcase)
   {
+    debugInfo("Ending test " + testcase);
     if (replicationServer != null)
     {
       replicationServer.shutdown();
@@ -1164,7 +1231,7 @@ public class AssuredReplicationPluginTest
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 2
       replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
-        2);
+        2, testcase);
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
       // Create a safe data assured domain
@@ -1210,7 +1277,7 @@ public class AssuredReplicationPluginTest
 
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1228,7 +1295,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe read assured mode
       replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
-        true);
+        true, testcase);
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
       // Create a safe read assured domain
@@ -1274,7 +1341,7 @@ public class AssuredReplicationPluginTest
 
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1292,7 +1359,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe read assured mode
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
-        true);
+        true, testcase);
       replicationServer.start(NO_READ);
 
       // Create a safe read assured domain
@@ -1374,7 +1441,7 @@ public class AssuredReplicationPluginTest
 //      assertEquals((integer)failedServers.get(0), (integer)1);
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1392,7 +1459,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe data assured mode
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
-        4);
+        4, testcase);
       replicationServer.start(NO_READ);
 
       // Create a safe data assured domain
@@ -1423,7 +1490,7 @@ public class AssuredReplicationPluginTest
         ackMsg);
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1442,7 +1509,7 @@ public class AssuredReplicationPluginTest
       // Create and start a RS expecting clients in safe data assured mode with
       // safe data level 3
       replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
-        3);
+        3, testcase);
       replicationServer.start(SAFE_DATA_MANY_ERRORS);
 
       // Create a safe data assured domain
@@ -1579,7 +1646,7 @@ public class AssuredReplicationPluginTest
 
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1597,7 +1664,7 @@ public class AssuredReplicationPluginTest
     {
       // Create and start a RS expecting clients in safe read assured mode
       replicationServer = new FakeReplicationServer((byte)1, replServerPort, RS_SERVER_ID,
-        true);
+        true, testcase);
       replicationServer.start(SAFE_READ_MANY_ERRORS);
 
       // Create a safe read assured domain
@@ -1743,7 +1810,7 @@ public class AssuredReplicationPluginTest
 
     } finally
     {
-      endTest();
+      endTest(testcase);
     }
   }
 
@@ -1758,6 +1825,7 @@ public class AssuredReplicationPluginTest
       nextMessageID(), null, realDn);
     delOp.setInternalOperation(true);
     delOp.run();
+    waitOpResult(delOp, ResultCode.SUCCESS);
     assertNull(DirectoryServer.getEntry(realDn));
   }
 
@@ -1840,6 +1908,20 @@ public class AssuredReplicationPluginTest
     }
 
     return resultMap;
+  }
+  private void waitOpResult(AbstractOperation operation,
+      ResultCode expectedResult)
+  {
+    int ii=0;
+    while((operation.getResultCode()==ResultCode.UNDEFINED) ||
+        (operation.getResultCode()!=expectedResult))
+    {
+      sleep(50);
+      ii++;
+      if (ii>10)
+        assertEquals(operation.getResultCode(), expectedResult, 
+            operation.getErrorMessage().toString());                
+    }
   }
 }
 

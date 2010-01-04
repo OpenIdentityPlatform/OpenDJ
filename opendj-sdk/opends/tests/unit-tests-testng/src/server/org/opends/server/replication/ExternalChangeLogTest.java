@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -2982,7 +2982,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the DEL entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"));
+                "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"),
+                "Result entry DN : actual=" + resultEntry.getDN().toNormalizedString() +
+                " expected=" + "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog");
             checkValue(resultEntry,"replicationcsn",cn1.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
