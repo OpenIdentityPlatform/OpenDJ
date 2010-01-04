@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.util;
 
@@ -2296,7 +2296,7 @@ public class Utils
     {
       setupFile = Installation.UNIX_SETUP_FILE_NAME;
     }
-    cmdLine.add(getInstallDir() + setupFile);
+    cmdLine.add(getInstallDir(userData) + setupFile);
     cmdLine.add("--cli");
 
     for (String baseDN : getBaseDNs(userData))
@@ -2611,12 +2611,19 @@ public class Utils
    * Returns the installation directory.
    * @return the installation directory.
    */
-  private static String getInstallDir()
+  private static String getInstallDir(UserData userData)
   {
-    if (installDir == null)
+    if (isWebStart() || installDir == null)
     {
-      File f =
-        org.opends.quicksetup.Installation.getLocal().getRootDirectory();
+      File f;
+      if (isWebStart())
+      {
+        f = new File(userData.getServerLocation());
+      }
+      else
+      {
+        f = org.opends.quicksetup.Installation.getLocal().getRootDirectory();
+      }
       try
       {
         installDir = f.getCanonicalPath();
