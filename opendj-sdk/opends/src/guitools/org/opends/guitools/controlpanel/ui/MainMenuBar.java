@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -187,7 +187,7 @@ public class MainMenuBar extends GenericMenuBar
     {
       Class<? extends Object> applicationClass =
         Class.forName("com.apple.eawt.Application");
-      Class applicationListenerClass =
+      Class<? extends Object> applicationListenerClass =
         Class.forName("com.apple.eawt.ApplicationListener");
       final Object  macApplication = applicationClass.getConstructor(
           (Class[])null).newInstance((Object[])null);
