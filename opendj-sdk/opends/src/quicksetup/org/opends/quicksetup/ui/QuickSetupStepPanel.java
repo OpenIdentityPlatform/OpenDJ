@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -353,7 +353,7 @@ implements HyperlinkListener
     if (inputPanel != null)
     {
       inputContainer = new JPanel(new CardLayout());
-
+      inputContainer.setOpaque(false);
       if (requiresScroll())
       {
         inputContainer.add(UIFactory.createBorderLessScrollBar(inputPanel),
