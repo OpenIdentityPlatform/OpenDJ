@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -472,6 +472,7 @@ public class InstallReviewPanel extends ReviewPanel {
     GridBagConstraints gbc = new GridBagConstraints();
 
     cardLayoutPanel = new JPanel(new CardLayout());
+    cardLayoutPanel.setOpaque(false);
 
     JComponent p = createReadOnlyPanel();
     p.setBorder(new EmptyBorder(UIFactory.LEFT_INSET_SECONDARY_FIELD,
@@ -479,9 +480,19 @@ public class InstallReviewPanel extends ReviewPanel {
         UIFactory.LEFT_INSET_SECONDARY_FIELD,
         UIFactory.LEFT_INSET_SECONDARY_FIELD));
 
-    cardLayoutPanel.add(new JScrollPane(p), DISPLAY_TEXT.toString());
-    JScrollPane scroll = new JScrollPane();
+    JScrollPane scroll = new JScrollPane(p);
+    scroll.setOpaque(false);
+    scroll.getViewport().setOpaque(false);
+    scroll.getViewport().setBackground(UIFactory.DEFAULT_BACKGROUND);
+    scroll.setBackground(UIFactory.DEFAULT_BACKGROUND);
+
+    cardLayoutPanel.add(scroll, DISPLAY_TEXT.toString());
+    scroll = new JScrollPane();
     createEquivalentCommandPanel(scroll);
+    scroll.setOpaque(false);
+    scroll.getViewport().setOpaque(false);
+    scroll.getViewport().setBackground(UIFactory.DEFAULT_BACKGROUND);
+    scroll.setBackground(UIFactory.DEFAULT_BACKGROUND);
     cardLayoutPanel.add(scroll, DISPLAY_EQUIVALENT_COMMAND.toString());
 
     gbc.gridx = 0;
@@ -569,6 +580,7 @@ public class InstallReviewPanel extends ReviewPanel {
     equivalentCommandPane = UIFactory.makeProgressPane(scroll);
     equivalentCommandPane.setAutoscrolls(true);
     scroll.setViewportView(equivalentCommandPane);
+    equivalentCommandPane.setOpaque(false);
     return equivalentCommandPane;
   }
 
