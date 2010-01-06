@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -403,7 +402,7 @@ public class ModifyEntryTask extends Task
         boolean entryContainsRdnTypes = true;
         for (int i=0; (i<newRDN.getNumValues()) && entryContainsRdnTypes; i++)
         {
-          Set<Object> values = originalEntry.getAttributeValues(
+          List<Object> values = originalEntry.getAttributeValues(
           newRDN.getAttributeName(i));
           entryContainsRdnTypes = !values.isEmpty();
         }
@@ -513,13 +512,13 @@ public class ModifyEntryTask extends Task
         attrType = DirectoryServer.getDefaultAttributeType(
             attr.getName().toLowerCase());
       }
-      Set<AttributeValue> newValues = new LinkedHashSet<AttributeValue>();
+      List<AttributeValue> newValues = new ArrayList<AttributeValue>();
       Iterator<AttributeValue> it = attr.iterator();
       while (it.hasNext())
       {
         newValues.add(it.next());
       }
-      Set<Object> oldValues = oldEntry.getAttributeValues(attrName);
+      List<Object> oldValues = oldEntry.getAttributeValues(attrName);
 
       boolean isAttributeInNewRdn = false;
       AttributeValue rdnValue = null;
@@ -596,13 +595,13 @@ public class ModifyEntryTask extends Task
               createAttribute(attrName, newValues)));
         }
       } else {
-        Set<AttributeValue> toDelete = getValuesToDelete(oldValues, newValues,
+        List<AttributeValue> toDelete = getValuesToDelete(oldValues, newValues,
             attrType);
         if (oldRdnValueDeleted != null)
         {
           toDelete.remove(oldRdnValueDeleted);
         }
-        Set<AttributeValue> toAdd = getValuesToAdd(oldValues, newValues,
+        List<AttributeValue> toAdd = getValuesToAdd(oldValues, newValues,
             attrType);
         if (oldRdnValueToAdd != null)
         {
@@ -625,7 +624,7 @@ public class ModifyEntryTask extends Task
           }
           if (toAdd.size() > 0)
           {
-            Set<AttributeValue> vs = new HashSet<AttributeValue>();
+            List<AttributeValue> vs = new ArrayList<AttributeValue>();
             vs.addAll(toAdd);
             if (rdnValue != null)
             {
@@ -649,7 +648,7 @@ public class ModifyEntryTask extends Task
       {
         continue;
       }
-      Set<Object> oldValues = oldEntry.getAttributeValues(attrName);
+      List<Object> oldValues = oldEntry.getAttributeValues(attrName);
       String attrNoOptions =
         Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
 
@@ -684,7 +683,7 @@ public class ModifyEntryTask extends Task
    * @return a JNDI attribute using an attribute name and a set of values.
    */
   private static Attribute createAttribute(String attrName,
-      Set<AttributeValue> values) {
+      List<AttributeValue> values) {
     Attribute attribute = new BasicAttribute(attrName);
     for (AttributeValue value : values)
     {
@@ -726,10 +725,10 @@ public class ModifyEntryTask extends Task
    * @param attrType the attribute type.
    * @return the set of AttributeValue that must be deleted.
    */
-  private static Set<AttributeValue> getValuesToDelete(Set<Object> oldValues,
-      Set<AttributeValue> newValues, AttributeType attrType)
+  private static List<AttributeValue> getValuesToDelete(List<Object> oldValues,
+      List<AttributeValue> newValues, AttributeType attrType)
   {
-    Set<AttributeValue> valuesToDelete = new HashSet<AttributeValue>();
+    List<AttributeValue> valuesToDelete = new ArrayList<AttributeValue>();
     for (Object o : oldValues)
     {
       AttributeValue oldValue = createAttributeValue(attrType, o);
@@ -748,10 +747,10 @@ public class ModifyEntryTask extends Task
    * @param attrType the attribute type.
    * @return the set of AttributeValue that must be added.
    */
-  private static Set<AttributeValue> getValuesToAdd(Set<Object> oldValues,
-    Set<AttributeValue> newValues, AttributeType attrType)
+  private static List<AttributeValue> getValuesToAdd(List<Object> oldValues,
+    List<AttributeValue> newValues, AttributeType attrType)
   {
-    Set<AttributeValue> valuesToAdd = new HashSet<AttributeValue>();
+    List<AttributeValue> valuesToAdd = new ArrayList<AttributeValue>();
     for (AttributeValue newValue : newValues)
     {
       boolean found = false;

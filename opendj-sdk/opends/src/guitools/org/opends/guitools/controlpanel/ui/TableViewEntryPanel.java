@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -433,7 +433,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Set<Object> getValues(String attrName)
+  protected List<Object> getValues(String attrName)
   {
     return tableModel.getValues(attrName);
   }
@@ -691,9 +691,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
     {
       allSortedValues.clear();
       requiredAttrs.clear();
-      Set<String> addedAttrs = new HashSet<String>();
+      List<String> addedAttrs = new ArrayList<String>();
       Schema schema = getInfo().getServerDescriptor().getSchema();
-      Set<Object> ocs = null;
+      List<Object> ocs = null;
       for (String attrName : searchResult.getAttributeNames())
       {
         if (attrName.equalsIgnoreCase(
@@ -798,22 +798,22 @@ public class TableViewEntryPanel extends ViewEntryPanel
     }
 
     /**
-     * Returns the set of values associated with a given attribute.
+     * Returns the list of values associated with a given attribute.
      * @param attrName the name of the attribute.
-     * @return the set of values associated with a given attribute.
+     * @return the list of values associated with a given attribute.
      */
-    public Set<Object> getValues(String attrName)
+    public List<Object> getValues(String attrName)
     {
-      Set<Object> values = new LinkedHashSet<Object>();
+      List<Object> values = new ArrayList<Object>();
       for (AttributeValuePair valuePair : dataArray)
       {
         if (valuePair.attrName.equalsIgnoreCase(attrName))
         {
           if (hasValue(valuePair))
           {
-            if (valuePair.value instanceof Collection)
+            if (valuePair.value instanceof Collection<?>)
             {
-              for (Object o : (Collection)valuePair.value)
+              for (Object o : (Collection<?>)valuePair.value)
               {
                 values.add(o);
               }
@@ -836,7 +836,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
 
       for (String attrName : schemaReadOnlyAttributesLowerCase)
       {
-        Set<Object> values = searchResult.getAttributeValues(attrName);
+        List<Object> values = searchResult.getAttributeValues(attrName);
         if (!values.isEmpty())
         {
           newResult.set(attrName, values);

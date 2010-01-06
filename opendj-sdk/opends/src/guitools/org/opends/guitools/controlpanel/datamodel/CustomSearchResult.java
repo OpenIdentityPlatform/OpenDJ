@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -32,10 +32,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -70,7 +68,7 @@ import org.opends.server.util.LDIFReader;
 public class CustomSearchResult implements Comparable<CustomSearchResult> {
   private Name name;
   private String dn;
-  private Map<String, Set<Object>> attributes;
+  private Map<String, List<Object>> attributes;
   private SortedSet<String> attrNames;
   private String toString;
   private int hashCode;
@@ -84,7 +82,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
   public CustomSearchResult(String dn)
   {
     this.dn = dn;
-    attributes = new HashMap<String, Set<Object>>();
+    attributes = new HashMap<String, List<Object>>();
     attrNames = new TreeSet<String>();
     toString = calculateToString();
     hashCode = calculateHashCode();
@@ -131,17 +129,17 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
     }
     dn = buf.toString();
 
-    attributes = new HashMap<String, Set<Object>>();
+    attributes = new HashMap<String, List<Object>>();
     attrNames = new TreeSet<String>();
     Attributes attrs = sr.getAttributes();
     if (attrs != null)
     {
-      NamingEnumeration en = attrs.getAll();
+      NamingEnumeration<?> en = attrs.getAll();
       while (en.hasMore()) {
         Attribute attr = (Attribute)en.next();
         String name = attr.getID();
         attrNames.add(name);
-        Set<Object> values = new HashSet<Object>();
+        List<Object> values = new ArrayList<Object>();
         for (int i=0; i<attr.size(); i++)
         {
           Object v = attr.get(i);
@@ -172,11 +170,11 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
    * @return the values for a given attribute.  It returns an empty Set if
    * the attribute is not defined.
    */
-  public Set<Object> getAttributeValues(String name) {
-    Set<Object> values = attributes.get(name.toLowerCase());
+  public List<Object> getAttributeValues(String name) {
+    List<Object> values = attributes.get(name.toLowerCase());
     if (values == null)
     {
-      values = Collections.emptySet();
+      values = Collections.emptyList();
     }
     return values;
   }
@@ -258,7 +256,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
    * @param attrName the name of the attribute.
    * @param values the values for the attribute.
    */
-  public void set(String attrName, Set<Object> values)
+  public void set(String attrName, List<Object> values)
   {
     attrNames.add(attrName);
     attrName = attrName.toLowerCase();

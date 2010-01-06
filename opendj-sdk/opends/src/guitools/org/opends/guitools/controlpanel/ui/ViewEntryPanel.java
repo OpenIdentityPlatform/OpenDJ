@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -257,7 +257,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       title.setIcon(null);
     }
 
-    Set<Object> ocs =
+    List<Object> ocs =
       sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (!ocs.isEmpty() && (schema != null))
@@ -289,12 +289,12 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * Returns an object class value representing all the object class values of
    * the entry.
-   * @param ocValues the set of object class values.
+   * @param ocValues the list of object class values.
    * @param schema the schema.
    * @return an object class value representing all the object class values of
    * the entry.
    */
-  protected ObjectClassValue getObjectClassDescriptor(Set<Object> ocValues,
+  protected ObjectClassValue getObjectClassDescriptor(List<Object> ocValues,
       Schema schema)
   {
     ObjectClass structuralObjectClass = null;
@@ -418,12 +418,12 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * Appends the LDIF lines corresponding to the different values of an
    * attribute to the provided StringBuilder.
-   * @param sb the StringBuilder that must be udpated.
+   * @param sb the StringBuilder that must be updated.
    * @param attrName the attribute name.
    * @param values the attribute values.
    */
   protected void appendLDIFLines(StringBuilder sb, String attrName,
-      Set<Object> values)
+      List<Object> values)
   {
     for (Object value : values)
     {
@@ -434,7 +434,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * Appends the LDIF line corresponding to the value of an
    * attribute to the provided StringBuilder.
-   * @param sb the StringBuilder that must be udpated.
+   * @param sb the StringBuilder that must be updated.
    * @param attrName the attribute name.
    * @param value the attribute value.
    */
@@ -558,7 +558,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @param attrName the attribute name.
    * @return the values associated with a given attribute.
    */
-  protected abstract Set<Object> getValues(String attrName);
+  protected abstract List<Object> getValues(String attrName);
 
   /**
    * Sets the values displayed in the panel for a given attribute in the
@@ -568,8 +568,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected void setValues(CustomSearchResult sr, String attrName)
   {
-    Set<Object> values = getValues(attrName);
-    Set<Object> valuesToSet = new LinkedHashSet<Object>();
+    List<Object> values = getValues(attrName);
+    List<Object> valuesToSet = new ArrayList<Object>();
     for (Object value : values)
     {
       if (value instanceof ObjectClassValue)

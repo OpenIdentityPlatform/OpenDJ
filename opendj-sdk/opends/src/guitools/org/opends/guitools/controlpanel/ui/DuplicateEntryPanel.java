@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -35,7 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
 
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JButton;
@@ -351,7 +351,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     sb.append("dn: "+dn);
     for (String attrName : entryToDuplicate.getAttributeNames())
     {
-      Set<Object> values = entryToDuplicate.getAttributeValues(attrName);
+      List<Object> values = entryToDuplicate.getAttributeValues(attrName);
       if (attrName.equalsIgnoreCase(ServerConstants.ATTR_USER_PASSWORD))
       {
         sb.append("\n");

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -40,6 +40,8 @@ import org.opends.server.util.StaticUtils;
  */
 public abstract class SortableTableModel extends AbstractTableModel
 {
+  private static final long serialVersionUID = 123129879083L;
+
   /**
    * Returns whether the sort is ascending or descending.
    * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -36,7 +36,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -606,7 +606,7 @@ implements EntryReadListener
     // Rely in numsubordinates...
     boolean isLeaf = true;
 
-    Set<Object> o = searchResult.getAttributeValues("numsubordinates");
+    List<Object> o = searchResult.getAttributeValues("numsubordinates");
     if (!o.isEmpty())
     {
       int numsubordinates = Integer.parseInt((String)o.iterator().next());

@@ -49,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
@@ -2496,7 +2496,7 @@ public class Utilities
     Object o = null;
     if (sr != null)
     {
-      Set<Object> values = sr.getAttributeValues(attrName);
+      List<Object> values = sr.getAttributeValues(attrName);
       if ((values != null) && (values.size() > 0))
       {
         o = values.iterator().next();

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -34,7 +34,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Point;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Set;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -170,7 +170,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       editableScroll.setVisible(false);
       for (String attrName : sr.getAttributeNames())
       {
-        Set<Object> values = sr.getAttributeValues(attrName);
+        List<Object> values = sr.getAttributeValues(attrName);
         for (Object o : values)
         {
           sb.append("\n"+ getLDIFLine(attrName, o));
@@ -201,7 +201,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       {
         if (!schemaReadOnlyAttributesLowerCase.contains(attrName.toLowerCase()))
         {
-          Set<Object> values = sr.getAttributeValues(attrName);
+          List<Object> values = sr.getAttributeValues(attrName);
           for (Object o : values)
           {
             sb.append("\n"+ getLDIFLine(attrName, o));
@@ -232,7 +232,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       sb = new StringBuilder();
       for (String attrName : schemaReadOnlyAttributes)
       {
-        Set<Object> values = sr.getAttributeValues(attrName);
+        List<Object> values = sr.getAttributeValues(attrName);
         for (Object o : values)
         {
           if (oneLineAdded)
@@ -294,7 +294,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Set<Object> getValues(String attrName)
+  protected List<Object> getValues(String attrName)
   {
     throw new IllegalStateException("This method should not be called.");
   }
