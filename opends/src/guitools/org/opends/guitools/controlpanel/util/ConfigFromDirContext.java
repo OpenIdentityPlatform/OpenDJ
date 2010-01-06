@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -820,14 +820,15 @@ public class ConfigFromDirContext extends ConfigReader
     {
       LdapName jndiName = new LdapName("cn=monitor");
 
-      NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<SearchResult> monitorEntries =
+        ctx.search(jndiName, filter, ctls);
 
       javaVersion = null;
       numberConnections = -1;
 
       while (monitorEntries.hasMore())
       {
-        SearchResult sr = (SearchResult)monitorEntries.next();
+        SearchResult sr = monitorEntries.next();
         handleMonitoringSearchResult(sr, "cn=monitor");
       }
     }
@@ -854,11 +855,12 @@ public class ConfigFromDirContext extends ConfigReader
     {
       LdapName jndiName = new LdapName(ConfigConstants.DN_TASK_ROOT);
 
-      NamingEnumeration taskEntries = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<SearchResult> taskEntries =
+        ctx.search(jndiName, filter, ctls);
 
       while (taskEntries.hasMore())
       {
-        SearchResult sr = (SearchResult)taskEntries.next();
+        SearchResult sr = taskEntries.next();
         handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts);
       }
     }
@@ -1022,7 +1024,7 @@ public class ConfigFromDirContext extends ConfigReader
     DN parent = dn.getParent();
     if ((parent != null) && parent.equals(monitorDN))
     {
-      Set vs = csr.getAttributeValues("cn");
+      List<?> vs = csr.getAttributeValues("cn");
       if ((vs != null) && !vs.isEmpty())
       {
         String cn = (String)vs.iterator().next();
@@ -1039,7 +1041,7 @@ public class ConfigFromDirContext extends ConfigReader
   private boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
   {
     boolean isTaskEntry = false;
-    Set<Object> vs = csr.getAttributeValues("objectclass");
+    List<Object> vs = csr.getAttributeValues("objectclass");
     if ((vs != null) && !vs.isEmpty())
     {
       for (Object oc : vs)

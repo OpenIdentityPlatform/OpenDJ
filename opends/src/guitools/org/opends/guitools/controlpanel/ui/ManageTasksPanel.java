@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -57,6 +57,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
@@ -124,6 +125,10 @@ public class ManageTasksPanel extends StatusGenericPanel
   private JLabel noDetailsLabel;
   // The panel containing all the labels and values of the details.
   private JPanel detailsSubpanel;
+  private JLabel logsLabel;
+  private JScrollPane logsScroll;
+  private JTextArea logs;
+  private JLabel noLogsLabel;
 
   private static final Logger LOG =
     Logger.getLogger(ManageTasksPanel.class.getName());
@@ -251,7 +256,21 @@ public class ManageTasksPanel extends StatusGenericPanel
     gbc.insets.top = 10;
     gbc.anchor = GridBagConstraints.NORTHWEST;
     // Done to provide a good size to the table.
-    tableModel = new TaskTableModel();
+    tableModel = new TaskTableModel()
+    {
+      private static final long serialVersionUID = 55555512319230987L;
+
+      /**
+       * Updates the table model contents and sorts its contents depending on
+       * the sort options set by the user.
+       */
+      public void forceResort()
+      {
+        Set<String> selectedIds = getSelectedIds();
+        super.forceResort();
+        setSelectedIds(selectedIds);
+      }
+    };
     tableModel.setData(createDummyTaskList());
     taskTable =
       Utilities.createSortableTable(tableModel, new TaskCellRenderer());
@@ -292,10 +311,44 @@ public class ManageTasksPanel extends StatusGenericPanel
     gbc.gridy ++;
     gbc.gridx = 0;
     gbc.gridwidth = 2;
+    gbc.weightx = 0.0;
+    gbc.weighty = 0.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    gbc.insets.top = 15;
+    gbc.insets.left = 0;
+    logsLabel = Utilities.createDefaultLabel(
+        INFO_CTRL_PANEL_TASK_LOG_LABEL.get());
+    logsLabel.setFont(ColorAndFontConstants.titleFont);
+    add(logsLabel, gbc);
+
+    logs = Utilities.createNonEditableTextArea(Message.EMPTY, 5, 50);
+    logs.setFont(ColorAndFontConstants.defaultFont);
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weightx = 1.0;
     gbc.weighty = 0.7;
+    gbc.gridy ++;
+    gbc.insets.top = 5;
+    logsScroll = Utilities.createScrollPane(logs);
+    add(logsScroll, gbc);
+    int height = logsScroll.getPreferredSize().height;
+    add(Box.createVerticalStrut(height), gbc);
+    logsScroll.setVisible(false);
+
+    gbc.anchor = GridBagConstraints.CENTER;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    noLogsLabel =
+      Utilities.createDefaultLabel(INFO_CTRL_PANEL_NO_TASK_SELECTED.get());
+    add(noLogsLabel, gbc);
+
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.weightx = 1.0;
+    gbc.weighty = 0.8;
+    gbc.gridy ++;
     gbc.insets.left = 0;
+    gbc.insets.top = 15;
     createDetailsPanel();
     add(detailsPanel, gbc);
 
@@ -321,12 +374,16 @@ public class ManageTasksPanel extends StatusGenericPanel
   {
     detailsPanel = new JPanel(new GridBagLayout());
     detailsPanel.setOpaque(false);
-    detailsPanel.setBorder(Utilities.makeTitledBorder(
-        INFO_CTRL_PANEL_TASK_SPECIFIC_DETAILS.get()));
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 1;
     gbc.gridy = 1;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    JLabel label = Utilities.createDefaultLabel(
+        INFO_CTRL_PANEL_TASK_SPECIFIC_DETAILS.get());
+    label.setFont(ColorAndFontConstants.titleFont);
+    detailsPanel.add(label, gbc);
+    gbc.gridy ++;
     gbc.anchor = GridBagConstraints.CENTER;
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 1.0;
@@ -360,17 +417,45 @@ public class ManageTasksPanel extends StatusGenericPanel
     if (tasks.isEmpty())
     {
       noDetailsLabel.setText(INFO_CTRL_PANEL_NO_TASK_SELECTED.get().toString());
+      logsScroll.setVisible(false);
+      noLogsLabel.setText(INFO_CTRL_PANEL_NO_TASK_SELECTED.get().toString());
+      noLogsLabel.setVisible(true);
     }
     else if (tasks.size() > 1)
     {
       noDetailsLabel.setText(
           INFO_CTRL_PANEL_MULTIPLE_TASKS_SELECTED.get().toString());
+      logsScroll.setVisible(false);
+      noLogsLabel.setText(
+          INFO_CTRL_PANEL_MULTIPLE_TASKS_SELECTED.get().toString());
+      noLogsLabel.setVisible(true);
     }
     else
     {
       TaskEntry taskEntry = tasks.iterator().next();
       Map<Message,List<String>> taskSpecificAttrs =
         taskEntry.getTaskSpecificAttributeValuePairs();
+      List<Message> lastLogMessages = taskEntry.getLogMessages();
+      if (!lastLogMessages.isEmpty())
+      {
+        StringBuilder sb = new StringBuilder();
+        for (Message msg : lastLogMessages)
+        {
+          if (sb.length() != 0)
+          {
+            sb.append("\n");
+          }
+          sb.append(msg);
+        }
+        logs.setText(sb.toString());
+      }
+      else
+      {
+        logs.setText("");
+      }
+      logsScroll.setVisible(true);
+      noLogsLabel.setVisible(false);
+
       if (taskSpecificAttrs.isEmpty())
       {
         noDetailsLabel.setText(
@@ -397,25 +482,16 @@ public class ManageTasksPanel extends StatusGenericPanel
           gbc.gridx = 1;
           gbc.insets.right = 10;
 
-          Message msg;
-          String s = Utils.getStringFromCollection(values, "<br>");
-          if (values.size() > 1)
-          {
-            msg = Message.raw(
-                "<html>"+Utilities.applyFont(s,
-                    ColorAndFontConstants.defaultFont));
-          }
-          else
-          {
-            msg = Message.raw(s);
-          }
-          detailsSubpanel.add(Utilities.createDefaultLabel(msg), gbc);
+          String s = Utils.getStringFromCollection(values, "\n");
+          detailsSubpanel.add(
+              Utilities.makeHtmlPane(s, ColorAndFontConstants.defaultFont),
+              gbc);
 
           gbc.gridy ++;
         }
         gbc.gridx = 0;
         gbc.insets = new Insets(0, 0, 0, 0);
-        detailsSubpanel.add(Box.createVerticalStrut(10), gbc);
+        detailsSubpanel.add(Box.createVerticalStrut(30), gbc);
         gbc.gridx = 1;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
@@ -479,7 +555,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        Set<Object> attrValues = new HashSet<Object>(1);
+        List<Object> attrValues = new ArrayList<Object>(1);
         attrValues.add(values[j] + r.nextInt());
         csr.set(attrNames[j], attrValues);
       }
@@ -546,7 +622,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        Set<Object> attrValues = new HashSet<Object>(1);
+        List<Object> attrValues = new ArrayList<Object>(1);
         attrValues.add(values[j]);
         csr.set(attrNames[j], attrValues);
       }
@@ -857,11 +933,18 @@ public class ManageTasksPanel extends StatusGenericPanel
          */
         public void run()
         {
+          Set<String> selectedIds = getSelectedIds();
           tableModel.setData(tasks);
           boolean visible = tableModel.getRowCount() > 0;
           if (visible)
           {
             updateTableSizes();
+            setSelectedIds(selectedIds);
+          }
+          else
+          {
+            logsLabel.setVisible(false);
+            logsScroll.setVisible(false);
           }
           tableModel.fireTableDataChanged();
           lNoTasksFound.setVisible(!visible &&
@@ -876,14 +959,16 @@ public class ManageTasksPanel extends StatusGenericPanel
 
   private void updateTableSizes()
   {
-    Utilities.updateTableSizes(taskTable, 8);
+    Utilities.updateTableSizes(taskTable, 5);
     Utilities.updateScrollMode(tableScroll, taskTable);
   }
 
   private void setAttributesToDisplay(LinkedHashSet<Message> attributes)
   {
+    Set<String> selectedIds = getSelectedIds();
     tableModel.setAttributes(attributes);
     tableModel.forceDataStructureChange();
+    setSelectedIds(selectedIds);
   }
 
   /**
@@ -895,7 +980,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     private static final long serialVersionUID = 5051878116443370L;
 
     /**
-     * structor.
+     * Constructor.
      * @param info the control panel info.
      */
     public ManageTasksMenuBar(ControlPanelInfo info)
@@ -925,7 +1010,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           INFO_CTRL_PANEL_CONNECTION_HANDLER_VIEW_MENU_DESCRIPTION.get());
       menu.setMnemonic(KeyEvent.VK_V);
       final JMenuItem viewOperations = Utilities.createMenuItem(
-          INFO_CTRL_PANEL_OPERATIONS_VIEW.get());
+          INFO_CTRL_PANEL_TASK_ATTRIBUTES_VIEW.get());
       menu.add(viewOperations);
       viewOperations.addActionListener(new ActionListener()
       {
@@ -935,6 +1020,34 @@ public class ManageTasksPanel extends StatusGenericPanel
         }
       });
       return menu;
+    }
+  }
+
+  private Set<String> getSelectedIds()
+  {
+    Set<String> selectedIds = new HashSet<String>();
+    int[] indexes = taskTable.getSelectedRows();
+    if (indexes != null)
+    {
+      for (int index : indexes)
+      {
+        TaskEntry taskEntry = tableModel.get(index);
+        selectedIds.add(taskEntry.getId());
+      }
+    }
+    return selectedIds;
+  }
+
+  private void setSelectedIds(Set<String> ids)
+  {
+    taskTable.getSelectionModel().clearSelection();
+    for (int i=0; i<tableModel.getRowCount(); i++)
+    {
+      TaskEntry taskEntry = tableModel.get(i);
+      if (ids.contains(taskEntry.getId()))
+      {
+        taskTable.getSelectionModel().addSelectionInterval(i, i);
+      }
     }
   }
 }

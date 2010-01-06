@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -126,8 +126,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private TreePath treePath;
   private JScrollPane scrollAttributes;
 
-  private LinkedHashMap<String, Set<EditorComponent>> hmEditors =
-    new LinkedHashMap<String, Set<EditorComponent>>();
+  private LinkedHashMap<String, List<EditorComponent>> hmEditors =
+    new LinkedHashMap<String, List<EditorComponent>>();
 
   private Set<String> requiredAttrs = new HashSet<String>();
   private Map<String, JComponent> hmLabels = new HashMap<String, JComponent>();
@@ -469,7 +469,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       for (String attr : sortedAttributes)
       {
         JLabel label = getLabelForAttribute(attr, sr);
-        Set<Object> values = sr.getAttributeValues(attr);
+        List<Object> values = sr.getAttributeValues(attr);
         JComponent comp = getReadOnlyComponent(attr, values);
         gbc.weightx = 0.0;
         if (values.size() > 1)
@@ -500,10 +500,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           Utilities.setRequiredIcon(label);
           requiredAttrs.add(attr.toLowerCase());
         }
-        Set<Object> values = sr.getAttributeValues(attr);
+        List<Object> values = sr.getAttributeValues(attr);
         if (values.isEmpty())
         {
-          values = new HashSet<Object>(1);
+          values = new ArrayList<Object>(1);
           if (isBinary(attr))
           {
             values.add(new byte[]{});
@@ -704,7 +704,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             Utilities.getAttributeNameWithoutOptions(attr).toLowerCase());
     }
 
-    Set<Object> values =
+    List<Object> values =
       sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
 
     // Put first the attributes associated with the objectclass in
@@ -778,7 +778,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
       if (schema != null)
       {
-        Set<Object> ocs = sr.getAttributeValues(
+        List<Object> ocs = sr.getAttributeValues(
             ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
         for (Object o : ocs)
         {
@@ -882,7 +882,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   private JComponent getReadOnlyComponent(final String attrName,
-      Set<Object> values)
+      List<Object> values)
   {
 //  GridLayout is used to avoid the 512 limit of GridBagLayout
     JPanel panel = new JPanel(new GridBagLayout());
@@ -982,14 +982,14 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   private JComponent getReadWriteComponent(final String attrName,
-      Set<Object> values)
+      List<Object> values)
   {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
 
-    Set<EditorComponent> components = new LinkedHashSet<EditorComponent>();
+    List<EditorComponent> components = new ArrayList<EditorComponent>();
     hmEditors.put(attrName.toLowerCase(), components);
 
     boolean isBinary = hasBinaryValue(values);
@@ -1273,7 +1273,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       AttributeType attr = schema.getAttributeType(attrName.toLowerCase());
       if (attr != null)
       {
-        Set<Object> ocs = sr.getAttributeValues(
+        List<Object> ocs = sr.getAttributeValues(
             ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
         for (Object o : ocs)
         {
@@ -1328,8 +1328,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     // Check passwords
     for (String attrName : lastUserPasswords.keySet())
     {
-      Set<String> pwds = getNewPasswords(attrName);
-      Set<String> confirmPwds = getConfirmPasswords(attrName);
+      List<String> pwds = getNewPasswords(attrName);
+      List<String> confirmPwds = getConfirmPasswords(attrName);
       if (!pwds.equals(confirmPwds))
       {
         setPrimaryInvalid(hmLabels.get(attrName));
@@ -1382,10 +1382,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return entry;
   }
 
-  private Set<String> getDisplayedStringValues(String attrName)
+  private List<String> getDisplayedStringValues(String attrName)
   {
-    Set<String> values = new LinkedHashSet<String>();
-    Set<EditorComponent> comps =
+    List<String> values = new ArrayList<String>();
+    List<EditorComponent> comps =
       hmEditors.get(attrName.toLowerCase());
     if (comps != null)
     {
@@ -1417,14 +1417,14 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return values;
   }
 
-  private Set<String> getNewPasswords(String attrName)
+  private List<String> getNewPasswords(String attrName)
   {
     String attr =
       Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
     return getDisplayedStringValues(attr);
   }
 
-  private Set<String> getConfirmPasswords(String attrName)
+  private List<String> getConfirmPasswords(String attrName)
   {
     return getDisplayedStringValues(getConfirmPasswordKey(attrName));
   }
@@ -1458,10 +1458,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       else if (isPassword(attrName))
       {
-        Set<String> newPwds = getNewPasswords(attrName);
+        List<String> newPwds = getNewPasswords(attrName);
         if (newPwds.equals(lastUserPasswords.get(attrName.toLowerCase())))
         {
-          Set<Object> oldValues = searchResult.getAttributeValues(attrName);
+          List<Object> oldValues = searchResult.getAttributeValues(attrName);
           if (!oldValues.isEmpty())
           {
             appendLDIFLines(sb, attrName, oldValues);
@@ -1482,7 +1482,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     // Add the attributes that are not displayed
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {
-      Set<Object> values = searchResult.getAttributeValues(attrName);
+      List<Object> values = searchResult.getAttributeValues(attrName);
       if (!values.isEmpty())
       {
         appendLDIFLines(sb, attrName, values);
@@ -1494,7 +1494,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private boolean isAttrName(String attrName, CustomSearchResult sr)
   {
     boolean isAttrName = false;
-    Set<Object> values =
+    List<Object> values =
       sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     for (Object o : values)
     {
@@ -1510,7 +1510,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return isAttrName;
   }
 
-  private boolean hasBinaryValue(Set<Object> values)
+  private boolean hasBinaryValue(List<Object> values)
   {
     boolean isBinary = false;
     if (values.size() > 0)
@@ -1548,10 +1548,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
-  protected Set<Object> getValues(String attrName)
+  protected List<Object> getValues(String attrName)
   {
-    Set<Object> values = new LinkedHashSet<Object>();
-    Set<EditorComponent> comps = hmEditors.get(attrName);
+    List<Object> values = new ArrayList<Object>();
+    List<EditorComponent> comps = hmEditors.get(attrName);
     if (comps.size() > 0)
     {
       for (EditorComponent comp : comps)
@@ -1578,7 +1578,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private void appendLDIFLines(StringBuilder sb, String attrName)
   {
-    Set<Object> values = getValues(attrName);
+    List<Object> values = getValues(attrName);
 
     if (values.size() > 0)
     {
@@ -1608,7 +1608,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
           String sValue = value.getValue().toString();
 
-          Set<String> values = getDisplayedStringValues(attrName);
+          List<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(sValue))
           {
             if (values.size() > 0)
@@ -1654,7 +1654,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
               {
                 continue;
               }
-              Set<EditorComponent> comps = hmEditors.get(attrName);
+              List<EditorComponent> comps = hmEditors.get(attrName);
               if (comps.size() > 0)
               {
                 Object o = comps.iterator().next().getValue();
@@ -1805,7 +1805,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {
-      Set<Object> values = searchResult.getAttributeValues(attrName);
+      List<Object> values = searchResult.getAttributeValues(attrName);
       if (!values.isEmpty())
       {
         newResult.set(attrName, values);
@@ -1855,10 +1855,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         }
         if (isPassword(attrName))
         {
-          Set<String> newPwds = getNewPasswords(attrName);
+          List<String> newPwds = getNewPasswords(attrName);
           if (newPwds.equals(lastUserPasswords.get(attrName)))
           {
-            Set<Object> oldValues = searchResult.getAttributeValues(attrName);
+            List<Object> oldValues = searchResult.getAttributeValues(attrName);
             newResult.set(attrName, oldValues);
           }
           else
@@ -1893,7 +1893,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       else
       {
-        Set<EditorComponent> editors = hmEditors.get(attrName);
+        List<EditorComponent> editors = hmEditors.get(attrName);
         boolean hasValue = false;
 
         for (EditorComponent editor : editors)

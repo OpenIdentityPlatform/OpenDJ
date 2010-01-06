@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.naming.NamingEnumeration;
@@ -98,7 +99,7 @@ public class RemoteSchemaLoader extends SchemaLoader
 
     schema = getBaseSchema();
 
-    Set<Object> attrs =
+    List<Object> attrs =
       csr.getAttributeValues(ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC);
     Set<String> remainingAttrs = new HashSet<String>();
     for (Object o : attrs)
@@ -135,7 +136,7 @@ public class RemoteSchemaLoader extends SchemaLoader
       remainingAttrs.removeAll(registeredAttrs);
     }
 
-    Set<Object> objectClasses =
+    List<Object> objectClasses =
       csr.getAttributeValues(ConfigConstants.ATTR_OBJECTCLASSES_LC);
 
     Set<String> remainingOcs = new HashSet<String>();
