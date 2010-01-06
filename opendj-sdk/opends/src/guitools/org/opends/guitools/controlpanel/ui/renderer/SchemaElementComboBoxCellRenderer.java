@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -63,10 +63,14 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
   {
     if (value instanceof AttributeSyntax)
     {
-      value = ((AttributeSyntax)value).getSyntaxName();
-      if (value == null)
+      String syntaxName = ((AttributeSyntax)value).getSyntaxName();
+      if (syntaxName == null)
       {
         value = ((AttributeSyntax)value).getOID();
+      }
+      else
+      {
+        value = syntaxName;
       }
     }
     else if (value instanceof CommonSchemaElements)
