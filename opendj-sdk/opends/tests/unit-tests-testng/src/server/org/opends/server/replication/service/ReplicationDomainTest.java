@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -140,6 +140,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
 
+      Thread.sleep(500);
+
       /*
        * Now test the resetReplicationLog() method.
        */
@@ -148,7 +150,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
       for (RSInfo replServerInfo : replServers)
       {
         // The generation Id of the remote should be 1
-        assertEquals(replServerInfo.getGenerationId(), 1);
+        assertEquals(replServerInfo.getGenerationId(), 1,
+            "Unexpected value of generationId in RSInfo for RS="
+            + replServerInfo.toString());
       }
 
       for (DSInfo serverInfo : domain1.getReplicasList())
