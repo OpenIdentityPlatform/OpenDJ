@@ -277,9 +277,10 @@ public class ManageTasksPanel extends StatusGenericPanel
     taskTable.getSelectionModel().setSelectionMode(
         ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     tableScroll = Utilities.createScrollPane(taskTable);
-    gbc.anchor = GridBagConstraints.NORTHWEST;
     add(tableScroll, gbc);
     updateTableSizes();
+    int height = taskTable.getPreferredScrollableViewportSize().height;
+    add(Box.createVerticalStrut(height), gbc);
 
     gbc.gridx = 1;
     gbc.gridheight = 1;
@@ -331,7 +332,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     gbc.insets.top = 5;
     logsScroll = Utilities.createScrollPane(logs);
     add(logsScroll, gbc);
-    int height = logsScroll.getPreferredSize().height;
+    height = logs.getPreferredSize().height;
     add(Box.createVerticalStrut(height), gbc);
     logsScroll.setVisible(false);
 
@@ -398,6 +399,9 @@ public class ManageTasksPanel extends StatusGenericPanel
     gbc.anchor = GridBagConstraints.NORTHWEST;
     gbc.fill = GridBagConstraints.BOTH;
     detailsPanel.add(Utilities.createBorderLessScrollBar(detailsSubpanel), gbc);
+
+    detailsPanel.add(
+        Box.createVerticalStrut(logs.getPreferredSize().height), gbc);
   }
 
   /**
@@ -465,7 +469,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       {
         displayContents = true;
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridy = 1;
+        gbc.gridy = 0;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.insets.top = 10;
@@ -490,9 +494,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           gbc.gridy ++;
         }
         gbc.gridx = 0;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        detailsSubpanel.add(Box.createVerticalStrut(30), gbc);
-        gbc.gridx = 1;
+        gbc.gridwidth = 2;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
