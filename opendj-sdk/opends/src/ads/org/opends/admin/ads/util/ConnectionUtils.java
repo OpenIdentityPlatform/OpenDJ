@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads.util;
@@ -128,7 +128,7 @@ public class ConnectionUtils
     /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[]
       { null, null };
-    final Hashtable fEnv = env;
+    final Hashtable<String, String> fEnv = env;
     Thread t = new Thread(new Runnable()
     {
       public void run()
@@ -209,7 +209,7 @@ public class ConnectionUtils
 
     /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[] {null, null};
-    final Hashtable fEnv = env;
+    final Hashtable<String, String> fEnv = env;
     final TrustManager fTrustManager = trustManager;
     final KeyManager   fKeyManager   = keyManager;
 
@@ -259,7 +259,7 @@ public class ConnectionUtils
     }
     /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[] {null, null};
-    final Hashtable fEnv = env;
+    final Hashtable<?, ?> fEnv = env;
     final TrustManager fTrustManager = trustManager;
     final KeyManager   fKeyManager   = keyManager;
     final Control[] fNewCtls = newCtls;
@@ -348,7 +348,7 @@ public class ConnectionUtils
 
     /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[] {null, null};
-    final Hashtable fEnv = env;
+    final Hashtable<?, ?> fEnv = env;
     final String fDn = dn;
     final String fPwd = pwd;
     final TrustManager fTrustManager = trustManager;
