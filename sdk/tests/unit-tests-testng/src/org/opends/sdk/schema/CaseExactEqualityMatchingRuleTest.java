@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.EMR_CASE_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_EXACT_OID;
 
 import org.opends.sdk.ConditionResult;
 import org.testng.annotations.DataProvider;

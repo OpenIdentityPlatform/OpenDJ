@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BIT_STRING_OID;
 
 import org.testng.annotations.DataProvider;
 

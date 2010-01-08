@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import org.opends.sdk.ConditionResult;
 import org.testng.annotations.DataProvider;

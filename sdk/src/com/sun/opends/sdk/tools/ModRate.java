@@ -129,7 +129,7 @@ public final class ModRate extends ConsoleApplication
             + "measure modify performance");
     // TODO: correct usage
     ArgumentParser argParser =
-        new ArgumentParser(SearchRate.class.getName(), toolDescription,
+        new ArgumentParser(ModRate.class.getName(), toolDescription,
             false, true, 1, 0, "[modifyString ...]");
     ArgumentParserConnectionFactory connectionFactory;
     ModifyPerformanceRunner runner;

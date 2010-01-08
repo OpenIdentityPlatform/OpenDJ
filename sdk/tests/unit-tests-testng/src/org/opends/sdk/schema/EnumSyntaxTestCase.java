@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
+import static org.opends.sdk.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
 
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;

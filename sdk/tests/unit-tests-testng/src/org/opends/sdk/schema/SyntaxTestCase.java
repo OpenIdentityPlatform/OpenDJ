@@ -30,7 +30,7 @@ package org.opends.sdk.schema;
 
 import static org.testng.Assert.fail;
 
-import org.opends.messages.MessageBuilder;
+import org.opends.sdk.LocalizableMessageBuilder;
 import org.opends.sdk.DecodeException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -76,7 +76,7 @@ public abstract class SyntaxTestCase extends SchemaTestCase
     // Make sure that the specified class can be instantiated as a task.
     Syntax syntax = getRule();
 
-    MessageBuilder reason = new MessageBuilder();
+    LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
     Boolean liveResult =
         syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
