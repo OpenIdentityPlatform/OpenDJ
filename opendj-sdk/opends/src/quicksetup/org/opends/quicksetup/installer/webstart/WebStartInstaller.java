@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -112,6 +112,9 @@ public class WebStartInstaller extends Installer {
       System.setOut(getApplicationOutputStream());
 
       setCurrentProgressStep(InstallProgressStep.DOWNLOADING);
+
+      notifyListenersOfLog();
+      notifyListeners(getLineBreak());
 
       checkAbort();
 
@@ -262,8 +265,6 @@ public class WebStartInstaller extends Installer {
 
       checkAbort();
       updateSummaryWithServerState(hmSummary);
-      notifyListeners(getLineBreak());
-      notifyListenersOfLog();
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
@@ -300,7 +301,7 @@ public class WebStartInstaller extends Installer {
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
         notifyListeners(getLineBreak());
-        notifyListenersOfLog();
+        notifyListenersOfLogAfterError();
       }
     }
     catch (Throwable t)
@@ -324,7 +325,7 @@ public class WebStartInstaller extends Installer {
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
       notifyListeners(getLineBreak());
-      notifyListenersOfLog();
+      notifyListenersOfLogAfterError();
     }
     System.setErr(origErr);
     System.setOut(origOut);
