@@ -51,7 +51,7 @@ final class SchemaUtils
    * single quoted string, or an open parenthesis followed by a
    * space-delimited set of quoted strings or unquoted words followed by
    * a close parenthesis.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The "extra" parameter value that was read.
@@ -108,8 +108,7 @@ final class SchemaUtils
             values.add(readQuotedString(reader));
             reader.skipWhitespaces();
             reader.mark();
-          }
-          while (reader.read() != ')');
+          } while (reader.read() != ')');
         }
       }
       else
@@ -118,8 +117,7 @@ final class SchemaUtils
         do
         {
           length++;
-        }
-        while (reader.read() != ' ');
+        } while (reader.read() != ' ');
 
         reader.reset();
         values = Collections.singletonList(reader.read(length));
@@ -129,7 +127,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -181,15 +180,13 @@ final class SchemaUtils
             values.add(readQuotedDescriptor(reader));
             reader.skipWhitespaces();
             reader.mark();
-          }
-          while (reader.read() != ')');
+          } while (reader.read() != ')');
         }
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                .valueOf(c), reader.pos() - 1);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+            .get(String.valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
       }
 
@@ -197,92 +194,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
-      throw DecodeException.error(message);
-    }
-  }
-
-
-
-  /**
-   * Reads the next OID from the definition, skipping over any leading
-   * spaces.
-   * 
-   * @param reader
-   *          The string representation of the definition.
-   * @return The OID read from the definition.
-   * @throws DecodeException
-   *           If a problem is encountered while reading the token name.
-   */
-  static String readNumericOID(SubstringReader reader)
-      throws DecodeException
-  {
-    // This must be a numeric OID. In that case, we will accept
-    // only digits and periods, but not consecutive periods.
-    boolean lastWasPeriod = false;
-    int length = 0;
-
-    // Skip over any spaces at the beginning of the value.
-    reader.skipWhitespaces();
-    reader.mark();
-
-    try
-    {
-      char c;
-      while ((c = reader.read()) != ' ' && c != '\'')
-      {
-        if (c == '.')
-        {
-          if (lastWasPeriod)
-          {
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
-                    .getString(), reader.pos() - 1);
-            throw DecodeException.error(message);
-          }
-          else
-          {
-            lastWasPeriod = true;
-          }
-        }
-        else if (!isDigit(c))
-        {
-          // Technically, this must be an illegal character. However, it
-          // is possible that someone just got sloppy and did not
-          // include a space between the name/OID and a closing
-          // parenthesis. In that case, we'll assume it's the end of the
-          // value.
-          if (c == ')')
-          {
-            break;
-          }
-
-          // This must have been an illegal character.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
-                  .getString(), reader.pos() - 1);
-          throw DecodeException.error(message);
-        }
-        else
-        {
-          lastWasPeriod = false;
-        }
-        length++;
-      }
-
-      if (length == 0)
-      {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
-        throw DecodeException.error(message);
-      }
-
-      reader.reset();
-
-      return reader.read(length);
-    }
-    catch (final StringIndexOutOfBoundsException e)
-    {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -292,7 +205,7 @@ final class SchemaUtils
   /**
    * Reads the attribute description or numeric OID, skipping over any
    * leading or trailing spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The attribute description or numeric OID read from the
@@ -303,31 +216,78 @@ final class SchemaUtils
    */
   static String readOID(SubstringReader reader) throws DecodeException
   {
-    int length = 1;
+    int length = 0;
     boolean enclosingQuote = false;
-    String oid;
 
     // Skip over any spaces at the beginning of the value.
     reader.skipWhitespaces();
     reader.mark();
 
-    try
+    if (reader.remaining() > 0)
     {
       // The next character must be either numeric (for an OID) or
       // alphabetic (for an attribute description).
-      char c = reader.read();
-      if (c == '\'')
+      if (reader.read() == '\'')
       {
         enclosingQuote = true;
         reader.mark();
-        c = reader.read();
       }
-      if (isDigit(c))
+      else
       {
         reader.reset();
-        oid = readNumericOID(reader);
       }
+    }
 
+    if (reader.remaining() > 0)
+    {
+      char c = reader.read();
+      length++;
+
+      if (isDigit(c))
+      {
+        // This must be a numeric OID. In that case, we will accept
+        // only digits and periods, but not consecutive periods.
+        boolean lastWasPeriod = false;
+
+        while (reader.remaining() > 0 && (c = reader.read()) != ' '
+            && c != ')' && !(c == '\'' && enclosingQuote))
+        {
+          if (c == '.')
+          {
+            if (lastWasPeriod)
+            {
+              final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
+                  .get(reader.getString(), reader.pos() - 1);
+              throw DecodeException.error(message);
+            }
+            else
+            {
+              lastWasPeriod = true;
+            }
+          }
+          else if (!isDigit(c))
+          {
+            // This must be an illegal character.
+            // This must have been an illegal character.
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
+                .get(reader.getString(), reader.pos() - 1);
+            throw DecodeException.error(message);
+          }
+          else
+          {
+            lastWasPeriod = false;
+          }
+
+          length++;
+        }
+
+        if (lastWasPeriod)
+        {
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ENDS_WITH_PERIOD
+              .get(reader.getString());
+          throw DecodeException.error(message);
+        }
+      }
       else if (isAlpha(c))
       {
         // This must be an attribute description. In this case, we will
@@ -339,9 +299,8 @@ final class SchemaUtils
           if (length == 0 && !isAlpha(c))
           {
             // This is an illegal character.
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                    .valueOf(c), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+                .get(String.valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
           }
 
@@ -349,40 +308,44 @@ final class SchemaUtils
               && c != '_')
           {
             // This is an illegal character.
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                    .valueOf(c), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+                .get(String.valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
           }
 
           length++;
         }
-
-        reader.reset();
-
-        // Return the position of the first non-space character after
-        // the token.
-        oid = reader.read(length);
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                .valueOf(c), reader.pos() - 1);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+            .get(String.valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
       }
 
-      if (enclosingQuote)
+      if (enclosingQuote && c != '\'')
       {
-        reader.read();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS
+            .get(reader.pos() - 1, String.valueOf(c));
+        throw DecodeException.error(message);
       }
-      return oid;
     }
-    catch (final StringIndexOutOfBoundsException e)
+
+    if (length == 0)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE
+          .get();
       throw DecodeException.error(message);
     }
+
+    reader.reset();
+    String oid = reader.read(length);
+    if (enclosingQuote)
+    {
+      reader.read();
+    }
+
+    return oid;
   }
 
 
@@ -390,7 +353,7 @@ final class SchemaUtils
   /**
    * Reads the next OID from the definition, skipping over any leading
    * spaces. The OID may be followed by a integer length in brackets.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The OID read from the definition.
@@ -428,9 +391,8 @@ final class SchemaUtils
           {
             if (lastWasPeriod)
             {
-              final LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS.get(reader
-                      .getString(), reader.pos() - 1);
+              final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
+                  .get(reader.getString(), reader.pos() - 1);
               throw DecodeException.error(message);
             }
             else
@@ -451,9 +413,8 @@ final class SchemaUtils
             }
 
             // This must have been an illegal character.
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
-                    .getString(), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
+                .get(reader.getString(), reader.pos() - 1);
             throw DecodeException.error(message);
           }
           else
@@ -465,7 +426,8 @@ final class SchemaUtils
 
         if (length == 0)
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE
+              .get();
           throw DecodeException.error(message);
         }
       }
@@ -481,9 +443,8 @@ final class SchemaUtils
           if (length == 0 && !isAlpha(c))
           {
             // This is an illegal character.
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                    .valueOf(c), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+                .get(String.valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
           }
 
@@ -491,9 +452,8 @@ final class SchemaUtils
               && c != '_')
           {
             // This is an illegal character.
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                    .valueOf(c), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+                .get(String.valueOf(c), reader.pos() - 1);
             throw DecodeException.error(message);
           }
 
@@ -502,9 +462,8 @@ final class SchemaUtils
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                .valueOf(c), reader.pos() - 1);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+            .get(String.valueOf(c), reader.pos() - 1);
         throw DecodeException.error(message);
       }
 
@@ -524,9 +483,8 @@ final class SchemaUtils
         {
           if (!isDigit(c))
           {
-            final LocalizableMessage message =
-                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER.get(reader
-                    .getString(), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
+                .get(reader.getString(), reader.pos() - 1);
             throw DecodeException.error(message);
           }
         }
@@ -544,7 +502,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -573,8 +532,7 @@ final class SchemaUtils
 
           // Skip over any trailing spaces;
           reader.skipWhitespaces();
-        }
-        while (reader.read() != ')');
+        } while (reader.read() != ')');
       }
       else
       {
@@ -586,7 +544,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -596,7 +555,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -604,7 +563,7 @@ final class SchemaUtils
    *           If a problem is encountered while reading the quoted
    *           string.
    */
-  static String readQuotedDescriptor(SubstringReader reader)
+  private static String readQuotedDescriptor(SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
@@ -618,9 +577,8 @@ final class SchemaUtils
       char c = reader.read();
       if (c != '\'')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
-                String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS
+            .get(reader.pos() - 1, String.valueOf(c));
         throw DecodeException.error(message);
       }
 
@@ -631,9 +589,8 @@ final class SchemaUtils
         if (length == 0 && !isAlpha(c))
         {
           // This is an illegal character.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                  .valueOf(c), reader.pos() - 1);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+              .get(String.valueOf(c), reader.pos() - 1);
           throw DecodeException.error(message);
         }
 
@@ -641,9 +598,8 @@ final class SchemaUtils
             && c != '.')
         {
           // This is an illegal character.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID.get(String
-                  .valueOf(c), reader.pos() - 1);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+              .get(String.valueOf(c), reader.pos() - 1);
           throw DecodeException.error(message);
         }
 
@@ -658,7 +614,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -668,7 +625,7 @@ final class SchemaUtils
   /**
    * Reads the value of a string enclosed in single quotes, skipping
    * over the quotes and any leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
@@ -690,9 +647,8 @@ final class SchemaUtils
       final char c = reader.read();
       if (c != '\'')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS.get(reader.pos() - 1,
-                String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS
+            .get(reader.pos() - 1, String.valueOf(c));
         throw DecodeException.error(message);
       }
 
@@ -711,7 +667,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -721,7 +678,7 @@ final class SchemaUtils
   /**
    * Reads the next ruleid from the definition, skipping over any
    * leading spaces.
-   * 
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The ruleid read from the definition.
@@ -748,7 +705,8 @@ final class SchemaUtils
 
       if (length == 0)
       {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE
+            .get();
         throw DecodeException.error(message);
       }
 
@@ -761,14 +719,15 @@ final class SchemaUtils
       }
       catch (final NumberFormatException e)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_RULE_ID_INVALID.get(ruleID);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_RULE_ID_INVALID
+            .get(ruleID);
         throw DecodeException.error(message);
       }
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -797,8 +756,7 @@ final class SchemaUtils
 
           // Skip over any trailing spaces;
           reader.skipWhitespaces();
-        }
-        while (reader.read() != ')');
+        } while (reader.read() != ')');
       }
       else
       {
@@ -810,7 +768,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }
@@ -820,8 +779,8 @@ final class SchemaUtils
   /**
    * Reads the next token name from the definition, skipping over any
    * leading or trailing spaces or <code>null</code> if there are no
-   * moretokens to read.
-   * 
+   * more tokens to read.
+   *
    * @param reader
    *          The string representation of the definition.
    * @return The token name read from the definition or
@@ -859,8 +818,8 @@ final class SchemaUtils
       if (token == null && reader.remaining() > 0)
       {
         reader.reset();
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(length);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS
+            .get(length);
         throw DecodeException.error(message);
       }
 
@@ -868,7 +827,8 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
+          .get();
       throw DecodeException.error(message);
     }
   }

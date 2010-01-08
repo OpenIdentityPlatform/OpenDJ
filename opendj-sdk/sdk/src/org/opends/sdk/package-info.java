@@ -27,47 +27,6 @@
 
 /**
  * Core OpenDS SDK API including connections, entries, and attributes.
- *
- * <h1>TODO</h1>
- * <ul>
- * <li>LDIF support <b>[Matt]</b>
- * <ul>
- * <li>LDIFReader
- * <ul>
- * <li>filtered reader (this should wrap an entry enumeration)
- * <li>should implement generic entry enumeration API.
- * </ul>
- * <li>LDIFWriter
- * <ul>
- * <li>add comments for DNs
- * <li>comments in native charset
- * <li>rest of output must be in ASCII
- * </ul>
- * </ul>
- * <li>Logging?
- * <li>Exceptions sub-types for ErrorResultException (e.g. referrals, assertion failures, client side errors).
- * <li>SearchResultEntry must be cheap to decode in non schema case.
- * <li>How should non-default Grizzly transport be specified by the application?
- * <li>Unmodifiable requests and responses
- * <li>Check that it is possible to create SearchResultEntry objects with empty attributes.
- * <li>Nameable? All objects that have a getName() method
- * <li>Enum / GeneralizedTime parsing function
- * <li>LDAP connection request timeouts configured using LDAPConnectionOptions.
- * <li>Re-instate Connection.isValid()
- * <li>Support parameters in result handlers.
- * <li>Javadoc
- * <li>Unit tests
- * <li>LDAP URL support and referral support
- * <li>Escapes in substring filter
- * <li>Threading model for decoding messages and calling result handlers
- * <li>SASL for CLI tools
- * <li>IBM JVM SSL support?
- * <li>Intermediate response support.
- * <li>Consider using Collections instead of Iterables.
- * <li>Get rid of write lock on connections so encoding can be done in parallel using Grizzly's buffers
- * <li>Should we dispose of the SASLContext on rebind?
- * </ul>
- *
  */
 package org.opends.sdk;
 

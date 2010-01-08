@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
+import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.sdk.ConditionResult;
@@ -44,8 +44,8 @@ import org.opends.sdk.ByteString;
  */
 public class ApproximateMatchingRuleTest extends SchemaTestCase
 {
-  MatchingRule metaphone =
-      Schema.getCoreSchema().getMatchingRule(AMR_DOUBLE_METAPHONE_NAME);
+  MatchingRule metaphone = Schema.getCoreSchema().getMatchingRule(
+      AMR_DOUBLE_METAPHONE_NAME);
 
 
 
@@ -154,13 +154,12 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
       throws Exception
   {
     // normalize the 2 provided values
-    ByteString normalizedValue1 =
-        rule.normalizeAttributeValue(ByteString.valueOf(value1));
+    ByteString normalizedValue1 = rule
+        .normalizeAttributeValue(ByteString.valueOf(value1));
 
     // check that the approximatelyMatch return the expected result.
-    ConditionResult liveResult =
-        rule.getAssertion(ByteString.valueOf(value2)).matches(
-            normalizedValue1);
+    ConditionResult liveResult = rule.getAssertion(
+        ByteString.valueOf(value2)).matches(normalizedValue1);
     assertEquals(result, liveResult);
   }
 }

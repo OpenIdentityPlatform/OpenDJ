@@ -28,17 +28,12 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.opends.messages.Message;
 import org.opends.sdk.DecodeException;
-import org.opends.server.types.CommonSchemaElements;
+import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -87,9 +82,8 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
             "( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
                 + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
-    List<Message> warnings = new LinkedList<Message>();
-    schema = builder.toSchema(warnings);
-    if (!warnings.isEmpty())
+    schema = builder.toSchema();
+    if (!schema.getWarnings().isEmpty())
     {
       throw new Exception("Base schema not valid!");
     }
@@ -571,6 +565,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
 
+  @Test
   public void testInheritFromNonCollective() throws Exception
   {
     // Collective can't inherit from non-collective
@@ -583,13 +578,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SUBSTR caseIgnoreSubstringsMatch"
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " COLLECTIVE USAGE userApplications )", false);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
+  @Test
   public void testCollectiveOperational() throws Exception
   {
     // Collective can't be operational
@@ -601,13 +595,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SUBSTR caseIgnoreSubstringsMatch"
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " COLLECTIVE USAGE directoryOperation )", false);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
+  @Test
   public void testInheritFromUserAppUsage() throws Exception
   {
     // directoryOperation can't inherit from userApplications
@@ -621,13 +614,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " NO-USER-MODIFICATION USAGE directoryOperation )",
             false);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
+  @Test
   public void testNoUserModNonOperational() throws Exception
   {
     // NO-USER-MODIFICATION can't have non-operational usage
@@ -640,13 +632,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " NO-USER-MODIFICATION USAGE userApplications )",
             false);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
+  @Test
   public void testADSyntax() throws Exception
   {
     // AD uses single quotes around OIDs
@@ -658,9 +649,24 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
                 + " EQUALITY 'caseIgnoreMatch' "
                 + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
             false);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
+  }
+
+
+
+  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testADSyntaxQuoteMismatch() throws Exception
+  {
+    // AD uses single quotes around OIDs
+    SchemaBuilder builder = new SchemaBuilder(schema);
+    builder
+        .addAttributeType(
+            "(1.2.8.5 NAME 'testtype' DESC 'full type' "
+                + " SUP '1.2.5 "
+                + " EQUALITY 'caseIgnoreMatch' "
+                + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
+            false);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 }

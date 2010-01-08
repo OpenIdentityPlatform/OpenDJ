@@ -28,12 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Pattern;
 
-import org.opends.messages.Message;
-import org.opends.sdk.DecodeException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -49,7 +45,7 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule() throws SchemaException, DecodeException
+  protected Syntax getRule()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addPatternSyntax("1.1.1",
@@ -73,23 +69,21 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
 
 
 
-  public void testInvalidPattern() throws SchemaException,
-      DecodeException
+  @Test
+  public void testInvalidPattern()
   {
     // This should fail due to invalid pattern.
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax(
         "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
             + " X-PATTERN '^[a-z-A-Z+:[0-@.]+\\d$' )", true);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
   @Test
-  public void testDecode() throws SchemaException, DecodeException
+  public void testDecode()
   {
     // This should fail due to invalid pattern.
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());

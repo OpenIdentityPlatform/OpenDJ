@@ -30,6 +30,7 @@ package org.opends.sdk;
 
 
 import org.opends.sdk.schema.Schema;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import org.opends.sdk.ByteString;
@@ -54,18 +55,20 @@ public final class LinkedAttributeTest extends OpenDSTestCase
     attribute.add("a value");
     attribute.add(ByteString.valueOf("another value"));
 
-    System.out.println(attribute);
-
-    System.out.println(attribute.contains(1));
-    System.out.println(attribute.contains("a value"));
-    System.out.println(attribute.contains(ByteString
+    Assert.assertTrue(attribute.contains(1));
+    Assert.assertTrue(attribute.contains("a value"));
+    Assert.assertTrue(attribute.contains(ByteString
         .valueOf("another value")));
 
-    attribute.remove(1);
-    System.out.println(attribute);
-    attribute.remove("a value");
-    System.out.println(attribute);
-    attribute.remove(ByteString.valueOf("another value"));
-    System.out.println(attribute);
+    Assert.assertEquals(attribute.size(), 3);
+    Assert.assertTrue(attribute.remove(1));
+    Assert.assertEquals(attribute.size(), 2);
+    Assert.assertFalse(attribute.remove("a missing value"));
+    Assert.assertEquals(attribute.size(), 2);
+    Assert.assertTrue(attribute.remove("a value"));
+    Assert.assertEquals(attribute.size(), 1);
+    Assert.assertTrue(attribute.remove(ByteString
+        .valueOf("another value")));
+    Assert.assertEquals(attribute.size(), 0);
   }
 }

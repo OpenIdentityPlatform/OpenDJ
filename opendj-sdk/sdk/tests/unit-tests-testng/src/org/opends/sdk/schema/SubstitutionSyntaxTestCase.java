@@ -28,13 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_IA5_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.*;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.opends.messages.Message;
-import org.opends.sdk.DecodeException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -50,7 +45,7 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule() throws SchemaException, DecodeException
+  protected Syntax getRule()
   {
     // Use IA5String syntax as our substitute.
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
@@ -74,62 +69,78 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
 
 
 
-  public void testSelfSubstitute1() throws SchemaException,
-      DecodeException
+  @Test
+  public void testSelfSubstitute1()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax("( 1.3.6.1.4.1.1466.115.121.1.15 "
         + " DESC 'Replacing DirectorySyntax'  "
         + " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", true);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  public void testSelfSubstitute2() throws SchemaException
+  @Test
+  public void testSelfSubstitute2()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSubstitutionSyntax("1.3.6.1.4.1.1466.115.121.1.15",
         "Replacing DirectorySyntax", "1.3.6.1.4.1.1466.115.121.1.15",
         true);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  public void testUndefinedSubstitute1() throws SchemaException,
-      DecodeException
+  @Test
+  public void testUndefinedSubstitute1()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax("( 1.3.6.1.4.1.1466.115.121.1.15 "
         + " DESC 'Replacing DirectorySyntax'  " + " X-SUBST '1.1.1' )",
         true);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  public void testUndefinedSubstitute2() throws SchemaException
+  @Test
+  public void testUndefinedSubstitute2()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSubstitutionSyntax("1.3.6.1.4.1.1466.115.121.1.15",
         "Replacing DirectorySyntax", "1.1.1", true);
-    List<Message> warnings = new LinkedList<Message>();
-    builder.toSchema(warnings);
-    Assert.assertFalse(warnings.isEmpty());
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  @Test(expectedExceptions = SchemaException.class)
-  public void testSubstituteCore1() throws SchemaException,
-      DecodeException
+  @Test(expectedExceptions = ConflictingSchemaElementException.class)
+  public void testSubstituteCore1()
+      throws ConflictingSchemaElementException
+  {
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addSyntax("( 1.3.6.1.4.1.1466.115.121.1.26 "
+        + " DESC 'Replacing DirectorySyntax'  " + " X-SUBST '9.9.9' )",
+        false);
+  }
+
+
+
+  @Test(expectedExceptions = ConflictingSchemaElementException.class)
+  public void testSubstituteCore2()
+      throws ConflictingSchemaElementException
+  {
+    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addSubstitutionSyntax("1.3.6.1.4.1.1466.115.121.1.26",
+        "Replacing DirectorySyntax", "9.9.9", false);
+  }
+
+
+
+  @Test
+  public void testSubstituteCore1Override()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax("( 1.3.6.1.4.1.1466.115.121.1.26 "
@@ -139,8 +150,8 @@ public class SubstitutionSyntaxTestCase extends SyntaxTestCase
 
 
 
-  @Test(expectedExceptions = SchemaException.class)
-  public void testSubstituteCore2() throws SchemaException
+  @Test
+  public void testSubstituteCore2Override()
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSubstitutionSyntax("1.3.6.1.4.1.1466.115.121.1.26",

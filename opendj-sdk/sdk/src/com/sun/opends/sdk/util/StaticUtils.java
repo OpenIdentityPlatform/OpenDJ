@@ -44,7 +44,6 @@ import org.opends.sdk.*;
 
 
 
-
 /**
  * Common utility methods.
  */
@@ -1183,8 +1182,8 @@ public final class StaticUtils
       b = (byte) 0xF0;
       break;
     default:
-      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
-          new String(new char[] { c1, c2 }), c1);
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER
+          .get(new String(new char[] { c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -1245,8 +1244,8 @@ public final class StaticUtils
       b |= 0x0F;
       break;
     default:
-      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
-          new String(new char[] { c1, c2 }), c1);
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER
+          .get(new String(new char[] { c1, c2 }), c1);
       throw new ParseException(message.toString(), 0);
     }
 
@@ -1710,17 +1709,18 @@ public final class StaticUtils
       throws DataFormatException
   {
     byte[] inputBytes = input.toByteArray();
-    byte[] outputBytes = new byte[uncompressedSize > 0 ? uncompressedSize : 0];
+    byte[] outputBytes = new byte[uncompressedSize > 0 ? uncompressedSize
+        : 0];
 
-    int decompressResult = uncompress(inputBytes, 0,
-        inputBytes.length, outputBytes, 0, outputBytes.length);
+    int decompressResult = uncompress(inputBytes, 0, inputBytes.length,
+        outputBytes, 0, outputBytes.length);
 
     if (decompressResult < 0)
     {
       // The destination buffer wasn't big enough. Resize and retry.
       outputBytes = new byte[-decompressResult];
-      decompressResult = uncompress(inputBytes, 0,
-          inputBytes.length, outputBytes, 0, outputBytes.length);
+      decompressResult = uncompress(inputBytes, 0, inputBytes.length,
+          outputBytes, 0, outputBytes.length);
     }
 
     if (decompressResult >= 0)
@@ -1834,8 +1834,8 @@ public final class StaticUtils
           }
         }
       }
-      final LocalizableMessage message = ERR_INVALID_ESCAPE_CHAR.get(reader
-          .getString(), c1);
+      final LocalizableMessage message = ERR_INVALID_ESCAPE_CHAR.get(
+          reader.getString(), c1);
       throw DecodeException.error(message);
     }
 
@@ -1843,8 +1843,8 @@ public final class StaticUtils
     // comprise the escaped value.
     if (reader.remaining() == 0)
     {
-      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(reader
-          .getString());
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH
+          .get(reader.getString());
 
       throw DecodeException.error(message);
     }
@@ -1907,8 +1907,8 @@ public final class StaticUtils
       b |= 0x0F;
       break;
     default:
-      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
-          new String(new char[] { c1, c2 }), c1);
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER
+          .get(new String(new char[] { c1, c2 }), c1);
       throw DecodeException.error(message);
     }
     return (char) b;

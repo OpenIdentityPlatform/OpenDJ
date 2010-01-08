@@ -377,7 +377,6 @@ final class AuthenticatedConnectionFactory extends
         protected AsynchronousConnection transformResult(
             BindResult result) throws ErrorResultException
         {
-          // FIXME: should make the result unmodifiable.
           return new AuthenticatedAsynchronousConnection(connection);
         }
 

@@ -1,0 +1,1041 @@
+<testng-results>
+  <reporter-output>
+  </reporter-output>
+  <suite name="sdk">
+    <groups>
+      <group name="schema">
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDValid(java.lang.String)" name="testReadOIDValid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+      </group>
+      <group name="precommit">
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDValid(java.lang.String)" name="testReadOIDValid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+      </group>
+      <group name="sdk">
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDValid(java.lang.String)" name="testReadOIDValid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+        <method signature="org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" class="org.opends.sdk.schema.SchemaUtilsTest"/>
+      </group>
+    </groups>
+    <test name="org.opends.sdk.schema.SchemaUtilsTest">
+      <class name="org.opends.sdk.schema.SchemaUtilsTest">
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="0" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[9]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="18" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['one-two']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['a2']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['10.0']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1one]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value "1one" could not be parsed as a valid OID because it had an illegal character at position 1]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value "1one" could not be parsed as a valid OID because it had an illegal character at position 1
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:274)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[10.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="clearSuccessfulTestParams()" name="clearSuccessfulTestParams" is-config="true" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one1-two2-three3]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.01]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['one1-two2-three3']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.5]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[999.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[01.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="0" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one-two]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[8.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[100.]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value "100." could not be parsed as a valid OID because it ends with a period]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value "100." could not be parsed as a valid OID because it ends with a period
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:288)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[9.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[6]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.8]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="3" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.1]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.100]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[999.999]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[6.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[111.22.333.44.55555.66.777.88.999]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="2" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.6]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.999]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['0.0']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one1]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="2" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one+two+three]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[Non-numeric OID contained an illegal character + at position 3]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: Non-numeric OID contained an illegal character + at position 3
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:313)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[01]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[a-]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[100.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[a]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.3]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="12" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[one.two.three]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[4.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="3" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.0']]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value "0.0'" could not be parsed as a valid OID because it had an illegal character at position 3]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value "0.0'" could not be parsed as a valid OID because it had an illegal character at position 3
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:274)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['0]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[A single quote was expected at position 1 but the character 0 was found instead]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: A single quote was expected at position 1 but the character 0 was found instead
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:330)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['one1']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.2]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[5.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[a2]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['111.22.333.44.55555.66.777.88.999']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[999']]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value "999'" could not be parsed as a valid OID because it had an illegal character at position 3]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value "999'" could not be parsed as a valid OID because it had an illegal character at position 3
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:274)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[2.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[5]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="0" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['a-']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.7]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="9" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[.0]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[Non-numeric OID contained an illegal character . at position 0]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: Non-numeric OID contained an illegal character . at position 0
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:323)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[2]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[.999]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[Non-numeric OID contained an illegal character . at position 0]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: Non-numeric OID contained an illegal character . at position 0
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:323)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="151" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value could not be parsed as a valid OID because it did not contain any characters]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value could not be parsed as a valid OID because it did not contain any characters
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:338)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[The provided value "0." could not be parsed as a valid OID because it ends with a period]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: The provided value "0." could not be parsed as a valid OID because it ends with a period
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:288)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[100.100]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[7]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.9]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[8]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="0" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[00]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['a']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['999.0']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[7.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[4]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[3]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[0.4]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="0" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['one']]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="nullMemberVariablesAfterTest()" name="nullMemberVariablesAfterTest" is-config="true" duration-ms="0" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[3.0]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDInvalid(java.lang.String)" name="testReadOIDInvalid" duration-ms="1" started-at="2010-01-08T18:59:19Z" finished-at="2010-01-08T18:59:19Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA['10]]>
+              </value>
+            </param>
+          </params>
+          <exception class="org.opends.sdk.DecodeException">
+            <message>
+              <![CDATA[A single quote was expected at position 2 but the character 0 was found instead]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.opends.sdk.DecodeException: A single quote was expected at position 2 but the character 0 was found instead
+	at org.opends.sdk.DecodeException.error(DecodeException.java:95)
+	at org.opends.sdk.schema.SchemaUtils.readOID(SchemaUtils.java:330)
+	at org.opends.sdk.schema.SchemaUtilsTest.testReadOIDInvalid(SchemaUtilsTest.java:114)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.testng.internal.MethodHelper.invokeMethod(MethodHelper.java:607)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:517)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:669)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:956)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:126)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:110)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:759)
+	at org.testng.TestRunner.privateRun(TestRunner.java:592)
+	at org.testng.TestRunner.run(TestRunner.java:486)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:332)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:327)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:299)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:204)
+	at org.testng.TestNG.createAndRunSuiteRunners(TestNG.java:877)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:842)
+	at org.testng.TestNG.run(TestNG.java:751)
+	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:73)
+	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:124)
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+        <test-method status="PASS" signature="testReadOIDValid(java.lang.String)" name="testReadOIDValid" duration-ms="1" started-at="2010-01-08T18:59:18Z" finished-at="2010-01-08T18:59:18Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[1]]>
+              </value>
+            </param>
+          </params>
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

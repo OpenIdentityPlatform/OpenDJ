@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.SYNTAX_TELEX_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEX_OID;
 
 import org.testng.annotations.DataProvider;
 
