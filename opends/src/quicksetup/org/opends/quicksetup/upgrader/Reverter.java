@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -827,11 +827,9 @@ public class Reverter extends Application implements CliApplication {
 
       notifyListeners(getFormattedDoneWithLineBreak());
       LOG.log(Level.INFO, "History recorded");
-      notifyListeners(
-              new MessageBuilder(
-                INFO_GENERAL_SEE_FOR_HISTORY.get(
-                     Utils.getPath(getInstallation().getHistoryLogFile())))
-              .append(getLineBreak()).toMessage());
+      notifyListeners(getFormattedProgress(INFO_GENERAL_SEE_FOR_HISTORY.get(
+          Utils.getPath(getInstallation().getHistoryLogFile()))));
+      notifyListeners(formatter.getLineBreak());
 
       try {
         Stage stage = getStage();

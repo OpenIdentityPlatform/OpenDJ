@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -99,6 +99,10 @@ public class OfflineInstaller extends Installer
       checkAbort();
 
       setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
+
+      notifyListenersOfLog();
+      notifyListeners(getLineBreak());
+
       configureServer();
 
       checkAbort();
@@ -219,8 +223,6 @@ public class OfflineInstaller extends Installer
 
       checkAbort();
       updateSummaryWithServerState(hmSummary);
-      notifyListeners(getLineBreak());
-      notifyListenersOfLog();
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
@@ -257,7 +259,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
         notifyListeners(getLineBreak());
-        notifyListenersOfLog();
+        notifyListenersOfLogAfterError();
       }
       runError = ex;
     }
@@ -291,7 +293,7 @@ public class OfflineInstaller extends Installer
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
       notifyListeners(getLineBreak());
-      notifyListenersOfLog();
+      notifyListenersOfLogAfterError();
       runError = ex;
     }
     finally

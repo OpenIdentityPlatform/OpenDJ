@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -35,7 +35,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.WizardStep;
@@ -772,11 +771,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
     // for some reason
     runError = null;
 
+    notifyListenersOfLog();
+    notifyListeners(getLineBreak());
+
     try {
 
       if (Utils.isWebStart()) {
         ZipExtractor extractor;
         setCurrentProgressStep(UpgradeProgressStep.DOWNLOADING);
+
         try {
           LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
           waitForLoader(UpgradeProgressStep.EXTRACTING.getProgress());
@@ -1392,12 +1395,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 note);
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "history recorded");
-        notifyListeners(
-                new MessageBuilder().append(
-                  INFO_GENERAL_SEE_FOR_HISTORY.get(
-                    Utils.getPath(getInstallation().getHistoryLogFile())))
-                .append(formatter.getLineBreak())
-                .toMessage());
+        notifyListeners(getFormattedProgress(INFO_GENERAL_SEE_FOR_HISTORY.get(
+            Utils.getPath(getInstallation().getHistoryLogFile()))));
+        notifyListeners(formatter.getLineBreak());
 
         try {
           Stage stage = getStage();
@@ -1441,7 +1441,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
       if (abort) {
         LOG.log(Level.INFO, "upgrade canceled by user");
         if (!Utils.isCli()) {
-          notifyListenersOfLog();
           this.currentProgressStep = UpgradeProgressStep.FINISHED_CANCELED;
           notifyListeners(null);
         } else {
@@ -1451,7 +1450,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } else if (runError != null) {
         LOG.log(Level.INFO, "upgrade completed with errors", runError);
         if (!Utils.isCli()) {
-          notifyListenersOfLog();
+          notifyListenersOfLogAfterError();
           this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_ERRORS;
         } else {
           setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
@@ -1465,7 +1464,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         // as errors.  Warning markup is used surrounding the main message
         // at the end of progress.
         if (!Utils.isCli()) {
-          notifyListenersOfLog();
+          notifyListenersOfLogAfterError();
           this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_WARNINGS;
           notifyListeners(getFormattedError(warningText, true));
         } else {
@@ -1478,7 +1477,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } else {
         LOG.log(Level.INFO, "upgrade completed successfully");
         if (!Utils.isCli()) {
-          notifyListenersOfLog();
           this.currentProgressStep = UpgradeProgressStep.FINISHED;
           notifyListeners(null);
         } else {
