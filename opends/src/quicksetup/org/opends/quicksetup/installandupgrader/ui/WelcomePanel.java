@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installandupgrader.ui;
@@ -44,6 +44,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 /**
  * This panel is used to show a welcome message asking the user whether to
@@ -83,7 +84,16 @@ public class WelcomePanel extends QuickSetupStepPanel {
     super.beginDisplay(data);
     if (!initialized)
     {
-      tcServerLocation.setText(data.getServerLocation());
+      String userDir = System.getProperty("user.home");
+      String firstLocation =
+        userDir + File.separator
+        + org.opends.server.util.DynamicConstants.SHORT_NAME;
+      String serverLocation = firstLocation;
+      if (!Utils.directoryExistsAndIsNotEmpty(serverLocation))
+      {
+        serverLocation = data.getServerLocation();
+      }
+      tcServerLocation.setText(serverLocation);
       boolean isUpgrade = appl.getInstallAndUpgradeUserData().isUpgrade();
       rbInstall.setSelected(!isUpgrade);
       rbUpgrade.setSelected(isUpgrade);
