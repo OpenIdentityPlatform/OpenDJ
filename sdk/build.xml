@@ -57,7 +57,7 @@
     <!-- Properties for use in unit testing. -->
     <property name="unittest.testng.dir" location="tests/unit-tests-testng" />
     <property name="unittest.testng.src.dir"
-              location="${unittest.testng.dir}/src/sdk" />
+              location="${unittest.testng.dir}/src" />
     <property name="unittest.classes.dir"
               location="${build.dir}/unit-tests/classes" />
     <property name="unittest.report.dir"
@@ -540,21 +540,21 @@
     </target>
 
     <!-- Prepare to execute the OpenDS LDAP SDK TestNG unit tests. -->
-    <target name="test.OpenDS.package.required" depends="dynamicconstants">
+    <target name="test-packagerequired" depends="dynamicconstants">
         <condition property="test.OpenDS.package.required">
             <available file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip" />
         </condition>
     </target>
 
     <target name="testinit-package"
-            depends="test.OpenDS.package.required"
+            depends="test-packagerequired"
             unless="test.OpenDS.package.required">
         <echo message="Performing full rebuild (no OpenDS zip package found)" />
         <antcall target="package" />
     </target>
 
     <target name="testinit-recompile"
-            depends="test.OpenDS.package.required"
+            depends="test-packagerequired"
             if="test.OpenDS.package.required">
         <echo message="Performing partial rebuild (OpenDS zip package found)" />
         <mkdir dir="${classes.dir}" />
@@ -714,7 +714,7 @@
                     classList="${test.classes}"
                     methodList="${test.methods}" />
 
-        <antcall target="testinit.checkFailedTestsOnly" />
+        <antcall target="testinit-checkfailedtestsonly" />
     </target>
 
 
@@ -722,7 +722,7 @@
     <!-- If we were asked to run only the tests that failed,
       then we overwrite the testng.xml that we just generated
       with testng-failed.xml, which TestNG generated. -->
-    <target name="testinit.checkFailedTestsOnly" if="test.failures">
+    <target name="testinit-checkfailedtestsonly" if="test.failures">
         <!-- Ensure that some of the tests failed last time. -->
         <available property="testng-failed.xml.exists"
                    file="${unittest.report.dir}/testng-failed.xml" />
@@ -820,7 +820,7 @@
             description="Execute the OpenDS LDAP SDK TestNG unit tests in text mode with a coverage report.  Use -Dtest.packages, -Dtest.classes, or -Dtest.methods to control which unit tests are run.  Use -Dtest.diff.srcpath to control which src files show up in the coverage diff.  See the 'test' package for other properties you can set.">
     </target>
 
-    <target name="testhelp" unless="disable.test.help">
+    <target name="test-help" unless="disable.test.help">
         <echo message="About to run the unit tests.  Ant options to control the tests:" />
         <echo message="" />
         <echo message="  -Dorg.opends.test.suppressOutput=false" />
@@ -839,7 +839,6 @@
         <echo message="        memory:       running total of memory usage (slows tests)" />
         <echo message="        threadcount:  running total of active threads" />
         <echo message="        threadchange: +/- changes for active threads between tests" />
-        <echo message="        restarts:     running total of in-core server restarts" />
         <echo message="" />
         <echo message="      To specifying multiple values, nseparate them with ',' and" />
         <echo message="      quote the entire value.  For instance, when you want the default" />
@@ -870,11 +869,6 @@
         <echo message="  -Dorg.opends.test.pauseOnFailure=true" />
         <echo message="      pauses the test suite whenever a failure occurs allowing you to inspect" />
         <echo message="      the server more closely in the failure state" />
-        <echo message="" />
-        <echo message="  -Dorg.opends.test.copyClassesToTestPackage=true" />
-        <echo message="      copies the classes into the test server root.  This enables you to run" />
-        <echo message="      the server tools on the test server.  It can slow down the test startup" />
-        <echo message="      so the files are not copied by default." />
         <echo message="" />
         <echo message="  -Dtest.failed=true" />
         <echo message="      runs only the tests that failed last time" />
@@ -921,7 +915,7 @@
 
     <!-- Internal target to execute the OpenDS LDAP SDK TestNG unit tests in text mode after everything has been initialized. -->
     <target name="runtests">
-        <antcall target="testhelp" />
+        <antcall target="test-help" />
 
         <mkdir dir="${unittest.report.dir}" />
 
@@ -968,13 +962,6 @@
         <condition property="org.opends.test.pauseOnFailure" value="false">
             <not>
                 <isset property="org.opends.test.pauseOnFailure" />
-            </not>
-        </condition>
-
-        <condition property="org.opends.test.copyClassesToTestPackage"
-                   value="false">
-            <not>
-                <isset property="org.opends.test.copyClassesToTestPackage" />
             </not>
         </condition>
 
@@ -1033,9 +1020,9 @@
                 haltonfailure="false"
                 verbose="${testng.verbosity0to5}"
                 enableAssert="${TESTASSERT}"
-                listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter"
+                listeners="org.opends.sdk.TestListener org.testng.reporters.FailedReporter"
                 useDefaultListeners="false"
-                suiteRunnerClass="org.opends.server.SuiteRunner">
+                suiteRunnerClass="org.opends.sdk.SuiteRunner">
             <classpath>
                 <pathelement location="${coverage.instr.dir}" />
                 <pathelement location="${classes.dir}" />
@@ -1057,7 +1044,6 @@
             <jvmarg value="-Demma.coverage.out.merge=false" />
             <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
             <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
-            <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=${org.opends.test.copyClassesToTestPackage}" />
             <jvmarg value="-Dtest.progress=${test.progress}" />
             <jvmarg value="-Xms${MEM}" />
             <jvmarg value="-Xmx${MEM}" />
@@ -1097,7 +1083,7 @@
 
     </target>
 
-    <target name="testreport" depends="test">
+    <target name="test-report" depends="test">
         <junitreport todir="${unittest.report.dir}">
             <fileset dir="${unittest.report.dir}">
                 <include name="*.xml" />
@@ -1165,12 +1151,8 @@
     <target name="srczip"
             description="Generate a src.zip file with all the sdk source.">
         <zip destfile="${build.dir}/src.zip">
-            <zipfileset dir="${src.dir}"
-                        filemode="644"
-                        dirmode="755" />
-            <zipfileset dir="${srcgen.dir}"
-                        filemode="644"
-                        dirmode="755" />
+            <zipfileset dir="${src.dir}" filemode="644" dirmode="755" />
+            <zipfileset dir="${srcgen.dir}" filemode="644" dirmode="755" />
         </zip>
     </target>
 </project>
