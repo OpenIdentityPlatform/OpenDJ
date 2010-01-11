@@ -37,8 +37,7 @@ import com.sun.opends.sdk.ldap.LDAPConnectionFactoryImpl;
 /**
  * LDAP connection factory implementation.
  */
-public final class LDAPConnectionFactory implements
-    ConnectionFactory<AsynchronousConnection>
+public final class LDAPConnectionFactory implements ConnectionFactory
 {
   // We implement the factory using the pimpl idiom in order have
   // cleaner Javadoc which does not expose implementation methods from
@@ -115,7 +114,7 @@ public final class LDAPConnectionFactory implements
 
 
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler)
+      ResultHandler<AsynchronousConnection> handler)
   {
     return impl.getAsynchronousConnection(handler);
   }

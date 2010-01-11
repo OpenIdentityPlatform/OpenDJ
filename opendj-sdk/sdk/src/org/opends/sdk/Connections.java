@@ -75,8 +75,8 @@ public final class Connections
    * @throws NullPointerException
    *           If {@code factory} or {@code request} was {@code null}.
    */
-  public static ConnectionFactory<AsynchronousConnection> newAuthenticatedConnectionFactory(
-      ConnectionFactory<?> factory, BindRequest request)
+  public static ConnectionFactory newAuthenticatedConnectionFactory(
+      ConnectionFactory factory, BindRequest request)
       throws NullPointerException
   {
     Validator.ensureNotNull(factory, request);
@@ -101,8 +101,8 @@ public final class Connections
    * @throws NullPointerException
    *           If {@code factory} was {@code null}.
    */
-  public static ConnectionFactory<AsynchronousConnection> newConnectionPool(
-      ConnectionFactory<?> factory, int poolSize)
+  public static ConnectionFactory newConnectionPool(
+      ConnectionFactory factory, int poolSize)
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory);
@@ -130,8 +130,8 @@ public final class Connections
    * @throws NullPointerException
    *           If {@code factory} or {@code unit} was {@code null}.
    */
-  public static ConnectionFactory<AsynchronousConnection> newHeartBeatConnectionFactory(
-      ConnectionFactory<?> factory, long timeout, TimeUnit unit)
+  public static ConnectionFactory newHeartBeatConnectionFactory(
+      ConnectionFactory factory, long timeout, TimeUnit unit)
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory, unit);
@@ -163,8 +163,8 @@ public final class Connections
    *           If {@code factory}, {@code unit}, or {@code heartBeat}
    *           was {@code null}.
    */
-  public static ConnectionFactory<AsynchronousConnection> newHeartBeatConnectionFactory(
-      ConnectionFactory<?> factory, long timeout, TimeUnit unit,
+  public static ConnectionFactory newHeartBeatConnectionFactory(
+      ConnectionFactory factory, long timeout, TimeUnit unit,
       SearchRequest heartBeat) throws IllegalArgumentException,
       NullPointerException
   {

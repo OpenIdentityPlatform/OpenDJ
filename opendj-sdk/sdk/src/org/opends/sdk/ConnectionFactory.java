@@ -49,11 +49,8 @@ package org.opends.sdk;
  * connection. Applications should aim to close connections as soon as
  * possible in order to avoid resource contention.
  *
- * @param <C>
- *          The type of asynchronous connection returned by this
- *          connection factory.
  */
-public interface ConnectionFactory<C extends AsynchronousConnection>
+public interface ConnectionFactory
 {
   /**
    * Returns a connection to the Directory Server associated with this
@@ -83,6 +80,6 @@ public interface ConnectionFactory<C extends AsynchronousConnection>
    * @return A future which can be used to retrieve the asynchronous
    *         connection.
    */
-  FutureResult<? extends C> getAsynchronousConnection(
-      ResultHandler<? super C> handler);
+  FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<AsynchronousConnection> handler);
 }

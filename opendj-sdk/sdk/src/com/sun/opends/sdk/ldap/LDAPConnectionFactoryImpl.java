@@ -67,8 +67,7 @@ import com.sun.opends.sdk.util.Validator;
  * LDAP connection factory implementation.
  */
 public final class LDAPConnectionFactoryImpl extends
-    AbstractConnectionFactory<AsynchronousConnection> implements
-    ConnectionFactory<AsynchronousConnection>
+    AbstractConnectionFactory implements ConnectionFactory
 {
   private final class LDAPTransport extends AbstractLDAPTransport
   {
@@ -373,7 +372,7 @@ public final class LDAPConnectionFactoryImpl extends
    * {@inheritDoc}
    */
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler)
+      ResultHandler<AsynchronousConnection> handler)
   {
     FutureResultImpl future = new FutureResultImpl(handler);
 
