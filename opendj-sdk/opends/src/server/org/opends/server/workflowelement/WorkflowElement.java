@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
@@ -454,7 +454,8 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
     }
 
     for (WorkflowElement subElement:this.getChildWorkflowElements()) {
-      if (subElement.hasChildWorkflowElement(element)) {
+      if (subElement.equals(element) ||
+          subElement.hasChildWorkflowElement(element)) {
         return true;
       }
     }
