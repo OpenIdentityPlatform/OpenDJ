@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -255,7 +255,6 @@ public class SecurityOptionsDialog extends JDialog
 
     JPanel contentPanel = new JPanel(new GridBagLayout());
     contentPanel.setBackground(UIFactory.DEFAULT_BACKGROUND);
-    gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.weightx = 1.0;
