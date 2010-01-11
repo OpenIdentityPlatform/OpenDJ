@@ -129,6 +129,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain2 = new FakeReplicationDomain(
           testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
 
+      Thread.sleep(500);
+
       /*
        * Publish a message from domain1,
        * Check that domain2 receives it shortly after.
@@ -139,8 +141,6 @@ public class ReplicationDomainTest extends ReplicationTestCase
       UpdateMsg rcvdMsg = rcvQueue2.poll(20, TimeUnit.SECONDS);
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
-
-      Thread.sleep(500);
 
       /*
        * Now test the resetReplicationLog() method.
