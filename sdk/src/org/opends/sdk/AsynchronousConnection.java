@@ -31,7 +31,6 @@ package org.opends.sdk;
 
 import java.io.Closeable;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
@@ -385,7 +384,7 @@ public interface AsynchronousConnection extends Closeable
   boolean isValid();
 
 
-  
+
   /**
    * Modifies an entry in the Directory Server using the provided modify
    * request.

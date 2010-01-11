@@ -38,13 +38,9 @@ import org.opends.sdk.responses.Result;
  * This class provides a skeletal implementation of the {@code
  * ConnectionFactory} interface, to minimize the effort required to
  * implement this interface.
- *
- * @param <C>
- *          The type of asynchronous connection returned by this
- *          connection factory.
  */
-public abstract class AbstractConnectionFactory<C extends AsynchronousConnection>
-    implements ConnectionFactory<C>
+public abstract class AbstractConnectionFactory implements
+    ConnectionFactory
 {
   /**
    * Creates a new abstract connection factory.
@@ -59,8 +55,8 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
   /**
    * {@inheritDoc}
    */
-  public abstract FutureResult<? extends C> getAsynchronousConnection(
-      ResultHandler<? super C> handler);
+  public abstract FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<AsynchronousConnection> handler);
 
 
 
@@ -101,10 +97,10 @@ public abstract class AbstractConnectionFactory<C extends AsynchronousConnection
    * @throws ErrorResultException
    *           If the connection request failed for some reason.
    */
-  protected final C blockingGetAsynchronousConnection()
+  protected final AsynchronousConnection blockingGetAsynchronousConnection()
       throws ErrorResultException
   {
-    FutureResult<? extends C> future = getAsynchronousConnection(null);
+    FutureResult<AsynchronousConnection> future = getAsynchronousConnection(null);
     try
     {
       return future.get();

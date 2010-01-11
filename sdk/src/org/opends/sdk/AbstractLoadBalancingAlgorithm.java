@@ -51,12 +51,12 @@ public abstract class AbstractLoadBalancingAlgorithm implements
 
 
   protected AbstractLoadBalancingAlgorithm(
-      ConnectionFactory<?>... factories)
+      ConnectionFactory... factories)
   {
     Validator.ensureNotNull((Object[]) factories);
     factoryList = new ArrayList<MonitoredConnectionFactory>(
         factories.length);
-    for (ConnectionFactory<?> f : factories)
+    for (ConnectionFactory f : factories)
     {
       factoryList.add(new MonitoredConnectionFactory(f));
     }
@@ -67,10 +67,10 @@ public abstract class AbstractLoadBalancingAlgorithm implements
 
 
   protected class MonitoredConnectionFactory extends
-      AbstractConnectionFactory<AsynchronousConnection> implements
+      AbstractConnectionFactory implements
       ResultHandler<AsynchronousConnection>
   {
-    private final ConnectionFactory<?> factory;
+    private final ConnectionFactory factory;
 
     private volatile boolean isOperational;
 
@@ -78,7 +78,7 @@ public abstract class AbstractLoadBalancingAlgorithm implements
 
 
 
-    private MonitoredConnectionFactory(ConnectionFactory<?> factory)
+    private MonitoredConnectionFactory(ConnectionFactory factory)
     {
       this.factory = factory;
       this.isOperational = true;
@@ -109,8 +109,8 @@ public abstract class AbstractLoadBalancingAlgorithm implements
 
 
 
-    public FutureResult<? extends AsynchronousConnection> getAsynchronousConnection(
-        final ResultHandler<? super AsynchronousConnection> resultHandler)
+    public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+        final ResultHandler<AsynchronousConnection> resultHandler)
     {
       ResultHandler<AsynchronousConnection> handler = new ResultHandler<AsynchronousConnection>()
       {

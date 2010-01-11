@@ -57,12 +57,12 @@ import com.sun.opends.sdk.util.RecursiveFutureResult;
  * ErrorResultException} will be thrown.
  */
 final class AuthenticatedConnectionFactory extends
-    AbstractConnectionFactory<AsynchronousConnection>
+    AbstractConnectionFactory
 {
 
   private final BindRequest request;
 
-  private final ConnectionFactory<?> parentFactory;
+  private final ConnectionFactory parentFactory;
 
 
 
@@ -77,7 +77,7 @@ final class AuthenticatedConnectionFactory extends
    * @param request
    *          The Bind request to use for authentication.
    */
-  AuthenticatedConnectionFactory(ConnectionFactory<?> factory,
+  AuthenticatedConnectionFactory(ConnectionFactory factory,
       BindRequest request) throws NullPointerException
   {
     this.parentFactory = factory;
@@ -92,7 +92,7 @@ final class AuthenticatedConnectionFactory extends
    * {@inheritDoc}
    */
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler)
+      ResultHandler<AsynchronousConnection> handler)
   {
     FutureResultImpl future = new FutureResultImpl(request, handler);
     future.futureConnectionResult.setFutureResult(parentFactory
@@ -253,7 +253,8 @@ final class AuthenticatedConnectionFactory extends
     /**
      * {@inheritDoc}
      */
-    public boolean isValid() {
+    public boolean isValid()
+    {
       return connection.isValid();
     }
 

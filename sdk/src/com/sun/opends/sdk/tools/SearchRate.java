@@ -309,7 +309,7 @@ public final class SearchRate extends ConsoleApplication
 
 
     WorkerThread<?> newWorkerThread(AsynchronousConnection connection,
-        ConnectionFactory<?> connectionFactory)
+        ConnectionFactory connectionFactory)
     {
       return new SearchWorkerThread(connection, connectionFactory);
     }
@@ -357,7 +357,7 @@ public final class SearchRate extends ConsoleApplication
 
 
       private SearchWorkerThread(AsynchronousConnection connection,
-          ConnectionFactory<?> connectionFactory)
+          ConnectionFactory connectionFactory)
       {
         super(connection, connectionFactory);
       }

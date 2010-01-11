@@ -67,69 +67,15 @@ import com.sun.opends.sdk.util.Validator;
  * then the connection attempt will fail and an {@code
  * ErrorResultException} will be thrown.
  */
-final class AuthenticatedConnectionFactory
-    implements
-    ConnectionFactory<AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection>
+final class AuthenticatedConnectionFactory extends
+    AbstractConnectionFactory implements ConnectionFactory
 {
-  // We implement the factory using the pimpl idiom in order have
-  // cleaner Javadoc which does not expose implementation methods from
-  // AbstractConnectionFactory.
 
-  private static final class Impl
-      extends
-      AbstractConnectionFactory<AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection>
-      implements
-      ConnectionFactory<AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection>
-  {
-    private final BindRequest request;
+  private final BindRequest request;
 
-    private final ConnectionFactory<?> parentFactory;
+  private final ConnectionFactory parentFactory;
 
-    private boolean allowRebinds = false;
-
-
-
-    private Impl(ConnectionFactory<?> factory, BindRequest request)
-        throws NullPointerException
-    {
-      Validator.ensureNotNull(factory, request);
-      this.parentFactory = factory;
-
-      // FIXME: should do a defensive copy.
-      this.request = request;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
-        ResultHandler<? super AuthenticatedAsynchronousConnection> handler)
-    {
-      FutureResultImpl future = new FutureResultImpl(request, handler);
-      future.futureConnectionResult.setFutureResult(parentFactory
-          .getAsynchronousConnection(future.futureConnectionResult));
-      return future.futureBindResult;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public AuthenticatedConnection getConnection()
-        throws ErrorResultException
-    {
-      return new AuthenticatedConnection(
-          blockingGetAsynchronousConnection());
-    }
-
-  }
-
-
-
-  private final Impl impl;
+  private boolean allowRebinds = false;
 
 
 
@@ -555,17 +501,21 @@ final class AuthenticatedConnectionFactory
    * @throws NullPointerException
    *           If {@code factory} or {@code request} was {@code null}.
    */
-  public AuthenticatedConnectionFactory(ConnectionFactory<?> factory,
+  public AuthenticatedConnectionFactory(ConnectionFactory factory,
       BindRequest request) throws NullPointerException
   {
-    impl = new Impl(factory, request);
+    Validator.ensureNotNull(factory, request);
+    this.parentFactory = factory;
+
+    // FIXME: should do a defensive copy.
+    this.request = request;
   }
 
 
 
   private static final class FutureResultImpl
   {
-    private final FutureResultTransformer<BindResult, AuthenticatedAsynchronousConnection> futureBindResult;
+    private final FutureResultTransformer<BindResult, AsynchronousConnection> futureBindResult;
 
     private final RecursiveFutureResult<AsynchronousConnection, BindResult> futureConnectionResult;
 
@@ -575,12 +525,11 @@ final class AuthenticatedConnectionFactory
 
 
 
-    private FutureResultImpl(
-        BindRequest request,
-        ResultHandler<? super AuthenticatedAsynchronousConnection> handler)
+    private FutureResultImpl(BindRequest request,
+        ResultHandler<AsynchronousConnection> handler)
     {
       this.bindRequest = request;
-      this.futureBindResult = new FutureResultTransformer<BindResult, AuthenticatedAsynchronousConnection>(
+      this.futureBindResult = new FutureResultTransformer<BindResult, AsynchronousConnection>(
           handler)
       {
 
@@ -647,7 +596,7 @@ final class AuthenticatedConnectionFactory
   public AuthenticatedConnectionFactory setRebindAllowed(
       boolean allowRebinds)
   {
-    impl.allowRebinds = allowRebinds;
+    this.allowRebinds = allowRebinds;
     return this;
   }
 
@@ -666,15 +615,18 @@ final class AuthenticatedConnectionFactory
    */
   public boolean isRebindAllowed()
   {
-    return impl.allowRebinds;
+    return allowRebinds;
   }
 
 
 
-  public FutureResult<AuthenticatedAsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AuthenticatedAsynchronousConnection> handler)
+  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      ResultHandler<AsynchronousConnection> handler)
   {
-    return impl.getAsynchronousConnection(handler);
+    FutureResultImpl future = new FutureResultImpl(request, handler);
+    future.futureConnectionResult.setFutureResult(parentFactory
+        .getAsynchronousConnection(future.futureConnectionResult));
+    return future.futureBindResult;
   }
 
 
@@ -682,7 +634,8 @@ final class AuthenticatedConnectionFactory
   public AuthenticatedConnection getConnection()
       throws ErrorResultException
   {
-    return impl.getConnection();
+    return new AuthenticatedConnection(
+        (AuthenticatedAsynchronousConnection) blockingGetAsynchronousConnection());
   }
 
 }

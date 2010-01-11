@@ -254,7 +254,7 @@ public final class ModRate extends ConsoleApplication
 
 
     WorkerThread<?> newWorkerThread(AsynchronousConnection connection,
-        ConnectionFactory<?> connectionFactory)
+        ConnectionFactory connectionFactory)
     {
       return new ModifyWorkerThread(connection, connectionFactory);
     }
@@ -277,7 +277,7 @@ public final class ModRate extends ConsoleApplication
 
 
       private ModifyWorkerThread(AsynchronousConnection connection,
-          ConnectionFactory<?> connectionFactory)
+          ConnectionFactory connectionFactory)
       {
         super(connection, connectionFactory);
       }

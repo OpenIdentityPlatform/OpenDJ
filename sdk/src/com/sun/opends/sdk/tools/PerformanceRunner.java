@@ -224,7 +224,7 @@ abstract class PerformanceRunner
 
 
 
-  final int run(ConnectionFactory<?> connectionFactory)
+  final int run(ConnectionFactory connectionFactory)
   {
     List<Thread> threads = new ArrayList<Thread>();
 
@@ -291,7 +291,7 @@ abstract class PerformanceRunner
 
   abstract WorkerThread<?> newWorkerThread(
       AsynchronousConnection connection,
-      ConnectionFactory<?> connectionFactory);
+      ConnectionFactory connectionFactory);
 
 
 
@@ -357,12 +357,12 @@ abstract class PerformanceRunner
 
     private final AsynchronousConnection connection;
 
-    private final ConnectionFactory<?> connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
 
 
     WorkerThread(AsynchronousConnection connection,
-        ConnectionFactory<?> connectionFactory)
+        ConnectionFactory connectionFactory)
     {
       super("Worker Thread");
       this.connection = connection;

@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
@@ -48,7 +47,7 @@ import com.sun.opends.sdk.util.FutureResultTransformer;
  * that sends a periodic search request to a Directory Server.
  */
 final class HeartBeatConnectionFactory extends
-    AbstractConnectionFactory<AsynchronousConnection>
+    AbstractConnectionFactory
 {
   private final SearchRequest heartBeat;
 
@@ -58,7 +57,7 @@ final class HeartBeatConnectionFactory extends
 
   private final List<AsynchronousConnectionImpl> activeConnections;
 
-  private final ConnectionFactory<?> parentFactory;
+  private final ConnectionFactory parentFactory;
 
 
 
@@ -77,7 +76,7 @@ final class HeartBeatConnectionFactory extends
    * @param unit
    *          The time unit of the timeout argument.
    */
-  HeartBeatConnectionFactory(ConnectionFactory<?> connectionFactory,
+  HeartBeatConnectionFactory(ConnectionFactory connectionFactory,
       long timeout, TimeUnit unit)
   {
     this(connectionFactory, timeout, unit, DEFAULT_SEARCH);
@@ -106,7 +105,7 @@ final class HeartBeatConnectionFactory extends
    * @param heartBeat
    *          The search request to use when pinging connections.
    */
-  HeartBeatConnectionFactory(ConnectionFactory<?> connectionFactory,
+  HeartBeatConnectionFactory(ConnectionFactory connectionFactory,
       long timeout, TimeUnit unit, SearchRequest heartBeat)
   {
     this.heartBeat = heartBeat;
@@ -125,11 +124,15 @@ final class HeartBeatConnectionFactory extends
    * operations.
    */
   private final class AsynchronousConnectionImpl implements
-      AsynchronousConnection, ConnectionEventListener, ResultHandler<Result>
+      AsynchronousConnection, ConnectionEventListener,
+      ResultHandler<Result>
   {
     private final AsynchronousConnection connection;
+
     private long lastSuccessfulPing;
+
     private FutureResult<Result> lastPingFuture;
+
 
 
     private AsynchronousConnectionImpl(AsynchronousConnection connection)
@@ -345,15 +348,19 @@ final class HeartBeatConnectionFactory extends
       return connection.isClosed();
     }
 
+
+
     /**
      * {@inheritDoc}
      */
     public boolean isValid()
     {
-      return connection.isValid() && (lastSuccessfulPing <= 0 ||
-          System.currentTimeMillis() - lastSuccessfulPing <
-              unit.toMillis(timeout) * 2);
+      return connection.isValid()
+          && (lastSuccessfulPing <= 0 || System.currentTimeMillis()
+              - lastSuccessfulPing < unit.toMillis(timeout) * 2);
     }
+
+
 
     public void connectionReceivedUnsolicitedNotification(
         GenericExtendedResult notification)
@@ -373,13 +380,19 @@ final class HeartBeatConnectionFactory extends
       }
     }
 
-    public void handleErrorResult(ErrorResultException error) {
+
+
+    public void handleErrorResult(ErrorResultException error)
+    {
       connection.close(Requests.newUnbindRequest(),
           "Heartbeat retured error: " + error);
     }
 
-    public void handleResult(Result result) {
-        lastSuccessfulPing = System.currentTimeMillis();
+
+
+    public void handleResult(Result result)
+    {
+      lastSuccessfulPing = System.currentTimeMillis();
     }
   }
 
@@ -398,25 +411,25 @@ final class HeartBeatConnectionFactory extends
     public void run()
     {
       long startTime;
-      while(true)
+      while (true)
       {
         startTime = System.currentTimeMillis();
         synchronized (activeConnections)
         {
           for (AsynchronousConnectionImpl connection : activeConnections)
           {
-            if(connection.lastPingFuture == null ||
-                connection.lastPingFuture.isDone())
+            if (connection.lastPingFuture == null
+                || connection.lastPingFuture.isDone())
             {
-              connection.lastPingFuture =
-                  connection.search(heartBeat, connection, null);
+              connection.lastPingFuture = connection.search(heartBeat,
+                  connection, null);
             }
           }
         }
         try
         {
-          sleep(unit.toMillis(timeout) -
-              (System.currentTimeMillis() - startTime));
+          sleep(unit.toMillis(timeout)
+              - (System.currentTimeMillis() - startTime));
         }
         catch (InterruptedException e)
         {
@@ -464,7 +477,7 @@ final class HeartBeatConnectionFactory extends
 
 
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler)
+      ResultHandler<AsynchronousConnection> handler)
   {
     FutureResultImpl future = new FutureResultImpl(handler);
     future.setFutureResult(parentFactory
