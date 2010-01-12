@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -562,7 +562,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>10mb</adm:value>
+        <adm:value>100mb</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
