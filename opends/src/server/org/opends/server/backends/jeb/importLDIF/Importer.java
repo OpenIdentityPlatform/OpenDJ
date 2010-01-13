@@ -2004,9 +2004,13 @@ public class Importer
         if(importConfiguration != null &&
            importConfiguration.appendToExistingData())
         {
-         parentDN = entryContainer.getParentWithinBase(dn);
-          parentID =
-             entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
+          parentDN = entryContainer.getParentWithinBase(dn);
+          //If null is returned than this is a suffix DN.
+          if(parentDN != null)
+          {
+            parentID =
+                entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
+          }
         }
         else
         {
