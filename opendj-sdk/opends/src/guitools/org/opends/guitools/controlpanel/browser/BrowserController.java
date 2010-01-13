@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -1148,7 +1148,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       boolean isConfigurationNode)
   throws NamingException {
     InitialLdapContext result;
-    if (followReferrals && (node.getRemoteUrl() != null)) {
+    if (followReferrals && (node.getRemoteUrl() != null))
+    {
       result = connectionPool.getConnection(node.getRemoteUrl());
     }
     else {
@@ -1676,7 +1677,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       // Note: logically we should unconditionaly call:
       //  startRefreshNode(child, false, true);
       //
-      // However doing that saturates _refreshQueue
+      // However doing that saturates refreshQueue
       // with many nodes. And, by design, RefreshTask
       // won't do anything on a node if:
       //    - this node has no subordinates
@@ -2080,7 +2081,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   {
     String[] result = null;
     Set<String> values = ConnectionUtils.getValues(entry, "objectClass");
-    if (values != null) {
+    if (values != null)
+    {
       for (String value : values)
       {
         boolean isReferral = value.equalsIgnoreCase("referral");
@@ -2091,10 +2093,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           {
             result = new String[refValues.size()];
             refValues.toArray(result);
-            break;
           }
+          break;
         }
-        break;
       }
     }
     return result;

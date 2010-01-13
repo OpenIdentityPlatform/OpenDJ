@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -233,9 +233,10 @@ class NodeSearcherQueue implements Runnable {
    */
   public void run() {
     boolean interrupted = false;
-
-    while (!interrupted) {
-      try {
+    while (!interrupted)
+    {
+      try
+      {
         // Fetch and process a node also
         // taking care of update events
         AbstractNodeTask task = fetch();
@@ -246,11 +247,8 @@ class NodeSearcherQueue implements Runnable {
         interrupted = true;
       }
       catch(Exception x) {
-        // At this level, either it's an interruption
-        // either it's a bug...
-        if (! (x instanceof InterruptedException)) {
-          x.printStackTrace();
-        }
+        // At this level it is a bug...
+        x.printStackTrace();
       }
     }
   }
