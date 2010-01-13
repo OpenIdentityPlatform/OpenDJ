@@ -159,7 +159,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     tree.setCellRenderer(new BrowserCellRenderer());
     displayFlags = DISPLAY_ACI_COUNT;
     displayAttribute = RDN_ATTRIBUTE;
-    followReferrals = true;
+    followReferrals = false;
     sorted = false;
     showContainerOnly = true;
     containerClasses = new String[0];
