@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -39,6 +39,7 @@ import javax.net.ssl.KeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
+import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.SearchScope;
 
@@ -59,7 +60,7 @@ import org.opends.server.types.SearchScope;
  * returned connection is simply connected (ie anonymous bind).
  * <BR><BR>
  * LDAPConnectionPool shares connections and maintains a usage counter
- * for each connection: two calls to getConnection() withe the same URL
+ * for each connection: two calls to getConnection() with the same URL
  * will return the same connection. Two calls to releaseConnection() will
  * be needed to make the connection 'potentially disconnectable'.
  * <BR><BR>
@@ -209,9 +210,20 @@ public class LDAPConnectionPool {
     synchronized(cr) {
       try {
         if (cr.ctx == null) {
-          cr.ctx = createLDAPConnection(ldapUrl,
-              authTable.get(key));
+          boolean registerAuth = false;
+          AuthRecord authRecord = authTable.get(key);
+          if (authRecord == null)
+          {
+            // Best-effort: try with an already registered authentication
+            authRecord = authTable.values().iterator().next();
+            registerAuth = true;
+          }
+          cr.ctx = createLDAPConnection(ldapUrl, authRecord);
           cr.ctx.setRequestControls(requestControls);
+          if (registerAuth)
+          {
+            authTable.put(key, authRecord);
+          }
         }
       }
       catch(NamingException x) {
@@ -309,7 +321,7 @@ public class LDAPConnectionPool {
    * If authentication data are already available for the protocol/host/port
    * specified in the LDAPURl, they are replaced by the new data.
    * If true is passed as 'connect' parameter, registerAuth() creates the
-   * connection and attemps to connect() and bind() . If connect() or bind()
+   * connection and attempts to connect() and bind() . If connect() or bind()
    * fail, registerAuth() forwards the NamingException and does not register
    * the authentication data.
    * @param ldapUrl the LDAP URL of the server.
@@ -494,6 +506,10 @@ public class LDAPConnectionPool {
       AuthRecord ar) throws NamingException
   {
     InitialLdapContext ctx;
+
+    // Take the base DN out of the URL and only keep the protocol, host and port
+    ldapUrl = new LDAPURL(ldapUrl.getScheme(), ldapUrl.getHost(),
+          ldapUrl.getPort(), (DN)null, null, null, null, null);
 
     if (isSecureLDAPUrl(ldapUrl))
     {

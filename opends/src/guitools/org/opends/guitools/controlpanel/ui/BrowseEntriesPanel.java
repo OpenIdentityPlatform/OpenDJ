@@ -543,7 +543,16 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     if (node != null)
     {
-      String dn = node.getDN();
+      String dn;
+      if (controller.getFollowReferrals() && node.getRemoteUrl() != null)
+      {
+        dn = node.getRemoteUrl().getRawBaseDN();
+      }
+      else
+      {
+        dn = node.getDN();
+      }
+
       try
       {
         InitialLdapContext ctx =
