@@ -159,7 +159,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     tree.setCellRenderer(new BrowserCellRenderer());
     displayFlags = DISPLAY_ACI_COUNT;
     displayAttribute = RDN_ATTRIBUTE;
-    followReferrals = false;
+    followReferrals = true;
     sorted = false;
     showContainerOnly = true;
     containerClasses = new String[0];
@@ -1436,20 +1436,23 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         removeOneNode(node);
       }
       else {
-        if (oldState == NodeRefresher.State.SOLVING_REFERRAL) {
+        if (oldState == NodeRefresher.State.SOLVING_REFERRAL)
+        {
           node.setRemoteUrl(task.getRemoteUrl());
-          if (task.getRemoteEntry() != null) {
+          if (task.getRemoteEntry() != null)
+          {
             /* This is the case when there are multiple hops in the referral
-             and so we have a remote referral entry but not the entry that it
-             points to */
+           and so we have a remote referral entry but not the entry that it
+           points to */
             updateNodeRendering(node, task.getRemoteEntry());
           }
           /* It is a referral and we try to follow referrals.
-           We remove its children (that are supposed to be
-           entries on the remote server).
-           If this referral entry has children locally (even if this goes
-           against the recommendation of the standards) these children will
-           NOT be displayed. */
+         We remove its children (that are supposed to be
+         entries on the remote server).
+         If this referral entry has children locally (even if this goes
+         against the recommendation of the standards) these children will
+         NOT be displayed. */
+
           node.setLeaf(true);
           removeAllChildNodes(node, true /* Keep suffixes */);
         }
@@ -1793,7 +1796,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       newIcon = iconPool.getIcon(objectClasses, modifiers);
     }
 
-    // Contruct the icon text according the dn, the aci count...
+    // Construct the icon text according the dn, the aci count...
     StringBuilder sb2 = new StringBuilder();
     if (aciCount >= 1) {
       sb2.append(String.valueOf(aciCount));

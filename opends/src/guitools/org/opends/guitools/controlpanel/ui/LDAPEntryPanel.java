@@ -45,6 +45,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.TreePath;
 
+import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -337,6 +338,27 @@ implements EntryReadListener
     searchResult = null;
 
     errorSearchingPanel.setError(ev.getDN(), ev.getError());
+
+    delete.setVisible(false);
+    saveChanges.setVisible(false);
+
+    cardLayout.show(mainPanel, ERROR_SEARCHING);
+
+    displayedEntryPanel = null;
+  }
+
+  /**
+   * Displays a message informing that an error occurred resolving a referral.
+   * @param dn the DN of the local entry.
+   * @param referrals the list of referrals defined in the entry.
+   * @param error the error that occurred resolving the referral.
+   */
+  public void referralSolveError(String dn, String[] referrals,
+      BasicNodeError error)
+  {
+    searchResult = null;
+
+    errorSearchingPanel.setReferralError(dn, referrals, error);
 
     delete.setVisible(false);
     saveChanges.setVisible(false);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -36,7 +36,7 @@ import org.opends.messages.Message;
  * following referrals.
  *
  */
-class ReferralLimitExceededException extends NamingException
+public class ReferralLimitExceededException extends NamingException
 {
   private static final long serialVersionUID = -5640515839144837865L;
 

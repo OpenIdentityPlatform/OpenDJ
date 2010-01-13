@@ -1154,7 +1154,7 @@ implements ConfigChangeListener
   protected void displayMessage(Message msg)
   {
     message.setText(Utilities.applyFont(msg.toString(),
-        ColorAndFontConstants.progressFont));
+        ColorAndFontConstants.defaultFont));
     cardLayout.show(cardPanel, MESSAGE_PANEL);
   }
 

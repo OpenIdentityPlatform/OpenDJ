@@ -22,10 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -42,26 +44,29 @@ import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
+import org.opends.server.types.SearchScope;
 
 /**
  * The class that is in charge of doing the LDAP searches required to update a
  * node: search the local entry, detect if it has children, retrieve the
  * attributes required to render the node, etc.
  */
-class NodeRefresher extends AbstractNodeTask {
+public class NodeRefresher extends AbstractNodeTask {
 
   /**
    * The enumeration containing all the states the refresher can have.
    *
    */
-  enum State
+  public enum State
   {
     /**
      * The refresher is queued, but not started.
@@ -464,6 +469,14 @@ class NodeRefresher extends AbstractNodeTask {
       InitialLdapContext ctx = null;
       try {
         url = LDAPURL.decode(referral[i], false);
+        if (url.getHost() == null)
+        {
+          // Use the local server connection.
+          ctx = controller.getUserDataConnection();
+          url.setHost(ConnectionUtils.getHostName(ctx));
+          url.setPort(ConnectionUtils.getPort(ctx));
+          url.setScheme(ConnectionUtils.isSSL(ctx)?"ldaps":"ldap");
+        }
         ctx = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();
         if ((remoteDn == null) ||
@@ -482,21 +495,39 @@ class NodeRefresher extends AbstractNodeTask {
               remoteDn, url.getAttributes(), url.getScope(), url.getRawFilter(),
                  url.getExtensions());
         }
-        if (useCustomFilter())
+        if (useCustomFilter() && url.getScope() == SearchScope.BASE_OBJECT)
         {
           // Check that the entry verifies the filter
           searchForCustomFilter(remoteDn, ctx);
         }
+
+        int scope = getJNDIScope(url);
+        String filter = getJNDIFilter(url);
+
         SearchControls ctls = controller.getBasicSearchControls();
         ctls.setReturningAttributes(controller.getAttrsForBlackSearch());
-        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+        ctls.setSearchScope(scope);
+        ctls.setCountLimit(1);
         NamingEnumeration<SearchResult> sr = ctx.search(remoteDn,
-              controller.getObjectSearchFilter(),
-              ctls);
+            filter,
+            ctls);
         if (sr.hasMore())
         {
           entry = sr.next();
-          entry.setName(remoteDn);
+          String name;
+          if (entry.getName().length() == 0)
+          {
+            name = remoteDn;
+          }
+          else
+          {
+            name = unquoteRelativeName(entry.getName())+","+remoteDn;
+          }
+          entry.setName(name);
+        }
+        else
+        {
+          throw new NameNotFoundException();
         }
         throwAbandonIfNeeded(null);
       }
@@ -522,7 +553,17 @@ class NodeRefresher extends AbstractNodeTask {
       throw new SearchAbandonException(
           State.FAILED, lastException, lastExceptionArg);
     }
-    else {
+    else
+    {
+      if (url.getScope() != SearchScope.BASE_OBJECT)
+      {
+        // The URL is to be transformed: the code assumes that the URL points
+        // to the remote entry.
+        url = new LDAPURL(url.getScheme(), url.getHost(),
+            url.getPort(), entry.getName(), url.getAttributes(),
+            SearchScope.BASE_OBJECT, null, url.getExtensions());
+      }
+      checkLoopInReferral(url, referral[i-1]);
       remoteUrl = url;
       remoteEntry = entry;
     }
@@ -877,7 +918,7 @@ class NodeRefresher extends AbstractNodeTask {
   /**
    * Transform an exception into a TaskAbandonException.
    * If no exception is passed, the routine checks if the task has
-   * been cancelled and throws an TaskAbandonException accordingly.
+   * been canceled and throws an TaskAbandonException accordingly.
    * @param x the exception.
    * @throws SearchAbandonException if the task/refresher must be abandoned.
    */
@@ -969,5 +1010,111 @@ class NodeRefresher extends AbstractNodeTask {
       }
     }
     return result;
+  }
+
+  /**
+   * Returns the scope to be used in a JNDI request based on the information
+   * of an LDAP URL.
+   * @param url the LDAP URL.
+   * @return the scope to be used in a JNDI request.
+   */
+  private int getJNDIScope(LDAPURL url)
+  {
+    int scope;
+    if (url.getScope() != null)
+    {
+      switch (url.getScope())
+      {
+      case BASE_OBJECT:
+        scope = SearchControls.OBJECT_SCOPE;
+        break;
+      case WHOLE_SUBTREE:
+        scope = SearchControls.SUBTREE_SCOPE;
+        break;
+      case SUBORDINATE_SUBTREE:
+        scope = SearchControls.ONELEVEL_SCOPE;
+        break;
+      case SINGLE_LEVEL:
+        scope = SearchControls.ONELEVEL_SCOPE;
+        break;
+      default:
+        scope = SearchControls.OBJECT_SCOPE;
+      }
+    }
+    else
+    {
+      scope = SearchControls.OBJECT_SCOPE;
+    }
+    return scope;
+  }
+
+  /**
+   * Returns the filter to be used in a JNDI request based on the information
+   * of an LDAP URL.
+   * @param url the LDAP URL.
+   * @return the filter.
+   */
+  private String getJNDIFilter(LDAPURL url)
+  {
+    String filter = url.getRawFilter();
+    if (filter == null)
+    {
+      filter = controller.getObjectSearchFilter();
+    }
+    return filter;
+  }
+
+  /**
+   * Check that there is no loop in terms of DIT (the check basically identifies
+   * whether we are pointing to an entry above in the same server).
+   * @param url the URL to the remote entry.  It is assumed that the base DN
+   * of the URL points to the remote entry.
+   * @param referral the referral used to retrieve the remote entry.
+   * @throws SearchAbandonException if there is a loop issue (the remoteEntry
+   * is actually an entry in the same server as the local entry but above in the
+   * DIT).
+   */
+  private void checkLoopInReferral(LDAPURL url,
+      String referral) throws SearchAbandonException
+  {
+    boolean checkSucceeded = true;
+    try
+    {
+      DN dn1 = DN.decode(getNode().getDN());
+      DN dn2 = url.getBaseDN();
+      if (dn2.isAncestorOf(dn1))
+      {
+        String host = url.getHost();
+        int port = url.getPort();
+        String adminHost = ConnectionUtils.getHostName(
+            controller.getConfigurationConnection());
+        int adminPort =
+          ConnectionUtils.getPort(controller.getConfigurationConnection());
+        checkSucceeded = (port != adminPort) ||
+        !adminHost.equalsIgnoreCase(host);
+
+        if (checkSucceeded)
+        {
+          String hostUserData = ConnectionUtils.getHostName(
+              controller.getUserDataConnection());
+          int portUserData =
+            ConnectionUtils.getPort(controller.getUserDataConnection());
+          checkSucceeded = (port != portUserData) ||
+          !hostUserData.equalsIgnoreCase(host);
+        }
+      }
+    }
+    catch (OpenDsException odse)
+    {
+      // Ignore
+    }
+    if (!checkSucceeded)
+    {
+      String hostPort = ServerDescriptor.getServerRepresentation(url.getHost(),
+          url.getPort());
+      throw new SearchAbandonException(
+          State.FAILED, new ReferralLimitExceededException(
+              ERR_CTRL_PANEL_REFERRAL_LOOP.get(url.getRawBaseDN())), referral);
+    }
   }
 }
