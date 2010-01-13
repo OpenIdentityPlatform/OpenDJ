@@ -578,7 +578,7 @@
         }
       </call>
 
-      <if expr="expectedRC == 0">
+      <if expr="expectedRC == 0 or expectedRC == 'noCheck'">
         <!--- Check that DS stopped -->
         <call function="'isStopped'">
           { 'location'         : location,
