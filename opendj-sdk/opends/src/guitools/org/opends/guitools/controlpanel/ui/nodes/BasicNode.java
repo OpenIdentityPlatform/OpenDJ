@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -120,8 +120,16 @@ public class BasicNode extends DefaultMutableTreeNode {
    */
   public void setRemoteUrl(LDAPURL url) {
     remoteUrl = url;
-    remoteRdn = extractRDN(remoteUrl.getRawBaseDN());
-    remoteRdnWithAttributeName = extractRDN(remoteUrl.getRawBaseDN(), true);
+    if (remoteUrl != null)
+    {
+      remoteRdn = extractRDN(remoteUrl.getRawBaseDN());
+      remoteRdnWithAttributeName = extractRDN(remoteUrl.getRawBaseDN(), true);
+    }
+    else
+    {
+      remoteRdn = null;
+      remoteRdnWithAttributeName = null;
+    }
   }
 
   /**

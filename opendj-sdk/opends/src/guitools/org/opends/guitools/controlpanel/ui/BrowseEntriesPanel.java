@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -72,6 +72,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
+import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -544,7 +545,19 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     if (node != null)
     {
       String dn;
-      if (controller.getFollowReferrals() && node.getRemoteUrl() != null)
+      if (controller.getFollowReferrals() &&
+          node.getReferral() != null &&
+          node.getRemoteUrl() == null &&
+          node.getError() != null &&
+          node.getError().getState() == NodeRefresher.State.SOLVING_REFERRAL)
+      {
+        // We are in the case where we are following referrals but the referral
+        // could not be resolved.  Display an error.
+        entryPane.referralSolveError(node.getDN(), node.getReferral(),
+            node.getError());
+        dn = null;
+      }
+      else if (controller.getFollowReferrals() && node.getRemoteUrl() != null)
       {
         dn = node.getRemoteUrl().getRawBaseDN();
       }
@@ -553,24 +566,27 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         dn = node.getDN();
       }
 
-      try
+      if (dn != null)
       {
-        InitialLdapContext ctx =
-          controller.findConnectionForDisplayedEntry(node);
-        LDAPEntryReader reader = new LDAPEntryReader(dn, ctx);
-        reader.addEntryReadListener(entryPane);
-        // Required to update the browser controller properly if the entry is
-        // deleted.
-        entryPane.setTreePath(path);
-        stopCurrentReader();
-        startReader(reader);
-      }
-      catch (Throwable t)
-      {
-        if (!isInterruptedException(t))
+        try
         {
-          EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
-          entryPane.entryReadError(ev);
+          InitialLdapContext ctx =
+            controller.findConnectionForDisplayedEntry(node);
+          LDAPEntryReader reader = new LDAPEntryReader(dn, ctx);
+          reader.addEntryReadListener(entryPane);
+          // Required to update the browser controller properly if the entry is
+          // deleted.
+          entryPane.setTreePath(path);
+          stopCurrentReader();
+          startReader(reader);
+        }
+        catch (Throwable t)
+        {
+          if (!isInterruptedException(t))
+          {
+            EntryReadErrorEvent ev = new EntryReadErrorEvent(this, dn, t);
+            entryPane.entryReadError(ev);
+          }
         }
       }
     }
