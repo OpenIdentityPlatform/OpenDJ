@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -1690,7 +1690,7 @@ public class ReplicationBroker
   /**
    * Stops the same group id poller.
    */
-  private void stopSameGroupIdPoller()
+  private synchronized void stopSameGroupIdPoller()
   {
     if (sameGroupIdPoller != null)
     {
@@ -1703,7 +1703,7 @@ public class ReplicationBroker
   /**
    * Stop the heartbeat monitor thread.
    */
-  void stopRSHeartBeatMonitoring()
+  synchronized void stopRSHeartBeatMonitoring()
   {
     if (heartbeatMonitor != null)
     {
@@ -2573,7 +2573,7 @@ public class ReplicationBroker
   /**
    * Stops publishing to the RS the current timestamp used in this server.
    */
-  public void stopChangeTimeHeartBeatPublishing()
+  public synchronized void stopChangeTimeHeartBeatPublishing()
   {
     if (ctHeartbeatPublisherThread != null)
     {
