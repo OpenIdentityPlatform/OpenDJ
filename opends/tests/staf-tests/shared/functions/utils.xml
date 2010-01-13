@@ -1800,92 +1800,135 @@
 
         if command.endswith('setup.bat') or command.endswith('uninstall.bat'):
           arguments = arguments + ' &amp; set PROCESSRC=%ERRORLEVEL% &amp; exit %PROCESSRC%'
+
+        if TESTS_TYPE == 'functional-tests':
+          timerDuration = '5m'
+        else:
+          timerDuration = '24h'
+
+        if not outputFile:
+          outputFile = '%/tmpoutput' % remote.temp
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
       </message>
-      
-      <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
-      <if expr="logStderr == True">
-        <process name="name">
-          <location>location</location>
-          <command>command</command>
-          <parms>arguments</parms>
-          <workdir>path</workdir>
-          <envs>env</envs>
-          <console use="'same'"/>
-          <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
-          <stderr mode="'stdout'"/>
-          <returnstdout/>
-        </process>
-      <elseif expr="inputFile != 'None'">
-        <process name="name">
-          <location>location</location>
-          <command>command</command>
-          <parms>arguments</parms>
-          <workdir>path</workdir>
-          <envs>env</envs>
-          <console use="'same'"/>
-          <stdin>'%s' % inputFile</stdin>
-          <returnstdout/>
-        </process>
-      </elseif>
-      <else>
-        <process name="name">
-          <location>location</location>
-          <command>command</command>
-          <parms>arguments</parms>
-          <workdir>path</workdir>
-          <envs>env</envs>
-          <console use="'same'"/>
-          <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
-          <returnstdout/>
-        </process>
-      </else>
+
+      <timer duration="timerDuration">
+        <sequence>
+          <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
+          <if expr="logStderr == True">
+            <process name="name">
+              <location>location</location>
+              <command>command</command>
+              <parms>arguments</parms>
+              <workdir>path</workdir>
+              <envs>env</envs>
+              <console use="'same'"/>
+              <stdout mode="'replace'">'%s' % outputFile</stdout>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+          <elseif expr="inputFile != 'None'">
+            <process name="name">
+              <location>location</location>
+              <command>command</command>
+              <parms>arguments</parms>
+              <workdir>path</workdir>
+              <envs>env</envs>
+              <console use="'same'"/>
+              <stdout mode="'replace'">'%s' % outputFile</stdout>
+              <stdin>'%s' % inputFile</stdin>
+              <returnstdout/>
+            </process>
+          </elseif>
+          <else>
+            <process name="name">
+              <location>location</location>
+              <command>command</command>
+              <parms>arguments</parms>
+              <workdir>path</workdir>
+              <envs>env</envs>
+              <console use="'same'"/>
+              <stdout mode="'replace'">'%s' % outputFile</stdout>
+              <returnstdout/>
+            </process>
+          </else>
+          </if>
+
+          <!-- The problem here is that STAXResult can either be a
+               string, list or a map object -->
+          <script>
+            try:
+              cmdOutput=STAXResult[0][1]
+              cmdRC = RC
+            except:
+              cmdOutput=STAXResult
+              cmdRC = RC
+
+            cmdResult=STAXResult
+          </script>
+
+          <script>
+            def dig(var):
+              try:
+                if var.__class__==[].__class__:
+                  for i in range(len(var)):
+                    var[i]=dig(var[i])
+                  return var
+                else:
+                  if var.__class__==''.__class__:
+                    return re.compile(r'EMMA:.*\n').sub('',var)
+                  else:
+                    return var
+              except TypeError:
+                return 'could not evaluate the following component: %s' % var
+
+            if stripOutput == True:
+              cmdResult=dig(cmdResult)
+          </script>
+
+          <if expr="expectedRC != 'noCheck'">
+            <call function="'checktestRC'">
+              { 'returncode' : cmdRC,
+                'result'     : cmdResult,
+                'expected'   : expectedRC,
+                'issue'      : knownIssue
+              }
+            </call>
+          </if>
+        </sequence>
+      </timer>
+
+      <if expr="RC == 1">
+        <sequence>
+          <script>
+            cmdResult=[[1,'Timeout']]
+          </script>
+
+          <message log="1" level="'Error'">
+            'ERROR: COMMAND HANGING, not completed after %s' % timerDuration
+          </message>
+
+          <stafcmd name="'Get output'">
+            <location>location</location>
+            <service>'FS'</service>
+            <request>'GET FILE %s' % outputFile</request>
+          </stafcmd>
+          <if expr="RC == 0">
+            <sequence>
+              <log message="1">'Output:'</log>
+              <log message="1">'%s' % STAFResult</log>
+            </sequence>
+            <else>
+              <log message="1" level="'Error'">
+                'STAF %s FS GET FILE %s failed with RC=%s Result=%s' % \
+                (location, outputFile, RC, STAFResult)
+              </log>
+            </else>
+          </if>
+        </sequence>
       </if>
 
-      <!-- The problem here is that STAXResult can either be a
-           string, list or a map object -->
-      <script>
-        try:
-          cmdOutput=STAXResult[0][1]
-          cmdRC = RC
-        except:
-          cmdOutput=STAXResult
-          cmdRC = RC
-
-        cmdResult=STAXResult
-      </script>
-
-      <script>
-        def dig(var):
-          try:
-            if var.__class__==[].__class__:
-              for i in range(len(var)):
-                var[i]=dig(var[i])
-              return var
-            else:
-              if var.__class__==''.__class__:
-                return re.compile(r'EMMA:.*\n').sub('',var)
-              else:
-                return var
-          except TypeError:
-            return 'could not evaluate the following component: %s' % var
-        
-        if stripOutput == True:
-          cmdResult=dig(cmdResult)
-      </script>
-
-      <if expr="expectedRC != 'noCheck'">
-        <call function="'checktestRC'">
-          { 'returncode' : cmdRC,
-            'result'     : cmdResult,
-            'expected'   : expectedRC,
-            'issue'      : knownIssue
-          }
-        </call>
-      </if>
-      
       <return>
         cmdResult
       </return>
