@@ -3384,7 +3384,7 @@ public class Importer
       rebuildIndexService.shutdown();
       freeBufferQueue.clear();
       bufferSortService.shutdown();
-      scratchFileWriterService.shutdown();      
+      scratchFileWriterService.shutdown();
       timer.cancel();
     }
 
