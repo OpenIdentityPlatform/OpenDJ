@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.service;
 
@@ -2390,7 +2390,7 @@ public abstract class ReplicationDomain
    * It can be useful to disable the Replication Service when the
    * repository where the replicated information is stored becomes
    * temporarily unavailable and replicated updates can therefore not
-   * be replayed during a while.
+   * be replayed during a while. This method is not MT safe.
    */
   public void disableService()
   {
@@ -2420,7 +2420,7 @@ public abstract class ReplicationDomain
    * If some data have changed in the repository during the period of time when
    * the Replication Service was disabled, this {@link ServerState} should
    * therefore be updated by the Replication Domain subclass before calling
-   * this method.
+   * this method. This method is not MT safe.
    */
   public void enableService()
   {
