@@ -257,7 +257,6 @@
     <var name="tomcat.archive" value="apache-tomcat-${tomcat.version}.zip"/>
     <var name="glassfish.url" value="http://download.java.net/glassfish/${glassfish.version}/release"/>
     <var name="glassfish.archive" value="glassfish-${glassfish.version}.zip"/>
-    <var name="sunwebserver.url" value="${sunwebserver.url}"/>
     <var name="sunwebserver.archive" value="sjsws-${sunwebserver.version}-${os.myname}.zip"/>
 
     <switch value="${wc.type}">

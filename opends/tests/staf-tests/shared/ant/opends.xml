@@ -127,7 +127,7 @@
           <isset property="package.rebuild"/>
           <then>
             <ant antfile="${project.home}/build.xml"
-                 target="package"
+                 target="dsml"
                  inheritAll="false"/>
           </then>
         </if>
