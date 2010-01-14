@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2008 Sun Microsystems, Inc.
+rem      Copyright 2008-2010 Sun Microsystems, Inc.
 
 setlocal
 
@@ -39,7 +39,7 @@ goto end
 
 
 :runAnt
-set CLASSPATH=%DIR_HOME%\ext\junit.jar
+set CLASSPATH=%DIR_HOME%\ext\junit.jar:%DIR_HOME%\ext\xalan-j\xalan.jar:%DIR_HOME%\ext\xalan-j\serializer.jar
 
 "%DIR_HOME%\ext\ant\bin\ant" %*
 
