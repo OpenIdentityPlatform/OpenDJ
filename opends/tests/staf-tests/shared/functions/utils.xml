@@ -1805,9 +1805,6 @@
           timerDuration = '5m'
         else:
           timerDuration = '24h'
-
-        if not outputFile:
-          outputFile = '%/tmpoutput' % remote.temp
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -1824,7 +1821,7 @@
               <workdir>path</workdir>
               <envs>env</envs>
               <console use="'same'"/>
-              <stdout mode="'replace'">'%s' % outputFile</stdout>
+              <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
               <stderr mode="'stdout'"/>
               <returnstdout/>
             </process>
@@ -1836,7 +1833,6 @@
               <workdir>path</workdir>
               <envs>env</envs>
               <console use="'same'"/>
-              <stdout mode="'replace'">'%s' % outputFile</stdout>
               <stdin>'%s' % inputFile</stdin>
               <returnstdout/>
             </process>
@@ -1849,7 +1845,7 @@
               <workdir>path</workdir>
               <envs>env</envs>
               <console use="'same'"/>
-              <stdout mode="'replace'">'%s' % outputFile</stdout>
+              <stdout if="outputFile != 'None'" mode="'replace'">'%s' % outputFile</stdout>
               <returnstdout/>
             </process>
           </else>
@@ -1909,23 +1905,7 @@
             'ERROR: COMMAND HANGING, not completed after %s' % timerDuration
           </message>
 
-          <stafcmd name="'Get output'">
-            <location>location</location>
-            <service>'FS'</service>
-            <request>'GET FILE %s' % outputFile</request>
-          </stafcmd>
-          <if expr="RC == 0">
-            <sequence>
-              <log message="1">'Output:'</log>
-              <log message="1">'%s' % STAFResult</log>
-            </sequence>
-            <else>
-              <log message="1" level="'Error'">
-                'STAF %s FS GET FILE %s failed with RC=%s Result=%s' % \
-                (location, outputFile, RC, STAFResult)
-              </log>
-            </else>
-          </if>
+          <tcstatus result="'fail'"/>
         </sequence>
       </if>
 
