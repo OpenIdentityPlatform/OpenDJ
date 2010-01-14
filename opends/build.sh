@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2008 Sun Microsystems, Inc.
+#      Copyright 2008-2010 Sun Microsystems, Inc.
 
 
 # Change to the location of this build script.
@@ -45,9 +45,9 @@ then
 fi
 
 
-# Make sure that the JUnit JAR file is in the CLASSPATH so that ant will be
-# able to find it.
-CLASSPATH=`pwd`/ext/junit.jar
+# Make sure that the JUnit and Xalan-J JAR files are in the CLASSPATH so that ant will be
+# able to find them.
+CLASSPATH=`pwd`/ext/junit.jar:`pwd`/ext/xalan-j/xalan.jar:`pwd`/ext/xalan-j/serializer.jar
 export CLASSPATH
 
 
