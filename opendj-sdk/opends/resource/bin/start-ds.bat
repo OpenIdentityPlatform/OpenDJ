@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2009 Sun Microsystems, Inc.
+rem      Copyright 2006-2010 Sun Microsystems, Inc.
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
@@ -54,8 +54,6 @@ set ERROR_CODE=%errorlevel%
 if NOT %ERROR_CODE% == 0 goto exitErrorCode
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
-
-set PATH=%SystemRoot%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
