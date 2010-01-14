@@ -22,10 +22,11 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2008-2010 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:import href="../java-utilities.xsl" />
   <xsl:include href="../conditions.xsl" />
   <!-- 
     Templates for processing aggregation properties.
@@ -209,7 +210,7 @@
           <xsl:value-of
             select="concat('      String value = get', $java-property-name, '();&#xa;')" />
           <xsl:value-of
-            select="concat('      if (value == null) return null;&#xa;')" />
+            select="'      if (value == null) return null;&#xa;'" />
           <xsl:value-of
             select="concat('      return INSTANCE.get', $java-property-name, 'PropertyDefinition().getChildDN(value);&#xa;')" />
           <xsl:value-of select="'    }&#xa;'" />

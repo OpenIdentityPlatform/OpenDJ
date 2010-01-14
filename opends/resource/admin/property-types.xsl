@@ -22,10 +22,11 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008-2009 Sun Microsystems, Inc.
+  !      Copyright 2008-2010 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:import href="java-utilities.xsl" />
   <!-- 
     
     
@@ -618,8 +619,13 @@
         <xsl:otherwise>
           <xsl:value-of select="'Collection&lt;'" />
           <xsl:call-template name="get-property-java-type" />
+          <xsl:value-of select="'&gt; values)'" />
+          <xsl:if test="@read-only='true'">
+            <xsl:value-of
+              select="' throws PropertyIsReadOnlyException'" />
+          </xsl:if>
           <xsl:value-of
-            select="concat('&gt; values) {&#xa;' ,
+            select="concat(' {&#xa;' ,
                      '      impl.setPropertyValues(INSTANCE.get',
                      $java-prop-name ,
                      'PropertyDefinition(), values);&#xa;',
