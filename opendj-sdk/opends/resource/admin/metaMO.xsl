@@ -164,11 +164,11 @@
       <xsl:value-of select="'  static {&#xa;'" />
       <xsl:if test="$this-is-advanced">
         <xsl:value-of
-          select="concat('    INSTANCE.registerOption(ManagedObjectOption.ADVANCED);&#xa;')" />
+          select="'    INSTANCE.registerOption(ManagedObjectOption.ADVANCED);&#xa;'" />
       </xsl:if>
       <xsl:if test="$this-is-hidden">
         <xsl:value-of
-          select="concat('    INSTANCE.registerOption(ManagedObjectOption.HIDDEN);&#xa;')" />
+          select="'    INSTANCE.registerOption(ManagedObjectOption.HIDDEN);&#xa;'" />
       </xsl:if>
       <xsl:value-of select="'  }&#xa;'" />
     </xsl:if>
