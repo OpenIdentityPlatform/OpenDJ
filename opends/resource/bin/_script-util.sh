@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2008-2009 Sun Microsystems, Inc.
+#      Copyright 2008-2010 Sun Microsystems, Inc.
 
 #
 # Display an error message
@@ -77,7 +77,7 @@ test_java_bin() {
 #
 test_java_path() {
   OPENDS_JAVA_BIN=`which java 2> /dev/null`
-  if test ${?} -eq 0
+  if test -f "${OPENDS_JAVA_BIN}"
   then
     export OPENDS_JAVA_BIN
   else

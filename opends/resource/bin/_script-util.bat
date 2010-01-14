@@ -22,7 +22,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2008-2009 Sun Microsystems, Inc.
+rem      Copyright 2008-2010 Sun Microsystems, Inc.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -81,14 +81,14 @@ goto testJava
 
 :setJavaHomeAndArgs
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
-if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaArgs
+if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaHome
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
-if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaArgs
+if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaHome
 :endJavaHomeAndArgs
 set SET_JAVA_HOME_AND_ARGS_DONE=true
 goto scriptBegin
 
-:checkEnvJavaArgs
+:checkEnvJavaHome
 if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDSJavaHome
 goto endJavaHomeAndArgs
