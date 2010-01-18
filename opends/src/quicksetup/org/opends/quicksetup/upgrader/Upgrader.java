@@ -401,7 +401,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       return null;
     }
 
-    return Utils.getInstancePathFromClasspath(installPath);
+    return Utils.getInstancePathFromInstallPath(installPath);
   }
 
   /**

@@ -1785,7 +1785,7 @@ public class Utilities
     if (instanceRootDirectory == null)
     {
       instanceRootDirectory = new File(
-        Utils.getInstancePathFromClasspath(installPath));
+        Utils.getInstancePathFromInstallPath(installPath));
     }
     return instanceRootDirectory;
   }

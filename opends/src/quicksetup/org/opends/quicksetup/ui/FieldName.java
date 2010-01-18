@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -159,6 +159,14 @@ public enum FieldName
    * value a Boolean.
    */
   REMOTE_REPLICATION_SECURE,
+  /**
+   * The value associated with this is a JavaArguments object.
+   */
+  SERVER_JAVA_ARGUMENTS,
+  /**
+   * The value associated with this is a JavaArguments object.
+   */
+  IMPORT_JAVA_ARGUMENTS,
   /**
    * The value associated with this is a Boolean.
    */

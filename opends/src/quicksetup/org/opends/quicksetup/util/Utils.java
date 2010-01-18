@@ -968,8 +968,7 @@ public class Utils
   // should use xcalcs but it does not come in the windows default install...
   // :-(
   // This method is not called for the moment, but the code works, so that is
-  // why
-  // is kept.
+  // why is kept.
   private static int changePermissionsWindows(String path, String unixPerm)
       throws IOException, InterruptedException
   {
@@ -1315,7 +1314,7 @@ public class Utils
    * @param installPath The installation path
    * @return the path of the installation of the directory server.
    */
-  public static String getInstancePathFromClasspath(String installPath)
+  public static String getInstancePathFromInstallPath(String installPath)
   {
     String instancePathFileName = Installation.INSTANCE_LOCATION_PATH;
     File configureScriptPath = new File(installPath + File.separator +
@@ -2230,7 +2229,7 @@ public class Utils
       {
         builder.append(formatter.getSpace());
         builder.append(formatter.getFormattedProgress(Message.raw(
-            escapeValue(s))));
+            escapeCommandLineValue(s))));
       }
     }
     return builder.toString();
@@ -2247,7 +2246,7 @@ public class Utils
    * @param value the String to be treated.
    * @return the transformed value.
    */
-  private static String escapeValue(String value)
+  public static String escapeCommandLineValue(String value)
   {
     StringBuilder b = new StringBuilder();
     if (Utils.isUnix())

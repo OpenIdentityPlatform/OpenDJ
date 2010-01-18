@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -79,6 +79,11 @@ public enum Step implements WizardStep
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
   NEW_SUFFIX_OPTIONS(INFO_DATA_OPTIONS_STEP.get()),
+
+  /**
+   * Runtime options panel for the install.
+   */
+  RUNTIME_OPTIONS(INFO_JAVA_RUNTIME_OPTIONS_PANEL_STEP.get()),
 
   /**
    * Review panel for the install.

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -197,7 +197,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
    * {@inheritDoc}
    */
   public String getInstancePath() {
-    return Utils.getInstancePathFromClasspath(getInstallationPath());
+    return Utils.getInstancePathFromInstallPath(getInstallationPath());
   }
 
 

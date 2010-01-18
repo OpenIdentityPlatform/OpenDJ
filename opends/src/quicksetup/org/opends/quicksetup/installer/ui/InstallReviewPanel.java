@@ -33,12 +33,14 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
@@ -141,6 +143,9 @@ public class InstallReviewPanel extends ReviewPanel {
       getField(FieldName.REPLICATION_PORT).setVisible(true);
       getLabel(FieldName.REPLICATION_PORT).setVisible(true);
     }
+
+    setFieldValue(FieldName.SERVER_JAVA_ARGUMENTS, getRuntimeString(userData));
+
     checkStartWarningLabel();
     updateEquivalentCommand(userData);
 
@@ -329,6 +334,11 @@ public class InstallReviewPanel extends ReviewPanel {
             LabelFieldDescriptor.FieldType.READ_ONLY,
             LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
+    hm.put(FieldName.SERVER_JAVA_ARGUMENTS, new LabelFieldDescriptor(
+        INFO_RUNTIME_OPTIONS_LABEL.get(), null,
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+
     for (FieldName fieldName : hm.keySet())
     {
       LabelFieldDescriptor desc = hm.get(fieldName);
@@ -378,7 +388,7 @@ public class InstallReviewPanel extends ReviewPanel {
 
    /**
     * Returns the String representing the replication port configuration.
-    * @param userInstallData the DataOptions of the user.
+    * @param userInstallData the install data provided of the user.
     * @return the localized string describing the Replication Ports chosen by
     * the user.
     */
@@ -460,6 +470,53 @@ public class InstallReviewPanel extends ReviewPanel {
     }
     return buf.toString();
   }
+
+  /**
+   * Returns the String representing the runtime configuration.
+   * @param userData the DataOptions of the user.
+   * @return the localized string describing the runtime options chosen by the
+   * user.
+   */
+ private String getRuntimeString(UserData userData)
+ {
+   String s;
+   JavaArguments serverArguments =
+     userData.getJavaArguments(UserData.SERVER_SCRIPT_NAME);
+   JavaArguments importArguments =
+     userData.getJavaArguments(UserData.IMPORT_SCRIPT_NAME);
+
+
+   boolean defaultServer =
+     userData.getDefaultJavaArguments(UserData.SERVER_SCRIPT_NAME).equals(
+         serverArguments);
+   boolean defaultImport =
+   userData.getDefaultJavaArguments(UserData.IMPORT_SCRIPT_NAME).equals(
+       importArguments);
+
+   if (defaultServer && defaultImport)
+   {
+     s = INFO_DEFAULT_JAVA_ARGUMENTS.get().toString();
+   }
+   else if (defaultServer)
+   {
+     s = INFO_USE_CUSTOM_IMPORT_RUNTIME.get(
+         importArguments.getStringArguments()).toString();
+   }
+   else if (defaultImport)
+   {
+     s = INFO_USE_CUSTOM_SERVER_RUNTIME.get(
+         serverArguments.getStringArguments()).toString();
+   }
+   else
+   {
+     s = INFO_USE_CUSTOM_SERVER_RUNTIME.get(
+         serverArguments.getStringArguments())+"\n"+
+         INFO_USE_CUSTOM_IMPORT_RUNTIME.get(
+             importArguments.getStringArguments());
+   }
+   return s;
+ }
+
   /**
    * Returns and creates the fields panel.
    * @return the fields panel.
@@ -521,7 +578,8 @@ public class InstallReviewPanel extends ReviewPanel {
             FieldName.SERVER_PORT, FieldName.ADMIN_CONNECTOR_PORT,
             FieldName.SECURITY_OPTIONS,
             FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
-            FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT
+            FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT,
+            FieldName.SERVER_JAVA_ARGUMENTS
           };
     }
     else
@@ -533,7 +591,7 @@ public class InstallReviewPanel extends ReviewPanel {
             FieldName.ADMIN_CONNECTOR_PORT,
             FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
             FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS,
-            FieldName.REPLICATION_PORT
+            FieldName.REPLICATION_PORT, FieldName.SERVER_JAVA_ARGUMENTS
           };
     }
 
@@ -696,6 +754,14 @@ public class InstallReviewPanel extends ReviewPanel {
     HtmlProgressMessageFormatter formatter =
       new HtmlProgressMessageFormatter();
     StringBuilder sb = new StringBuilder();
+
+    String s = getEquivalentJavaPropertiesProcedure(userData, formatter);
+    if (s != null && s.length() > 0)
+    {
+      sb.append(s);
+      sb.append(formatter.getTaskSeparator());
+    }
+
     sb.append(formatter.getFormattedProgress(
         INFO_INSTALL_SETUP_EQUIVALENT_COMMAND_LINE.get()));
     sb.append(formatter.getLineBreak());
@@ -779,5 +845,64 @@ public class InstallReviewPanel extends ReviewPanel {
       sb.append("<b>"+formatter.getFormattedProgress(Message.raw(cmd))+"</b>");
     }
     equivalentCommandPane.setText(sb.toString());
+  }
+
+  private String getEquivalentJavaPropertiesProcedure(
+      UserData userData,
+      ProgressMessageFormatter formatter)
+  {
+    StringBuilder sb = new StringBuilder();
+    JavaArguments serverArguments =
+      userData.getJavaArguments(UserData.SERVER_SCRIPT_NAME);
+    JavaArguments importArguments =
+      userData.getJavaArguments(UserData.IMPORT_SCRIPT_NAME);
+
+    ArrayList<String> linesToAdd = new ArrayList<String>();
+
+    boolean defaultServer =
+      userData.getDefaultJavaArguments(UserData.SERVER_SCRIPT_NAME).equals(
+          serverArguments);
+    boolean defaultImport =
+    userData.getDefaultJavaArguments(UserData.IMPORT_SCRIPT_NAME).equals(
+        importArguments);
+
+    if (!defaultServer)
+    {
+      linesToAdd.add(UserData.SERVER_SCRIPT_NAME+": "+
+          serverArguments.getStringArguments());
+    }
+    if (!defaultImport)
+    {
+      linesToAdd.add(UserData.IMPORT_SCRIPT_NAME+": "+
+          importArguments.getStringArguments());
+    }
+
+    if (linesToAdd.size() == 1)
+    {
+      String arg0 = getJavaPropertiesFilePath(userData);
+      String arg1 = linesToAdd.get(0);
+      sb.append(formatter.getFormattedProgress(
+          INFO_EDIT_JAVA_PROPERTIES_LINE.get(arg0, arg1)));
+    }
+    else if (linesToAdd.size() > 1)
+    {
+      String arg0 = getJavaPropertiesFilePath(userData);
+      String arg1 = Utils.getStringFromCollection(linesToAdd, "\n");
+      sb.append(
+          formatter.getFormattedProgress(INFO_EDIT_JAVA_PROPERTIES_LINES.get(
+              arg0, arg1)));
+    }
+
+    return sb.toString();
+  }
+
+  private String getJavaPropertiesFilePath(UserData userData)
+  {
+    String configDir = Utils.getPath(Utils
+        .getInstancePathFromInstallPath(userData.getServerLocation()),
+        Installation.CONFIG_PATH_RELATIVE);
+    String propertiesFile = Utils.getPath(
+        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    return propertiesFile;
   }
 }

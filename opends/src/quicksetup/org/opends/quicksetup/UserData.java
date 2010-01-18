@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -96,7 +97,21 @@ public class UserData
 
   private String configurationClass;
 
+  private Map<String, JavaArguments> hmJavaArguments;
+  private Map<String, JavaArguments> hmDefaultJavaArguments;
+
   private static String defaultHostName;
+
+  /**
+   * The script name to be used to get and set the java arguments for the
+   * server runtime.
+   */
+  public static String SERVER_SCRIPT_NAME = "start-ds";
+  /**
+   * The script name to be used to get and set the java arguments for the
+   * (off-line) import.
+   */
+  public static String IMPORT_SCRIPT_NAME = "import-ldif.offline";
 
   /**
    * Creates a user data object with default values.
@@ -149,6 +164,8 @@ public class UserData
 
     remoteWithNoReplicationPort =
       new HashMap<ServerDescriptor, AuthenticationData>();
+
+    createDefaultJavaArguments();
   }
 
   /**
@@ -758,5 +775,110 @@ public class UserData
   public void setConfigurationClassName(String configurationClass)
   {
     this.configurationClass = configurationClass;
+  }
+
+  /**
+   * Returns the different script names for which there are java arguments.
+   * @return the different script names for which there are java arguments.
+   */
+  public Set<String> getScriptNamesForJavaArguments()
+  {
+    return hmJavaArguments.keySet();
+  }
+
+  /**
+   * Returns the java arguments associated with a script name.  Returns
+   * <CODE>null</CODE> if no java arguments are defined.
+   * @param scriptName the script name.
+   * @return the java arguments associated with a script name.
+   */
+  public JavaArguments getJavaArguments(String scriptName)
+  {
+    return hmJavaArguments.get(scriptName);
+  }
+
+  /**
+   * Returns the default java arguments associated with a script name.  Returns
+   * <CODE>null</CODE> if no java arguments are defined.
+   * @param scriptName the script name.
+   * @return the default java arguments associated with a script name.
+   */
+  public JavaArguments getDefaultJavaArguments(String scriptName)
+  {
+    return hmDefaultJavaArguments.get(scriptName);
+  }
+
+  /**
+   * Sets the java arguments associated with a script name.
+   * @param scriptName the script name.
+   * @param args the java arguments associated with a script name.
+   */
+  public void setJavaArguments(String scriptName, JavaArguments args)
+  {
+    hmJavaArguments.put(scriptName, args);
+  }
+
+
+
+  private void createDefaultJavaArguments()
+  {
+    hmJavaArguments = new HashMap<String, JavaArguments>();
+    int maxMemoryMb = 256;
+    final int maxMemoryBytes = maxMemoryMb * 1024 * 1024;
+    // If the current max memory is bigger than the max heap we want to set,
+    // assume that the JVM ergonomics are going to be able to allocate enough
+    // memory.
+    long currentMaxMemoryBytes = Runtime.getRuntime().maxMemory();
+    if (currentMaxMemoryBytes > maxMemoryBytes)
+    {
+      maxMemoryMb = -1;
+    }
+    for (String clientScript : getClientScripts())
+    {
+      JavaArguments javaArgument = new JavaArguments();
+      javaArgument.setInitialMemory(8);
+      javaArgument.setAdditionalArguments(new String[] {"-client"});
+      hmJavaArguments.put(clientScript, javaArgument);
+    }
+    for (String serverScript : getServerScripts())
+    {
+      JavaArguments javaArgument = new JavaArguments();
+      javaArgument.setInitialMemory(128);
+      javaArgument.setMaxMemory(256);
+      javaArgument.setAdditionalArguments(new String[] {"-server"});
+      hmJavaArguments.put(serverScript, javaArgument);
+    }
+
+    JavaArguments controlPanelJavaArgument = new JavaArguments();
+    controlPanelJavaArgument.setInitialMemory(64);
+    controlPanelJavaArgument.setMaxMemory(128);
+    controlPanelJavaArgument.setAdditionalArguments(new String[] {"-client"});
+    hmJavaArguments.put("control-panel", controlPanelJavaArgument);
+
+    hmDefaultJavaArguments =
+      new HashMap<String, JavaArguments>(hmJavaArguments);
+  }
+
+  private String[] getClientScripts()
+  {
+    return new String[] {
+      "backup.online", "base64", "create-rc-script", "dsconfig",
+      "dsreplication", "dsframework", "export-ldif.online",
+      "import-ldif.online", "ldapcompare", "ldapdelete",
+      "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
+      "manage-account", "manage-tasks", "restore.online", "stop-ds",
+      "status", "uninstall", "setup"
+    };
+  }
+
+  private String[] getServerScripts()
+  {
+    return new String[]
+    {
+        "backup.offline", "encode-password", "export-ldif.offline",
+        IMPORT_SCRIPT_NAME, "ldif-diff", "ldifmodify", "ldifsearch",
+        "make-ldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
+        "upgrade", "verify-index", "dbtest"
+    };
   }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -146,7 +146,7 @@ public class Utilities {
   * @return <CODE>true</CODE> if the user confirms the message, or
   * <CODE>false</CODE> if not.
   */
- public static boolean displayConfirmation(JFrame parent, Message msg,
+ public static boolean displayConfirmation(Component parent, Message msg,
      Message title)
  {
    return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(

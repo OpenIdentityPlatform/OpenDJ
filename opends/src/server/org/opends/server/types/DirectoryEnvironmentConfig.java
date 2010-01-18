@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -224,7 +224,7 @@ public final class DirectoryEnvironmentConfig
    */
   public static File getInstanceRootFromServerRoot(File serverRoot)
   {
-    return new File(Utils.getInstancePathFromClasspath(
+    return new File(Utils.getInstancePathFromInstallPath(
                                 serverRoot.getAbsolutePath()));
   }
 

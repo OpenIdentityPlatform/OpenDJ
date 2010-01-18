@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -88,11 +88,11 @@ public class InProcessServerController {
    */
   static private boolean serverHasBeenStarted = false;
 
-  static private ErrorLogPublisher startupErrorPublisher;
+  static private ErrorLogPublisher<?> startupErrorPublisher;
 
-  static private AccessLogPublisher startupAccessPublisher;
+  static private AccessLogPublisher<?> startupAccessPublisher;
 
-  static private DebugLogPublisher startupDebugPublisher;
+  static private DebugLogPublisher<?> startupDebugPublisher;
 
   /**
    * Pushes messages published by the server loggers into OperationOutput.
@@ -108,10 +108,6 @@ public class InProcessServerController {
 
     ServerControllerTextWriter() {
       // do nothing
-    }
-
-    ServerControllerTextWriter(OperationOutput output) {
-      setOutput(output);
     }
 
     public void setOutput(OperationOutput ouput) {

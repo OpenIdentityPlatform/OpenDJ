@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -475,7 +475,7 @@ public class ControlPanelInfo
         org.opends.server.util.DynamicConstants.FULL_VERSION_STRING);
       String installPath = Utilities.getInstallPathFromClasspath();
       desc.setInstallPath(installPath);
-      desc.setInstancePath(Utils.getInstancePathFromClasspath(installPath));
+      desc.setInstancePath(Utils.getInstancePathFromInstallPath(installPath));
       boolean windowsServiceEnabled = false;
       if (Utilities.isWindows())
       {

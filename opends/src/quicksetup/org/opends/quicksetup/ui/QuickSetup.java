@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -258,13 +258,13 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     final WizardStep cStep = getCurrentStep();
     application.nextClicked(cStep, this);
-    BackgroundTask worker = new NextClickedBackgroundTask(cStep);
+    BackgroundTask<?> worker = new NextClickedBackgroundTask(cStep);
     getDialog().workerStarted();
     worker.startBackgroundTask();
   }
 
   private void updateUserData(final WizardStep cStep) {
-    BackgroundTask worker = new BackgroundTask() {
+    BackgroundTask<?> worker = new BackgroundTask<Object>() {
       public Object processBackgroundTask() throws UserDataException {
         try {
           application.updateUserData(cStep, QuickSetup.this);
@@ -373,7 +373,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   private void launchStatusPanelClicked()
   {
-    BackgroundTask worker = new BackgroundTask()
+    BackgroundTask<Object> worker = new BackgroundTask<Object>()
     {
       public Object processBackgroundTask() throws UserDataException {
         try

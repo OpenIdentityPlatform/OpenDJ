@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -46,7 +46,7 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
  * QuickSetupStepPanel passed in the constructor.
  *
  */
-public class URLWorker extends BackgroundTask
+public class URLWorker extends BackgroundTask<Object>
 {
   private QuickSetupStepPanel panel;
 
