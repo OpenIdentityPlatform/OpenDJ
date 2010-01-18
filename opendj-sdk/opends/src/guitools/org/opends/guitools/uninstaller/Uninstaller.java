@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -603,7 +603,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public String getInstancePath() {
-    return getInstancePathFromClasspath(getInstallPathFromClasspath());
+    return getInstancePathFromInstallPath(getInstallPathFromClasspath());
   }
 
   /**
@@ -1165,7 +1165,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
 
     String instancePath =
-      Utils.getInstancePathFromClasspath(installFile.getAbsolutePath());
+      Utils.getInstancePathFromInstallPath(installFile.getAbsolutePath());
     File instanceFile = new File(instancePath);
     try
     {
@@ -1173,7 +1173,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } catch (Exception e)
     {
       instancePath =
-        Utils.getInstancePathFromClasspath(installFile.getAbsolutePath());
+        Utils.getInstancePathFromInstallPath(installFile.getAbsolutePath());
     }
 
     InstallationFilesToDeleteFilter filter =

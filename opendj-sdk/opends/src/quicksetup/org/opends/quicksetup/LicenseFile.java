@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -90,7 +90,7 @@ public class LicenseFile {
       }
 
       String instanceDirname = Utils
-          .getInstancePathFromClasspath(installDirName);
+          .getInstancePathFromInstallPath(installDirName);
       instanceLegalDirName = instanceDirname + File.separator + "Legal";
       File instanceLegalDir = new File(instanceLegalDirName);
       if (!instanceLegalDir.exists())

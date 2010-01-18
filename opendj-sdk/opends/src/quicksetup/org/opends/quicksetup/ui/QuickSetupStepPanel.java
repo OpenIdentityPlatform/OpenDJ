@@ -63,6 +63,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 public abstract class QuickSetupStepPanel extends QuickSetupPanel
 implements HyperlinkListener
 {
+  private static final long serialVersionUID = -1983448318085588324L;
   private JPanel inputContainer;
   private Component inputPanel;
 

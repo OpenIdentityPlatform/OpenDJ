@@ -390,7 +390,7 @@ public class Reverter extends Application implements CliApplication {
    */
   public String getInstancePath() {
     String installPath = getInstallationPath() ;
-    return Utils.getInstancePathFromClasspath(installPath);
+    return Utils.getInstancePathFromInstallPath(installPath);
   }
 
   /**

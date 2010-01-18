@@ -143,7 +143,7 @@ public class OfflineInstaller extends Installer
         }
         try
         {
-          new ServerController(this).startServer(!isVerbose());
+          new ServerController(this).startServer(!isStartVerbose());
         }
         catch (ApplicationException ae)
         {
@@ -555,7 +555,7 @@ public class OfflineInstaller extends Installer
   public String getInstancePath()
   {
     String installPath =  Utils.getInstallPathFromClasspath();
-    return Utils.getInstancePathFromClasspath(installPath);
+    return Utils.getInstancePathFromInstallPath(installPath);
   }
 
   /**

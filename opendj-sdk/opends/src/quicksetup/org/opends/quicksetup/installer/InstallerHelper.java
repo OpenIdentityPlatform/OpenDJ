@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer;
@@ -31,12 +31,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -50,7 +52,9 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.quicksetup.Application;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
 
@@ -449,7 +453,7 @@ public class InstallerHelper {
 
   /**
    * Configures the replication on a given server.
-   * @param remoteCtx the conection to the server where we want to configure
+   * @param remoteCtx the connection to the server where we want to configure
    * the replication.
    * @param replicationServers a Map where the key value is the base dn and
    * the value is the list of replication servers for that base dn (or domain).
@@ -893,142 +897,189 @@ public class InstallerHelper {
   /**
    * Writes the set-java-home file that is used by the scripts to set the
    * java home and the java arguments.
-   * @param installPath the install path of the server.
+   * @param uData the data provided by the user.
+   * @param installPath where the server is installed.
    * @throws IOException if an error occurred writing the file.
    */
-  public void writeSetOpenDSJavaHome(String installPath) throws IOException
+  public void writeSetOpenDSJavaHome(UserData uData,
+      String installPath) throws IOException
   {
-    final String clientHeapArgs = "-Xms8m";
-    final String controlPanelHeapArgs = "-Xms64m -Xmx128m";
-    final String serverHeapArgs = "-Xms128m -Xmx256m";
-    final long serverMaxHeapBytes = 256 * 1024 * 1024;
-    // Scripts to which we will pass -client argument
-    final String[] clientScripts =
-    {
-        "backup.online", "base64", "create-rc-script", "dsconfig",
-        "dsreplication", "dsframework", "export-ldif.online",
-        "import-ldif.online", "ldapcompare", "ldapdelete",
-        "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
-        "manage-account", "manage-tasks", "restore.online", "stop-ds",
-        "status", "uninstall", "setup"
-    };
-
-    // Scripts to which we will pass -server argument
-    final String[] serverScripts =
-    {
-        "backup.offline", "encode-password", "export-ldif.offline",
-        "import-ldif.offline", "ldif-diff", "ldifmodify", "ldifsearch",
-        "make-ldif", "rebuild-index", "restore.offline", "start-ds",
-        "upgrade", "verify-index", "dbtest"
-    };
-
     String javaHome = System.getProperty("java.home");
     if ((javaHome == null) || (javaHome.length() == 0))
     {
       javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
     }
 
-    boolean supportsClient = supportsClient(javaHome, installPath);
-    boolean supportsServer = supportsServer(javaHome, installPath);
-
-    boolean supportsClientHeap =
-      supportsOption(clientHeapArgs, javaHome, installPath);
-    boolean supportsControlPanelHeap =
-      supportsOption(controlPanelHeapArgs, javaHome, installPath);
-    boolean supportsServerHeap = false;
-    // If the current max memory is bigger than the max heap we want to set,
-    // assume that the JVM ergonomics are going to be able to allocate enough
-    // memory.
-    if (Runtime.getRuntime().maxMemory() < serverMaxHeapBytes)
+    // Try to transform things if necessary.  The following map has as key
+    // the original JavaArgument object and as value the 'transformed'
+    // JavaArgument.
+    Map<JavaArguments, JavaArguments> hmJavaArguments =
+      new HashMap<JavaArguments, JavaArguments>();
+    for (String script : uData.getScriptNamesForJavaArguments())
     {
-      supportsServerHeap =
-        supportsOption(serverHeapArgs, javaHome, installPath);
-    }
-
-    Map<String, String> args = new HashMap<String, String>();
-
-    StringBuffer sbClientArgs = new StringBuffer();
-    if (supportsClient)
-    {
-      sbClientArgs.append("-client");
-    }
-    if (supportsClientHeap)
-    {
-      if (sbClientArgs.length() > 0)
+      JavaArguments origJavaArguments = uData.getJavaArguments(script);
+      if (hmJavaArguments.get(origJavaArguments) == null)
       {
-        sbClientArgs.append(" ");
+        if (Utils.supportsOption(origJavaArguments.getStringArguments(),
+            javaHome, installPath))
+        {
+          // The argument works, so just use it.
+          hmJavaArguments.put(origJavaArguments, origJavaArguments);
+        }
+        else
+        {
+          // We have to fix it somehow: test separately memory and other
+          // arguments to see if something works.
+          JavaArguments transformedArguments =
+            getBestEffortArguments(origJavaArguments, javaHome, installPath);
+          hmJavaArguments.put(origJavaArguments, transformedArguments);
+        }
       }
-      sbClientArgs.append(clientHeapArgs);
-    }
-    String clientArgs = sbClientArgs.toString();
-    for (String clientScript : clientScripts)
-    {
-      args.put(clientScript, clientArgs);
+      else
+      {
+        // Already checked if supported.
+      }
     }
 
-    StringBuffer sbControlPanelArgs = new StringBuffer();
-    if (supportsClient)
-    {
-      sbControlPanelArgs.append("-client");
-    }
-    if (supportsControlPanelHeap)
-    {
-      if (sbControlPanelArgs.length() > 0)
-      {
-        sbControlPanelArgs.append(" ");
-      }
-      sbControlPanelArgs.append(controlPanelHeapArgs);
-    }
-    String controlPanelArgs = sbControlPanelArgs.toString();
-    args.put("control-panel", controlPanelArgs);
+    Properties fileProperties = getJavaPropertiesFileContents(
+        getPropertiesFileName(installPath));
+    Map<String, JavaArguments> args = new HashMap<String, JavaArguments>();
+    Map<String, String> otherProperties = new HashMap<String, String>();
 
-    StringBuffer sbServerArgs = new StringBuffer();
-    if (supportsServer)
+    for (String script : uData.getScriptNamesForJavaArguments())
     {
-      sbServerArgs.append("-server");
-    }
-    if (supportsServerHeap)
-    {
-      if (sbServerArgs.length() > 0)
+      JavaArguments origJavaArgument = uData.getJavaArguments(script);
+      JavaArguments transformedJavaArg = hmJavaArguments.get(origJavaArgument);
+      JavaArguments defaultJavaArg = uData.getDefaultJavaArguments(script);
+
+      // Apply the following policy: overwrite the values in the file only
+      // if the values provided by the user are not the default ones.
+
+      String propertiesKey = getJavaArgPropertyForScript(script);
+      if (origJavaArgument.equals(defaultJavaArg) &&
+          fileProperties.containsKey(propertiesKey))
       {
-        sbServerArgs.append(" ");
+        otherProperties.put(script, fileProperties.getProperty(propertiesKey));
       }
-      sbServerArgs.append(serverHeapArgs);
+      else
+      {
+        args.put(script, transformedJavaArg);
+      }
     }
-    String serverArgs = sbServerArgs.toString();
-    for (String serverScript : serverScripts)
+
+    if (!fileProperties.containsKey("overwrite-env-java-home"))
     {
-      args.put(serverScript, serverArgs);
+      otherProperties.put("overwrite-env-java-home", "false");
     }
-    writeSetOpenDSJavaHome(installPath, javaHome, args);
+    if (!fileProperties.containsKey("overwrite-env-java-args"))
+    {
+      otherProperties.put("overwrite-env-java-home", "false");
+    }
+    if (!fileProperties.containsKey("default.java-home"))
+    {
+      otherProperties.put("default.java-home=", javaHome);
+    }
+
+    writeSetOpenDSJavaHome(installPath, javaHome, args, otherProperties);
   }
 
   /**
-   * Writes the set-java-home file that is used by the scripts to set the
-   * java home and the java arguments.
-   * @param installPath the install path of the server.
-   * @param javaHome the java home to be used.
-   * @param arguments a Map containing as key the name of the script and as
-   * value, the java arguments to be set for the script.
-   * @throws IOException if an error occurred writing the file.
+   * Tries to figure out a new JavaArguments object that works, based on the
+   * provided JavaArguments.  It is more efficient to call this method if we
+   * are sure that the provided JavaArguments object does not work.
+   * @param origJavaArguments the java arguments that does not work.
+   * @param javaHome the java home to be used to test the java arguments.
+   * @param installPath the install path.
+   * @return a working JavaArguments object.
    */
-  public void writeSetOpenDSJavaHome(String installPath,
-      String javaHome,
-      Map<String, String> arguments) throws IOException
+  private JavaArguments getBestEffortArguments(JavaArguments origJavaArguments,
+      String javaHome, String installPath)
   {
-    String configDir = Utils.getPath(Utils
-        .getInstancePathFromClasspath(installPath),
-        Installation.CONFIG_PATH_RELATIVE);
-    String propertiesFile = Utils.getPath(
-        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
-    boolean propertiesFileModified = false;
+    JavaArguments memArgs = new JavaArguments();
+    memArgs.setInitialMemory(origJavaArguments.getInitialMemory());
+    memArgs.setMaxMemory(origJavaArguments.getMaxMemory());
+    String m = memArgs.getStringArguments();
+    boolean supportsMemory = false;
+    if (m.length() > 0)
+    {
+      supportsMemory = Utils.supportsOption(m, javaHome, installPath);
+    }
+
+    JavaArguments additionalArgs = new JavaArguments();
+    additionalArgs.setAdditionalArguments(
+        origJavaArguments.getAdditionalArguments());
+    String a = additionalArgs.getStringArguments();
+    boolean supportsAdditional = false;
+    if (a.length() > 0)
+    {
+      supportsAdditional = Utils.supportsOption(a, javaHome, installPath);
+    }
+
+    JavaArguments javaArgs = new JavaArguments();
+    if (supportsMemory)
+    {
+      javaArgs.setInitialMemory(origJavaArguments.getInitialMemory());
+      javaArgs.setMaxMemory(origJavaArguments.getMaxMemory());
+    }
+    else
+    {
+      // Try to figure out a smaller amount of memory.
+      long currentMaxMemory = Runtime.getRuntime().maxMemory();
+      int maxMemory = origJavaArguments.getMaxMemory();
+      if (maxMemory != -1)
+      {
+        maxMemory = maxMemory / 2;
+        while ((1024 * 1024 * maxMemory) < currentMaxMemory &&
+            !Utils.supportsOption(JavaArguments.getMaxMemoryArgument(maxMemory),
+                javaHome, installPath))
+        {
+          maxMemory = maxMemory / 2;
+        }
+        if ((1024 * 1024 * maxMemory) > currentMaxMemory)
+        {
+          // Supports this option.
+          javaArgs.setMaxMemory(maxMemory);
+        }
+      }
+    }
+    if (supportsAdditional)
+    {
+      javaArgs.setAdditionalArguments(
+          origJavaArguments.getAdditionalArguments());
+    }
+    return javaArgs;
+  }
+
+  private List<String> getJavaPropertiesFileComments(String propertiesFile)
+  throws IOException
+  {
+    ArrayList<String> commentLines = new ArrayList<String>();
+    BufferedReader reader = new BufferedReader(new FileReader(propertiesFile));
+    String line;
+    while ((line = reader.readLine()) != null)
+    {
+      String trimmedLine = line.trim();
+      if (trimmedLine.startsWith("#") || (trimmedLine.length() == 0))
+      {
+        commentLines.add(line);
+      }
+      else
+      {
+        break;
+      }
+    }
+    return commentLines;
+  }
+
+  private Properties getJavaPropertiesFileContents(String propertiesFile)
+  throws IOException
+  {
     FileInputStream fs = null;
+    Properties fileProperties = new Properties();
     try
     {
       fs = new FileInputStream(propertiesFile);
-      Properties properties = new Properties();
-      properties.load(fs);
-      propertiesFileModified = properties.keySet().size() > 0;
+      fileProperties.load(fs);
     }
     catch (Throwable t)
     {
@@ -1046,39 +1097,64 @@ public class InstallerHelper {
         }
       }
     }
-    BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile,
-        true));
+    return fileProperties;
+  }
 
-    if (!propertiesFileModified)
+  private String getPropertiesFileName(String installPath)
+  {
+    String configDir = Utils.getPath(Utils
+        .getInstancePathFromInstallPath(installPath),
+        Installation.CONFIG_PATH_RELATIVE);
+    String propertiesFile = Utils.getPath(
+        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    return propertiesFile;
+  }
+
+  /**
+   * Writes the set-java-home file that is used by the scripts to set the
+   * java home and the java arguments.
+   * @param installPath the install path of the server.
+   * @param javaHome the java home to be used.
+   * @param arguments a Map containing as key the name of the script and as
+   * value, the java arguments to be set for the script.
+   * @param otherProperties other properties that must be set in the file.
+   * @throws IOException if an error occurred writing the file.
+   */
+  private void writeSetOpenDSJavaHome(String installPath,
+      String javaHome,
+      Map<String, JavaArguments> arguments,
+      Map<String, String> otherProperties) throws IOException
+  {
+    String propertiesFile = getPropertiesFileName(installPath);
+    List<String> commentLines = getJavaPropertiesFileComments(propertiesFile);
+    BufferedWriter writer = new BufferedWriter(
+        new FileWriter(propertiesFile, false));
+
+    for (String line: commentLines)
     {
-      writer.newLine();
-      writer.write("overwrite-env-java-home=false");
-      writer.newLine();
-      writer.write("overwrite-env-java-args=false");
-      writer.newLine();
-      writer.newLine();
-      writer.write("default.java-home="+javaHome);
-      writer.newLine();
+      writer.write(line);
       writer.newLine();
 
-      for (String scriptName : arguments.keySet())
-      {
-        String argument = arguments.get(scriptName);
-        writer.newLine();
-        writer.write(scriptName+".java-args="+argument);
-      }
-
-      if (!arguments.isEmpty())
-      {
-        writer.newLine();
-        writer.newLine();
-      }
-
-      writer.close();
     }
+
+    for (String key : otherProperties.keySet())
+    {
+      writer.write(key+"="+otherProperties.get(key));
+      writer.newLine();
+    }
+
+
+    for (String scriptName : arguments.keySet())
+    {
+      String argument = arguments.get(scriptName).getStringArguments();
+      writer.newLine();
+      writer.write(getJavaArgPropertyForScript(scriptName)+"="+argument);
+    }
+    writer.close();
+
     String destinationFile;
     String libDir = Utils.getPath(Utils.
-            getInstancePathFromClasspath(installPath),
+            getInstancePathFromInstallPath(installPath),
         Installation.LIBRARIES_PATH_RELATIVE);
     if (Utils.isWindows())
     {
@@ -1113,6 +1189,11 @@ public class InstallerHelper {
     }
   }
 
+  private String getJavaArgPropertyForScript(String scriptName)
+  {
+    return scriptName+".java-args";
+  }
+
   /**
    * If the log message is of type "[03/Apr/2008:21:25:43 +0200] category=JEB
    * severity=NOTICE msgID=8847454 Processed 1 entries, imported 0, skipped 1,
@@ -1139,32 +1220,6 @@ public class InstallerHelper {
       }
     }
     return parsedMsg;
-  }
-
-  /**
-   * Tells whether the provided java installation supports the server option
-   * or not.
-   * @param javaHome the java installation path.
-   * @param installPath the install path of the server.
-   * @return <CODE>true</CODE> if the provided java installation supports the
-   * server option and <CODE>false</CODE> otherwise.
-   */
-  private boolean supportsServer(String javaHome, String installPath)
-  {
-    return supportsOption("-server", javaHome, installPath);
-  }
-
-  /**
-   * Tells whether the provided java installation supports the client option
-   * or not.
-   * @param javaHome the java installation path.
-   * @param installPath the install path of the server.
-   * @return <CODE>true</CODE> if the provided java installation supports the
-   * client option and <CODE>false</CODE> otherwise.
-   */
-  private boolean supportsClient(String javaHome, String installPath)
-  {
-    return supportsOption("-client", javaHome, installPath);
   }
 }
 

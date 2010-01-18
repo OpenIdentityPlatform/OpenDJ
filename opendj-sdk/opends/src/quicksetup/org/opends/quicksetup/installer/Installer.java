@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.installer;
 
@@ -62,6 +62,7 @@ import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.QuickSetupLog;
@@ -89,6 +90,7 @@ import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
 import org.opends.quicksetup.installer.ui.InstallLicensePanel;
 import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
+import org.opends.quicksetup.installer.ui.RuntimeOptionsPanel;
 import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
 import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
 import org.opends.server.util.SetupUtils;
@@ -149,7 +151,15 @@ public abstract class Installer extends GuiApplication {
 
   private static final int MIN_NUMBER_ENTRIES = 1;
 
-  private static final int MAX_NUMBER_ENTRIES = 10000;
+  private static final int MAX_NUMBER_ENTRIES = 10000000;
+
+  // If the user decides to import more than this number of entries, the
+  // import process of automatically generated data will be verbose.
+  private static final int THRESOLD_AUTOMATIC_DATA_VERBOSE = 20000;
+
+  // If the user decides to import a number of entries higher than this
+  // threshold, the start process will be verbose.
+  private static final int NENTRIES_THRESOLD_FOR_VERBOSE_START = 100000;
 
   /** Set of progress steps that have been completed. */
   protected Set<InstallProgressStep>
@@ -204,6 +214,7 @@ public abstract class Installer extends GuiApplication {
     lstSteps.add(SUFFIXES_OPTIONS);
     lstSteps.add(REMOTE_REPLICATION_PORTS);
     lstSteps.add(NEW_SUFFIX_OPTIONS);
+    lstSteps.add(RUNTIME_OPTIONS);
     lstSteps.add(REVIEW);
     lstSteps.add(PROGRESS);
     lstSteps.add(FINISHED);
@@ -531,6 +542,8 @@ public abstract class Installer extends GuiApplication {
       p = new RemoteReplicationPortsPanel(this);
     } else if (step == NEW_SUFFIX_OPTIONS) {
         p = new DataOptionsPanel(this);
+    } else if (step == RUNTIME_OPTIONS) {
+      p = new RuntimeOptionsPanel(this);
     } else if (step == REVIEW) {
         p = new InstallReviewPanel(this);
     } else if (step == PROGRESS) {
@@ -694,7 +707,7 @@ public abstract class Installer extends GuiApplication {
         }
         else
         {
-          next = Step.REVIEW;
+          next = Step.RUNTIME_OPTIONS;
         }
         break;
       default:
@@ -703,7 +716,7 @@ public abstract class Installer extends GuiApplication {
     }
     else if (step == Step.REMOTE_REPLICATION_PORTS)
     {
-      next = Step.REVIEW;
+      next = Step.RUNTIME_OPTIONS;
     }
     else
     {
@@ -735,6 +748,7 @@ public abstract class Installer extends GuiApplication {
     orderedSteps.add(SUFFIXES_OPTIONS);
     orderedSteps.add(REMOTE_REPLICATION_PORTS);
     orderedSteps.add(NEW_SUFFIX_OPTIONS);
+    orderedSteps.add(RUNTIME_OPTIONS);
     orderedSteps.add(REVIEW);
     orderedSteps.add(PROGRESS);
     orderedSteps.add(FINISHED);
@@ -1422,7 +1436,7 @@ public abstract class Installer extends GuiApplication {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     MessageBuilder mb = new MessageBuilder();
-    if (isVerbose())
+    if (isVerbose() || (nEntries > THRESOLD_AUTOMATIC_DATA_VERBOSE))
     {
       mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(
@@ -2216,7 +2230,7 @@ public abstract class Installer extends GuiApplication {
       // This isn't likely to happen, and it's not a serious problem even if
       // it does.
       InstallerHelper helper = new InstallerHelper();
-      helper.writeSetOpenDSJavaHome(getInstallationPath());
+      helper.writeSetOpenDSJavaHome(getUserData(), getInstallationPath());
     } catch (Exception e) {
       LOG.log(Level.WARNING, "Error writing OpenDS Java Home file: "+e, e);
     }
@@ -2259,6 +2273,10 @@ public abstract class Installer extends GuiApplication {
     else if (cStep == NEW_SUFFIX_OPTIONS)
     {
       updateUserDataForNewSuffixOptionsPanel(qs);
+    }
+    else if (cStep == RUNTIME_OPTIONS)
+    {
+      updateUserDataForRuntimeOptionsPanel(qs);
     }
     else if (cStep ==  REVIEW)
     {
@@ -2809,6 +2827,49 @@ public abstract class Installer extends GuiApplication {
   protected boolean mustStart()
   {
     return getUserData().getStartServer() || mustCreateAds();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the start server must be launched in verbose
+   * mode and <CODE>false</CODE> otherwise.  The verbose flag is  not enough
+   * because in the case where many entries have been imported, the startup
+   * phase can take long.
+   * @return <CODE>true</CODE> if the start server must be launched in verbose
+   * mode and <CODE>false</CODE> otherwise.
+   */
+  protected boolean isStartVerbose()
+  {
+    if (isVerbose())
+    {
+      return true;
+    }
+    boolean manyEntriesToImport = false;
+    NewSuffixOptions.Type type = getUserData().getNewSuffixOptions().getType();
+    if (type == NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE)
+    {
+      long mbTotalSize = 0;
+      LinkedList<String> ldifPaths =
+        getUserData().getNewSuffixOptions().getLDIFPaths();
+      for (String ldifPath : ldifPaths)
+      {
+        File f = new File(ldifPath);
+        mbTotalSize += f.length();
+      }
+      // Assume entries of 1kb
+      if (mbTotalSize > NENTRIES_THRESOLD_FOR_VERBOSE_START * 1024)
+      {
+        manyEntriesToImport = true;
+      }
+    }
+    else if (type == NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
+    {
+      int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
+      if (nEntries > NENTRIES_THRESOLD_FOR_VERBOSE_START)
+      {
+        manyEntriesToImport = true;
+      }
+    }
+    return manyEntriesToImport;
   }
 
   /**
@@ -4104,6 +4165,19 @@ public abstract class Installer extends GuiApplication {
 
 
   /**
+   * Update the userData object according to the content of the runtime options
+   * panel.
+   *
+   */
+  private void updateUserDataForRuntimeOptionsPanel(QuickSetup qs)
+  {
+    getUserData().setJavaArguments(UserData.SERVER_SCRIPT_NAME,
+        ((JavaArguments)qs.getFieldValue(FieldName.SERVER_JAVA_ARGUMENTS)));
+    getUserData().setJavaArguments(UserData.IMPORT_SCRIPT_NAME,
+        ((JavaArguments)qs.getFieldValue(FieldName.IMPORT_JAVA_ARGUMENTS)));
+  }
+
+  /**
    * Update the userData object according to the content of the review
    * panel.
    *
@@ -4119,7 +4193,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * Returns the number of free disk space in bytes required to install Open DS
    *
-   * For the moment we just return 15 Megabytes. TODO we might want to have
+   * For the moment we just return 20 Megabytes. TODO we might want to have
    * something dynamic to calculate the required free disk space for the
    * installation.
    *
@@ -4127,7 +4201,7 @@ public abstract class Installer extends GuiApplication {
    */
   private long getRequiredInstallSpace()
   {
-    return 15 * 1024 * 1024;
+    return 20 * 1024 * 1024;
   }
 
 

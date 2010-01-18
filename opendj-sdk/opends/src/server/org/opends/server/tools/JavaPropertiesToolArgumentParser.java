@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -164,7 +164,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String installPath = Utils.getInstallPathFromClasspath();
-    String root = Utils.getInstancePathFromClasspath(installPath);
+    String root = Utils.getInstancePathFromInstallPath(installPath);
     if (root != null)
     {
       String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
@@ -208,7 +208,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String installPath = Utils.getInstallPathFromClasspath();
-    String root = Utils.getInstancePathFromClasspath(installPath);
+    String root = Utils.getInstancePathFromInstallPath(installPath);
     if (root != null)
     {
       String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);

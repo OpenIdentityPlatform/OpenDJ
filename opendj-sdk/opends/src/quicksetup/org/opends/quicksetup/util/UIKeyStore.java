@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -260,7 +260,7 @@ public class UIKeyStore extends KeyStore
   private static String getLocalAdminTrustStorePath()
   {
     String instancePath =
-      Utils.getInstancePathFromClasspath(Utils.getInstallPathFromClasspath());
+      Utils.getInstancePathFromInstallPath(Utils.getInstallPathFromClasspath());
     return  instancePath + File.separator + "config" +
     File.separator + "admin-truststore";
   }
