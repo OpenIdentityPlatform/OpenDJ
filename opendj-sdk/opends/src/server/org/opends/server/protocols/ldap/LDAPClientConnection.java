@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -47,6 +47,7 @@ import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -351,6 +352,10 @@ public class LDAPClientConnection extends ClientConnection implements
   // client has connected.
   private final String serverAddress;
 
+  // Holds the mapping between the worker thread and ASN1
+  // writer to allow for parallel, non-blocking encoding.
+  private Map<Thread,ASN1Writer> asn1WriterMap;
+
   private ASN1ByteChannelReader asn1Reader;
 
   private int APPLICATION_BUFFER_SIZE = 4096;
@@ -361,28 +366,6 @@ public class LDAPClientConnection extends ClientConnection implements
   private volatile ConnectionSecurityProvider tlsPendingProvider = null;
   private volatile ConnectionSecurityProvider saslPendingProvider = null;
 
-  /**
-   * Thread local storage to provide each worker thread with its
-   * own ASN1Writer to allow for parallel, non-blocking encoding.
-   */
-  private final ThreadLocal<ASN1Writer> threadLocalASN1Writer =
-          new ThreadLocal<ASN1Writer>()
-  {
-    @Override
-    protected ASN1Writer initialValue()
-    {
-      if (isSecure())
-      {
-        int appBufSize = activeProvider.getAppBufSize();
-        return ASN1.getWriter(saslChannel, appBufSize);
-      }
-      else
-      {
-        return ASN1.getWriter(saslChannel,
-          APPLICATION_BUFFER_SIZE);
-      }
-    }
-  };
 
   /**
    * Creates a new LDAP client connection with the provided information.
@@ -445,6 +428,7 @@ public class LDAPClientConnection extends ClientConnection implements
         ASN1.getReader(saslChannel, APPLICATION_BUFFER_SIZE, connectionHandler
             .getMaxRequestSize());
 
+    asn1WriterMap = new ConcurrentHashMap<Thread,ASN1Writer>();
 
     if (connectionHandler.useSSL())
     {
@@ -940,9 +924,25 @@ public class LDAPClientConnection extends ClientConnection implements
   public void sendLDAPMessage(LDAPMessage message)
   {
     // Get the writer used by this thread.
-    ASN1Writer asn1Writer = threadLocalASN1Writer.get();
+    Thread currentThread = Thread.currentThread();
+    ASN1Writer asn1Writer = asn1WriterMap.get(currentThread);
     try
     {
+      if (asn1Writer == null)
+      {
+        if (isSecure())
+        {
+          int appBufSize = activeProvider.getAppBufSize();
+          asn1Writer = ASN1.getWriter(saslChannel, appBufSize);
+        }
+        else
+        {
+          asn1Writer = ASN1.getWriter(saslChannel,
+                  APPLICATION_BUFFER_SIZE);
+        }
+        asn1WriterMap.put(currentThread, asn1Writer);
+      }
+
       message.write(asn1Writer);
       asn1Writer.flush();
 
