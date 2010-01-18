@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server;
 
@@ -1524,6 +1524,10 @@ public final class TestCaseUtils {
       {
         String loggerName = loggerNames.nextElement();
         Logger logger = logManager.getLogger(loggerName);
+        if(logger == null)
+        {
+          break;
+        }
         for (Handler h : logger.getHandlers())
         {
           if (h instanceof ConsoleHandler)
