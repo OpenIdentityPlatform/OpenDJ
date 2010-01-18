@@ -22,10 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
+import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 
 import java.io.BufferedReader;
@@ -462,13 +463,39 @@ public class ConfigureWindowsService
 
     try
     {
+      boolean isServerRunning = Utilities.isServerRunning(
+          new File(serverRoot));
+
       int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
       switch (resultCode)
       {
       case 0:
-        returnValue = SERVICE_ENABLE_SUCCESS;
-        msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
-        out.println(wrapText(msg, MAX_LINE_WIDTH));
+        if (isServerRunning)
+        {
+          // We have to launch the windows service.  The service code already
+          // handles this case (the service binary is executed when the server
+          // already runs).
+          returnValue = StartWindowsService.startWindowsService(out, err);
+          if (returnValue == 0)
+          {
+            returnValue = SERVICE_ENABLE_SUCCESS;
+            msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
+            out.println(wrapText(msg, MAX_LINE_WIDTH));
+          }
+          else
+          {
+            msg = ERR_WINDOWS_SERVICE_ENABLING_ERROR_STARTING_SERVER.get(
+                returnValue);
+            returnValue = SERVICE_ENABLE_ERROR;
+            err.println(wrapText(msg, MAX_LINE_WIDTH));
+          }
+        }
+        else
+        {
+          returnValue = SERVICE_ENABLE_SUCCESS;
+          msg = INFO_WINDOWS_SERVICE_SUCCESSULLY_ENABLED.get();
+          out.println(wrapText(msg, MAX_LINE_WIDTH));
+        }
         break;
       case 1:
         returnValue = SERVICE_ALREADY_ENABLED;
