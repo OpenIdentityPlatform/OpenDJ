@@ -22,7 +22,7 @@
 ; * CDDL HEADER END
 ; *
 ; *
-; *      Copyright 2008 Sun Microsystems, Inc.
+; *      Copyright 2008-2010 Sun Microsystems, Inc.
 ; */
 ;/*
 ; * ==========================================================================
@@ -100,4 +100,11 @@ SymbolicName = WIN_EVENT_ID_DEBUG
 Language     = English
 %1
 .
-
+MessageId    = 0x6
+Severity     = Error
+Facility     = OPENDS
+SymbolicName = WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM
+Language     = English
+OpenDS stopped outside the Service Control Manager.
+OpenDS is in %1.
+.
