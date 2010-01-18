@@ -13,7 +13,7 @@
 * and limitations under the License.
 *
 * When distributing Covered Code, include this CDDL HEADER in each
-* file and include the License file at
+* file and include the License file \
 * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
 * add the following below this CDDL HEADER, with the fields enclosed
 * by brackets "[]" replaced with your own identifying * information:
@@ -22,7 +22,7 @@
 * CDDL HEADER END
 *
 *
-*      Copyright 2008 Sun Microsystems, Inc.
+*      Copyright 2008-2010 Sun Microsystems, Inc.
 */
 
 #include "service.h"
@@ -427,32 +427,43 @@ void deregisterEventLog()
 // The functions returns SERVICE_RETURN_OK if we could determine if
 // the server is running or not and false otherwise.
 // ----------------------------------------------------
-ServiceReturnCode isServerRunning(BOOL *running)
+ServiceReturnCode isServerRunning(BOOL *running, BOOL mustDebug)
 {
   ServiceReturnCode returnValue;
   char* relativePath = "\\locks\\server.lock";
   char lockFile[MAX_PATH];
-  debug("Determining if the server is running.");
-
+  if (mustDebug)
+  {
+    debug("Determining if the server is running.");
+  }
   if (strlen(relativePath)+strlen(_instanceDir)+1 < MAX_PATH)
   {
     int fd;
 
     sprintf(lockFile, "%s%s", _instanceDir, relativePath);
-    debug("When determining whether the server is running, the lock file name is '%s'.",
+    if (mustDebug)
+    {
+      debug(
+        "When determining whether the server is running, the lock file name is '%s'.",
         lockFile);
-
+    }
     fd = _open(lockFile, _O_RDWR);
 
     if (fd != -1)
     {
-      debug("Able to open the lock file '%s'.", lockFile);
+      if (mustDebug)
+      {
+        debug("Able to open the lock file '%s'.", lockFile);
+      }
       returnValue = SERVICE_RETURN_OK;
       // Test if there is a lock
       /* Lock some bytes and read them. Then unlock. */
       if(_locking(fd, LK_NBLCK, 1) != -1)
       {
-        debug("Able to lock '%s', so the server is not running.", lockFile);
+        if (mustDebug)
+        {
+          debug("Able to lock '%s', so the server is not running.", lockFile);
+        }
         *running = FALSE;
         _locking(fd, LK_UNLCK, 1);
       }
@@ -460,7 +471,10 @@ ServiceReturnCode isServerRunning(BOOL *running)
       {
         if (errno == EACCES)
         {
-          debug("Unable to lock '%s', so the server is running.", lockFile);
+          if (mustDebug)
+          {
+            debug("Unable to lock '%s', so the server is running.", lockFile);
+          }
           *running = TRUE;
         }
         else
@@ -474,15 +488,18 @@ ServiceReturnCode isServerRunning(BOOL *running)
     }
     else
     {
-      debug("Could not open lock file '%s', which means the server is not running.",
-          lockFile);
+      if (mustDebug)
+      {
+        debug("Could not open lock file '%s', which means the server is not running.",
+            lockFile);
+      }
       *running = FALSE;
       returnValue = SERVICE_RETURN_ERROR;
     }
   }
   else
   {
-    debug("Lock file path is too long.");
+    debugError("Lock file path is too long.");
     *running = FALSE;
     returnValue = SERVICE_RETURN_ERROR;
   }
@@ -520,11 +537,11 @@ ServiceReturnCode doStartApplication()
       BOOL running = FALSE;
       if (nTriesEnv != NULL)
       {
-      	nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
-      	if (nTries <= 0)
-      	{
-      	  nTries = 100;
-      	}
+        nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
+        if (nTries <= 0)
+        {
+          nTries = 100;
+        }
       }
       else
       {
@@ -541,7 +558,7 @@ ServiceReturnCode doStartApplication()
       while ((nTries > 0) && !running)
       {
         nTries--;
-        if (isServerRunning(&running) != SERVICE_RETURN_OK)
+        if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
         }
@@ -607,7 +624,7 @@ ServiceReturnCode doStopApplication()
       Sleep(3000);
       while ((nTries > 0) && running)
       {
-        if (isServerRunning(&running) != SERVICE_RETURN_OK)
+        if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
         {
           break;
         }
@@ -817,7 +834,7 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
   // elaborate the commands supported by the service:
   // - STOP        customer has performed a stop-ds (or NET STOP)
   // - SHUTDOWN    the system is rebooting
-  // - INTERROGATE service controler can interogate the service
+  // - INTERROGATE service controler can interrogate the service
   // - No need to support PAUSE/CONTINUE
   //
   // Note: INTERROGATE *must* be supported by the service handler
@@ -831,7 +848,7 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
 
   if (statusToSet == SERVICE_START_PENDING)
   {
-    debug("Service start pending.");
+    debug("Service start pending: no controls accepted.");
     // do not accept any command when the service is starting up...
     controls = SERVICE_ACCEPT_NONE;
   }
@@ -896,6 +913,7 @@ void serviceMain(int argc, char* argv[])
   // a checkpoint value indicate the progress of an operation
   DWORD checkPoint = CHECKPOINT_FIRST_VALUE;
   SERVICE_STATUS_HANDLE serviceStatusHandle;
+  BOOL running;
 
   // __debugbreak();
 
@@ -957,22 +975,13 @@ void serviceMain(int argc, char* argv[])
     );
   }
 
-  // update the service status to START_PENDING
-  if (code == SERVICE_RETURN_OK)
+  if (isServerRunning(&running, TRUE) != SERVICE_RETURN_OK)
   {
-    _serviceCurStatus = SERVICE_START_PENDING;
-    updateServiceStatus (
-    _serviceCurStatus,
-    NO_ERROR,
-    0,
-    checkPoint++,
-    TIMEOUT_START_SERVICE,
-    _serviceStatusHandle
-    );
+    running = FALSE;
   }
 
-  // start the application
-  if (code == SERVICE_RETURN_OK)
+  // start the application if not already started
+  if (!running && code == SERVICE_RETURN_OK)
   {
     WORD argCount = 1;
     const char *argc[] = {_instanceDir};
@@ -981,21 +990,7 @@ void serviceMain(int argc, char* argv[])
     switch (code)
     {
       case SERVICE_RETURN_OK:
-      // start is ok
-      _serviceCurStatus = SERVICE_RUNNING;
-      updateServiceStatus (
-      _serviceCurStatus,
-      NO_ERROR,
-      0,
-      CHECKPOINT_NO_ONGOING_OPERATION,
-      TIMEOUT_NONE,
-      _serviceStatusHandle
-      );
-      reportLogEvent(
-      EVENTLOG_SUCCESS,
-      WIN_EVENT_ID_SERVER_STARTED,
-      argCount, argc
-      );
+      // start is ok: do nothing for the moment.
       break;
 
       default:
@@ -1003,53 +998,136 @@ void serviceMain(int argc, char* argv[])
       code = SERVICE_RETURN_ERROR;
       _serviceCurStatus = SERVICE_STOPPED;
       updateServiceStatus (
-      _serviceCurStatus,
-      ERROR_SERVICE_SPECIFIC_ERROR,
-      -1,
-      CHECKPOINT_NO_ONGOING_OPERATION,
-      TIMEOUT_NONE,
-      _serviceStatusHandle);
+        _serviceCurStatus,
+        ERROR_SERVICE_SPECIFIC_ERROR,
+        -1,
+        CHECKPOINT_NO_ONGOING_OPERATION,
+        TIMEOUT_NONE,
+        _serviceStatusHandle);
       reportLogEvent(
-      EVENTLOG_ERROR_TYPE,
-      WIN_EVENT_ID_SERVER_START_FAILED,
-      argCount, argc
+        EVENTLOG_ERROR_TYPE,
+        WIN_EVENT_ID_SERVER_START_FAILED,
+        argCount, argc
       );
     }
   }
   else
   {
     updateServiceStatus (
-    _serviceCurStatus,
-    ERROR_SERVICE_SPECIFIC_ERROR,
-    0,
-    CHECKPOINT_NO_ONGOING_OPERATION,
-    TIMEOUT_NONE,
-    _serviceStatusHandle);
+      _serviceCurStatus,
+      ERROR_SERVICE_SPECIFIC_ERROR,
+      0,
+      CHECKPOINT_NO_ONGOING_OPERATION,
+      TIMEOUT_NONE,
+      _serviceStatusHandle);
   }
 
   // if all is ok wait for the application to die before we leave
   if (code == SERVICE_RETURN_OK)
   {
-    debug("Waiting indefinitely for the application to exit.");
-    WaitForSingleObject (_terminationEvent, INFINITE);
-    debug("The application has exited.");
-  }
+    BOOL updatedRunningStatus = FALSE;
+	DWORD returnValue;
+    int refreshPeriodSeconds = 10;
+    char *refreshPeriodEnv = getenv("OPENDS_WINDOWS_SERVICE_REFRESH_PERIOD");
+    if (refreshPeriodEnv != NULL)
+    {
+      refreshPeriodSeconds = (int)strtol(refreshPeriodEnv, (char **)NULL, 10);
+      if (refreshPeriodSeconds < 0)
+      {
+        refreshPeriodSeconds = 10;
+      }
+    }
+    debug("Refresh period in seconds is %d.", refreshPeriodSeconds);
+    while (TRUE)
+    {
+      if (refreshPeriodSeconds == 0 && updatedRunningStatus)
+      {
+        returnValue = WaitForSingleObject (_terminationEvent, INFINITE);
+        break;
+      }  
+      else
+      {
+        running = FALSE;
+        if (updatedRunningStatus)
+        {
+          Sleep(5000);
+        }
+        else
+        {
+          returnValue = WaitForSingleObject (_terminationEvent,
+                                           refreshPeriodSeconds * 1000);
+          if (returnValue == WAIT_OBJECT_0)
+          {
+            debug("The application has exited.");
+            break;           
+          }
+        }
+        code = isServerRunning(&running, FALSE);
+        if (code != SERVICE_RETURN_OK)
+        {
+           debug("checking in serviceMain: error interrogating status.");
+        }
+        else if (running)
+        {
+          _serviceCurStatus = SERVICE_RUNNING;
+		  if (!updatedRunningStatus)
+		  {
+		    WORD argCount = 1;
+            const char *argc[] = {_instanceDir};
+            updateServiceStatus (
+               _serviceCurStatus,
+               NO_ERROR,
+               0,
+               checkPoint ++,
+		       TIMEOUT_NONE,
+               _serviceStatusHandle
+             );
+             reportLogEvent(
+               EVENTLOG_SUCCESS,
+               WIN_EVENT_ID_SERVER_STARTED,
+               argCount, argc
+             );
+			 updatedRunningStatus = TRUE;
+		  }
+        }
+        else
+        {
+	      WORD argCount = 1;
+          const char *argc[] = {_instanceDir};    
+          _serviceCurStatus = SERVICE_STOPPED;
+          debug("checking in serviceMain serviceHandler: service stopped.");
 
+          updateServiceStatus (
+              _serviceCurStatus,
+              ERROR_SERVICE_SPECIFIC_ERROR,
+              -1,
+              CHECKPOINT_NO_ONGOING_OPERATION,
+              TIMEOUT_NONE,
+              _serviceStatusHandle);
+          reportLogEvent(
+              EVENTLOG_ERROR_TYPE,
+              WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM,
+              argCount, argc);
+          break;
+        }
+      }
+    }
+  }
   // update the service status to STOPPED if it's not already done
   if ((_serviceCurStatus != SERVICE_STOPPED) &&
-    (_serviceStatusHandle != NULL))
+     (_serviceStatusHandle != NULL))
   {
     _serviceCurStatus = SERVICE_STOPPED;
     updateServiceStatus (
-    _serviceCurStatus,
-    NO_ERROR,
-    0,
-    CHECKPOINT_NO_ONGOING_OPERATION,
-    TIMEOUT_NONE,
-    _serviceStatusHandle
-    );
+      _serviceCurStatus,
+      NO_ERROR,
+      0,
+      CHECKPOINT_NO_ONGOING_OPERATION,
+      TIMEOUT_NONE,
+      _serviceStatusHandle
+     );
   }
-  debug("serviceMain() returning.");
+   debug("serviceMain() returning.");
 }  // serviceMain
 
 
@@ -1160,7 +1238,7 @@ void serviceHandler(DWORD controlCode)
     // ------------------------------
     case SERVICE_CONTROL_INTERROGATE:
       debug("serviceHandler: interrogate.");
-      code = isServerRunning(&running);
+      code = isServerRunning(&running, TRUE);
       if (code != SERVICE_RETURN_OK)
       {
         debug("serviceHandler: error interrogating.");
@@ -2065,19 +2143,19 @@ int startService()
       {
         argc[1] =
         "startService: StartServiceCtrlDispatcher did not work: \
-        ERROR_FAILED_SERVICE_CONTROLLER_CONNECT.";
+ERROR_FAILED_SERVICE_CONTROLLER_CONNECT.";
       }
       else if (lastError == ERROR_INVALID_DATA)
       {
         argc[1] =
         "startService: StartServiceCtrlDispatcher did not work: \
-        ERROR_INVALID_DATA.";
+ERROR_INVALID_DATA.";
       }
       else if (lastError == ERROR_SERVICE_ALREADY_RUNNING)
       {
         argc[1] =
         "startService: StartServiceCtrlDispatcher did not work: \
-        ERROR_SERVICE_ALREADY_RUNNING.";
+ERROR_SERVICE_ALREADY_RUNNING.";
       }
       else
       {
@@ -2210,7 +2288,7 @@ int main(int argc, char* argv[])
         BOOL running;
         ServiceReturnCode code;
         _instanceDir = _strdup(argv[2]);
-        code = isServerRunning(&running);
+        code = isServerRunning(&running, TRUE);
         if (code == SERVICE_RETURN_OK)
         {
           returnCode = 0;
