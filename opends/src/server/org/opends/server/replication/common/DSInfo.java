@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -245,7 +245,7 @@ public class DSInfo
   public String toString()
   {
     StringBuffer sb = new StringBuffer();
-    sb.append("DS id: ");
+    sb.append("\nDS id: ");
     sb.append(dsId);
     sb.append(" ; RS id: ");
     sb.append(rsId);

@@ -518,7 +518,7 @@ public class AssuredReplicationPluginTest
 
         // Send topo view
         List<RSInfo> rsList = new ArrayList<RSInfo>();
-        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, 1);
+        RSInfo rsInfo = new RSInfo(serverId, "localhost:" + port, generationId, groupId, 1);
         rsList.add(rsInfo);
         TopologyMsg topologyMsg = new TopologyMsg(new ArrayList<DSInfo>(),
           rsList);

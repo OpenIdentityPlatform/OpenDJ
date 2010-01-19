@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -969,7 +969,7 @@ public class AssuredReplicationServerTest
         }
 
         // Send our topo mesg
-        RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, 1);
+        RSInfo rsInfo = new RSInfo(serverId, fakeUrl, generationId, groupId, 1);
         List<RSInfo> rsInfos = new ArrayList<RSInfo>();
         rsInfos.add(rsInfo);
         TopologyMsg topoMsg = new TopologyMsg(null, rsInfos);

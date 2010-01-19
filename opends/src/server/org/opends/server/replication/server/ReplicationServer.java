@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -265,6 +265,7 @@ public class ReplicationServer
       throw new ConfigException(msg, e);
     }
     groupId = (byte)configuration.getGroupId();
+    weight = configuration.getWeight();
     assuredTimeout = configuration.getAssuredTimeout();
     degradedStatusThreshold = configuration.getDegradedStatusThreshold();
     monitoringPublisherPeriod = configuration.getMonitoringPeriod();

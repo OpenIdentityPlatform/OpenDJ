@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -1219,7 +1219,8 @@ public abstract class ServerHandler extends MessageHandler
    */
   public RSInfo toRSInfo()
   {
-    RSInfo rsInfo = new RSInfo(serverId, generationId, groupId, weight);
+    RSInfo rsInfo = new RSInfo(serverId, serverURL, generationId, groupId,
+      weight);
 
     return rsInfo;
   }

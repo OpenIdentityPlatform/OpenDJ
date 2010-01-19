@@ -719,7 +719,7 @@ public abstract class ReplicationDomain
       ReplicationMsg msg;
       try
       {
-        msg = broker.receive();
+        msg = broker.receive(true);
         if (msg == null)
         {
           // The server is in the shutdown process

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -198,6 +198,10 @@ public class TopologyMsg extends ReplicationMsg
 
         if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
+          // Put server URL
+          oStream.write(rsInfo.getServerUrl().getBytes("UTF-8"));
+          oStream.write(0);
+
           // Put RS weight
           oStream.write(String.valueOf(rsInfo.getWeight()).getBytes("UTF-8"));
           oStream.write(0);
@@ -242,8 +246,7 @@ public class TopologyMsg extends ReplicationMsg
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
         int dsId = Integer.valueOf(serverIdString);
-        pos +=
-          length + 1;
+        pos += length + 1;
 
         /* Read RS id */
         length =
@@ -251,16 +254,14 @@ public class TopologyMsg extends ReplicationMsg
         serverIdString =
           new String(in, pos, length, "UTF-8");
         int rsId = Integer.valueOf(serverIdString);
-        pos +=
-          length + 1;
+        pos += length + 1;
 
         /* Read the generation id */
         length = getNextLength(in, pos);
         long generationId =
           Long.valueOf(new String(in, pos, length,
           "UTF-8"));
-        pos +=
-          length + 1;
+        pos += length + 1;
 
         /* Read DS status */
         ServerStatus status = ServerStatus.valueOf(in[pos++]);
@@ -296,8 +297,7 @@ public class TopologyMsg extends ReplicationMsg
           length = getNextLength(in, pos);
           String url = new String(in, pos, length, "UTF-8");
           refUrls.add(url);
-          pos +=
-            length + 1;
+          pos += length + 1;
           nRead++;
         }
 
@@ -314,8 +314,7 @@ public class TopologyMsg extends ReplicationMsg
             length = getNextLength(in, pos);
             String attr = new String(in, pos, length, "UTF-8");
             attrs.add(attr);
-            pos +=
-              length + 1;
+            pos += length + 1;
             nRead++;
           }
         }
@@ -353,8 +352,13 @@ public class TopologyMsg extends ReplicationMsg
         byte groupId = in[pos++];
 
         int weight = 1;
+        String serverUrl = null;
         if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
+          length = getNextLength(in, pos);
+          serverUrl = new String(in, pos, length, "UTF-8");
+          pos += length + 1;
+
           /* Read RS weight */
           length = getNextLength(in, pos);
           weight = Integer.valueOf(new String(in, pos, length, "UTF-8"));
@@ -363,7 +367,8 @@ public class TopologyMsg extends ReplicationMsg
 
         /* Now create RSInfo and store it in list */
 
-        RSInfo rsInfo = new RSInfo(id, generationId, groupId, weight);
+        RSInfo rsInfo = new RSInfo(id, serverUrl, generationId, groupId,
+          weight);
         rsList.add(rsInfo);
 
         nRsInfo--;

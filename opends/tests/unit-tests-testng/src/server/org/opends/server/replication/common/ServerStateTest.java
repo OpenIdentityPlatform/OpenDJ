@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -69,7 +69,7 @@ public class ServerStateTest extends ReplicationTestCase
     // TODO Check result;
 
     // Check update
-    assertFalse(serverState.update(null));
+    assertFalse(serverState.update((ChangeNumber)null));
     assertTrue(serverState.update(cn));
     assertFalse(serverState.update(cn));
     ChangeNumber cn1, cn2, cn3;

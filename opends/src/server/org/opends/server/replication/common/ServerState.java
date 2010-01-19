@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -126,7 +126,7 @@ public class ServerState implements Iterable<Integer>
    * of a server state.
    *
    * @param in the byte array where to calculate the string.
-   * @param pos the position whre to start from in the byte array.
+   * @param pos the position where to start from in the byte array.
    * @return the length of the next string.
    * @throws DataFormatException If the byte array does not end with null.
    */
@@ -171,6 +171,33 @@ public class ServerState implements Iterable<Integer>
         return false;
       }
     }
+  }
+
+  /**
+   * Update the Server State with a Server State. Every change number of this
+   * object is updated with the change number of the passed server state if
+   * it is newer.
+   *
+   * @param serverState the server state to use for the update.
+   *
+   * @return a boolean indicating if the update was meaningful.
+   */
+  public boolean update(ServerState serverState)
+  {
+    if (serverState == null)
+      return false;
+
+    boolean updated = false;
+
+    for (ChangeNumber cn : serverState.list.values())
+    {
+      if (update(cn))
+      {
+        updated = true;
+      }
+    }
+
+    return updated;
   }
 
   /**

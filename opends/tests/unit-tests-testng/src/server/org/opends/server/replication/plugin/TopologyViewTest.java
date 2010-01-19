@@ -22,10 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -37,6 +40,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -821,22 +825,34 @@ public class TopologyViewTest extends ReplicationTestCase
   private RSInfo createRSInfo(int rsId)
   {
     int groupId = -1;
+    String serverUrl = null;
+    String localHostname = null;
+    try
+    {
+      localHostname = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException ex)
+    {
+      fail("Could not get local host name: " + ex.getMessage());
+    }
     switch (rsId)
     {
       case RS1_ID:
         groupId = RS1_GID;
+        serverUrl = localHostname + ":" + rs1Port;
         break;
       case RS2_ID:
         groupId = RS2_GID;
+        serverUrl = localHostname + ":" + rs2Port;
         break;
       case RS3_ID:
         groupId = RS3_GID;
+        serverUrl = localHostname + ":" + rs3Port;
         break;
       default:
         fail("Unknown replication server id.");
     }
 
-    return new RSInfo(rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, (byte)groupId, 1);
+    return new RSInfo(rsId, serverUrl, TEST_DN_WITH_ROOT_ENTRY_GENID, (byte)groupId, 1);
   }
 
   /**
