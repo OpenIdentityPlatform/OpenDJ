@@ -645,7 +645,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>20mb</adm:value>
+        <adm:value>100mb</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
