@@ -118,8 +118,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private GenericDialog browseEntriesDlg;
   private LDAPEntrySelectionPanel browseEntriesPanel;
 
-  private Map<String, Set<String>> lastUserPasswords =
-    new HashMap<String,Set<String>>();
+  private Map<String, List<String>> lastUserPasswords =
+    new HashMap<String,List<String>>();
 
   private CustomSearchResult searchResult;
   private boolean isReadOnly;
@@ -516,7 +516,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
         if (isPassword(attr))
         {
-          Set<String> pwds = new HashSet<String>();
+          List<String> pwds = new ArrayList<String>();
           for (Object o : values)
           {
             pwds.add(getPasswordStringValue(o));
