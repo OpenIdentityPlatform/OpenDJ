@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
 
 
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.util.Validator;
 
 import static org.opends.messages.CoreMessages.*;
 
@@ -50,7 +51,7 @@ public enum ResultCode
    * The result code that should only be used if the actual result
    * code has not yet been determined.
    */
-  UNDEFINED(-1, null),
+  UNDEFINED(-1, INFO_RESULT_UNDEFINED.get()),
 
 
 
@@ -705,6 +706,7 @@ public enum ResultCode
    */
   private ResultCode(int intValue, Message name)
   {
+    Validator.ensureNotNull(name);
     this.intValue       = intValue;
     this.resultCodeName = name;
   }
@@ -895,7 +897,7 @@ public enum ResultCode
    */
   public String toString()
   {
-    return resultCodeName != null ? resultCodeName.toString() : null;
+    return resultCodeName.toString();
   }
 }
 
