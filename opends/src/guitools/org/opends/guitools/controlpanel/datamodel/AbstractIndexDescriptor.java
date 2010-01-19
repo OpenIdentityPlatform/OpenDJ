@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -31,7 +31,8 @@ package org.opends.guitools.controlpanel.datamodel;
  * Abstract class used to describe the configuration of an index.
  *
  */
-public abstract class AbstractIndexDescriptor implements Comparable
+public abstract class AbstractIndexDescriptor
+implements Comparable<AbstractIndexDescriptor>
 {
   private String name;
   private BackendDescriptor backend;

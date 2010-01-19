@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -377,9 +377,9 @@ public class LoginDialog extends JDialog
    */
   private void okClicked()
   {
-    BackgroundTask worker = new BackgroundTask()
+    BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
     {
-      public Object processBackgroundTask() throws NamingException,
+      public Boolean processBackgroundTask() throws NamingException,
       ApplicationException
       {
         Boolean isServerRunning = Boolean.TRUE;
@@ -426,7 +426,7 @@ public class LoginDialog extends JDialog
         return isServerRunning;
       }
 
-      public void backgroundTaskCompleted(Object returnValue,
+      public void backgroundTaskCompleted(Boolean returnValue,
           Throwable throwable)
       {
         if (throwable != null)

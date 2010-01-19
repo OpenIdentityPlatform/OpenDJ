@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -195,7 +195,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
    * @param syntax the attribute syntax that the panel must display.
    * @param schema the schema.
    */
-  public void update(AttributeSyntax syntax, Schema schema)
+  public void update(AttributeSyntax<?> syntax, Schema schema)
   {
     String n = syntax.getSyntaxName();
     if (n == null)

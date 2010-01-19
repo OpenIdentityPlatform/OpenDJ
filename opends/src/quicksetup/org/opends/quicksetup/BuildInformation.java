@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -54,7 +54,7 @@ import java.io.OutputStream;
  * Represents information about the current build that is
  * publicly obtainable by invoking start-ds -F.
  */
-public class BuildInformation implements Comparable {
+public class BuildInformation implements Comparable<BuildInformation> {
 
   static private final Logger LOG =
           Logger.getLogger(BuildInformation.class.getName());
@@ -414,8 +414,7 @@ public class BuildInformation implements Comparable {
   /**
    * {@inheritDoc}
    */
-  public int compareTo(Object o) {
-    BuildInformation bi = (BuildInformation) o;
+  public int compareTo(BuildInformation bi) {
     if (getMajorVersion().equals(bi.getMajorVersion())) {
       if (getMinorVersion().equals(bi.getMinorVersion())) {
         if (getPointVersion().equals(bi.getPointVersion())) {
@@ -442,7 +441,7 @@ public class BuildInformation implements Comparable {
   public boolean equals(Object o) {
     return this == o ||
             !(o == null || getClass() != o.getClass()) &&
-                    compareTo(o) == 0;
+                    compareTo((BuildInformation)o) == 0;
   }
 
   /**
@@ -457,7 +456,7 @@ public class BuildInformation implements Comparable {
     return hc;
   }
 
-  static private void checkNotNull(Map values, String... props)
+  static private void checkNotNull(Map<?, ?> values, String... props)
           throws ApplicationException {
     for (String prop : props) {
       if (null == values.get(prop)) {

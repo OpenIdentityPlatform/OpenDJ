@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -35,15 +35,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.logging.Logger;
 
 /**
  * Represents the contents of an OpenDS configuration file.
  */
 public class Configuration {
-
-  static private final Logger LOG =
-          Logger.getLogger(Configuration.class.getName());
 
   private String contents = null;
   private String lowerCaseContents = null;

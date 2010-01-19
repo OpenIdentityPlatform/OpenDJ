@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -47,6 +47,7 @@ import org.opends.messages.Message;
 public abstract class MonitoringTableModel<T, P> extends SortableTableModel
 implements Comparator<P>
 {
+  private static final long serialVersionUID = -3974562860632179025L;
   private Set<P> data = new HashSet<P>();
   private ArrayList<String[]> dataArray = new ArrayList<String[]>();
   private ArrayList<P> dataSourceArray = new ArrayList<P>();

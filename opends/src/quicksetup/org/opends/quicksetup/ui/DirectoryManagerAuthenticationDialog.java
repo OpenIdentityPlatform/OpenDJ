@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -329,9 +329,9 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
   private void shutDownClicked()
   {
     isCancelled = false;
-    BackgroundTask worker = new BackgroundTask()
+    BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
     {
-      public Object processBackgroundTask() throws NamingException
+      public Boolean processBackgroundTask() throws NamingException
       {
         Boolean isServerRunning = Boolean.TRUE;
         try
@@ -368,7 +368,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         return isServerRunning;
       }
 
-      public void backgroundTaskCompleted(Object returnValue,
+      public void backgroundTaskCompleted(Boolean returnValue,
           Throwable throwable)
       {
         if (throwable != null)

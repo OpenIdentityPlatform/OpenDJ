@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -957,7 +957,8 @@ implements IndexModifiedListener
 
   private HashMap<Object, ImageIcon> hmCategoryImages =
     new HashMap<Object, ImageIcon>();
-  private HashMap<Class, ImageIcon> hmImages = new HashMap<Class, ImageIcon>();
+  private HashMap<Class<?>, ImageIcon> hmImages =
+    new HashMap<Class<?>, ImageIcon>();
   {
     Object[] nodes = {standardIndexes, vlvIndexes};
     String[] paths = {"ds-idx-folder.png", "ds-vlv-idx-folder.png"};
@@ -966,7 +967,7 @@ implements IndexModifiedListener
       hmCategoryImages.put(nodes[i],
           Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+paths[i]));
     }
-    Class[] classes = {IndexTreeNode.class, VLVIndexTreeNode.class};
+    Class<?>[] classes = {IndexTreeNode.class, VLVIndexTreeNode.class};
     String[] ocPaths = {"ds-idx.png", "ds-vlv-idx.png"};
     for (int i=0; i<classes.length; i++)
     {

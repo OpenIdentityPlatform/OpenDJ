@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -46,7 +46,6 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 
-import java.util.logging.Logger;
 import java.io.File;
 import org.opends.server.util.DynamicConstants;
 
@@ -58,9 +57,6 @@ public class UpgradeLauncher extends Launcher {
 
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opends-upgrade-";
-
-  static private final Logger LOG =
-          Logger.getLogger(UpgradeLauncher.class.getName());
 
   /** Short form of the option for specifying the installation package file. */
   static public final Character FILE_OPTION_SHORT = 'f';

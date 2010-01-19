@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -35,6 +35,8 @@ import java.awt.*;
  * that the user can use to confirm an application's operation.
  */
 public abstract class ReviewPanel extends QuickSetupStepPanel {
+
+  private static final long serialVersionUID = 509534079919269557L;
 
   /**
    * Creates an instance.

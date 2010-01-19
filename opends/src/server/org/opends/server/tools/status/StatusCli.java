@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.status;
@@ -1332,10 +1332,5 @@ class StatusCli extends ConsoleApplication
   {
     return Message.raw(
         StaticUtils.wrapText(text, getCommandLineMaxLineWidth()));
-  }
-
-  private static void printTimeSince(String msg, long initTime)
-  {
-    System.out.println(msg+" : "+(System.currentTimeMillis() - initTime));
   }
 }

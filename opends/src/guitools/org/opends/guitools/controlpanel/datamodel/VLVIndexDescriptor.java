@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -73,15 +73,9 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
   /**
    * {@inheritDoc}
    */
-  public int compareTo(Object o)
+  public int compareTo(AbstractIndexDescriptor o)
   {
-    int returnValue = -1;
-    if (o instanceof AbstractIndexDescriptor)
-    {
-      AbstractIndexDescriptor index = (AbstractIndexDescriptor)o;
-      returnValue = getName().compareTo(index.getName());
-    }
-    return returnValue;
+    return getName().compareTo(o.getName());
   }
 
   /**

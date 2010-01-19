@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 
@@ -89,12 +89,13 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 
 /**
- * Abstract class used to refactor some code between the classes that are used
+ * Abstract class used to re-factor some code between the classes that are used
  * to edit/create a VLV index.
  *
  */
 public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = -82857384664911898L;
   /**
    * Title panel.
    */

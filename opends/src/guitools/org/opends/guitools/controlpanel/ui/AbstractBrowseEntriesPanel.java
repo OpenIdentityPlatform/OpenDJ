@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -115,6 +115,7 @@ import org.opends.server.types.*;
 public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel
 implements BackendPopulatedListener
 {
+  private static final long serialVersionUID = -6063927039968115236L;
   private JComboBox baseDNs;
   /**
    * The combo box containing the different filter types.
@@ -1879,7 +1880,7 @@ implements BackendPopulatedListener
 
       if (!node.isLeaf())
       {
-        Enumeration en = node.children();
+        Enumeration<?> en = node.children();
         while (en.hasMoreElements())
         {
           nEntries ++;

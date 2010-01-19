@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -45,7 +45,6 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 
-import java.util.logging.Logger;
 import java.io.File;
 
 /**
@@ -53,9 +52,6 @@ import java.io.File;
  * command line utilities to launch an upgrade process.
  */
 public class UpgradeSvr4Launcher extends UpgradeLauncher {
-
-  static private final Logger LOG =
-          Logger.getLogger(UpgradeSvr4Launcher.class.getName());
 
   /**
    * The main method which is called by the setup command lines.

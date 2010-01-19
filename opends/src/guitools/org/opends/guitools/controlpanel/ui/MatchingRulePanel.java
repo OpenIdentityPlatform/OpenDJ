@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -217,9 +217,9 @@ public class MatchingRulePanel extends SchemaElementPanel
     titlePanel.setDetails(Message.raw(n));
     name.setText(n);
     oid.setText(matchingRule.getOID());
-    AttributeSyntax s = null;
+    AttributeSyntax<?> s = null;
     String syntaxOID = matchingRule.getSyntaxOID();
-    for (AttributeSyntax candidate : schema.getSyntaxes().values())
+    for (AttributeSyntax<?> candidate : schema.getSyntaxes().values())
     {
       if (candidate.getOID().equals(syntaxOID))
       {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installandupgrader;
@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.Constants;
@@ -68,8 +67,6 @@ import org.opends.server.util.DynamicConstants;
  */
 public class InstallAndUpgrader extends GuiApplication
 {
-  static private final Logger LOG =
-    Logger.getLogger(InstallAndUpgrader.class.getName());
   private GuiApplication installer;
   private GuiApplication upgrader;
   private InstallAndUpgradeUserData userData;

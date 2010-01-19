@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -42,12 +42,14 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
 /**
- * Abstract class used to refactor some code among the panels that display the
+ * Abstract class used to re-factor some code among the panels that display the
  * contents of a schema element.
  *
  */
 public abstract class SchemaElementPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = -8556383593966382604L;
+
   private Set<SchemaElementSelectionListener> listeners =
     new HashSet<SchemaElementSelectionListener>();
 

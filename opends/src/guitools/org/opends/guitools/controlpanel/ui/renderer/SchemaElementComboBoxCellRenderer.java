@@ -61,12 +61,12 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {
-    if (value instanceof AttributeSyntax)
+    if (value instanceof AttributeSyntax<?>)
     {
-      String syntaxName = ((AttributeSyntax)value).getSyntaxName();
+      String syntaxName = ((AttributeSyntax<?>)value).getSyntaxName();
       if (syntaxName == null)
       {
-        value = ((AttributeSyntax)value).getOID();
+        value = ((AttributeSyntax<?>)value).getOID();
       }
       else
       {

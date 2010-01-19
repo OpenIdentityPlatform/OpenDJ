@@ -312,13 +312,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     uud.setUpdateRemoteReplication(false);
 
     Set<String> dbs = new HashSet<String>();
-    Set s = (Set) qs.getFieldValue(FieldName.EXTERNAL_DB_DIRECTORIES);
+    Set<?> s = (Set<?>) qs.getFieldValue(FieldName.EXTERNAL_DB_DIRECTORIES);
     for (Object v : s) {
       dbs.add((String) v);
     }
 
     Set<String> logs = new HashSet<String>();
-    s = (Set) qs.getFieldValue(FieldName.EXTERNAL_LOG_FILES);
+    s = (Set<?>) qs.getFieldValue(FieldName.EXTERNAL_LOG_FILES);
     for (Object v : s) {
       logs.add((String) v);
     }
@@ -424,8 +424,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.CONFIRM_UNINSTALL) {
-      BackgroundTask worker = new BackgroundTask() {
-        public Object processBackgroundTask() throws UserDataException {
+      BackgroundTask<UninstallData> worker =
+        new BackgroundTask<UninstallData>() {
+        public UninstallData processBackgroundTask() throws UserDataException {
           try {
             updateUserUninstallDataForConfirmUninstallPanel(qs);
             return new UninstallData(Installation.getLocal());
@@ -439,7 +440,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
         }
 
-        public void backgroundTaskCompleted(Object returnValue,
+        public void backgroundTaskCompleted(UninstallData returnValue,
                                             Throwable throwable) {
           qs.getDialog().workerFinished();
           if (throwable != null) {
@@ -456,7 +457,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                       INFO_ERROR_TITLE.get());
             }
           } else {
-            conf = (UninstallData)returnValue;
+            conf = returnValue;
             if (conf.isADS() && conf.isReplicationServer())
             {
               if (conf.isServerRunning())
@@ -1618,9 +1619,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           conf.getReplicationServerPort());
       getUninstallUserData().setReferencedHostName(loginDialog.getHostName());
 
-      BackgroundTask worker = new BackgroundTask()
+      BackgroundTask<TopologyCache> worker = new BackgroundTask<TopologyCache>()
       {
-        public Object processBackgroundTask() throws Throwable
+        public TopologyCache processBackgroundTask() throws Throwable
         {
           LOG.log(Level.INFO, "Loading Topology Cache in askForAuthentication");
           ADSContext adsContext = new ADSContext(ctx);
@@ -1630,7 +1631,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           cache.reloadTopology();
           return cache;
         }
-        public void backgroundTaskCompleted(Object returnValue,
+        public void backgroundTaskCompleted(TopologyCache returnValue,
             Throwable throwable) {
           qs.getDialog().workerFinished();
           if (throwable != null)
@@ -1653,7 +1654,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
           else
           {
-            TopologyCache cache = (TopologyCache)returnValue;
+            TopologyCache cache = returnValue;
             handleTopologyCache(qs, cache);
           }
         }
@@ -1822,16 +1823,17 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
         getTrustManager().acceptCertificate(chain, authType, host);
-        BackgroundTask worker = new BackgroundTask()
+        BackgroundTask<TopologyCache> worker =
+          new BackgroundTask<TopologyCache>()
         {
-          public Object processBackgroundTask() throws Throwable
+          public TopologyCache processBackgroundTask() throws Throwable
           {
             LOG.log(Level.INFO, "Reloading topology");
             cache.getFilter().setSearchMonitoringInformation(false);
             cache.reloadTopology();
             return cache;
           }
-          public void backgroundTaskCompleted(Object returnValue,
+          public void backgroundTaskCompleted(TopologyCache returnValue,
               Throwable throwable) {
             qs.getDialog().workerFinished();
             if (throwable != null)
@@ -1954,7 +1956,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
     if (Boolean.TRUE.equals(v))
     {
-      Set replicationServers = (Set<?>)server.getServerProperties().get(
+      Set<?> replicationServers = (Set<?>)server.getServerProperties().get(
           ServerDescriptor.ServerProperty.EXTERNAL_REPLICATION_SERVERS);
       if (replicationServers != null)
       {
@@ -2236,7 +2238,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         {
           property = ServerDescriptor.ServerProperty.LDAP_PORT;
         }
-        ArrayList ports = (ArrayList)server.getServerProperties().get(property);
+        ArrayList<?> ports =
+          (ArrayList<?>)server.getServerProperties().get(property);
         if (ports != null)
         {
           isServerToUninstall = ports.contains(port);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer;
@@ -31,7 +31,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.ReturnCode;
@@ -57,10 +56,6 @@ import org.opends.server.util.args.ArgumentParser;
  * based setup much be launched.
  */
 public class SetupLauncher extends Launcher {
-
-  static private final Logger LOG =
-          Logger.getLogger(SetupLauncher.class.getName());
-
   /**
    * The main method which is called by the setup command lines.
    *
