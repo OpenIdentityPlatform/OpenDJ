@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 
@@ -61,6 +61,7 @@ import org.opends.server.types.AttributeType;
  */
 public abstract class AbstractIndexPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = 4465529396749593707L;
   /**
    * Title panel.
    */

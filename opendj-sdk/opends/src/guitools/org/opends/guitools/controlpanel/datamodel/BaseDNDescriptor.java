@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -35,7 +35,7 @@ import org.opends.server.types.DN;
  * used by the classes in the BackendTableModel class.
  *
  */
-public class BaseDNDescriptor implements Comparable
+public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
 {
   /**
    * An enumeration describing the type of base DN for a given backend.
@@ -134,35 +134,31 @@ public class BaseDNDescriptor implements Comparable
   /**
    * {@inheritDoc}
    */
-  public int compareTo(Object o)
+  public int compareTo(BaseDNDescriptor desc)
   {
     int returnValue = -1;
-    if (o instanceof BaseDNDescriptor)
+    returnValue = desc.getDn().compareTo(getDn());
+    if (returnValue == 0)
     {
-      BaseDNDescriptor desc = (BaseDNDescriptor)o;
-      returnValue = desc.getDn().compareTo(getDn());
-      if (returnValue == 0)
-      {
-        returnValue = getType().compareTo(desc.getType());
-      }
-      if (returnValue == 0)
-      {
-        getBackend().getBackendID().compareTo(
-            desc.getBackend().getBackendID());
-      }
-      if (returnValue == 0)
-      {
-        returnValue = compare(getEntries(), desc.getEntries());
-      }
-      if (returnValue == 0)
-      {
-        returnValue = compare(getAgeOfOldestMissingChange(),
-            desc.getAgeOfOldestMissingChange());
-      }
-      if (returnValue == 0)
-      {
-        returnValue = compare(getMissingChanges(), desc.getMissingChanges());
-      }
+      returnValue = getType().compareTo(desc.getType());
+    }
+    if (returnValue == 0)
+    {
+      getBackend().getBackendID().compareTo(
+          desc.getBackend().getBackendID());
+    }
+    if (returnValue == 0)
+    {
+      returnValue = compare(getEntries(), desc.getEntries());
+    }
+    if (returnValue == 0)
+    {
+      returnValue = compare(getAgeOfOldestMissingChange(),
+          desc.getAgeOfOldestMissingChange());
+    }
+    if (returnValue == 0)
+    {
+      returnValue = compare(getMissingChanges(), desc.getMissingChanges());
     }
     return returnValue;
   }

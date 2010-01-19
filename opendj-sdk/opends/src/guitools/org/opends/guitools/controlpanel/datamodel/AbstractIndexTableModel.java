@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -45,6 +45,7 @@ import org.opends.messages.Message;
 public abstract class AbstractIndexTableModel extends SortableTableModel
 implements Comparator<AbstractIndexDescriptor>
 {
+  private static final long serialVersionUID = -5131878622200568636L;
   private Set<AbstractIndexDescriptor> data =
     new HashSet<AbstractIndexDescriptor>();
   private ArrayList<String[]> dataArray =

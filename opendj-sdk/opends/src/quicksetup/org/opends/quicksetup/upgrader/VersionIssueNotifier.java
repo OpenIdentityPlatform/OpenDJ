@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -378,7 +378,7 @@ public abstract class VersionIssueNotifier {
    * @param list to format
    * @return String representing the list
    */
-  protected String createUnorderedList(List list) {
+  protected String createUnorderedList(List<?> list) {
     StringBuilder sb = new StringBuilder();
     if (list != null) {
       for (Object o : list) {

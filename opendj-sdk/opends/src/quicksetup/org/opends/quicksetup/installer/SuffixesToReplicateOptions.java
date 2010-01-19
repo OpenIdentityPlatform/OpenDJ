@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 
@@ -85,13 +85,13 @@ public class SuffixesToReplicateOptions
     switch (type)
     {
     case REPLICATE_WITH_EXISTING_SUFFIXES:
-      Set s = (Set)args[0];
+      Set<?> s = (Set<?>)args[0];
       availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
       for (Object o: s)
       {
         availableSuffixes.add((SuffixDescriptor)o);
       }
-      s = (Set)args[1];
+      s = (Set<?>)args[1];
       suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
       for (Object o: s)
       {
@@ -103,13 +103,13 @@ public class SuffixesToReplicateOptions
       // If there is something put it.
       if ((args != null) && (args.length > 0))
       {
-        s = (Set)args[0];
+        s = (Set<?>)args[0];
         availableSuffixes = new LinkedHashSet<SuffixDescriptor>();
         for (Object o: s)
         {
           availableSuffixes.add((SuffixDescriptor)o);
         }
-        s = (Set)args[1];
+        s = (Set<?>)args[1];
         suffixesToReplicate = new LinkedHashSet<SuffixDescriptor>();
         for (Object o: s)
         {

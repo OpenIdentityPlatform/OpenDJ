@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -104,7 +104,7 @@ public interface UserInteraction {
    * @param list to format
    * @return String representing the list
    */
-  String createUnorderedList(List list);
+  String createUnorderedList(List<?> list);
 
   /**
    * Promt the user for a string.

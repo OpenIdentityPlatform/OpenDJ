@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -30,15 +30,10 @@ package org.opends.quicksetup.upgrader;
 import org.opends.quicksetup.UserDataException;
 import org.opends.server.util.cli.ConsoleApplication;
 
-import java.util.logging.Logger;
-
 /**
  * Assists Upgrader utility in CLI drudgery.
  */
 public class UpgraderCliHelper extends ConsoleApplication {
-
-  static private final Logger LOG =
-          Logger.getLogger(UpgraderCliHelper.class.getName());
 
   /** Launcher for this CLI invocation. */
   protected UpgradeLauncher launcher;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -55,6 +55,8 @@ import org.opends.server.util.LDIFReader;
  */
 public abstract class AbstractNewEntryPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = 6894546787832469213L;
+
   /**
    * The parent node that was selected when the user clicked on the new entry
    * action.

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -34,7 +34,6 @@ import org.opends.messages.Message;
 import org.opends.messages.ToolMessages;
 
 import java.io.File;
-import java.util.logging.Logger;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
@@ -59,9 +58,6 @@ public class UninstallLauncher extends Launcher {
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
-
-  static private final Logger LOG =
-          Logger.getLogger(UninstallLauncher.class.getName());
 
   /**
    * The main method which is called by the uninstall command lines.

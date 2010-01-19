@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -80,6 +80,8 @@ import org.opends.server.util.StaticUtils;
  */
 public abstract class BackupListPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = -4804555239922795163L;
+
   /**
    * The text field containing the parent directory.
    */

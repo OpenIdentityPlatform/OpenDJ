@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -36,6 +36,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public abstract class AbstractIndexTreeNode extends DefaultMutableTreeNode
 {
+  private static final long serialVersionUID = 8055748310817873273L;
   private String name;
   /**
    * Constructor.

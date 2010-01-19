@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -62,7 +62,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
 
   private static final long serialVersionUID = 81730510134697056L;
 
-  private CurrentInstallStatus installStatus;
   private Set<String> outsideDbs;
   private Set<String> outsideLogs;
 
@@ -79,7 +78,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
                                CurrentInstallStatus installStatus)
   {
     super(application);
-    this.installStatus = installStatus;
   }
 
   /**

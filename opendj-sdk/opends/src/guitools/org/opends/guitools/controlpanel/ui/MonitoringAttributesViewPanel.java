@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -171,8 +171,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    JPanel checkBoxPanel = new JPanel(new GridBagLayout());
    checkBoxPanel.setOpaque(false);
    JScrollPane scroll = Utilities.createBorderLessScrollBar(checkBoxPanel);
-   ScrollPaneBorderListener scrollListener =
-     ScrollPaneBorderListener.createFullBorderListener(scroll);
+   ScrollPaneBorderListener.createFullBorderListener(scroll);
 
    checkboxes = new JCheckBox[monitoringAttributes.size()];
 

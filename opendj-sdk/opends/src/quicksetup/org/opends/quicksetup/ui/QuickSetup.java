@@ -680,7 +680,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * This is a class used when the user clicks on next and that extends
    * BackgroundTask.
    */
-  private class NextClickedBackgroundTask extends BackgroundTask
+  private class NextClickedBackgroundTask extends BackgroundTask<Object>
   {
     private WizardStep cStep;
     public NextClickedBackgroundTask(WizardStep cStep)
@@ -740,7 +740,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
               application.acceptCertificateForException(ce,
                   answer == CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY);
               application.nextClicked(cStep, QuickSetup.this);
-              BackgroundTask worker = new NextClickedBackgroundTask(cStep);
+              BackgroundTask<Object> worker =
+                new NextClickedBackgroundTask(cStep);
               getDialog().workerStarted();
               worker.startBackgroundTask();
             }

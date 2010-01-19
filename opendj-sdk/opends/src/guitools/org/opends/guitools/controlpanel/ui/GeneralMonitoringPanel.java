@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -41,6 +41,8 @@ import org.opends.messages.Message;
  */
 public abstract class GeneralMonitoringPanel extends StatusGenericPanel
 {
+  private static final long serialVersionUID = 2840755228290832143L;
+
   /**
    * The empty border shared by all the panels.
    */

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -799,7 +799,7 @@ public class ServerDescriptor
 
       if (areEqual)
       {
-        Iterable[] iterables = {attr1.getExtraPropertyNames(),
+        Iterable<?>[] iterables = {attr1.getExtraPropertyNames(),
             attr2.getExtraPropertyNames(),
             attr1.getNormalizedNames(), attr2.getNormalizedNames(),
             attr1.getUserDefinedNames(), attr2.getUserDefinedNames()};
@@ -858,7 +858,7 @@ public class ServerDescriptor
 
     if (areEqual)
     {
-      Iterable[] iterables = {
+      Iterable<?>[] iterables = {
           oc1.getExtraPropertyNames(), oc2.getExtraPropertyNames(),
           oc1.getNormalizedNames(), oc2.getNormalizedNames(),
           oc1.getUserDefinedNames(), oc2.getUserDefinedNames()};

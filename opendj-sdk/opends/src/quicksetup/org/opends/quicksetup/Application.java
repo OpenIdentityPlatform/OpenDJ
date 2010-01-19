@@ -106,7 +106,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     String appClassName =
             System.getProperty("org.opends.quicksetup.Application.class");
     if (appClassName != null) {
-      Class appClass = null;
+      Class<?> appClass = null;
       try {
         appClass = Class.forName(appClassName);
         app = (GuiApplication) appClass.newInstance();

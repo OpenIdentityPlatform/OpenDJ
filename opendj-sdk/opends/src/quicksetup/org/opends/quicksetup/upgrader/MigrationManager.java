@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -516,9 +516,5 @@ public class MigrationManager {
 
   private File getCustomSchemaDiffFile() throws IOException {
     return new File(backupDir, "schema.custom.diff");
-  }
-
-  private File getCustomADSDiffFile() throws IOException {
-    return new File(backupDir, "admin-backend.custom.diff");
   }
 }

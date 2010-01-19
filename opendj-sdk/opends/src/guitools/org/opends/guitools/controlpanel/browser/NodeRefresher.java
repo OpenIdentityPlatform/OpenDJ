@@ -44,7 +44,6 @@ import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
-import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
@@ -1110,8 +1109,6 @@ public class NodeRefresher extends AbstractNodeTask {
     }
     if (!checkSucceeded)
     {
-      String hostPort = ServerDescriptor.getServerRepresentation(url.getHost(),
-          url.getPort());
       throw new SearchAbandonException(
           State.FAILED, new ReferralLimitExceededException(
               ERR_CTRL_PANEL_REFERRAL_LOOP.get(url.getRawBaseDN())), referral);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -135,7 +135,7 @@ public class GuiUserInteraction implements UserInteraction {
   /**
    * {@inheritDoc}
    */
-  public String createUnorderedList(List list) {
+  public String createUnorderedList(List<?> list) {
     StringBuilder sb = new StringBuilder();
     if (list != null) {
       sb.append(Constants.HTML_UNORDERED_LIST_OPEN);

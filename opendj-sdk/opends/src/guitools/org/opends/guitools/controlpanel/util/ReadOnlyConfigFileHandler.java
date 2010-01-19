@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -51,6 +51,7 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -244,8 +245,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
       serverRoot = rootFile.getAbsolutePath();
 
       File instanceRootFile =
-        DirectoryServer.getEnvironmentConfig().
-           getInstanceRootFromServerRoot(rootFile);
+        DirectoryEnvironmentConfig.getInstanceRootFromServerRoot(rootFile);
       instanceRoot = instanceRootFile.getAbsolutePath();
     }
     catch (InitializationException ie)

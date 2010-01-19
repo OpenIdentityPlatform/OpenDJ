@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -611,7 +611,8 @@ public abstract class GuiApplication extends Application {
         // platforms.
         try
         {
-          Class cl = Class.forName("org.opends.quicksetup.CliUserInteraction");
+          Class<?> cl =
+            Class.forName("org.opends.quicksetup.CliUserInteraction");
           ui = (UserInteraction) cl.newInstance();
         }
         catch (Throwable t)

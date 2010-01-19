@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -70,8 +70,8 @@ public class SchemaLoader
     new ArrayList<AttributeType>();
   private final ArrayList<MatchingRule> matchingRulesToKeep =
     new ArrayList<MatchingRule>();
-  private final ArrayList<AttributeSyntax> syntaxesToKeep =
-    new ArrayList<AttributeSyntax>();
+  private final ArrayList<AttributeSyntax<?>> syntaxesToKeep =
+    new ArrayList<AttributeSyntax<?>>();
 
   /**
    * Constructor.
@@ -100,7 +100,7 @@ public class SchemaLoader
     {
       matchingRulesToKeep.add(mr);
     }
-    for (AttributeSyntax syntax : sc.getSyntaxes().values())
+    for (AttributeSyntax<?> syntax : sc.getSyntaxes().values())
     {
       syntaxesToKeep.add(syntax);
     }
@@ -260,7 +260,7 @@ public class SchemaLoader
     {
       schema.registerMatchingRule(mr, true);
     }
-    for (AttributeSyntax syntax : syntaxesToKeep)
+    for (AttributeSyntax<?> syntax : syntaxesToKeep)
     {
       schema.registerSyntax(syntax, true);
     }
