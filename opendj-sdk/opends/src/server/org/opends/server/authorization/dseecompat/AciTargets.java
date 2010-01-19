@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -608,7 +608,7 @@ public class AciTargets {
              * Sun CR 6535035 has been raised on DSEE:
              * Non-standard interpretation of onelevel in ACI targetScope.
              */
-            if(!entryDN.getParent().equals(targetDN))
+            if(!targetDN.equals(entryDN.getParent()))
                 return false;
             break;
         case WHOLE_SUBTREE:

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -1563,13 +1563,17 @@ public final class StaticUtils
     }
     else if (t instanceof NullPointerException)
     {
-      StackTraceElement[] stackElements = t.getStackTrace();
-
       MessageBuilder message = new MessageBuilder();
       message.append("NullPointerException(");
-      message.append(stackElements[0].getFileName());
-      message.append(":");
-      message.append(stackElements[0].getLineNumber());
+
+      StackTraceElement[] stackElements = t.getStackTrace();
+      if (stackElements.length > 0)
+      {
+        message.append(stackElements[0].getFileName());
+        message.append(":");
+        message.append(stackElements[0].getLineNumber());
+      }
+
       message.append(")");
       return message.toMessage();
     }
@@ -1597,19 +1601,23 @@ public final class StaticUtils
       if (t.getMessage() == null)
       {
         StackTraceElement[] stackElements = t.getStackTrace();
-        message.append(stackElements[0].getFileName());
-        message.append(":");
-        message.append(stackElements[0].getLineNumber());
 
-        // FIXME Temporary to debug issue 2256.
-        if (t instanceof IllegalStateException)
+        if (stackElements.length > 0)
         {
-          for (int i = 1; i < stackElements.length; i++)
+          message.append(stackElements[0].getFileName());
+          message.append(":");
+          message.append(stackElements[0].getLineNumber());
+
+          // FIXME Temporary to debug issue 2256.
+          if (t instanceof IllegalStateException)
           {
-            message.append(' ');
-            message.append(stackElements[i].getFileName());
-            message.append(":");
-            message.append(stackElements[i].getLineNumber());
+            for (int i = 1; i < stackElements.length; i++)
+            {
+              message.append(' ');
+              message.append(stackElements[i].getFileName());
+              message.append(":");
+              message.append(stackElements[i].getLineNumber());
+            }
           }
         }
       }
