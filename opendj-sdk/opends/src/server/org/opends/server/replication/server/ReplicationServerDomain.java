@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -107,7 +107,7 @@ import org.opends.server.replication.server.
 public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 {
   private final String baseDn;
-  // The Status analyzer that periodically verifis if the connected DSs are
+  // The Status analyzer that periodically verifies if the connected DSs are
   // late or not
   private StatusAnalyzer statusAnalyzer = null;
 
@@ -744,7 +744,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         // Change the number of expected acks if not enough available eligible
         // servers: the level is a best effort thing, we do not want to timeout
         // at every assured SD update for instance if a RS has had his gen id
-        // resetted
+        // reseted
         byte finalSdl = ((nExpectedServers >= neededAdditionalServers) ?
           (byte)sdl : // Keep level as it was
           (byte)(nExpectedServers+1)); // Change level to match what's available
@@ -823,7 +823,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     } else
     {
-      // The timeout occured for the update matching this change number and the
+      // The timeout occurred for the update matching this change number and the
       // ack with timeout error has probably already been sent.
     }
   }
@@ -2026,8 +2026,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // Create info for the local RS
     List<RSInfo> rsInfos = new ArrayList<RSInfo>();
     RSInfo localRSInfo = new RSInfo(replicationServer.getServerId(),
-      generationId, replicationServer.getGroupId(),
-      replicationServer.getWeight());
+      replicationServer.getServerURL(), generationId,
+      replicationServer.getGroupId(), replicationServer.getWeight());
     rsInfos.add(localRSInfo);
 
     return new TopologyMsg(dsInfos, rsInfos);
@@ -2040,7 +2040,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * Also put info related to local RS.
    *
    * @param destDsId The id of the DS the TopologyMsg PDU is to be sent to and
-   * that we must not include in the list DS list.
+   * that we must not include in the DS list.
    * @return A suitable TopologyMsg PDU to be sent to a peer DS
    */
   public TopologyMsg createTopologyMsgForDS(int destDsId)
@@ -2058,8 +2058,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     // Add our own info (local RS)
     RSInfo localRSInfo = new RSInfo(replicationServer.getServerId(),
-      generationId, replicationServer.getGroupId(),
-      replicationServer.getWeight());
+      replicationServer.getServerURL(), generationId,
+      replicationServer.getGroupId(), replicationServer.getWeight());
     rsInfos.add(localRSInfo);
 
     // Go through every peer RSs (and get their connected DSs), also add info
@@ -2502,7 +2502,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        */
       if (allowResetGenId)
       {
-        // Check if generation id has to be resetted
+        // Check if generation id has to be reseted
         mayResetGenerationId();
         if (generationId < 0)
           generationId = handler.getGenerationId();
@@ -3214,7 +3214,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Returns the eligibleCN for that domain - relies on the ChangeTimeHeartbeat
    * state.
-   * For each DS, take the oldest CN from the changetime hearbeat state
+   * For each DS, take the oldest CN from the changetime heartbeat state
    * and from the changelog db last CN. Can be null.
    * @return the eligible CN.
    */

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -219,8 +219,8 @@
       The timeout value when waiting for assured mode acknowledgments.
     </adm:synopsis>
     <adm:description>
-      Defines the amount of milliseconds the replication server will wait for
-      assured acknowledgments (in either Safe Data or Safe Read assured sub
+      Defines the number of milliseconds that the replication server will wait
+      for assured acknowledgments (in either Safe Data or Safe Read assured sub
       modes) before forgetting them and answer to the entity that sent an update
       and is waiting for acknowledgment.
     </adm:description>
@@ -288,7 +288,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0"></adm:integer>
+      <adm:integer lower-limit="1"></adm:integer>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -301,9 +301,9 @@
       The period between sending of monitoring messages.
     </adm:synopsis>
     <adm:description>
-      Defines the amount of milliseconds the replication server will wait before
-      sending new monitoring messages to its peers (replication servers and
-      directory servers).
+      Defines the number of milliseconds that the replication server will wait
+      before sending new monitoring messages to its peers (replication servers
+      and directory servers).
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

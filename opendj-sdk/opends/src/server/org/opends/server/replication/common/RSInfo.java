@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -42,21 +42,26 @@ public class RSInfo
   private byte groupId = (byte) -1;
   // The weight of the RS
   // It is important to keep the default value to 1 so that it is used as
-  // default value for a RS using protocol V3: this default value vill be used
+  // default value for a RS using protocol V3: this default value will be used
   // in algorithms that use weight
   private int weight = 1;
+  // The server URL of the RS
+  private String serverUrl = null;
 
   /**
    * Creates a new instance of RSInfo with every given info.
    *
    * @param id The RS id
+   * @param serverUrl Url of the RS
    * @param generationId The generation id the RS is using
    * @param groupId RS group id
    * @param weight RS weight
    */
-  public RSInfo(int id, long generationId, byte groupId, int weight)
+  public RSInfo(int id, String serverUrl,
+    long generationId, byte groupId, int weight)
   {
     this.id = id;
+    this.serverUrl = serverUrl;
     this.generationId = generationId;
     this.groupId = groupId;
     this.weight = weight;
@@ -117,7 +122,10 @@ public class RSInfo
       return ((id == rsInfo.getId()) &&
         (generationId == rsInfo.getGenerationId()) &&
         (groupId == rsInfo.getGroupId()) &&
-        (weight == rsInfo.getWeight()));
+        (weight == rsInfo.getWeight()) &&
+        (((serverUrl == null) && (rsInfo.getServerUrl() == null)) ||
+        ((serverUrl != null) && (rsInfo.getServerUrl() != null) &&
+        (serverUrl.equals(rsInfo.getServerUrl())))));
     } else
     {
       return false;
@@ -131,12 +139,22 @@ public class RSInfo
   @Override
   public int hashCode()
   {
-    int hash = 5;
-    hash = 37 * hash + this.id;
-    hash = 37 * hash + (int) (this.generationId ^ (this.generationId >>> 32));
-    hash = 37 * hash + this.groupId;
-    hash = 37 * hash + this.weight;
+    int hash = 7;
+    hash = 17 * hash + this.id;
+    hash = 17 * hash + (int) (this.generationId ^ (this.generationId >>> 32));
+    hash = 17 * hash + this.groupId;
+    hash = 17 * hash + this.weight;
+    hash = 17 * hash + (this.serverUrl != null ? this.serverUrl.hashCode() : 0);
     return hash;
+  }
+
+  /**
+   * Gets the server URL.
+   * @return the serverUrl
+   */
+  public String getServerUrl()
+  {
+    return serverUrl;
   }
 
   /**
@@ -147,8 +165,10 @@ public class RSInfo
   public String toString()
   {
     StringBuffer sb = new StringBuffer();
-    sb.append("Id: ");
+    sb.append("\nId: ");
     sb.append(id);
+    sb.append(" ; Server URL: ");
+    sb.append(serverUrl);
     sb.append(" ; Generation id: ");
     sb.append(generationId);
     sb.append(" ; Group id: ");

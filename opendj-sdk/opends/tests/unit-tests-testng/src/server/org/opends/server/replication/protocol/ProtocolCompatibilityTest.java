@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.protocol;
@@ -1092,11 +1092,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     dsList4.add(dsInfo2);
     dsList4.add(dsInfo1);
 
-    RSInfo rsInfo1 = new RSInfo(4527, (long)45316, (byte)103, 1);
+    RSInfo rsInfo1 = new RSInfo(4527, null, (long)45316, (byte)103, 1);
 
-    RSInfo rsInfo2 = new RSInfo(4527, (long)0, (byte)0, 1);
+    RSInfo rsInfo2 = new RSInfo(4527, null, (long)0, (byte)0, 1);
 
-    RSInfo rsInfo3 = new RSInfo(0, (long)-21113, (byte)98, 1);
+    RSInfo rsInfo3 = new RSInfo(0, null, (long)-21113, (byte)98, 1);
 
     List<RSInfo> rsList1 = new ArrayList<RSInfo>();
     rsList1.add(rsInfo1);

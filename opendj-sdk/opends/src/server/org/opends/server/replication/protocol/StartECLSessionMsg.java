@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -80,7 +80,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * This specifies that the request on the ECL is a PERSISTENT search
    * with changesOnly = false.
    */
-  public final static short PERSISTENT_CHANGES_ONLY = 2;;
+  public final static short PERSISTENT_CHANGES_ONLY = 2;
 
 
 

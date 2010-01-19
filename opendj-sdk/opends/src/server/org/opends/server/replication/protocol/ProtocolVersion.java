@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -59,6 +59,7 @@ public class ProtocolVersion
    *   ECL entry attributes.
    * - Modified algorithm for choosing a RS to connect to: introduction of a
    *   ReplicationServerDSMsg message.
+   *   -> also added of the server URL in RSInfo of TopologyMsg
    * - Introduction of a StopMsg for proper connections ending.
    */
   public static final short REPLICATION_PROTOCOL_V4 = 4;

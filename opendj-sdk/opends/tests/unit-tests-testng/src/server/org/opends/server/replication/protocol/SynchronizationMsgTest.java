@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -1026,13 +1026,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     dsList4.add(dsInfo2);
     dsList4.add(dsInfo1);
 
-    RSInfo rsInfo1 = new RSInfo(4527, (long)45316, (byte)103, 1);
+    RSInfo rsInfo1 = new RSInfo(4527, "rsHost1:123", (long)45316, (byte)103, 1);
 
-    RSInfo rsInfo2 = new RSInfo(4527, (long)0, (byte)0, 1);
+    RSInfo rsInfo2 = new RSInfo(4527, "rsHost2:456", (long)0, (byte)0, 1);
 
-    RSInfo rsInfo3 = new RSInfo(0, (long)-21113, (byte)98, 1);
+    RSInfo rsInfo3 = new RSInfo(0, "rsHost3:789", (long)-21113, (byte)98, 1);
 
-    RSInfo rsInfo4 = new RSInfo(45678, (long)-21113, (byte)98, 1);
+    RSInfo rsInfo4 = new RSInfo(45678, "rsHost4:1011", (long)-21113, (byte)98, 1);
 
     List<RSInfo> rsList1 = new ArrayList<RSInfo>();
     rsList1.add(rsInfo1);
