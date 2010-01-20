@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util;
@@ -282,39 +282,6 @@ public final class CertificateManager {
     keyStore = null;
     Platform.generateSelfSignedCertificate(getKeyStore(), keyStoreType,
         keyStorePath, alias, password, subjectDN, validity);
-  }
-
-  /**
-   * Generates a certificate signing request (CSR) using the provided
-   * information.
-   *
-   * @param  alias      The nickname to use for the certificate in the key
-   *                    store.  For the server certificate, it should generally
-   *                    be "server-cert".  It must not be {@code null} or empty.
-   * @param  subjectDN  The subject DN to use for the certificate.  It must not
-   *                    be {@code null} or empty.
-   *
-   * @return  The file containing the generated certificate signing request.
-   *
-   * @throws  KeyStoreException  If a problem occurs while actually attempting
-   *                             to generate the private key in the key store or
-   *                             generate the certificate signing request based
-   *                             on that key.
-   *@throws IllegalArgumentException If the alias already exists in the
-   *                                 keystore.
-   */
-  public File
-  generateCertificateSigningRequest(final String alias, final String subjectDN)
-  throws KeyStoreException, IllegalArgumentException {
-    ensureValid(alias, CERT_ALIAS_MSG);
-    ensureValid(subjectDN, SUBJECT_DN_MSG);
-    if (aliasInUse(alias)) {
-      Message msg = ERR_CERTMGR_ALIAS_ALREADY_EXISTS.get(alias);
-      throw new IllegalArgumentException(msg.toString());
-    }
-    keyStore = null;
-    return Platform.generateCertificateRequest(getKeyStore(), keyStoreType,
-        keyStorePath, alias, password, subjectDN);
   }
 
 
