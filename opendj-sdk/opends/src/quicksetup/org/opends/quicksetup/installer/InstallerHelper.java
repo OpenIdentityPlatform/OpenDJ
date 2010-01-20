@@ -973,7 +973,7 @@ public class InstallerHelper {
     }
     if (!fileProperties.containsKey("overwrite-env-java-args"))
     {
-      otherProperties.put("overwrite-env-java-home", "false");
+      otherProperties.put("overwrite-env-java-args", "false");
     }
     if (!fileProperties.containsKey("default.java-home"))
     {
