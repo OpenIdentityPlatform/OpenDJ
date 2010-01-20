@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -352,7 +352,7 @@
 
     <property name="min.java.version" value="1.5.0_08" />
 
-    <typedef name="validjavaversion"
+    <typedef name="validdisplayjavaversion"
              classname="org.opends.build.tools.ValidJavaVersion" >
       <classpath>
         <fileset dir="${build.dir}/build-tools">
@@ -1805,7 +1805,16 @@
           description="Execute the Directory Server TestNG unit tests in text mode.  Set '-Dorg.opends.test.suppressOutput=false' to see the output from the unit tests.  Set '-Dtest.failures=true' to run only the tests that failed previously.">
   </target>
 
-
+  <!-- Display Java version which will be used for tests. -->
+  <target name="displayjavaversion">
+    <echo message="The following Java version will be used for the tests:"/>
+    <echo message=""/>
+    <exec executable="java">
+      <arg value="-version"/>
+    </exec>
+    <echo message=""/>
+    <echo message=""/>
+  </target>
 
   <!-- Execute the Directory Server TestNG unit tests in text mode with a coverage report. -->
   <target name="testwithcoverage"
@@ -1935,6 +1944,7 @@
   <!-- Internal target to execute the Directory Server TestNG unit tests in text mode after everything has been initialized. -->
   <target name="runtests">
     <antcall target="testhelp"/>
+    <antcall target="displayjavaversion"/>
 
     <mkdir dir="${unittest.report.dir}" />
 
