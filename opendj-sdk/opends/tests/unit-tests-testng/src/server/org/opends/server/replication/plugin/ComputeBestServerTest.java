@@ -528,7 +528,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(4L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, (short)0, 0L,
       false, (byte)1, 0);
     rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
 
@@ -541,7 +541,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
     cn = new ChangeNumber(1L, 0, myId3);
     aState.update(cn);
     replServerStartMsg =
-      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, (short)0, 0L,
+      new ReplServerStartMsg(13, WINNER, null, 0, aState, (short)0, 0L,
       false, (byte)1, 0);
     rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
 

@@ -1844,8 +1844,10 @@ public class ReplicationBroker
      * Find replication servers who are up to date (or more up to date than us,
      * if for instance we failed and restarted, having sent some changes to the
      * RS but without having time to store our own state) regarding our own
-     * server id. If some servers more up to date, prefer this list.
+     * server id. If some servers more up to date, prefer this list but take
+     * only the latest change number.
      */
+    ChangeNumber latestRsChangeNumber = null;
     for (Integer rsId : bestServers.keySet())
     {
       ReplicationServerInfo replicationServerInfo = bestServers.get(rsId);
@@ -1868,7 +1870,25 @@ public class ReplicationBroker
         {
           // This replication server is even more up to date than the local
           // server
-          moreUpToDateServers.put(rsId, replicationServerInfo);
+          if (latestRsChangeNumber == null)
+          {
+            // Initialize the latest change number
+            latestRsChangeNumber = rsChangeNumber;
+          }
+          if (rsChangeNumber.newerOrEquals(latestRsChangeNumber))
+          {
+            if (rsChangeNumber.equals(latestRsChangeNumber))
+            {
+              moreUpToDateServers.put(rsId, replicationServerInfo);
+            } else
+            {
+              // This RS is even more up to date, clear the list and store this
+              // new RS
+              moreUpToDateServers.clear();
+              moreUpToDateServers.put(rsId, replicationServerInfo);
+              latestRsChangeNumber = rsChangeNumber;
+            }
+          }
         }
       }
     }
