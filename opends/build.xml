@@ -32,7 +32,7 @@
   </description>
 
   <!-- Build JVM properties -->
-  <property name="MEM" value="256M"/>
+  <property name="MEM" value="512M"/>
 
   <!-- Build OpenDMK properties -->
   <property file="build.properties"/>
@@ -975,7 +975,7 @@
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
-	 excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties,**/*_pl.properties,**/*_ca_ES.properties" 
+	 excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}, org/opends/server/snmp/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties,**/*_pl.properties,**/*_ca_ES.properties"
         compress="true" index="true" />
 
    <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
@@ -1056,7 +1056,7 @@
 
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
-  	
+
     <!-- Create buildinfo files -->
       <echo message="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.${REVISION_NUMBER}"
         file="${pdir}/config/buildinfo" />
