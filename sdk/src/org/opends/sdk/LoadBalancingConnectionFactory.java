@@ -1,20 +1,44 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2010 Sun Microsystems, Inc.
+ */
+
 package org.opends.sdk;
 
 
 
-import com.sun.opends.sdk.util.Validator;
 import com.sun.opends.sdk.util.AbstractFutureResult;
-
-import org.opends.sdk.responses.Responses;
+import com.sun.opends.sdk.util.Validator;
 
 
 
 /**
- * Created by IntelliJ IDEA. User: digitalperk Date: Dec 15, 2009 Time:
- * 3:23:52 PM To change this template use File | Settings | File
- * Templates.
+ * A load balancing connection factory allocates connections using the
+ * provided algorithm.
  */
-public class LoadBalancingConnectionFactory extends
+final class LoadBalancingConnectionFactory extends
     AbstractConnectionFactory
 {
   private final LoadBalancingAlgorithm algorithm;
@@ -32,8 +56,13 @@ public class LoadBalancingConnectionFactory extends
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
       ResultHandler<AsynchronousConnection> resultHandler)
   {
-    ConnectionFactory factory = algorithm.getNextConnectionFactory();
-    if (factory == null)
+    ConnectionFactory factory;
+
+    try
+    {
+      factory = algorithm.getNextConnectionFactory();
+    }
+    catch (ErrorResultException e)
     {
       AbstractFutureResult<AsynchronousConnection> future = new AbstractFutureResult<AsynchronousConnection>(
           resultHandler)
@@ -43,9 +72,8 @@ public class LoadBalancingConnectionFactory extends
           return -1;
         }
       };
-      future.handleErrorResult(new ErrorResultException(Responses
-          .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
-          .setDiagnosticMessage("No connection factories available")));
+
+      future.handleErrorResult(e);
       return future;
     }
 
