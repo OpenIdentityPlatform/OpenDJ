@@ -29,6 +29,7 @@ package org.opends.sdk;
 
 
 
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.BindRequest;
@@ -44,14 +45,6 @@ import com.sun.opends.sdk.util.Validator;
  */
 public final class Connections
 {
-  // Prevent instantiation.
-  private Connections()
-  {
-    // Do nothing.
-  }
-
-
-
   /**
    * Creates a new authenticated connection factory which will obtain
    * connections using the provided connection factory and immediately
@@ -113,18 +106,84 @@ public final class Connections
 
 
   /**
-   * Creates a new heart-beat connection factory which will create
-   * connections using the provided connection factory and periodically
-   * ping any created connections in order to detect that they are still
-   * alive.
+   * Creates a new connection factory providing fault tolerance across
+   * multiple underlying connection factories.
+   * <p>
+   * The returned fail-over connection factory forwards connection
+   * requests to one of the provided connection factories. If the
+   * request fails for some reason (for example, due to network
+   * failure), then the fail-over connection factory switches to another
+   * connection faction, repeating the process until the connection
+   * request succeeds, or until all the connection factories are
+   * determined to be unavailable, in which case the connection request
+   * will fail.
+   * <p>
+   * The implementation periodically attempts to connect to failed
+   * connection factories in order to determine if they have become
+   * available again.
+   *
+   * @param factories
+   *          The connection factories which will be used for fail-over.
+   * @return The new fail-over connection factory.
+   * @throws NullPointerException
+   *           If {@code factories} was {@code null}.
+   */
+  public static ConnectionFactory newFailoverConnectionFactory(
+      Collection<ConnectionFactory> factories)
+      throws NullPointerException
+  {
+    FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
+        factories);
+    return new LoadBalancingConnectionFactory(algorithm);
+  }
+
+
+
+  /**
+   * Creates a new connection factory providing fault tolerance across
+   * multiple underlying connection factories.
+   * <p>
+   * The returned fail-over connection factory forwards connection
+   * requests to one of the provided connection factories. If the
+   * request fails for some reason (for example, due to network
+   * failure), then the fail-over connection factory switches to another
+   * connection faction, repeating the process until the connection
+   * request succeeds, or until all the connection factories are
+   * determined to be unavailable, in which case the connection request
+   * will fail.
+   * <p>
+   * The implementation periodically attempts to connect to failed
+   * connection factories in order to determine if they have become
+   * available again.
+   *
+   * @param factories
+   *          The connection factories which will be used for fail-over.
+   * @return The new fail-over connection factory.
+   * @throws NullPointerException
+   *           If {@code factories} was {@code null}.
+   */
+  public static ConnectionFactory newFailoverConnectionFactory(
+      ConnectionFactory... factories) throws NullPointerException
+  {
+    FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
+        factories);
+    return new LoadBalancingConnectionFactory(algorithm);
+  }
+
+
+
+  /**
+   * Creates a new connection factory which will create connections
+   * using the provided connection factory and periodically probe any
+   * created connections in order to detect that they are still alive.
    *
    * @param factory
    *          The connection factory to use for creating connections.
    * @param timeout
-   *          The time to wait between keepalive pings.
+   *          The time to wait between keep-alive probes.
    * @param unit
    *          The time unit of the timeout argument.
-   * @return The heart-beat connection factory.
+   * @return The new heart-beat connection factory.
    * @throws IllegalArgumentException
    *           If {@code timeout} was negative.
    * @throws NullPointerException
@@ -143,20 +202,20 @@ public final class Connections
 
 
   /**
-   * Creates a new heart-beat connection factory which will create
-   * connections using the provided connection factory and periodically
-   * ping any created connections using the specified search request in
-   * order to detect that they are still alive.
+   * Creates a new connection factory which will create connections
+   * using the provided connection factory and periodically probe any
+   * created connections using the specified search request in order to
+   * detect that they are still alive.
    *
    * @param factory
    *          The connection factory to use for creating connections.
    * @param timeout
-   *          The time to wait between keepalive pings.
+   *          The time to wait between keep-alive probes.
    * @param unit
    *          The time unit of the timeout argument.
    * @param heartBeat
    *          The search request to use when pinging connections.
-   * @return The heart-beat connection factory.
+   * @return The new heart-beat connection factory.
    * @throws IllegalArgumentException
    *           If {@code timeout} was negative.
    * @throws NullPointerException
@@ -175,4 +234,11 @@ public final class Connections
         heartBeat);
   }
 
+
+
+  // Prevent instantiation.
+  private Connections()
+  {
+    // Do nothing.
+  }
 }
