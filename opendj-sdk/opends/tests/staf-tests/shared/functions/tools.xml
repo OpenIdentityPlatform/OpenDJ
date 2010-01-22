@@ -346,6 +346,16 @@
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
       
+      <function-arg-def name="ignoreAttrsFile" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          File containing a list of attributes to ignore when computing the
+          difference
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      
       <function-arg-def name="overwriteExisting" type="optional" default="True">
         <function-arg-description>
           Overwrite existing output file rather than append to it
@@ -391,6 +401,9 @@
         if outputLdif:
           STAFCmdParamsList.append('-o %s' % outputLdif)
         
+        if ignoreAttrsFile:
+          STAFCmdParamsList.append('-a %s' % ignoreAttrsFile)
+
         if overwriteExisting:
           STAFCmdParamsList.append('-O')
         
@@ -668,6 +681,15 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
 
+      <function-arg-def name="ignoreAttrsFile" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          File containing a list of attributes to ignore when computing the
+          difference
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
     </function-list-args>
     <sequence>
       <script>
@@ -758,11 +780,12 @@
               
               <!-- Compare this tree to the reference one -->
               <call function="'LdifDiffWithScript'">
-                { 'location'   : location,
-                  'dsPath'     : dsPath,
-                  'sourceLdif' : '%s/../%s' % (dsPath, sampleTree),
-                  'targetLdif' : '%s/../%s' % (dsPath, referenceTree),
-                  'outputLdif' : '%s/../%s' % (dsPath, treeDiffs)
+                { 'location'        : location,
+                  'dsPath'          : dsPath,
+                  'sourceLdif'      : '%s/../%s' % (dsPath, sampleTree),
+                  'targetLdif'      : '%s/../%s' % (dsPath, referenceTree),
+                  'outputLdif'      : '%s/../%s' % (dsPath, treeDiffs),
+                  'ignoreAttrsFile' : ignoreAttrsFile
                 }
               </call>
               <if expr="STAXResult != 0">
@@ -2152,7 +2175,6 @@
                   'dsInstancePswd' : otherServer.getRootPwd(),
                   'dsBaseDN'       : entryDn,
                   'dsFilter'       : 'objectclass=*',
-                  'dsAttributes'   : 'employeeNumber',
                   'logStderr'      : False
                 }                
               </call>
@@ -2210,7 +2232,18 @@
               'issue'      : myKnownIssue
             }
           </call>
-      
+
+          <!-- Remove footprint: delete the entry just added -->
+          <call function="'ldapDeleteWithScript'">
+            { 'location'       : serverHost,
+              'dsPath'         : serverPath,
+              'dsInstanceHost' : serverHost,
+              'dsInstancePort' : server.getPort(),
+              'dsInstanceDn'   : server.getRootDn(),
+              'dsInstancePswd' : server.getRootPwd(),
+              'dsDn'           : [entryDn]
+            }
+          </call>
         </sequence>
       </iterate>
       

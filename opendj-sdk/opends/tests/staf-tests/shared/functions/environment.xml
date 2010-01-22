@@ -202,6 +202,15 @@
         MultimasterSync = 'Multimaster Synchronization'
         MultimasterType = 'multimaster'
 
+        # Replication execution mode variables: if not defined, set random value
+        import random
+        
+        if REPLICATION_SPLIT_SERVERS == '':
+          REPLICATION_SPLIT_SERVERS = random.choice(['true', 'false'])
+        
+        if REPLICATION_ECL_MODE == '':
+          REPLICATION_ECL_MODE = random.choice(['opends', 'draft'])
+
         # Create staf objects
         LOCAL_STAF_ROOT  = test_env.staf(STAF_LOCAL_HOSTNAME).root
         REMOTE_STAF_ROOT = test_env.staf(STAF_REMOTE_HOSTNAME).root
