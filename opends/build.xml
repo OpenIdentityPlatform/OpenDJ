@@ -539,6 +539,7 @@
 
   <!-- Ensure that the source code meets basic style requirements. -->
   <target name="checkstyle" description="Perform basic source style checks">
+  <antcall target="displayjavaversion"/>
     <mkdir dir="${checkstyle.cache.dir}" />
 
     <taskdef resource="checkstyletask.properties"
@@ -1807,7 +1808,7 @@
 
   <!-- Display Java version which will be used for tests. -->
   <target name="displayjavaversion">
-    <echo message="The following Java version will be used for the tests:"/>
+    <echo message="The following Java version will be used :"/>
     <echo message=""/>
     <exec executable="java">
       <arg value="-version"/>
