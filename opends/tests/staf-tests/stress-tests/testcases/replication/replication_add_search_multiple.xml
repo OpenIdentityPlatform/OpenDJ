@@ -67,6 +67,8 @@
             server2Dir    = server2.getDir()
             
             suffix        = 'add_search_multiple'
+            consumer      = _topologyServerList[1]
+
           </script>
 
 
@@ -112,6 +114,49 @@
                 }
               </call>
 
+              <!-- If the External Changelog is to be tested, install an
+               !   stand-alone instance whereto replay the changes -->
+              <if expr="globalTestExternalChangelog">
+                <sequence>
+                  <message>
+                    'Test ECL: Install stand-alone instance whereto replay \
+                    changes'
+                  </message>
+                  
+                  <!-- Create instance with default parameters read from 
+                   !   config.py -->
+                  <script>
+                    standaloneServer = Server(DIRECTORY_INSTANCE_HOST,
+                                              DIRECTORY_INSTANCE_DIR,
+                                              DIRECTORY_INSTANCE_PORT,
+                                              DIRECTORY_INSTANCE_ADMIN_PORT,
+                                              DIRECTORY_INSTANCE_SSL_PORT,
+                                              None,
+                                              DIRECTORY_INSTANCE_DN,
+                                              DIRECTORY_INSTANCE_PSWD,
+                                              synchroSuffix)
+                  </script>
+                  <call function="'createInstance'">
+                    { 'dsHost'      : standaloneServer.getHostname(),
+                      'dsDir'       : standaloneServer.getDir(),
+                      'dsPort'      : standaloneServer.getPort(),
+                      'dsAdminPort' : standaloneServer.getAdminPort(),
+                      'dsSslPort'   : standaloneServer.getSslPort(),
+                      'dsJmxPort'   : standaloneServer.getJmxPort(),
+                      'dsBindDN'    : standaloneServer.getRootDn(),
+                      'dsBindPwd'   : standaloneServer.getRootPwd(),
+                      'dsBaseDN'    : standaloneServer.getBaseDn()
+                    }
+                  </call>
+                  
+                  <!-- Start the stand-alone Directory Server -->
+                  <call function="'StartDsWithScript'">
+                    { 'location' : standaloneServer.getHostname() }
+                  </call>
+                  
+                </sequence>
+              </if>
+              
               <call function="'testCase_Postamble'"/>
 
             </sequence>
@@ -254,6 +299,38 @@
                       </loop>
                     </sequence>
                     </block>
+                    
+                    <!-- If the External Changelog is to be tested, install an
+                     !   stand-alone instance whereto replay the changes -->
+                    <if expr="globalTestExternalChangelog">
+                      <block name="'ecl-test'">
+                      <sequence>
+                        <message>
+                          'replication_modify: Test ECL: Read and replay \
+                          changes'
+                        </message>
+                        
+                        <call function="'eclReadAndPlay'">
+                          { 'location'       : standaloneServer.getHostname(),
+                            'standaloneHost' : standaloneServer.getHostname(),
+                            'standalonePort' : standaloneServer.getPort(),
+                            'replicaHost1'   : consumer.getHostname(),
+                            'replicaPort1'   : consumer.getPort(),
+                            'replicaHost2'   : masterHost,
+                            'replicaPort2'   : master.getPort(),
+                            'bindDn'         : master.getRootDn(),
+                            'bindPswd'       : master.getRootPwd(),
+                            'eclMode'        : globalExternalChangelogMode,
+                            'queueSize'      : 1000,
+                            'outputFilename' : '%s/eclReadAndPlay.output' \
+                                               % standaloneServer.getDir()
+                          }
+                        </call>
+                        
+                      </sequence>
+                      </block>
+                    </if>
+                    
                   </parallel>
               <!--</sequence>
               </timer>
@@ -387,7 +464,74 @@
 
           </testcase>
           
+          <!-- If the External Changelog is to be tested, verify the 
+           !   synchronisation of the tree in the stand-alone instance -->
+          <if expr="globalTestExternalChangelog">
+            <testcase name="getTestCaseName('Verify stand-alone server tree synchronization')">
+  
+              <sequence>
+  
+                <call function="'testCase_Preamble'"/>
+  
+                <message>
+                  'replication_modify: Verify the stand-alone server tree \
+                  synchronization'
+                </message>
+                
+                <script>
+                  attrsToIgnoreFile = '%s/ignoreAttrsFile.ldifdiff' % \
+                                      clientDataDir
+                  tmpFile = '%s/ignoreAttrsFile.ldifdiff' % TMPDIR
+                  
+                  ignoreAttrs = []
+                  ignoreAttrs.append('ds-sync-generation-id')
+                  ignoreAttrs.append('ds-sync-hist')
+                  ignoreAttrs.append('ds-sync-state')
+                  ignoreAttrs.append('createTimestamp')
+                  ignoreAttrs.append('modifyTimestamp')
+                  
+                  # write out the ldif file
+                  outfile = open(tmpFile,"w")
           
+                  for line in ignoreAttrs:
+                    outfile.write("%s\n" % line)
+          
+                  outfile.close()
+                </script>
+              
+                <if expr="clientHost != STAXServiceMachine">
+                  <call function="'copyFile'">
+                    { 'location'   : masterHost,
+                      'srcfile'    : tmpFile,
+                      'destfile'   : attrsToIgnoreFile,
+                      'remotehost' : clientHost
+                    }
+                  </call>
+                  <else>
+                    <script>
+                      attrsToIgnoreFile = tmpFile
+                    </script>
+                  </else>
+                </if>
+                              
+                <!-- Verify the synchronization of the trees among the servers in 
+                  the topology -->          
+                <call function="'verifyTrees'">
+                  [ clientHost, clientPath, master, [standaloneServer], 
+                    synchroSuffix, None, attrsToIgnoreFile ]
+                </call>
+                
+                <!-- Stop the stand-alone Directory Server -->
+                <call function="'StopDsWithScript'">
+                  { 'location' : standaloneServer.getHostname() }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+  
+              </sequence>
+  
+            </testcase>
+          </if>
           
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/../functional-tests/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>

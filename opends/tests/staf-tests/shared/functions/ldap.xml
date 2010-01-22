@@ -3228,7 +3228,7 @@
   
   
   
-  <!-- Modify an attribute -->
+  <!-- Do an ldapsearch using SASL authentication -->
   <function name="saslSearch">
     <function-prolog>
       This function searches the Directory Server using SASL authentication
@@ -3622,4 +3622,171 @@
 
   </function>
   
+  
+  
+  <!-- Read ECL and replay changes on stand-alone server -->
+  <function name="eclReadAndPlay">
+    <function-prolog>
+      This function reads the ECL in a replicated server and replays the changes
+      on a stand-alone server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="standaloneHost" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Stand-alone directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="standalonePort" type="required">
+        <function-arg-description>
+          Stand-alone directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="replicaHost1" type="required">
+        <function-arg-description>
+          Replicated Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="replicaPort1" type="required">
+        <function-arg-description>
+          Replicated Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="replicaHost2" type="required">
+        <function-arg-description>
+          Replicated Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="replicaPort2" type="required">
+        <function-arg-description>
+          Replicated Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="bindDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="bindPswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="eclMode" type="required">
+        <function-arg-description>
+          ECL search mode: "draft" or "opends"
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="queueSize" 
+                        type="optional"
+                        default="1000">
+        <function-arg-description>
+          Size of the queue where the read updates are stored for the writer to
+          replay on the stand-alone server
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="displayMissingChanges" 
+                        type="optional"
+                        default="False">
+        <function-arg-description>
+          Whether information on missing changes should be displayed or not
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="outputFilename" type="required">
+        <function-arg-description>
+          Standard output file name
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        #Build the Command
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        STAFCmd='EclReadAndPlay'
+      </script>
+      
+      <!-- Set common ldap arguments -->
+      <script>
+        STAFCmdParamsList.append('-m %s' % eclMode)
+        STAFCmdParamsList.append('-q %s' % queueSize)
+        STAFCmdParamsList.append('-D "%s"' % bindDn)
+        STAFCmdParamsList.append('-w "%s"' % bindPswd)
+        STAFCmdParamsList.append('-s %s:%s' % (standaloneHost, standalonePort))
+        STAFCmdParamsList.append('-p %s:%s' % (replicaHost1, replicaPort1))
+        STAFCmdParamsList.append('-p %s:%s' % (replicaHost2, replicaPort2))
+        STAFCmdParamsList.append('-o %s' % outputFilename)
+        
+        if (displayMissingChanges == True):
+          displayMC = 'true'
+        else:
+          displayMC = 'false'
+        STAFCmdParamsList.append('-x %s' % displayMC)
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+        STAFCmd='EclReadAndPlay' 
+      </script>
+      <call function="'runCommand'" >
+        { 'name'      : 'Read ECL and replay',
+          'command'   : '%s/bin/java' % JAVA_HOME,
+          'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
+          'location'  : location,
+          'envCmd'    : ['CLASSPATH=%s/../%s/ldapjdk:%s/../%s/ldapjdk/ldapjdk.jar' \
+                        % (dsPath,remote.reljavadir,dsPath,remote.reljavadir)],
+          'path'      : '%s/../%s/ldapjdk' % (dsPath,remote.reljavadir),
+          'expectedRC': expectedRC,
+          'knownIssue': knownIssue
+        }
+      </call>
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
 </stax>

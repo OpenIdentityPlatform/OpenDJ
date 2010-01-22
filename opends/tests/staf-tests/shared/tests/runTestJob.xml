@@ -535,6 +535,23 @@
         
         sutElementList=[]
         
+        # Create the sut config element
+        sut = doc.createElement("sut")
+        id.appendChild(sut)
+
+        for configType in ['REPLICATION_SPLIT_SERVERS','REPLICATION_ECL_MODE']:
+
+          # Create the service testware element
+          config = doc.createElement("config")
+          config.setAttribute("attribute",configType)
+          sut.appendChild(config)
+
+          # Create the service testware elements
+          sutElementList=[]
+          sutElementList.append(['value',eval(configType)])
+
+          write_text_elements(config,sutElementList)
+        
         # Create the testware element
         testware = doc.createElement("testware")
         id.appendChild(testware)

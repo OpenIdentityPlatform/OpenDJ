@@ -83,10 +83,22 @@
             
             if (REPLICATION_SPLIT_SERVERS == 'true'):
               globalSplitServers = True
+              globalTestExternalChangelog = False
+              globalExternalChangelogMode = 'n/a'
             else:
-              globalSplitServers = None
+              globalSplitServers = None            
+              globalTestExternalChangelog = True
+              globalExternalChangelogMode = REPLICATION_ECL_MODE
           </script>
 
+          <message>
+            '***************************************************\n\
+            ****  REPLICATION EXECUTION MODES  \n\
+            ****  Split Servers: %s  \n\
+            ****  External Changelog Mode: %s  \n\
+            ***************************************************' % \
+            (globalSplitServers, globalExternalChangelogMode) 
+          </message>
           <iterate var="__test" in="testList">
             <sequence>
 

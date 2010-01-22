@@ -451,6 +451,45 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:element>
   </xsl:element>
 
+  <!-- Configuration -->
+  <xsl:element name="h3">
+    <xsl:value-of select="'Configuration Details'"/>
+  </xsl:element>
+
+  <!-- Configuration Table-->
+  <xsl:element name="table">
+    <xsl:attribute name="border">
+      <xsl:value-of select="'1'"/>
+    </xsl:attribute>
+    <xsl:attribute name="cellpadding">
+      <xsl:value-of select="'1'"/>
+    </xsl:attribute>
+    <xsl:element name="tr">
+      <xsl:element name="th">
+          <xsl:value-of select="'Attribute'"/>
+      </xsl:element>
+      <xsl:element name="th">
+        <xsl:value-of select="'Value'"/>
+      </xsl:element>
+    </xsl:element>
+
+    <xsl:for-each select="$sut/config">
+
+      <xsl:element name="tr">
+        <xsl:element name="td">
+          <xsl:element name="b">
+            <xsl:value-of select="@attribute"/>
+          </xsl:element>
+        </xsl:element>
+        <xsl:element name="td">
+          <xsl:value-of select="value"/>
+        </xsl:element>
+      </xsl:element>
+
+    </xsl:for-each>
+
+  </xsl:element>
+
   <xsl:element name="br"/>
 
   <!-- Package Table -->  
@@ -676,57 +715,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:element name="br"/>
 
-  <!-- Shaded Line -->
-  <xsl:element name="hr">
-    <xsl:attribute name="noshade">
-      <xsl:value-of select="'noshade'"/>
-    </xsl:attribute>
-    <xsl:attribute name="size">
-      <xsl:value-of select="1"/>
-    </xsl:attribute>
-  </xsl:element>
-
-  <!-- Configuration -->
-  <xsl:element name="h2">
-    <xsl:value-of select="'Configuration Details'"/>
-  </xsl:element>
-
-  <!-- Configuration Table-->  
-  <xsl:element name="table">
-    <xsl:attribute name="border">
-      <xsl:value-of select="'1'"/>
-    </xsl:attribute>
-    <xsl:attribute name="cellpadding">
-      <xsl:value-of select="'1'"/>
-    </xsl:attribute>
-    <xsl:element name="tr">
-      <xsl:element name="th">
-          <xsl:value-of select="'Attribute'"/>
-      </xsl:element>
-      <xsl:element name="th">
-        <xsl:value-of select="'Value'"/>
-      </xsl:element>          
-    </xsl:element>
-
-    <xsl:for-each select="$testware/config">
-    
-      <xsl:element name="tr">
-        <xsl:element name="td">
-          <xsl:element name="b">
-            <xsl:value-of select="attribute"/>
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="td">
-          <xsl:value-of select="value"/>
-        </xsl:element>          
-      </xsl:element>
-
-    </xsl:for-each>
-
-  </xsl:element>
-
-  <xsl:element name="br"/>
-  
   <!-- Shaded Line -->
   <xsl:element name="hr">
     <xsl:attribute name="noshade">
