@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -61,7 +61,10 @@ public class ControlPanelLog
       for (String packageName : packages)
       {
         Logger logger = Logger.getLogger(packageName);
-        logger.setUseParentHandlers(false); // disable logging to console
+        if (disableLoggingToConsole())
+        {
+          logger.setUseParentHandlers(false); // disable logging to console
+        }
         logger.addHandler(fileHandler);
       }
       Logger logger = Logger.getLogger(packages[0]);
@@ -78,7 +81,10 @@ public class ControlPanelLog
    */
   static public void initPackage(String packageName) throws IOException {
     Logger logger = Logger.getLogger(packageName);
-    logger.setUseParentHandlers(false); // disable logging to console
+    if (disableLoggingToConsole())
+    {
+      logger.setUseParentHandlers(false); // disable logging to console
+    }
     logger.addHandler(fileHandler);
     logger.log(Level.INFO, getInitialLogRecord());
   }
@@ -108,5 +114,9 @@ public class ControlPanelLog
     return sb.toString();
   }
 
+  private static boolean disableLoggingToConsole()
+  {
+    return !"true".equals(System.getenv("OPENDS_LOG_TO_STDOUT"));
+  }
 }
 
