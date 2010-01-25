@@ -229,6 +229,7 @@ public class DBTest
       StringArgument baseDN;
       StringArgument databaseName;
       BooleanArgument skipDecode;
+      BooleanArgument statsOnly;
       StringArgument maxKeyValue;
       StringArgument minKeyValue;
       IntegerArgument maxDataSize;
@@ -286,6 +287,10 @@ public class DBTest
           new BooleanArgument("skipdecode", 'p', "skipDecode",
                               INFO_DESCRIPTION_DBTEST_SKIP_DECODE.get());
       sub.addArgument(skipDecode);
+      statsOnly =
+          new BooleanArgument("statsonly", 'q', "statsOnly",
+                              INFO_DESCRIPTION_DBTEST_STATS_ONLY.get());
+      sub.addArgument(statsOnly);
       maxKeyValue = new StringArgument("maxkeyvalue", 'K', "maxKeyValue", false,
                                        false, true,
                                        INFO_MAX_KEY_VALUE_PLACEHOLDER.get(),
@@ -531,6 +536,7 @@ public class DBTest
                                      subCommand.getArgument("basedn"),
                                      subCommand.getArgument("databasename"),
                                      subCommand.getArgument("skipdecode"),
+                                     subCommand.getArgument("statsonly"),
                                      subCommand.getArgument("maxkeyvalue"),
                                      subCommand.getArgument("minkeyvalue"),
                                      subCommand.getArgument("maxdatasize"),
@@ -1038,9 +1044,9 @@ public class DBTest
 
   private int dumpDatabaseContainer(Argument backendID, Argument baseDN,
                                     Argument databaseName, Argument skipDecode,
+                                    Argument statsOnly,
                                     Argument maxKeyValue, Argument minKeyValue,
-                                    Argument maxDataSize,
-                                    Argument minDataSize)
+                                    Argument maxDataSize, Argument minDataSize)
   {
     Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
@@ -1352,230 +1358,232 @@ public class DBTest
             }
           }
 
-          Message keyLabel = INFO_LABEL_DBTEST_KEY.get();
-          Message dataLabel = INFO_LABEL_DBTEST_DATA.get();
-
-          String formatedKey = null;
-          String formatedData = null;
-
-          if(!skipDecode.isPresent())
+          if (!statsOnly.isPresent())
           {
-            if(databaseContainer instanceof DN2ID)
+            Message keyLabel = INFO_LABEL_DBTEST_KEY.get();
+            Message dataLabel = INFO_LABEL_DBTEST_DATA.get();
+
+            String formatedKey = null;
+            String formatedData = null;
+
+            if(!skipDecode.isPresent())
             {
-              try
+              if(databaseContainer instanceof DN2ID)
               {
-                formatedKey = DN.decode(ByteString.wrap(key.getData())).
+                try
+                {
+                  formatedKey = DN.decode(ByteString.wrap(key.getData())).
                     toNormalizedString();
-                keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
-              }
-              catch(Exception e)
-              {
-                Message message =
+                  keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
+                }
+                catch(Exception e)
+                {
+                  Message message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                printMessage(message);
-              }
-              formatedData = String.valueOf(
+                  printMessage(message);
+                }
+                formatedData = String.valueOf(
                   JebFormat.entryIDFromDatabase(data.getData()));
-              dataLabel = INFO_LABEL_DBTEST_ENTRY_ID.get();
-            }
-            else if(databaseContainer instanceof ID2Entry)
-            {
-              formatedKey = String.valueOf(
-                  JebFormat.entryIDFromDatabase(key.getData()));
-              keyLabel = INFO_LABEL_DBTEST_ENTRY_ID.get();
-              try
+                dataLabel = INFO_LABEL_DBTEST_ENTRY_ID.get();
+              }
+              else if(databaseContainer instanceof ID2Entry)
               {
-                formatedData = System.getProperty("line.separator") +
-                    ID2Entry.entryFromDatabase(
+                formatedKey = String.valueOf(
+                    JebFormat.entryIDFromDatabase(key.getData()));
+                keyLabel = INFO_LABEL_DBTEST_ENTRY_ID.get();
+                try
+                {
+                  formatedData = System.getProperty("line.separator") +
+                      ID2Entry.entryFromDatabase(
                         ByteString.wrap(data.getData()),
                         ec.getRootContainer().getCompressedSchema()).
                               toLDIFString();
-                dataLabel = INFO_LABEL_DBTEST_ENTRY.get();
-              }
-              catch(Exception e)
-              {
-                Message message =
+                  dataLabel = INFO_LABEL_DBTEST_ENTRY.get();
+                }
+                catch(Exception e)
+                {
+                  Message message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                printMessage(message);
+                  printMessage(message);
+                }
               }
-            }
-            else if(databaseContainer instanceof DN2URI)
-            {
-              try
+              else if(databaseContainer instanceof DN2URI)
               {
-                formatedKey = DN.decode(ByteString.wrap(
+                try
+                {
+                  formatedKey = DN.decode(ByteString.wrap(
                     key.getData())).toNormalizedString();
-                keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
-              }
-              catch(Exception e)
-              {
-                Message message =
+                  keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
+                }
+                catch(Exception e)
+                {
+                  Message message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                printMessage(message);
+                  printMessage(message);
+                }
+                formatedData = new String(key.getData());
+                dataLabel = INFO_LABEL_DBTEST_URI.get();
               }
-              formatedData = new String(key.getData());
-              dataLabel = INFO_LABEL_DBTEST_URI.get();
-            }
-            else if(databaseContainer instanceof Index)
-            {
-              formatedKey = new String(key.getData());
-              keyLabel = INFO_LABEL_DBTEST_INDEX_VALUE.get();
+              else if(databaseContainer instanceof Index)
+              {
+                formatedKey = new String(key.getData());
+                keyLabel = INFO_LABEL_DBTEST_INDEX_VALUE.get();
 
-              EntryIDSet idSet = new EntryIDSet(key.getData(),
+                EntryIDSet idSet = new EntryIDSet(key.getData(),
                                                 data.getData());
-              if(idSet.isDefined())
-              {
-                int lineCount = 0;
-                StringBuilder builder = new StringBuilder();
-
-                Iterator<EntryID> i = idSet.iterator();
-                while(i.hasNext())
+                if(idSet.isDefined())
                 {
-                  builder.append(i.next());
-                  if(lineCount == 10)
-                  {
-                    builder.append(System.getProperty("line.separator"));
-                    lineCount = 0;
-                  }
-                  else
-                  {
-                    builder.append(" ");
-                    lineCount++;
-                  }
-                }
-                formatedData = builder.toString();
-              }
-              else
-              {
-                formatedData = idSet.toString();
-              }
-              dataLabel = INFO_LABEL_DBTEST_INDEX_ENTRY_ID_LIST.get();
-            }
-            else if(databaseContainer instanceof VLVIndex)
-            {
-              VLVIndex index = (VLVIndex)databaseContainer;
-              SortKey[] sortKeys = index.sortOrder.getSortKeys();
+                  int lineCount = 0;
+                  StringBuilder builder = new StringBuilder();
 
-              int pos = 0;
-              byte[] keyBytes = key.getData();
-              if(keyBytes.length > 0)
-              {
-                StringBuilder builder = new StringBuilder();
-
-                // Decode the attribute values
-                for(SortKey sortKey : sortKeys)
-                {
-                  int valueLength = keyBytes[pos] & 0x7F;
-                  if (keyBytes[pos++] != valueLength)
+                  Iterator<EntryID> i = idSet.iterator();
+                  while(i.hasNext())
                   {
-                    int numLengthBytes = valueLength;
-                    valueLength = 0;
-                    for (int k=0; k < numLengthBytes; k++, pos++)
+                    builder.append(i.next());
+                    if(lineCount == 10)
                     {
-                      valueLength = (valueLength << 8) |
-                          (keyBytes[pos] & 0xFF);
-                    }
-                  }
-
-                  byte[] valueBytes = new byte[valueLength];
-                  System.arraycopy(keyBytes, pos, valueBytes, 0,
-                                   valueLength);
-                  builder.append(sortKey.getAttributeType().getNameOrOID());
-                  builder.append(": ");
-                  if(valueBytes.length == 0)
-                  {
-                    builder.append("NULL");
-                  }
-                  else
-                  {
-                    builder.append(new String(valueBytes));
-                  }
-                  builder.append(" ");
-                  pos += valueLength;
-                }
-
-                byte[] entryIDBytes = new byte[8];
-                System.arraycopy(keyBytes, pos, entryIDBytes, 0,
-                                 entryIDBytes.length);
-                long entryID = JebFormat.entryIDFromDatabase(entryIDBytes);
-
-                formatedKey = System.getProperty("line.separator") +
-                    String.valueOf(entryID) + ": " + builder.toString();
-              }
-              else
-              {
-                formatedKey = "UNBOUNDED";
-              }
-              keyLabel = INFO_LABEL_DBTEST_VLV_INDEX_LAST_SORT_KEYS.get();
-
-              try
-              {
-                StringBuilder builder = new StringBuilder();
-                SortValuesSet svs = new SortValuesSet(key.getData(),
-                                                      data.getData(),
-                                                      index);
-                long[] entryIDs = svs.getEntryIDs();
-                for(int i = 0; i < entryIDs.length; i++)
-                {
-                  builder.append(String.valueOf(entryIDs[i]));
-                  builder.append(": ");
-                  for(int j = 0; j < sortKeys.length; j++)
-                  {
-                    SortKey sortKey = index.sortOrder.getSortKeys()[j];
-                    ByteString value = svs.getValue(i * sortKeys.length + j);
-                    builder.append(sortKey.getAttributeType().getNameOrOID());
-                    builder.append(": ");
-                    if(value == null)
-                    {
-                      builder.append("NULL");
-                    }
-                    else if(value.length() == 0)
-                    {
-                      builder.append("SIZE-EXCEEDED");
+                      builder.append(System.getProperty("line.separator"));
+                      lineCount = 0;
                     }
                     else
                     {
-                      builder.append(value.toString());
+                      builder.append(" ");
+                      lineCount++;
                     }
-                    builder.append(" ");
                   }
-                  builder.append(System.getProperty("line.separator"));
+                  formatedData = builder.toString();
                 }
-                formatedData = System.getProperty("line.separator") +
-                    builder.toString();
+                else
+                {
+                  formatedData = idSet.toString();
+                }
                 dataLabel = INFO_LABEL_DBTEST_INDEX_ENTRY_ID_LIST.get();
               }
-              catch(Exception e)
+              else if(databaseContainer instanceof VLVIndex)
               {
-                Message message =
+                VLVIndex index = (VLVIndex)databaseContainer;
+                SortKey[] sortKeys = index.sortOrder.getSortKeys();
+
+                int pos = 0;
+                byte[] keyBytes = key.getData();
+                if(keyBytes.length > 0)
+                {
+                  StringBuilder builder = new StringBuilder();
+
+                  // Decode the attribute values
+                  for(SortKey sortKey : sortKeys)
+                  {
+                    int valueLength = keyBytes[pos] & 0x7F;
+                    if (keyBytes[pos++] != valueLength)
+                    {
+                      int numLengthBytes = valueLength;
+                      valueLength = 0;
+                      for (int k=0; k < numLengthBytes; k++, pos++)
+                      {
+                        valueLength = (valueLength << 8) |
+                            (keyBytes[pos] & 0xFF);
+                      }
+                    }
+
+                    byte[] valueBytes = new byte[valueLength];
+                    System.arraycopy(keyBytes, pos, valueBytes, 0,
+                                   valueLength);
+                    builder.append(sortKey.getAttributeType().getNameOrOID());
+                    builder.append(": ");
+                    if(valueBytes.length == 0)
+                    {
+                      builder.append("NULL");
+                    }
+                    else
+                    {
+                      builder.append(new String(valueBytes));
+                    }
+                    builder.append(" ");
+                    pos += valueLength;
+                  }
+
+                  byte[] entryIDBytes = new byte[8];
+                  System.arraycopy(keyBytes, pos, entryIDBytes, 0,
+                                   entryIDBytes.length);
+                  long entryID = JebFormat.entryIDFromDatabase(entryIDBytes);
+
+                  formatedKey = System.getProperty("line.separator") +
+                      String.valueOf(entryID) + ": " + builder.toString();
+                }
+                else
+                {
+                  formatedKey = "UNBOUNDED";
+                }
+                keyLabel = INFO_LABEL_DBTEST_VLV_INDEX_LAST_SORT_KEYS.get();
+
+                try
+                {
+                  StringBuilder builder = new StringBuilder();
+                  SortValuesSet svs = new SortValuesSet(key.getData(),
+                                                      data.getData(),
+                                                      index);
+                  long[] entryIDs = svs.getEntryIDs();
+                  for(int i = 0; i < entryIDs.length; i++)
+                  {
+                    builder.append(String.valueOf(entryIDs[i]));
+                    builder.append(": ");
+                    for(int j = 0; j < sortKeys.length; j++)
+                    {
+                      SortKey sortKey = index.sortOrder.getSortKeys()[j];
+                      ByteString value = svs.getValue(i * sortKeys.length + j);
+                      builder.append(sortKey.getAttributeType().getNameOrOID());
+                      builder.append(": ");
+                      if(value == null)
+                      {
+                        builder.append("NULL");
+                      }
+                      else if(value.length() == 0)
+                      {
+                        builder.append("SIZE-EXCEEDED");
+                      }
+                      else
+                      {
+                        builder.append(value.toString());
+                      }
+                      builder.append(" ");
+                    }
+                    builder.append(System.getProperty("line.separator"));
+                  }
+                  formatedData = System.getProperty("line.separator") +
+                        builder.toString();
+                  dataLabel = INFO_LABEL_DBTEST_INDEX_ENTRY_ID_LIST.get();
+                }
+                catch(Exception e)
+                {
+                  Message message =
                     ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                printMessage(message);
+                  printMessage(message);
+                }
               }
             }
-          }
 
-          if(formatedKey == null)
-          {
-            StringBuilder keyBuilder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(keyBuilder, key.getData(),
-                                                indent);
-            formatedKey = System.getProperty("line.separator") +
-                keyBuilder.toString();
-          }
-          if(formatedData == null)
-          {
-            StringBuilder dataBuilder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(dataBuilder, data.getData(),
-                                                indent);
-            formatedData = System.getProperty("line.separator") +
-                dataBuilder.toString();
-          }
+            if(formatedKey == null)
+            {
+              StringBuilder keyBuilder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(keyBuilder, key.getData(),
+                                                  indent);
+              formatedKey = System.getProperty("line.separator") +
+                  keyBuilder.toString();
+            }
+            if(formatedData == null)
+            {
+              StringBuilder dataBuilder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(dataBuilder, data.getData(),
+                                                  indent);
+              formatedData = System.getProperty("line.separator") +
+                  dataBuilder.toString();
+            }
 
-          out.format("%s (%d bytes): %s%n", keyLabel,
-                     key.getData().length, formatedKey);
-          out.format("%s (%d bytes): %s%n%n", dataLabel,
-                     data.getData().length, formatedData);
-
+            out.format("%s (%d bytes): %s%n", keyLabel,
+                       key.getData().length, formatedKey);
+            out.format("%s (%d bytes): %s%n%n", dataLabel,
+                       data.getData().length, formatedData);
+          }
           status = cursor.getNext(key, data, lockMode);
           count++;
           totalKeySize += key.getData().length;
