@@ -1,0 +1,4 @@
+dn: cn=Collective Secretary,dc=example,dc=com
+changetype: modify
+replace: secretary;collective
+secretary;collective: uid=dmiller,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
