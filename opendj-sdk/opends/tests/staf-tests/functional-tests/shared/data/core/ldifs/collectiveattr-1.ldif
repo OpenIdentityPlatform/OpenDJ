@@ -1,0 +1,8 @@
+dn: cn=Collective Secretary,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective Secretary
+secretary;collective: uid=tmorris,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
