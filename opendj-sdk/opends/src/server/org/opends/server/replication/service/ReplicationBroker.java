@@ -2558,8 +2558,8 @@ public class ReplicationBroker
                 replicationServerInfos, serverId, baseDn, groupId,
                 generationID);
 
-              if ((bestServerInfo == null) ||
-                (bestServerInfo.getServerId() != rsServerId))
+              if ((rsServerId != -1) && ((bestServerInfo == null) ||
+                (bestServerInfo.getServerId() != rsServerId)))
               {
                 // The best replication server is no more the one we are
                 // currently using. Disconnect properly then reconnect.
