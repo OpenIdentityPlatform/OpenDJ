@@ -17,16 +17,16 @@ public final class PersistentSearchChangeType
   private static final PersistentSearchChangeType[] ELEMENTS = new PersistentSearchChangeType[4];
 
   public static final PersistentSearchChangeType ADD = register(1,
-      "add");
+      "add", 0);
 
   public static final PersistentSearchChangeType DELETE = register(2,
-      "delete");
+      "delete", 1);
 
   public static final PersistentSearchChangeType MODIFY = register(4,
-      "modify");
+      "modify", 2);
 
   public static final PersistentSearchChangeType MODIFY_DN = register(
-      8, "modify DN");
+      8, "modify DN", 3);
 
 
 
@@ -51,11 +51,11 @@ public final class PersistentSearchChangeType
 
 
   private static PersistentSearchChangeType register(int intValue,
-      String name)
+      String name, int index)
   {
     PersistentSearchChangeType t = new PersistentSearchChangeType(
         intValue, name);
-    ELEMENTS[intValue] = t;
+    ELEMENTS[index] = t;
     return t;
   }
 
