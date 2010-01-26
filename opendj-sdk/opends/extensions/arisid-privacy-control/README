@@ -1,0 +1,48 @@
+This folder contains source code for the IGF ArisID Privacy Control.
+
+  http://www.openliberty.org/wiki/index.php/ProjectAris
+
+In order to build this extension you'll need the Aris ID core libraries
+which are available here:
+
+  http://sourceforge.net/projects/arisid/files/ArisId/Release%201.1/arisId_1.1.jar/download
+
+Put the JAR file into the lib directory and build. In order to run
+OpenDS using the plugin you're probably going to need some other
+libraries (neethi?) which are loaded at runtime.
+
+Once you have the required libraries, do the following steps:
+
+  1. In the top-level source folder for OpenDS, first build and
+     package OpenDS:
+
+     ./build.sh
+
+  2. Next cd into this extension folder:
+  
+     cd extensions/arisid-privacy-control
+
+  3. And build the control+plugin (this requires Ant version 7 or
+     higher in your path):
+
+     ant install
+
+  4. This will copy the following files into the parent OpenDS
+     default installation (build/package/OpenDS-2.3.0):
+
+     INSTANCE_ROOT/lib/extensions/arisid-privacy-control.jar
+     INSTANCE_ROOT/config/arisid-privacy-control.ldif
+     INSTANCE_ROOT/config/schema/99-arisid-privacy-control.ldif
+
+  5. Add the plugin's config to the server configuration. The
+     following instruction assumes usage of the Unix 'cat'
+     command, but obviously ldapadd can be used:
+
+     cd INSTANCE_ROOT/config
+     cat arisid-privacy-control.ldif >> config.ldif
+
+  6. Start the server and look for the log message indicating that
+     the extension is loaded:
+
+     cd INSTANCE_ROOT
+     ./bin/start-ds
