@@ -1,0 +1,12 @@
+This folder contains source code for various experimental extensions,
+which are not fit for production use. Some are not actively maintained,
+and may not even compile.
+
+To create a new experimental extension use the provided example-plugin
+as a template. Unzip it, rename the extension's directory to something
+more appropriate and configure the Ant build.xml file contained within
+as directed.
+
+Note that any I18N properties should be contained in a file called
+${extension.name}.properties.
+
