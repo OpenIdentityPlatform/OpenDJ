@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.build.tools;
 
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Location;
 import static org.opends.build.tools.Utilities.*;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
@@ -180,7 +179,7 @@ public class GenerateMessageFile extends Task {
    * where <label> can be anything including '_'
    *       <language> a two characters code contained in the ISO_LANGUAGES list
    *       <country> a two characters code contained in the ISO_COUNTRIES list
-   */  
+   */
   private static final Pattern LANGUAGE_COUNTRY_MATCHER =
                        Pattern.compile("(.*)_([a-z]{2})_([A-Z]{2}).properties");
   /*
@@ -220,8 +219,8 @@ public class GenerateMessageFile extends Task {
      * @return Class for representing the type of arguement used
      *         as a replacement for this specifier.
      */
-    public Class getSimpleConversionClass() {
-      Class c = null;
+    public Class<?> getSimpleConversionClass() {
+      Class<?> c = null;
       String sa4 = sa[4] != null ? sa[4].toLowerCase() : null;
       String sa5 = sa[5] != null ? sa[5].toLowerCase() : null;
       if ("t".equals(sa4)) {
@@ -265,7 +264,7 @@ public class GenerateMessageFile extends Task {
     private MessagePropertyKey key;
     private String formatString;
     private List<FormatSpecifier> specifiers;
-    private List<Class> classTypes;
+    private List<Class<?>> classTypes;
     private String[] constructorArgs;
 
     /**
@@ -278,9 +277,9 @@ public class GenerateMessageFile extends Task {
       this.key = key;
       this.formatString = formatString;
       this.specifiers = parse(formatString);
-      this.classTypes = new ArrayList<Class>();
+      this.classTypes = new ArrayList<Class<?>>();
       for (FormatSpecifier f : specifiers) {
-        Class c = f.getSimpleConversionClass();
+        Class<?> c = f.getSimpleConversionClass();
         if (c != null) {
           classTypes.add(c);
         }
@@ -320,7 +319,7 @@ public class GenerateMessageFile extends Task {
       if (classTypes.size() > 0) {
         sb.append("<");
         for (int i = 0; i < classTypes.size(); i++) {
-          Class c = classTypes.get(i);
+          Class<?> c = classTypes.get(i);
           if (c != null) {
             sb.append(getShortClassName(c));
             if (i < classTypes.size() - 1) {
@@ -491,7 +490,7 @@ public class GenerateMessageFile extends Task {
      */
     String projectBase = null;
     try {
-      projectBase = getProject().getBaseDir().getCanonicalPath();
+      projectBase = getProjectBase().getCanonicalPath();
     } catch( java.io.IOException e) {
       throw new BuildException("Error processing " + dest +
             ": unable to retrieve project's directory of ant's project (" +
@@ -499,6 +498,7 @@ public class GenerateMessageFile extends Task {
     }
 
     String registry = dest.getAbsolutePath();
+
     // strip project directory prefix and replace properties filename with
     // $DESCRIPTORS_REG
     registry = registry.substring(projectBase.length()+1,
@@ -575,18 +575,20 @@ public class GenerateMessageFile extends Task {
           return;
         }
       }
+
       // filename without ".properties"
       filename = filename.substring(0, filename.length()-11);
       // change to src-generated directory keeping package name
       pathname = pathname.replace(getProject().getProperty("msg.dir"),
                                   getProject().getProperty("msg.javagen.dir"));
 
+
       // append characters from filename to pathname starting with an uppercase
-      // letter, ignoring '_' and uppering all characters prefixed with "_" 
+      // letter, ignoring '_' and uppering all characters prefixed with "_"
       StringBuilder sb = new StringBuilder(pathname);
       boolean upperCaseNextChar = true;
       for(char c : filename.toCharArray()) {
-        if ( c == '_' ) {
+        if ( c == '_' || c == '-' ) {
           upperCaseNextChar = true;
           continue;
         }
@@ -866,7 +868,7 @@ public class GenerateMessageFile extends Task {
             .toString();
   }
 
-  static private String getShortClassName(Class c) {
+  static private String getShortClassName(Class<?> c) {
     String name;
     String fqName = c.getName();
     int i = fqName.lastIndexOf('.');
@@ -931,20 +933,7 @@ public class GenerateMessageFile extends Task {
   }
 
   private File getProjectBase() {
-    File projectBase;
-
-    // Get the path to build.xml and return the parent
-    // directory else just return the working directory.
-    Location l = getLocation();
-    String fileName = l.getFileName();
-    if (fileName != null) {
-      File f = new File(fileName);
-      projectBase = f.getParentFile();
-    } else {
-      projectBase = new File(System.getProperty("user.dir"));
-    }
-
-    return projectBase;
+    return getProject().getBaseDir();
   }
 
   private String unixifyPath(String path) {
