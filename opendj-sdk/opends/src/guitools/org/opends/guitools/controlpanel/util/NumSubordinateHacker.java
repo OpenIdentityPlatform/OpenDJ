@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -56,7 +56,7 @@ public class NumSubordinateHacker {
   }
 
   /**
-    * Tells wether the list of unreliable contains children of
+    * Tells whether the list of unreliable contains children of
     * the entry with LDAPUrl parentUrl.
     * @param parentUrl the LDAPURL of the parent.
     * @return <CODE>true</CODE> if the list of unreliable entries contains a
@@ -66,9 +66,9 @@ public class NumSubordinateHacker {
     boolean containsChildren = false;
 
     if (!isUnreliableEntryListEmpty) {
-      boolean isInServer = serverHost.equals(parentUrl.getHost()) &&
+      boolean isInServer = serverHost.equalsIgnoreCase(
+          String.valueOf(parentUrl.getHost())) &&
       (serverPort == parentUrl.getPort());
-
       if (isInServer) {
         for (DN dn : unreliableEntryList)
         {
@@ -92,7 +92,7 @@ public class NumSubordinateHacker {
   }
 
   /**
-    * Tells wether the list of unreliable contains the entry with LDAPURL
+    * Tells whether the list of unreliable contains the entry with LDAPURL
     * url.
     * It assumes that we previously called containsChildrenOf (there's no check
     * of the host/port).
@@ -103,9 +103,9 @@ public class NumSubordinateHacker {
   public boolean contains(LDAPURL url) {
     boolean contains = false;
     if (!isUnreliableEntryListEmpty) {
-      boolean isInServer = serverHost.equals(url.getHost()) &&
+      boolean isInServer =
+        serverHost.equalsIgnoreCase(String.valueOf(url.getHost())) &&
       (serverPort == url.getPort());
-
       if (isInServer) {
         for (DN dn : unreliableEntryList)
         {
