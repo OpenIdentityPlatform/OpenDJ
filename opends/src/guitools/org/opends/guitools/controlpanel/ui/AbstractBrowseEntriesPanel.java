@@ -1307,6 +1307,7 @@ implements BackendPopulatedListener
           InitialLdapContext ctx = getInfo().getDirContext();
           InitialLdapContext ctx1 = controller.getConfigurationConnection();
           boolean setConnection = ctx != ctx1;
+          updateNumSubordinateHacker(desc);
           if (setConnection)
           {
             if (getInfo().getUserDataDirContext() == null)
@@ -1777,6 +1778,45 @@ implements BackendPopulatedListener
       lNumberOfEntries.setVisible(visible);
     }
     numberEntriesUpdater.recalculate();
+  }
+
+  /**
+   * Updates the NumsubordinateHacker of the browser controller with the
+   * provided server descriptor.
+   * @param server the server descriptor.
+   */
+  private void updateNumSubordinateHacker(ServerDescriptor server)
+  {
+    String serverHost = server.getHostname();
+    int serverPort = server.getAdminConnector().getPort();
+
+    ArrayList<DN> allSuffixes = new ArrayList<DN>();
+    for (BackendDescriptor backend : server.getBackends())
+    {
+      for (BaseDNDescriptor baseDN : backend.getBaseDns())
+      {
+        allSuffixes.add(baseDN.getDn());
+      }
+    }
+    ArrayList<DN> rootSuffixes = new ArrayList<DN>();
+    for (DN dn : allSuffixes)
+    {
+      boolean isRootSuffix = true;
+      for (DN dn1 : allSuffixes)
+      {
+        if (dn1.isAncestorOf(dn) && !dn1.equals(dn))
+        {
+          isRootSuffix = false;
+          break;
+        }
+      }
+      if (isRootSuffix)
+      {
+        rootSuffixes.add(dn);
+      }
+    }
+    controller.getNumSubordinateHacker().update(allSuffixes, rootSuffixes,
+        serverHost, serverPort);
   }
 
   /**
