@@ -174,6 +174,10 @@ public class TableViewEntryPanel extends ViewEntryPanel
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
+    if (sr != null)
+    {
+      sr = filterSearchResult(sr);
+    }
     if ((searchResult != null) && (sr != null))
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());
@@ -189,7 +193,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     this.treePath = path;
     updateTitle(sr, path);
     ignoreEntryChangeEvents = true;
-    tableModel.displayEntry(searchResult);
+    tableModel.displayEntry();
     Utilities.updateTableSizes(table);
     Utilities.updateScrollMode(scroll, table);
     SwingUtilities.invokeLater(new Runnable()
@@ -458,10 +462,10 @@ public class TableViewEntryPanel extends ViewEntryPanel
     private boolean sortAscending = true;
 
     /**
-     * Sets the entry to be displayed by this table model.
-     * @param searchResult the entry to be displayed.
+     * Updates the contents of the table model with the
+     * {@code TableViewEntryPanel.searchResult} object.
      */
-    public void displayEntry(CustomSearchResult searchResult)
+    public void displayEntry()
     {
       updateDataArray();
       fireTableDataChanged();
