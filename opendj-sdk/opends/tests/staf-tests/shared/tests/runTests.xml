@@ -139,7 +139,7 @@
           <call function="'runCommand'">
               { 'name'      : 'Generate global coverage xml report',
                 'command'   : 'java',
-                'arguments' : '-Xms64M -Xmx2048m -cp %s emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage.xml -Dreport.html.out.file=%s/coverage.html -sp %s' % (emmaJar,coveragePath,coverageFiles,coveragePath,coveragePath,srcArgs),
+                'arguments' : '-Xms64M -Xmx2048m -cp %s emma report -r xml,html -in %s/%s/coverage.em,%s -Dreport.xml.out.file=%s/coverage.xml -Dreport.html.out.file=%s/coverage.html -sp %s' % (emmaJar,DIRECTORY_INSTANCE_DIR,OPENDSNAME,coverageFiles,coveragePath,coveragePath,srcArgs),
                 'path'      : TMPDIR
               }
           </call>

@@ -1145,7 +1145,7 @@
         <sequence>
           <script>
             coveragePath=os.path.join(LOGS_ROOT,'coverage')
-            coverageEm=os.path.join(coveragePath,'coverage.em')
+            coverageEm=os.path.join(DIRECTORY_INSTANCE_DIR,OPENDSNAME,'coverage.em')
             ecPath=os.path.join(coveragePath,CurrentTestPath['group'])
             coverageEcs=[ os.path.join(ecPath,ec) for ec in os.listdir(ecPath) if ec.startswith('coverage') and ec.endswith('.ec')]
             coverageFiles=','.join(coverageEcs)
@@ -1969,13 +1969,18 @@
           pid = STAXResult[:-1]
           _args = '-9 %s' % pid
       </script>
-      <call function="'runCommand'">
-        { 'name'      : 'Kill DS server',
-          'location'  : location,
-          'command'   : _cmd,
-          'arguments' : _args
-        }
-      </call>
+      <if expr="os.path.exists(os.path.join(dsPath,'lib','emma.jar')) == False">
+        <call function="'runCommand'">
+          { 'name'      : 'Kill DS server',
+            'location'  : location,
+            'command'   : _cmd,
+            'arguments' : _args
+          }
+        </call>
+        <else>
+          <message>'skip the killing of process when running with coverage to avoid data corruption'</message>
+        </else>
+      </if>
       <return>STAXResult</return>        
     </sequence>
   </function>

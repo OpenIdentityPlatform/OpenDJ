@@ -421,8 +421,6 @@ test.plan.custom=${test.plan.custom}</echo>
         <arg value="-ip" />
         <arg value="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/${opends.name}/lib/extensions/snmp-mib2605.jar" />
     </java>
-    <copy file="${tests.tmp.dir}/coverage-instr/${opends.name}/coverage.em"
-          tofile="${tests.run.dir}/${tests.run.time}/coverage/coverage.em"/>
 
     <!-- Repackage the product with coverage enabled scripts -->
     <zip basedir="${tests.tmp.dir}/coverage-instr" destfile="${opends.dir}/${opends.name}.zip">
