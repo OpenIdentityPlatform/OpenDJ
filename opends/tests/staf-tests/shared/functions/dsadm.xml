@@ -304,7 +304,37 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-      
+      <!-- configure the coverage dump file -->
+      <script>
+        mylog = "Didn't find the emma.jar file : '%s'\n" % os.path.join(dsPath,'lib','emma.jar')
+        if os.path.exists(os.path.join(dsPath,'lib','emma.jar')):
+          mylog= ''
+          mylog=" ::coverage on\n"
+          coveragePath = os.path.join(LOGS_ROOT,'coverage')
+          if not os.path.exists(coveragePath):
+            os.mkdir(coveragePath)
+            mylog+=" ::mkdir %s on\n" % coveragePath
+            # copying coverage.em in coveragePath
+            import shutil
+            mylog+=" ::copying %s to %s\n" % (os.path.join(dsPath,'coverage.em'),coveragePath)
+            if not os.path.exists(os.path.join(dsPath,'coverage.em')):
+              mylog+= " Didn't find %s to copy to %s\n" % (os.path.join(dsPath,'coverage.em'),coveragePath)
+            else:
+              shutil.copy(os.path.join(dsPath,'coverage.em'),coveragePath)
+          coverageGroupPath=os.path.join(coveragePath,CurrentTestPath['group'])
+          if not os.path.exists(coverageGroupPath):
+            mylog+=" ::mkdir %s on\n" % (coverageGroupPath)
+            os.mkdir(coverageGroupPath)
+          existingECs=[cf for cf in os.listdir(coverageGroupPath) if cf.startswith('coverage') and cf.endswith('.ec')]
+          newCoverageEC=os.path.join(coverageGroupPath,'coverage%s.ec' % len(existingECs))
+          coveragefh = open( '%s/classes/emma.properties' % (dsPath), 'w' )
+          coveragefh.write( 'coverage.out.file=%s\n' % (newCoverageEC) )
+          coveragefh.write( 'verbosity.level=silent\n')
+          coveragefh.write( 'coverage.out.merge=true\n')
+          coveragefh.close()
+          mylog+=" ::writing %s to %s/%s/classes/emma.properties\n" % (newCoverageEC, dsPath,OPENDSNAME)
+      </script>
+      <message>'%s' % mylog</message>
       <call function="'runCommand'">
         { 'location'  : location,
           'command'   : STAFCmd,

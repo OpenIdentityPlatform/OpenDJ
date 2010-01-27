@@ -1043,33 +1043,77 @@
       
     <sequence>
       <!-- Start the servers in the list -->    
-      <paralleliterate var="server" in="serverList">
+      <script>
+        # check if using coverage in which case we'll avoid doing parallele iterate
+        coverage = False
+        if os.path.exists(os.path.join(serverList[0].getDir(),OPENDSNAME,'lib','emma.jar')):
+          coverage = True
+        print 'tools.xml - coverage=%s' % coverage
+      </script>
+      <if expr="coverage == True">
         <sequence>
-          <message>
-            'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
-          </message>
-          
-          <!--- Start DS -->                 
-          <call function="'StartDsWithScript'">
-            { 'location' : server.getHostname(),
-              'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
-            }
-          </call>
-          
-          <!--- Check that DS started -->
-          <call function="'isAlive'">
-            { 'location'         : server.getHostname(),
-              'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
-              'dsInstanceHost'   : server.getHostname(), 
-              'dsInstancePort'   : server.getPort(),
-              'dsInstanceDn'     : server.getRootDn(),
-              'dsInstancePswd'   : server.getRootPwd(),
-              'noOfLoops'        : 10 ,
-              'noOfMilliSeconds' : 2000
-            }
-          </call>
+          <message>'starting servers in sequence using "iterate"'</message>
+          <iterate var="server" in="serverList">
+            <sequence>
+              <message>
+                'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
+              </message>
+              
+              <!--- Start DS -->                 
+              <call function="'StartDsWithScript'">
+                { 'location' : server.getHostname(),
+                  'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
+                }
+              </call>
+              
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                { 'location'         : server.getHostname(),
+                  'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'   : server.getHostname(), 
+                  'dsInstancePort'   : server.getPort(),
+                  'dsInstanceDn'     : server.getRootDn(),
+                  'dsInstancePswd'   : server.getRootPwd(),
+                  'noOfLoops'        : 10 ,
+                  'noOfMilliSeconds' : 2000
+                }
+              </call>
+            </sequence>
+          </iterate>
         </sequence>
-      </paralleliterate>
+        <else>
+          <sequence>
+            <message>'starting servers in parallel using "paralleliterate"'</message>
+            <paralleliterate var="server" in="serverList">
+              <sequence>
+                <message>
+                  'Start DS on host  %s to run on port %s' % (server.getHostname(),server.getPort())
+                </message>
+                
+                <!--- Start DS -->                 
+                <call function="'StartDsWithScript'">
+                  { 'location' : server.getHostname(),
+                    'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
+                  }
+                </call>
+                
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'location'         : server.getHostname(),
+                    'dsPath'           : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsInstanceHost'   : server.getHostname(), 
+                    'dsInstancePort'   : server.getPort(),
+                    'dsInstanceDn'     : server.getRootDn(),
+                    'dsInstancePswd'   : server.getRootPwd(),
+                    'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 2000
+                  }
+                </call>
+              </sequence>
+            </paralleliterate>         
+          </sequence>
+        </else>
+      </if>
     </sequence>
   </function>
   
