@@ -66,7 +66,6 @@ import org.opends.server.util.LDIFReader;
  *
  */
 public class CustomSearchResult implements Comparable<CustomSearchResult> {
-  private Name name;
   private String dn;
   private Map<String, List<Object>> attributes;
   private SortedSet<String> attrNames;
@@ -99,6 +98,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
   throws NamingException
   {
     String sName = sr.getName();
+    Name name;
     if ((baseDN != null) && (baseDN.length() > 0))
     {
       if ((sName != null) && (sName.length() > 0))
@@ -137,8 +137,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
       NamingEnumeration<?> en = attrs.getAll();
       while (en.hasMore()) {
         Attribute attr = (Attribute)en.next();
-        String name = attr.getID();
-        attrNames.add(name);
+        String attrName = attr.getID();
+        attrNames.add(attrName);
         List<Object> values = new ArrayList<Object>();
         for (int i=0; i<attr.size(); i++)
         {
@@ -148,7 +148,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
             values.add(v);
           }
         }
-        attributes.put(name.toLowerCase(), values);
+        attributes.put(attrName.toLowerCase(), values);
       }
     }
     toString = calculateToString();
@@ -201,6 +201,19 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
       compareTo = toString().compareTo(o.toString());
     }
     return compareTo;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public CustomSearchResult clone()
+  {
+    CustomSearchResult sr = new CustomSearchResult(dn);
+    sr.attributes = new HashMap<String, List<Object>>(attributes);
+    sr.attrNames = new TreeSet<String>(attrNames);
+    sr.toString = toString;
+    sr.hashCode = hashCode;
+    return sr;
   }
 
   /**
