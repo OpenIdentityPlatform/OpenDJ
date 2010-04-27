@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -181,10 +181,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals One Attribute, user searching targeted entry and targeted attribute'
               </message>
@@ -257,10 +253,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals One Attribute, user searching previously targeted entry and targeted attribute'
               </message>
@@ -329,10 +321,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching targeted entry and targeted attribute'
@@ -406,10 +394,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals One Attribute, user searching previously targeted entry and targeted attribute'
               </message>
@@ -478,10 +462,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Targetattr Equals Three Attributes, user searching targeted entry and targeted attributes'
@@ -567,10 +547,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Equals Three Attributes, user searching previously targeted entry and targeted attributes'
               </message>
@@ -640,10 +616,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching targeted entry and targeted attributes'
@@ -729,10 +701,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr Not Equals Three Attributes, user searching previously targeted entry and targeted attributes'
               </message>
@@ -797,10 +765,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Bad Targetattr, user searching targeted entry and targeted attribute'
@@ -867,10 +831,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Bad Targetattr, user searching previously targeted entry and targeted attribute'
@@ -1132,10 +1092,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetattr: Targetattr With Spaces, user searching targeted entry and targeted attribute'
               </message>
@@ -1207,10 +1163,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Targetattr With Spaces, user searching previously targeted entry and targeted attribute'
@@ -1341,10 +1293,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetattr/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Targetattr Not Equals Wildcard, user searching previously targeted entry'

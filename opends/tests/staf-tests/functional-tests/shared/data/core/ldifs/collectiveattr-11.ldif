@@ -1,0 +1,8 @@
+dn: cn=Collective departmentNumber,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective departmentNumber
+departmentNumber;collective: 445566
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 2, maximum 2}

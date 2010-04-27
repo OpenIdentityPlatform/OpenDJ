@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -131,8 +131,8 @@
                                               DIRECTORY_INSTANCE_ADMIN_PORT,
                                               DIRECTORY_INSTANCE_SSL_PORT,
                                               None,
-                                              DIRECTORY_INSTANCE_DN,
-                                              DIRECTORY_INSTANCE_PSWD,
+                                              master.getRootDn(),
+                                              master.getRootPwd(),
                                               synchroSuffix)
                   </script>
                   <call function="'createInstance'">
@@ -575,6 +575,7 @@
                   tmpFile = '%s/ignoreAttrsFile.ldifdiff' % TMPDIR
                   
                   ignoreAttrs = []
+                  ignoreAttrs.append('entryuuid')
                   ignoreAttrs.append('ds-sync-generation-id')
                   ignoreAttrs.append('ds-sync-hist')
                   ignoreAttrs.append('ds-sync-state')

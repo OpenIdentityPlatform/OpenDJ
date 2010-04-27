@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.crypto;
@@ -123,8 +123,26 @@ public class CryptoManagerSync
   public CryptoManagerSync()
           throws InitializationException
   {
+    this(true);
+  }
+
+  /**
+   * Creates a new instance of this trust store synchronization thread.
+   *
+   * @param publishInstanceKey whether the instance key must be published in
+   * the ADS or not.
+   * @throws InitializationException in case an exception occurs during
+   * initialization, such as a failure to publish the instance-key-pair
+   * public-key-certificate in ADS.
+   */
+  public CryptoManagerSync(boolean publishInstanceKey)
+  throws InitializationException
+  {
     try {
-      CryptoManagerImpl.publishInstanceKeyEntryInADS();
+      if (publishInstanceKey)
+      {
+        CryptoManagerImpl.publishInstanceKeyEntryInADS();
+      }
     }
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());

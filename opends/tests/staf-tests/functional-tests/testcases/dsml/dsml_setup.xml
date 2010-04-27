@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
 ! -->
 <stax>
   <defaultcall function="dsml_setup" />
@@ -53,23 +53,38 @@
                 }
               </call>
 
-              <call function="'unZipFile'">
-                {
-                'location' : STAXServiceMachine,
-                'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
-                'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
-                'unzipdir' : '%s/dsml' % TMPDIR
-                }
-              </call>
+              <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
+              <if expr="IPS_PKG == True">
+                <call function="'copyFile'">
+                  {
+                  'location'   : STAF_REMOTE_HOSTNAME,
+                  'srcfile'    : '%s/%s/lib/OpenDS.jar' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME),
+                  'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                  'remotehost' : STAXServiceMachine
+                  }
+                </call>
+                <else>
+                  <sequence>
+                    <call function="'unZipFile'">
+                      {
+                      'location' : STAXServiceMachine,
+                      'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
+                      'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
+                      'unzipdir' : '%s/dsml' % TMPDIR
+                      }
+                    </call>
 
-              <call function="'copyFile'">
-                {
-                'location'   : STAXServiceMachine,
-                'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (TMPDIR,OPENDSNAME),
-                'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
-                'remotehost' : STAXServiceMachine
-                }
-              </call>
+                    <call function="'copyFile'">
+                      {
+                      'location'   : STAXServiceMachine,
+                      'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (TMPDIR,OPENDSNAME),
+                      'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                      'remotehost' : STAXServiceMachine
+                      }
+                    </call>
+                  </sequence>
+                </else>
+              </if>
 
               <call function="'unZipFile'">
                 {

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 import java.io.*;
 import java.lang.*;
@@ -238,7 +238,7 @@ public class GenerateOpenDSTestSpecs
     
       // Index.html
       File xmlFilename= new File(strOutputDirName + "/index.xml");
-      File xslFilename = new File(strParentDirName + "/../shared/xsl/testspec-index-stylesheet.xsl");
+      File xslFilename = new File(strParentDirName + "/../../shared/xsl/testspec-index-stylesheet.xsl");
       File htmlFilename = new File(strOutputDirName + "/index.html");
       try{
         TransformerFactory transFactory = TransformerFactory.newInstance();

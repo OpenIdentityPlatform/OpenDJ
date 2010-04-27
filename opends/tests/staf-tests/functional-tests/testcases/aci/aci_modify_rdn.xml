@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -89,11 +89,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeAdded'   : '%s/aci/aci_modify_rdn/aci_startup_modrdn_tests.ldif' % remote.data }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
                 
                 <call function="'testCase_Postamble'"/>
     
@@ -144,10 +139,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr=* and userdn=all, user modifying entry from targeted branch'
                 </message>
@@ -159,10 +150,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr=* and userdn=all, user searching targeted entry, new rdn'
@@ -233,10 +220,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr=* and userdn=all, user modifying entry in previously targeted branch'
                 </message>
@@ -301,10 +284,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, user modifying entry from targeted branch'
                 </message>
@@ -316,10 +295,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, user searching targeted entry, new rdn'
@@ -390,10 +365,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, admin deleting aci'
                 </message>
@@ -405,10 +376,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, user modifying entry in previously targeted branch'
@@ -473,10 +440,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid, user modifying entry from targeted branch'
                 </message>
@@ -488,10 +451,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid, user searching targeted entry, new rdn'
@@ -562,10 +521,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid, user modifying entry in previously targeted branch'
                 </message>
@@ -627,10 +582,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes without uid, user modifying entry from targeted branch'
                 </message>
@@ -670,10 +621,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes without uid, user modifying entry in previously targeted branch'
@@ -739,10 +686,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, user modifying entry from targeted branch'
                 </message>
@@ -754,10 +697,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry5.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, user searching targeted entry, new rdn'
@@ -828,10 +767,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, admin deleting aci'
                 </message>
@@ -843,10 +778,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, user modifying entry in previously targeted branch'
@@ -908,10 +839,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes not equals ou, user modifying entry from targeted branch'
                 </message>
@@ -951,10 +878,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes not equals ou, user modifying entry in previously targeted branch'
@@ -1020,10 +943,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, user modifying entry from targeted branch'
                 </message>
@@ -1035,10 +954,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry7.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, user searching targeted entry, new rdn'
@@ -1123,10 +1038,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, user modifying entry in previously targeted branch'
                 </message>
@@ -1193,10 +1104,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user modifying entry from targeted branch'
                 </message>
@@ -1208,10 +1115,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry8.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user searching targeted entry, new rdn'
@@ -1296,10 +1199,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci8.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user restoring branch in previously targeted branch'
                 </message>
@@ -1312,10 +1211,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, admin deleting aci'
                 </message>
@@ -1327,10 +1222,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user modifying entry in previously targeted branch'
@@ -1393,10 +1284,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, delete old rdn, user modifying entry from targeted branch'
                 </message>
@@ -1436,10 +1323,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, delete old rdn, user modifying entry in previously targeted branch'
@@ -1505,10 +1388,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn, user modifying entry from targeted branch'
                 </message>
@@ -1520,10 +1399,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry10.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn, user searching targeted entry, new rdn'
@@ -1594,10 +1469,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn, user modifying entry in previously targeted branch'
                 </message>
@@ -1661,10 +1532,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn, user modifying entry from targeted branch'
                 </message>
@@ -1704,10 +1571,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn, user modifying entry in previously targeted branch'
@@ -1773,10 +1636,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, user modifying entry from targeted branch'
                 </message>
@@ -1788,10 +1647,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry21.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, user searching targeted entry, new rdn'
@@ -1862,10 +1717,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, admin deleting aci'
                 </message>
@@ -1877,10 +1728,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, user modifying entry in previously targeted branch'
@@ -1948,10 +1795,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, user modifying entry from targeted branch'
                 </message>
@@ -1963,10 +1806,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry22.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, user searching targeted entry, new rdn'
@@ -2051,10 +1890,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci22.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user restoring branch in previously targeted branch'
                 </message>
@@ -2067,10 +1902,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, admin deleting aci'
                 </message>
@@ -2082,10 +1913,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, user modifying entry in previously targeted branch'
@@ -2134,11 +1961,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=Modify RDN Tests, o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
               <call function="'testCase_Postamble'"/>

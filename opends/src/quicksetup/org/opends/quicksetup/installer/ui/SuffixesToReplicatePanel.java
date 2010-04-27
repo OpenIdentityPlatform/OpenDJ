@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -301,6 +301,7 @@ implements Comparator<SuffixDescriptor>
   {
     checkBoxPanel.removeAll();
     GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridy = 0;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.anchor = GridBagConstraints.NORTH;
     boolean first = true;
@@ -315,6 +316,7 @@ implements Comparator<SuffixDescriptor>
       gbc.gridwidth = GridBagConstraints.RELATIVE;
       JCheckBox cb = hmCheckBoxes.get(suffix.getId());
       cb.setVerticalAlignment(SwingConstants.TOP);
+      gbc.gridx = 0;
       checkBoxPanel.add(cb, gbc);
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
       gbc.weightx = 1.0;
@@ -331,10 +333,15 @@ implements Comparator<SuffixDescriptor>
 
       gbc.insets.top += Math.abs(cb.getPreferredSize().height -
           proto.getPreferredSize().height) / 2;
+      gbc.gridx = 1;
       checkBoxPanel.add(l, gbc);
       first = false;
+      gbc.gridy ++;
     }
-    addVerticalGlue(checkBoxPanel);
+    gbc.weighty = 1.0;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.fill = GridBagConstraints.VERTICAL;
+    checkBoxPanel.add(Box.createVerticalGlue(), gbc);
   }
 
   private String getSuffixString(SuffixDescriptor desc)

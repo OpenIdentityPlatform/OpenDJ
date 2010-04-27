@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -120,11 +120,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (remote.data,curr_aci_ldif_file)  }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-    
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -169,10 +164,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching targeted entry'
@@ -247,10 +238,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
@@ -339,10 +326,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching targeted entry'
                 </message>
@@ -418,10 +401,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
@@ -512,10 +491,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching targeted entry'
                 </message>
@@ -590,10 +565,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
                 </message>
@@ -653,10 +624,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_effrights_aci.ldif' % (remote.data)  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <script>
                     allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'

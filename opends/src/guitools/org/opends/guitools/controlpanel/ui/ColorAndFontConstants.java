@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -124,6 +124,7 @@ public class ColorAndFontConstants
   public static final Color greyBackground = Utilities.isWindows() ?
   UIManager.getColor("MenuBar.background") :
     UIManager.getColor("Panel.background");
+
   /**
    * The default border color.
    */
@@ -262,4 +263,11 @@ public class ColorAndFontConstants
    */
   public static final Font outputFont = Font.decode("Monospaced-PLAIN-12");
 
+  /**
+   * This method initialize the constants used by this class.  It must be called
+   * before other classes modify the UIManager constants.
+   */
+  public static void initialize()
+  {
+  }
 }

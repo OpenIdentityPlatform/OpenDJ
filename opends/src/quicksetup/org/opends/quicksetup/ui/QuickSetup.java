@@ -118,7 +118,15 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     application.setProgressMessageFormatter(formatter);
     application.setCurrentInstallStatus(installStatus);
 
-    initLookAndFeel();
+    try
+    {
+      initLookAndFeel();
+    }
+    catch (Throwable t)
+    {
+      // This is likely a bug.
+      t.printStackTrace();
+    }
 
     /* In the calls to setCurrentStep the dialog will be created */
     setCurrentStep(application.getFirstWizardStep());
@@ -643,7 +651,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * A method to initialize the look and feel.
    *
    */
-  private void initLookAndFeel()
+  private void initLookAndFeel() throws Throwable
   {
     UIFactory.initialize();
   }

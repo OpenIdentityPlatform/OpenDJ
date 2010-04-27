@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="createTopology">
@@ -498,15 +498,15 @@
                   </script>
 
                   <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
-                  <if expr="DIRECTORY_INSTANCE_BIN != DIRECTORY_INSTANCE_DIR">
-                  <call function="'copyFile'">
-                    {
-                    'location'   : STAF_REMOTE_HOSTNAME,
-                    'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
-                    'destfile'   : '%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE),
-                    'remotehost' : STAXServiceMachine
-                    }
-                  </call>
+                  <if expr="IPS_PKG == True">
+                    <call function="'copyFile'">
+                      {
+                      'location'   : STAF_REMOTE_HOSTNAME,
+                      'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
+                      'destfile'   : '%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE),
+                      'remotehost' : STAXServiceMachine
+                      }
+                    </call>
                   </if>
 
                   <!---   Compile snmp java files on controler host -->
@@ -783,6 +783,14 @@
       </if>
       
       <!--- Set up DS -->
+
+      <!--- In IPS mode, at this point we need to overwrite dsDir -->
+      <if expr="IPS_PKG == True">
+        <script>
+          dsDir = DIRECTORY_INSTANCE_BIN
+        </script>
+      </if>
+      
       <message>
         'Set up DS on %s : %s/%s' % (dsHost,dsDir,OPENDSNAME)
       </message>
@@ -1489,12 +1497,15 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+      <!-- dsreplication initialize(-all) may fail due to issue:
+       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
-        { 'name'      : 'Initialize Replication',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC
+        { 'name'       : 'Initialize Replication',
+          'location'   : location,
+          'command'    : STAFCmd,
+          'arguments'  : STAFCmdParams,
+          'expectedRC' : expectedRC,
+          'knownIssue' : '4495'
         }
       </call>
       <return>
@@ -2026,11 +2037,14 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+      <!-- dsreplication pre-external-initialization may fail due to issue:
+       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
-        { 'name'      : 'Pre-Initialize Replication',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
+        { 'name'       : 'Pre-Initialize Replication',
+          'location'   : location,
+          'command'    : STAFCmd,
+          'arguments'  : STAFCmdParams,
+          'knownIssue' : '4495'
         }
       </call>
       <script>
@@ -2169,11 +2183,14 @@
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+      <!-- dsreplication post-external-initialization may fail due to issue:
+       !   #4495: dsreplication initialization produces error message-->
       <call function="'runCommand'">
-        { 'name'      : 'Post-Initialize Replication',
-          'location'  : location,
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
+        { 'name'       : 'Post-Initialize Replication',
+          'location'   : location,
+          'command'    : STAFCmd,
+          'arguments'  : STAFCmdParams,
+          'knownIssue' : '4495'
         }
       </call>
       <script>

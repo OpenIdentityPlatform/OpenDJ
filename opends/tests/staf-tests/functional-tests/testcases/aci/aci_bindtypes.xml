@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -108,10 +108,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_bindtypes/aci_startup_bindtypes.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: Preamble - user searching entry that will be targeted in future tests'
                 </message>
@@ -148,10 +144,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_static_groups.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: Preamble - Adding Dynamic Groups For Bind Type Tests'
                 </message>
@@ -163,10 +155,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeAdded'   : '%s/aci/aci_bindtypes/add_dynamic_groups.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: Preamble - admin searching one entry for isMemberOf of static group'
@@ -272,10 +260,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, user searching targeted entry with group member'
@@ -391,10 +375,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, user searching previously targeted entry'
                 </message>
@@ -462,10 +442,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, user searching targeted entry with group member'
@@ -587,10 +563,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two static groups, user searching previously targeted entry'
                 </message>
@@ -658,10 +630,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, user searching targeted entry with different group member'
@@ -783,10 +751,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one static group, user searching previously targeted entry'
                 </message>
@@ -854,10 +818,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, user searching targeted entry with group member'
@@ -973,10 +933,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two static groups, user searching previously targeted entry'
                 </message>
@@ -1044,10 +1000,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, user searching targeted entry with group member'
@@ -1163,10 +1115,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one dynamic group, user searching previously targeted entry'
                 </message>
@@ -1234,10 +1182,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, user searching targeted entry with group member'
@@ -1359,10 +1303,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals two dynamic groups, user searching previously targeted entry'
                 </message>
@@ -1430,10 +1370,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, user searching targeted entry with different group member'
@@ -1555,10 +1491,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals one dynamic group, user searching previously targeted entry'
                 </message>
@@ -1626,10 +1558,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, user searching targeted entry with group member'
@@ -1745,10 +1673,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn not equals two dynamic groups, user searching previously targeted entry'
                 </message>
@@ -1816,10 +1740,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching targeted entry'
@@ -1929,10 +1849,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching previously targeted entry'
                 </message>
@@ -2000,10 +1916,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, user searching targeted entry with group member'
@@ -2125,10 +2037,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static and one dynamic group, user searching previously targeted entry'
                 </message>
@@ -2198,10 +2106,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
@@ -2219,10 +2123,6 @@
                     'entryToBeModified'     : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add member, adding new static member'
                 </message>
@@ -2234,10 +2134,6 @@
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_member_static1.ldif' % (remote.data) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add member, user searching targeted entry with new group member'
@@ -2305,10 +2201,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group, admin deleting aci'
                 </message>
@@ -2320,10 +2212,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add member, user searching previously targeted entry'
@@ -2393,10 +2281,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
@@ -2414,10 +2298,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, deleting old static member'
                 </message>
@@ -2430,10 +2310,6 @@
                     'entryToBeModified'     : '%s/aci/aci_bindtypes/del_old_member_static2.ldif' % (remote.data) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, admin deleting selfwrite aci'
                 </message>
@@ -2445,10 +2321,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, user searching targeted entry with old group member'
@@ -2491,10 +2363,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, user searching previously targeted entry'
@@ -2564,10 +2432,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
@@ -2584,10 +2448,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite delete member, replacing old static member'
@@ -2614,10 +2474,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite replace member, user searching targeted entry with old group member'
@@ -2660,10 +2516,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite replace member, user searching previously targeted entry'
@@ -2733,10 +2585,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci_ldif_file = 'add_static_selfwrite2.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (local.data,curr_aci_ldif_file));
@@ -2753,10 +2601,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add description, add new description'
@@ -2783,10 +2627,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_static_selfwrite2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add description, user searching targeted entry with old group member'
@@ -2829,10 +2669,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add description, user searching previously targeted entry'
@@ -2904,10 +2740,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching targeted entry with all attributes'
@@ -3070,10 +2902,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr, user searching previously targeted entry'
                 </message>
@@ -3144,10 +2972,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry with all attributes with no matching attribute value'
@@ -3333,10 +3157,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching previously targeted entry'
                 </message>
@@ -3403,10 +3223,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: userattr equals one attr with bindtype, user searching targeted entry with all attributes'
@@ -3504,10 +3320,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with bindtype, user searching previously targeted entry'
                 </message>
@@ -3575,10 +3387,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, user searching targeted entry with group member'
@@ -3700,10 +3508,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, user searching previously targeted entry'
                 </message>
@@ -3772,14 +3576,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, url expression, user searching targeted entry with group member'
                 </message>
@@ -3855,10 +3651,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one attr with groupdn, url expression, user searching previously targeted entry'
                 </message>
@@ -3925,10 +3717,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching targeted entry'
@@ -4047,10 +3835,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching previously targeted entry'
                 </message>
@@ -4119,10 +3903,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, user searching targeted entry'
@@ -4241,10 +4021,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, user searching previously targeted entry'
                 </message>
@@ -4312,10 +4088,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching targeted entry'
@@ -4434,10 +4206,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching previously targeted entry'
                 </message>
@@ -4507,10 +4275,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching targeted entry with all attributes'
                 </message>
@@ -4586,10 +4350,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching previously targeted entry'
                 </message>
@@ -4899,10 +4659,6 @@
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userdn with filter, user searching targeted entry with group member'
                 </message>
@@ -4974,10 +4730,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: userdn with filter, user searching previously targeted entry'
@@ -5070,10 +4822,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'ACI: Bind Types: authmethod equals none, anonymous search'
              </message>
@@ -5111,10 +4859,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'ACI: Bind Types: authmethod equals none, anonymous search'
              </message>
@@ -5174,10 +4918,6 @@
                     'extraParams'      : '-x'}
                 </call>
 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: Resetting Search Global ACI'
                 </message>

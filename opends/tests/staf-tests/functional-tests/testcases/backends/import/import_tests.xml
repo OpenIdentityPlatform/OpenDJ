@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -101,6 +101,13 @@
           <call function="'testCase_Preamble'"/>
 
           <call function="'StartDsWithScript'"/>
+
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
 
           <script>
             options=[]
@@ -1184,7 +1191,8 @@
               'dsLdifFile'         : '%s/backends/Append.ldif' % remote.data,
               'dsAppend'           : 'TRUE',
               'dsReplaceExisting'  : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'dsBackEnd'          : DIRECTORY_INSTANCE_BE,
+              'knownIssue'         : '6927338'
               }
           </call>
 

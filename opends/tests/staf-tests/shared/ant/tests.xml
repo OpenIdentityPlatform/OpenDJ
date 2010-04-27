@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <project name="tests">
 
@@ -52,8 +52,9 @@
 
   <target name="run">
     <tstamp>
-      <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
+      <format property="tests.timestamp" pattern="yyyyMMdd-HHmmss"/>
     </tstamp>
+    <var name="tests.run.time" value="${remote.hostname}-${tests.timestamp}"/>
 
     <!-- clean up tmp dir -->
     <if>
@@ -69,11 +70,20 @@
     <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
     <!-- these will serve for after-the-fact archiving the logs -->
     <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
+    <mkdir dir="${tests.run.dir}/${tests.run.time}/logs"/>
 
     <if>
       <equals arg1="${test.plan.custom}" arg2=""/>
       <then>
-        <var name="test.plan.custom" value="${test.plan.default}"/>
+        <if>
+          <equals arg1="${tests.type}" arg2="functional-tests"/>
+          <then>
+            <var name="test.plan.custom" value="${test.plan.functional.default}"/>
+          </then>
+          <else>
+            <var name="test.plan.custom" value="${test.plan.stress.default}"/>
+          </else>
+        </if>
       </then>
     </if>
 
@@ -210,13 +220,13 @@
       <equals arg1="${tests.mode.input}" arg2="remote" />
       <then>
         <input message="   Enter directory instance directory (on remote machine):"
-           defaultvalue="${tests.tmp.dir}"
-           addproperty="tests.tmp.dir.input"/>
+           defaultvalue="${instance.dir}"
+           addproperty="instance.dir.input"/>
       </then>
       <else>
         <input message="   Enter directory instance directory:"
-           defaultvalue="${tests.tmp.dir}"
-           addproperty="tests.tmp.dir.input"/>
+           defaultvalue="${instance.dir}"
+           addproperty="instance.dir.input"/>
       </else>
     </if>
 
@@ -358,8 +368,10 @@ client.hostname=${client.hostname.input}
 logs.dir=${logs.dir.input}
 opends.dir=${opends.dir.input}
 opends.name=${opends.name.input}
-tests.tmp.dir=${tests.tmp.dir.input}
+tests.tmp.dir=${instance.dir.input}
 tests.default=${tests.default.input}
+instance.bin=${instance.dir.input}
+instance.dir=${instance.dir.input}
 opends.port.ldap=${opends.port.ldap.input}
 opends.port.admin=${opends.port.admin.input}
 opends.port.ldaps=${opends.port.ldaps.input}
@@ -369,7 +381,8 @@ snmp.opendmk.lib.dir=${snmp.opendmk.lib.dir.input}
 ldclt.dir=${ldclt.dir.input}
 verbose.mode=${verbose.mode.input}
 wc.type=tomcat
-test.plan.custom=${test.plan.custom}</echo>
+test.plan.custom=${test.plan.custom}
+original.archive=${opends.dir.input}/${opends.name.input}.zip</echo>
   </target>
 
 

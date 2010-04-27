@@ -1,0 +1,4 @@
+dn: cn=Collective c-PostalAddress,dc=example,dc=com
+changetype: modify
+replace: c-PostalAddress
+c-PostalAddress: Collective Attr$76600 Williams Street$Bowling Green, NH  91588

@@ -527,7 +527,10 @@ public class ModifyEntryTask extends Task
       {
         isAttributeInNewRdn =
           rdn.getAttributeName(i).equalsIgnoreCase(attrName);
-        rdnValue = rdn.getAttributeValue(i);
+        if (isAttributeInNewRdn)
+        {
+          rdnValue = rdn.getAttributeValue(i);
+        }
       }
 
       /* Check the attributes of the old DN.  If we are renaming them they

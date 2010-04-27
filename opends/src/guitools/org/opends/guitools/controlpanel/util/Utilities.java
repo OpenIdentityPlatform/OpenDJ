@@ -97,6 +97,7 @@ import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.event.ClickTooltipDisplayer;
+import org.opends.guitools.controlpanel.event.ComboKeySelectionManager;
 import org.opends.guitools.controlpanel.event.TextComponentFocusListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
@@ -165,6 +166,7 @@ public class Utilities
     {
       combo.setOpaque(false);
     }
+    combo.setKeySelectionManager(new ComboKeySelectionManager(combo));
     return combo;
   }
 

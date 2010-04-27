@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -52,10 +52,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_modify_filter_tests/aci_startup_modify_tests.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <script>
                     curr_aci_ldif_file = 'add_aci24.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_modify_filter_tests/%s' % (local.data,curr_aci_ldif_file));
@@ -72,10 +68,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify Filter: ACI 24 - Mod 0'
@@ -131,10 +123,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod3.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify Filter: ACI 24 - Mod 4'
                 </message>
@@ -174,10 +162,6 @@
                     'dsInstancePswd'      : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod6.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify Filter: ACI 24 - Mod 7'
@@ -219,10 +203,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod9.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify Filter: ACI 24 - postamble, removing aci and entries'
                 </message>
@@ -234,11 +214,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=Modify Filter Tests, o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

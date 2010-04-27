@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -324,9 +324,7 @@ public class InstallDS extends ConsoleApplication
     try {
       QuickSetupLog.initLogFileHandler(
               QuickSetupLog.isInitialized() ? null :
-                File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              "org.opends.server.tools");
-      QuickSetupLog.disableConsoleLogging();
+                File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();

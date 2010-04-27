@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -732,11 +732,13 @@ public class UIFactory
 
   /**
    * This method initialize the look and feel and UI settings.
+   * @throws Throwable if there is a problem initializing the look and feel.
    */
-  public static void initialize()
+  public static void initialize() throws Throwable
   {
     if (!initialized)
     {
+      final Throwable[] ts = {null};
       Runnable r = new Runnable()
       {
         public void run()
@@ -744,11 +746,16 @@ public class UIFactory
           System.setProperty("swing.aatext", "true");
           try
           {
-            UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
+            String lf = UIManager.getSystemLookAndFeelClassName();
+            if (lf.equalsIgnoreCase(
+                "com.sun.java.swing.plaf.motif.MotifLookAndFeel"))
+            {
+             lf = UIManager.getCrossPlatformLookAndFeelClassName();
+            }
+            UIManager.setLookAndFeel(lf);
           } catch (Throwable t)
           {
-            t.printStackTrace();
+            ts[0] = t;
           }
           JFrame.setDefaultLookAndFeelDecorated(false);
         }
@@ -765,8 +772,12 @@ public class UIFactory
         }
         catch (Throwable t)
         {
-          t.printStackTrace();
+          ts[0] = t;
         }
+      }
+      if (ts[0] != null)
+      {
+        throw ts[0];
       }
       initialized = true;
     }

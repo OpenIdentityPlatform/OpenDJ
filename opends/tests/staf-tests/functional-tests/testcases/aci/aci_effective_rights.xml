@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -117,11 +117,6 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file)  }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
     
                 <call function="'testCase_Postamble'"/>
@@ -233,10 +228,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - read, user searching targeted entry'
                 </message>
@@ -311,10 +302,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - read, user searching previously targeted entry'
                 </message>
@@ -384,10 +371,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - search, user searching targeted entry'
@@ -463,10 +446,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search, user searching previously targeted entry'
                 </message>
@@ -538,10 +517,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - search-read, user searching targeted entry'
@@ -673,10 +648,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, user searching previously targeted entry'
                 </message>
@@ -745,10 +716,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - search-read, separate ACIs, user searching targeted entry'
@@ -824,10 +791,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - search-read, separate ACIs, user searching previously targeted entry'
                 </message>
@@ -896,10 +859,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - compare, user searching targeted entry'
@@ -975,10 +934,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - compare, user searching previously targeted entry'
                 </message>
@@ -1047,10 +1002,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - add, user searching targeted entry'
@@ -1132,10 +1083,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - add, user searching previously targeted entry'
                 </message>
@@ -1204,10 +1151,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - delete, user searching targeted entry'
@@ -1289,10 +1232,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - delete, user searching previously targeted entry'
                 </message>
@@ -1361,10 +1300,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - write, user searching targeted entry'
@@ -1446,10 +1381,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - write, user searching previously targeted entry'
                 </message>
@@ -1518,10 +1449,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - proxy, user searching targeted entry'
@@ -1603,10 +1530,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - proxy, user searching previously targeted entry'
                 </message>
@@ -1675,10 +1598,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - selfwrite, user searching targeted entry'
@@ -1760,10 +1679,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - selfwrite, user searching previously targeted entry'
                 </message>
@@ -1834,10 +1749,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - all, user searching targeted entry'
@@ -1919,10 +1830,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - all, user searching previously targeted entry'
                 </message>
@@ -1991,10 +1898,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - export, user searching targeted entry'
@@ -2070,10 +1973,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - export, user searching previously targeted entry'
                 </message>
@@ -2142,10 +2041,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: Basic - import, user searching targeted entry'
@@ -2221,10 +2116,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: Basic - import, user searching previously targeted entry'
                 </message>
@@ -2294,10 +2185,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: targetattr with search,read, user searching targeted entry'
@@ -2373,10 +2260,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with search,read, user searching previously targeted entry'
                 </message>
@@ -2446,10 +2329,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Effective Rights: targetattr with not equal and search,read, user searching targeted entry'
@@ -2525,10 +2404,6 @@
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Effective Rights: targetattr with not equal and search,read, user searching previously targeted entry'
                 </message>
@@ -2587,10 +2462,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_effective_rights/del_effrights_aci.ldif' % (remote.data)  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <script>
                     allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'

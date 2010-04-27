@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -38,9 +38,13 @@
       <!-- Build list of test groups to run -->
       <script>
         listOfChildren=[]
+        returnMap = {}
+        
+        returnMap['replication.split']   = REPLICATION_SPLIT_SERVERS
+        returnMap['replication.eclmode'] = REPLICATION_ECL_MODE
 
         my_path='%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
-        my_report='%s/results2.xml' % logs.reports
+        my_report='%s/results_tmp.xml' % logs.reports
         my_info={}
         my_info['jvm label']=TEST_JVM_STRING
         my_info['os label']=TEST_OS_STRING
@@ -49,6 +53,43 @@
 
         xml_create_report(PRODUCTNAME,TESTS_TYPE,my_path, \
           DSInfo.ServerDict,my_info,local.directory,my_report)
+
+        # Copy the content of result_tmp.xml to result2.xml
+        # add an xml-stylesheet
+        testlogfh=open(my_report,'r')
+        lines=testlogfh.readlines()
+        file=open('%s/results2.xml' % logs.reports,'w')
+        file.write('%s' % lines[0])
+        file.write('&lt;?xml-stylesheet type="text/xsl" href="gen-groups-report.xsl"?&gt;\n')
+        for l in lines[1:]:
+          file.write('%s' % l)
+        file.close()
+        testlogfh.close()
+
+        # Create the initial report.cfg file
+        # This file is used by the cgi script
+        starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
+        reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
+        reportCfg.write('[Main]\n')
+        reportCfg.write('product = OpenDS_SE2.4 (Directory)\n')
+        if TESTS_TYPE == 'functional-tests':
+          reportCfg.write('category = Functional\n')
+        else:
+          reportCfg.write('category = Stress\n')
+        reportCfg.write('dsconfignumber = -1\n')
+        reportCfg.write('hostname = %s\n' % STAF_REMOTE_HOSTNAME)
+        reportCfg.write('testcasesfail = 0\n')
+        reportCfg.write('testcasesdone = 0\n')
+        reportCfg.write('testcasestotal = 2833\n')
+        reportCfg.write('starttime = %s\n' % starttime)
+        reportCfg.write('duration = 0\n')
+        reportCfg.write('dsconfigduration = 0\n')
+        reportCfg.write('percentage = 0\n')
+        reportCfg.write('allbugs = []\n')
+        reportCfg.write('os = %s\n' % TEST_OS_STRING)
+        reportCfg.write('report = reports/results2.xml\n')
+        reportCfg.write('istemporary = True\n')
+        reportCfg.close()
 
         groupsToRun = []
         for line in TEST_PLAN_CUSTOM.split(","):
@@ -146,7 +187,30 @@
         </sequence>
       </if>
 
-      <return>listOfChildren</return>
+      <!-- Overwrite the TESTS_TIMESTAMP value defined in the config.py file -->
+      <script>
+        oldStatus = 'istemporary = True\n'
+        newStatus = 'istemporary = False\n'
+
+        import re
+        statusRegExp = re.compile(oldStatus)
+        
+        reportCfg    = '%s/logs/report.cfg' % LOGS_ROOT
+        reportInput  = open(reportCfg, 'r')
+        c0           = reportInput.read()
+        c1           = statusRegExp.sub(newStatus, c0)
+        reportInput.close()
+
+        reportOutput = open(reportCfg,'w')
+        reportOutput.write(c1)
+        reportOutput.close()
+      </script>
+
+      <script>
+        returnMap['listOfChildren'] = listOfChildren
+      </script>
+
+      <return>returnMap</return>
 
     </sequence>
 

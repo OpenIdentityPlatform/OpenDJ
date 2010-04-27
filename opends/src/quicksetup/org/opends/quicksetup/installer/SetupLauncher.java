@@ -67,10 +67,7 @@ public class SetupLauncher extends Launcher {
     try {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(Constants.LOG_FILE_PREFIX,
-                  Constants.LOG_FILE_SUFFIX),
-              "org.opends.quicksetup.installer");
-      QuickSetupLog.disableConsoleLogging();
-
+                  Constants.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
       t.printStackTrace();

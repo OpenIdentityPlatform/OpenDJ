@@ -72,6 +72,7 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.IndexComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.VLVSortOrderRenderer;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
@@ -267,15 +268,18 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   /**
    * The list of standard attribute names.
    */
-  protected TreeSet<String> standardAttrNames = new TreeSet<String>();
+  protected TreeSet<String> standardAttrNames =
+    new TreeSet<String>(new LowerCaseComparator());
   /**
    * The list of configuration attribute names.
    */
-  protected TreeSet<String> configurationAttrNames = new TreeSet<String>();
+  protected TreeSet<String> configurationAttrNames =
+    new TreeSet<String>(new LowerCaseComparator());
   /**
    * The list of custom attribute names.
    */
-  protected TreeSet<String> customAttrNames = new TreeSet<String>();
+  protected TreeSet<String> customAttrNames =
+    new TreeSet<String>(new LowerCaseComparator());
 
   private int defaultVLVEntryLimitValue;
   {

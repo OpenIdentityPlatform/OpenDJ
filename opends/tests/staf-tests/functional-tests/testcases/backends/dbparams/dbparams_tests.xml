@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -943,21 +943,139 @@
 
   <!--- Test Case information
     #@TestMarker          Backend Dbparams Tests
-    #@TestName            Dbparams: db-txn-no-sync
+    #@TestName            Dbparams: db-txn-no-sync_not_changed
+    #@TestIssue           none
+    #@TestPurpose         Ensure that db-txn-no-sync could not be changed
+                          if db-txn-write-no-sync is set to true (default)
+    #@TestPreamble        none
+    #@TestStep            Call cannot_change function
+    #@TestPostamble       none
+    #@TestResult          Success if the db param has not been changed
+  -->
+  <function name="backends_dbparams_019" scope="local">
+    <testcase name="getTestCaseName('db-txn-no-sync_not_changed')">
+      <try>
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+                'Ensure that db-txn-no-sync could not be changed if \
+                 db-txn-write-no-sync is set to true (default)'
+          </message>
+
+          <!-- Try to change the property -->
+          <script>
+            options = '--advanced --backend-name userRoot --set db-txn-no-sync:true'
+          </script>
+          <message>
+            '===== options = %s' % options
+          </message>
+          <call function="'dsconfig'">
+            {
+            'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'set-backend-prop' ,
+            'optionsString'  : options ,
+            'expectedRC'     : 1
+            }
+          </call>
+          <script>
+            returnString = STAXResult[0][1]
+          </script>
+          <!-- Ensure we get the correct error message -->
+          <message>
+            '===== Looking for appropriate error message'
+          </message>
+          <script>
+            expString = 'Configuration attributes'
+          </script>
+          <message>
+            '===== expString = %s' % expString
+          </message>
+          <call function="'searchString'">
+            {
+            'returnString'   : returnString ,
+            'expectedString' : expString
+            }
+          </call>
+          <script>
+            expString = 'ds-cfg-db-txn-no-sync and ds-cfg-db-txn-write-no-sync are mutually'
+          </script>
+          <message>
+            '===== expString = %s' % expString
+          </message>
+          <call function="'searchString'">
+            {
+            'returnString'   : returnString ,
+            'expectedString' : expString
+            }
+          </call>
+          <script>
+            expString = 'exclusive and cannot be both set at the same time'
+          </script>
+          <message>
+            '===== expString = %s' % expString
+          </message>
+          <call function="'searchString'">
+            {
+            'returnString'   : returnString ,
+            'expectedString' : expString
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+          
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+
+      </try>
+
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+    #@TestMarker          Backend Dbparams Tests
+    #@TestName            Dbparams: db-txn-no-sync_changed
     #@TestIssue           none
     #@TestPurpose         Ensure that db-txn-no-sync could be changed
+                          if db-txn-write-no-sync is set to false
     #@TestPreamble        none
     #@TestStep            Call can_change function
     #@TestPostamble       none
     #@TestResult          Success if the db param has been changed
   -->
-  <function name="backends_dbparams_019" scope="local">
-    <testcase name="getTestCaseName('db-txn-no-sync')">
+  <function name="backends_dbparams_019_1" scope="local">
+    <testcase name="getTestCaseName('db-txn-no-sync_changed')">
       <try>
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-                'Ensure that db-txn-no-sync could be changed'
+                'Set db-txn-write-no-sync to false'
+          </message>
+          <script>
+            modifs = '--backend-name userRoot --set db-txn-write-no-sync:"false"'
+          </script>
+          <call function="'dsconfig'">
+            {
+            'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'set-backend-prop' ,
+            'optionsString'  : modifs ,
+            'expectedRC'     : 0
+            }
+          </call>
+
+          <message>
+                'Ensure that db-txn-no-sync could be changed if \
+                 db-txn-write-no-sync is set to false'
           </message>
           <call function="'can_change'">
             {
@@ -965,9 +1083,26 @@
             'propValue' : 'true'
             }
           </call>
+
+          <message>
+                'Set db-txn-write-no-sync to true (default)'
+          </message>
+          <script>
+            modifs = '--backend-name userRoot --set db-txn-write-no-sync:"true"'
+          </script>
+          <call function="'dsconfig'">
+            {
+            'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'set-backend-prop' ,
+            'optionsString'  : modifs ,
+            'expectedRC'     : 0
+            }
+          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
-          
+
         <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
           <message log="1" level="'fatal'">
             '%s: Test failed. eInfo(%s)' % (eType,eInfo)

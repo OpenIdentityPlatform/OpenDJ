@@ -824,6 +824,7 @@ public class UserData
   {
     hmJavaArguments = new HashMap<String, JavaArguments>();
     int maxMemoryMb = 256;
+    int minMemoryMb = 128;
     final int maxMemoryBytes = maxMemoryMb * 1024 * 1024;
     // If the current max memory is bigger than the max heap we want to set,
     // assume that the JVM ergonomics are going to be able to allocate enough
@@ -832,6 +833,7 @@ public class UserData
     if (currentMaxMemoryBytes > maxMemoryBytes)
     {
       maxMemoryMb = -1;
+      minMemoryMb = -1;
     }
     for (String clientScript : getClientScripts())
     {
@@ -843,8 +845,8 @@ public class UserData
     for (String serverScript : getServerScripts())
     {
       JavaArguments javaArgument = new JavaArguments();
-      javaArgument.setInitialMemory(128);
-      javaArgument.setMaxMemory(256);
+      javaArgument.setInitialMemory(minMemoryMb);
+      javaArgument.setMaxMemory(maxMemoryMb);
       javaArgument.setAdditionalArguments(new String[] {"-server"});
       hmJavaArguments.put(serverScript, javaArgument);
     }

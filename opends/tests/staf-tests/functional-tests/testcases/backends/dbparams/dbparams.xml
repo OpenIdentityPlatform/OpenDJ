@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_dbparams"/>
@@ -94,6 +94,7 @@
                   testsList.append('backends_dbparams_017')
                   testsList.append('backends_dbparams_018')
                   testsList.append('backends_dbparams_019')
+                  testsList.append('backends_dbparams_019_1')
                   testsList.append('backends_dbparams_020')
                   testsList.append('backends_dbparams_021')
                   testsList.append('backends_dbparams_022')

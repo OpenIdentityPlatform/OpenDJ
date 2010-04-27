@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -610,13 +610,24 @@
 
       <if expr="expectedRC == 0 or expectedRC == 'noCheck'">
         <!--- Check that DS stopped -->
-        <call function="'isStopped'">
-          { 'location'         : location,
-            'dsPath'           : dsPath,
-            'noOfLoops'        : noOfLoops,
-            'noOfMilliSeconds' : noOfMilliSeconds
-          }
-        </call>
+        <if expr="IPS_PKG == True">
+          <call function="'isStopped'">
+            { 'location'         : location,
+              'dsPath'           : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+              'noOfLoops'        : noOfLoops,
+              'noOfMilliSeconds' : 6000
+            }
+          </call>
+          <else>
+             <call function="'isStopped'">
+              { 'location'         : location,
+                'dsPath'           : dsPath,
+                'noOfLoops'        : noOfLoops,
+                'noOfMilliSeconds' : noOfMilliSeconds
+              }
+            </call>
+          </else>
+        </if>
       </if>
     </sequence>
   </function>
@@ -2614,13 +2625,24 @@
 
       <if expr="expectedRC == 0">
         <!--- Check that DS stopped -->
-        <call function="'isStopped'">
-          { 'location'         : location,
-            'dsPath'           : dsPath,
-            'noOfLoops'        : noOfLoops,
-            'noOfMilliSeconds' : noOfMilliSeconds
-          }
-        </call>
+        <if expr="IPS_PKG == True">
+          <call function="'isStopped'">
+            { 'location'         : location,
+              'dsPath'           : '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+              'noOfLoops'        : noOfLoops,
+              'noOfMilliSeconds' : noOfMilliSeconds
+            }
+          </call>
+          <else>
+             <call function="'isStopped'">
+              { 'location'         : location,
+                'dsPath'           : dsPath,
+                'noOfLoops'        : noOfLoops,
+                'noOfMilliSeconds' : noOfMilliSeconds
+              }
+            </call>
+          </else>
+        </if>
       </if>
 
       <return>STAFCmdRC</return>
@@ -4023,7 +4045,8 @@
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
-        'expectedRC' : expectedRC
+        'expectedRC' : expectedRC,
+        'knownIssue' : knownIssue
         }
       </call>
 
@@ -4165,7 +4188,7 @@
         'arguments'  : STAFCmdParams,
         'location'   : location,
         'expectedRC' : expectedRC,
-        'knownIssue': knownIssue
+        'knownIssue' : knownIssue
         }
       </call>
       

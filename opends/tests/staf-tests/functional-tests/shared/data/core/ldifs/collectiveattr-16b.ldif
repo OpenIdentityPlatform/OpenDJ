@@ -1,0 +1,15 @@
+dn: uid=rdaugherty,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+cn: Robert Daugherty
+sn: Daugherty
+givenname: Robert
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Sunnyvale
+uid: rdaugherty
+mail: rdaugherty@example.com
+telephonenumber: +1 408 555 1296
+facsimiletelephonenumber: +1 408 555 1992
+roomnumber: 0194
+userpassword: apples

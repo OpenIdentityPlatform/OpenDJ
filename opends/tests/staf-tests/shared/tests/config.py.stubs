@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2007-2009 Sun Microsystems, Inc.
+#      Copyright 2007-2010 Sun Microsystems, Inc.
 
 TEST_OS_STRING                = '${tests.os.string}'
 TEST_JVM_STRING               = '${tests.jvm.string}'
@@ -33,6 +33,7 @@ PRODUCTNAME                   = '${product.name}'
 OPENDSNAME                    = '${opends.name}'
 ZIPNAME                       = '${opends.name}.zip'
 ZIPPATH                       = '${opends.dir}'
+TESTS_TIMESTAMP               = '${tests.timestamp}'
 TESTS_TYPE                    = '${tests.type}'
 TESTS_ROOT                    = '${basedir}'
 TESTS_DIR                     = '${tests.dir}'
@@ -45,8 +46,8 @@ TESTS_DSML_DIR                = '${shared.dir}/dsml'
 TESTS_RESOURCE_DIR            = '${shared.dir}/resource'
 DIRECTORY_INSTANCE_DN         = '${opends.admin.dn}'
 DIRECTORY_INSTANCE_PSWD       = '${opends.admin.pwd}'
-DIRECTORY_INSTANCE_BIN        = '${tests.tmp.dir}'
-DIRECTORY_INSTANCE_DIR        = '${tests.tmp.dir}'
+DIRECTORY_INSTANCE_BIN        = '${instance.bin}'
+DIRECTORY_INSTANCE_DIR        = '${instance.dir}'
 DIRECTORY_INSTANCE_HOST       = '${remote.hostname}'
 DIRECTORY_INSTANCE_PORT       = '${opends.port.ldap}'
 DIRECTORY_INSTANCE_ADMIN_PORT = '${opends.port.admin}'
@@ -81,3 +82,4 @@ SNMP_TRAP_PORT                = '8086'
 LDCLT_DIR                     = '${ldclt.dir}'
 VERBOSE_MODE                  = '${verbose.mode}'
 TEST_PLAN_CUSTOM              = '${test.plan.custom}'
+ORIGINAL_ARCHIVE              = '${original.archive}'

@@ -41,7 +41,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -54,6 +53,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
 import org.opends.quicksetup.Installation;
 import org.opends.messages.Message;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.args.ArgumentException;
@@ -207,34 +207,7 @@ public class ControlPanel
 
   private static void initLookAndFeel() throws Throwable
   {
-    if (SwingUtilities.isEventDispatchThread())
-    {
-      UIManager.setLookAndFeel(
-          UIManager.getSystemLookAndFeelClassName());
-    }
-    else
-    {
-      final Throwable[] ts = {null};
-      SwingUtilities.invokeAndWait(new Runnable()
-      {
-        public void run()
-        {
-          try
-          {
-            UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
-          }
-          catch (Throwable t)
-          {
-            ts[0] = t;
-          }
-        }
-      });
-      if (ts[0] != null)
-      {
-        throw ts[0];
-      }
-    }
+    UIFactory.initialize();
   }
 
   private void updateLocalOrRemotePanel(RootPaneContainer localOrRemote)

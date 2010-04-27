@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -300,7 +300,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           errorFound = true;
           errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_FOUND.get());
         }
-        else if (!hasObjectClass(ref, "groupOfURLs"))
+        else if (!hasObjectClass(ref, ServerConstants.OC_GROUP_OF_URLS))
         {
           errorFound = true;
           errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_DYNAMIC.get());
@@ -783,7 +783,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     else
     {
       sb.append("objectClass: ds-virtual-static-group\n");
-      sb.append("objectClass: "+ServerConstants.OC_GROUP_OF_URLS+"\n");
+      sb.append("objectClass: "+ServerConstants.OC_GROUP_OF_UNIQUE_NAMES+"\n");
       sb.append("ds-target-group-dn: "+referenceGroup.getText().trim());
     }
 

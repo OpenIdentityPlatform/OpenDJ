@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -735,7 +735,8 @@ public class CustomAttributePanel extends SchemaElementPanel
       }
 
       SortedSet<String> orderedKeys =
-        new TreeSet<String>(syntaxNameMap.keySet());
+        new TreeSet<String>(new LowerCaseComparator());
+      orderedKeys.addAll(syntaxNameMap.keySet());
       for (String key : orderedKeys)
       {
         newSyntaxes.add(syntaxNameMap.get(key));
