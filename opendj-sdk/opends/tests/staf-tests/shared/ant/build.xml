@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <project name="opends-staf-tests" basedir="../.." default="usage">
 
@@ -226,7 +226,7 @@
     <var name="staf.executable" value="${staf.bin.dir}/STAF${extension.binary}"/>
 
     <var name="archives.dir" value="${repository.dir}/archives"/>
-    <var name="tests.run.dir" value="${logs.dir}/${tests.type}/run"/>
+    <var name="tests.run.dir" value="${logs.dir}"/>
 
     <if>
       <equals arg1="${os.family}" arg2="windows"/>

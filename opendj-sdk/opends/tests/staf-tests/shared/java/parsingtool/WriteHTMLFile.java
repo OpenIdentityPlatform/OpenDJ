@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 import java.io.*;
 import java.lang.*;
@@ -58,7 +58,7 @@ public class WriteHTMLFile
 
     String xmlFilename;
     String htmlFilename;
-    File xslFilename = new File(strParentDir + "/../shared/xsl/testspec-stylesheet.xsl");
+    File xslFilename = new File(strParentDir + "/../../shared/xsl/testspec-stylesheet.xsl");
 
     if(group.indexOf("/") < 0)
     {

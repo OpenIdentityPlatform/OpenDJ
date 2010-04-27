@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -1899,30 +1899,27 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
 
       /*
-       * We will iterate backwards through a range of the dn2id keys to
-       * find subordinates of the target entry from the bottom of the tree
-       * upwards. For example, any subordinates of "dc=example,dc=com" appear
-       * in dn2id with a key ending in ",dc=example,dc=com". The entry
-       * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
-       * "ou=people,dc=example,dc=com".
+       * We will iterate forwards through a range of the dn2id keys to
+       * find subordinates of the target entry from the top of the tree
+       * downwards.
        */
-      byte[] suffix = StaticUtils.getBytes("," + entryDN.toNormalizedString());
+      byte[] suffix = StaticUtils.getBytes("," +
+          entryDN.toNormalizedString());
 
       /*
-       * Set the starting value to a value of equal length but slightly
-       * greater than the target DN. Since keys are compared in
-       * reverse order we must set the first byte (the comma).
-       * No possibility of overflow here.
+       * Set the ending value to a value of equal length but slightly
+       * greater than the suffix.
        */
-      byte[] begin = suffix.clone();
-      begin[0] = (byte) (begin[0] + 1);
+      byte[] end = suffix.clone();
+      end[0] = (byte) (end[0] + 1);
+
       int subordinateEntriesDeleted = 0;
 
       DatabaseEntry data = new DatabaseEntry();
-      DatabaseEntry key = new DatabaseEntry(begin);
+      DatabaseEntry key = new DatabaseEntry(suffix);
+
       CursorConfig cursorConfig = new CursorConfig();
       cursorConfig.setReadCommitted(true);
-
       Cursor cursor = dn2id.openCursor(txn, cursorConfig);
       try
       {
@@ -1930,35 +1927,29 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
         // Initialize the cursor very close to the starting value.
         status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
-        if (status == OperationStatus.NOTFOUND)
-        {
-          status = cursor.getLast(key, data, LockMode.DEFAULT);
-        }
 
-        // Step back until the key is less than the beginning value
+        // Step forward until the key is greater than the starting value.
         while (status == OperationStatus.SUCCESS &&
-            dn2id.getComparator().compare(key.getData(), begin) >= 0)
+            dn2id.getComparator().compare(key.getData(), suffix) <= 0)
         {
-          status = cursor.getPrev(key, data, LockMode.DEFAULT);
+          status = cursor.getNext(key, data, LockMode.DEFAULT);
         }
 
-        // Step back until we pass the ending value.
+        // Step forward until we pass the ending value.
         while (status == OperationStatus.SUCCESS)
         {
-          int cmp = dn2id.getComparator().compare(key.getData(), suffix);
-          if (cmp < 0)
+          int cmp = dn2id.getComparator().compare(key.getData(), end);
+          if (cmp >= 0)
           {
             // We have gone past the ending value.
             break;
           }
 
           // We have found a subordinate entry.
-
           if (!isSubtreeDelete)
           {
             // The subtree delete control was not specified and
             // the target entry is not a leaf.
-
             Message message =
               ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN.toString());
             throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
@@ -1986,7 +1977,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             deleteOperation.checkIfCanceled(false);
           }
 
-          status = cursor.getPrev(key, data, LockMode.DEFAULT);
+          // Get the next DN.
+          data = new DatabaseEntry();
+          status = cursor.getNext(key, data, LockMode.DEFAULT);
         }
       }
       finally

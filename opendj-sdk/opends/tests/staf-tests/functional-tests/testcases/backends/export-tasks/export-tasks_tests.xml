@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -104,6 +104,13 @@
 
           <call function="'StartDsWithScript'"/>
 
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+
           <script>
             options=[]
             options.append('--backend-name "nonDefault"')
@@ -138,6 +145,13 @@
 
           <call function="'StartDsWithScript'"/>
 
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+          
         </sequence>
 
         <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
@@ -1394,6 +1408,13 @@
           </call>
 
           <call function="'StartDsWithScript'"/>
+
+          <!--- Check that DS started -->
+          <call function="'isAlive'">
+            { 'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
 
           <message>
            'Backend ExportTasks19: Count entries in subtree ou=people,dc=example,dc=com'

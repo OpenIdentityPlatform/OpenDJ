@@ -24,7 +24,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -67,6 +67,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="revision"       select="normalize-space($sut/revision)"/>
   <xsl:variable name="os"             select="normalize-space($sut/os-label)"/>
   <xsl:variable name="jvm"            select="normalize-space($sut/jvm-label)"/>
+  <xsl:variable name="original-archive" select="normalize-space($sut/original-archive)"/>
   <xsl:variable name="testgroup"      select="results/testgroup"/>
   <xsl:variable name="testsuite"      select="$testgroup/testsuite"/>
   <xsl:variable name="testcase"       select="$testsuite/testcase"/>
@@ -108,6 +109,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <tr>
         <td><div class="collectionheader"><xsl:value-of select="concat('Test Groups Report for ',$productname,' ',$version)"/></div></td>
         <td width="10%"><a href="https://opends.dev.java.net/"><img src="./opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
+      </tr>
+      <tr>
+        <td><xsl:value-of select="concat(' ',$original-archive)"/></td>
+        <td></td>
       </tr>
     </tbody>
   </table>

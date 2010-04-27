@@ -69,8 +69,7 @@ public class UninstallLauncher extends Launcher {
   public static void main(String[] args) {
     try {
       QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
-              "org.opends.guitools");
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
 
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");

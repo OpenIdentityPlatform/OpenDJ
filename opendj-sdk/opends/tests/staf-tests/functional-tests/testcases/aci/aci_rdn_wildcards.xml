@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -93,10 +93,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_rdn_wildcards/aci_startup_rdn_wildcard_tests.ldif' % remote.data }
                 </call>
     
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: RDN Wildcards: Preamble - user searching targeted entry, level one'
               </message>
@@ -213,10 +209,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, user searching targeted entry'
                 </message>
@@ -253,10 +245,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, single entry, user searching previously targeted entry'
@@ -326,10 +314,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, user searching targeted entry'
                 </message>
@@ -378,10 +362,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, user searching previously targeted entry'
@@ -451,10 +431,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, user searching targeted entry'
                 </message>
@@ -503,10 +479,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type wildcard, several entries, shorthand, user searching previously targeted entry'
@@ -575,10 +547,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, user searching targeted entry'
                 </message>
@@ -615,10 +583,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, user searching previously targeted entry'
@@ -687,10 +651,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, user searching targeted entry'
                 </message>
@@ -727,10 +687,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level allow, user searching previously targeted entry'
@@ -799,10 +755,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, user searching targeted entry'
                 </message>
@@ -839,10 +791,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, two level deny, user searching previously targeted entry'
@@ -911,10 +859,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, user searching targeted entry'
                 </message>
@@ -951,10 +895,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, two level deny, user searching previously targeted entry'
@@ -1023,10 +963,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, user searching targeted entry'
                 </message>
@@ -1063,10 +999,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard, single entry, three level deny, user searching previously targeted entry'
@@ -1135,10 +1067,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, user searching targeted entry'
                 </message>
@@ -1175,10 +1103,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-rdn wildcard, single entry, three level deny, user searching previously targeted entry'
@@ -1247,10 +1171,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, user searching targeted entry'
                 </message>
@@ -1299,10 +1219,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with whole-type and multiple-whole-rdn wildcard, several entries, shorthand, user searching previously targeted entry'
@@ -1371,10 +1287,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, user searching targeted entry'
                 </message>
@@ -1411,10 +1323,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards, three level deny, user searching previously targeted entry'
@@ -1483,10 +1391,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, user searching targeted entry'
                 </message>
@@ -1523,10 +1427,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with several multiple-whole-rdn wildcards with bad branch, user searching previously targeted entry'
@@ -1595,10 +1495,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, user searching targeted entry'
                 </message>
@@ -1635,10 +1531,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: RDN Wildcards: DN with multiple-whole-rdn wildcard syntax, multiple spaces, user searching previously targeted entry'
@@ -1934,10 +1826,6 @@
                     'entryToBeModified'   : '%s/aci/aci_rdn_wildcards/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: RDN Wildcards: DN with usrdn syntax, wildcard notation for uid, user searching previously targeted entry'
                 </message>
@@ -1995,11 +1883,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=RDN Wildcard Tests, o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
               <call function="'testCase_Postamble'"/>

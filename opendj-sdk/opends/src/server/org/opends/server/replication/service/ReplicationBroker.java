@@ -862,13 +862,14 @@ public class ReplicationBroker
             "phase 2 : will perform PhaseOneH with the preferred RS.");
         replicationServerInfo = performPhaseOneHandshake(
           replicationServerInfo.getServerURL(), true);
-        // Update replication server info with potentially more up to date data
-        // (server state for instance may have changed)
-        replicationServerInfos.put(replicationServerInfo.getServerId(),
-          replicationServerInfo);
 
         if (replicationServerInfo != null)
         {
+          // Update replication server info with potentially more up to date
+          // data (server state for instance may have changed)
+          replicationServerInfos.put(replicationServerInfo.getServerId(),
+              replicationServerInfo);
+
           // Handshake phase 1 exchange went well
 
           // Compute in which status we are starting the session to tell the RS
@@ -2383,10 +2384,14 @@ public class ReplicationBroker
         {
           synchronized (connectPhaseLock)
           {
+            // session may have been set to null in the connection phase
+            // when restarting the broker for example.
+
             // check the session. If it has changed, some
             // deconnection/reconnection happened and we need to restart from
             // scratch.
-            if (session == current_session)
+            if ((session != null) &&
+                (session == current_session))
             {
               session.publish(msg);
               done = true;

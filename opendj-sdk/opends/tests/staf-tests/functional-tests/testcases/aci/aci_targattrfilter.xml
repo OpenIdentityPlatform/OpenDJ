@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -187,10 +187,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title, user adding title to targeted entry'
                 </message>
@@ -202,10 +198,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title, user adding prohibited title to targeted entry'
@@ -233,10 +225,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_telephonenumber1.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title, user adding title to non-targeted entry'
                 </message>
@@ -262,10 +250,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title, user adding carlicense to previously targeted entry'
@@ -331,10 +315,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user adding telephonenumber to targeted entry'
                 </message>
@@ -346,10 +326,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_telephonenumber2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting title from targeted entry'
@@ -377,10 +353,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_roomnumber2.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting roomnumber from non-targeted entry'
                 </message>
@@ -406,10 +378,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting fax number from previously targeted entry'
@@ -473,10 +441,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in targeted entry'
                 </message>
@@ -488,10 +452,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing mail in targeted entry'
@@ -532,10 +492,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in previously targeted entry'
@@ -599,10 +555,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in targeted entry'
                 </message>
@@ -629,10 +581,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail4.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in non-targeted entry'
                 </message>
@@ -658,10 +606,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing st in previously targeted entry'
@@ -725,10 +669,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in targeted entry'
                 </message>
@@ -741,10 +681,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing mail in targeted entry'
                 </message>
@@ -756,10 +692,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail5.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in non-targeted entry'
@@ -786,10 +718,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in previously targeted entry'
@@ -852,10 +780,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present, user replacing street in targeted entry'
                 </message>
@@ -867,10 +791,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_street17.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present, user replacing mail in targeted entry'
@@ -911,10 +831,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present, user replacing street in previously targeted entry'
@@ -977,10 +893,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in targeted entry'
                 </message>
@@ -1020,10 +932,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in previously targeted entry'
@@ -1206,11 +1114,6 @@
                     'expectedRC'          : 21
                   }
                 </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
                 
                 <call function="'testCase_Postamble'"/>
     
@@ -1294,11 +1197,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) ,
                     'expectedRC'          : 21
                   }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1517,10 +1415,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter with very long comment portion, user adding title to targeted entry'
                 </message>
@@ -1533,10 +1427,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title18.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targattrfilter: Targattrfilter with very long comment portion, admin deleting aci'
                 </message>
@@ -1548,10 +1438,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter with very long comment portion, user adding carlicense to previously targeted entry'

@@ -24,7 +24,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -551,7 +551,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   </xsl:element>
 
   <xsl:element name="br"/>
-    
+  
   <!-- Shaded Line -->
   <xsl:element name="hr">
     <xsl:attribute name="noshade">
@@ -685,7 +685,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:element>
 
     <xsl:for-each select="$testware/service">
-    
+
       <xsl:element name="tr">
         <xsl:element name="td">
           <xsl:element name="b">
@@ -762,7 +762,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>          
     </xsl:element>
   </xsl:element>
-  
+
   <!-- Shaded Line -->
   <xsl:element name="hr">
     <xsl:attribute name="noshade">
@@ -772,9 +772,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <xsl:value-of select="1"/>
     </xsl:attribute>
   </xsl:element>
-  
+
   </xsl:element>
-      
+
   </xsl:element>
 
 </xsl:template>

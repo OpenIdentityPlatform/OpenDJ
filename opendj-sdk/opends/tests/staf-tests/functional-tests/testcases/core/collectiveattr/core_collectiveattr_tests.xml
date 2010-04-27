@@ -43,7 +43,7 @@
   #@TestResult          Test is successful if the result code is 0
   -->
   <function name="core_collectiveattr_001" scope="local">
-    <testcase name="getTestCaseName('Create and add a Collective Attribute')">
+    <testcase name="getTestCaseName('core_collectiveattr_001: Create and add a Collective Attribute')">
       <sequence> 
         <try>
           <sequence>                
@@ -152,7 +152,7 @@
     </testcase>
   </function>            
 
-  <!--- Test Case : Core : Collective Attributes :  -->
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_002 -->
   <!--- Test Case information
   #@TestMarker          Schema
   #@TestName            Core : Collective Attributes
@@ -160,12 +160,12 @@
   #@TestPurpose         Modify the value of the collective attribute
   #@TestPreamble
   #@TestSteps           Modify the value of the collective attribute secretary
-  #@TestSteps           Verify in one entry the attribute value has changed.
+  #@TestSteps           Verify in 2 entries the attribute value has changed.
   #@TestPostamble
   #@TestResult          Test is successful if the result code is 0
   -->
   <function name="core_collectiveattr_002" scope="local">
-    <testcase name="getTestCaseName('Modify the value of the Collective Attribute ')">
+    <testcase name="getTestCaseName('core_collectiveattr_002: Modify the value of the Collective Attribute ')">
       <sequence>
         <try>
           <sequence>
@@ -181,7 +181,7 @@
             targetDN2='uid=abergin,ou=Europe,%s' % baseDN
           </script>
 
-            <message>'++ Add collective attribute secretary, should pass'</message>
+            <message>'++ Modify collective attribute secretary, should pass'</message>
             <call function="'ldapModifyWithScript'">
               {
                 'dsAdd'            : 'True' ,
@@ -272,5 +272,2479 @@
     </testcase>
   </function>
 
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_003 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_003
+  #@TestPurpose         Delete the collective attribute
+  #@TestPreamble
+  #@TestSteps           Delete the collective attribute secretary
+  #@TestSteps           Verify in one entry the attribute has been removed.
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_003" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_003: Delete the Collective Attribute ')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+          <script>
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kwinters,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=abergin,ou=Europe,%s' % baseDN
+          </script>
+
+            <message>'++ Delete collective attribute secretary, should pass'</message>
+            <call function="'ldapDeleteWithScript'">
+              {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDeleteSubtree'  : 'TRUE' ,
+                'dsDn'             : ['cn=Collective Secretary,dc=example,dc=com']
+              }
+            </call>
+
+
+            <message>'++ Search attribute secretary in user kwinters, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'secretary'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'secretary: ',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user kwinters, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective Secretary,',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <message>'++ Search attribute secretary in user abergin, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'secretary'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'secretary:',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_004 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_004
+  #@TestPurpose         add an attribute of collective type
+  #@TestPreamble
+  #@TestSteps           add attribute of collective type c-PostalAddress
+  #@TestSteps           verify in 2 entries that attribute has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_004" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_004: Add an attribute of collective type')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif4='%s/core/ldifs/collectiveattr-4.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=jwallace,ou=South,ou=America,%s' % baseDN
+            targetDN2='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add an attribute of collective type c-PostalAddress, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif4
+              }
+            </call>
+
+            <message>'++ Search attribute c-PostalAddress in user jwallace'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Example Com\$01251 Chestnut Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user jwallace '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PostalAddress,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PostalAddress in user scarter'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-PostalAddress=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Example Com\$01251 Chestnut Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_005 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_005
+  #@TestPurpose         modify the value of an attribute of collective type
+  #@TestPreamble
+  #@TestSteps           modify the value of the attribute c-PostalAddress
+  #@TestSteps           verify in 2 entries that attribute has been modified
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_005" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_005: Modify an attribute of collective type')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif5='%s/core/ldifs/collectiveattr-5.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=gfarmer,ou=America,%s' % baseDN
+            targetDN2='uid=tmorris,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Modify the value of the attribute c-PostalAddress, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif5
+              }
+            </call>
+
+            <message>'++ Search attribute c-PostalAddress in user gfarmer'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Collective Attr\$76600 Williams Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user tmorris '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PostalAddress,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PostalAddress in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Collective Attr\$76600 Williams Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+<!--- Test Case : Core : Collective Attributes : core_collectiveattr_006 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_006
+  #@TestPurpose         Delete an attribute of collective type
+  #@TestPreamble
+  #@TestSteps           delete the attribute c-PostalAddress
+  #@TestSteps           verify in 2 entries that attribute has been removed
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_006" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_006: delete an attribute of collective type')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kvaughan,ou=Europe,%s' % baseDN
+            targetDN2='uid=dmiller,ou=America,%s' % baseDN
+            </script>
+
+            <message>'++ Delete the attribute c-PostalAddress, should pass'</message>
+            <call function="'ldapDeleteWithScript'">
+              {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDeleteSubtree'  : 'TRUE' ,
+                'dsDn'             : ['cn=Collective c-PostalAddress,dc=example,dc=com']
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PostalAddress in user kvaughan, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'secretary=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'secretary: ',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user kvaughan, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective PostalAddress,',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <message>'++ Search attribute c-PostalAddress in user dmiller, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-PostalAddress=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress:',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_007 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_007
+  #@TestPurpose         add a collective attribute and an attribute of collective type
+  #@TestPreamble
+  #@TestSteps           add 2 collective attributes with the 2 syntaxes
+  #@TestSteps           verify in 2 entries that 2 attributes have been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_007" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_007: Add 2 collective attributes with the 2 syntaxes')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif7='%s/core/ldifs/collectiveattr-7.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add 2 collective attributes secretary and c-TelexNumber, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif7
+              }
+            </call>
+
+            <message>'++ Search 2 attributes  in user trigden'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-TelexNumber: 959\$105\$TYR',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'secretary: uid=tmorris,ou=Asia,ou=People',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user trigden '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-TelexNumber',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective Secretary',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search the 2 attribute in user scarter'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'c-TelexNumber secretary'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'secretary: uid=tmorris,ou=Asia,ou=People',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-TelexNumber: 959\$105\$TYR',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_008 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_008
+  #@TestPurpose         Add a collective attribute to test minimumDepth syntax 1
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test minimumDepth
+  #@TestSteps           (with businesscategory) verify in 1 entry under ou=North
+  #@TestSteps           that attribute has been added, in 1 entry under ou=South
+  #@TestSteps           and in 1 entry outside ou=North that attribute has not
+  #@TestSteps           been added.
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_008" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_008: Add a collective attribute to test minimumDepth syntax 1')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif8='%s/core/ldifs/collectiveattr-8.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=cschmith,ou=South,ou=America,%s' % baseDN
+            targetDN3='uid=abergin,ou=Europe,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute businesscategory, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif8
+              }
+            </call>
+
+            <message>'++ Search attribute businesscategory in user trigden'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'businesscategory=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'businessCategory: Finance Group',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user trigden'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective businessCategory,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute businesscategory in user cschmith'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'businesscategory=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'businessCategory: Finance Group',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute businesscategory in user abergin should FAIL'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'businesscategory=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'businessCategory: Finance Group',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+<!--- Test Case : Core : Collective Attributes : core_collectiveattr_009 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_009
+  #@TestPurpose         Add a collective attribute to test minimumDepth syntax 2
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test minimumDepth
+  #@TestSteps           (with c-ou) verify in 1 entry under ou=North
+  #@TestSteps           that attribute has been added, in 1 entry under ou=South
+  #@TestSteps           and in 1 entry outside ou=North that attribute has not
+  #@TestSteps           been added.
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_009" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_009: Add a collective attribute to test minimumDepth syntax2')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif9='%s/core/ldifs/collectiveattr-9.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kwinters,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=jwallace,ou=South,ou=America,%s' % baseDN
+            targetDN3='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute c-ou should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif9
+              }
+            </call>
+
+            <message>'++ Search attribute c-ou in user kwinters'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'c-ou=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-ou: corporate',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user kwinters'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-ou,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-ou in user jwallace'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-ou=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-ou: corporate',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute c-ou in user scarter should FAIL'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'c-ou=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-ou: corporate',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+        <finally>
+          <call function="'testCase_Postamble'"/>
+        </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_010 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_010
+  #@TestPurpose         Remove one subtree to test minimumDepth
+  #@TestPreamble
+  #@TestSteps           remove one subtree ou=South to test minimumDepth
+  #@TestSteps           (with businesscategory) verify in 1 entry under ou=North
+  #@TestSteps           that attribute is still there , in 1 entry
+  #@TestSteps           under ou=South the entry isn't there anymore, and in
+  #@TestSteps           1 entry outside ou=America it's not been added.
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_010" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_010: Remove one subtree to test minimumDepth')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kwinters,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=jwallace,ou=South,ou=America,%s' % baseDN
+            targetDN3='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Delete the subtree ou=South,ou=America'</message>
+            <call function="'ldapDeleteWithScript'">
+              {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsDeleteSubtree'  : 'TRUE' ,
+                'dsDn'             : ['ou=South,ou=America,%s' % baseDN]
+              }
+            </call>
+
+            <message>'++ Search attributes c-ou and businessCategory in user kwinters, should Pass'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-ou: corporate',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'businessCategory: Finance Group',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attributes collectiveAttributeSubentries in user kwinters'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-ou',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective businessCategory',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-ou in user jwallace, should Fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-ou=*' ,
+                'expectedRC'       : 32
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+
+            <message>'++ Search attribute businessCategory=* in user jwallace, should Fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'businessCategory=*' ,
+                'expectedRC'       : 32
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+
+
+            <message>'++ Search attributes c-ou and businessCategory in user scarter should FAIL'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-ou: corporate',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'businessCategory: Finance Group',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_011 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_011
+  #@TestPurpose         Add a collective attribute to test minimumDepth maximumDepth syntax1
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test minimumDepth
+  #@TestSteps           maximumDepth syntax1 (with departmentNumber) verify
+  #@TestSteps           under ou=North that attribute has not been added, and
+  #@TestSteps           in under ou=Europe that attribute has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_011" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_011: Add a collective attribute to test minimumDepth maximumDepth syntax1')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif11='%s/core/ldifs/collectiveattr-11.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=abergin,ou=Europe,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute departmentNumber should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif11
+              }
+            </call>
+
+            <message>'++ Search attribute departmentNumber in user trigden, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'departmentNumber=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'departmentNumber: 445566',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user abergin'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective departmentNumber,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute departmentNumber in user abergin'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'departmentNumber=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'departmentNumber: 445566',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_012 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_012
+  #@TestPurpose         Add a collective attribute to test minimumDepth maximumDepth syntax2
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test minimumDepth
+  #@TestSteps           maximumDepth syntax2 (with c-PostOfficeBox) verify
+  #@TestSteps           under ou=North that attribute has not been added, and
+  #@TestSteps           in under ou=Asia that attribute has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_012" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_012: Add a collective attribute to test minimumDepth maximumDepth syntax2')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif12='%s/core/ldifs/collectiveattr-12.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kwinters,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=tmorris,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute c-PostOfficeBox should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif12
+              }
+            </call>
+
+            <message>'++ Search attribute c-PostOfficeBox in user kwinters, should fail'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'c-PostOfficeBox=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostOfficeBox: PO BOX 2869',
+                'returnString'   : returnString ,
+                'expectedRC'     : 1 ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PostOfficeBox,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PostOfficeBox in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-PostOfficeBox=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostOfficeBox: PO BOX 2869',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_014 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_014
+  #@TestPurpose         Create a custom attribute then make it collective
+  #@TestPreamble
+  #@TestSteps           add a custom attribute commonSecretary the create a
+  #@TestSteps           collective attribute with that new attribute. verify in
+  #@TestSteps           1 entry that attribute has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_014" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_014: Create a custom Attribute then make it collective')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif14a='%s/core/ldifs/collectiveattr-14a.ldif' % remote.data
+            coreattrLdif14b='%s/core/ldifs/collectiveattr-14b.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=dmiller,ou=America,%s' % baseDN
+            targetDN2='uid=abergin,ou=Europe,%s' % baseDN
+            </script>
+
+            <message>'++ Add custom attribute commonSecretary, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif14a
+              }
+            </call>
+
+            <message>'++ Add collective attribute for commonSecretary, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif14b
+              }
+            </call>
+
+
+            <message>'++ Search attribute commonSecretary in user dmiller'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'commonSecretary'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'commonSecretary: uid=gfarmer,ou=America,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user dmiller'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective commonSecretary,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute commonSecretary in user abergin'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'commonSecretary'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'commonSecretary: uid=gfarmer,ou=America',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+<!--- Test Case : Core : Collective Attributes : core_collectiveattr_015 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_015
+  #@TestPurpose         add PostallAddress collective attribute and
+  #@TestPurpose         c-PostalAddress attribute of collective type
+  #@TestPreamble
+  #@TestSteps           add 2 collective attributes with the 2 syntaxes
+  #@TestSteps           PostalAddress and c-PostalAddress
+  #@TestSteps           verify in 2 entries that 2 attributes have been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_015" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_015: Add PostalAddress and c-PostalAddress collective attributes with the 2 syntaxes')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif15='%s/core/ldifs/collectiveattr-15.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add 2 collective attributes PostalAddress and c-PostalAddress, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif15
+              }
+            </call>
+
+            <message>'++ Search 2 attributes  in user trigden'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'postalAddress: Example Com\$ 40388 Sixth Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Example Com\$30754 College Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user trigden '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective PostalAddress',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PostalAddress',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search the 2 attributes in user scarter'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'PostalAddress c-PostalAddress'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'PostalAddress: Example Com\$ 40388 Sixth Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalAddress: Example Com\$30754 College Street.*',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_016 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_016
+  #@TestPurpose         Add a collective attribute to test real-overides-virtual
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test real-overides-virtual
+  #@TestSteps           syntax1 (with facsimileTelephoneNumber) verify
+  #@TestSteps           under ou=Europe that attribute has been added, and
+  #@TestSteps           outside ou=Europe that attribute has not been modified
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_016" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_016: Add a collective attribute to test real-overides-virtual syntax1')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif16a='%s/core/ldifs/collectiveattr-16a.ldif' % remote.data
+            coreattrLdif16b='%s/core/ldifs/collectiveattr-16b.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=kvaughan,ou=Europe,%s' % baseDN
+            targetDN3='uid=rdaugherty,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute facsimileTelephoneNumber should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif16a
+              }
+            </call>
+
+            <message>'++ Search attribute facsimileTelephoneNumber in user trigden, should pass with real value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'facsimileTelephoneNumber=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'facsimileTelephoneNumber: \+1 408 555 8473',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user kvaughan'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective facsimileTelephoneNumber,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute facsimileTelephoneNumber in user kvaughan'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'facsimileTelephoneNumber=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'facsimileTelephoneNumber: \+1 408 555 8477',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Add new user rdaugherty with a set facsimileTelephoneNumber should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif16b
+              }
+            </call>
+
+            <message>'++ Search attribute facsimileTelephoneNumber in user rdaugherty'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'facsimileTelephoneNumber=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'facsimileTelephoneNumber: \+1 408 555 1992',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_017 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_017
+  #@TestPurpose         Add a collective attribute to test real-overides-virtual
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test real-overides-virtual
+  #@TestSteps           syntax2 (with c-PhysicalDeliveryOfficeName) verify in
+  #@TestSteps           2 entries that the virtual value has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_017" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_017: Add a collective attribute to test real-overides-virtual syntax2')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif17='%s/core/ldifs/collectiveattr-17.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=trigden,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=tmorris,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute c-PhysicalDeliveryOfficeName should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif17
+              }
+            </call>
+
+            <message>'++ Search attribute c-PhysicalDeliveryOfficeName in user trigden, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'c-PhysicalDeliveryOfficeName=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PhysicalDeliveryOfficeName: par07',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PhysicalDeliveryOfficeName,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PhysicalDeliveryOfficeName in user tmorris, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-PhysicalDeliveryOfficeName=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PhysicalDeliveryOfficeName: par07',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_018 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_018
+  #@TestPurpose         Add a collective attribute to test virtual-overides-real
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test virtual-overides-real
+  #@TestSteps           syntax1 (with employeeType) verify when in an entry
+  #@TestSteps           that the virtual value has overridden the real one, in
+  #@TestSteps           another one that attribute has been added, then add a
+  #@TestSteps           user that has a set value for employeeType and verify
+  #@TestSteps           by adding the user that employeeType will change.
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_018" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_018: Add a collective attribute to test virtual-overides-real syntax1')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif18a='%s/core/ldifs/collectiveattr-18a.ldif' % remote.data
+            coreattrLdif18b='%s/core/ldifs/collectiveattr-18b.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=dmiller,ou=America,%s' % baseDN
+            targetDN2='uid=tmorris,ou=Asia,%s' % baseDN
+            targetDN3='uid=jreuter,ou=Europe,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute employeeType should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif18a
+              }
+            </call>
+
+            <message>'++ Search attribute employeeType in user dmiller, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'employeeType=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'employeeType: LTR-3',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective employeeType,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute employeeType in user tmorris, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'employeeType: LTR-3',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Add new user jreuter with a set employeeType should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif18b
+              }
+            </call>
+
+            <message>'++ Search attribute employeeType in user jreuter, should pass with virtual value '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'employeeType: LTR-3',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+<!--- Test Case : Core : Collective Attributes : core_collectiveattr_019 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_019
+  #@TestPurpose         Add a collective attribute to test virtual-overides-real
+  #@TestPreamble
+  #@TestSteps           add collective attribute and set virtual-overides-real
+  #@TestSteps           syntax2 (with c-PostalCode) verify in 2 entries
+  #@TestSteps           that the virtual value has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_019" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_019: Add a collective attribute to test virtual-overides-real syntax2')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif19='%s/core/ldifs/collectiveattr-19.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=kwinters,ou=North,ou=America,%s' % baseDN
+            targetDN2='uid=scarter,ou=Asia,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute c-PostalCode should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif19
+              }
+            </call>
+
+            <message>'++ Search attribute c-PostalCode in user kwinters, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'c-PostalCode=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalCode: 76800',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user scarter'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-PostalCode,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute c-PostalCode in user scarter, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'c-PostalCode=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-PostalCode: 76800',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_020 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_020
+  #@TestPurpose         Add a collective attribute to test merge-real-and-virtual
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test merge-real-and-virtual
+  #@TestSteps           syntax1 (with preferredLanguage) verify in 1 entry
+  #@TestSteps           the attribute value is the virtual and the real one, in
+  #@TestSteps           another one that attribute has been added, then add a
+  #@TestSteps           user that has a set value for preferredServerList and
+  #@TestSteps           verify by adding the user that preferredServerList will
+  #@TestSteps           have both values
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_020" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_020: Add a collective attribute to test merge-real-and-virtual syntax1')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif20a='%s/core/ldifs/collectiveattr-20a.ldif' % remote.data
+            coreattrLdif20b='%s/core/ldifs/collectiveattr-20b.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=dmiller,ou=America,%s' % baseDN
+            targetDN2='uid=tmorris,ou=Asia,%s' % baseDN
+            targetDN3='uid=tmason,ou=America,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute preferredLanguage should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif20a
+              }
+            </call>
+
+            <message>'++ Search attribute preferredLanguage in user dmiller, should pass with both values'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'preferredLanguage=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'preferredLanguage: fr',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'preferredLanguage: zh_CN',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user tmorris'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective preferredLanguage,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Search attribute preferredLanguage in user tmorris, should pass with virtual value'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN2 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'preferredLanguage: zh_CN',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Add new user tmason with a set preferredLanguage should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif20b
+              }
+            </call>
+
+            <message>'++ Search attribute preferredLanguage in user tmason should pass with both values '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'preferredLanguage: ja_JP',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'preferredLanguage: zh_CN',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+
+  <!--- Test Case : Core : Collective Attributes : core_collectiveattr_021 -->
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Core : Collective Attributes
+  #@TestID              core_collectiveattr_021
+  #@TestPurpose         Add a collective attribute to test merge-real-and-virtual
+  #@TestPreamble
+  #@TestSteps           add collective attribute to test merge-real-and-virtual
+  #@TestSteps           syntax2 (with c-l) verify in 1 entry the attribute value
+  #@TestSteps           is the virtual one, add a user, verify the attribute
+  #@TestSteps           c-l has been added
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="core_collectiveattr_021" scope="local">
+    <testcase name="getTestCaseName('core_collectiveattr_021: Add a collective attribute to test merge-real-and-virtual syntax2')">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+            coreattrLdif21a='%s/core/ldifs/collectiveattr-21a.ldif' % remote.data
+            coreattrLdif21b='%s/core/ldifs/collectiveattr-21b.ldif' % remote.data
+            baseDN='ou=People,o=collectiveattr tests,dc=example,dc=com'
+            targetDN1='uid=gfarmer,ou=America,%s' % baseDN
+            targetDN3='uid=bhall,ou=North,ou=America,%s' % baseDN
+            </script>
+
+            <message>'++ Add collective attribute c-l should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif21a
+              }
+            </call>
+
+            <message>'++ Search attribute c-l and l in user gfarmer, should pass'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'c-l=*'
+              }
+            </call>
+            <script>
+                  returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-l: Santa Clara',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'l: Cupertino',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+            <message>'++ Search attribute collectiveAttributeSubentries in user gfarmer'</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN1 ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'collectiveAttributeSubentries'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'collectiveAttributeSubentries: cn=Collective c-l,',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+            <message>'++ Add new user bhall, should pass'</message>
+            <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : coreattrLdif21b
+              }
+            </call>
+
+            <message>'++ Search attribute c-l and l in user bhall should pass '</message>
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : targetDN3 ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+            <script>
+                returnString = STAXResult[0][1]
+            </script>
+            <call function="'searchString'">
+              { 'expectedString' : 'c-l: Santa Clara',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+            <call function="'searchString'">
+              { 'expectedString' : 'l: Sunnyvale',
+                'returnString'   : returnString ,
+                'expectedRC'     : expectedRC ,
+              }
+            </call>
+
+
+        </sequence>
+
+        <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
+          <message log="1" level="'fatal'">
+            '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+          </message>
+        </catch>
+
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
 
 </stax>

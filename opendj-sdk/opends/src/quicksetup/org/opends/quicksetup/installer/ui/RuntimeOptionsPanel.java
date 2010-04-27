@@ -157,14 +157,14 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     int importInsetsTop = Math.abs(
         bImport.getPreferredSize().height -
         l.getPreferredSize().height) / 2;
-    gbc.insets.top = importInsetsTop;
+    gbc.insets.top = importInsetsTop + UIFactory.TOP_INSET_SECONDARY_FIELD;
     panel.add(l, gbc);
     gbc.gridx ++;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.weightx = 0.5;
     panel.add(lImport, gbc);
     gbc.gridx ++;
-    gbc.insets.top = 0;
+    gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
     gbc.weightx = 0.0;
     panel.add(bImport, gbc);
     gbc.gridx ++;

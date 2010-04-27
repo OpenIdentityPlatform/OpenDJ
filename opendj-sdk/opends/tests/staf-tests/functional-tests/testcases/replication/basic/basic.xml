@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -110,8 +110,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-    
-      
+          
     
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
@@ -312,8 +311,6 @@
             </sequence>
           </testcase>
     
-
-
 
 
           <!--- Test Case information
@@ -639,8 +636,7 @@
             </sequence>
           </testcase> 
 
-
-
+          
 
           <!--- Test Case information
           #@TestMarker          Replication Basic Tests
@@ -1971,13 +1967,93 @@
       
       
 
+          <!--- Test Case information
+          #@TestMarker          Replication Basic Tests
+          #@TestName            Replication: Basic: Add entry after restart
+          #@TestID              Add entry after restart
+          #@TestPurpose         Check entry add over secured replication after
+                                server restart
+          #@TestPreamble
+          #@TestSteps           Restart servers
+          #@TestSteps           Add entry
+          #@TestPostamble
+          #@TestResult          Success if trees synchronised over the topology
+          -->
+          <testcase name="getTestCaseName('Add entry after restart')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                'Replication: Basic: Add entry after restart. \
+                Check entry add over secured replication after server restart'
+              </message>
+
+              <!-- Stop the servers in the topology -->
+              <call function="'stopServers'">
+                [_splitServerList]
+              </call>
+              
+              <!-- Start the servers in the topology -->  
+              <call function="'startServers'">
+                [_splitServerList]
+              </call>
+              
+              <iterate var="server" in="_topologyServerList" indexvar="i">
+                <sequence>
+                  <script>
+                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    userDn = 'uid=RESTART-iabizen-%s, %s' % \
+                             (i,synchroSuffix)
+                  </script>
+                    
+                  <!-- Add entry to one of the other servers -->
+                  <script>
+                    listAttr = []
+                    listAttr.append('objectclass:top')
+                    listAttr.append('objectclass:organizationalperson')
+                    listAttr.append('objectclass:inetorgperson')
+                    listAttr.append('objectclass:person')
+                    listAttr.append('givenname:Izen-%s' % i)
+                    listAttr.append('sn:Abizen-%s' % i)
+                    listAttr.append('cn:Izen-%s Abizen-%s' % (i, i))
+                    listAttr.append('l:ICNC')
+                  </script>
+          
+                  <call function="'addAnEntry'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : serverPath,
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToAdd'        : userDn,
+                      'listAttributes' : listAttr
+                    }
+                  </call>
+              
+                </sequence>
+              </iterate>
+                
+              <!-- Verify the synchronization of the trees among the servers in 
+                the topology -->          
+              <!-- If tree verification fails, we may have come across known
+               !   issue CR 6925675: Removing suffix root entry brings 
+               !   generation ID loss
+              -->
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix,
+                  '6925675' ]
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
                         
                 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' 
                   % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
-                          
+
           <call function="'testSuite_Postamble'"/>
         
         </sequence>

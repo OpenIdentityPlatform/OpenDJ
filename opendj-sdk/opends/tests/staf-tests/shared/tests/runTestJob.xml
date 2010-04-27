@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -49,6 +49,28 @@
         import java.io.FileNotFoundException
         sys.path.append("%s/shared/python" % TESTS_ROOT )
         from common import *
+      </script>
+
+      <!-- Overwrite the TESTS_TIMESTAMP value defined in the config.py file -->
+      <script>
+        import time
+        timestamp = time.time()
+
+        oldTimeStamp = """TESTS_TIMESTAMP               = .*"""
+        newTimeStamp = """TESTS_TIMESTAMP               = %s""" % timestamp
+
+        import re
+        timeRegExp = re.compile(oldTimeStamp)
+
+        configFile   = STAXJobScriptFiles[0]
+        configInput  = open(configFile, 'r')
+        c0           = configInput.read()
+        c1           = timeRegExp.sub(newTimeStamp, c0)
+        configInput.close()
+
+        configOutput = open(configFile,'w')
+        configOutput.write(c1)
+        configOutput.close()
       </script>
 
       <message>'PATH= %s' % sys.path</message>
@@ -96,7 +118,9 @@
           </message>
 
           <script>
-            listOfChildren=STAXResult
+            listOfChildren = STAXResult['listOfChildren']
+            REPLICATION_SPLIT_SERVERS = STAXResult['replication.split']
+            REPLICATION_ECL_MODE = STAXResult['replication.eclmode'] 
           </script>
         </sequence>
         <else>
@@ -516,7 +540,8 @@
         sutElementList.append(['server-package',ServerPackage])
         sutElementList.append(['snmp-jarfile',ServerSNMPJarFile])
         sutElementList.append(['md5-sum','TDB'])
-        
+        sutElementList.append(['original-archive',ORIGINAL_ARCHIVE])
+
         write_text_elements(sut,sutElementList)
         
         # Create the sut dsml element

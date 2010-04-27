@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -58,11 +58,7 @@ public class QuickSetupLog {
       logFile = file;
       fileHandler = new FileHandler(logFile.getCanonicalPath());
       fileHandler.setFormatter(new SimpleFormatter());
-      Logger logger = Logger.getLogger("org.opends.quicksetup");
-      logger.addHandler(fileHandler);
-      logger = Logger.getLogger("org.opends.admin.ads");
-      logger.addHandler(fileHandler);
-      logger = Logger.getLogger("org.opends.server.admin.client.cli");
+      Logger logger = Logger.getLogger("org.opends");
       logger.addHandler(fileHandler);
       disableConsoleLogging();
       logger = Logger.getLogger("org.opends.quicksetup");
@@ -83,7 +79,10 @@ public class QuickSetupLog {
     initLogFileHandler(file);
     Logger logger = Logger.getLogger(packageName);
     logger.addHandler(fileHandler);
-    logger.setUseParentHandlers(false);
+    if (disableLoggingToConsole())
+    {
+      logger.setUseParentHandlers(false); // disable logging to console
+    }
   }
 
   /**
@@ -91,14 +90,11 @@ public class QuickSetupLog {
    * output.
    */
   static public void disableConsoleLogging() {
-    Logger logger = Logger.getLogger("org.opends.quicksetup");
-    logger.setUseParentHandlers(false);
-    logger = Logger.getLogger("org.opends.admin.ads");
-    logger.setUseParentHandlers(false);
-    logger = Logger.getLogger("org.opends.server.tools");
-    logger.setUseParentHandlers(false);
-    logger = Logger.getLogger("org.opends.server.admin.client.cli");
-    logger.setUseParentHandlers(false);
+    if (disableLoggingToConsole())
+    {
+      Logger logger = Logger.getLogger("org.opends");
+      logger.setUseParentHandlers(false);
+    }
   }
 
   /**
@@ -127,4 +123,8 @@ public class QuickSetupLog {
     return sb.toString();
   }
 
+  private static boolean disableLoggingToConsole()
+  {
+    return !"true".equals(System.getenv("OPENDS_LOG_TO_STDOUT"));
+  }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -41,6 +41,7 @@ import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.IndexQueryFactory;
@@ -2373,6 +2374,50 @@ public class AttributeIndex
   {
     //Get the Matching Rule OID of the filter.
     String nOID  = extensibleFilter.getMatchingRuleID();
+    /**
+     * Use the default equality index in two conditions:
+     * 1. There is no matching rule provided
+     * 2. The matching rule specified is actually the default equality.
+     */
+    EqualityMatchingRule eqRule =
+            indexConfig.getAttribute().getEqualityMatchingRule();
+    if(nOID ==null || nOID.equals(eqRule.getOID()) ||
+            nOID.equalsIgnoreCase(eqRule.getName()))
+    {
+      //No matching rule is defined; use the default equality matching rule.
+      if(equalityIndex == null)
+      {
+        // There is no index on this matching rule.
+        return IndexQuery.createNullIndexQuery().evaluate();
+      }
+      try
+      {
+        // Make a key from the normalized assertion value.
+        byte[] keyBytes =
+          extensibleFilter.getAssertionValue().getNormalizedValue().
+          toByteArray();
+        DatabaseEntry key = new DatabaseEntry(keyBytes);
+
+        if(debugBuffer != null)
+        {
+          debugBuffer.append("[INDEX:");
+          debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
+          debugBuffer.append(".");
+          debugBuffer.append("equality]");
+        }
+
+        // Read the key.
+        return equalityIndex.readKey(key, null, LockMode.DEFAULT);
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        return IndexQuery.createNullIndexQuery().evaluate();
+      }
+    }
     ExtensibleMatchingRule rule =
             DirectoryServer.getExtensibleMatchingRule(nOID);
     IndexQueryFactory<IndexQuery> factory = null;

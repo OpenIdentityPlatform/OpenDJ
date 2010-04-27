@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -88,11 +88,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeAdded'   : '%s/aci/aci_modify_entry/aci_startup_modify_tests.ldif' % remote.data }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
                 
                 <call function="'testCase_Postamble'"/>
     
@@ -142,10 +137,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry from targeted branch'
                 </message>
@@ -157,10 +148,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry from non-targeted branch'
@@ -187,10 +174,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - userdn equals all, user modifying entry in previously targeted branch'
@@ -254,10 +237,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry from targeted branch'
                 </message>
@@ -269,10 +248,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying prohibited attr in entry from targeted branch'
@@ -313,10 +288,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry in previously targeted branch'
@@ -380,10 +351,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry from targeted branch'
                 </message>
@@ -395,10 +362,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying prohibited attr in entry from targeted branch'
@@ -439,10 +402,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry in previously targeted branch'
@@ -504,10 +463,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry from targeted branch'
                 </message>
@@ -561,10 +516,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry in previously targeted branch'
@@ -630,10 +581,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
                 </message>
@@ -645,10 +592,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
@@ -718,10 +661,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
                 </message>
@@ -783,10 +722,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry from targeted branch'
                 </message>
@@ -798,10 +733,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying prohibited attr in entry from targeted branch'
@@ -842,10 +773,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry in previously targeted branch'
@@ -908,10 +835,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry from targeted branch'
                 </message>
@@ -923,10 +846,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7.1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying prohibited attr in entry from targeted branch'
@@ -967,10 +886,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry in previously targeted branch'
@@ -1032,10 +947,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry from targeted branch'
                 </message>
@@ -1075,10 +986,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry in previously targeted branch'
@@ -1140,10 +1047,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry from targeted branch'
                 </message>
@@ -1155,10 +1058,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry9.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry from non-targeted branch'
@@ -1185,10 +1084,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 2, user modifying entry in previously targeted branch'
@@ -1251,10 +1146,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry by prohibited user from targeted branch'
                 </message>
@@ -1281,10 +1172,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry from non-targeted branch'
                 </message>
@@ -1310,10 +1197,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry in previously targeted branch'
@@ -1375,10 +1258,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry from targeted branch'
                 </message>
@@ -1390,10 +1269,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry11.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry from non-targeted branch'
@@ -1420,10 +1295,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 4, user modifying entry in previously targeted branch'
@@ -1486,10 +1357,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry by prohibited user from targeted branch'
                 </message>
@@ -1516,10 +1383,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry12.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry from non-targeted branch'
                 </message>
@@ -1545,10 +1408,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_multi_acis2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry in previously targeted branch'
@@ -1612,10 +1471,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from targeted branch'
                 </message>
@@ -1642,10 +1497,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from non-targeted branch'
                 </message>
@@ -1671,10 +1522,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry in previously targeted branch'
@@ -1738,10 +1585,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry from targeted branch'
                 </message>
@@ -1753,10 +1596,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying prohibited attr in entry from targeted branch'
@@ -1797,10 +1636,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry in previously targeted branch'
@@ -1864,10 +1699,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying entry from targeted branch'
                 </message>
@@ -1879,10 +1710,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying prohibited attr in entry from targeted branch'
@@ -1923,10 +1750,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Ddelete Attribute Value - targetattr not equals one attribute, user modifying entry in previously targeted branch'
@@ -1988,10 +1811,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry from targeted branch'
                 </message>
@@ -2045,10 +1864,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry in previously targeted branch'
@@ -2113,10 +1928,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
                 </message>
@@ -2128,10 +1939,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
@@ -2145,10 +1952,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.1.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
                 </message>
@@ -2160,10 +1963,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
@@ -2204,10 +2003,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
@@ -2268,10 +2063,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry from targeted branch'
                 </message>
@@ -2311,10 +2102,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry in previously targeted branch'
@@ -2375,10 +2162,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry from targeted branch'
                 </message>
@@ -2418,10 +2201,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry in previously targeted branch'
@@ -2485,10 +2264,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from targeted branch'
                 </message>
@@ -2515,10 +2290,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from non-targeted branch'
                 </message>
@@ -2544,10 +2315,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry in previously targeted branch'
@@ -2611,10 +2378,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry from targeted branch'
                 </message>
@@ -2626,10 +2389,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying prohibited attr in entry from targeted branch'
@@ -2670,10 +2429,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry in previously targeted branch'
@@ -2738,10 +2493,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry from targeted branch'
                 </message>
@@ -2754,10 +2505,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry with second attribute value from targeted branch'
                 </message>
@@ -2769,10 +2516,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying prohibited attr in entry from targeted branch'
@@ -2813,10 +2556,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry in previously targeted branch'
@@ -2878,10 +2617,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry from targeted branch'
                 </message>
@@ -2935,10 +2670,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry in previously targeted branch'
@@ -3003,10 +2734,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry from targeted branch'
                 </message>
@@ -3018,10 +2745,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targattrfilter) in entry from targeted branch'
@@ -3048,10 +2771,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
@@ -3092,10 +2811,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry in previously targeted branch'
@@ -3156,10 +2871,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry from targeted branch'
                 </message>
@@ -3171,10 +2882,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add6.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry from non-targeted branch'
@@ -3201,10 +2908,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, user modifying entry in previously targeted branch'
@@ -3265,10 +2968,6 @@
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry from targeted branch'
                 </message>
@@ -3280,10 +2979,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add7.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry from non-targeted branch'
@@ -3310,10 +3005,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_modify_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, user modifying entry in previously targeted branch'
@@ -3364,11 +3055,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=Modify Tests, o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
               <call function="'testCase_Postamble'"/>

@@ -1,0 +1,8 @@
+dn: cn=Collective facsimileTelephoneNumber,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective facsimileTelephoneNumber
+facsimileTelephoneNumber;collective: +1 408 555 8477
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}

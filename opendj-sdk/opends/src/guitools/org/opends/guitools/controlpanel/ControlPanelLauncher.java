@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel;
@@ -36,11 +36,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
+import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
@@ -214,35 +215,8 @@ public class ControlPanelLauncher
         AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
         DynamicConstants.PRODUCT_NAME), Message.class);
     Utils.setMacOSXMenuBar(title);
-
-    if (SwingUtilities.isEventDispatchThread())
-    {
-      UIManager.setLookAndFeel(
-          UIManager.getSystemLookAndFeelClassName());
-    }
-    else
-    {
-      final Throwable[] ts = {null};
-      SwingUtilities.invokeAndWait(new Runnable()
-      {
-        public void run()
-        {
-          try
-          {
-            UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
-          }
-          catch (Throwable t)
-          {
-            ts[0] = t;
-          }
-        }
-      });
-      if (ts[0] != null)
-      {
-        throw ts[0];
-      }
-    }
+    ColorAndFontConstants.initialize();
+    UIFactory.initialize();
   }
 }
 

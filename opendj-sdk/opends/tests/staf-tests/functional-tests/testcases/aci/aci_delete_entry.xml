@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -91,10 +91,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_delete_entry/aci_startup_delete_entry_tests.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Preamble - Directory Manager searching entry that will be in targeted branch'
                 </message>
@@ -109,10 +105,6 @@
                     'attributes'       : 'cn sn uid'}
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Preamble - Directory Manager searching entry that will be in non-targeted branch'
                 </message>
@@ -125,11 +117,6 @@
                     'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'cn sn uid'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -181,10 +168,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals all, user deleting entry from targeted branch'
                 </message>
@@ -196,10 +179,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Delete: Delete Entry - userdn equals all, Directory Manager searching deleted entry'
@@ -241,10 +220,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals all, user deleting entry in previously targeted branch'
@@ -309,10 +284,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals a dn, user deleting entry from targeted branch'
                 </message>
@@ -324,10 +295,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Delete: Delete Entry - userdn equals a dn, Directory Manager searching deleted entry'
@@ -383,10 +350,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals a dn, user deleting entry in previously targeted branch'
@@ -451,10 +414,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - userdn not equals a dn, user deleting entry from targeted branch'
                 </message>
@@ -466,10 +425,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Delete: Delete Entry - userdn not equals a dn, Directory Manager searching deleted entry'
@@ -525,10 +480,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn not equals a dn, user deleting entry in previously targeted branch'
@@ -589,10 +540,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - delete not allowed, user deleting entry from targeted branch'
                 </message>
@@ -618,10 +565,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - delete not allowed, user deleting entry in previously targeted branch'
@@ -685,10 +628,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals one statement, user deleting entry from targeted branch'
                 </message>
@@ -700,10 +639,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Delete: Delete Entry - targetfilter equals one statement, Directory Manager searching deleted entry'
@@ -745,10 +680,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals one statement, user deleting entry in previously targeted branch'
@@ -809,10 +740,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (or) all false, user deleting entry from targeted branch'
                 </message>
@@ -852,10 +779,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (or) all false, user deleting entry in previously targeted branch'
@@ -917,10 +840,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter not equals three statements (or) all false, user deleting entry from targeted branch'
                 </message>
@@ -932,10 +851,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry3.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter not equals three statements (or) all false, user deleting entry from non-targeted branch'
@@ -962,10 +877,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter not equals three statements (or) all false, user deleting entry in previously targeted branch'
@@ -1027,10 +938,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (and) all true, user deleting entry from targeted branch'
                 </message>
@@ -1042,10 +949,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry4.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (and) all true, user deleting entry from non-targeted branch'
@@ -1072,10 +975,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (and) all true, user deleting entry in previously targeted branch'
@@ -1137,10 +1036,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter contains attribute not present, user deleting entry from targeted branch'
                 </message>
@@ -1180,10 +1075,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter contains attribute not present, user deleting entry in previously targeted branch'
@@ -1247,10 +1138,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals  three attributes, user deleting entry from targeted branch'
                 </message>
@@ -1262,10 +1149,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals  three attributes, user deleting entry from non-targeted branch'
@@ -1292,10 +1175,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals  three attributes, user deleting entry in previously targeted branch'
@@ -1357,10 +1236,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetattr equals attribute not present, user deleting entry from targeted branch'
                 </message>
@@ -1372,10 +1247,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetattr equals attribute not present, user deleting entry from non-targeted branch'
@@ -1402,10 +1273,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetattr equals attribute not present, user deleting entry in previously targeted branch'
@@ -1468,10 +1335,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals attr value, user deleting entry from targeted branch'
                 </message>
@@ -1483,10 +1346,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targattrfilter_entry1.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals attr value, user deleting entry from non-targeted branch'
@@ -1513,10 +1372,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals attr value, user deleting entry in previously targeted branch'
@@ -1593,10 +1448,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - delete branch, user deleting branch from targeted branch'
                 </message>
@@ -1609,10 +1460,6 @@
                     'dsBaseDN'         : 'ou=extra branch 1, ou=aci branch, o=Delete Tests, o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Delete: Delete Entry - delete branch, Directory Manager searching deleted branch'
@@ -1666,12 +1513,7 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_aci.ldif' % remote.data }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                
+
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -1718,10 +1560,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 1, user deleting entry from targeted branch'
                 </message>
@@ -1761,10 +1599,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 1, user deleting entry in previously targeted branch'
@@ -1826,10 +1660,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 2, user deleting entry from targeted branch'
                 </message>
@@ -1841,10 +1671,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 2, user deleting entry from non-targeted branch'
@@ -1871,10 +1697,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 2, user deleting entry in previously targeted branch'
@@ -1937,10 +1759,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, user deleting entry from targeted branch by a prohibited userdn'
                 </message>
@@ -1967,10 +1785,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry3.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, user deleting entry from non-targeted branch'
                 </message>
@@ -1996,10 +1810,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, user deleting entry in previously targeted branch'
@@ -2061,10 +1871,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry from targeted branch'
                 </message>
@@ -2076,10 +1882,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry4.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry from non-targeted branch'
@@ -2106,10 +1908,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 4, user deleting entry in previously targeted branch'
@@ -2172,10 +1970,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from targeted branch by a prohibited userdn'
                 </message>
@@ -2202,10 +1996,6 @@
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry5.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from non-targeted branch'
                 </message>
@@ -2231,10 +2021,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_acis2.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry in previously targeted branch'
@@ -2289,10 +2075,6 @@
                     'attributes'       : 'cn sn uid'}
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Postamble - Directory Manager searching entry that was in non-targeted branch'
                 </message>
@@ -2305,11 +2087,6 @@
                     'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'cn sn uid'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

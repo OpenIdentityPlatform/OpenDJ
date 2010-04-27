@@ -88,7 +88,6 @@ mail: kvaughan@example.com
 l: Sunnyvale
 ou: Europe
 ou: People
-facsimileTelephoneNumber: +1 408 555 3372
 
 dn: uid=abergin,ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com
 objectClass: person
@@ -106,7 +105,6 @@ mail: abergin@example.com
 l: Cupertino
 ou: Europe
 ou: People
-facsimileTelephoneNumber: +1 408 555 7472
 
 dn: uid=dmiller,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
 objectClass: person
@@ -125,6 +123,8 @@ l: Sunnyvale
 ou: America
 ou: People
 facsimileTelephoneNumber: +1 408 555 0111
+employeeType: MGT-1
+preferredLanguage: fr
 
 dn: uid=gfarmer,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
 objectClass: person

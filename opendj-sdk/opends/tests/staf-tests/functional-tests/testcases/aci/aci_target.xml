@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -184,10 +184,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, user searching targeted entry'
                 </message>
@@ -247,10 +243,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN, user searching previously targeted entry'
@@ -321,10 +313,6 @@
                     'entryToBeAdded'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN - new branch, user searching targeted entry'
                 </message>
@@ -383,10 +371,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci_from_entries.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN - new branch, user searching previously targeted entry'
                 </message>
@@ -421,11 +405,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=More Branches,o=ACI Tests,dc=example,dc=com' ,
                     'extraParams'      : '-x'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
                 </call>
     
                 <call function="'testCase_Postamble'"/>
@@ -472,10 +451,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with trailing wildcard, user searching targeted entry'
@@ -536,10 +511,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with trailing wildcard, user searching previously targeted entry'
@@ -609,10 +580,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with leading wildcard, user searching targeted entry'
                 </message>
@@ -672,10 +639,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with leading wildcard, user searching previously targeted entry'
@@ -745,10 +708,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with internal wildcard, user searching targeted entry'
                 </message>
@@ -808,10 +767,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with internal wildcard, user searching previously targeted entry'
@@ -881,10 +836,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with multiple wildcards, user searching targeted entry'
                 </message>
@@ -944,10 +895,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with multiple wildcards, user searching previously targeted entry'
@@ -1151,10 +1098,6 @@
                   'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Target: Target Equals DN Below Entry, user searching targeted entry'
               </message>
@@ -1214,10 +1157,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Target: Target Equals DN Below Entry, user searching previously targeted entry'
@@ -1561,10 +1500,6 @@
                     'expectedRC'             : 21}
               </call>
                 
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Target: Keyword version mispelled - check aci'
               </message>
@@ -1638,10 +1573,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, user searching targeted entry'
                 </message>
@@ -1691,10 +1622,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, user searching targeted entry'
                 </message>
@@ -1734,10 +1661,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, user searching targeted entry'
                 </message>
@@ -1783,10 +1706,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, user searching targeted entry'
                 </message>
@@ -1826,10 +1745,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, admin deleting deny aci'
                 </message>
@@ -1845,10 +1760,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable ACIs, user searching previously targeted entry'
                 </message>
@@ -1938,10 +1849,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable global ACIs, user searching targeted entry'
                 </message>
@@ -1987,10 +1894,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: enable and disable global ACIs, user searching previously targeted entry'
                 </message>
@@ -2060,10 +1963,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals all, user searching targeted entry as authenticated user'
                 </message>
@@ -2121,10 +2020,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals all, user searching previously targeted entry'
@@ -2194,10 +2089,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals anyone, user searching targeted entry as authenticated user'
                 </message>
@@ -2255,10 +2146,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equals anyone, user searching previously targeted entry'
@@ -2328,10 +2215,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn not equals all, user searching targeted entry as authenticated user'
                 </message>
@@ -2389,10 +2272,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn not equals all, user searching previously targeted entry'
@@ -2462,10 +2341,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self, user searching targeted entry as authenticated user'
                 </message>
@@ -2525,10 +2400,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self, user searching previously targeted entry'
@@ -2598,10 +2469,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard, user searching targeted entry as authenticated user'
                 </message>
@@ -2661,10 +2528,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard, user searching previously targeted entry'
@@ -2734,10 +2597,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, user searching targeted entry as authenticated user'
                 </message>
@@ -2797,10 +2656,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, user searching previously targeted entry'
@@ -2870,10 +2725,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, deny, user searching targeted entry as authenticated user'
                 </message>
@@ -2934,10 +2785,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, deny, user searching previously targeted entry'
                 </message>
@@ -2950,11 +2797,6 @@
                     'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'      : 'cn sn uid'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
                 
                  <call function="'testCase_Postamble'"/>
@@ -3001,10 +2843,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, allow and deny, user searching targeted entry as authenticated user'
@@ -3065,10 +2903,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with userdn equal self with wildcard and filter, allow and deny, user searching previously targeted entry'
@@ -3138,10 +2972,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: userdn equals self - modify operational attributes, modify 1 '
                 </message>
@@ -3153,10 +2983,6 @@
                     'dsInstancePswd'      : 'sprain' ,
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry31.ldif' % (remote.data) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: userdn equals self - modify operational attributes, modify 2'
@@ -3198,10 +3024,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry31c.ldif' % (remote.data) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: userdn equals self - modify operational attributes, admin deleting aci'
                 </message>
@@ -3212,11 +3034,6 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -3268,10 +3085,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: search for operational attributes, admin modifying entry'
                 </message>
@@ -3283,10 +3096,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry32.ldif' % (remote.data) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: search for operational attributes, user searching targeted entry'
@@ -3459,10 +3268,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/mod_entry32c.ldif' % (remote.data) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: search for operational attributes, admin deleting aci'
                 </message>
@@ -3473,11 +3278,6 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -3524,10 +3324,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN with comma, user searching targeted entry'
@@ -3601,10 +3397,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN with comma, user searching previously targeted entry'
                 </message>
@@ -3673,10 +3465,6 @@
                     'entryToBeModified'   : '%s/aci/aci_target/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Target: Target Equals DN, default targetattr, user searching targeted entry'
                 </message>
@@ -3736,10 +3524,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN, default targetattr, user searching previously targeted entry'

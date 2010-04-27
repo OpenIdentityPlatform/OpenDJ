@@ -82,16 +82,31 @@
                 </script>
                                                     
                 <!-- List of Test Cases -->
-                <!-- Short tests: tests 001 to   -->
-                <!-- Long tests: tests  -->
+                <!-- Short tests: tests 001 to 006, 011, 012, 020 -->
+                <!-- Long tests: tests 007 to 010, 014 to 019, 021  -->
                 <script>
                   testsList=[]
                   testsList.append('core_collectiveattr_001')
                   testsList.append('core_collectiveattr_002')
-                  #testsList.append('core_collectiveattr_003')
-                  #testsList.append('core_collectiveattr_004')
-                  #testsList.append('core_collectiveattr_005')
-                  #testsList.append('core_collectiveattr_006')
+                  testsList.append('core_collectiveattr_003')
+                  testsList.append('core_collectiveattr_004')
+                  testsList.append('core_collectiveattr_005')
+                  testsList.append('core_collectiveattr_006')
+                  testsList.append('core_collectiveattr_007')
+                  testsList.append('core_collectiveattr_008')
+                  testsList.append('core_collectiveattr_009')
+                  testsList.append('core_collectiveattr_010')
+                  testsList.append('core_collectiveattr_011')
+                  testsList.append('core_collectiveattr_012')
+                  #testsList.append('core_collectiveattr_013')
+                  testsList.append('core_collectiveattr_014')
+                  testsList.append('core_collectiveattr_015')
+                  testsList.append('core_collectiveattr_016')
+                  testsList.append('core_collectiveattr_017')
+                  testsList.append('core_collectiveattr_018')
+                  testsList.append('core_collectiveattr_019')
+                  testsList.append('core_collectiveattr_020')
+                  testsList.append('core_collectiveattr_021')
                 </script>
 
                 <!-- Execute the Tests -->

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.dsml.protocol;
 
@@ -128,7 +128,8 @@ public class DSMLServlet extends HttpServlet {
       port = new Integer(config.getServletContext().getInitParameter(PORT));
 
       if(jaxbContext==null)
-        jaxbContext = JAXBContext.newInstance(PKG_NAME);
+        jaxbContext = JAXBContext.newInstance(PKG_NAME,
+                this.getClass().getClassLoader());
       // assign the DSMLv2 schema for validation
       if(schema==null)
       {

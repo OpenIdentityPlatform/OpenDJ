@@ -1,0 +1,9 @@
+dn: cn=Collective c-l,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-l
+c-l: Santa Clara
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
+collectiveConflictBehavior: merge-real-and-virtual

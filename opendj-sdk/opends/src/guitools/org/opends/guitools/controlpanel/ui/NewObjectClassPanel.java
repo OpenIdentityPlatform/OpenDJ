@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -69,6 +69,7 @@ import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.DoubleAddRemovePanel;
 import
 org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -200,7 +201,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
         ObjectClass oc = schema.getObjectClass(key);
         objectClassNameMap.put(oc.getNameOrOID(), oc);
       }
-      SortedSet<String> orderedKeys = new TreeSet<String>();
+      SortedSet<String> orderedKeys =
+        new TreeSet<String>(new LowerCaseComparator());
       orderedKeys.addAll(objectClassNameMap.keySet());
       ArrayList<Object> newParents = new ArrayList<Object>();
       for (String key : orderedKeys)
@@ -571,7 +573,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
        */
       public int compare(AttributeType attr1, AttributeType attr2)
       {
-        return attr1.getNameOrOID().compareTo(attr2.getNameOrOID());
+        return attr1.getNameOrOID().toLowerCase().compareTo(
+            attr2.getNameOrOID().toLowerCase());
       }
     };
     attributes.getAvailableListModel().setComparator(comparator);

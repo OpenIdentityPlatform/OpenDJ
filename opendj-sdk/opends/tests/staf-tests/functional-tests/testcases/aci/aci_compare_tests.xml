@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -136,10 +136,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in targeted branch'
                 </message>
@@ -189,10 +185,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals all, user comparing attribute in previously targeted branch'
@@ -256,10 +248,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in targeted branch'
@@ -326,10 +314,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in previously targeted branch'
                 </message>
@@ -391,10 +375,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals a branch dn, user comparing attribute in targeted branch'
                 </message>
@@ -451,10 +431,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals a branch dn, user comparing attribute in previously targeted branch'
@@ -518,10 +494,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals a branch dn, user comparing attribute in targeted branch'
@@ -596,10 +568,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals a branch dn, user comparing attribute in previously targeted branch'
                 </message>
@@ -662,10 +630,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals two dns, user comparing attribute in targeted branch'
@@ -740,10 +704,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals two dns, user comparing attribute in previously targeted branch'
                 </message>
@@ -805,10 +765,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals two dns, user comparing attribute in targeted branch'
                 </message>
@@ -865,10 +821,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals two dns, user comparing attribute in previously targeted branch'
@@ -929,10 +881,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in targeted branch'
                 </message>
@@ -974,10 +922,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in previously targeted branch'
@@ -1041,10 +985,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in targeted branch'
@@ -1111,10 +1051,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in previously targeted branch'
                 </message>
@@ -1177,10 +1113,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in targeted branch'
@@ -1247,10 +1179,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in previously targeted branch'
                 </message>
@@ -1313,10 +1241,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in targeted branch'
@@ -1391,10 +1315,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in previously targeted branch'
                 </message>
@@ -1457,10 +1377,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                  'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in targeted branch'
@@ -1535,10 +1451,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in previously targeted branch'
                 </message>
@@ -1598,10 +1510,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, user comparing attribute in targeted branch'
                 </message>
@@ -1628,10 +1536,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, user comparing attribute in previously targeted branch'
@@ -1694,10 +1598,6 @@
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                  'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, user comparing attribute in targeted branch'
                 </message>
@@ -1732,10 +1632,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_compare_tests/del_multi_acis.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Compare: Compare Attr - Multi ACIs 2, overall allow, user comparing attribute in previously targeted branch'

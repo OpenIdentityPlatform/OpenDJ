@@ -1,0 +1,15 @@
+dn: uid=bhall,ou=North,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+cn: Benjamin Hall
+sn: Hall
+givenname: Benjamin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Sunnyvale
+uid: bhall
+mail: bhall@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges

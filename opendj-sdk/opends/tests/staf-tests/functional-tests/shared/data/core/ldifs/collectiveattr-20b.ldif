@@ -1,0 +1,16 @@
+dn: uid=tmason,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+cn: Torrey Mason
+sn: Mason
+givenname: Torrey
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Sunnyvale
+uid: tmason
+mail: tmason@example.com
+telephonenumber: +1 408 555 1596
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 1124
+userpassword: squatted
+preferredLanguage: ja_JP

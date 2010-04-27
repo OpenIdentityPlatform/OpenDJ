@@ -75,7 +75,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
    */
   public int compareTo(AbstractIndexDescriptor o)
   {
-    return getName().compareTo(o.getName());
+    return getName().toLowerCase().compareTo(o.getName().toLowerCase());
   }
 
   /**

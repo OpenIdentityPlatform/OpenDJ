@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -62,6 +62,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import
 org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -228,7 +229,8 @@ public class NewAttributePanel extends StatusGenericPanel
       }
 
       SortedSet<String> orderedKeys =
-        new TreeSet<String>(syntaxNameMap.keySet());
+        new TreeSet<String>(new LowerCaseComparator());
+      orderedKeys.addAll(syntaxNameMap.keySet());
       for (String key : orderedKeys)
       {
         newSyntaxes.add(syntaxNameMap.get(key));

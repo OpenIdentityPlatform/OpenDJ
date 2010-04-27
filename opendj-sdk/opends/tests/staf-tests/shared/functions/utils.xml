@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="checkRC">
@@ -717,7 +717,7 @@
       </function-arg-def>
       <function-arg-def name="dsPath"
                         type="optional"
-                        default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -871,7 +871,7 @@
         <script>
           import time
           testcaseStart=int(time.time())
-          testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+          testcaseStartTime=strftime("%Y%m%d-%H:%M:%S",localtime())
           issuesList=[]
           for logType in ['errors','access']:
             if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
@@ -930,20 +930,37 @@
         else:
           information=''
         
+        nvDone = 0
+        nbFail = 0
+        nbKnown = 0
         if numFail == 0:
           if numPass == 0:
             _status='INCONCLUSIVE'
             _result='unknown'
+            nbFail = int(fail.getTextContent()) + 1
+            fail.setTextContent('%s' % nbFail)
+            nbDone = int(done.getTextContent()) + 1
+            done.setTextContent('%s' % nbDone)
           else:
             _status='PASS'
             _result='pass'
+            nbDone = int(done.getTextContent()) + 1
+            done.setTextContent('%s' % nbDone)
         else:
           if len(issuesList)==0:
             _status='FAIL'
             _result='fail'
+            nbFail = int(fail.getTextContent()) + 1
+            fail.setTextContent('%s' % nbFail)
+            nbDone = int(done.getTextContent()) + 1
+            done.setTextContent('%s' % nbDone)
           else:
             _status='KNOWN ISSUES %s' % str(issuesList)
             _result='fail'
+            nbKnown = int(known.getTextContent()) + 1
+            known.setTextContent('%s' % nbKnown)
+            nbDone = int(done.getTextContent()) + 1
+            done.setTextContent('%s' % nbDone)
       </script>
 
       <message level="'status'">
@@ -953,7 +970,7 @@
       <call function="'testCase_EndBanner'" />
 
       <script>
-        testcaseEndTime = strftime("%Y%m%d@%H:%M:%S",localtime())
+        testcaseEndTime = strftime("%Y%m%d-%H:%M:%S",localtime())
 
         testcaseStop=int(time.time())        
         testcaseDuration=testcaseStop-testcaseStart
@@ -990,6 +1007,38 @@
           'endat'     : testcaseEndTime }
       </call>
 
+      <script>
+        # Update the report.cfg file
+        nbDone = int(done.getTextContent())
+        nbFail = int(fail.getTextContent())
+        nbKnown = int(known.getTextContent())
+        percentage = (nbDone - nbFail - nbKnown) * 100 / nbDone
+
+        starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
+        duration = time.strftime("%H:%M:%S", time.gmtime(time.time() - TESTS_TIMESTAMP))
+        
+        reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
+        reportCfg.write('[Main]\n')
+        reportCfg.write('product = OpenDS_SE2.4 (Directory)\n')
+        if TESTS_TYPE == 'functional-tests':
+          reportCfg.write('category = Functional\n')
+        else:
+          reportCfg.write('category = Stress\n')
+        reportCfg.write('dsconfignumber = -1\n')
+        reportCfg.write('hostname = %s\n' % STAF_REMOTE_HOSTNAME)
+        reportCfg.write('testcasesfail = %s\n' % nbFail)
+        reportCfg.write('testcasesdone = %s\n' % nbDone)
+        reportCfg.write('testcasestotal = 2833\n')
+        reportCfg.write('starttime = %s\n' % starttime)
+        reportCfg.write('duration = %s\n' % duration)
+        reportCfg.write('dsconfigduration = 0\n')
+        reportCfg.write('percentage = %s\n' % percentage)
+        reportCfg.write('allbugs = []\n')
+        reportCfg.write('os = %s\n' % TEST_OS_STRING)
+        reportCfg.write('report = reports/results2.xml\n')
+        reportCfg.write('istemporary = True\n')
+        reportCfg.close()
+      </script>
     </sequence>
   </function>
 
@@ -1023,7 +1072,7 @@
       
       <!-- Start time of test suite -->      
       <script>
-        TestSuiteStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        TestSuiteStartTime=strftime("%Y%m%d-%H:%M:%S",localtime())
       </script>
           
       <message>
@@ -1059,7 +1108,7 @@
 
       <!-- Start time of test suite -->      
       <script>
-        TestSuiteEndTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        TestSuiteEndTime=strftime("%Y%m%d-%H:%M:%S",localtime())
       </script>
       
       <!-- Format the test group and suite names to create folder -->
@@ -1106,7 +1155,27 @@
         qa = doc.getDocumentElement()
         ft = qa.getChildNodes().item(1)
         results = ft.getChildNodes().item(3)
-        
+
+        if results.getChildNodes().item(1):
+          # tempres element already exits
+          xml.tempres = results.getChildNodes().item(1)
+          fail = xml.tempres.getChildNodes().item(1)
+          known = xml.tempres.getChildNodes().item(3)
+          done = xml.tempres.getChildNodes().item(5)
+        else:
+          # Create tempres element
+          xml.tempres = doc.createElement("tempres")
+          results.appendChild(xml.tempres)
+          fail = doc.createElement('fail')
+          xml.tempres.appendChild(fail)
+          fail.appendChild(doc.createTextNode('0'))
+          known = doc.createElement('known')
+          xml.tempres.appendChild(known)
+          known.appendChild(doc.createTextNode('0'))
+          done = doc.createElement('done')
+          xml.tempres.appendChild(done)
+          done.appendChild(doc.createTextNode('0'))
+
         #Create testgroup element
         xml.testgroup = doc.createElement("testgroup")
         xml.createAttr(doc,xml.testgroup,"name",ThisGroupName)
@@ -1802,9 +1871,9 @@
           arguments = arguments + ' &amp; set PROCESSRC=%ERRORLEVEL% &amp; exit %PROCESSRC%'
 
         if TESTS_TYPE == 'functional-tests':
-          timerDuration = '5m'
+          timerDuration = '10m'
         else:
-          timerDuration = '24h'
+          timerDuration = '10h'
       </script>
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
@@ -1905,8 +1974,20 @@
             'ERROR: COMMAND HANGING, not completed after %s' % timerDuration
           </message>
 
-          <tcstatus result="'fail'"/>
+          <if expr="knownIssue == None">
+            <tcstatus result="'fail'"/>
+            <else>
+              <sequence>
+                <call function="'setKnownIssue'">
+                  { 'issueId' : knownIssue }
+                </call>
+              </sequence>
+            </else>
+          </if>
         </sequence>
+        <else>
+          <script>RC = cmdRC</script>
+        </else>
       </if>
 
       <return>

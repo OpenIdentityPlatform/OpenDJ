@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -130,38 +130,6 @@
     </function-prolog>
     
     <sequence>
-
-      <!-- fixMe: this needs some cleanup -->
-      <script>
-        STAXLogMessage = 1 
-        OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        if is_windows_platform(STAF_REMOTE_HOSTNAME):
-          fileExt='.bat'
-          scriptExt='.bat'
-          fileFolder='bat'
-          pathSeparator=';'
-          newLine='\r\n'
-        else:
-          fileExt=''
-          scriptExt='.sh'
-          fileFolder='bin'
-          pathSeparator=':'
-          newLine='\n'
-      </script>
-
-      <!-- Default LDAP Server Object -->
-      <script>
-        server=directory_server()
-        server.location   = STAF_REMOTE_HOSTNAME
-        server.host       = DIRECTORY_INSTANCE_HOST
-        server.port       = DIRECTORY_INSTANCE_PORT
-        server.adminport  = DIRECTORY_INSTANCE_ADMIN_PORT
-        server.dn         = DIRECTORY_INSTANCE_DN
-        server.password   = DIRECTORY_INSTANCE_PSWD
-        server.suffix     = DIRECTORY_INSTANCE_SFX
-        server.backend    = DIRECTORY_INSTANCE_BE
-      </script>
-      
       <!-- Default LDAP Server Object -->
       <script>
         server=directory_server()
@@ -180,10 +148,31 @@
       
       <!-- Initialize any global variables -->
       <script>
-        CurrentTestPath={}
-        DSInfoServersDict={}
         True = 1
         False = 0
+
+        STAXLogMessage = 1
+        if is_windows_platform(STAF_REMOTE_HOSTNAME):
+          fileExt='.bat'
+          scriptExt='.bat'
+          fileFolder='bat'
+          pathSeparator=';'
+          newLine='\r\n'
+        else:
+          fileExt=''
+          scriptExt='.sh'
+          fileFolder='bin'
+          pathSeparator=':'
+          newLine='\n'
+
+        if DIRECTORY_INSTANCE_BIN != DIRECTORY_INSTANCE_DIR:
+          IPS_PKG = True
+        else:
+          IPS_PKG = False
+
+        CurrentTestPath={}
+        DSInfoServersDict={}
+
         # threshold set so that functions such as getFile may not cause staf
         # process to run out of memory (value in bytes)
         MAX_READABLE_SIZE = 104800
@@ -202,21 +191,70 @@
         MultimasterSync = 'Multimaster Synchronization'
         MultimasterType = 'multimaster'
 
-        # Replication execution mode variables: if not defined, set random value
-        import random
+        # Replication execution mode variables: if not defined, set "random"
+        # values:
+        #   (day of the month % 4) == 0 --> (split servers, eclmode n/a)
+        #   (day of the month % 4) == 1 --> (don't split, opends eclmode)
+        #   (day of the month % 4) == 2 --> (don't split, draft eclmode)
+        #   (day of the month % 4) == 3 --> (don't split, eclmode n/a)
+        import time
+        monthday          = time.localtime()[2]
+        rewriteConfigFile = False
         
         if REPLICATION_SPLIT_SERVERS == '':
-          REPLICATION_SPLIT_SERVERS = random.choice(['true', 'false'])
+          rewriteConfigFile = True
+          oldSplitConfig    = """REPLICATION_SPLIT_SERVERS     = ''"""
+          if monthday % 4 == 0:
+            REPLICATION_SPLIT_SERVERS = 'true'
+          else:
+            REPLICATION_SPLIT_SERVERS = 'false'        
+          newSplitConfig    = """REPLICATION_SPLIT_SERVERS     = '%s'""" % \
+                              REPLICATION_SPLIT_SERVERS
+        else:
+          newSplitConfig    = """'REPLICATION_SPLIT_SERVERS     = '%s'""" % \
+                              REPLICATION_SPLIT_SERVERS
+          oldSplitConfig    = newSplitConfig
         
         if REPLICATION_ECL_MODE == '':
-          REPLICATION_ECL_MODE = random.choice(['opends', 'draft'])
+          rewriteConfigFile = True
+          oldEclmodeConfig = """REPLICATION_ECL_MODE          = ''"""
+          if monthday % 4 == 1:
+            REPLICATION_ECL_MODE = 'opends'
+          elif monthday % 4 == 2:
+            REPLICATION_ECL_MODE = 'draft'
+          else:
+            REPLICATION_ECL_MODE = 'n/a'
+          newEclmodeConfig  = """REPLICATION_ECL_MODE          = '%s'""" % \
+                              REPLICATION_ECL_MODE
+        else:
+          newEclmodeConfig  = """REPLICATION_ECL_MODE          = '%s'""" % \
+                              REPLICATION_ECL_MODE
+          oldEclmodeConfig  = newEclmodeConfig 
+
+        
+        # Rewrite the randomly chosen variables in config.py file
+        if rewriteConfigFile == True :
+          import re
+          splitRegEx   = re.compile(oldSplitConfig)
+          eclmodeRegEx = re.compile(oldEclmodeConfig)
+
+          configFile   = STAXJobScriptFiles[0]
+          configInput  = open(configFile, 'r')
+          c0           = configInput.read()
+          c1           = splitRegEx.sub(newSplitConfig, c0)
+          content      = eclmodeRegEx.sub(newEclmodeConfig, c1)
+          configInput.close()
+        
+          configOutput = open(configFile,'w')
+          configOutput.write(content)
+          configOutput.close()
 
         # Create staf objects
         LOCAL_STAF_ROOT  = test_env.staf(STAF_LOCAL_HOSTNAME).root
         REMOTE_STAF_ROOT = test_env.staf(STAF_REMOTE_HOSTNAME).root
       </script>
 
-  </sequence>     
+    </sequence>     
   </function>
 
   <function name="GetDirectoryServerInformation">
@@ -466,7 +504,7 @@
 
       <call function="'SetFolders'">
         { 'sourceDir'  : '%s' % TESTS_ROOT,
-          'localDir'  : '%s/%s-jvm%s' % (LOGS_ROOT,logsOS,logsJvm),
+          'localDir'  : '%s' % LOGS_ROOT,
           'remoteDir' : DIRECTORY_INSTANCE_DIR }
       </call>
             
@@ -491,6 +529,14 @@
         {
         'srcfile'    : '%s/opends_logo_sm.png' % TESTS_RESOURCE_DIR,
         'destfile'   : '%s/opends_logo_sm.png' % logs.reports
+        }
+      </call>
+
+      <message>'Copy xsl files under %s' % logs.reports</message>
+      <call function="'copyFile'">
+        {
+        'srcfile'    : '%s/gen-groups-report.xsl' % TESTS_XSL_DIR,
+        'destfile'   : '%s/gen-groups-report.xsl' % logs.reports
         }
       </call>
     </sequence>  

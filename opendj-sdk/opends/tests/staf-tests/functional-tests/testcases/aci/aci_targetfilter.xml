@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -182,10 +182,6 @@
                     'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, user searching targeted entry'
                 </message>
@@ -288,10 +284,6 @@
                     'entryToBeModified' : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement, user searching previously targeted entry'
                 </message>
@@ -362,10 +354,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching targeted entry'
@@ -469,10 +457,6 @@
                     'entryToBeModified' : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 2, user searching previously targeted entry'
                 </message>
@@ -541,10 +525,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching targeted entry'
@@ -622,10 +602,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals One Statement 3, user searching previously targeted entry'
               </message>
@@ -694,10 +670,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching targeted entry'
@@ -801,10 +773,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals One Statement, user searching previously non-targeted entry in ACI branch'
               </message>
@@ -874,10 +842,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching targeted entry'
@@ -981,10 +945,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, one true, user searching previously targeted entry'
               </message>
@@ -1054,10 +1014,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching targeted entry'
@@ -1161,10 +1117,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With or, one true, user searching previously targeted entry'
               </message>
@@ -1233,10 +1185,6 @@
                   'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching targeted entry'
               </message>
@@ -1296,10 +1244,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With or, none true, user searching previously targeted entry'
@@ -1370,10 +1314,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching targeted entry'
               </message>
@@ -1433,10 +1373,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, one true, user searching previously targeted entry'
@@ -1507,10 +1443,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching targeted entry'
@@ -1614,10 +1546,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With and, all true, user searching previously targeted entry'
               </message>
@@ -1687,10 +1615,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching targeted entry'
@@ -1794,10 +1718,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Not Equals Three Statements With and, all true, user searching previously targeted entry'
               </message>
@@ -1867,10 +1787,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching targeted entry'
@@ -1974,10 +1890,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard and or, one true, user searching previously targeted entry'
               </message>
@@ -2047,10 +1959,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching targeted entry'
@@ -2154,10 +2062,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Two Wildcards and or, one true, user searching previously targeted entry'
               </message>
@@ -2227,10 +2131,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching targeted entry'
@@ -2334,10 +2234,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Wildcard With and, all true, user searching previously targeted entry'
               </message>
@@ -2407,10 +2303,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching targeted entry'
@@ -2514,10 +2406,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter Equals Three Statements With Three Wildcards With and, all true, user searching previously targeted entry'
               </message>
@@ -2585,10 +2473,6 @@
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Targetfilter: Targetfilter With Extra Spaces, user searching targeted entry'
               </message>
@@ -2624,10 +2508,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/aci_targetfilter/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter With Extra Spaces, user searching previously targeted entry'

@@ -1,0 +1,8 @@
+dn: cn=Collective c-PhysicalDeliveryOfficeName,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-PhysicalDeliveryOfficeName
+c-PhysicalDeliveryOfficeName: par07
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}

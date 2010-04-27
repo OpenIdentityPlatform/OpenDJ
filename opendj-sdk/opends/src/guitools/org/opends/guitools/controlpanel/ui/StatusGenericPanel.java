@@ -93,6 +93,7 @@ import org.opends.guitools.controlpanel.task.StopServerTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
+import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -1335,7 +1336,8 @@ implements ConfigChangeListener
   protected void updateSimpleBackendComboBoxModel(final JComboBox combo,
       final JLabel lNoBackendsFound, ServerDescriptor desc)
   {
-    final SortedSet<String> newElements = new TreeSet<String>();
+    final SortedSet<String> newElements =
+      new TreeSet<String>(new LowerCaseComparator());
     for (BackendDescriptor backend : desc.getBackends())
     {
       if (!backend.isConfigBackend())
@@ -1377,7 +1379,8 @@ implements ConfigChangeListener
   {
     LinkedHashSet<CategorizedComboBoxElement> newElements =
       new LinkedHashSet<CategorizedComboBoxElement>();
-    SortedSet<String> backendIDs = new TreeSet<String>();
+    SortedSet<String> backendIDs =
+      new TreeSet<String>(new LowerCaseComparator());
     HashMap<String, SortedSet<String>> hmBaseDNs =
       new HashMap<String, SortedSet<String>>();
 
@@ -1387,7 +1390,8 @@ implements ConfigChangeListener
       {
         String backendID = backend.getBackendID();
         backendIDs.add(backendID);
-        SortedSet<String> baseDNs = new TreeSet<String>();
+        SortedSet<String> baseDNs =
+          new TreeSet<String>(new LowerCaseComparator());
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try

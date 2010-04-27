@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -90,10 +90,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeAdded'   : '%s/aci/multiple_aci_tests/aci_startup_mult_aci_tests.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Preamble - Removing Search Global ACI'
@@ -202,10 +198,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, user searching targeted entry'
               </message>
@@ -308,10 +300,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, user searching previously targeted entry'
               </message>
@@ -381,10 +369,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching targeted entry'
@@ -506,10 +490,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
               </message>
@@ -579,10 +559,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, user searching targeted entry'
@@ -704,10 +680,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, user searching previously targeted entry'
               </message>
@@ -777,10 +749,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, user searching targeted entry'
@@ -902,10 +870,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, user searching previously targeted entry'
               </message>
@@ -974,10 +938,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching targeted entry'
@@ -1063,10 +1023,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching previously targeted entry'
               </message>
@@ -1135,10 +1091,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, user searching targeted entry'
@@ -1224,10 +1176,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, user searching previously targeted entry'
               </message>
@@ -1296,10 +1244,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, user searching targeted entry'
@@ -1385,10 +1329,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, user searching previously targeted entry'
               </message>
@@ -1458,10 +1398,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching targeted entry'
@@ -1565,10 +1501,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching previously targeted entry'
               </message>
@@ -1638,10 +1570,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching targeted entry'
@@ -1763,10 +1691,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
               </message>
@@ -1836,10 +1760,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, user searching targeted entry'
@@ -1961,10 +1881,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, user searching previously targeted entry'
               </message>
@@ -2034,10 +1950,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, user searching targeted entry'
@@ -2163,10 +2075,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, user searching previously targeted entry'
               </message>
@@ -2236,10 +2144,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with missing read, user searching targeted entry'
@@ -2349,10 +2253,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read missing read, user searching previously targeted entry'
               </message>
@@ -2422,10 +2322,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching targeted entry'
@@ -2547,10 +2443,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching previously targeted entry'
               </message>
@@ -2620,10 +2512,6 @@
                   'dsInstancePswd'        : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching targeted entry'
@@ -2727,10 +2615,6 @@
                   'entryToBeModified'     : '%s/aci/multiple_aci_tests/del_aci_search.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching previously targeted entry'
               </message>
@@ -2801,10 +2685,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l, user replacing l in targeted entry'
                 </message>
@@ -2816,10 +2696,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l31.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l, user replacing mail in targeted entry'
@@ -2860,10 +2736,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l, user replacing l in previously targeted entry'
@@ -2925,10 +2797,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l, user replacing l in targeted entry'
                 </message>
@@ -2982,10 +2850,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l, user replacing l in previously targeted entry'
@@ -3047,10 +2911,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l, user replacing l in targeted entry'
                 </message>
@@ -3104,10 +2964,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l, user replacing l in previously targeted entry'
@@ -3167,10 +3023,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs, user modifying entry from targeted branch'
                 </message>
@@ -3182,10 +3034,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l34.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs, user modifying prohibited attr in entry from targeted branch'
@@ -3226,10 +3074,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs, user modifying entry in previously targeted branch'
@@ -3290,10 +3134,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with not equals, user modifying entry from targeted branch'
                 </message>
@@ -3305,10 +3145,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l35.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with not equals, user modifying prohibited attr in entry from targeted branch'
@@ -3322,10 +3158,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title35.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with not equals, user modifying entry from non-targeted branch'
                 </message>
@@ -3338,10 +3170,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l35a.ldif' % remote.data }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with not equals, admin deleting aci'
                 </message>
@@ -3353,10 +3181,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with not equals, user modifying entry in previously targeted branch'
@@ -3418,10 +3242,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, user modifying entry from targeted branch'
                 </message>
@@ -3433,10 +3253,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l36.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, user modifying prohibited attr in entry from targeted branch'
@@ -3491,10 +3307,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, user modifying entry in previously targeted branch'
@@ -3556,10 +3368,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, user modifying entry from targeted branch'
                 </message>
@@ -3571,10 +3379,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l37.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, user modifying prohibited attr in entry from targeted branch'
@@ -3629,10 +3433,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, user modifying entry in previously targeted branch'
@@ -3693,10 +3493,6 @@
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, user modifying entry from targeted branch'
                 </message>
@@ -3708,10 +3504,6 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l38.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, user modifying prohibited attr in entry from targeted branch'
@@ -3766,10 +3558,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, user modifying entry in previously targeted branch'
@@ -3829,10 +3617,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/%s' % (remote.data,curr_aci_ldif_file) }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , user modifying entry from targeted branch'
@@ -3901,10 +3685,6 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'entryToBeModified'   : '%s/aci/multiple_aci_tests/del_aci_modify.ldif' % remote.data }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , user modifying entry in previously targeted branch'
@@ -4005,10 +3785,6 @@
                     'extraParams'      : '-x'}
                 </call>
 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Postamble - delete branch, o=Modify Tests'
                 </message>
@@ -4022,10 +3798,6 @@
                     'extraParams'      : '-x'}
                 </call>
 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Multiple ACIs: Postamble - Resetting Search Global ACI'
                 </message>

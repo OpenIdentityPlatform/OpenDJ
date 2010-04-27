@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -639,10 +639,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user for adds, one proxied user, user searching targeted entry'
               </message>
@@ -732,10 +728,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user for adds, one proxied user, proxied user searching targeted entry'
               </message>
@@ -797,10 +789,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user for adds, one proxied user, user searching targeted entry'
@@ -872,10 +860,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user for searches, one proxied user, user searching targeted entry'
@@ -972,10 +956,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user for searches, one proxied user, proxied user searching targeted entry'
               </message>
@@ -1043,10 +1023,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user for searches, one proxied user, user searching targeted entry'
@@ -1119,10 +1095,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, user searching targeted entry'
@@ -1219,10 +1191,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, proxied user searching targeted entry'
               </message>
@@ -1291,10 +1259,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, admin deleting both acis'
               </message>
@@ -1306,10 +1270,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci2.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, user searching targeted entry'
@@ -1382,10 +1342,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: many users with wildcard, one proxied user, user searching targeted entry'
@@ -1488,10 +1444,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: many users with wildcard, one proxied user, proxied user searching targeted entry'
               </message>
@@ -1566,10 +1518,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: many users with wildcard, one proxied user, user searching targeted entry'
               </message>
@@ -1641,10 +1589,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user, many proxied users with wildcard, user searching targeted entry'
@@ -1741,10 +1685,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user, many proxied users with wildcard, proxied user searching targeted entry'
               </message>
@@ -1812,10 +1752,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user, many proxied users with wildcard, user searching targeted entry'
@@ -1888,10 +1824,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user, one bad proxied user, user searching targeted entry'
@@ -2014,10 +1946,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-  
               <message>
                  'ACI: Proxy Auth: one user, one bad proxied user, proxied user searching targeted entry'
               </message>
@@ -2081,10 +2009,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: one user, one bad proxied user, user searching targeted entry'
@@ -2158,10 +2082,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: Directory Manager as proxy, user searching targeted entry'
@@ -2254,10 +2174,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/add_proxy_auth_dm.ldif' % (remote.data) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-
               <script>
                   curr_aci_ldif_file = 'add_proxy_aci_dm.ldif'
                   curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (local.data,curr_aci_ldif_file));
@@ -2274,10 +2190,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (remote.data,curr_aci_ldif_file) }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: Directory Manager as proxy, proxied user searching targeted entry'
@@ -2353,10 +2265,6 @@
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_proxy_auth_dm.ldif' % (remote.data) }
               </call>
   
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
-
               <message>
                  'ACI: Proxy Auth: Directory Manager as proxy, admin deleting both acis'
               </message>
@@ -2368,10 +2276,6 @@
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % remote.data }
               </call>
-  
-              <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Proxy Auth: Directory Manager as proxy, user searching targeted entry'
