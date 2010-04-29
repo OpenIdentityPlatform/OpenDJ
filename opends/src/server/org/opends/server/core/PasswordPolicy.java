@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -154,10 +155,16 @@ public class PasswordPolicy
     if (defaultScheme != null) defaultStorageSchemes.add(defaultScheme);
   }
 
+  // DNs of password storage schemes for this password policy.
+  private SortedSet<DN> storageSchemeDNs = new TreeSet<DN>();
+
   // The names of the deprecated password storage schemes for this password
   // policy.
   private CopyOnWriteArraySet<String> deprecatedStorageSchemes =
        new CopyOnWriteArraySet<String>();
+
+  // DNs of deprecated password storage schemes for this password policy.
+  private SortedSet<DN> deprecatedStorageSchemeDNs = new TreeSet<DN>();
 
   // The DN of the password validator for this password policy.
   private DN passwordGeneratorDN = null;
@@ -285,7 +292,7 @@ public class PasswordPolicy
 
     // Get the default storage schemes.  They must all reference valid storage
     // schemes that support the syntax for the specified password attribute.
-    SortedSet<DN> storageSchemeDNs =
+    storageSchemeDNs =
       configuration.getDefaultPasswordStorageSchemeDNs();
     try
     {
@@ -329,7 +336,7 @@ public class PasswordPolicy
 
 
     // Get the names of the deprecated storage schemes.
-    SortedSet<DN> deprecatedStorageSchemeDNs =
+    deprecatedStorageSchemeDNs =
       configuration.getDeprecatedPasswordStorageSchemeDNs();
     try
     {
@@ -750,6 +757,21 @@ public class PasswordPolicy
 
 
   /**
+   * Retrieves the default set of password storage scheme DNs that will
+   * be used for this password policy.  The returned set should not be
+   * modified by the caller.
+   *
+   * @return  The default set of password storage scheme DNs that will
+   *          be used for this password policy.
+   */
+  public SortedSet<DN> getDefaultStorageSchemeDNs()
+  {
+    return storageSchemeDNs;
+  }
+
+
+
+  /**
    * Indicates whether the specified storage scheme is a default scheme for this
    * password policy.
    *
@@ -805,6 +827,24 @@ public class PasswordPolicy
   public CopyOnWriteArraySet<String> getDeprecatedStorageSchemes()
   {
     return deprecatedStorageSchemes;
+  }
+
+
+
+  /**
+   * Retrieves DNs of the password storage schemes that have been
+   * deprecated.  If an authenticating user has one or more of
+   * these deprecated storage schemes in use in their entry, then
+   * they will be removed and replaced with the passwords encoded
+   * in the default storage scheme(s).  The returned set should
+   * not be altered by the caller.
+   *
+   * @return  DNs of the password storage schemes that have been
+   *          deprecated.
+   */
+  public SortedSet<DN> getDeprecatedStorageSchemeDNs()
+  {
+    return deprecatedStorageSchemeDNs;
   }
 
 

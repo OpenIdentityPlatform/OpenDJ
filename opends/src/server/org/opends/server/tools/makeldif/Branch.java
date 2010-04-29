@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -224,7 +224,7 @@ public class Branch
         if (subordinateTemplates[i] == null)
         {
           Message message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(
-              subordinateTemplateNames[i], branchDN.toString());
+              branchDN.toString(), subordinateTemplateNames[i]);
           throw new MakeLDIFException(message);
         }
       }

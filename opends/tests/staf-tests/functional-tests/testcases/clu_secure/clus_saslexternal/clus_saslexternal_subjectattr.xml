@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="clus_saslexternal_subjectattr"/>
+
+  <function name="clus_saslexternal_subjectattr" scope="local">
+
+    <sequence>
+      
+      <block name="'clus_saslexternal_subjectattr'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       SASL external subject attribute
+                                  to user attribute check behavior tests
+            #@TestSuitePurpose    Test the results of ldap commands in the case
+                                  of subject attribute to user attribute
+            #@TestSuiteGroup      ldapdmodify check behavior tests
+            #@TestScript          clus_saslexternal_subjectattr.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+
+         <!--- Test Case information
+          #@TestMarker          SASL external subject attribute
+                                to user attribute blind trust check behaviors
+          #@TestName            Subject attribute to user attribute :
+                                server trust all certificates
+          #@TestPurpose         Test  attribute to user attribute certificate
+                                mapper with blind trust
+          #@TestPreamble        none
+          #@TestStep            Create a client-120-cert with dname
+                                "CN=Aileen Akita,OU=people,L=Saint Louis,C=com"
+          #@TestStep            Configure subject attribute to user attribute
+                                certificate mapper with blind trust
+          #@TestStep            Try a ldapmodify using client-250-cert :
+                                should fail
+          #@TestStep            Make a ldapsearch using client-120-cert :
+                                should success
+                                return "user.120@maildomain.net"
+          #@TestStep            Make a ldapmodify using client-120-cert :
+                                should success
+          #@TestStep            Make a ldapsearch using client-120-cert :
+                                should success
+                                return "user.120@sundomain.net"
+          #@TestPostamble       none
+          #@TestResult          Success if the "mail" value is user.120@sun.com
+         -->
+
+          <testcase name="getTestCaseName
+          ('Subject attribute to user attribute : server trust all client certificates')">
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <!--- Generate user.120 certificate-->
+
+              <message>
+               'SASL External : Client certicate :Step 1. Generating user.120 \
+                client certificate'
+              </message>
+              <call function="'genCertificate'">
+                {
+                'certAlias'   : 'client-120-cert' ,
+                'dname'       : "CN=Aileen Akita,OU=people,L=Saint Louis,C=com",
+                'keystore':'%s/client_cert/clientkeystore' %(InstanceInstallDir),
+                'storepass'   : 'clientkeystorepass',
+                'keypass'     : 'clientkeystorepass',
+                'storetype'   : 'JKS'
+                }
+              </call>
+
+              <message>
+               'SASL External: Client certicate :Step 2. Self-Signing user.120 \
+                client Certicate'
+              </message>
+              <call function="'SelfSignCertificate'">
+                {
+                'certAlias'       : 'client-120-cert' ,
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'keystore':'%s/client_cert/clientkeystore'%(InstanceInstallDir),
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+               'SASL External: export : export user.120 certificate'
+              </message>
+                           
+              <call function="'ExportCertificate'">
+                {
+                'certAlias'       : 'client-120-cert' ,
+                'keystore'        : '%s/client_cert/clientkeystore' \
+                                     %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'outputfile'      : '%s/client_cert/client-120-cert.txt'\
+                                     %(InstanceInstallDir),
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+                }
+              </call>
+
+              <message>
+               'SASL External: add : add certificate to user attribute'
+              </message>
+
+              <call function="'addCertificate'">
+                {
+                'userdn'            : 'uid=user.120,ou=People,dc=com',
+                'user_cert_file_rfc': '%s/client_cert/client-120-cert.txt' \
+                                       %(InstanceInstallDir),
+                'ldif_path'         : '%s/client_cert/client-120-cert.ldif' \
+                                       %(InstanceInstallDir)
+                }
+              </call>
+
+
+              <!--- Test SASL External Subject attribute to user attribute
+                    with blind trust -->
+
+              <message>
+             'SASL External: configure :  Enable subject attribute to user \
+              attribute with blind trust'
+              </message>
+              <call function="'configureSASL'">
+                {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'KeyMgr'         : 'JKSPROVIDER',
+                'keystoreFile'   : 'config/serverkeystore',
+                'keystorePin'    : 'keystorepass',
+                'handlerName'    : 'EXTERNAL',
+                'certMapper'     : 'Subject Attribute to User Attribute',
+                'optionMapper'   : '--set subject-attribute-mapping:cn:cn ',
+                'optionSaSL'     : '--set certificate-validation-policy:always',
+                'certAlias'      : 'server-cert2'
+                }
+              </call>
+              <call function="'dsconfig'">
+                {
+                'location'       : location ,
+                'dsPath'         : dsPath ,
+                'dsInstanceHost' : dsInstanceHost ,
+                'dsInstanceAdminPort' : dsInstanceAdminPort ,
+                'dsInstanceDn'   : dsInstanceDn ,
+                'dsInstancePswd' : dsInstancePswd ,
+                'subcommand'     : 'set-certificate-mapper-prop',
+                'objectType'     : 'mapper-name' ,
+                'objectName'     : 'Subject Attribute to User Attribute',
+                'optionsString':'--add subject-attribute-mapping:l:l --no-prompt',
+                'expectedRC'     : 0
+                }
+              </call>
+
+              <message>
+              'SASL External: ldapmodify : subject attributes not map any \
+               user attributes'
+              </message>
+              <script>
+              telnumbermodify = 'clu_secure/clus_sasl_ldapmodify.ldif'
+              </script>
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsReportAuthzID'  : ' ',
+                'dsCertNickname'   : 'client-250-cert',
+                'dsFilename'       : '%s/%s' % (remote.data,telnumbermodify),
+                'expectedRC'       : 49
+                }
+              </call>
+
+              <!---Subject attribute to user attribute ldapmodify
+                   check behaviors-->
+
+              <message>
+              'SASL External: ldapmodify : subject attributes map an \
+               user attributes'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.120' ,
+                'dsAttributes'     : 'telephoneNumber',
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'telephoneNumber: \+1 420 810 8882'
+                }
+              </call>
+
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsReportAuthzID'  : ' ',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsFilename'       : '%s/%s' % (remote.data,telnumbermodify),
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'Bound with authorization ID \
+                dn:uid=user.120,ou=People,dc=com'
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.120' ,
+                'dsAttributes'     : 'telephoneNumber',
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'telephoneNumber: \+1 420 810 8800'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          SASL external subject attribute to user
+                                attribute with trust store check behaviors
+          #@TestName            Subject attribute to user attribute :
+                                server trust store
+          #@TestPurpose         Test  subject attribute to user attribute
+                                certificate mapper with trust store
+          #@TestPreamble        none
+          #@TestStep            Configure subject attribute to user attribute
+                                certificate mapper with trust store
+          #@TestStep            Try a ldapmodify using client-120-cert :
+                                should fail
+          #@TestStep            Export-Import client-120-cert into server trust
+                                store
+          #@TestStep            Make a ldapsearch using client-120-cert :
+                                should success
+                                return "74219"
+          #@TestStep            Make a ldapmodify using client-120-cert :
+                                should success
+          #@TestStep            Make a ldapsearch using client-120-cert :
+                                should success
+                                return "38000"
+          #@TestPostamble       none
+          #@TestResult          Success if the "postalCode" value is 38000
+         -->
+
+          <testcase name="getTestCaseName('Subject attribute to user attribute :  with trust file manager')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <!--- Test SASL External Subject attribute to user attribute with
+                    truststore -->
+
+              <message>
+             'SASL External: configure :  Enable subject attribute to user \
+              attribute with trust store file'
+              </message>
+              <call function="'configureSASL'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'KeyMgr'           : 'JKSPROVIDER',
+                'keystoreFile'     : 'config/serverkeystore',
+                'truststoreFile'   : 'config/servertruststore',
+                'keystorePin'      : 'keystorepass',
+                'trustMgr'         : 'JKS',
+                'truststorePin'    : 'truststorepass',
+                'handlerName'      : 'EXTERNAL',
+                'certMapper'       : 'Subject Attribute to User Attribute',
+                'optionSaSL'       : '--set certificate-validation-policy:always',
+                'certAlias'        : 'server-cert2'
+                }
+              </call>
+
+
+              <message>
+              'SASL External: ldapmodify test: client certificate not present \
+               in the server trust store'
+              </message>
+              <script>
+                postalcodemodify='clu_secure/clus_sasl_ldapmodify2.ldif'
+              </script>
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsFilename'       : '%s/%s' % (remote.data,postalcodemodify),
+                'expectedRC'       : 81
+                }
+              </call>
+
+              <!--- Add the user.120 certificate to the server truststore -->    
+         
+              <message>
+               'SASL External: import : import user.120 certificate to server \
+                truststore'
+              </message>
+              <call function="'ImportCertificate'">
+                {
+                'certAlias' : 'client-120-cert',
+                'inputfile' : '%s/client_cert/client-120-cert.txt' \
+                               %(InstanceInstallDir),
+                'keystore'  : '%s/config/servertruststore' %(InstanceInstallDir),
+                'storepass' : 'truststorepass',
+                'storetype' : 'JKS'
+                }
+              </call>
+
+              <message>
+               'SASL External: restart LDAPS connection handler to re-read trustore'
+              </message>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-connection-handler-prop',
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'LDAPS Connection Handler',
+                  'optionsString'  : '--set enabled:false' ,
+                  'expectedRC'     : 0
+                }
+              </call>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-connection-handler-prop',
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'LDAPS Connection Handler',
+                  'optionsString'  : '--set enabled:true' ,
+                  'expectedRC'     : 0
+                }
+              </call>
+
+              <!---ldapmodify check behaviors with truststore-->
+
+              <message>
+              'SASL External: ldapmodify test: client certificate present in \
+               the server trust store'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.120' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : '74219'
+                }
+              </call>
+
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsFilename'       : '%s/%s' % (remote.data,postalcodemodify),
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'Bound with authorization ID \
+                dn:uid=user.120,ou=People,dc=com'
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-120-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.120' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 0
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : '38000'
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
+
+
+
+

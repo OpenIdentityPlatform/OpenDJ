@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.extensions;
@@ -59,7 +59,8 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * Creates a new instance of this HasSubordinates virtual attribute provider.
+   * Creates a new instance of this collectiveAttributeSubentries
+   * virtual attribute provider.
    */
   public CollectiveAttributeSubentriesVirtualAttributeProvider()
   {
@@ -103,19 +104,24 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     Set<AttributeValue> valueSet = new HashSet<AttributeValue>();
-    List<SubEntry> subentries =
-            DirectoryServer.getSubentryManager().getCollectiveSubentries(entry);
 
-    AttributeType dnAttrType =
-            DirectoryServer.getAttributeType("2.5.4.49");
-    for (SubEntry subentry : subentries)
+    if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
-      if (subentry.isCollective())
+      List<SubEntry> subentries =
+              DirectoryServer.getSubentryManager(
+              ).getCollectiveSubentries(entry);
+
+      AttributeType dnAttrType =
+              DirectoryServer.getAttributeType("2.5.4.49");
+      for (SubEntry subentry : subentries)
       {
-        DN subentryDN = subentry.getDN();
-        AttributeValue value = AttributeValues.create(
-                dnAttrType, subentryDN.toString());
-        valueSet.add(value);
+        if (subentry.isCollective())
+        {
+          DN subentryDN = subentry.getDN();
+          AttributeValue value = AttributeValues.create(
+                  dnAttrType, subentryDN.toString());
+          valueSet.add(value);
+        }
       }
     }
 

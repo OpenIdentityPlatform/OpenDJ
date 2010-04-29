@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -1556,17 +1556,8 @@ public final class AciHandler extends
     }
     case NOT:
     {
-      ret = false;
       SearchFilter f = filter.getNotComponent();
-      if (f.matchesEntry(container.getResourceEntry()))
-      {
-        ret = true;
-      }
-      if (ret)
-      {
-        ret = testFilter(container, f);
-      }
-      ret = !ret;
+      ret = testFilter(container, f);
       break;
     }
     default:

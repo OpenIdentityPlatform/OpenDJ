@@ -22,18 +22,24 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
 
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ChangeNotificationListener;
+import org.opends.server.api.SubentryChangeListener;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginResult.PostOperation;
+import org.opends.server.api.plugin.PluginResult.PreOperation;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubentriesControl;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -48,10 +54,14 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SubEntry;
-import org.opends.server.types.operation.PostResponseAddOperation;
-import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.workflowelement.localbackend.
             LocalBackendSearchOperation;
 
@@ -73,8 +83,8 @@ import static org.opends.server.config.ConfigConstants.*;
  * memory.  If it is determined that this approach is not workable
  * in all cases, then we will need an alternate strategy.
  */
-public class SubentryManager
-        implements BackendInitializationListener, ChangeNotificationListener
+public class SubentryManager extends InternalDirectoryServerPlugin
+        implements BackendInitializationListener
 {
   /**
    * The tracer object for the debug logger.
@@ -93,22 +103,87 @@ public class SubentryManager
   // Lock to protect internal data structures.
   private final ReentrantReadWriteLock lock;
 
+  // The set of change notification listeners.
+  private CopyOnWriteArrayList<SubentryChangeListener>
+               changeListeners;
+
+  // Dummy configuration DN for Subentry Manager.
+  private static final String CONFIG_DN = "cn=Subentry Manager,cn=config";
+
   /**
-   * Creates a new instance of this group manager.
+   * Creates a new instance of this subentry manager.
+   *
+   * @throws DirectoryException If a problem occurs while
+   *                            creating an instance of
+   *                            the subentry manager.
    */
-  public SubentryManager()
+  public SubentryManager() throws DirectoryException
   {
+    super(DN.decode(CONFIG_DN), EnumSet.of(
+          PluginType.PRE_OPERATION_ADD,
+          PluginType.PRE_OPERATION_DELETE,
+          PluginType.PRE_OPERATION_MODIFY,
+          PluginType.PRE_OPERATION_MODIFY_DN,
+          PluginType.POST_OPERATION_ADD,
+          PluginType.POST_OPERATION_DELETE,
+          PluginType.POST_OPERATION_MODIFY,
+          PluginType.POST_OPERATION_MODIFY_DN),
+          true);
+
     lock = new ReentrantReadWriteLock();
 
     dn2SubEntry = new HashMap<DN,List<SubEntry>>();
     dn2CollectiveSubEntry = new HashMap<DN,List<SubEntry>>();
 
-    requestAttrs = new LinkedHashSet<String>();
-    requestAttrs.add("subtreespecification");
-    requestAttrs.add("*");
+    changeListeners =
+            new CopyOnWriteArrayList<SubentryChangeListener>();
 
+    requestAttrs = new LinkedHashSet<String>();
+    requestAttrs.add("*");
+    requestAttrs.add("+");
+
+    DirectoryServer.registerInternalPlugin(this);
     DirectoryServer.registerBackendInitializationListener(this);
-    DirectoryServer.registerChangeNotificationListener(this);
+  }
+
+  /**
+   * Perform any required finalization tasks for Subentry Manager.
+   * This should only be called at Directory Server shutdown.
+   */
+  public void finalizeSubentryManager()
+  {
+    // Deregister as internal plugin and
+    // backend initialization listener.
+    DirectoryServer.deregisterInternalPlugin(this);
+    DirectoryServer.deregisterBackendInitializationListener(this);
+  }
+
+  /**
+   * Registers the provided change notification listener with this manager
+   * so that it will be notified of any add, delete, modify, or modify DN
+   * operations that are performed.
+   *
+   * @param  changeListener  The change notification listener to register
+   *                         with this manager.
+   */
+  public void registerChangeListener(
+                          SubentryChangeListener changeListener)
+  {
+    changeListeners.add(changeListener);
+  }
+
+  /**
+   * Deregisters the provided change notification listener with this manager
+   * so that it will no longer be notified of any add, delete, modify, or
+   * modify DN operations that are performed.
+   *
+   * @param  changeListener  The change notification listener to deregister
+   *                         with this manager.
+   */
+  public void deregisterChangeListener(
+                          SubentryChangeListener changeListener)
+  {
+    changeListeners.remove(changeListener);
   }
 
   /**
@@ -163,45 +238,51 @@ public class SubentryManager
     try
     {
       boolean removed = false;
-      Iterator<Map.Entry<DN, List<SubEntry>>> iterator =
+      Iterator<Map.Entry<DN, List<SubEntry>>> setIterator =
               dn2SubEntry.entrySet().iterator();
-      while (iterator.hasNext())
+      while (setIterator.hasNext())
       {
-        Map.Entry<DN, List<SubEntry>> mapEntry = iterator.next();
+        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
         List<SubEntry> subList = mapEntry.getValue();
-        for (SubEntry subEntry : subList)
+        Iterator<SubEntry> listIterator = subList.iterator();
+        while (listIterator.hasNext())
         {
+          SubEntry subEntry = listIterator.next();
           if (subEntry.getDN().equals(entry.getDN()))
           {
-            removed = subList.remove(subEntry);
+            listIterator.remove();
+            removed = true;
             break;
           }
         }
         if (subList.isEmpty())
         {
-          iterator.remove();
+          setIterator.remove();
         }
         if (removed)
         {
           return;
         }
       }
-      iterator = dn2CollectiveSubEntry.entrySet().iterator();
-      while (iterator.hasNext())
+      setIterator = dn2CollectiveSubEntry.entrySet().iterator();
+      while (setIterator.hasNext())
       {
-        Map.Entry<DN, List<SubEntry>> mapEntry = iterator.next();
+        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
         List<SubEntry> subList = mapEntry.getValue();
-        for (SubEntry subEntry : subList)
+        Iterator<SubEntry> listIterator = subList.iterator();
+        while (listIterator.hasNext())
         {
+          SubEntry subEntry = listIterator.next();
           if (subEntry.getDN().equals(entry.getDN()))
           {
-            removed = subList.remove(subEntry);
+            listIterator.remove();
+            removed = true;
             break;
           }
         }
         if (subList.isEmpty())
         {
-          iterator.remove();
+          setIterator.remove();
         }
         if (removed)
         {
@@ -230,8 +311,10 @@ public class SubentryManager
     SearchFilter filter = null;
     try
     {
-      filter = SearchFilter.createFilterFromString("(" +
-            ATTR_OBJECTCLASS + "=" + OC_SUBENTRY + ")");
+      filter = SearchFilter.createFilterFromString("(|" +
+            "(" + ATTR_OBJECTCLASS + "=" + OC_SUBENTRY + ")" +
+            "(" + ATTR_OBJECTCLASS + "=" + OC_LDAP_SUBENTRY + ")" +
+            ")");
       if (backend.getEntryCount() > 0 && ! backend.isIndexed(filter))
       {
         logError(WARN_SUBENTRY_FILTER_NOT_INDEXED.get(
@@ -292,7 +375,7 @@ public class SubentryManager
 
       for (SearchResultEntry entry : internalSearch.getSearchEntries())
       {
-        if (entry.isSubentry())
+        if (entry.isSubentry() || entry.isLDAPSubentry())
         {
           try
           {
@@ -311,6 +394,37 @@ public class SubentryManager
         }
       }
     }
+  }
+
+  /**
+   * Return all subentries for this manager.
+   * Note that this getter will skip any collective subentries,
+   * returning only applicable regular subentries.
+   * @return all subentries for this manager.
+   */
+  public List<SubEntry> getSubentries()
+  {
+    if (dn2SubEntry.isEmpty())
+    {
+      return Collections.emptyList();
+    }
+
+    List<SubEntry> subentries = new ArrayList<SubEntry>();
+
+    lock.readLock().lock();
+    try
+    {
+      for (List<SubEntry> subList : dn2SubEntry.values())
+      {
+        subentries.addAll(subList);
+      }
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+
+    return subentries;
   }
 
   /**
@@ -506,39 +620,43 @@ public class SubentryManager
     lock.writeLock().lock();
     try
     {
-      Iterator<Map.Entry<DN, List<SubEntry>>> iterator =
+      Iterator<Map.Entry<DN, List<SubEntry>>> setIterator =
               dn2SubEntry.entrySet().iterator();
-      while (iterator.hasNext())
+      while (setIterator.hasNext())
       {
-        Map.Entry<DN, List<SubEntry>> mapEntry = iterator.next();
+        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
         List<SubEntry> subList = mapEntry.getValue();
-        for (SubEntry subEntry : subList)
+        Iterator<SubEntry> listIterator = subList.iterator();
+        while (listIterator.hasNext())
         {
+          SubEntry subEntry = listIterator.next();
           if (backend.handlesEntry(subEntry.getDN()))
           {
-            subList.remove(subEntry);
+            listIterator.remove();
           }
         }
         if (subList.isEmpty())
         {
-          iterator.remove();
+          setIterator.remove();
         }
       }
-      iterator = dn2CollectiveSubEntry.entrySet().iterator();
-      while (iterator.hasNext())
+      setIterator = dn2CollectiveSubEntry.entrySet().iterator();
+      while (setIterator.hasNext())
       {
-        Map.Entry<DN, List<SubEntry>> mapEntry = iterator.next();
+        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
         List<SubEntry> subList = mapEntry.getValue();
-        for (SubEntry subEntry : subList)
+        Iterator<SubEntry> listIterator = subList.iterator();
+        while (listIterator.hasNext())
         {
+          SubEntry subEntry = listIterator.next();
           if (backend.handlesEntry(subEntry.getDN()))
           {
-            subList.remove(subEntry);
+            listIterator.remove();
           }
         }
         if (subList.isEmpty())
         {
-          iterator.remove();
+          setIterator.remove();
         }
       }
     }
@@ -549,17 +667,177 @@ public class SubentryManager
   }
 
   /**
-   * {@inheritDoc}  In this case, each entry is checked to see if it is
-   * a subentry, and if so it will be registered with this manager.
+   * {@inheritDoc}
    */
-  public void handleAddOperation(PostResponseAddOperation addOperation,
-                                 Entry entry)
+  @Override
+  public PreOperation doPreOperation(
+          PreOperationAddOperation addOperation)
   {
-    if (entry.isSubentry())
+    Entry entry = addOperation.getEntryToAdd();
+
+    if (entry.isSubentry() || entry.isLDAPSubentry())
+    {
+      for (SubentryChangeListener changeListener :
+              changeListeners)
+      {
+        try
+        {
+          changeListener.checkSubentryAddAcceptable(entry);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          return PluginResult.PreOperation.stopProcessing(
+                  de.getResultCode(), de.getMessageObject());
+        }
+      }
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PreOperation doPreOperation(
+          PreOperationDeleteOperation deleteOperation)
+  {
+    Entry entry = deleteOperation.getEntryToDelete();
+
+    if (entry.isSubentry() || entry.isLDAPSubentry())
+    {
+      for (SubentryChangeListener changeListener :
+              changeListeners)
+      {
+        try
+        {
+          changeListener.checkSubentryDeleteAcceptable(entry);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          return PluginResult.PreOperation.stopProcessing(
+                  de.getResultCode(), de.getMessageObject());
+        }
+      }
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PreOperation doPreOperation(
+          PreOperationModifyOperation modifyOperation)
+  {
+    Entry oldEntry = modifyOperation.getCurrentEntry();
+    Entry newEntry = modifyOperation.getModifiedEntry();
+
+    if ((newEntry.isSubentry() || newEntry.isLDAPSubentry()) ||
+        (oldEntry.isSubentry() || oldEntry.isLDAPSubentry()))
+    {
+      for (SubentryChangeListener changeListener :
+              changeListeners)
+      {
+        try
+        {
+          changeListener.checkSubentryModifyAcceptable(
+                  oldEntry, newEntry);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          return PluginResult.PreOperation.stopProcessing(
+                  de.getResultCode(), de.getMessageObject());
+        }
+      }
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PreOperation doPreOperation(
+          PreOperationModifyDNOperation modifyDNOperation)
+  {
+    Entry oldEntry = modifyDNOperation.getOriginalEntry();
+    Entry newEntry = modifyDNOperation.getUpdatedEntry();
+
+    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    {
+      for (SubentryChangeListener changeListener :
+              changeListeners)
+      {
+        try
+        {
+          changeListener.checkSubentryModifyAcceptable(
+                  oldEntry, newEntry);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          return PluginResult.PreOperation.stopProcessing(
+                  de.getResultCode(), de.getMessageObject());
+        }
+      }
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationAddOperation addOperation)
+  {
+    Entry entry = addOperation.getEntryToAdd();
+
+    if (entry.isSubentry() || entry.isLDAPSubentry())
     {
       try
       {
         addSubEntry(entry);
+
+        // Notify change listeners.
+        for (SubentryChangeListener changeListener :
+          changeListeners)
+        {
+          try
+          {
+            changeListener.handleSubentryAdd(entry);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
       }
       catch (Exception e)
       {
@@ -571,35 +849,116 @@ public class SubentryManager
         // FIXME -- Handle this.
       }
     }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
   /**
-   * {@inheritDoc}  In this case, each entry is checked to see if it is
-   * a subentry, and if so it will be deregistered with this manager.
+   * {@inheritDoc}
    */
-  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
-                                    Entry entry)
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationDeleteOperation deleteOperation)
   {
-    if (entry.isSubentry())
+    Entry entry = deleteOperation.getEntryToDelete();
+
+    if (entry.isSubentry() || entry.isLDAPSubentry())
     {
       removeSubEntry(entry);
+
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
+      {
+        try
+        {
+          changeListener.handleSubentryDelete(entry);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
     }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
   /**
-   * {@inheritDoc}  In this case, if the entry is a registered subentry
-   * then it will be recreated from the contents of the provided entry
-   * and re-registered with this manager.
+   * {@inheritDoc}
    */
-  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
-                                    Entry oldEntry, Entry newEntry)
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationModifyOperation modifyOperation)
   {
-    if (oldEntry.isSubentry())
+    Entry oldEntry = modifyOperation.getCurrentEntry();
+    Entry newEntry = modifyOperation.getModifiedEntry();
+
+    boolean notify = false;
+
+    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
     {
       removeSubEntry(oldEntry);
+      notify = true;
     }
-    if (newEntry.isSubentry())
+    if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
     {
+      try
+      {
+        addSubEntry(newEntry);
+        notify = true;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // FIXME -- Handle this.
+      }
+    }
+
+    if (notify)
+    {
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
+      {
+        try
+        {
+          changeListener.handleSubentryModify(
+                  oldEntry, newEntry);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationModifyDNOperation modifyDNOperation)
+  {
+    Entry oldEntry = modifyDNOperation.getOriginalEntry();
+    Entry newEntry = modifyDNOperation.getUpdatedEntry();
+
+    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    {
+      removeSubEntry(oldEntry);
       try
       {
         addSubEntry(newEntry);
@@ -613,35 +972,26 @@ public class SubentryManager
 
         // FIXME -- Handle this.
       }
-    }
-  }
 
-  /**
-   * {@inheritDoc}  In this case, if the subentry is registered then it
-   * will be recreated from the contents of the provided entry and re-
-   * registered with this manager under the new DN and the old instance
-   * will be deregistered.
-   */
-  public void handleModifyDNOperation(
-                   PostResponseModifyDNOperation modifyDNOperation,
-                   Entry oldEntry, Entry newEntry)
-  {
-    if (oldEntry.isSubentry())
-    {
-      removeSubEntry(oldEntry);
-      try
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
       {
-        addSubEntry(newEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          changeListener.handleSubentryModify(
+                  oldEntry, newEntry);
         }
-
-        // FIXME -- Handle this.
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
       }
     }
+
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 }

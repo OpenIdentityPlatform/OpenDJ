@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
 ! -->
 <stax>
   
@@ -186,7 +186,12 @@
                'remotehost' : '%s' % STAF_REMOTE_HOSTNAME
               }
             </call>
-
+            <call function="'copyFile'">
+              { 'srcfile'    : '%s/../../ext/emma/lib/emma.jar' % TESTS_ROOT,
+                'destfile'   : '%s/apache-%s-%s/lib/emma.jar' % (wcPath, WC_TYPE, WC_VERSION),
+                'remotehost' : '%s' % STAF_REMOTE_HOSTNAME
+              }
+            </call>
             <if expr="RC != 0">
               <return>RC</return>
             </if>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+  
+  <defaultcall function="clus_ssl_cleanup"/>
+
+  <function name="clus_ssl_cleanup" scope="local">
+
+    <sequence>
+      <block name="'clus_ssl_cleanup'">
+
+        <sequence>
+
+           <!--- Test Suite information
+           #@TestSuiteName       clean up ssl
+           #@TestSuitePurpose    unconfigure ssl
+           #@TestSuiteGroup      clean up ssl
+           #@TestScript          clus_ssl_cleanup.xml
+           -->
+
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+
+          <call function="'testSuite_Preamble'"/>
+
+          <testcase name="getTestCaseName('Disable SSL blind trust')">
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+              <message>
+              'Security: SSL Check behaviors: Disable SSL blind trust'
+              </message>
+              <call function="'unconfigureSSL'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'customKeyMgr'     : 'JKSPROVIDER',
+                }
+              </call>
+
+               <call function="'testCase_Postamble'"/>
+
+            </sequence>
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+      </block>
+
+    </sequence>
+
+  </function>
+</stax>

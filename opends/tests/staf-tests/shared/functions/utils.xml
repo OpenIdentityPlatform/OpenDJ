@@ -1063,7 +1063,7 @@
 
         reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
         reportCfg.write('[Main]\n')
-        reportCfg.write('product = OpenDS_SE2.4 (Directory)\n')
+        reportCfg.write('product = Directory\n')
         if TESTS_TYPE == 'functional-tests':
           reportCfg.write('category = Functional\n')
         else:
@@ -3331,6 +3331,25 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="includeAttrs" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Map containing the attributes configured as include-attributes along
+          with their values, e.g.:
+          { 'description':['desc1', desc2'], 'telephonenumber':['11-22-33']} 
+        </function-arg-description>
+        <function-arg-property name="type" value="map"/>
+      </function-arg-def>
+      <function-arg-def name="expectMissingIncAttrs" 
+                        type="optional"
+                        default="[]">
+        <function-arg-description>
+          List of the attributes in includeAttrs expected NOT TO BE FOUND in the
+          changelog entry. 
+        </function-arg-description>
+        <function-arg-property name="type" value="list"/>
+      </function-arg-def>
       <function-arg-def name="knownIssue" type="optional" default="None">
         <function-arg-description>
           Known issue. Corresponds to an issue number.
@@ -3342,6 +3361,7 @@
       <script>
         myLocation            = location
         myPath                = dsPath
+        myKnownIssue          = knownIssue
         
         # Mandatory attributes in a changeLogEntry
         ecl_DN                = changelogEntry['dn'][0]
@@ -3386,7 +3406,8 @@
       <call function="'searchString'">
         { 'returnString'   : ecl_targetDN,
           'expectedString' : targetDN,
-          'searchType'     : 'exact-case-insensitive'
+          'searchType'     : 'exact-case-insensitive',
+          'knownIssue'     : myKnownIssue
         }
       </call>
 
@@ -3396,7 +3417,8 @@
       <call function="'searchString'">
         { 'returnString'   : ecl_changeType,
           'expectedString' : changeType,
-          'searchType'     : 'exact-case-insensitive'
+          'searchType'     : 'exact-case-insensitive',
+          'knownIssue'     : myKnownIssue
         }
       </call>
 
@@ -3408,7 +3430,8 @@
           <call function="'searchString'">
             { 'returnString'   : ecl_changeTime,
               'expectedString' : changeTime,
-              'searchType'     : 'exact-case-insensitive'
+              'searchType'     : 'exact-case-insensitive',
+              'knownIssue'     : myKnownIssue
             }
           </call>
         </sequence>
@@ -3422,7 +3445,8 @@
           <call function="'searchString'">
             { 'returnString'   : ecl_changeNumber,
               'expectedString' : changeNumber,
-              'searchType'     : 'exact-case-sensitive'
+              'searchType'     : 'exact-case-sensitive',
+              'knownIssue'     : myKnownIssue
             }
           </call>
         </sequence>
@@ -3437,7 +3461,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_replicationCSN,
                 'expectedString' : replicationCSN,
-                'searchType'     : 'exact-case-insensitive'
+                'searchType'     : 'exact-case-insensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3446,7 +3471,14 @@
               <message log="1" level="'Error'">
                 'No replicationCSN could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3461,7 +3493,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_replicaIdentifier,
                 'expectedString' : replicaIdentifier,
-                'searchType'     : 'exact-case-sensitive'
+                'searchType'     : 'exact-case-sensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3470,7 +3503,14 @@
               <message log="1" level="'Error'">
                 'No replicaIdentifier could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3485,7 +3525,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_targetEntryUUID,
                 'expectedString' : targetEntryUUID,
-                'searchType'     : 'exact-case-insensitive'
+                'searchType'     : 'exact-case-insensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3494,7 +3535,14 @@
               <message log="1" level="'Error'">
                 'No targetEntryUUID could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3509,7 +3557,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_newRDN,
                 'expectedString' : newRDN,
-                'searchType'     : 'exact-case-insensitive'
+                'searchType'     : 'exact-case-insensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3518,7 +3567,14 @@
               <message log="1" level="'Error'">
                 'No newRDN could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3533,7 +3589,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_deleteOldRDN,
                 'expectedString' : deleteOldRDN,
-                'searchType'     : 'exact-case-sensitive'
+                'searchType'     : 'exact-case-sensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3542,7 +3599,14 @@
               <message log="1" level="'Error'">
                 'No deleteOldRDN could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3557,7 +3621,8 @@
             <call function="'searchString'">
               { 'returnString'   : ecl_newSuperior,
                 'expectedString' : newSuperior,
-                'searchType'     : 'exact-case-insensitive'
+                'searchType'     : 'exact-case-insensitive',
+                'knownIssue'     : myKnownIssue
               }
             </call>
           </sequence>
@@ -3566,7 +3631,14 @@
               <message log="1" level="'Error'">
                 'No newSuperior could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
@@ -3641,7 +3713,14 @@
                                 'Expected values %s could not be found in %s' \
                                  % (valueList, ecl_valueList) 
                               </message>
-                              <call function="'testFailed'"/>
+                              <if expr="myKnownIssue == None">
+                                <call function="'testFailed'"/>
+                                <else>
+                                  <call function="'setKnownIssue'">
+                                    { 'issueId' : myKnownIssue }
+                                  </call>
+                                </else>
+                              </if>
                             </sequence>
                           </else>
                         </if>
@@ -3651,7 +3730,14 @@
                           <message log="1" level="'Error'">
                             'No %s could be found in the changes' % attr 
                           </message>
-                          <call function="'testFailed'"/>
+                          <if expr="myKnownIssue == None">
+                            <call function="'testFailed'"/>
+                            <else>
+                              <call function="'setKnownIssue'">
+                                { 'issueId' : myKnownIssue }
+                              </call>
+                            </else>
+                          </if>
                         </sequence>
                       </else>
                     </if>                    
@@ -3697,7 +3783,14 @@
                               'Expected change %s could not be found in %s'\
                                % (mod, ecl_changesList) 
                             </message>
-                            <call function="'testFailed'"/>
+                            <if expr="myKnownIssue == None">
+                              <call function="'testFailed'"/>
+                              <else>
+                                <call function="'setKnownIssue'">
+                                  { 'issueId' : myKnownIssue }
+                                </call>
+                              </else>
+                            </if>
                           </sequence>
                         </else>
                       </if>
@@ -3713,12 +3806,280 @@
               <message log="1" level="'Error'">
                 'No changes could be found in the changelog entry' 
               </message>
-              <call function="'testFailed'"/>
+              <if expr="myKnownIssue == None">
+                <call function="'testFailed'"/>
+                <else>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : myKnownIssue }
+                  </call>
+                </else>
+              </if>
             </sequence>
           </else>
         </if>
       </if>
       
+      <if expr="includeAttrs">
+        <iterate var="attr" in="includeAttrs.keys()">
+          <sequence>
+            <message>
+              'checkChangelogEntry: Checking include-attribute: %s' % attr
+            </message>
+            <script>
+              # included-attributes are preceded by 'target' prefix in the
+              # changelog entry, e.g.: 'description' -> 'targetdescription'
+              targetAttr    = 'target%s' % attr
+              valueList     = includeAttrs[attr]
+              ecl_valueList = None
+              
+              if targetAttr in changelogEntry.keys():
+                ecl_valueList = changelogEntry[targetAttr]
+                ecl_valueList.sort()
+                valueList.sort()
+            </script>
+            <if expr="ecl_valueList != None">
+              <!-- Some value found for (include-attribute) targetAttr -->
+              <if expr="attr in expectMissingIncAttrs">
+                <sequence>
+                  <message log="1" level="'Error'">
+                    'Found values %s for %s while NONE expected.' \
+                     % (valueList, targetAttr) 
+                  </message>
+                  <if expr="myKnownIssue == None">
+                    <call function="'testFailed'"/>
+                    <else>
+                      <call function="'setKnownIssue'">
+                        { 'issueId' : myKnownIssue }
+                      </call>
+                    </else>
+                  </if>
+                </sequence>
+                <else>
+                  <if expr="valueList == ecl_valueList">
+                    <message>
+                      'Found expected values for include attribute in %s: \
+                      %s' % (targetAttr, valueList)
+                    </message>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Expected values %s could not be found in %s: %s' \
+                           % (valueList, targetAttr, ecl_valueList) 
+                        </message>
+                        <if expr="myKnownIssue == None">
+                          <call function="'testFailed'"/>
+                          <else>
+                            <call function="'setKnownIssue'">
+                              { 'issueId' : myKnownIssue }
+                            </call>
+                          </else>
+                        </if>
+                      </sequence>
+                    </else>
+                  </if>
+                </else>
+              </if>
+              <else>
+                <!-- No (include-attribute) targetAttr found -->
+                <if expr="attr in expectMissingIncAttrs">
+                  <message>
+                    'No %s could be found in the changelog entry, AS EXPECTED' \
+                    % targetAttr 
+                  </message>
+                  <else>
+                    <sequence>
+                      <message log="1" level="'Error'">
+                        'No %s could be found in the changelog entry' % targetAttr 
+                      </message>
+                      <if expr="myKnownIssue == None">
+                        <call function="'testFailed'"/>
+                        <else>
+                          <call function="'setKnownIssue'">
+                            { 'issueId' : myKnownIssue }
+                          </call>
+                        </else>
+                      </if>
+                    </sequence>
+                  </else>
+                </if>
+              </else>
+            </if>                    
+          </sequence>
+        </iterate>
+      </if>
+      
     </sequence>
   </function>
+
+  <!-- PSEARCH -->
+  <function name="psearch" scope="local">
+    <function-prolog>
+      This function performs a psearch request
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Target directory server  hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server  port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+         Directory server  dn
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDn" type="required">
+        <function-arg-description>
+          Specify the base DN for which to perform the verification
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+       <function-arg-def name="nbrOfThread" type="optional" default="1">
+        <function-arg-description>
+          Specify the number of threads to use
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="optional">
+        <function-arg-description>
+          Specify the output file path
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="operation" type="optional">
+        <function-arg-description>
+          Specify the opeation type
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="display" type="optional">
+        <function-arg-description>
+          Optional do not perform any display in terminal
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="ldif" type="optional">
+        <function-arg-description>
+          Optional output file in ldif format
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+
+      <script>
+        if is_windows_platform(location):
+          jstaf_jarfile='%s\\bin\\JSTAF.jar' % REMOTE_STAF_ROOT
+        else:
+          jstaf_jarfile='%s/lib/JSTAF.jar' % REMOTE_STAF_ROOT
+      </script>
+
+      <!-- Build the command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D %s' % dsInstanceDn)
+
+        if dsBaseDn:
+          STAFCmdParamsList.append('-b %s' % dsBaseDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)
+
+        if display:
+          STAFCmdParamsList.append('-s')
+
+        if ldif:
+          STAFCmdParamsList.append('-l')
+
+        if outputFile:
+          STAFCmdParamsList.append('-f %s' % outputFile)
+
+        if nbrOfThread:
+          STAFCmdParamsList.append('-n %s' % nbrOfThread)
+
+        if operation:
+          STAFCmdParamsList.append('-o %s' % operation)
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+
+        STAFCmd='PSearch'
+
+        if is_windows_platform(location):
+          separator=';'
+        else:
+          separator=':'
+
+        ldapjdkPath='%s/ldapjdk' % remote.java
+        ldapjdk_jarfile='%s/ldapjdk.jar' % ldapjdkPath
+        cp = 'CLASSPATH=%s%s%s%s.' \
+        % (ldapjdk_jarfile,separator,jstaf_jarfile,separator)
+
+        env = ['%s' % cp]
+
+      </script>
+
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+
+      <call function="'runCommand'" >
+        {
+        'name'       : 'PSearch' ,
+        'command'    : '%s/bin/java' % JAVA_HOME ,
+        'arguments'  : '%s %s' % (STAFCmd, STAFCmdParams) ,
+        'location'   : location ,
+        'path'       : '%s/ldapjdk' % remote.java ,
+        'envCmd'     : env ,
+        'expectedRC' : expectedRC
+        }
+      </call>
+
+      <return>
+        STAXResult
+      </return>
+
+    </sequence>
+  </function>
+
+
 </stax>

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -96,9 +96,14 @@ public class SubschemaSubentryVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
+    DN schemaDN = DirectoryServer.getSchemaDN();
+    if (schemaDN == null)
+    {
+      return Collections.emptySet();
+    }
     AttributeValue value =
-        AttributeValues.create(rule.getAttributeType(), DirectoryServer
-            .getSchemaDN().toString());
+        AttributeValues.create(rule.getAttributeType(),
+        schemaDN.toString());
     return Collections.singleton(value);
   }
 

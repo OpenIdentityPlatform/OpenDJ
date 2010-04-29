@@ -215,11 +215,6 @@ public abstract class ServerHandler extends MessageHandler
    */
   protected byte groupId = (byte) -1;
   /**
-   * The SSL encryption provided by the creator/starter of this handler.
-   */
-  protected boolean initSslEncryption;
-
-  /**
    * The SSL encryption after the negotiation with the peer.
    */
   protected boolean sslEncryption;

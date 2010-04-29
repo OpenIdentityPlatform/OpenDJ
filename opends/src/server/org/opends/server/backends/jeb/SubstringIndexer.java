@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -164,6 +164,10 @@ public class SubstringIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
+      if (attr.isVirtual())
+      {
+        continue;
+      }
       for (AttributeValue value : attr)
       {
         try
@@ -241,6 +245,10 @@ public class SubstringIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
+      if (attr.isVirtual())
+      {
+        continue;
+      }
       for (AttributeValue value : attr)
       {
         try

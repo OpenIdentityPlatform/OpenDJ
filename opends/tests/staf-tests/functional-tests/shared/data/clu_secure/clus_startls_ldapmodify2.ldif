@@ -1,0 +1,4 @@
+dn: uid=user.111,ou=people,dc=com
+changetype: modify
+replace: telephoneNumber
+telephoneNumber: +3312345678

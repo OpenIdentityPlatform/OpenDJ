@@ -43,6 +43,7 @@ import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -434,6 +435,11 @@ public class ConfigurableEnvironment
       envConfig.setConfigParam("je.log.faultReadSize", String
           .valueOf(4 * 1024));
     }
+
+    // Disable lock timeouts, meaning that no lock wait
+    // timelimit is enforced and a deadlocked operation
+    // will block indefinitely.
+    envConfig.setLockTimeout(0, TimeUnit.MICROSECONDS);
 
     return envConfig;
   }

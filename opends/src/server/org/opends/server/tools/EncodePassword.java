@@ -535,7 +535,7 @@ public class EncodePassword
           int size = storageSchemes.size();
 
           ArrayList<String> nameList = new ArrayList<String>(size);
-          for (PasswordStorageScheme<?> s : storageSchemes.values())
+          for (PasswordStorageScheme s : storageSchemes.values())
           {
             nameList.add(s.getAuthPasswordSchemeName());
           }
@@ -566,7 +566,7 @@ public class EncodePassword
           int size = storageSchemes.size();
 
           ArrayList<String> nameList = new ArrayList<String>(size);
-          for (PasswordStorageScheme<?> s : storageSchemes.values())
+          for (PasswordStorageScheme s : storageSchemes.values())
           {
             nameList.add(s.getStorageSchemeName());
           }
@@ -622,7 +622,7 @@ public class EncodePassword
           return 1;
         }
 
-        PasswordStorageScheme<?> storageScheme =
+        PasswordStorageScheme storageScheme =
              DirectoryServer.getAuthPasswordStorageScheme(scheme);
         if (storageScheme == null)
         {
@@ -672,7 +672,7 @@ public class EncodePassword
       }
       else
       {
-        PasswordStorageScheme<?> storageScheme;
+        PasswordStorageScheme storageScheme;
         String                encodedPWString;
 
         if (UserPasswordSyntax.isEncoded(encodedPW))
@@ -772,7 +772,7 @@ public class EncodePassword
     else
     {
       // Try to get a reference to the requested password storage scheme.
-      PasswordStorageScheme<?> storageScheme;
+      PasswordStorageScheme storageScheme;
       if (authPasswordSyntax.isPresent())
       {
         String scheme = schemeName.getValue();
@@ -909,10 +909,12 @@ public class EncodePassword
           directoryServer.initializePlugins(pluginTypes);
           //Initialize Trust Backend.
           initializeServerBackends(directoryServer);
+          // Initialize the subentry manager.
+          directoryServer.initializeSubentryManager();
           //Initialize PWD policy components.
           directoryServer.initializePasswordPolicyComponents();
           //Load the crypto-manager key cache among other things.
-         new CryptoManagerSync(false);
+         new CryptoManagerSync();
     } catch (InitializationException ie) {
         Message message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
                 getExceptionMessage(ie));
@@ -955,7 +957,7 @@ public class EncodePassword
           backendCfg instanceof LDIFBackendCfg) {
         if(backendCfg.isEnabled()) {
           String className = backendCfg.getJavaClass();
-          Class<?> backendClass;
+          Class backendClass;
           Backend backend;
           try {
             backendClass = DirectoryServer.loadClass(className);
@@ -1181,7 +1183,7 @@ public class EncodePassword
         try
         {
           // attempt masking at this rate
-          ErasingThread.sleep(1);
+          this.sleep(1);
         }
         catch (InterruptedException iex)
         {

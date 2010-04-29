@@ -2470,6 +2470,16 @@ ds-cfg-enabled: true
 ds-cfg-attribute-type: collectiveAttributeSubentries
 ds-cfg-conflict-behavior: virtual-overrides-real
 
+dn: cn=Password Policy Subentry,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+objectClass: ds-cfg-password-policy-subentry-virtual-attribute
+cn: Password Policy Subentry
+ds-cfg-java-class: org.opends.server.extensions.PasswordPolicySubentryVirtualAttributeProvider
+ds-cfg-enabled: true
+ds-cfg-attribute-type: pwdPolicySubentry
+ds-cfg-conflict-behavior: virtual-overrides-real
+
 dn: cn=Work Queue,cn=config
 objectClass: top
 objectClass: ds-cfg-work-queue

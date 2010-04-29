@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2009 Sun Microsystems, Inc.
+rem      Copyright 2006-2010 Sun Microsystems, Inc.
 
 setlocal
 
@@ -74,12 +74,12 @@ if %errorlevel% == 102 goto stopUsingProtocol
 if %errorlevel% == 103 goto stopAsWindowsService
 if %errorlevel% == 104 goto restartAsWindowsService
 rem An error or we display usage
-goto end
+goto writeLastLine
 
 :serverAlreadyStopped
 echo %SCRIPT%: server already stopped >> %LOG%
 if exist "%INSTANCE_ROOT%\logs\server.pid" erase "%INSTANCE_ROOT%\logs\server.pid"
-goto end
+goto writeLastLine
 
 :startUsingSystemCall
 echo %SCRIPT%: start using system call >> %LOG%
@@ -90,7 +90,7 @@ set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
 set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
 set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 "%INSTALL_ROOT%\bat\start-ds.bat"
-goto end
+goto writeLastLine
 
 :stopUsingSystemCall
 echo %SCRIPT%: stop using system call >> %LOG%
@@ -125,6 +125,8 @@ if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winser
 if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"
 goto end
 
-:end
-
+:writeLastLine
 echo %SCRIPT%: finished >> %LOG%
+goto end
+
+:end

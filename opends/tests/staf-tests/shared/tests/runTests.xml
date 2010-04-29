@@ -71,7 +71,7 @@
         starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
         reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
         reportCfg.write('[Main]\n')
-        reportCfg.write('product = OpenDS_SE2.4 (Directory)\n')
+        reportCfg.write('product = Directory\n')
         if TESTS_TYPE == 'functional-tests':
           reportCfg.write('category = Functional\n')
         else:

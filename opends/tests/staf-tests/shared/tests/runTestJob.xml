@@ -997,8 +997,8 @@
       <iterate var="thisChild" in="listOfChildren2">
         <sequence>
           <script>
-            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s.log' \
-                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            srcFile = '%s/data-%s/service/log/MACHINE/%s/GLOBAL/STAX_Job_%s.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,STAF_LOCAL_HOSTNAME,thisChild)
             destFile = '%s/staf-logs/STAX_Job_%s.txt' \
                        % (LOGS_ROOT,thisChild)
           </script>
@@ -1012,8 +1012,8 @@
           </process>
 
           <script>
-            srcFile = '%s/logs/MACHINE/%s/GLOBAL/STAX_Job_%s_User.log' \
-                      % (STAFRoot,STAF_LOCAL_HOSTNAME,thisChild)
+            srcFile = '%s/data-%s/service/log/MACHINE/%s/GLOBAL/STAX_Job_%s_User.log' \
+                      % (STAFRoot,STAF_LOCAL_HOSTNAME,STAF_LOCAL_HOSTNAME,thisChild)
             destFile = '%s/staf-logs/STAX_Job_%s_User.txt' \
                        % (LOGS_ROOT,thisChild)
           </script>

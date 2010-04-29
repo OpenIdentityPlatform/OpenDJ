@@ -1931,11 +1931,12 @@ public class ReplicationServer
 
   /**
    * Get first and last DraftCN.
-   * @param crossDomainEligibleCN The provided crossDomainEligibleCN used as
-   *        the upper limit for the lastDraftCN
-   * @param excludedServiceIDs The serviceIDs that are excluded from the ECL.
-   * @return The first and last draftCN.
-   * @throws DirectoryException a.
+   *
+   * @param  crossDomainEligibleCN The provided crossDomainEligibleCN used as
+   *                               the upper limit for the lastDraftCN
+   * @param  excludedServiceIDs  The serviceIDs that are excluded from the ECL.
+   * @return                       The first and last draftCN.
+   * @throws DirectoryException    When it happens.
    */
   public int[] getECLDraftCNLimits(
       ChangeNumber crossDomainEligibleCN,
@@ -2007,6 +2008,7 @@ public class ReplicationServer
 
         // for this domain, have the state in the replchangelog
         // where the last DraftCN update is
+        long ec =0;
         ServerState domainServerStateForLastSeqnum;
         if ((domainsServerStateForLastSeqnum == null) ||
             (domainsServerStateForLastSeqnum.get(rsd.getBaseDn())==null))
@@ -2017,11 +2019,12 @@ public class ReplicationServer
         {
           domainServerStateForLastSeqnum =
             domainsServerStateForLastSeqnum.get(rsd.getBaseDn());
+          ec--;
         }
 
         // Count the number of (eligible) changes from this place
         // to the eligible CN (cross server)
-        long ec = rsd.getEligibleCount(
+        ec = rsd.getEligibleCount(
             domainServerStateForLastSeqnum, crossDomainEligibleCN);
 
         // the state from which we started is the one BEFORE the lastdraftCN

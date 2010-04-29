@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -53,6 +53,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -881,6 +882,66 @@ public class ImportLDIF extends TaskTool {
         }
       }
 
+      // Initialize the root DNs.
+      try
+      {
+        directoryServer.initializeRootDNConfigManager();
+      }
+      catch (ConfigException ce)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
+                ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(
+                ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      // Initialize the plugin manager.
+      try
+      {
+        HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+        directoryServer.initializePlugins(pluginTypes);
+      }
+      catch (ConfigException ce)
+      {
+        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+                ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+                ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+                getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      // Initialize the subentry manager.
+      try
+      {
+        directoryServer.initializeSubentryManager();
+      }
+      catch (InitializationException ie)
+      {
+        Message message = ERR_CANNOT_INITIALIZE_SUBENTRY_MANAGER.get(
+                ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
       // Initialize all the password policy information.
       try
@@ -908,38 +969,38 @@ public class ImportLDIF extends TaskTool {
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
-
-
-      // Make sure that the Directory Server plugin initialization is performed.
-      try
-      {
-        HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
-        pluginTypes.add(PluginType.LDIF_IMPORT);
-        directoryServer.initializePlugins(pluginTypes);
-      }
-      catch (ConfigException ce)
-      {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
-                ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
-                ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
-                getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
     }
 
+    // Make sure that the plugin initialization is performed.
+    try
+    {
+      HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
+      pluginTypes.add(PluginType.LDIF_IMPORT);
+      PluginConfigManager pluginConfigManager =
+              DirectoryServer.getPluginConfigManager();
+      pluginConfigManager.initializeUserPlugins(pluginTypes);
+    }
+    catch (ConfigException ce)
+    {
+      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+              ce.getMessage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+    catch (InitializationException ie)
+    {
+      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+              ie.getMessage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(
+              getExceptionMessage(e));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
 
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.

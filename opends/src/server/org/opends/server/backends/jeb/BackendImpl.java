@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -42,7 +42,6 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentFailureException;
 
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.opends.server.backends.jeb.importLDIF.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
@@ -314,7 +313,6 @@ public class BackendImpl
     {
       EnvironmentConfig envConfig =
           ConfigurableEnvironment.parseConfigEntry(cfg);
-      envConfig.setLockTimeout(0, TimeUnit.MICROSECONDS);
       rootContainer = initializeRootContainer(envConfig);
     }
 

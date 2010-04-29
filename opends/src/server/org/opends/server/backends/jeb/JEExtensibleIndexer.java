@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 
@@ -180,6 +180,10 @@ public final class JEExtensibleIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
+      if (attr.isVirtual())
+      {
+        continue;
+      }
       for (AttributeValue value : attr)
       {
         extensibleIndexer.getKeys(value, keys);
@@ -205,6 +209,10 @@ public final class JEExtensibleIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
+      if (attr.isVirtual())
+      {
+        continue;
+      }
       for (AttributeValue value : attr)
       {
         extensibleIndexer.getKeys(value,modifiedKeys,insert);

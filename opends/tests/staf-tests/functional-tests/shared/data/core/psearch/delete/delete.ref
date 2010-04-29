@@ -1,0 +1,76 @@
+
+
+dn: uid=tmorris,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: Morris
+facsimileTelephoneNumber: +1 408 555 8473
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 4117
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Ted Morris
+telephoneNumber: +1 408 555 9187
+givenName: Ted
+uid: tmorris
+mail: tmorris@example.com
+
+
+dn: uid=abergin,ou=People,dc=example,dc=com
+ou: Product Testing
+ou: People
+sn: Bergin
+facsimileTelephoneNumber: +1 408 555 7472
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 3472
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Cupertino
+cn: Andy Bergin
+telephoneNumber: +1 408 555 8585
+givenName: Andy
+uid: abergin
+mail: abergin@example.com
+
+
+dn: uid=jwalker,ou=People,dc=example,dc=com
+ou: Product Testing
+ou: People
+sn: Walker
+facsimileTelephoneNumber: +1 408 555 1992
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 3915
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Cupertino
+cn: John Walker
+telephoneNumber: +1 408 555 1476
+givenName: John
+uid: jwalker
+mail: jwalker@example.com
+
+
+dn: uid=tclow,ou=People,dc=example,dc=com
+ou: Human Resources
+ou: People
+sn: Clow
+facsimileTelephoneNumber: +1 408 555 1992
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 4376
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Torrey Clow
+telephoneNumber: +1 408 555 8825
+givenName: Torrey
+uid: tclow
+mail: tclow@example.com

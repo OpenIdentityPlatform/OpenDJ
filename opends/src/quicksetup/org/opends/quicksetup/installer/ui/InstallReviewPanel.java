@@ -868,13 +868,13 @@ public class InstallReviewPanel extends ReviewPanel {
 
     if (!defaultServer)
     {
-      linesToAdd.add(UserData.SERVER_SCRIPT_NAME+": "+
-          serverArguments.getStringArguments());
+      linesToAdd.add(getJavaArgPropertyForScript(UserData.SERVER_SCRIPT_NAME)
+          +": "+serverArguments.getStringArguments());
     }
     if (!defaultImport)
     {
-      linesToAdd.add(UserData.IMPORT_SCRIPT_NAME+": "+
-          importArguments.getStringArguments());
+      linesToAdd.add(getJavaArgPropertyForScript(UserData.IMPORT_SCRIPT_NAME)+
+          ": "+importArguments.getStringArguments());
     }
 
     if (linesToAdd.size() == 1)
@@ -896,11 +896,29 @@ public class InstallReviewPanel extends ReviewPanel {
     return sb.toString();
   }
 
+  /**
+   * Returns the java argument property for a given script.
+   * @param scriptName the script name.
+   * @return the java argument property for a given script.
+   */
+  private static String getJavaArgPropertyForScript(String scriptName)
+  {
+    return scriptName+".java-args";
+  }
+
   private String getJavaPropertiesFilePath(UserData userData)
   {
-    String configDir = Utils.getPath(Utils
-        .getInstancePathFromInstallPath(userData.getServerLocation()),
-        Installation.CONFIG_PATH_RELATIVE);
+    String path;
+    if (isWebStart())
+    {
+      path = userData.getServerLocation();
+    }
+    else
+    {
+      path = Utils.getInstallPathFromClasspath();
+      path = Utils.getInstancePathFromInstallPath(path);
+    }
+    String configDir = Utils.getPath(path, Installation.CONFIG_PATH_RELATIVE);
     String propertiesFile = Utils.getPath(
         configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
     return propertiesFile;
