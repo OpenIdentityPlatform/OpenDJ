@@ -217,7 +217,10 @@ public class BuildInformation implements Comparable<BuildInformation> {
     // -------------------------------------------------------
     // NOTE:  if you change this be sure to change getBuildString()
     // -------------------------------------------------------
-    Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+))");
+
+    // Allow negative revision number for cases where there is no
+    // VCS available.
+    Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+)\\.(-?\\d+))");
     Matcher m = p.matcher(bn);
     if (!m.matches()) {
       throw new IllegalArgumentException("'" + bn + "' is not a build string");

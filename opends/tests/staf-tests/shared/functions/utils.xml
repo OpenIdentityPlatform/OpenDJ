@@ -108,7 +108,6 @@
         <function-arg-description>
           Issue id. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
       </function-arg-def>
     </function-map-args>
     <sequence>    
@@ -173,14 +172,30 @@
         <function-arg-description>
           Issue ID
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
       </function-arg-def>
     </function-map-args>
       <sequence>
+        <call function="'GetVar'">
+          {
+          'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'issuesList'
+          }
+        </call>
+
+        <script>
+          issuesList=eval(STAFResult)
+        </script>
+
         <script>
           try:
-            if issueId not in issuesList:
-              issuesList.append(issueId)
+            if issueId.__class__ is org.python.core.PyList:
+                for issue in issueId:
+                  if int(issue) not in issuesList:
+                    issuesList.append(int(issue))
+            else:
+              if int(issueId) not in issuesList:
+                issuesList.append(int(issueId))
           except:
             print 'Issues list undefined. Unable to add issue %s' % issueId
         </script>
@@ -190,6 +205,14 @@
         <tcstatus result="'fail'">
           'KnownIssue: %s' % issuesList
         </tcstatus>
+
+        <call function="'SetVar'">
+          {
+          'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'issuesList=%s' % issuesList
+          }
+        </call>
     </sequence>
   </function>
 
@@ -378,7 +401,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>               
     </function-map-args>
     
@@ -446,7 +468,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
 
@@ -872,7 +893,6 @@
           import time
           testcaseStart=int(time.time())
           testcaseStartTime=strftime("%Y%m%d-%H:%M:%S",localtime())
-          issuesList=[]
           for logType in ['errors','access']:
             if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
               logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
@@ -880,6 +900,13 @@
               logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
               logfile.close()
         </script>
+        <call function="'SetVar'">
+          {
+          'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'issuesList=[]'
+          }
+        </call>
         <call function="'testCase_StartBanner'" />
     </sequence>
   </function>
@@ -906,9 +933,21 @@
         SignalRaised='' 
       </script>
 
+      <call function="'GetVar'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME,
+        'type'      : 'shared',
+        'variable'  : 'issuesList'
+        }
+      </call>
+
+      <script>
+        issuesList=eval(STAFResult)
+      </script>
+
       <!-- Query the test case results -->
       <call function="'queryTestcase'" />
-      
+
       <script>
         if STAFResult.has_key('numPasses'):
           numPass=int(STAFResult['numPasses'])
@@ -933,6 +972,7 @@
         nvDone = 0
         nbFail = 0
         nbKnown = 0
+        allbugs = eval(bugs.getTextContent())
         if numFail == 0:
           if numPass == 0:
             _status='INCONCLUSIVE'
@@ -961,6 +1001,10 @@
             known.setTextContent('%s' % nbKnown)
             nbDone = int(done.getTextContent()) + 1
             done.setTextContent('%s' % nbDone)
+            for issueID in issuesList:
+              if issueID not in allbugs:
+                allbugs.append(int(issueID))
+            bugs.setTextContent('%s' % allbugs)
       </script>
 
       <message level="'status'">
@@ -1016,7 +1060,7 @@
 
         starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
         duration = time.strftime("%H:%M:%S", time.gmtime(time.time() - TESTS_TIMESTAMP))
-        
+
         reportCfg = open('%s/logs/report.cfg' % LOGS_ROOT, 'w')
         reportCfg.write('[Main]\n')
         reportCfg.write('product = OpenDS_SE2.4 (Directory)\n')
@@ -1033,7 +1077,7 @@
         reportCfg.write('duration = %s\n' % duration)
         reportCfg.write('dsconfigduration = 0\n')
         reportCfg.write('percentage = %s\n' % percentage)
-        reportCfg.write('allbugs = []\n')
+        reportCfg.write('allbugs = %s\n' % allbugs)
         reportCfg.write('os = %s\n' % TEST_OS_STRING)
         reportCfg.write('report = reports/results2.xml\n')
         reportCfg.write('istemporary = True\n')
@@ -1162,6 +1206,7 @@
           fail = xml.tempres.getChildNodes().item(1)
           known = xml.tempres.getChildNodes().item(3)
           done = xml.tempres.getChildNodes().item(5)
+          bugs = xml.tempres.getChildNodes().item(7)
         else:
           # Create tempres element
           xml.tempres = doc.createElement("tempres")
@@ -1175,6 +1220,9 @@
           done = doc.createElement('done')
           xml.tempres.appendChild(done)
           done.appendChild(doc.createTextNode('0'))
+          bugs = doc.createElement('bugs')
+          xml.tempres.appendChild(bugs)
+          bugs.appendChild(doc.createTextNode('[]'))
 
         #Create testgroup element
         xml.testgroup = doc.createElement("testgroup")
@@ -1532,7 +1580,6 @@
         <function-arg-description>
           Issue id. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
       </function-arg-def>
     </function-map-args>
       
@@ -2276,7 +2323,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -2837,7 +2883,6 @@
          <function-arg-description>
            Known issue. Corresponds to an issue number.
          </function-arg-description>
-         <function-arg-property name="type" value="string"/>
        </function-arg-def>
      </function-map-args>
 
@@ -3290,7 +3335,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     

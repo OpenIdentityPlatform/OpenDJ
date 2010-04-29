@@ -211,7 +211,7 @@
           newSplitConfig    = """REPLICATION_SPLIT_SERVERS     = '%s'""" % \
                               REPLICATION_SPLIT_SERVERS
         else:
-          newSplitConfig    = """'REPLICATION_SPLIT_SERVERS     = '%s'""" % \
+          newSplitConfig    = """REPLICATION_SPLIT_SERVERS     = '%s'""" % \
                               REPLICATION_SPLIT_SERVERS
           oldSplitConfig    = newSplitConfig
         

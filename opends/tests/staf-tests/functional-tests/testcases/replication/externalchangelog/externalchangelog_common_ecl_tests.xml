@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
     
@@ -47,80 +47,101 @@
     </function-map-args>
     <sequence>
 
-      <message>
-        'Common ECL tests: reset data'
-      </message>
       
-      <!-- Pre-initialise the servers in the topology -->
-      <call function="'preInitializeReplication'">
-        { 'location'            : masterHost,
-          'dsPath'              : masterPath,
-          'dsInstanceHost'      : masterHost,
-          'dsInstanceAdminPort' : master.getAdminPort(),
-          'localOnly'           : False,
-          'replicationDnList'   : [synchroSuffix],
-          'adminUID'            : adminUID,
-          'adminPswd'           : adminPswd
-        }
-      </call>
-
-      <!-- Stop "master" Directory Server -->
-      <call function="'StopDsWithScript'">
-        { 'location'    : masterHost,
-          'dsPath'      : masterPath,
-          'dsHost'      : masterHost,
-          'dsAdminPort' : master.getAdminPort(),
-          'dsBindDN'    : master.getRootDn(),
-          'dsBindPwd'   : master.getRootPwd()
-        }
-      </call>
-
-      <!-- Import data into "master" Directory Server -->
-      <call function="'ImportLdifWithScript'">
-        { 'location'   : masterHost,
-          'dsPath'     : masterPath,
-          'dsBackEnd'  : DIRECTORY_INSTANCE_BE,          
-          'dsLdifFile' : '%s/replication/Example.ldif' \
-                         % masterDataDir
-        }
-      </call>
-
-      <!-- Start the Directory Server -->
-      <call function="'StartDsWithScript'">
-        { 'location'  : masterHost,
-          'dsPath'    : masterPath
-        }
-      </call>
-
-      <!-- Wait for DS to start -->
-      <call function="'isAlive'">
-        { 'location'         : masterHost,
-          'dsPath'           : masterPath,
-          'dsInstanceHost'   : masterHost,
-          'dsInstancePort'   : master.getPort() ,
-          'dsInstanceDn'     : master.getRootDn() ,
-          'dsInstancePswd'   : master.getRootPwd() ,
-          'noOfLoops'        : 10 ,
-          'noOfMilliSeconds' : 2000
-        }
-      </call>
-
-      <!-- Perform the total update -->
-      <call function="'initializeReplication'">
-        { 'location'                : clientHost,
-          'dsPath'                  : clientPath,
-          'sourceInstanceHost'      : masterHost,
-          'sourceInstanceAdminPort' : master.getAdminPort(),
-          'replicationDnList'       : ['o=example']
-        }
-      </call>
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Setup
+      #@TestID              Setup
+      #@TestPurpose         Set up environment for External Changelog tests
+      #@TestPreamble
+      #@TestSteps           Reset replicated data
+      #@TestPostamble
+      #@TestResult          Success if the data reset succeeds
+      -->
+      <testcase name="getTestCaseName('%s - Setup' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Setup. \
+            Set up environment for External Changelog tests' % ecl_mode
+          </message>
+              
+          <message>
+            'Common ECL tests: reset data'
+          </message>
           
-          
-      <message>
-        'Common ECL tests: start test execution in mode: %s' % ecl_mode
-      </message>
+          <!-- Pre-initialise the servers in the topology -->
+          <call function="'preInitializeReplication'">
+            { 'location'            : masterHost,
+              'dsPath'              : masterPath,
+              'dsInstanceHost'      : masterHost,
+              'dsInstanceAdminPort' : master.getAdminPort(),
+              'localOnly'           : False,
+              'replicationDnList'   : [synchroSuffix],
+              'adminUID'            : adminUID,
+              'adminPswd'           : adminPswd
+            }
+          </call>
+    
+          <!-- Stop "master" Directory Server -->
+          <call function="'StopDsWithScript'">
+            { 'location'    : masterHost,
+              'dsPath'      : masterPath,
+              'dsHost'      : masterHost,
+              'dsAdminPort' : master.getAdminPort(),
+              'dsBindDN'    : master.getRootDn(),
+              'dsBindPwd'   : master.getRootPwd()
+            }
+          </call>
+    
+          <!-- Import data into "master" Directory Server -->
+          <call function="'ImportLdifWithScript'">
+            { 'location'   : masterHost,
+              'dsPath'     : masterPath,
+              'dsBackEnd'  : DIRECTORY_INSTANCE_BE,          
+              'dsLdifFile' : '%s/replication/Example.ldif' \
+                             % masterDataDir
+            }
+          </call>
+    
+          <!-- Start the Directory Server -->
+          <call function="'StartDsWithScript'">
+            { 'location'  : masterHost,
+              'dsPath'    : masterPath
+            }
+          </call>
+    
+          <!-- Wait for DS to start -->
+          <call function="'isAlive'">
+            { 'location'         : masterHost,
+              'dsPath'           : masterPath,
+              'dsInstanceHost'   : masterHost,
+              'dsInstancePort'   : master.getPort() ,
+              'dsInstanceDn'     : master.getRootDn() ,
+              'dsInstancePswd'   : master.getRootPwd() ,
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 2000
+            }
+          </call>
+    
+          <!-- Perform the total update -->
+          <call function="'initializeReplication'">
+            { 'location'                : clientHost,
+              'dsPath'                  : clientPath,
+              'sourceInstanceHost'      : masterHost,
+              'sourceInstanceAdminPort' : master.getAdminPort(),
+              'replicationDnList'       : ['o=example']
+            }
+          </call>
+              
+          <message>
+            'Common ECL tests: start test execution in mode: %s' % ecl_mode
+          </message>
   
-
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
       <script>
         if ecl_mode == 'opends':
           # initialise the searchIndex (lastCookie) value to that for the 
@@ -154,7 +175,7 @@
             return self.listAttr
           def addAttr(self, attrType, attrValue):
             self.listAttr.append('%s:%s' % (attrType, attrValue))
-      </script>         
+      </script>
 
                     
       <!--- Test Case information
@@ -340,6 +361,31 @@
                     'Index to use for the next ECL search:  %s' % \
                     nextIndex
                   </message>
+                      
+                  <if expr="addedEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -348,32 +394,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="addedEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>
           </iterate>
           
@@ -575,6 +595,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -583,32 +628,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>                  
           </iterate>
 
@@ -811,6 +830,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+                  
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -819,32 +863,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>                  
           </iterate>
 
@@ -1045,6 +1063,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                 <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+                  
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -1053,32 +1096,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>                  
           </iterate>
 
@@ -1277,6 +1294,32 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'newRDN'          : myNewRDN,
+                        'deleteOldRDN'    : myDeleteOldRDN
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -1285,33 +1328,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'newRDN'          : myNewRDN,
-                    'deleteOldRDN'    : myDeleteOldRDN
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (newEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>                  
           </iterate>
 
@@ -1512,6 +1528,32 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'newRDN'          : myNewRDN,
+                        'deleteOldRDN'    : myDeleteOldRDN
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -1520,33 +1562,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'newRDN'          : myNewRDN,
-                    'deleteOldRDN'    : myDeleteOldRDN
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (newEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>
           </iterate>
 
@@ -1751,6 +1766,29 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="delEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'targetEntryUUID' : myTargetEntryUUID
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -1759,30 +1797,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="delEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'targetEntryUUID' : myTargetEntryUUID
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (newEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>                  
           </iterate>
 
@@ -1985,6 +1999,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="addedEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -1993,32 +2032,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="addedEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>
           </iterate>
           
@@ -2224,6 +2237,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="modEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -2232,32 +2270,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="modEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>
           </iterate>
 
@@ -2817,8 +2829,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -3176,8 +3187,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -3444,8 +3454,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -3613,6 +3622,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -3639,7 +3655,8 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
                 }                
               </call>
               <script>
@@ -3725,8 +3742,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -3900,6 +3916,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -3926,7 +3949,8 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
                 }                
               </call>
               <script>
@@ -4014,8 +4038,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -4182,6 +4205,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -4208,7 +4238,8 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
                 }                
               </call>
               <script>
@@ -4240,6 +4271,31 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
+                      
+                  <if expr="addedEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+                    
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -4248,32 +4304,6 @@
                   </message>
                 </else>
               </if>
-              
-              <if expr="addedEntry and eclEntry">
-                <call function="'checkChangelogEntry'">
-                  { 'location'        : masterHost,
-                    'dsPath'          : masterPath,
-                    'changelogEntry'  : eclEntry,
-                    'targetDN'        : myTargetDN,
-                    'changeNumber'    : myChangeNumber,
-                    'changeType'      : myChangeType,
-                    'changeTime'      : myChangeTime,
-                    'targetEntryUUID' : myTargetEntryUUID,
-                    'changes'         : myChanges
-                  }
-                </call>
-                <else>
-                  <sequence>
-                    <message log="1" level="'Error'">
-                      'Unable to check external changelog entry (failed to \
-                      read entries %s and/or %s)' % \
-                      (myEntry.getDn(), eclEntry['dn'][0])
-                    </message>
-                    <call function="'testFailed'"/>
-                  </sequence>
-                </else>
-              </if>
-              
             </sequence>
           </iterate>
           
@@ -4417,10 +4447,10 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode != 'opends':
-                  # Issue 4309: draft-mode search for new changes returns error 
-                  # if no new changes since last search
-                  myKnownIssue = '4309'
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
                 else:
                   myKnownIssue = None
                 
@@ -4658,6 +4688,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -4684,7 +4721,8 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
                 }                
               </call>
               <script>
@@ -4729,7 +4767,7 @@
             </sequence>
           </iterate>
           
-          <!-- Add entries to non-replicated suffix on "master" server -->
+          <!-- Add entries to replicated suffix on "master" server -->
           <script>
             newReplSuffix = 'o=new_suffix_repl'            
             
@@ -4896,7 +4934,9 @@
             <sequence>    
               <!-- New replicated suffix added => resync required 
                !   Check searching ECL with old (single-suffix) cookie returns
-               !   error and requests resync -->
+               !   error 53 and requests resync
+               !   => retrieve suggested cookie value (referring to 2 suffixes)
+              -->
               <script>
                 lastCookie      = searchIndex
                 chgNumberFilter = None
@@ -4907,6 +4947,10 @@
                        indexvar="indx">
                 <sequence>
                   <script>
+                    # Issue 4502: ECL: error 53 when searching with cookie older
+                    # than updates on several server
+                    myKnownIssue = '4502'
+                    
                     if globalSplitServers:
                       replServer = _topologyReplServerList[indx]
                     else:
@@ -4921,7 +4965,7 @@
                     (replServer.getHostname(), replServer.getPort(), searchIndex)
                   </message>
                     
-                  <!-- Search for entry add -  expect error (RC=1) -->
+                  <!-- Search for entry add -  expect error (RC=53) -->
                   <call function="'SearchExternalChangelog'">
                     { 'location'           : replServer.getHostname(),
                       'dsPath'             : replServerPath,
@@ -4934,89 +4978,58 @@
                       'dsFilter'           : '(objectclass=*)',
                       'changeNumberFilter' : chgNumberFilter,
                       'changelogCookie'    : lastCookie,
-                      'expectedRC'         : 1
+                      'expectedRC'         : 53
                     }                
                   </call>
                   <script>
                     searchRC = RC
                     searchResult = STAXResult[0][1]
                   </script>
-                  <if expr="searchRC == 0">
+                      
+                  <if expr="searchRC == 53">
+                    <!-- ECL disabled => should have returned: 
+                     !   SEARCH operation failed
+                     !   Result Code:  53 (Unwilling to Perform)
+                     !   Additional Information:  Full resync required. Reason: 
+                     !   The provided cookie is missing the replicated domain(s)
+                     !   my_domain:;. Possible cookie: <new_cookie>
+                    -->
                     <sequence>
                       <message>
-                        'This is the ECL search result on server %s:%s: \n%s' \
+                        'This is the ECL search result on server %s:%s \
+                        (expect ERROR 53 to be returned): \n%s' \
                         % (replServer.getHostname(), replServer.getPort(), 
                            searchResult)
                       </message>
                       <call function="'searchString'">
-                        { 'expectedString' : 'resync',
-                          'returnString'   : searchResult
+                        { 'expectedString' : 'is missing the replicated domain',
+                          'returnString'   : searchResult,
+                          'knownIssue'     : myKnownIssue
                         } 
                       </call>
+                      <script>
+                        searchStringRC = STAXResult[0]
+                        newCookie      = None
+                        
+                        if searchStringRC == 0:
+                          # Retrieve the suggested cookie value
+                          totem      = 'Possible cookie:'
+                          lenTotem   = len(totem) + 2
+                          indexTotem = searchResult.index(totem)
+                          newCookie  = searchResult[indexTotem + lenTotem:]
+                          indexEnd   = newCookie.index('>')
+                          newCookie  = newCookie[:indexEnd]
+                          nextIndex  = newCookie
+                      </script>
+                      <message>
+                        'This is the new changelogcookie to use: %s' % newCookie
+                      </message>
                     </sequence>
                   </if>
                 </sequence>
               </iterate>
 
-              <!-- New replicated suffix added => resync required => 
-               !   Retrieve lastExternalChangelogCookie from root DSE -->
-              <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[0]
-                else:
-                  replServer = master
 
-                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-              </script>
-              <call function="'ldapSearchWithScript'">
-                { 'location'       : replServer.getHostname(),
-                  'dsPath'         : replServerPath,
-                  'dsInstanceHost' : replServer.getHostname(),
-                  'dsInstancePort' : replServer.getPort(),
-                  'dsInstanceDn'   : replServer.getRootDn(),
-                  'dsInstancePswd' : replServer.getRootPwd(),
-                  'dsScope'        : 'base',
-                  'dsBaseDN'       : ' ',
-                  'dsFilter'       : 'objectclass=*',
-                  'dsAttributes'   : 'lastExternalChangelogCookie'
-                }                
-              </call>
-              <script>
-                searchRC = RC
-                searchResult = STAXResult[0][1]
-              </script>
-              <if expr="searchRC == 0">
-                <sequence>
-                  <script>
-                    lastECLCookie = None
-                    pendingValue  = 0
-                    
-                    for line in searchResult.splitlines():
-                      notBlank      = (len(line.strip()) != 0)
-                      if line.strip().lower().startswith('lastexternalchangelogcookie'):
-                        # line corresponds to lastExternalChangelogCookie:_cookie_
-                        lastECLCookie = line[line.find(':') + 1:].lstrip()
-                        pendingValue = 1
-                      elif (notBlank and pendingValue):
-                        lastECLCookie += line.lstrip()
-                      elif pendingValue:
-                         pendingValue = 0
-                         break
-                        
-                      searchIndex = lastECLCookie
-                  </script>
-                  <message>
-                    'New index read from root DSE entry lastExternalChangelogCookie \
-                    attribute: %s' % searchIndex
-                  </message>
-                </sequence>
-                <else>
-                  <message log="1" level="'Error'">
-                    'Could not read root DSE entry from server %s:%s' % \
-                    (masterHost, master.getPort())
-                  </message>
-                </else>
-              </if>
             </sequence>
           </if>
           
@@ -5078,12 +5091,7 @@
                 { 'ldifEntries' : searchResult }
               </call>
               <script>
-                if ecl_mode == 'opends':
-                  # because of the resync, the first add will be missed when
-                  # searching the ECL
-                  addedEntries += STAXResult[1:]
-                else:
-                  addedEntries += STAXResult
+                addedEntries += STAXResult
               </script>
             </sequence>
             <else>
@@ -5096,6 +5104,11 @@
 
           
           <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+            
             if ecl_mode == 'opends':
               lastCookie      = searchIndex
               chgNumberFilter = None
@@ -5125,9 +5138,6 @@
               </message>
                 
               <!-- Search for entry add -->
-              <!-- In draft-mode, this may fail because of issue #4329:
-               !   draft mode: after adding new suffix, can not search ECL 
-               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5139,8 +5149,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : '4329'
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -5158,7 +5167,11 @@
                     { 'ldifEntries' : searchResult }
                   </call>
                   <script>
-                    eclEntries     = [firstEclEntryList[indx]] + STAXResult
+                    if len(firstEclEntryList) != 0:
+                      eclEntries   = [firstEclEntryList[indx]] + STAXResult
+                    else:
+                      eclEntries   = STAXResult
+                    
                     eclEntriesNb   = len(eclEntries)
                     expectedNb     = len(addedEntries)
                   </script>
@@ -5235,8 +5248,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -5431,8 +5443,8 @@
               eclSearchBaseDn = '%s,cn=changelog' % synchroSuffix
               eclSearchFilter = '(objectclass=*)'
             else:
-              # ECL entry DN: cn=_changenumber_,cn=changelog
-              # => suffix information sound on targetDN attribute
+              # ECL entry DN: changenumber=_changenumber_,cn=changelog
+              # => suffix information found on targetDN attribute
               eclSearchBaseDn = 'cn=changelog'
               eclSearchFilter = '(targetdn=*%s)' % synchroSuffix
           </script>
@@ -5441,6 +5453,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -5456,9 +5475,6 @@
               </message>
                 
               <!-- Search for entry adds in synchroSuffix -->
-              <!-- In draft-mode, this may fail because of issue #4329:
-               !   draft mode: after adding new suffix, can not search ECL 
-               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5471,7 +5487,7 @@
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
                   'changelogCookie'    : lastCookie,
-                  'knownIssue'         : '4329'
+                  'knownIssue'         : myKnownIssue
                 }                
               </call>
               <script>
@@ -5570,8 +5586,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -5643,7 +5658,7 @@
               eclSearchBaseDn = '%s,cn=changelog' % newReplSuffix
               eclSearchFilter = '(objectclass=*)'
             else:
-              # ECL entry DN: cn=_changenumber_,cn=changelog
+              # ECL entry DN: changenumber=_changenumber_,cn=changelog
               # => suffix information sound on targetDN attribute
               eclSearchBaseDn = 'cn=changelog'
               eclSearchFilter = '(targetdn=*%s)' % newReplSuffix
@@ -5653,6 +5668,13 @@
                    indexvar="indx">
             <sequence>
               <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -5668,9 +5690,6 @@
               </message>
                 
               <!-- Search for entry adds in newReplSuffix -->
-              <!-- In draft-mode, this may fail because of issue #4329:
-               !   draft mode: after adding new suffix, can not search ECL 
-               !   because of invalid cookie! -->
               <call function="'SearchExternalChangelog'">
                 { 'location'           : replServer.getHostname(),
                   'dsPath'             : replServerPath,
@@ -5683,8 +5702,8 @@
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
                   'changelogCookie'    : lastCookie,
-                  'knownIssue'         : '4329'
-                }                
+                  'knownIssue'         : myKnownIssue               
+                }
               </call>
               <script>
                 searchRC = RC
@@ -5787,8 +5806,7 @@
                           <sequence>
                             <message log="1" level="'Error'">
                               'Unable to check external changelog entry \
-                              (failed to read entries %s and/or %s)' % \
-                              (myTargetDN, eclEntry['dn'][0])
+                              (failed to read LDAP and/or changelog entry)'
                             </message>
                             <call function="'testFailed'"/>
                           </sequence>
@@ -5825,92 +5843,1529 @@
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
-  
-  
-      <!-- Clean new suffixes on servers -->
-      <!-- Clean newReplSuffix changes from changelog -->
-      <call function="'preInitializeReplication'">
-        { 'location'            : masterHost,
-          'dsPath'              : masterPath,
-          'dsInstanceHost'      : masterHost,
-          'dsInstanceAdminPort' : master.getAdminPort(),
-          'localOnly'           : False,
-          'replicationDnList'   : [newReplSuffix],
-          'adminUID'            : adminUID,
-          'adminPswd'           : adminPswd
-        }
-      </call>
-      
-      <iterate var="server"
-               in="_topologyServerList"
-               indexvar="indx">
-        <sequence>
-          <script>
-            newSuffx      = "o=new_suffix_no_repl"
-            newReplSuffix = "o=new_suffix_repl"
-            
-            serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)
-          </script>
-          
-          <!-- Disable replication for newReplSuffix -->
-          <message>
-            'Disable replication for suffix %s on server %s:%s' % \
-            (newReplSuffix, server.getHostname(), server.getPort())
-          </message>
-          <call function="'disableReplication'">
-            { 'location'            : server.getHostname(),
-              'dsPath'              : serverPath,
-              'dsInstanceHost'      : server.getHostname(),
-              'dsInstanceAdminPort' : server.getAdminPort(),
-              'replicationDnList'   : [newReplSuffix]
-            }
-          </call>
 
-          <if expr="globalSplitServers">
+      
+      
+      
+      
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Disable ECL - add
+                            entry to disabled suffix
+      #@TestID              Disable ECL - add entry to disabled suffix
+      #@TestPurpose         Verify external changelog can be disabled for a 
+                            replicated suffix, no change recorded
+      #@TestPreamble        Read lastExternalChangelogCookie/lastChangenumber
+      #@TestSteps           Disable ECL for old replicated suffix
+      #@TestSteps           Add entry (old suffix)
+      #@TestSteps           Verify servers in sync
+      #@TestSteps           Read last changelog entry on each repl server
+                            (expect: error 53 if in 'opends' mode;
+                             expect: NO ECL entry if in 'mode' draft)
+      #@TestSteps           Add entry (old suffix)
+      #@TestSteps           Verify servers in sync
+      #@TestSteps           Read last changelog entry on each repl server
+                            (expect: NO ECL entry)
+      #@TestPostamble
+      #@TestResult          Success if the servers synchronised and the ECL
+                            search behaves as expected
+      -->               
+      <testcase name="getTestCaseName('%s - Disable ECL - add entry to disabled suffix' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Disable ECL - add entry to \
+            disabled suffix. \
+            Verify external changelog can be disabled for a replicated suffix' \
+            % ecl_mode
+          </message>
+
+          <!-- Read last index from root DSE (lastExternalChangelogCookie / 
+           !   lastChangenumber) -->
+          <script>
+            lastIndexAttr   = None
+            lastIndexValue  = None
+            
+            if ecl_mode == 'opends':
+              lastIndexAttr = 'lastexternalchangelogcookie'
+            else:
+              lastIndexAttr = 'lastchangenumber'
+            
+            if globalSplitServers:
+              replServer = _topologyReplServerList[0]
+            else:
+              replServer = master
+
+            replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+          </script>
+          <call function="'ldapSearchWithScript'">
+            { 'location'       : replServer.getHostname(),
+              'dsPath'         : replServerPath,
+              'dsInstanceHost' : replServer.getHostname(),
+              'dsInstancePort' : replServer.getPort(),
+              'dsInstanceDn'   : replServer.getRootDn(),
+              'dsInstancePswd' : replServer.getRootPwd(),
+              'dsScope'        : 'base',
+              'dsBaseDN'       : ' ',
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : lastIndexAttr
+            }                
+          </call>
+          <script>
+            searchRC = RC
+            searchResult = STAXResult[0][1]
+          </script>
+          <if expr="searchRC == 0">
             <sequence>
               <script>
-                replServer     = _topologyReplServerList[indx]
-                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                lastIndexValue = None
+                pendingValue  = 0
+                
+                for line in searchResult.splitlines():
+                  notBlank      = (len(line.strip()) != 0)
+                  if line.strip().lower().startswith(lastIndexAttr):
+                    # line corresponds to lastIndexAttr:_lastIndexValue_
+                    lastIndexValue = line[line.find(':') + 1:].lstrip()
+                    pendingValue = 1
+                  elif (notBlank and pendingValue):
+                    lastIndexValue += line.lstrip()
+                  elif pendingValue:
+                     pendingValue = 0
+                     break
+                
+                if ecl_mode == 'opends':
+                  nextIndex     = lastIndexValue
+                else:
+                  nextChgNumber = int(lastIndexValue) + 1
+                  nextIndex     = str(nextChgNumber)  
               </script>
-              <call function="'disableReplication'">
-                { 'location'            : replServer.getHostname(),
-                  'dsPath'              : replServerPath,
-                  'dsInstanceHost'      : replServer.getHostname(),
-                  'dsInstanceAdminPort' : replServer.getAdminPort(),
-                  'replicationDnList'   : [newReplSuffix]
+              <message>
+                'Last index read from root DSE entry %s attribute: %s' % \
+                (lastIndexAttr, lastIndexValue)
+              </message>
+              <message>
+                'Index to use for the next ECL search:  %s' % nextIndex
+              </message>
+            </sequence>
+            <else>
+              <message log="1" level="'Error'">
+                'Could not read root DSE entry from server %s:%s' % \
+                (server.getHostname(), server.getPort())
+              </message>
+            </else>
+          </if>
+          
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <!-- Disable ECL for synchroSuffix on server -->
+              <message>
+                'Disable ECL for suffix %s on server %s:%s' % \
+                (synchroSuffix, server.getHostname(), server.getPort())
+              </message>
+              <script>
+                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                
+                myOptionString = """--domain-name "%s" --set enabled:false""" \
+                                 % synchroSuffix 
+              </script>
+              <call function="'dsconfig'">
+                { 'location'            : server.getHostname(),
+                  'dsPath'              : serverPath,
+                  'dsInstanceHost'      : server.getHostname(),
+                  'dsInstanceAdminPort' : server.getAdminPort(),
+                  'dsInstanceDn'        : server.getRootDn(),
+                  'dsInstancePswd'      : server.getRootPwd(),
+                  'subcommand'          : 'set-external-changelog-domain-prop',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                  'optionsString'       : myOptionString
                 }
               </call>
             </sequence>
-          </if>          
-
+          </iterate>
           
-          <!-- Remove newReplSuffix -->
-          <message>
-            'Remove suffix %s on server %s:%s' % \
-            (newReplSuffix, server.getHostname(), server.getPort())
-          </message>
-          <call function="'dsconfigSet'">
-            { 'location'            : server.getHostname(),
-              'dsPath'              : serverPath,
-              'dsInstanceHost'      : server.getHostname(),
-              'dsInstanceAdminPort' : server.getAdminPort(),
-              'dsInstanceDn'        : server.getRootDn(),
-              'dsInstancePswd'      : server.getRootPwd(),
-              'objectName'          : 'backend',
-              'propertyType'        : 'backend',
-              'propertyName'        : 'userRoot',
-              'modifyType'          : 'remove',
-              'attributeName'       : 'base-dn',
-              'attributeValue'      : newReplSuffix
+          
+          <!-- Add entry to replicated suffix on "master" server -->
+          <script>            
+            myEntry = Entry('cn=Disabled ECL-1', synchroSuffix)
+            myEntry.addAttr('sn', 'Disabled')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
             }
           </call>
+          
+          <!-- Verify the synchronization of the trees among the servers in
+            the topology -->          
+          <call function="'verifyTrees'">
+            [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+          </call>
+          
+          
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+            
+            if ecl_mode == 'opends':
+              lastCookie      = searchIndex
+              chgNumberFilter = None
+            else:
+              lastCookie      = None
+              chgNumberFilter = """(changenumber>=%s)""" % searchIndex
+          </script>
+         
+          <!-- Search changelog in the various replication servers -->
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <script>
+                if ecl_mode == 'opends':
+                  # ECL disabled => expect RC=53, resync required
+                  myExpectedRC = 53
+                else:
+                  myExpectedRC = 0
+                
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
 
-          <!-- Remove newSuffix (only present on "master" server) -->
-          <if expr="indx == 0">
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+                
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate',
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie,
+                  'expectedRC'         : myExpectedRC
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == myExpectedRC">
+                <if expr="ecl_mode == 'opends'">
+                  <!-- ECL disabled => should have returned: 
+                   !   SEARCH operation failed
+                   !   Result Code:  53 (Unwilling to Perform)
+                   !   Additional Information:  Full resync required. Reason: 
+                   !   The provided cookie contains unknown replicated domain 
+                   !   {old_cookie}. Possible cookie: <new_cookie>
+                  -->
+                  <sequence>
+                    <message>
+                      'This is the ECL search result on server %s:%s \
+                      (expect ERROR 53 to be returned): \n%s' \
+                      % (replServer.getHostname(), replServer.getPort(), 
+                         searchResult)
+                    </message>
+                    <call function="'searchString'">
+                      { 'expectedString' : 'contains unknown replicated domain',
+                        'returnString'   : searchResult
+                      } 
+                    </call>
+                    <script>
+                      searchStringRC = STAXResult[0]
+                      newCookie      = None
+                      
+                      if searchStringRC == 0:
+                        # Retrieve the suggested cookie value
+                        totem      = 'Possible cookie:'
+                        lenTotem   = len(totem) + 2
+                        indexTotem = searchResult.index(totem)
+                        newCookie  = searchResult[indexTotem + lenTotem:]
+                        indexEnd   = newCookie.index('>')
+                        newCookie  = newCookie[:indexEnd]
+                        nextIndex  = newCookie
+                    </script>
+                    <message>
+                      'This is the new changelogcookie to use: %s' % newCookie
+                    </message>
+                  </sequence>
+                  <else>
+                    <!-- ECL disabled => expect NO change entry returned -->
+                    <sequence>
+                      <message>
+                        'This is the ECL entry as read from server %s:%s \
+                        (expect NO ECL entry to be returned): \n%s' \
+                        % (replServer.getHostname(), replServer.getPort(), 
+                           searchResult)
+                      </message>
+                      <if expr="len(searchResult) != 0">
+                        <sequence>
+                          <message log="1" level="'Error'">
+                           'Expected NO ECL entry to be returned'
+                          </message>
+                          <call function="'testFailed'"/>
+                        </sequence>
+                      </if>
+                    </sequence>
+                  </else>
+                </if>
+                
+                <else>
+                  <message log="1" level="'Error'">
+                    'Could not read changelog on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+              
+            </sequence>
+          </iterate>
+          
+          
+          <!-- Add entry to replicated suffix on "master" server -->
+          <script>            
+            myEntry = Entry('cn=Disabled ECL-2', synchroSuffix)
+            myEntry.addAttr('sn', 'Disabled')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
+            }
+          </call>
+          
+          <!-- Verify the synchronization of the trees among the servers in
+            the topology -->          
+          <call function="'verifyTrees'">
+            [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+          </call>
+          
+          
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+            
+            if ecl_mode == 'opends':
+              lastCookie      = searchIndex
+              chgNumberFilter = None
+            else:
+              lastCookie      = None
+              chgNumberFilter = """(changenumber>=%s)""" % searchIndex
+          </script>
+         
+          <!-- Search changelog in the various replication servers -->
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <script>
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+                
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate',
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == 0">
+                <!-- ECL disabled => expect NO change entry returned -->
+                <sequence>
+                  <message>
+                    'This is the ECL entry as read from server %s:%s \
+                    (expect NO ECL entry to be returned): \n%s' \
+                    % (replServer.getHostname(), replServer.getPort(), 
+                       searchResult)
+                  </message>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <message log="1" level="'Error'">
+                       'Expected NO ECL entry to be returned'
+                      </message>
+                      <call function="'testFailed'"/>
+                    </sequence>
+                  </if>
+                </sequence>
+                <else>
+                  <message log="1" level="'Error'">
+                    'Could not read changelog on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+              
+            </sequence>
+          </iterate>
+                    
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+          </script>
+          
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+
+      
+      
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Disable ECL - add
+                            entry to non-disabled suffix
+      #@TestID              Disable ECL - add entry to non-disabled suffix
+      #@TestPurpose         Verify external changelog can be disabled for a 
+                            replicated suffix, and still record changes in other
+                            replicated suffix
+      #@TestPreamble
+      #@TestSteps           Add entry (new repl suffix)
+      #@TestSteps           Verify servers in sync
+      #@TestSteps           Read entry from ldap server
+      #@TestSteps           Read last changelog entry on each repl server
+      #@TestSteps           Check changelog entry against expected values
+      #@TestPostamble
+      #@TestResult          Success if the server synchronised and the
+                            changelog entry value check succeeds
+      -->               
+      <testcase name="getTestCaseName('%s - Disable ECL - add entry to non-disabled suffix' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Disable ECL - add entry to \
+            non-disabled suffix. \
+            Verify external changelog can be disabled for a replicated suffix, \
+            and still record changes in other replicated suffix.' % ecl_mode
+          </message>
+
+          <!-- Add entry to "master" server -->
+          <script>
+            newReplSuffix = 'o=new_suffix_repl'            
+
+            myEntry = Entry('cn=NON-Disabled ECL', newReplSuffix)
+            myEntry.addAttr('sn', 'NON-Disabled')
+            
+            addedEntry = None
+            eclEntry   = None
+          </script>
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
+            }
+          </call>
+          
+          <!-- Verify the synchronization of the trees among the servers in
+            the topology -->          
+          <call function="'verifyTrees'">
+            [ clientHost, clientPath, master, consumerList, newReplSuffix ]
+          </call>
+                        
+          <!-- Retrieve entry information for checkChangelogEntry's sake -->
+          <call function="'ldapSearchWithScript'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'dsBaseDN'       : myEntry.getDn(),
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : addOperationalAttrs
+            }                
+          </call>
+          <script>
+            searchRC = RC
+            searchResult = STAXResult[0][1]
+          </script>
+          
+          <if expr="searchRC == 0">
             <sequence>
               <message>
+                'This is the entry as read from server %s:%s: \n%s' % \
+                (masterHost, master.getPort(), searchResult)
+              </message>
+              <call function="'parseLdifEntry'">
+                { 'ldifEntry' : searchResult }
+              </call>
+              <script>
+                addedEntry = STAXResult
+                
+                myTargetDN             = addedEntry['dn'][0]
+                myChangeType           = 'add'
+                myChangeTime           = addedEntry['createtimestamp'][0]
+                myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                # myReplicationCSN     = ----> grab from where???
+                # myReplicatIdentifier = ----> grab from ldap server
+                myChanges              = {}
+                
+                for attr in addedEntry.keys():
+                  if (attr != 'dn') and (attr != 'changelogcookie') :
+                    myChanges[attr]    = addedEntry[attr]
+                
+                if ecl_mode != 'opends':
+                  myChangeNumber       = searchIndex
+                else:
+                  myChangeNumber       = None
+              </script>
+            </sequence>
+            <else>
+              <message log="1" level="'Error'">
+                'Could not read added entry %s from server %s:%s' % \
+                (myEntry.getDn(), masterHost, master.getPort())
+              </message>
+            </else>
+          </if>
+
+          <script>
+            if ecl_mode == 'opends':
+              lastCookie      = searchIndex
+              chgNumberFilter = None
+            else:
+              lastCookie      = None
+              chgNumberFilter = """(changenumber>=%s)""" % searchIndex
+          </script>
+          <!-- Search changelog in the various replication servers -->
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>                    
+              <script>
+                if ecl_mode != 'opends':
+                  # Issue CR 6929320: ECL draft: after disabling ECL in suffix
+                  # search returns err 53 (cookie contains unknown repl domain)
+                  myKnownIssue = '6929320'
+                else:
+                  myKnownIssue = None
+                
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate', 
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == 0">
+                <sequence>
+                <message>
+                  'This is the ECL entry as read from server %s:%s: \n%s' %\
+                  (replServer.getHostname(), replServer.getPort(), 
+                   searchResult)
+                </message>
+                  <call function="'parseLdifEntry'">
+                    { 'ldifEntry' : searchResult }
+                  </call>
+                  <script>
+                    eclEntry = STAXResult
+                    
+                    if ecl_mode == 'opends':
+                      nextIndex = eclEntry['changelogcookie'][0]
+                    else:
+                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                      nextIndex     = str(nextChgNumber)
+                  </script>
+                  <message>
+                    'Parsed changelog entry:  \n%s' % eclEntry
+                  </message>
+                  <message>
+                    'Index to use for the next ECL search:  %s' % nextIndex
+                  </message>
+                      
+                  <if expr="addedEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+                  
+                </sequence>
+                <else>
+                  <message log="1" level="'Error'">
+                    'Could not read changelog on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+            </sequence>
+          </iterate>
+          
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+
+            # reset variables, just in case
+            addedEntry = None
+            eclEntry   = None
+          </script>
+          
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+        
+        
+      
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Re-enable ECL
+      #@TestID              Re-enalbe ECL
+      #@TestPurpose         Verify external changelog can be re-enabled for a 
+                            replicated suffix
+      #@TestPreamble
+      #@TestSteps           Re-enable ECL for old replicated suffix 
+      #@TestSteps           If in 'opends' mode, read last changelog entry on 
+                            each repl server
+                            (expect: error 53 if in 'opends' mode)
+      #@TestSteps           Add entry (old suffix)
+      #@TestSteps           Verify servers in sync
+      #@TestSteps           Read last changelog entry on each repl server
+      #@TestSteps           Check changelog entry against expected values
+      #@TestPostamble
+      #@TestResult          Success if the servers synchronised and the ECL
+                            search behaves as expected
+      -->               
+      <testcase name="getTestCaseName('%s - Re-enable ECL' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Re-enable ECL. \
+            Verify external changelog can be re-enabled for a replicated \
+            suffix' % ecl_mode
+          </message>
+
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <!-- Re-enable ECL for synchroSuffix on server -->
+              <message>
+                'Re-enable ECL for suffix %s on server %s:%s' % \
+                (synchroSuffix, server.getHostname(), server.getPort())
+              </message>
+              <script>
+                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                
+                myOptionString = """--domain-name "%s" --set enabled:true""" \
+                                 % synchroSuffix 
+              </script>
+              <call function="'dsconfig'">
+                { 'location'            : server.getHostname(),
+                  'dsPath'              : serverPath,
+                  'dsInstanceHost'      : server.getHostname(),
+                  'dsInstanceAdminPort' : server.getAdminPort(),
+                  'dsInstanceDn'        : server.getRootDn(),
+                  'dsInstancePswd'      : server.getRootPwd(),
+                  'subcommand'          : 'set-external-changelog-domain-prop',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                  'optionsString'       : myOptionString
+                }
+              </call>
+            </sequence>
+          </iterate>
+          
+          <!-- If ecl_mode == opends, the last changelogcookie refers only to
+           !   one suffix (as per last ECL search before re-enabling ECL)
+           !   => search changelog and expect: error 53, resync required
+           -->
+          <if expr="ecl_mode == 'opends'">
+            <sequence>
+              <script>
+                lastCookie      = searchIndex
+                chgNumberFilter = None
+                
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[0]
+                else:
+                  replServer = master
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+                
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate',
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie,
+                  'expectedRC'         : 53
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == 53">
+                <!-- ECL disabled => should have returned: 
+                 !   SEARCH operation failed
+                 !   Result Code:  53 (Unwilling to Perform)
+                 !   Additional Information:  Full resync required. Reason: 
+                 !   The provided cookie is missing the replicated domain(s)
+                 !   my_domain:;. Possible cookie: <new_cookie>
+                -->
+                <sequence>
+                  <message>
+                    'This is the ECL search result on server %s:%s \
+                    (expect ERROR 53 to be returned): \n%s' \
+                    % (replServer.getHostname(), replServer.getPort(), 
+                       searchResult)
+                  </message>
+                  <call function="'searchString'">
+                    { 'expectedString' : 'is missing the replicated domain',
+                      'returnString'   : searchResult
+                    } 
+                  </call>
+                  <script>
+                    searchStringRC = STAXResult[0]
+                  </script>
+                  <if expr="searchStringRC == 0">
+                    <sequence>
+                      <!-- New replicated suffix added => resync required => 
+                       !   Retrieve lastExternalChangelogCookie from root DSE
+                      -->
+                      <call function="'ldapSearchWithScript'">
+                        { 'location'       : replServer.getHostname(),
+                          'dsPath'         : replServerPath,
+                          'dsInstanceHost' : replServer.getHostname(),
+                          'dsInstancePort' : replServer.getPort(),
+                          'dsInstanceDn'   : replServer.getRootDn(),
+                          'dsInstancePswd' : replServer.getRootPwd(),
+                          'dsScope'        : 'base',
+                          'dsBaseDN'       : ' ',
+                          'dsFilter'       : 'objectclass=*',
+                          'dsAttributes'   : 'lastExternalChangelogCookie'
+                        }                
+                      </call>
+                      <script>
+                        searchRC = RC
+                        searchResult = STAXResult[0][1]
+                      </script>
+                      <if expr="searchRC == 0">
+                        <sequence>
+                          <script>
+                            lastECLCookie = None
+                            pendingValue  = 0
+                            
+                            for line in searchResult.splitlines():
+                              notBlank      = (len(line.strip()) != 0)
+                              if line.strip().lower().startswith('lastexternalchangelogcookie'):
+                                # line corresponds to lastExternalChangelogCookie:_cookie_
+                                lastECLCookie = line[line.find(':') + 1:].lstrip()
+                                pendingValue = 1
+                              elif (notBlank and pendingValue):
+                                lastECLCookie += line.lstrip()
+                              elif pendingValue:
+                                 pendingValue = 0
+                                 break
+                                
+                              nextIndex = lastECLCookie
+                          </script>
+                          <message>
+                            'New index read from root DSE entry \
+                            lastExternalChangelogCookie attribute: %s' \
+                            % nextIndex
+                          </message>
+                        </sequence>
+                        <else>
+                          <message log="1" level="'Error'">
+                            'Could not read root DSE entry from server %s:%s' \
+                            % (masterHost, master.getPort())
+                          </message>
+                        </else>
+                      </if>
+                    </sequence>
+                  </if>
+                </sequence>
+                <else>
+                  <message log="1" level="'Error'">
+                    'Did not get the expected error 53 when reading changelog \
+                    on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+              
+            </sequence>
+          </if>
+          
+          <!-- Add entry to replicated suffix on "master" server -->
+          <script>            
+            myEntry = Entry('cn=Re-enabled ECL', synchroSuffix)
+            myEntry.addAttr('sn', 'Re-enabled')
+            
+            addedEntry = None
+            eclEntry   = None
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
+            }
+          </call>
+          
+          <!-- Verify the synchronization of the trees among the servers in
+            the topology -->          
+          <call function="'verifyTrees'">
+            [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+          </call>
+          
+          <!-- Retrieve entry information for checkChangelogEntry's sake -->
+          <call function="'ldapSearchWithScript'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'dsBaseDN'       : myEntry.getDn(),
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : addOperationalAttrs
+            }                
+          </call>
+          <script>
+            searchRC = RC
+            searchResult = STAXResult[0][1]
+          </script>
+          
+          <if expr="searchRC == 0">
+            <sequence>
+              <message>
+                'This is the entry as read from server %s:%s: \n%s' % \
+                (masterHost, master.getPort(), searchResult)
+              </message>
+              <call function="'parseLdifEntry'">
+                { 'ldifEntry' : searchResult }
+              </call>
+              <script>
+                addedEntry = STAXResult
+                
+                myTargetDN             = addedEntry['dn'][0]
+                myChangeType           = 'add'
+                myChangeTime           = addedEntry['createtimestamp'][0]
+                myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                # myReplicationCSN     = ----> grab from where???
+                # myReplicatIdentifier = ----> grab from ldap server
+                myChanges              = {}
+                
+                for attr in addedEntry.keys():
+                  if (attr != 'dn') and (attr != 'changelogcookie') :
+                    myChanges[attr]    = addedEntry[attr]
+                
+                if ecl_mode != 'opends':
+                  myChangeNumber       = searchIndex
+                else:
+                  myChangeNumber       = None
+              </script>
+            </sequence>
+            <else>
+              <message log="1" level="'Error'">
+                'Could not read added entry %s from server %s:%s' % \
+                (myEntry.getDn(), masterHost, master.getPort())
+              </message>
+            </else>
+          </if>
+
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+            
+            if ecl_mode == 'opends':
+              lastCookie      = searchIndex
+              chgNumberFilter = None
+            else:
+              lastCookie      = None
+              chgNumberFilter = """(changenumber>=%s)""" % searchIndex
+          </script>
+          <!-- Search changelog in the various replication servers -->
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>                    
+              <script>
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate', 
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == 0">
+                <sequence>
+                <message>
+                  'This is the ECL entry as read from server %s:%s: \n%s' %\
+                  (replServer.getHostname(), replServer.getPort(), 
+                   searchResult)
+                </message>
+                  <call function="'parseLdifEntry'">
+                    { 'ldifEntry' : searchResult }
+                  </call>
+                  <script>
+                    eclEntry = STAXResult
+                    
+                    if ecl_mode == 'opends':
+                      nextIndex = eclEntry['changelogcookie'][0]
+                    else:
+                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                      nextIndex     = str(nextChgNumber)
+                  </script>
+                  <message>
+                    'Parsed changelog entry:  \n%s' % eclEntry
+                  </message>
+                  <message>
+                    'Index to use for the next ECL search:  %s' % nextIndex
+                  </message>
+                      
+                  <!-- As a side effect of the issue arised in the previous
+                   !   testcase (CR 6929320), we might end up with several old
+                   !   ECL entries returned 
+                  -->
+                  <script>
+                    if ecl_mode != 'opends':
+                      # Issue CR 6929320: ECL draft: after disabling ECL in suffix
+                      # search returns err 53 (cookie contains unknown repl domain)
+                      myKnownIssue = '6929320'
+                    else:
+                      myKnownIssue = None
+                  </script>
+                  <if expr="addedEntry and eclEntry">
+                    <call function="'checkChangelogEntry'">
+                      { 'location'        : masterHost,
+                        'dsPath'          : masterPath,
+                        'changelogEntry'  : eclEntry,
+                        'targetDN'        : myTargetDN,
+                        'changeNumber'    : myChangeNumber,
+                        'changeType'      : myChangeType,
+                        'changeTime'      : myChangeTime,
+                        'targetEntryUUID' : myTargetEntryUUID,
+                        'changes'         : myChanges,
+                        'knownIssue'      : myKnownIssue
+                      }
+                    </call>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                          'Unable to check external changelog entry \
+                          (failed to read LDAP and/or changelog entry)'
+                        </message>
+                        <call function="'testFailed'"/>
+                      </sequence>
+                    </else>
+                  </if>
+              
+                </sequence>
+                <else>
+                  <message log="1" level="'Error'">
+                    'Could not read changelog on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+            </sequence>
+          </iterate>
+          
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+
+            # reset variables, just in case
+            addedEntry = None
+            eclEntry   = None
+          </script>
+          
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+
+      
+      
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Disable + Re-enable
+                            ECL
+      #@TestID              Disable + Re-enalbe ECL
+      #@TestPurpose         Verify external changelog can be disabled, then 
+                            re-enabled for a replicated suffix and still return
+                            the changes performed in between
+      #@TestPreamble
+      #@TestSteps           Disable suffix for replicated suffix
+      #@TestSteps           Add entry to suffix
+      #@TestSteps           Re-enable ECL for replicated suffix
+      #@TestSteps           Add entry to suffix
+      #@TestSteps           Verify servers in sync
+      #@TestSteps           Read last changelog entry on each repl server
+                            (expect 2 change entries returned)
+      #@TestSteps           Check changelog entry against expected values
+      #@TestPostamble
+      #@TestResult          Success if the servers synchronised and the ECL
+                            search behaves as expected
+      -->               
+      <testcase name="getTestCaseName('%s - Disable + Re-enable ECL' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Disable + Re-enable ECL. \
+            Verify external changelog can be disabled, then re-enabled for a \
+            replicated suffix and still return the changes performed in \
+            between' % ecl_mode
+          </message>
+          
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <!-- Disable ECL for synchroSuffix on server -->
+              <message>
+                'Disable ECL for suffix %s on server %s:%s' % \
+                (synchroSuffix, server.getHostname(), server.getPort())
+              </message>
+              <script>
+                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                
+                myOptionString = """--domain-name "%s" --set enabled:false""" \
+                                 % synchroSuffix 
+              </script>
+              <call function="'dsconfig'">
+                { 'location'            : server.getHostname(),
+                  'dsPath'              : serverPath,
+                  'dsInstanceHost'      : server.getHostname(),
+                  'dsInstanceAdminPort' : server.getAdminPort(),
+                  'dsInstanceDn'        : server.getRootDn(),
+                  'dsInstancePswd'      : server.getRootPwd(),
+                  'subcommand'          : 'set-external-changelog-domain-prop',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                  'optionsString'       : myOptionString
+                }
+              </call>
+            </sequence>
+          </iterate>
+          
+          
+          <!-- Add entry to replicated suffix on "master" server -->
+          <script>            
+            myEntry = Entry('cn=Disabled Re-enabled ECL-1', synchroSuffix)
+            myEntry.addAttr('sn', 'Disabled Re-enabled')
+            
+            addedEntries = []
+            eclEntries   = []
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
+            }
+          </call>
+          
+
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <!-- Re-enable ECL for synchroSuffix on server -->
+              <message>
+                'Re-enable ECL for suffix %s on server %s:%s' % \
+                (synchroSuffix, server.getHostname(), server.getPort())
+              </message>
+              <script>
+                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                
+                myOptionString = """--domain-name "%s" --set enabled:true""" \
+                                 % synchroSuffix 
+              </script>
+              <call function="'dsconfig'">
+                { 'location'            : server.getHostname(),
+                  'dsPath'              : serverPath,
+                  'dsInstanceHost'      : server.getHostname(),
+                  'dsInstanceAdminPort' : server.getAdminPort(),
+                  'dsInstanceDn'        : server.getRootDn(),
+                  'dsInstancePswd'      : server.getRootPwd(),
+                  'subcommand'          : 'set-external-changelog-domain-prop',
+                  'objectType'          : 'provider-name',
+                  'objectName'          : 'Multimaster Synchronization',
+                  'optionsString'       : myOptionString
+                }
+              </call>
+            </sequence>
+          </iterate>
+          
+           <!-- Add entry to replicated suffix on "master" server -->
+          <script>            
+            myEntry = Entry('cn=Disabled Re-enabled ECL-2', synchroSuffix)
+            myEntry.addAttr('sn', 'Disabled Re-enabled')
+          </script>
+          
+          <call function="'addAnEntry'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'DNToAdd'        : myEntry.getDn(),
+              'listAttributes' : myEntry.getAttrList()
+            }
+          </call>         
+
+          <!-- Verify the synchronization of the trees among the servers in
+            the topology -->          
+          <call function="'verifyTrees'">
+            [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+          </call>
+          
+          <!-- Retrieve entry information for checkChangelogEntry's sake -->
+          <call function="'ldapSearchWithScript'">
+            { 'location'       : masterHost,
+              'dsPath'         : masterPath,
+              'dsInstanceHost' : masterHost,
+              'dsInstancePort' : master.getPort(),
+              'dsInstanceDn'   : master.getRootDn(),
+              'dsInstancePswd' : master.getRootPwd(),
+              'dsBaseDN'       : synchroSuffix,
+              'dsFilter'       : 'sn=Disabled Re-enabled',
+              'dsAttributes'   : addOperationalAttrs
+            }                
+          </call>
+          <script>
+            searchRC = RC
+            searchResult = STAXResult[0][1]
+          </script>
+          
+          <if expr="searchRC == 0">
+            <sequence>
+              <message>
+                'These are the entries as read from server %s:%s: \n%s' % \
+                (masterHost, master.getPort(), searchResult)
+              </message>
+              
+              <call function="'parseLdifEntries'">
+                { 'ldifEntries' : searchResult }
+              </call>
+              <script>
+                addedEntries = STAXResult
+              </script>
+            </sequence>
+            <else>
+              <message log="1" level="'Error'">
+                'Could not read added entries from server %s:%s' % \
+                (masterHost, master.getPort())
+              </message>
+            </else>
+          </if>
+
+          <script>
+            if ecl_mode == 'opends':
+              lastCookie      = searchIndex
+              chgNumberFilter = None
+            else:
+              lastCookie      = None
+              chgNumberFilter = """(changenumber>=%s)""" % searchIndex
+          </script>
+          
+          <!-- Search changelog in the various replication servers -->
+          <iterate var="server" 
+                   in="_topologyServerList" 
+                   indexvar="indx">
+            <sequence>
+              <script>
+                if ecl_mode == 'opends':
+                  # Issue 4502: ECL: error 53 when searching with cookie older
+                  # than updates on several server
+                  myKnownIssue = '4502'
+                else:
+                  myKnownIssue = None
+                
+                if globalSplitServers:
+                  replServer = _topologyReplServerList[indx]
+                else:
+                  replServer = server
+
+                replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+              </script>
+              
+              <message>
+                'Reading changelog in replication server %s:%s from index: \
+                %s' % \
+                (replServer.getHostname(), replServer.getPort(), searchIndex)
+              </message>
+                
+              <!-- Search for entry add -->
+              <call function="'SearchExternalChangelog'">
+                { 'location'           : replServer.getHostname(),
+                  'dsPath'             : replServerPath,
+                  'dsInstanceHost'     : replServer.getHostname(),
+                  'dsInstancePort'     : replServer.getPort(),
+                  'dsInstanceDn'       : replServer.getRootDn(),
+                  'dsInstancePswd'     : replServer.getRootPwd(),
+                  'dsScope'            : 'subordinate',
+                  'dsBaseDN'           : 'cn=changelog',
+                  'dsFilter'           : '(objectclass=*)',
+                  'changeNumberFilter' : chgNumberFilter,
+                  'changelogCookie'    : lastCookie,
+                  'knownIssue'         : myKnownIssue
+                }                
+              </call>
+              <script>
+                searchRC = RC
+                searchResult = STAXResult[0][1]
+              </script>
+              <if expr="searchRC == 0">
+                <sequence>
+                  <message>
+                    'These are the ECL entries as read from server %s:%s: \n%s' \
+                    % (replServer.getHostname(), replServer.getPort(), 
+                       searchResult)
+                  </message>
+                  <call function="'parseLdifEntries'">
+                    { 'ldifEntries' : searchResult }
+                  </call>
+                  <script>
+                    eclEntries = STAXResult
+                  </script>
+                  
+                  <if expr="len(addedEntries) != len(eclEntries)">
+                    <sequence>
+                      <message log="1" level="'Error'">
+                       'Number of added entries %s does not match number of ECL \
+                       entries %s' % (len(addedEntries), len(eclEntries))
+                      </message>
+                    <call function="'testFailed'"/>
+                    </sequence>
+                  </if>
+                  
+                  <iterate var="eclEntry"
+                           in="eclEntries"
+                           indexvar="i">
+                    <sequence>
+                    
+                      <script>
+                        if ecl_mode == 'opends':
+                          nextIndex     = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                          
+                        addedEntry             = addedEntries[i]
+                        myTargetDN             = addedEntry['dn'][0]
+                        myChangeType           = 'add'
+                        myChangeTime           = addedEntry['createtimestamp'][0]
+                        myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                        # myReplicationCSN     = ----> grab from where???
+                        # myReplicatIdentifier = ----> grab from ldap server
+                        myChanges              = {}
+                        
+                        for attr in addedEntry.keys():
+                          if (attr != 'dn') and (attr != 'changelogcookie') :
+                            myChanges[attr] = addedEntry[attr]
+                        
+                        if ecl_mode != 'opends':
+                          myIntChangeNumber    = int(searchIndex) + i
+                          myChangeNumber       = str(myIntChangeNumber)
+                        else:
+                          myChangeNumber       = None
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % nextIndex
+                      </message>
+                  
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+                      
+                    </sequence>
+                  </iterate>
+                  
+                </sequence>
+                <else>
+                  <message log="1" level="'Error'">
+                    'Could not read changelog on replication server %s:%s' \
+                    % (replServer.getHostname(), replServer.getPort())
+                  </message>
+                </else>
+              </if>
+            </sequence>
+          </iterate>
+          
+          <script>
+            # set the index for the next ECL search
+            if nextIndex:
+              searchIndex = nextIndex
+              nextIndex   = None
+
+            # reset variables, just in case
+            addedEntries = []
+            addedEntry   = None
+            eclEntries   = []
+            eclEntry     = None
+          </script>
+          
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+
+      <!--- Test Case information
+      #@TestMarker          Replication External Changelog Tests
+      #@TestName            Replication: External Changelog: Clean up
+      #@TestID              Clean up
+      #@TestPurpose         Clean up environment for External Changelog tests
+      #@TestPreamble
+      #@TestSteps           Clean changelog
+      #@TestSteps           Disable replication of newReplSuffix
+      #@TestSteps           Remove added suffixes
+      #@TestPostamble
+      #@TestResult          Success if the data reset succeeds
+      -->
+      <testcase name="getTestCaseName('%s - Clean up' % ecl_mode)">
+        <sequence>            
+          <call function="'testCase_Preamble'"/>
+          <message>
+            'Replication: External Changelog: %s - Clean up. \
+            Clean up environment for External Changelog tests' % ecl_mode
+          </message>
+              
+          <!-- Clean new suffixes on servers -->
+          <!-- Clean newReplSuffix changes from changelog -->
+          <call function="'preInitializeReplication'">
+            { 'location'            : masterHost,
+              'dsPath'              : masterPath,
+              'dsInstanceHost'      : masterHost,
+              'dsInstanceAdminPort' : master.getAdminPort(),
+              'localOnly'           : False,
+              'replicationDnList'   : [newReplSuffix],
+              'adminUID'            : adminUID,
+              'adminPswd'           : adminPswd
+            }
+          </call>
+          
+          <iterate var="server"
+                   in="_topologyServerList"
+                   indexvar="indx">
+            <sequence>
+              <script>
+                newSuffx      = "o=new_suffix_no_repl"
+                newReplSuffix = "o=new_suffix_repl"
+                
+                serverPath    = '%s/%s' % (server.getDir(), OPENDSNAME)
+              </script>
+              
+              <!-- Disable replication for newReplSuffix -->
+              <message>
+                'Disable replication for suffix %s on server %s:%s' % \
+                (newReplSuffix, server.getHostname(), server.getPort())
+              </message>
+              <call function="'disableReplication'">
+                { 'location'            : server.getHostname(),
+                  'dsPath'              : serverPath,
+                  'dsInstanceHost'      : server.getHostname(),
+                  'dsInstanceAdminPort' : server.getAdminPort(),
+                  'replicationDnList'   : [newReplSuffix]
+                }
+              </call>
+    
+              <if expr="globalSplitServers">
+                <sequence>
+                  <script>
+                    replServer     = _topologyReplServerList[indx]
+                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
+                  </script>
+                  <call function="'disableReplication'">
+                    { 'location'            : replServer.getHostname(),
+                      'dsPath'              : replServerPath,
+                      'dsInstanceHost'      : replServer.getHostname(),
+                      'dsInstanceAdminPort' : replServer.getAdminPort(),
+                      'replicationDnList'   : [newReplSuffix]
+                    }
+                  </call>
+                </sequence>
+              </if>          
+    
+              
+              <!-- Remove newReplSuffix -->
+              <message>
                 'Remove suffix %s on server %s:%s' % \
-                (newSuffix, server.getHostname(), server.getPort())
+                (newReplSuffix, server.getHostname(), server.getPort())
               </message>
               <call function="'dsconfigSet'">
                 { 'location'            : server.getHostname(),
@@ -5924,14 +7379,41 @@
                   'propertyName'        : 'userRoot',
                   'modifyType'          : 'remove',
                   'attributeName'       : 'base-dn',
-                  'attributeValue'      : newSuffix
+                  'attributeValue'      : newReplSuffix
                 }
               </call>
+    
+              <!-- Remove newSuffix (only present on "master" server) -->
+              <if expr="indx == 0">
+                <sequence>
+                  <message>
+                    'Remove suffix %s on server %s:%s' % \
+                    (newSuffix, server.getHostname(), server.getPort())
+                  </message>
+                  <call function="'dsconfigSet'">
+                    { 'location'            : server.getHostname(),
+                      'dsPath'              : serverPath,
+                      'dsInstanceHost'      : server.getHostname(),
+                      'dsInstanceAdminPort' : server.getAdminPort(),
+                      'dsInstanceDn'        : server.getRootDn(),
+                      'dsInstancePswd'      : server.getRootPwd(),
+                      'objectName'          : 'backend',
+                      'propertyType'        : 'backend',
+                      'propertyName'        : 'userRoot',
+                      'modifyType'          : 'remove',
+                      'attributeName'       : 'base-dn',
+                      'attributeValue'      : newSuffix
+                    }
+                  </call>
+                </sequence>
+              </if>
             </sequence>
-          </if>
-        </sequence>
-      </iterate>
+          </iterate>
 
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
     </sequence>
   </function>
 </stax>

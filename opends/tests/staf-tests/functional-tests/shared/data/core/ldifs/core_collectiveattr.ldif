@@ -21,7 +21,6 @@ ou: People
 dn: ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
 objectClass: organizationalunit
 objectClass: top
-description: Users in Asia Region
 ou: Asia
 
 dn: ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com

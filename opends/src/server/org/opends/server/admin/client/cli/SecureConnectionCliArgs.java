@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.cli;
@@ -990,44 +990,48 @@ public final class SecureConnectionCliArgs
     TrustManagerProviderCfg trustManagerCfg = null;
     AdministrationConnectorCfg administrationConnectorCfg = null;
 
+    boolean couldInitializeConfig = configurationInitialized;
     // Initialization for admin framework
     if (!configurationInitialized) {
-      initializeConfiguration();
+      couldInitializeConfig = initializeConfiguration();
     }
-    // Get the Directory Server configuration handler and use it.
-    RootCfg root =
-      ServerManagementContext.getInstance().getRootConfiguration();
-    administrationConnectorCfg = root.getAdministrationConnector();
+    if (couldInitializeConfig)
+    {
+      // Get the Directory Server configuration handler and use it.
+      RootCfg root =
+        ServerManagementContext.getInstance().getRootConfiguration();
+      administrationConnectorCfg = root.getAdministrationConnector();
 
-    String trustManagerStr =
-      administrationConnectorCfg.getTrustManagerProvider();
-    trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
-    if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
-      FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
-        (FileBasedTrustManagerProviderCfg) trustManagerCfg;
-      String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
-      // Check the file
-      if (truststoreFile.startsWith(File.separator)) {
-        truststoreFileAbsolute = truststoreFile;
-      } else {
-        truststoreFileAbsolute =
-          DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
-      }
-      File f = new File(truststoreFileAbsolute);
-      if (!f.exists() || !f.canRead() || f.isDirectory())
-      {
-        truststoreFileAbsolute = null;
-      }
-      else
-      {
-        // Try to get the canonical path.
-        try
-        {
-          truststoreFileAbsolute = f.getCanonicalPath();
+      String trustManagerStr =
+        administrationConnectorCfg.getTrustManagerProvider();
+      trustManagerCfg = root.getTrustManagerProvider(trustManagerStr);
+      if (trustManagerCfg instanceof FileBasedTrustManagerProviderCfg) {
+        FileBasedTrustManagerProviderCfg fileBasedTrustManagerCfg =
+          (FileBasedTrustManagerProviderCfg) trustManagerCfg;
+        String truststoreFile = fileBasedTrustManagerCfg.getTrustStoreFile();
+        // Check the file
+        if (truststoreFile.startsWith(File.separator)) {
+          truststoreFileAbsolute = truststoreFile;
+        } else {
+          truststoreFileAbsolute =
+            DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
         }
-        catch (Throwable t)
+        File f = new File(truststoreFileAbsolute);
+        if (!f.exists() || !f.canRead() || f.isDirectory())
         {
-          // We can ignore this error.
+          truststoreFileAbsolute = null;
+        }
+        else
+        {
+          // Try to get the canonical path.
+          try
+          {
+            truststoreFileAbsolute = f.getCanonicalPath();
+          }
+          catch (Throwable t)
+          {
+            // We can ignore this error.
+          }
         }
       }
     }
@@ -1041,13 +1045,22 @@ public final class SecureConnectionCliArgs
    */
   public int getAdminPortFromConfig() throws ConfigException
   {
+    int port;
     // Initialization for admin framework
+    boolean couldInitializeConfiguration = configurationInitialized;
     if (!configurationInitialized) {
-      initializeConfiguration();
+      couldInitializeConfiguration = initializeConfiguration();
     }
-    RootCfg root =
-      ServerManagementContext.getInstance().getRootConfiguration();
-    int port = root.getAdministrationConnector().getListenPort();
+    if (couldInitializeConfiguration)
+    {
+      RootCfg root =
+        ServerManagementContext.getInstance().getRootConfiguration();
+      port = root.getAdministrationConnector().getListenPort();
+    }
+    else
+    {
+      port = AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+    }
     return port;
   }
 

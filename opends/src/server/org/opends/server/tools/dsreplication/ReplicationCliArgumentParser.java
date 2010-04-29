@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -41,6 +41,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.Argument;
@@ -68,7 +69,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand preExternalInitializationSubCmd;
   private SubCommand statusReplicationSubCmd;
 
-  int defaultAdminPort = 4444;
+  int defaultAdminPort =
+    AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
 
   /**
    * No-prompt argument.

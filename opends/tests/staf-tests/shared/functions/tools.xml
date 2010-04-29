@@ -97,7 +97,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
 
     </function-map-args>
@@ -585,7 +584,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
 
     </function-map-args>
@@ -678,7 +676,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
 
       <function-arg-def name="ignoreAttrsFile" 
@@ -888,7 +885,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
       
     </function-list-args>
@@ -1446,7 +1442,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1714,7 +1709,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -2154,7 +2148,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
 
     </function-list-args>

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -43,6 +43,8 @@ import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.messages.Message;
 import static org.opends.messages.JebMessages.*;
@@ -490,6 +492,32 @@ public class ConfigurableEnvironment
 
       String value = getPropertyValue(cfg, attrName);
       envConfig.setConfigParam(jeProperty, value);
+    }
+
+    // Set logging and file handler levels.
+    Logger parent = Logger.getLogger("com.sleepycat.je");
+    try
+    {
+      parent.setLevel(Level.parse(cfg.getDBLoggingLevel()));
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(
+              ERR_JEB_INVALID_LOGGING_LEVEL.get(
+              String.valueOf(cfg.getDBLoggingLevel()),
+              String.valueOf(cfg.dn())));
+    }
+    if (cfg.isDBLoggingFileHandlerOn())
+    {
+      envConfig.setConfigParam(
+              EnvironmentConfig.FILE_LOGGING_LEVEL,
+              Level.ALL.getName());
+    }
+    else
+    {
+      envConfig.setConfigParam(
+              EnvironmentConfig.FILE_LOGGING_LEVEL,
+              Level.OFF.getName());
     }
 
     // See if there are any native JE properties specified in the config

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_entry_cache" />
@@ -82,7 +82,7 @@
                     'dsBaseDN'       : 'cn=version,cn=monitor',
                     'dsFilter'       : '|' ,
                     'expectedRC'     : 2 ,
-                    'knownIssue'     : '3966'
+                    'knownIssue'     : ['3966','4406']
                   }
                 </call>
                 <call function="'testCase_Postamble'" />

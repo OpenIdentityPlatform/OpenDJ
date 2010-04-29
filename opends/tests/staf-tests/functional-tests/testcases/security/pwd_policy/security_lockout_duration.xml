@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -180,7 +180,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
                     'attributeName'          : 'lockout-duration' ,
-                    'attributeValue'         : '5 s' }
+                    'attributeValue'         : '10 s' }
             </call>
             
             <call function="'testCase_Postamble'"/>

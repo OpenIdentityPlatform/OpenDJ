@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -194,7 +194,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
           }
           else if (e.getSource() == selectedList2)
           {
-            if (selectedList1.getSelectedValue() != null)
+            if (selectedList2.getSelectedValue() != null)
             {
               remove2Clicked();
             }
@@ -581,7 +581,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
         {
           for (int i=0; i<indexes.length; i++)
           {
-            if (list.getModel().getElementAt(indexes[i]).equals(element))
+            // This check is necessary since the selection model might not
+            // be in sync with the list model.
+            if (indexes[i] < list.getModel().getSize() &&
+                list.getModel().getElementAt(indexes[i]).equals(element))
             {
               list.getSelectionModel().removeIndexInterval(indexes[i],
                   indexes[i]);

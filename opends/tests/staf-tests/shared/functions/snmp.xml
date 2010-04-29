@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
 ! -->
 <stax>
   <!-- SNMP Get -->
@@ -426,7 +426,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
 
@@ -559,7 +558,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
 
@@ -667,7 +665,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
@@ -760,7 +757,6 @@
         <function-arg-description>
           Issue id. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string"/>
       </function-arg-def>
     </function-map-args>
 

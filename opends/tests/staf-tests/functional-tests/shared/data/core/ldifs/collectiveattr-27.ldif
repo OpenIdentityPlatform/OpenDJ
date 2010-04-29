@@ -1,0 +1,8 @@
+dn: cn=Collective c-street,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-street
+c-street: Chestnut Street
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1, specificationFilter item:person }

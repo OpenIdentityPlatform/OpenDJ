@@ -1,0 +1,8 @@
+dn: cn=Collective seeAlso,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective seeAlso
+seeAlso;collective: uid=scarter,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
