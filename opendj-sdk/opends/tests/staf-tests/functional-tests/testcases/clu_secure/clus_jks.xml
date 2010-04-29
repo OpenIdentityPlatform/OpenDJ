@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="clus_jks" />
+
+  <function name="clus_jks">
+
+    <sequence>
+
+      <block name="'clus_jks'">
+
+        <sequence>
+
+          <!--- Test Suite information
+          #@TestSuiteName       JKS certificates
+          #@TestSuitePurpose    Create server certificates
+          #@TestSuiteGroup      clus_secure
+          #@TestScript          clus_jks.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Test Case information
+            #@TestMarker          Certificates
+            #@TestName            Create : server Certificates
+            #@TestIssue           none
+            #@TestPurpose         Create certificates needed to setup authentication
+            #@TestPreamble        none
+            #@TestStep            Generate and self-sign the two server certificates
+            #@TestPostamble       none
+            #@TestResult          Success if test pass
+          -->
+          <testcase name="getTestCaseName('Create server certificates')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <!--- Generate the two server Certificates -->
+              <message>
+                'Security : Server certicates :Step 1. Generating  1st server certicate'
+              </message>
+              <call function="'genCertificate'">
+              {
+                'certAlias'       : 'server-cert1' ,
+                'dname'           : "cn=server-dname1,O=Sun Microsystems,C=US",
+                'keystore'        : 'serverkeystore',
+                'storepass'       : 'keystorepass',
+                'keypass'         : 'keystorepass',
+                'storetype'       : 'JKS'
+              }
+              </call>
+
+              <message>
+                'Security: Server certicates :Step 1bis. Generating 2nd server certicate'
+              </message>
+              <call function="'genCertificate'">
+              {
+                'certAlias'       : 'server-cert2' ,
+                'dname'           : "cn=server-dname2,O=Sun Microsystems,C=US",
+                'keystore'        : 'serverkeystore',
+                'storepass'       : 'keystorepass',
+                'keypass'         : 'keystorepass',
+                'storetype'       : 'JKS'
+              }
+              </call>
+
+              <!--- Self-Sign the two Server Certificates -->
+              <message>
+                'Security: Server certificates :Step 2. Self-Signing 1st server certicate'
+              </message>
+              <call function="'SelfSignCertificate'">
+              {
+                'certAlias'       : 'server-cert1' ,
+                'storepass'       : 'keystorepass',
+                'keypass'         : 'keystorepass',
+                'keystore'        : 'serverkeystore',
+                'storetype'       : 'JKS'
+              }
+              </call>
+
+              <message>
+                'Security: Server certificates : Step 2bis. Self-signing 2nd  server certicate'
+              </message>
+              <call function="'SelfSignCertificate'">
+              {
+                'certAlias'       : 'server-cert2' ,
+                'storepass'       : 'keystorepass',
+                'keypass'         : 'keystorepass',
+                'keystore'        : 'serverkeystore',
+                'storetype'       : 'JKS'
+              }
+              </call>
+
+              <!---  Export then import server certificates into the client truststore -->
+              <message>
+                'Security: Server certificates : Step 3. Export 1st server certificate'
+              </message>
+              <call function="'ExportCertificate'">
+              {
+                'certAlias'       : 'server-cert1' ,
+                'keystore'        : 'serverkeystore',
+                'storepass'       : 'keystorepass',
+                'outputfile'      : 'server-cert1.txt',
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+              }
+              </call>
+
+              <message>
+                'Security: Server Certificates : Step 3bis. Export 2nd server certificate'
+              </message>
+              <call function="'ExportCertificate'">
+              {
+                'certAlias'       : 'server-cert2' ,
+                'keystore'        : 'serverkeystore',
+                'storepass'       : 'keystorepass',
+                'outputfile'      : 'server-cert2.txt',
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+              }
+              </call>
+
+              <message>
+                'Security: Client certificates : Create a client folder'
+              </message>
+              <script>
+                InstanceInstallDir= '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+              </script>
+              <call function="'createFolder'">
+              {
+                'location' : DIRECTORY_INSTANCE_HOST,
+                'foldername' : '%s/client_cert' %InstanceInstallDir
+              }
+              </call>
+
+              <message>
+                'Security: Client certificates : Import 1st server certificate to client truststore'
+              </message>
+              <call function="'ImportCertificate'">
+              {
+                'certAlias' : 'server-cert1',
+                'inputfile' : 'server-cert1.txt',
+                'keystore'  : '%s/client_cert/clientruststore' %(InstanceInstallDir),
+                'storepass' : 'clientruststorepass',
+                'storetype' : 'JKS'
+              }
+              </call>
+
+              <message>
+                'Security: Client certificates : Import 2nd server certificate to client truststore'
+              </message>
+              <call function="'ImportCertificate'">
+              {
+                'certAlias' : 'server-cert2',
+                'inputfile' : 'server-cert2.txt',
+                'keystore'  : '%s/client_cert/clientruststore' %(InstanceInstallDir),
+                'storepass' : 'clientruststorepass',
+                'storetype' : 'JKS'
+              }
+              </call>
+      
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+            
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+        
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>

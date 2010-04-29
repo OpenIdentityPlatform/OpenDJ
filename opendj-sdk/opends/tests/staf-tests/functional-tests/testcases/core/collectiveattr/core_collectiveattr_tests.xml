@@ -3648,7 +3648,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : targetDN3 ,
-                'dsFilter'         : 'description\=Worldwide*' ,
+                'dsFilter'         : 'description=Worldwide*' ,
               }
             </call>
             <script>

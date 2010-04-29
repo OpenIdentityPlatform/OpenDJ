@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="clus_saslexternal_equaldn"/>
+
+  <function name="clus_saslexternal_equaldn" scope="local">
+
+    <sequence>
+
+      <block name="'clus_saslexternal_equaldn'">
+
+        <sequence>
+
+           <!--- Test Suite information
+            #@TestSuiteName       SASL external equal DN check behaviors
+            #@TestSuitePurpose    Test the results of ldap commands in the case
+                                 of sasl external.
+            #@TestSuiteGroup      LDAP tools check behavior tests
+            #@TestScript          clus_saslexternal_equaldn.xml
+           -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Test Case information
+          #@TestMarker          SASL external equal DN check behaviors
+          #@TestName            Create certificates
+          #@TestIssue           none
+          #@TestPurpose         Create client certificates needed to
+                                authentication
+          #@TestPreamble        none
+          #@TestStep            Generate certificates
+          #@TestStep            Self_sign certificates
+          #@TestPostamble       none
+          -->
+          <testcase name="getTestCaseName('Create a user certificate')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+              
+              <!--- Create three client certificates-->
+              <message>
+              'Security : Server certicates :Step 1. Generating userbad client \
+              certificate'
+              </message>
+              <call function="'genCertificate'">
+                {
+                'certAlias'       : 'client-bad-cert' ,
+                'dname'           : "uid=userbad,ou=People,dc=com",
+                'keystore'        : '%s/client_cert/clientkeystore' \
+                                    %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+              'Security : Server certicates :Step 1. Generating user.100 client\
+              certificate'
+              </message>
+              <call function="'genCertificate'">
+                {
+                'certAlias'       : 'client-100-cert' ,
+                'dname'           : "uid=user.100,ou=People,dc=com",
+                'keystore'        : '%s/client_cert/clientkeystore' \
+                                  %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+              'Security : Server certicates :Step 1. Generating user.200 client\
+              certificate'
+              </message>
+              <call function="'genCertificate'">
+                {
+                'certAlias'       : 'client-200-cert' ,
+                'dname'           : "uid=user.200,ou=People,dc=com",
+                'keystore'        : '%s/client_cert/clientkeystore' \
+                                   %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+              'Security: Server Certificates :Step 2 Self-Signing userbad \
+              client Certicate'
+              </message>
+              <call function="'SelfSignCertificate'">
+                {
+                'certAlias'       : 'client-bad-cert' ,
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'keystore'  : '%s/client_cert/clientkeystore' %(InstanceInstallDir),
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+              'Security: Server Certificates :Step 2 Self-Signing user.100 \
+              client Certicate'
+              </message>
+
+              <call function="'SelfSignCertificate'">
+                {
+                'certAlias'       : 'client-100-cert' ,
+                'storepass'       : 'clientkeystorepass',
+                'keypass'         : 'clientkeystorepass',
+                'keystore'        : '%s/client_cert/clientkeystore' \
+                                     %(InstanceInstallDir),
+                'storetype'       : 'JKS'
+                }
+              </call>
+
+              <message>
+               'Security: Server Certificates :Step 2 Self-Signing user.200 \
+               client Certicate'
+              </message>
+
+              <call function="'SelfSignCertificate'">
+               {
+               'certAlias'       : 'client-200-cert' ,
+               'storepass'       : 'clientkeystorepass',
+               'keypass'         : 'clientkeystorepass',
+               'keystore'        : '%s/client_cert/clientkeystore' \
+                                   %(InstanceInstallDir),
+               'storetype'       : 'JKS'
+               }
+              </call>
+              
+              <message>
+               'Security: Server Certificates : Export all certificates to RFC'
+              </message>
+
+              <call function="'ExportCertificate'">
+                {
+                'certAlias'       : 'client-bad-cert' ,
+                'keystore'        : '%s/client_cert/clientkeystore'\
+                                    %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'outputfile'      : '%s/client_cert/client-bad-cert.txt'\
+                                    %(InstanceInstallDir),
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+                }
+              </call>
+
+               <call function="'ExportCertificate'">
+                {
+                'certAlias'       : 'client-100-cert' ,
+                'keystore'        : '%s/client_cert/clientkeystore'\
+                                    %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'outputfile'      : '%s/client_cert/client-100-cert.txt' \
+                                    %(InstanceInstallDir),
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+                }
+              </call>
+              <call function="'ExportCertificate'">
+                {
+                'certAlias'       : 'client-200-cert' ,
+                'keystore'        : '%s/client_cert/clientkeystore'\
+                                    %(InstanceInstallDir),
+                'storepass'       : 'clientkeystorepass',
+                'outputfile'      : '%s/client_cert/client-200-cert.txt' \
+                                    %(InstanceInstallDir),
+                'storetype'       : 'JKS',
+                'format'          : 'rfc'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          SASL external equal DN check behaviors
+          #@TestName            Subject equals DN :  servertrust
+                                all certificates
+          #@TestPurpose         Test subject equal DN certificate mapper with
+                                blind trust
+          #@TestPreamble        none
+          #@TestStep            Enable subject equal DN certificate mapper
+          #@TestStep            Do a ldapsearch with client-bad-cert
+          #@TestStep            Do an ldapseach with client-100-cert
+          #@TestPostamble       none
+          #@TestResult          Success if trying to connect with
+                                client-bad-cert return 'no user entry' and using
+                                client-100-cert return 'authorization ID
+                                dn:uid=user.100,ou=People,dc=com
+          -->
+          <testcase name="getTestCaseName('Subject equals DN :  server trust all client certificates')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <!--- Enable subject equal DN certificate mapper blind trust -->
+              <message>
+                'Security: SASL External Check behaviors: Enable SASL External \
+                subject equal DN with TrustStore'
+              </message>
+              <call function="'configureSASL'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'createKeyMgr'     : True,
+                'KeyMgr'           : 'JKSPROVIDER',
+                'keystoreFile'     : 'config/serverkeystore',
+                'keystorePin'      : 'keystorepass',
+                'handlerName'      : 'EXTERNAL',
+                'optionSaSL'       : '--set certificate-validation-policy:always',
+                'certMapper'       : 'Subject Equals DN',
+                'certAlias'        : 'server-cert2'
+                }
+              </call>
+
+              <message>
+                'Security: SASL External Check behaviors: ldapsearch client\
+                certificate DN not map an entry DN'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore'\
+                                     %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-bad-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.340' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 49
+                }
+              </call>
+
+              <message>
+                'Security: SASL External Check behaviors: ldapsearch client \
+                 certificate map an user entry'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-100-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.340' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 49
+                }
+              </call>
+    
+              <call function="'addCertificate'">
+                {
+                'userdn'            : 'uid=user.100,ou=People,dc=com',
+                'user_cert_file_rfc': '%s/client_cert/client-100-cert.txt' \
+                                       %(InstanceInstallDir),
+                'ldif_path'         : '%s/client_cert/client-100-cert.ldif' \
+                                       %(InstanceInstallDir)
+                }
+              </call>
+
+              <call function="'addCertificate'">
+                {
+                'userdn'            : 'uid=user.200,ou=People,dc=com',
+                'user_cert_file_rfc': '%s/client_cert/client-200-cert.txt' \
+                                       %(InstanceInstallDir),
+                'ldif_path'         : '%s/client_cert/client-200-cert.ldif' \
+                                       %(InstanceInstallDir)
+                }
+              </call>
+
+              <!--- Check Subject equal DN behavior -->
+              <message>
+                'Security: SASL External Check behaviors: ldapsearch client \
+                 certificate dn map an entry dn'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsCertNickname'  : 'client-100-cert',
+                'dsFilter'         : 'uid=user.340' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'authorization ID dn:uid=user.100\
+                ,ou=People,dc=com'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          SASL external equal DN check behaviors
+          #@TestName            Subject equal DN :  server use TrustStore
+          #@TestIssue           none
+          #@TestPurpose         Test subject equal DN certificate mapper with
+                                TrustStore
+          #@TestPreamble        none
+          #@TestStep            Export then import client client-200-cert into
+                                server TrustStore
+          #@TestStep            Enable subject equal DN certificate mapper
+          #@TestStep            Do a ldapsearch with client-100-cert
+          #@TestStep            Do an ldapseach with client-200-cert
+          #@TestPostamble       none
+          #@TestResult          Success if trying to connect with 
+                                client-100-cert return 'no user entry' and using
+                                client200-cert return 'authorization ID
+                                dn:uid=user.200,ou=People,dc=com
+          -->
+          <testcase name="getTestCaseName('Subject equals DN :  with TrustStore')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+             
+              <message>
+               'Security: SASL External Check behaviors : export user.200 \
+                certificate'
+              </message>
+
+             
+              <message>
+               'Security: Import the user.200 certificate to server TrustStore'
+              </message>
+              <call function="'ImportCertificate'">
+               {
+               'certAlias' : 'client-200-cert',
+               'inputfile' : '%s/client_cert/client-200-cert.txt' \
+                              %(InstanceInstallDir),
+               'keystore'  : '%s/config/servertruststore' %(InstanceInstallDir),
+               'storepass' : 'truststorepass',
+               'storetype' : 'JKS'
+               }
+              </call>
+
+
+              <!--- Enable subject equal DN certificate mapper with TrustStore-->
+              <message>
+              'Security: SASL External Check behaviors: Enable SASL External \
+               subject equal DN with TrustStore'
+              </message>
+              <call function="'configureSASL'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'KeyMgr'           : 'JKSPROVIDER',
+                'keystoreFile'     : '%s/config/serverkeystore' \
+                                      %(InstanceInstallDir),
+                'keystorePin'      : 'keystorepass',
+                'trustMgr'         : 'JKS',
+                'truststoreFile'   : '%s/config/servertruststore' \
+                                      %(InstanceInstallDir),
+                'truststorePin'    : 'truststorepass',
+                'handlerName'      : 'EXTERNAL',
+                'certMapper'       : 'Subject Equals DN',
+                'certAlias'        : 'server-cert2'
+                }
+              </call>
+
+              <message>
+              'Security: SASL External Check behaviors: ldapsearch client \
+               certificate not present in the server TrustStore'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-100-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.340' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'Cannot send the SASL EXTERNAL bind request'
+                }
+              </call>
+              
+              <message>
+              'Security: SASL External Check behaviors: ldapsearch client \
+               certificate present in the server TrustStore'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                'dsUseSSL'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsUseSASLExternal': ' ',
+                'dsKeyStorePath'   : '%s/client_cert/clientkeystore' \
+                                      %(InstanceInstallDir),
+                'dsKeyStorePassword' : 'clientkeystorepass',
+                'dsCertNickname'   : 'client-200-cert',
+                'dsReportAuthzID'  : ' ',
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.340' ,
+                'dsAttributes'     : 'postalCode',
+                'expectedRC'       : 'noCheck'
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'authorization ID dn:uid=user.200,\
+                ou=People,dc=com'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+        
+      </block>
+
+    </sequence>
+
+  </function>
+</stax>
+
+
+
+

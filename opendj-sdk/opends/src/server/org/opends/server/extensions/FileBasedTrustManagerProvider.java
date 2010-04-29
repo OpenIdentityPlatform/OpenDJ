@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -456,7 +456,7 @@ public class FileBasedTrustManagerProvider
     String pinFile = configuration.getTrustStorePinFile();
     if (pinFile != null)
     {
-      File f = new File(pinFile);
+      File f = getFileForPath(pinFile);
       if (f.exists())
       {
         String pinStr = null;
@@ -464,7 +464,7 @@ public class FileBasedTrustManagerProvider
         BufferedReader br = null;
         try
         {
-          br = new BufferedReader(new FileReader(pinFile));
+          br = new BufferedReader(new FileReader(f));
           pinStr = br.readLine();
         }
         catch (IOException ioe)

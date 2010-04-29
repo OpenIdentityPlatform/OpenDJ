@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 import java.io.File;
@@ -57,6 +57,7 @@ public class PSearchOperations extends Thread {
     private int threadId;
     private String fileName;
     private boolean output;
+    private boolean ldifFormat;
     private boolean logFile;
     private String operation;
     /**
@@ -77,6 +78,7 @@ public class PSearchOperations extends Thread {
         this.threadId = id;
         this.output = false;
         this.logFile = false;
+        this.ldifFormat = false;
         //by default all operation
         this.operation = ALL;
 
@@ -121,6 +123,10 @@ public class PSearchOperations extends Thread {
         this.operation = operation;
     }
 
+    public void setLdifFormat(boolean ldifFormat) {
+        this.ldifFormat = ldifFormat;
+    }
+
     /**
      *Connect to server.
      */
@@ -129,7 +135,8 @@ public class PSearchOperations extends Thread {
             connection = new LDAPConnection();            
             connection.connect(3, hostname, portnumber, "", "");
             connection.authenticate(3, bindDN, bindPW);
-            write("[Thread id: " + threadId + "] \n" + getDate() + connection);
+            if(!ldifFormat)
+              write("[Thread id: " + threadId + "] \n" + getDate() + connection);
         } catch (LDAPException ex) {
             System.out.println("[Thread id: " + threadId + "]Connection :" + ex.getMessage());
             System.exit(0);
@@ -263,20 +270,25 @@ public class PSearchOperations extends Thread {
             Enumeration attrs = attrSet.getAttributes();
             if (entry.getDN().contains("break")) {
                 String message = "\n[Thread id: " + threadId + "] " + getDate() + " [BREAK]";
-                write(message);
+                if(!ldifFormat)
+                  write(message);
                 System.exit(0);
             } else if (entry.getDN().contains("stop")) {
                 try {
                     connection.disconnect();
                     String message = "\n[Thread id: " + threadId + "] " + getDate() + "[STOP]";
-                    write(message);
+                    if(!ldifFormat)
+                      write(message);
                     System.exit(0);
                 } catch (LDAPException ex) {
                     System.out.println("[Thread id: " + threadId + "]run :" + ex.getLDAPErrorMessage());
                 }
             }
             String message = "[Thread id: " + threadId + "] " + getDate() + " [" + controlName(arr[4]) + "]";
-            write("\n" + message);
+           if(!ldifFormat)
+             write("\n" + message);
+           else
+             write("\n");
             String dn = "dn: " + entry.getDN();
             write(dn);
             while (attrs.hasMoreElements()) {

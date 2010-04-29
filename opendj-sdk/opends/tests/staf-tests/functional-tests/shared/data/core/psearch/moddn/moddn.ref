@@ -1,0 +1,55 @@
+dn: uid=reuters,ou=People,dc=example,dc=com
+ou: Human Resources
+ou: People
+sn: Reuter
+facsimileTelephoneNumber: +1 408 555 3825
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 1356
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Sunnyvale
+cn: Matthew Reuter
+telephoneNumber: +1 408 555 6879
+givenName: Matthew
+uid: reuters
+mail: mreuter@example.com
+
+
+dn: uid=jgoldistec,ou=People,dc=example,dc=com
+ou: Human Resources
+ou: People
+sn: Goldstein
+facsimileTelephoneNumber: +1 408 555 7472
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 1454
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Jon Goldstein
+telephoneNumber: +1 408 555 5769
+givenName: Jon
+uid: jgoldistec
+mail: jgoldste@example.com
+
+
+dn: uid=noway,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: Lanoway
+facsimileTelephoneNumber: +1 408 555 8473
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomNumber: 3540
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Santa Clara
+cn: Dan Lanoway
+telephoneNumber: +1 408 555 2017
+givenName: Dan
+uid: noway
+mail: dlanoway@example.com

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -925,6 +925,22 @@ public final class ServerConstants
    */
   public static final String OC_COLLECTIVE_ATTR_SUBENTRY_LC =
           "collectiveattributesubentry";
+
+
+
+  /**
+   * The name of the LDAP Password Policy Internet-Draft
+   * "pwdPolicy" objectclass, formatted in camel case.
+   */
+  public static final String OC_PWD_POLICY_SUBENTRY = "pwdPolicy";
+
+
+
+  /**
+   * The name of the LDAP Password Policy Internet-Draft
+   * "pwdPolicy" objectclass, formatted in all lowercase.
+   */
+  public static final String OC_PWD_POLICY_SUBENTRY_LC = "pwdpolicy";
 
 
 

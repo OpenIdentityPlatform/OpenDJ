@@ -1,0 +1,4 @@
+uid=tmorris,ou=People,dc=example,dc=com
+uid=abergin,ou=People,dc=example,dc=com
+uid=jwalker,ou=People,dc=example,dc=com
+uid=tclow,ou=People,dc=example,dc=com

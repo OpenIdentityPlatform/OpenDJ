@@ -1,0 +1,4 @@
+dn: uid=user.250,ou=people,dc=com
+changetype: modify
+add: ds-certificate-subject-dn
+ds-certificate-subject-dn:  uid=user.250,ou=People,dc=com

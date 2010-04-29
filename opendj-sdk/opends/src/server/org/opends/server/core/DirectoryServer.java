@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -1424,11 +1424,7 @@ public class DirectoryServer
 
 
       // Initialize the subentry manager.
-      subentryManager = new SubentryManager();
-      // The configuration backend has already been registered at this point
-      // so we need to handle it explicitly.
-      subentryManager.performBackendInitializationProcessing(configHandler);
-
+      initializeSubentryManager();
 
       // Initialize the group manager.
       initializeGroupManager();
@@ -2862,6 +2858,41 @@ public class DirectoryServer
       connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
     }
     connectionHandlerConfigManager.initializeAdministrationConnectorConfig();
+  }
+
+
+
+  /**
+   * Initializes the subentry manager for the Directory Server.
+   * Note that the subentry manager initialization should be
+   * done before any dependent components initialization and
+   * before bringing any backends online. Configuration backend
+   * is a special case and therefore is exception to this rule.
+   *
+   * @throws InitializationException If a problem occurs while
+   *                                 initializing the subentry
+   *                                 manager.
+   */
+  public void initializeSubentryManager()
+          throws InitializationException
+  {
+    try
+    {
+      subentryManager = new SubentryManager();
+      // The configuration backend should already be registered
+      // at this point so we need to handle it explicitly here.
+      subentryManager.performBackendInitializationProcessing(
+              configHandler);
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      throw new InitializationException(de.getMessageObject());
+    }
   }
 
 
@@ -8291,6 +8322,12 @@ public class DirectoryServer
       DirectoryServer.deregisterPasswordPolicy(configEntryDN);
     }
 
+    // Finalize password policies and their config manager.
+    if (directoryServer.passwordPolicyConfigManager != null)
+    {
+      directoryServer.passwordPolicyConfigManager.finalizePasswordPolicies();
+    }
+
     // Finalize the access control handler
     AccessControlHandler accessControlHandler =
         AccessControlConfigManager.getInstance().getAccessControlHandler();
@@ -8305,6 +8342,11 @@ public class DirectoryServer
       directoryServer.groupManager.finalizeGroupManager();
     }
 
+    // Finalize the subentry manager.
+    if (directoryServer.subentryManager != null)
+    {
+      directoryServer.subentryManager.finalizeSubentryManager();
+    }
 
     // Shut down all the other components that may need special handling.
     // NYI

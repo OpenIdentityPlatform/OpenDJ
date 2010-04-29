@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="clus_starttls_ldappasswdmodify"/>
+
+  <function name="clus_starttls_ldappasswdmodify" scope="local">
+
+    <sequence>
+
+      <block name="'clus_starttls_ldappasswdmodify'">
+
+        <sequence>
+
+          <!--- Test Suite information
+            #@TestSuiteName       StartTLS ldappasswordmodify check behaviors
+            #@TestSuitePurpose    Test the results of StartTLS ldappasswordmodify
+                                  command.
+            #@TestSuiteGroup      ldappasswordmodify check behavior tests
+            #@TestScript          clus_startTLS_ldapassmodify.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Test Case information
+            #@TestMarker          StartTLS ldappasswordmodify check behaviors
+            #@TestName            Client blind trust : ldappasswordmodify
+            #@TestIssue           none
+            #@TestPurpose         Verify that a user can change his own
+                                  password when client trust all server
+                                  certificates.
+            #@TestPreamble        none
+            #@TestStep            Check that user.210 can do an startTLS
+                                  ldapsearch.
+            #@TestStep            Do an ldappasswordmodify to change user
+                                  password.
+            #@TestStep            Check that user.210 can't do an ldapsearch
+                                  with his old password.
+            #@TestStep            Check that user.210 can do an ldapsearch with
+                                  his new password.
+            #@TestPostamble       none
+            #@TestResult          Success if user210password works.
+          -->
+          <testcase name="getTestCaseName('Client blind trust : ldappasswordmodify')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsInstanceDn'     : 'uid=user.210,ou=people,dc=com',
+                'dsInstancePswd'   : 'password' ,
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*'
+                }
+              </call>
+
+              <call function="'ldapPasswordModifyWithScript'">
+                {
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsAuthzID'        : 'uid=user.210,ou=people,dc=com' ,
+                'dsUseStartTLS'            : ' ' ,
+                'dsTrustAll'          : ' ' ,
+                'dsCurrentPassword'   : 'password' ,
+                'dsNewPassword'       : 'user210password'
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=user.210,ou=people,dc=com' ,
+                'dsInstancePswd'   : 'password' ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*' ,
+                'expectedRC'       : 49
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsInstanceDn'     : 'uid=user.210,ou=people,dc=com',
+                'dsInstancePswd'   : 'user210password' ,
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          StartTLS ldappasswordmodify check behaviors
+          #@TestName            Client blind trust : ldappasswordmodify
+          #@TestIssue           none
+          #@TestPurpose         Verify that a user can change his own
+                                password when client uses a TrustStore file.
+          #@TestPreamble        none
+          #@TestStep            Check that user.211 can do
+                                an StartTLS ldapsearch.
+          #@TestStep            Do an ldappasswordmodify to change user
+                                password.
+          #@TestStep            Check that user.211 can't do an ldapsearch with
+                                his old password.
+          #@TestStep            Check that user.211 can do an ldapsearch with
+                                his new password.
+          #@TestPostamble       none
+          #@TestResult          Success if user211password works.
+          -->
+          <testcase name="getTestCaseName('Client use TrustStore file : ldappasswordmodify')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore' \
+                                      % InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsInstanceDn'     : 'uid=user.211,ou=people,dc=com',
+                'dsInstancePswd'   : 'password' ,
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*'
+                }
+              </call>
+
+              <call function="'ldapPasswordModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsAuthzID'        : 'uid=user.211,ou=people,dc=com' ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore'
+                                      %InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsCurrentPassword'   : 'password' ,
+                'dsNewPassword'       : 'user211password'
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=user.211,ou=people,dc=com' ,
+                'dsInstancePswd'   : 'password' ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore' \
+                                      % InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*' ,
+                'expectedRC'       : 49
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore' \
+                                      %InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsInstanceDn'     : 'uid=user.211,ou=people,dc=com',
+                'dsInstancePswd'   : 'user211password' ,
+                'dsTypesOnly'      : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'uid=user.*'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+        
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
+
+

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -294,7 +294,7 @@ public class DbHandler implements Runnable
    * @param to   The upper (newer) change number.
    * @return The computed number of changes.
    */
-  public int getCount(ChangeNumber from, ChangeNumber to)
+  public int traverseAndCount(ChangeNumber from, ChangeNumber to)
   {
     int count = 0;
     flush();
@@ -312,7 +312,7 @@ public class DbHandler implements Runnable
       ChangeNumber curr = null;
       while ((curr = cursor.nextChangeNumber())!=null)
       {
-        if (curr.newer(to))
+        if (curr.newerOrEquals(to))
           break;
         count++;
       }
@@ -696,4 +696,30 @@ public class DbHandler implements Runnable
   {
     return this.msgQueue.size();
   }
+
+  /**
+   * Set the counter writing window size (public for unit tests only).
+   * @param size Size in number of record.
+   */
+  public void setCounterWindowSize(int size)
+  {
+    db.setCounterWindowSize(size);
+  }
+
+  /**
+   * Return the number of changes between 2 provided change numbers.
+   * This a alternative to traverseAndCount, expected to be much more efficient
+   * when there is a huge number of changes in the Db.
+   * @param from The lower (older) change number.
+   * @param to   The upper (newer) change number.
+   * @return The computed number of changes.
+   */
+  public int getCount(ChangeNumber from, ChangeNumber to)
+  {
+    int c=0;
+    flush();
+    c = db.count(from, to);
+    return c;
+  }
+
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import java.lang.reflect.Method;
@@ -156,7 +156,7 @@ public class DefaultEntryCache
       cacheMisses.getAndIncrement();
     }
 
-    return entry;
+    return (entry != null ? entry.duplicate(true) : null);
   }
 
 
@@ -183,7 +183,7 @@ public class DefaultEntryCache
       cacheMisses.getAndIncrement();
     }
 
-    return entry;
+    return (entry != null ? entry.duplicate(true) : null);
   }
 
 
@@ -206,7 +206,7 @@ public class DefaultEntryCache
       cacheMisses.getAndIncrement();
     }
 
-    return entry;
+    return (entry != null ? entry.duplicate(true) : null);
   }
 
 
@@ -258,7 +258,8 @@ public class DefaultEntryCache
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
-        entryCache.putEntry(entry, backend, entryID);
+        entryCache.putEntry(entry.duplicate(false),
+                backend, entryID);
         break;
       }
     }
@@ -275,7 +276,8 @@ public class DefaultEntryCache
       // The first cache in the order which can take this entry
       // gets it.
       if (entryCache.filtersAllowCaching(entry)) {
-        return entryCache.putEntryIfAbsent(entry, backend, entryID);
+        return entryCache.putEntryIfAbsent(entry.duplicate(false),
+                backend, entryID);
       }
     }
 

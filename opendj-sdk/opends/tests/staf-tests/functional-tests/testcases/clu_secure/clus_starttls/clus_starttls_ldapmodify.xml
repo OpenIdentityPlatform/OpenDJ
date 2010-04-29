@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2010 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="clus_starttls_ldapmodify"/>
+
+  <function name="clus_starttls_ldapmodify" scope="local">
+
+    <sequence>
+
+      <block name="'clus_starttls_ldapmodify'">
+
+        <sequence>
+
+          <!--- Test Suite information
+          #@TestSuiteName       StartTLS ldapmodify check behaviors
+          #@TestSuitePurpose    Test the results of the startTLS ldapmodify
+                                command
+          #@TestSuiteGroup      ldapmodify check bahavior tests
+          #@TestScript          clus_startTLS_ldapmodify.xml
+          -->
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu_secure'
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Test Case information
+          #@TestMarker        StartTLS ldapmodify check behaviors
+          #@TestName          Client blind trust : ldapmodify
+          #@TestIssue         none
+          #@TestPurpose       Verify that the operation is successful and
+                              that the attribute value has been modified
+                              when client trust all server certificates.
+          #@TestPreamble      none
+          #@TestStep          Check that the "sn" value for "uid=user.110"
+                              is Aimone.
+          #@TestStep          Modify the "sn" value using startTLS ldapmodify
+          #@TestStep          Check that the "sn" value for
+                              "uid=user.110" is John.
+          #@TestPostamble     none
+          #@TestResult        Success if the "sn" value is John
+          -->
+          <testcase name="getTestCaseName('Client blind trust : ldapmodify')">
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'Security: startTLS Check behaviors: ldapmodify, client trustall \
+                 server cert'
+              </message>
+
+              <script>
+              modifysn = 'clu_secure/clus_startls_ldapmodify.ldif'
+              modifyphone = 'clu_secure/clus_startls_ldapmodify2.ldif'
+              </script>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsUseStartTLS'    : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsFilter'         : 'uid=user.110' ,
+                'dsAttributes'     : 'sn'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'sn: Aimone'
+                }
+              </call>
+
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'dsUseStartTLS'    : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsFilename'       : '%s/%s' % (remote.data,modifysn)
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsFilter'         : 'uid=user.110' ,
+                'dsAttributes'     : 'sn'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'sn: John'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker      StartTLS ldapmodify check behaviors
+            #@TestName        Client use TrustStore file : ldapmodify
+            #@TestIssue       none
+            #@TestPurpose     Verify that the operation is successful and
+                              that the attribute value has been modified
+                              when client uses a TrustStore file.
+            #@TestPreamble    none
+            #@TestStep        Check that the "telephoneNumber" value for 
+                              "uid=user.111" is +1 896 751 0209
+            #@TestStep        Modify the "mail" value using startTLS ldapmodify.
+            #@TestStep        Check that the "telephoneNumber" value for
+                              "uid=user.111" is +3312345678
+            #@TestPostamble   none
+            #@TestResult      Success if the "telephoneNumber" value is
+                              +3312345678.
+          -->
+          <testcase name="getTestCaseName('Client use TrustStore file : ldapmodify')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'Security: startTLS Check behaviors: ldapmodify, client \
+                 TrustStore file'
+              </message>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsUseStartTLS'         : ' ' ,
+                'dsTrustAll'       : ' ' ,
+                'dsFilter'         : 'uid=user.111' ,
+                'dsAttributes'     : 'telephoneNumber'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'telephoneNumber: \+1 896 751 0209'
+                }
+              </call>
+
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'dsUseStartTLS'    : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore' \
+                                      % InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsFilename'       : '%s/%s' % (remote.data,modifyphone)
+                }
+              </call>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsUseStartTLS'    : ' ' ,
+                'dsTrustStorePath' : '%s/client_cert/clientruststore' \
+                                      % InstanceInstallDir,
+                'dsTrustStorePassword': 'clientruststorepass',
+                'dsFilter'         : 'uid=user.111' ,
+                'dsAttributes'     : 'telephoneNumber'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              <call function="'checktestString'">
+                {
+                'returnString'     : returnString ,
+                'expectedString'   : 'telephoneNumber: \+3312345678'
+                }
+              </call>
+
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>
+
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+
+      </block>
+      
+    </sequence>
+
+  </function>
+
+</stax>
+
+

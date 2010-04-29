@@ -1,0 +1,4 @@
+dn: uid=user.110,ou=people,dc=com
+changetype: modify
+replace: sn
+sn: John

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -187,6 +188,26 @@ public class SchemaConfigManager
 
 
   /**
+   * Filter implementation that accepts only ldif files.
+   */
+  private class SchemaFileFilter implements FilenameFilter
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public boolean accept(File directory, String filename)
+    {
+      if (filename.endsWith(".ldif"))
+      {
+        return true;
+      }
+      return false;
+    }
+  }
+
+
+
+  /**
    * Initializes all the attribute type, object class, name form, DIT content
    * rule, DIT structure rule, and matching rule use definitions by reading the
    * server schema files.  These files will be located in a single directory and
@@ -253,12 +274,15 @@ public class SchemaConfigManager
         schemaInstanceDir = null;
       }
 
-      File[] schemaInstallDirFiles  = schemaInstallDir.listFiles() ;
+      FilenameFilter filter = new SchemaFileFilter();
+      File[] schemaInstallDirFiles =
+              schemaInstallDir.listFiles(filter);
       int fileNumber = schemaInstallDirFiles.length;
       File[] schemaInstanceDirFiles = null ;
       if (schemaInstanceDir != null)
       {
-        schemaInstanceDirFiles = schemaInstanceDir.listFiles();
+        schemaInstanceDirFiles =
+                schemaInstanceDir.listFiles(filter);
         fileNumber =+ schemaInstanceDirFiles.length ;
       }
 

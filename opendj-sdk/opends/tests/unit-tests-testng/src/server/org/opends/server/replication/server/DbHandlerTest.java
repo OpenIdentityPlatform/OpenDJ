@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -30,6 +30,7 @@ import java.io.File;
 import java.net.ServerSocket;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -37,13 +38,29 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 /**
  * Test the dbHandler class
  */
 public class DbHandlerTest extends ReplicationTestCase
 {
-  @Test()
+  // The tracer object for the debug logger
+  private static final DebugTracer TRACER = getTracer();
+  /**
+   * Utility - log debug message - highlight it is from the test and not
+   * from the server code. Makes easier to observe the test steps.
+   */
+  private void debugInfo(String tn, String s)
+  {
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("** TEST " + tn + " ** " + s);
+    }
+  }
+
+  @Test(enabled=true)
   void testDbHandlerTrim() throws Exception
   {
     File testRoot = null;
@@ -265,7 +282,7 @@ public class DbHandlerTest extends ReplicationTestCase
    * The clear feature is used when a replication server receives a request
    * to reset the generationId of a given domain.
    */
-  @Test()
+  @Test(enabled=true)
   void testDbHandlerClear() throws Exception
   {
     File testRoot = null;
@@ -335,6 +352,257 @@ public class DbHandlerTest extends ReplicationTestCase
 
     } finally
     {
+      if (handler != null)
+        handler.shutdown();
+      if (dbEnv != null)
+        dbEnv.shutdown();
+      if (replicationServer != null)
+        replicationServer.remove();
+      if (testRoot != null)
+        TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+  /**
+   * Test the logic that manages counter records in the DbHandler in order to
+   * optimize the counting of record in the replication changelog db.
+   * @throws Exception
+   */
+  @Test(enabled=true)
+  void testDbCounts() throws Exception
+  {
+    // It's worth testing with 2 different setting for counterRecord
+    // - a counter record is put every 10 Update msg in the db - just a unit
+    //   setting.
+    // - a counter record is put every 1000 Update msg in the db - something
+    //   closer to real setting.
+    // In both cases, we want to test the counting algorithm, 
+    // - when start and stop are before the first counter record, 
+    // - when start and stop are before and after the first counter record, 
+    // - when start and stop are after the first counter record, 
+    // - when start and stop are before and after more than one counter record, 
+    // After a purge.
+    // After shutdowning/closing and reopening the db.
+    testDBCount(40, 10);
+    testDBCount(4000, 1000);
+  }
+
+  private void testDBCount(int max, int counterWindow) throws Exception
+  {
+    String tn = "testDBCount("+max+","+counterWindow+")";
+    debugInfo(tn, "Starting test");
+
+    File testRoot = null;
+    ReplicationServer replicationServer = null;
+    ReplicationDbEnv dbEnv = null;
+    DbHandler handler = null;
+    ReplicationIterator ri = null;
+    int actualCnt = 0;
+    String testcase;
+    try
+    {
+      TestCaseUtils.startServer();
+
+      //  find  a free port for the replicationServer
+      ServerSocket socket = TestCaseUtils.bindFreePort();
+      int changelogPort = socket.getLocalPort();
+      socket.close();
+
+      // configure a ReplicationServer.
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(changelogPort, null, 0,
+            2, 0, 100000, null);
+      replicationServer = new ReplicationServer(conf);
+
+      // create or clean a directory for the dbHandler
+      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+      String path = buildRoot + File.separator + "build" + File.separator +
+      "unit-tests" + File.separator + "dbHandlercp";
+      testRoot = new File(path);
+      if (testRoot.exists())
+      {
+        TestCaseUtils.deleteDirectory(testRoot);
+      }
+      testRoot.mkdirs();
+
+      dbEnv = new ReplicationDbEnv(path, replicationServer);
+
+      // Create the handler
+      handler =
+        new DbHandler( 1, TEST_ROOT_DN_STRING,
+            replicationServer, dbEnv, 10);
+      handler.setCounterWindowSize(counterWindow);
+
+      // Populate the db with 'max' msg
+      int mySeqnum = 1;
+      ChangeNumber cnarray[] = new ChangeNumber[2*(max+1)];
+      long now = System.currentTimeMillis();
+      for (int i=1; i<=max; i++)
+      {        
+        cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
+        mySeqnum+=2;
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
+        handler.add(update1);
+      }
+      handler.flush();
+
+      // Test first and last
+      ChangeNumber cn1 = handler.getFirstChange();
+      assertEquals(cn1, cnarray[1], "First change");
+      ChangeNumber cnlast = handler.getLastChange();
+      assertEquals(cnlast, cnarray[max], "Last change");
+
+      // Test count in different subcases trying to handle all special cases
+      // regarding the 'counter' record and 'count' algorithm
+      testcase="FROM change1 TO change1 ";
+      actualCnt = handler.getCount(cnarray[1], cnarray[1]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 1, testcase);
+
+      testcase="FROM change1 TO change2 ";
+      actualCnt = handler.getCount(cnarray[1], cnarray[2]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 2, testcase);
+
+      testcase="FROM change1 TO counterWindow="+(counterWindow);
+      actualCnt = handler.getCount(cnarray[1], cnarray[counterWindow]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, counterWindow, testcase);
+
+      testcase="FROM change1 TO counterWindow+1="+(counterWindow+1);
+      actualCnt = handler.getCount(cnarray[1], cnarray[counterWindow+1]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, counterWindow+1, testcase);
+      
+      testcase="FROM change1 TO 2*counterWindow="+(2*counterWindow);
+      actualCnt = handler.getCount(cnarray[1], cnarray[2*counterWindow]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 2*counterWindow, testcase);
+
+      testcase="FROM change1 TO 2*counterWindow+1="+((2*counterWindow)+1);
+      actualCnt = handler.getCount(cnarray[1], cnarray[(2*counterWindow)+1]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, (2*counterWindow)+1, testcase);
+
+      testcase="FROM change2 TO change5 ";
+      actualCnt = handler.getCount(cnarray[2], cnarray[5]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 4, testcase);
+
+      testcase="FROM counterWindow+2 TO counterWindow+5 ";
+      actualCnt = handler.getCount(cnarray[(counterWindow+2)], cnarray[(counterWindow+5)]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 4, testcase);
+
+      testcase="FROM change2 TO counterWindow+5 ";
+      actualCnt = handler.getCount(cnarray[2], cnarray[(counterWindow+5)]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, counterWindow+4, testcase);
+
+      testcase="FROM counterWindow+4 TO counterWindow+4 ";
+      actualCnt = handler.getCount(cnarray[(counterWindow+4)], cnarray[(counterWindow+4)]);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, 1, testcase);
+
+      // Now test with changes older than first or newer than last
+      ChangeNumber olderThanFirst = null;
+      ChangeNumber newerThanLast =
+        new ChangeNumber(System.currentTimeMillis() + (2*(max+1)), 100, 1);
+
+      // Now we want to test with start and stop outside of the db
+      
+      testcase="FROM our first generated change TO now (> newest change in the db)";
+      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, max, testcase);
+
+      testcase="FROM null (start of time) TO now (> newest change in the db)";
+      actualCnt = handler.getCount(olderThanFirst, newerThanLast);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, max, testcase);
+
+      // Now we want to test that after closing and reopening the db, the
+      // counting algo is well reinitialized and when new messages are added
+      // the new counter are correctly generated.
+      debugInfo(tn,"SHUTDOWN handler and recreate");
+      handler.shutdown();
+      
+      handler =
+        new DbHandler( 1, TEST_ROOT_DN_STRING,
+            replicationServer, dbEnv, 10);
+      handler.setCounterWindowSize(counterWindow);
+
+      // Test first and last
+      cn1 = handler.getFirstChange();
+      assertEquals(cn1, cnarray[1], "First change");
+      cnlast = handler.getLastChange();
+      assertEquals(cnlast, cnarray[max], "Last change");
+
+      testcase="FROM our first generated change TO now (> newest change in the db)";
+      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, max, testcase);
+
+      // Populate the db with 'max' msg
+      for (int i=max+1; i<=(2*max); i++)
+      {        
+        cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
+        mySeqnum+=2;
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
+        handler.add(update1);
+      }
+      handler.flush();
+
+      // Test first and last
+      cn1 = handler.getFirstChange();
+      assertEquals(cn1, cnarray[1], "First change");
+      cnlast = handler.getLastChange();
+      assertEquals(cnlast, cnarray[2*max], "Last change");
+
+      testcase="FROM our first generated change TO now (> newest change in the db)";
+      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, (2*max), testcase);
+      
+      //
+      
+      handler.setPurgeDelay(100);
+      sleep(4000);
+      int totalCount = handler.getCount(null, null);
+      debugInfo(tn,testcase + " After purge, total count=" + totalCount);
+      
+      testcase="AFTER PURGE (first, last)=";
+      debugInfo(tn,testcase + handler.getFirstChange() + handler.getLastChange());
+      assertEquals(handler.getLastChange(), cnarray[2*max], "Last=");
+           
+      testcase="AFTER PURGE ";
+      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      int expectedCnt;
+      if (totalCount>1)
+      {
+        expectedCnt = ((handler.getLastChange().getSeqnum()
+                    - handler.getFirstChange().getSeqnum() + 1)/2)+1;
+      }
+      else
+      {
+        expectedCnt = 1;
+      }
+      debugInfo(tn,testcase + " actualCnt=" + actualCnt);
+      assertEquals(actualCnt, expectedCnt, testcase);
+
+      // Clear ...
+      debugInfo(tn,"clear:");
+      handler.clear();
+
+      // Check the db is cleared.
+      assertEquals(null, handler.getFirstChange());
+      assertEquals(null, handler.getLastChange());
+      debugInfo(tn,"Success");
+
+    }
+    finally
+    {
+      if (ri!=null)
+        ri.releaseCursor();
       if (handler != null)
         handler.shutdown();
       if (dbEnv != null)

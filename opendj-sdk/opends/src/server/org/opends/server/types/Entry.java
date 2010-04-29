@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -3361,7 +3361,8 @@ public class Entry
   public boolean isCollectiveAttributeSubentry()
   {
     ObjectClass collectiveAttributeSubentryOC =
-         DirectoryServer.getObjectClass(OC_COLLECTIVE_ATTR_SUBENTRY);
+         DirectoryServer.getObjectClass(
+         OC_COLLECTIVE_ATTR_SUBENTRY_LC);
     if (collectiveAttributeSubentryOC == null)
     {
       // This should not happen -- The server doesn't have
@@ -3388,6 +3389,49 @@ public class Entry
     // Make the determination based on whether this entry
     // has the collectiveAttributeSubentry objectclass.
     return objectClasses.containsKey(collectiveAttributeSubentryOC);
+  }
+
+
+
+  /**
+   * Indicates whether the entry meets the criteria to consider it a
+   * LDAP password policy subentry (i.e., it contains the "pwdPolicy"
+   * objectclass of LDAP Password Policy Internet-Draft).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it a LDAP Password Policy Internet-Draft
+   *          subentry, or <CODE>false</CODE> if not.
+   */
+  public boolean isPasswordPolicySubentry()
+  {
+    ObjectClass passwordPolicySubentryOC =
+         DirectoryServer.getObjectClass(OC_PWD_POLICY_SUBENTRY_LC);
+    if (passwordPolicySubentryOC == null)
+    {
+      // This should not happen -- The server doesn't have
+      // a pwdPolicy objectclass defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_PWD_POLICY_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(OC_PWD_POLICY_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this entry
+    // has the pwdPolicy objectclass.
+    return objectClasses.containsKey(passwordPolicySubentryOC);
   }
 
 

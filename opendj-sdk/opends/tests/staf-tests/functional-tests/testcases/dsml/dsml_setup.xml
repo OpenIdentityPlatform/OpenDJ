@@ -103,6 +103,14 @@
                 'remotehost' : STAXServiceMachine
                 }
               </call>
+              <call function="'copyFile'">
+                {
+                'location'   : STAF_REMOTE_HOSTNAME,
+                'srcfile'    : '%s/../../ext/emma/lib/emma.jar' % TESTS_ROOT,
+                'destfile'   : '%s/dsml/STAF-INF/jars/emma.jar' % TMPDIR,
+                'remotehost' : STAXServiceMachine
+                }
+              </call>
 
               <script>
                 if is_windows_platform(STAXServiceMachine):
@@ -111,6 +119,7 @@
                   separator=':'
 
                 opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR
+                emmajar='%s/dsml/STAF-INF/jars/emma.jar' % TMPDIR
                 dsmlclasses='%s/dsml/STAF-INF/classes' % TMPDIR
               </script>
 
@@ -130,8 +139,8 @@
                 'location'   : STAXServiceMachine,
                 'foldername' : '%s/src' % TESTS_DSML_DIR,
                 'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
-                'classpath'  : '%s%s%s%s%s' \
-                               % (opendsjar,separator,dsmlclasses,separator,cp)
+                'classpath'  : '%s%s%s%s%s%s%s' \
+                               % (opendsjar,separator,emmajar,separator,dsmlclasses,separator,cp)
                 }
               </call>
 

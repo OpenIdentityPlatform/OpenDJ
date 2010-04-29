@@ -1205,7 +1205,12 @@ public class InstallerHelper {
     }
   }
 
-  private String getJavaArgPropertyForScript(String scriptName)
+  /**
+   * Returns the java argument property for a given script.
+   * @param scriptName the script name.
+   * @return the java argument property for a given script.
+   */
+  private static String getJavaArgPropertyForScript(String scriptName)
   {
     return scriptName+".java-args";
   }

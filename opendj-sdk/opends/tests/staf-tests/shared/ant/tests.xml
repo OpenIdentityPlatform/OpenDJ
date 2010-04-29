@@ -112,7 +112,7 @@
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_${tests.type} SCRIPTFILE ${tests.run.dir}/${tests.run.time}/config/${tests.config.file} WAIT CLEARLOGS"/>
 
     <echo>While the tests are running you may tail the job logs at</echo>
-    <echo>${staf.install.dir}/${staf.name}/logs/MACHINE/${host.name}</echo>
+    <echo>${staf.install.dir}/${staf.name}/data-${host.name}/service/log/MACHINE/${host.name}/GLOBAL</echo>
     <echo>Running tests. This will take more than a while.</echo>
     <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar:."/>
     <exec
@@ -126,9 +126,9 @@
       <env key="STAFCODEPAGE" value="LATIN_1"/>
     </exec>
 
-    <symlink link="${tests.run.dir}/latest" resource="${tests.run.time}" overwrite="true"/>
+    <symlink link="${tests.run.dir}/${remote.hostname}-latest" resource="${tests.run.time}" overwrite="true"/>
     <echo>Report is available at</echo>
-    <echo>${tests.run.dir}/latest</echo>
+    <echo>${tests.run.dir}/${remote.hostname}-latest</echo>
   </target>
 
   <target name="configure">
@@ -398,28 +398,35 @@ original.archive=${opends.dir.input}/${opends.name.input}.zip</echo>
   </target>
   <target name="coverage-instrument" if="coverage.on">
     <delete dir="${tests.tmp.dir}/coverage-instr" />
-    <mkdir dir="${tests.tmp.dir}/coverage-instr" />
+    <mkdir dir="${tests.tmp.dir}/coverage-instr/opends" />
+    <mkdir dir="${tests.tmp.dir}/coverage-instr/dsml" />
     <!-- unzip the original package in a temporary location to make the
          changes necessary so that the coverage tool is called
      -->
     <unzip src="${opends.dir}/${opends.name}.zip"
-           dest="${tests.tmp.dir}/coverage-instr"/>
+           dest="${tests.tmp.dir}/coverage-instr/opends"/>
+
+    <unzip src="${opends.dir}/${opends.name}-DSML.war"
+           dest="${tests.tmp.dir}/coverage-instr/dsml"/>
 
     <!-- Add emma in the package along with the other librairies
          this has the advantage of being automatically picked up by the scripts
     -->
     <copy file="${project.home}/ext/emma/lib/emma.jar"
-          tofile="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/emma.jar"/>
+          tofile="${tests.tmp.dir}/coverage-instr/opends/${opends.name}/lib/emma.jar"/>
+    <copy file="${project.home}/ext/emma/lib/emma.jar"
+          tofile="${tests.tmp.dir}/coverage-instr/dsml/WEB-INF/lib/emma.jar"/>
 
     <!-- move the original product package to make room for the coverage
          enabled package
      -->
     <move file="${opends.dir}/${opends.name}.zip" tofile="${opends.dir}/${opends.name}.zip.nocov"/>
+    <move file="${opends.dir}/${opends.name}-DSML.war" tofile="${opends.dir}/${opends.name}-DSML.war.nocov"/>
 
     <!-- intrument the OpenDS java archive to gather coverage -->
-    <java classpath="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/emma.jar"
+    <java classpath="${tests.tmp.dir}/coverage-instr/opends/${opends.name}/lib/emma.jar"
           classname="emma" fork="true">
-        <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/${opends.name}/coverage.em" />
+        <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/opends/${opends.name}/coverage.em" />
         <arg value="instr" />
         <arg value="-m" />
         <arg value="overwrite" />
@@ -432,20 +439,46 @@ original.archive=${opends.dir.input}/${opends.name.input}.zip</echo>
         <arg value="-ix" />
         <arg value="com.*" />
         <arg value="-ip" />
-        <arg value="${tests.tmp.dir}/coverage-instr/${opends.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/${opends.name}/lib/extensions/snmp-mib2605.jar" />
+        <arg value="${tests.tmp.dir}/coverage-instr/opends/${opends.name}/lib/OpenDS.jar:${tests.tmp.dir}/coverage-instr/opends/${opends.name}/lib/extensions/snmp-mib2605.jar" />
     </java>
 
-    <!-- Repackage the product with coverage enabled scripts -->
-    <zip basedir="${tests.tmp.dir}/coverage-instr" destfile="${opends.dir}/${opends.name}.zip">
-    <zipfileset dir="${tests.tmp.dir}/coverage-instr"
+    <java classpath="${tests.tmp.dir}/coverage-instr/dsml/WEB-INF/lib/emma.jar"
+          classname="emma" fork="true">
+        <jvmarg value="-Demma.metadata.out.file=${tests.tmp.dir}/coverage-instr/dsml/WEB-INF/lib/coverage.em" />
+        <arg value="instr" />
+        <arg value="-m" />
+        <arg value="overwrite" />
+        <arg value="-ix" />
+        <arg value="-org.opends.guitools.*" />
+        <arg value="-ix" />
+        <arg value="-org.opends.quicksetup.*" />
+        <arg value="-ix" />
+        <arg value="org.*" />
+        <arg value="-ix" />
+        <arg value="com.*" />
+        <arg value="-ip" />
+        <arg value="${tests.tmp.dir}/coverage-instr/dsml/WEB-INF/classes" />
+    </java>
+    <!-- Repackage OpenDS the product with coverage enabled scripts -->
+    <zip basedir="${tests.tmp.dir}/coverage-instr/opends" destfile="${opends.dir}/${opends.name}.zip">
+    <zipfileset dir="${tests.tmp.dir}/coverage-instr/opends"
                 includes="${opends.name}/setup,${opends.name}/uninstall,${opends.name}/upgrade,${opends.name}/bin/*,${opends.name}/lib/*.sh"
                 filemode="755" dirmode="755" />
     </zip>
+
+    <!-- Repackage DSML Gateway the product with coverage enabled scripts -->
+    <zip basedir="${tests.tmp.dir}/coverage-instr/dsml" destfile="${opends.dir}/${opends.name}-DSML.war">
+    <zipfileset dir="${tests.tmp.dir}/coverage-instr/dsml"
+                includes="WEB-INF/**,META-INF/**"/>
+    </zip>
+
     <!-- <delete dir="${tests.tmp.dir}/coverage-instr"/> -->
   </target>
   <target name="restore-pkg" if="coverage.on">
     <delete file="${opends.dir}/${opends.name}.zip"/>
     <move file="${opends.dir}/${opends.name}.zip.nocov" tofile="${opends.dir}/${opends.name}.zip"/>
+    <delete file="${opends.dir}/${opends.name}-DSML.war"/>
+    <move file="${opends.dir}/${opends.name}-DSML.war.nocov" tofile="${opends.dir}/${opends.name}-DSML.war"/>
   </target>
   <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run,restore-pkg"/>
 

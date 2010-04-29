@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 import java.util.Hashtable;
@@ -115,7 +115,10 @@ public class addAnEntry {
           attrToComplete = new BasicAttribute(attributeName);
           attributeSet.add(attrToComplete);
         }
-        attrToComplete.add(attributeValue);
+        if (attributeValue != null) {
+          attributeValue = attributeValue.replaceAll("QUOT","\\\"");
+          attrToComplete.add(attributeValue);
+        }
       }
       k++;
     }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -494,17 +494,20 @@ public class DataServerHandler extends ServerHandler
       boolean sessionInitiatorSSLEncryption =
         processStartFromRemote(inServerStartMsg);
 
+      /**
+       * Hack to be sure that if a server disconnects and reconnect, we
+       * let the reader thread see the closure and cleanup any reference
+       * to old connection. This must be done before taking the domain lock so
+       * that the reader thread has a chance to stop the handler.
+       */
+      replicationServerDomain.
+      waitDisconnection(inServerStartMsg.getServerId());
+
       // lock with no timeout
       lockDomain(false);
 
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
-
-      // Hack to be sure that if a server disconnects and reconnect, we
-      // let the reader thread see the closure and cleanup any reference
-      // to old connection
-      replicationServerDomain.
-      waitDisconnection(inServerStartMsg.getServerId());
 
       // Duplicate server ?
       if (!replicationServerDomain.checkForDuplicateDS(this))

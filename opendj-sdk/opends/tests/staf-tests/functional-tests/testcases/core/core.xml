@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main_core" />
@@ -60,6 +60,7 @@
               suiteList.append('controls/core_ctrls_matched_values')
               suiteList.append('binaryattr/core_binaryattr')
               suiteList.append('collectiveattr/core_collectiveattr')
+              suiteList.append('psearch/core_psearch')
             </script>
     
             <!-- Run the test suites -->

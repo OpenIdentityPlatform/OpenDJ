@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -210,8 +210,8 @@ public class PasswordPolicyState
     this.currentTime = currentTime;
 
     userDNString     = userEntry.getDN().toString();
-    passwordPolicy   = getPasswordPolicyInternal(this.userEntry,
-                                                 useDefaultOnError);
+    passwordPolicy   = getPasswordPolicy(this.userEntry,
+                                         useDefaultOnError);
 
     // Get the password changed time for the user.
     AttributeType type
@@ -253,8 +253,9 @@ public class PasswordPolicyState
   /**
    * Retrieves the password policy for the user. If the user entry contains the
    * ds-pwp-password-policy-dn attribute (whether real or virtual), that
-   * password policy is returned, otherwise the default password policy is
-   * returned.
+   * password policy is returned, otherwise applicable to the user entry
+   * subentry password policy is returned, if any, otherwise the default
+   * password policy is returned.
    *
    * @param  userEntry          The user entry.
    * @param  useDefaultOnError  Indicates whether the server should fall back to
@@ -266,15 +267,15 @@ public class PasswordPolicyState
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              determine the password policy for the user.
    */
-  private static PasswordPolicy getPasswordPolicyInternal(Entry userEntry,
+  public static PasswordPolicy getPasswordPolicy(Entry userEntry,
                                      boolean useDefaultOnError)
        throws DirectoryException
   {
     String userDNString = userEntry.getDN().toString();
-    AttributeType type =
-         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN, true);
-
+    AttributeType type = DirectoryServer.getAttributeType(
+            OP_ATTR_PWPOLICY_POLICY_DN, true);
     List<Attribute> attrList = userEntry.getAttribute(type);
+
     if (attrList != null)
     {
       for (Attribute a : attrList)
@@ -347,6 +348,49 @@ public class PasswordPolicyState
         }
 
         return policy;
+      }
+    }
+
+    // No attribute defined password policy: try locating and using the
+    // closest to this entry password policy subentry defined, if any.
+    List<SubEntry> pwpSubEntries =
+            DirectoryServer.getSubentryManager().getSubentries(userEntry);
+    if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
+    {
+      for (SubEntry subentry : pwpSubEntries)
+      {
+        try
+        {
+          if (subentry.getEntry().isPasswordPolicySubentry())
+          {
+            PasswordPolicy policy = DirectoryServer.getPasswordPolicy(
+                    subentry.getDN());
+            if (policy == null)
+            {
+              // This shouldnt happen but if it does debug log
+              // this problem and fall back to default policy.
+              if (debugEnabled())
+              {
+                TRACER.debugError(
+                        "Found unknown password policy subentry "
+                        + "DN %s for user %s",
+                        subentry.getDN().toString(), userDNString);
+              }
+              break;
+            }
+            return policy;
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugError("Could not parse password policy subentry "
+                    + "DN %s for user %s: %s",
+                    subentry.getDN().toString(), userDNString,
+                    stackTraceToSingleLineString(e));
+          }
+        }
       }
     }
 

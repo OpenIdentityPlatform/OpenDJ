@@ -1439,7 +1439,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (handler == null)
       return 0;
 
-    return handler.getCount(from, to);
+    int count = handler.getCount(from, to);
+    return count;
   }
 
   /**
@@ -2674,12 +2675,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       for (ServerHandler rs : replicationServers.values())
       {
         int serverId = rs.getServerId();
+        // Store the fact that we expect a MonitoringMsg back from this server
+        expectedMonitoringMsg.add(new GlobalServerId(baseDn, serverId));
         MonitorRequestMsg msg =
           new MonitorRequestMsg(this.replicationServer.getServerId(),
           serverId);
         rs.send(msg);
-        // Store the fact that we expect a MonitoringMsg back from this server
-        expectedMonitoringMsg.add(new GlobalServerId(baseDn, serverId));
       }
     } catch (Exception e)
     {
@@ -3379,6 +3380,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public long getEligibleCount(ServerState startState, ChangeNumber endCN)
   {
+    long sidRes = 0;
     long res = 0;
 
     // Parses the dbState of the domain , server by server
@@ -3391,7 +3393,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       ChangeNumber startCN = null;
       if (startState.getMaxChangeNumber(sid) != null)
         startCN = startState.getMaxChangeNumber(sid);
-      res += getCount(sid, startCN, endCN);
+      sidRes += getCount(sid, startCN, endCN);
+
+      // The startPoint is excluded when counting the ECL eligible changes
+      if ((startCN!=null)&&(sidRes>0))
+        sidRes--;
+
+      res+=sidRes;
     }
     return res;
   }
