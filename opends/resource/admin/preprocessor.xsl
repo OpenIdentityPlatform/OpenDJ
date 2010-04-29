@@ -21,12 +21,13 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  !      Copyright 2008-2010 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:exsl="http://exslt.org/common">
+  xmlns:exsl="http://exslt.org/common"
+  xmlns:file="xalan://java.io.File">
   <xsl:import href="java-utilities.xsl" />
   <xsl:output method="xml" indent="yes" />
   <!--
@@ -56,8 +57,10 @@
     <!--
       Get the absolute path.
     -->
+    <xsl:variable name="base-file" select="file:new($base-dir)" />
+    <xsl:variable name="base-dir-uri" select="file:toURI($base-file)" />
     <xsl:value-of
-      select="concat($base-dir, '/', $rpath, '/', $java-name, $suffix)" />
+      select="concat($base-dir-uri, '/', $rpath, '/', $java-name, $suffix)" />
   </xsl:template>
   <!--
     Get the URI of the named package definition.
