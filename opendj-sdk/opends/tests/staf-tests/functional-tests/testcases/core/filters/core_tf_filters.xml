@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Copyright 2006-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="core_tf_filters" />
@@ -81,7 +81,7 @@
                     'dsBaseDN'       : 'cn=version,cn=monitor',
                     'dsFilter'       : '&amp;',
                     'expectedRC'     : 2 ,
-                    'knownIssue'     : '3966'
+                    'knownIssue'     : ['3966','4406']
                   }
                 </call>
                 
@@ -114,7 +114,7 @@
                     'dsBaseDN'       : 'cn=version,cn=monitor',
                     'dsFilter'       : '|',
                     'expectedRC'     : 2 ,
-                    'knownIssue'     : '3966'
+                    'knownIssue'     : ['3966','4406']
                   }
                 </call>
                 
@@ -148,7 +148,7 @@
                     'dsBaseDN'       : 'cn=bad,cn=monitor',
                     'dsFilter'       : '&amp;',
                     'expectedRC'     : 2,
-                    'knownIssue'     : '3966'
+                    'knownIssue'     : ['3966','4406']
                   }
                 </call>
                 <call function="'testCase_Postamble'" />
@@ -181,7 +181,7 @@
                     'dsBaseDN'       : 'cn=bad,cn=monitor',
                     'dsFilter'       : '|',
                     'expectedRC'     : 2,
-                    'knownIssue'     : '3966'
+                    'knownIssue'     : ['3966','4406']
                   }
                 </call>
                 <call function="'testCase_Postamble'" />

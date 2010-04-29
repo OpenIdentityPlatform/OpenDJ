@@ -2665,7 +2665,8 @@
                                               'dsInstanceDn'    : directoryServer.dn        ,
                                               'dsInstancePswd'  : directoryServer.password  ,
                                               'dsDn'            : ['%s' % server.suffix]    ,
-                                              'expectedRC'      : 'noCheck' }
+                                              'expectedRC'      : 'noCheck'                 ,
+                                              'knownIssue'      : '6917970' }
                     }
                   </call>
                 </sequence>

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup;
 
@@ -107,10 +107,28 @@ public class SecurityOptions
   public static SecurityOptions createSelfSignedCertificateOptions(
       boolean enableSSL, boolean enableStartTLS, int sslPort)
   {
+
+    return createSelfSignedCertificateOptions(enableSSL, enableStartTLS,
+        sslPort, SELF_SIGNED_CERT_ALIAS);
+  }
+
+  /**
+   * Creates a new instance of a SecurityOptions using a self-signed
+   * certificate.
+   * @param enableSSL whether SSL is enabled or not.
+   * @param enableStartTLS whether Start TLS is enabled or not.
+   * @param sslPort the value of the LDAPS port.
+   * @param aliasToUse the alias of the certificate in the key store to be used.
+   * @return a new instance of a SecurityOptions using a self-signed
+   * certificate.
+   */
+  public static SecurityOptions createSelfSignedCertificateOptions(
+      boolean enableSSL, boolean enableStartTLS, int sslPort, String aliasToUse)
+  {
     SecurityOptions ops = new SecurityOptions();
     ops.setCertificateType(CertificateType.SELF_SIGNED_CERTIFICATE);
     updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort,
-        SELF_SIGNED_CERT_ALIAS);
+        aliasToUse);
     return ops;
   }
 

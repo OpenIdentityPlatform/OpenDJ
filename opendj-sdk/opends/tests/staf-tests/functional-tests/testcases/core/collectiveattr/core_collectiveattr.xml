@@ -82,8 +82,8 @@
                 </script>
                                                     
                 <!-- List of Test Cases -->
-                <!-- Short tests: tests 001 to 006, 011, 012, 020 -->
-                <!-- Long tests: tests 007 to 010, 014 to 019, 021  -->
+                <!-- Short tests: tests 001 to 006, 011, 012, 020, 022, 024, 025  -->
+                <!-- Long tests: tests 007 to 010, 014 to 019, 021, 023, 026 to 029  -->
                 <script>
                   testsList=[]
                   testsList.append('core_collectiveattr_001')
@@ -107,6 +107,14 @@
                   testsList.append('core_collectiveattr_019')
                   testsList.append('core_collectiveattr_020')
                   testsList.append('core_collectiveattr_021')
+                  testsList.append('core_collectiveattr_022')
+                  testsList.append('core_collectiveattr_023')
+                  testsList.append('core_collectiveattr_024')
+                  testsList.append('core_collectiveattr_025')
+                  testsList.append('core_collectiveattr_026')
+                  testsList.append('core_collectiveattr_027')
+                  testsList.append('core_collectiveattr_028')
+                  testsList.append('core_collectiveattr_029')
                 </script>
 
                 <!-- Execute the Tests -->

@@ -1,0 +1,8 @@
+dn: cn=Collective displayName,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective displayName
+displayName;collective: Sollicitors
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}

@@ -145,7 +145,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -268,7 +267,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -518,7 +516,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -608,6 +605,12 @@
         }
       </call>
 
+      <if expr="is_windows_platform(location) and RC == 1 and expectedRC == 0">
+        <call function="'setKnownIssue'">
+          { 'issueId' : '6931748' }
+        </call>
+      </if>
+
       <if expr="expectedRC == 0 or expectedRC == 'noCheck'">
         <!--- Check that DS stopped -->
         <if expr="IPS_PKG == True">
@@ -678,7 +681,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
       
@@ -885,7 +887,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
       <function-arg-def name="schedulePattern" type="optional">
         <function-arg-description>
@@ -1168,7 +1169,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1876,7 +1876,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
       <function-arg-def name="schedulePattern" type="optional">
         <function-arg-description>
@@ -2240,7 +2239,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
       <function-arg-def name="schedulePattern" type="optional">
         <function-arg-description>
@@ -3434,7 +3432,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -3560,7 +3557,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -3786,7 +3782,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -3884,7 +3879,7 @@
   </function>
   
   <!-- This function execute the rebuild-index tool -->
-  <function name="rebuildIndexWithScript" scope="local">
+  <function name="rebuildIndexWithScript">
     <function-prolog>
       This function execute the rebuild-index tool
     </function-prolog>
@@ -3993,7 +3988,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -4051,13 +4045,15 @@
       </call>
 
       <script>
+         savSTAXResult=STAXResult
+
          resultString = STAXResult[0][1]
       </script>
 
       <if expr="dsInstanceDn != None and expectedRC == 0 and schedulePattern == None">
         <sequence>
           <message>
-          'Check export ldif task successfully completed'
+            'Check rebuild-index task successfully completed'
           </message>
 
           <call function="'checkTaskExecution'">
@@ -4072,7 +4068,8 @@
           </call>
         </sequence>
       </if>
-      <return>STAXResult</return>
+
+      <return>savSTAXResult</return>
     </sequence>
   </function>
 
@@ -4147,7 +4144,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -4255,7 +4251,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -4399,7 +4394,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>

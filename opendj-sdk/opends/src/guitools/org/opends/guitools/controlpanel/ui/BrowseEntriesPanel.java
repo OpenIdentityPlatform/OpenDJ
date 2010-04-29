@@ -337,7 +337,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         popupDuplicateEntryMenuItem.setEnabled(enableDuplicateEntry);
         menuBar.duplicateEntryMenuItem.setEnabled(enableDuplicateEntry);
 
-        boolean enableAddToGroup = enableCopyDN;
+        boolean enableAddToGroup = enableDelete;
         popupAddToGroupMenuItem.setEnabled(enableAddToGroup);
         menuBar.addToGroupMenuItem.setEnabled(enableAddToGroup);
 

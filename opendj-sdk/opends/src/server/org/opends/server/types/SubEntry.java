@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.types;
@@ -142,23 +142,27 @@ public class SubEntry {
             ATTR_SUBTREE_SPEC_LC, true);
     List<Attribute> specAttrList =
             entry.getAttribute(specAttrType);
-    for (Attribute attr : specAttrList)
+    if (specAttrList != null)
     {
-      for (AttributeValue value : attr)
+      for (Attribute attr : specAttrList)
       {
-        this.subTreeSpec = RFC3672SubtreeSpecification.valueOf(
-                entry.getDN().getParent(), value.toString());
-        break;
-      }
-      if (this.subTreeSpec != null)
-      {
-        break;
+        for (AttributeValue value : attr)
+        {
+          this.subTreeSpec = RFC3672SubtreeSpecification.valueOf(
+                  entry.getDN().getParent(), value.toString());
+          break;
+        }
+        if (this.subTreeSpec != null)
+        {
+          break;
+        }
       }
     }
     // Subentry has to to have a subtree specification.
     if (this.subTreeSpec == null)
     {
-      // There is none for some reason so create a dummy.
+      // There is none for some reason eg this could be
+      // old Draft based ldapSubEntry so create a dummy.
       this.subTreeSpec = new RFC3672SubtreeSpecification(
                 entry.getDN().getParent(), null, -1, -1,
                 null, null, null);

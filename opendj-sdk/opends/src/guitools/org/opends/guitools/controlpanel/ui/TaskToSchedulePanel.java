@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -850,7 +850,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     {
         INFO_CTRL_PANEL_JANUARY.get(),
         INFO_CTRL_PANEL_FEBRUARY.get(),
-        INFO_CTRL_PANEL_MARS.get(),
+        INFO_CTRL_PANEL_MARCH.get(),
         INFO_CTRL_PANEL_APRIL.get(),
         INFO_CTRL_PANEL_MAY.get(),
         INFO_CTRL_PANEL_JUNE.get(),

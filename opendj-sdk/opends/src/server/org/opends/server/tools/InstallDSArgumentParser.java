@@ -41,6 +41,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.Argument;
@@ -258,7 +259,8 @@ public class InstallDSArgumentParser extends ArgumentParser
     int defaultAdminPort = UserData.getDefaultAdminConnectorPort();
     if (defaultAdminPort == -1)
     {
-      defaultAdminPort = 4444;
+      defaultAdminPort =
+        AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
     }
     adminConnectorPortArg = new IntegerArgument(
         "adminConnectorPort".toLowerCase(), null,

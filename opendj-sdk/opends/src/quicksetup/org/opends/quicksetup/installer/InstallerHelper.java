@@ -959,7 +959,8 @@ public class InstallerHelper {
       if (origJavaArgument.equals(defaultJavaArg) &&
           fileProperties.containsKey(propertiesKey))
       {
-        otherProperties.put(script, fileProperties.getProperty(propertiesKey));
+        otherProperties.put(propertiesKey,
+            fileProperties.getProperty(propertiesKey));
       }
       else
       {
@@ -967,14 +968,29 @@ public class InstallerHelper {
       }
     }
 
-    if (!fileProperties.containsKey("overwrite-env-java-home"))
+    String v = fileProperties.getProperty("overwrite-env-java-home");
+    if (v == null ||
+       (!v.equalsIgnoreCase("true") && !v.equalsIgnoreCase("false")))
     {
       otherProperties.put("overwrite-env-java-home", "false");
     }
-    if (!fileProperties.containsKey("overwrite-env-java-args"))
+    else
+    {
+      otherProperties.put("overwrite-env-java-home", v.toLowerCase());
+    }
+
+    v = fileProperties.getProperty("overwrite-env-java-args");
+    if (v == null ||
+        (!v.equalsIgnoreCase("true") && !v.equalsIgnoreCase("false")))
     {
       otherProperties.put("overwrite-env-java-args", "false");
     }
+    else
+    {
+      otherProperties.put("overwrite-env-java-args", v.toLowerCase());
+    }
+
+
     if (!fileProperties.containsKey("default.java-home"))
     {
       otherProperties.put("default.java-home=", javaHome);

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="addEntry">
@@ -96,7 +96,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -366,7 +365,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -568,7 +566,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -957,7 +954,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -1241,7 +1237,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1371,7 +1366,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1449,7 +1443,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1666,7 +1659,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -1853,7 +1845,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -2118,7 +2109,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -2310,7 +2300,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -2552,7 +2541,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     
@@ -2757,7 +2745,6 @@
       <function-arg-description>
         Known issue. Corresponds to an issue number.
       </function-arg-description>
-      <function-arg-property name="type" value="string" />
     </function-arg-def>
   
     </function-map-args>
@@ -3039,7 +3026,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -3174,7 +3160,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -3358,7 +3343,6 @@
       <function-arg-description>
         Known issue. Corresponds to an issue number.
       </function-arg-description>
-      <function-arg-property name="type" value="string" />
     </function-arg-def>
   
     </function-map-args>
@@ -3546,7 +3530,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -3737,7 +3720,6 @@
         <function-arg-description>
           Known issue. Corresponds to an issue number.
         </function-arg-description>
-        <function-arg-property name="type" value="string" />
       </function-arg-def>
     </function-map-args>
     <sequence>

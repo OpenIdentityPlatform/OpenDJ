@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -95,7 +95,8 @@
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'            : 'dc=com' ,
-                  'dsIndexList'         : [ 'uid' ]
+                  'dsIndexList'         : [ 'uid' ] ,
+                  'knownIssue'          : '6931704'
                   }
                 </call>
 
@@ -193,7 +194,8 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'uid' ]
+                  'dsIndexList'  : [ 'uid' ] ,
+                  'knownIssue'   : '6931704'
                   }                
                 </call>           
   
@@ -302,7 +304,8 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'uid', 'cn' ]
+                  'dsIndexList'  : [ 'uid', 'cn' ] ,
+                  'knownIssue'   : '6931704'
                   }                
                 </call>
                 
@@ -361,7 +364,7 @@
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'myindex' ] ,
-                  'expectedRC'    : 1
+                  'expectedRC'   : 1
                   }                
                 </call>
                 
@@ -473,7 +476,8 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsIndexList'  : [ 'st' ]
+                  'dsIndexList'  : [ 'st' ] ,
+                  'knownIssue'   : '6931704'
                   }
                 </call>
 
@@ -632,7 +636,8 @@
                 <call function="'rebuildIndexWithScript'">
                   {
                   'dsBaseDN'     : 'dc=com' ,
-                  'dsRebuildAll' : 'True'
+                  'dsRebuildAll' : 'True' ,
+                  'knownIssue'   : '6931704'
                   }
                 </call>
 
@@ -739,7 +744,8 @@
                   {
                   'dsBaseDN'     : 'dc=com' ,
                   'dsIndexList'  : [ 'uid' ] ,
-                  'dsTmpDir'     : '%s/index_tmp' % DIRECTORY_INSTANCE_DIR
+                  'dsTmpDir'     : '%s/index_tmp' % DIRECTORY_INSTANCE_DIR ,
+                  'knownIssue'   : '6931704'
                   }
                 </call>
 

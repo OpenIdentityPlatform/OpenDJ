@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -39,10 +39,7 @@ import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
-import org.opends.server.types.operation.PostOperationAddOperation;
-import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -89,7 +86,12 @@ public class AciListenerManager implements
   {
     private AciChangeListenerPlugin()
     {
-      super(configurationDN, EnumSet.of(PluginType.POST_OPERATION_ADD,
+      super(configurationDN, EnumSet.of(
+          PluginType.POST_SYNCHRONIZATION_ADD,
+          PluginType.POST_SYNCHRONIZATION_DELETE,
+          PluginType.POST_SYNCHRONIZATION_MODIFY,
+          PluginType.POST_SYNCHRONIZATION_MODIFY_DN,
+          PluginType.POST_OPERATION_ADD,
           PluginType.POST_OPERATION_DELETE,
           PluginType.POST_OPERATION_MODIFY,
           PluginType.POST_OPERATION_MODIFY_DN), true);
@@ -100,22 +102,56 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    public void doPostSynchronization(
+        PostSynchronizationAddOperation addOperation)
+    {
+      doPostAdd(addOperation.getEntryToAdd());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void doPostSynchronization(
+        PostSynchronizationDeleteOperation deleteOperation)
+    {
+      doPostDelete(deleteOperation.getEntryToDelete());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void doPostSynchronization(
+        PostSynchronizationModifyDNOperation modifyDNOperation)
+    {
+      doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
+          modifyDNOperation.getUpdatedEntry().getDN());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void doPostSynchronization(
+        PostSynchronizationModifyOperation modifyOperation)
+    {
+      doPostModify(modifyOperation.getModifications(), modifyOperation
+          .getCurrentEntry(), modifyOperation.getModifiedEntry());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public PostOperation doPostOperation(
         PostOperationAddOperation addOperation)
     {
-      // This entry might have both global and aci attribute types.
-      Entry entry = addOperation.getEntryToAdd();
-      boolean hasAci, hasGlobalAci = false;
-      if ((hasAci = entry.hasOperationalAttribute(AciHandler.aciType))
-          || (hasGlobalAci =
-              entry.hasAttribute(AciHandler.globalAciType)))
-      {
-        // Ignore this list, the ACI syntax has already passed and it
-        // should be empty.
-        LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
-
-        aciList.addAci(entry, hasAci, hasGlobalAci, failedACIMsgs);
-      }
+      doPostAdd(addOperation.getEntryToAdd());
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -129,15 +165,7 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationDeleteOperation deleteOperation)
     {
-      // This entry might have both global and aci attribute types.
-      boolean hasAci, hasGlobalAci = false;
-      Entry entry = deleteOperation.getEntryToDelete();
-      if ((hasAci = entry.hasOperationalAttribute(AciHandler.aciType))
-          || (hasGlobalAci =
-              entry.hasAttribute(AciHandler.globalAciType)))
-      {
-        aciList.removeAci(entry, hasAci, hasGlobalAci);
-      }
+      doPostDelete(deleteOperation.getEntryToDelete());
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -151,7 +179,7 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationModifyDNOperation modifyDNOperation)
     {
-      aciList.renameAci(modifyDNOperation.getOriginalEntry().getDN(),
+      doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
           modifyDNOperation.getUpdatedEntry().getDN());
 
       // If we've gotten here, then everything is acceptable.
@@ -166,16 +194,68 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationModifyOperation modifyOperation)
     {
+      doPostModify(modifyOperation.getModifications(), modifyOperation
+          .getCurrentEntry(), modifyOperation.getModifiedEntry());
+
+      // If we've gotten here, then everything is acceptable.
+      return PluginResult.PostOperation.continueOperationProcessing();
+    }
+
+
+
+    private void doPostAdd(Entry addedEntry)
+    {
+      // This entry might have both global and aci attribute types.
+      boolean hasAci, hasGlobalAci = false;
+      if ((hasAci = addedEntry
+          .hasOperationalAttribute(AciHandler.aciType))
+          || (hasGlobalAci = addedEntry
+              .hasAttribute(AciHandler.globalAciType)))
+      {
+        // Ignore this list, the ACI syntax has already passed and it
+        // should be empty.
+        LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
+
+        aciList.addAci(addedEntry, hasAci, hasGlobalAci, failedACIMsgs);
+      }
+    }
+
+
+
+    private void doPostDelete(Entry deletedEntry)
+    {
+      // This entry might have both global and aci attribute types.
+      boolean hasAci, hasGlobalAci = false;
+      if ((hasAci = deletedEntry
+          .hasOperationalAttribute(AciHandler.aciType))
+          || (hasGlobalAci = deletedEntry
+              .hasAttribute(AciHandler.globalAciType)))
+      {
+        aciList.removeAci(deletedEntry, hasAci, hasGlobalAci);
+      }
+    }
+
+
+
+    private void doPostModifyDN(DN fromDN, DN toDN)
+    {
+      aciList.renameAci(fromDN, toDN);
+    }
+
+
+
+    private void doPostModify(List<Modification> mods, Entry oldEntry,
+        Entry newEntry)
+    {
       // A change to the ACI list is expensive so let's first make sure
       // that the modification included changes to the ACI. We'll check
       // for both "aci" attribute types and global "ds-cfg-global-aci"
       // attribute types.
       boolean hasAci = false, hasGlobalAci = false;
-      List<Modification> mods = modifyOperation.getModifications();
       for (Modification mod : mods)
       {
-        AttributeType attributeType =
-            mod.getAttribute().getAttributeType();
+        AttributeType attributeType = mod.getAttribute()
+            .getAttributeType();
         if (attributeType.equals(AciHandler.aciType))
         {
           hasAci = true;
@@ -193,17 +273,14 @@ public class AciListenerManager implements
 
       if (hasAci || hasGlobalAci)
       {
-        Entry oldEntry = modifyOperation.getCurrentEntry();
-        Entry newEntry = modifyOperation.getModifiedEntry();
         aciList.modAciOldNewEntry(oldEntry, newEntry, hasAci,
             hasGlobalAci);
       }
-
-      // If we've gotten here, then everything is acceptable.
-      return PluginResult.PostOperation.continueOperationProcessing();
     }
 
   }
+
+
 
   /*
    * The configuration DN.
