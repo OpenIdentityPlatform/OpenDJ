@@ -20,7 +20,7 @@ Once you have the required libraries, do the following steps:
 
   2. Next cd into this extension folder:
   
-     cd extensions/arisid-privacy-control
+     cd experimental/arisid-privacy-control
 
   3. And build the control+plugin (this requires Ant version 7 or
      higher in your path):
