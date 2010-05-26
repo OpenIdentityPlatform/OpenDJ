@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -63,7 +63,9 @@ public class ConfigFileHandlerTestCase
     TestCaseUtils.startServer();
 
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String startOKFile = buildRoot + File.separator + "build" + File.separator +
+    String buildDir = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+            buildRoot + File.separator + "build");
+    String startOKFile = buildDir + File.separator +
                          "unit-tests" + File.separator + "package-instance" +
                          File.separator + "config" + File.separator +
                          "config.ldif.startok";

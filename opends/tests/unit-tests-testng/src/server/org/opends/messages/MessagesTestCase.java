@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.messages;
 
@@ -65,9 +65,15 @@ public abstract class MessagesTestCase
       corePseudoI18nMsgs.put(keyEnum.nextElement(), TEST_MSG);
     }
     File buildRoot = new File(System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT));
-    File corePseudoI18nMsgsFile = new File(buildRoot,
-            "build" + File.separator + "unit-tests" +
-                    File.separator + "classes" +
+    String buildDirStr = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR);
+    File buildDir;
+    if (buildDirStr != null) {
+      buildDir = new File(buildDirStr);
+    } else  {
+      buildDir = new File(buildRoot, "build");
+    }
+    File corePseudoI18nMsgsFile = new File(buildDir,
+            "unit-tests" + File.separator + "classes" +
                     File.separator + "messages" +
                     File.separator + "core_" + TEST_LOCALE.getLanguage() +
                     ".properties");

@@ -85,8 +85,9 @@ public class DbHandlerTest extends ReplicationTestCase
 
       // create or clean a directory for the dbHandler
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
-        "unit-tests" + File.separator + "dbHandler";
+      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
       testRoot = new File(path);
       if (testRoot.exists())
       {
@@ -306,8 +307,9 @@ public class DbHandlerTest extends ReplicationTestCase
 
       // create or clean a directory for the dbHandler
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
-        "unit-tests" + File.separator + "dbHandler";
+      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
       testRoot = new File(path);
       if (testRoot.exists())
       {
@@ -415,8 +417,9 @@ public class DbHandlerTest extends ReplicationTestCase
 
       // create or clean a directory for the dbHandler
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
-      "unit-tests" + File.separator + "dbHandlercp";
+      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
       testRoot = new File(path);
       if (testRoot.exists())
       {

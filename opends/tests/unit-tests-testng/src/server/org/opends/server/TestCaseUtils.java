@@ -115,6 +115,9 @@ public final class TestCaseUtils {
   public static final String PROPERTY_BUILD_ROOT =
        "org.opends.server.BuildRoot";
 
+  public static final String PROPERTY_BUILD_DIR  =
+       "org.opends.server.BuildDir";
+
    /**
    * The name of the system property that specifies an existing OpenDS
    * installation root (inside or outside of the source tree).
@@ -271,7 +274,9 @@ public final class TestCaseUtils {
 
       // Get the build root and use it to create a test package directory.
       String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-      File   buildDir  = new File(buildRoot, "build");
+      String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      File   buildDir = new File(buildDirStr);
       File   unitRoot  = new File(buildDir, "unit-tests");
       File   testInstallRoot  = null;
       File   testInstanceRoot  = null;
