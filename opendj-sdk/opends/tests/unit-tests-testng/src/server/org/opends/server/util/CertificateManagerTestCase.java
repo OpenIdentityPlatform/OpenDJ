@@ -57,13 +57,18 @@ public class CertificateManagerTestCase
        CertificateManager.mayUseCertificateManager();
 
 
+  // Get the build root and use it to create a test package directory.
+  public static final String BUILD_ROOT = 
+          System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
 
+      
   /**
    * The path to a JKS key store file.
    */
   public static final String JKS_KEY_STORE_PATH =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator +
+       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+       BUILD_ROOT + File.separator + "build") +
+       File.separator + "unit-tests" + File.separator +
        "package-instance" +
        File.separator + "config" + File.separator + "server.keystore";
 
@@ -73,8 +78,9 @@ public class CertificateManagerTestCase
    * The path to a PKCS#12 key store file.
    */
   public static final String PKCS12_KEY_STORE_PATH =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator +
+       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+       BUILD_ROOT + File.separator + "build") +
+       File.separator + "unit-tests" + File.separator +
        "package-instance" +
        File.separator + "config" + File.separator + "server-cert.p12";
 
@@ -84,8 +90,9 @@ public class CertificateManagerTestCase
    * The path to the unit test working directory.
    */
   public static final String TEST_DIR =
-       System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT) + File.separator +
-       "build" + File.separator + "unit-tests" + File.separator +
+       System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+       BUILD_ROOT + File.separator + "build") +
+       File.separator + "unit-tests" + File.separator +
        "package-instance";
 
 

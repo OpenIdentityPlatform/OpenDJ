@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -82,8 +82,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
 
       // create or clean a directory for the DraftCNDbHandler
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
-        "unit-tests" + File.separator + "DraftCNDbHandler";
+      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
       testRoot = new File(path);
       if (testRoot.exists())
       {
@@ -204,8 +205,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
 
       // create or clean a directory for the DraftCNDbHandler
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
-        "unit-tests" + File.separator + "DraftCNDbHandler";
+      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
       testRoot = new File(path);
       if (testRoot.exists())
       {

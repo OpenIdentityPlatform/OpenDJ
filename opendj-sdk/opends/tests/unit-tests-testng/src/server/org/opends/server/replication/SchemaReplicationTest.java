@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -315,7 +315,9 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
       // open the schema file
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = buildRoot + File.separator + "build" + File.separator +
+      String buildDir = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
+              buildRoot + File.separator + "build");
+      String path = buildDir + File.separator +
         "unit-tests" + File.separator + "package-instance" + File.separator +
         "config" + File.separator + "schema" + File.separator +
         "99-user.ldif";
