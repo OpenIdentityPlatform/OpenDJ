@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -717,13 +717,14 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "invalid", "targetattr", "cn ||", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "not/an/attr", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "cn", "allow (write)", BIND_RULE_INVALID_DAY),
-          buildAciValue("name", "bad_filters", "targetattrfilters",TARG_ATTR_FILTERS_INVALID_FILTER, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "bad_op", "targetattrfilters",TARG_ATTR_FILTERS_BAD_OP, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "bad_op_match", "targetattrfilters",TARG_ATTR_FILTERS_BAD_OP_MATCH, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "bad_filter_attr", "targetattrfilters",TARG_ATTR_FILTERS_BAD_FILTER_ATTR, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "bad_format", "targetattrfilters",TARG_ATTR_FILTERS_BAD_FORMAT, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "too_many_lists", "targetattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
-          buildAciValue("name", "bad_tok", "targetattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
+          // Add tests with invalid keywords : typos in "targetattr", "targattfilters", "targetfilter"
+          buildAciValue("name", "bad_filters", "targattrfilters",TARG_ATTR_FILTERS_INVALID_FILTER, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_op", "targattrfilters",TARG_ATTR_FILTERS_BAD_OP, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_op_match", "targattrfilters",TARG_ATTR_FILTERS_BAD_OP_MATCH, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_filter_attr", "targattrfilters",TARG_ATTR_FILTERS_BAD_FILTER_ATTR, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_format", "targattrfilters",TARG_ATTR_FILTERS_BAD_FORMAT, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "too_many_lists", "targattrfilters",TARG_ATTR_FILTERS_TOO_MANY_LISTS, "allow (write)", BIND_RULE_USERDN_SELF),
+          buildAciValue("name", "bad_tok", "targattrfilters",TARG_ATTR_FILTERS_BAD_TOK, "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "bad_targetfilter", "targetfilter","this is a bad filter", "allow (write)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad targetScope", "targetScope", "sub_tree", "allow (write)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad right", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all, foo)", BIND_RULE_USERDN_SELF),
