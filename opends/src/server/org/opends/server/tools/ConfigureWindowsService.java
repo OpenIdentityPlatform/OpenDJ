@@ -39,6 +39,7 @@ import java.io.PrintStream;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -403,7 +404,8 @@ public class ConfigureWindowsService
   {
     Message serviceName = Utils.getCustomizedObject(
         "INFO_WINDOWS_SERVICE_NAME",
-        INFO_WINDOWS_SERVICE_NAME.get(), Message.class);
+        INFO_WINDOWS_SERVICE_NAME.get(DynamicConstants.PRODUCT_NAME),
+        Message.class);
     Message serviceDescription = Utils.getCustomizedObject(
         "INFO_WINDOWS_SERVICE_DESCRIPTION",
         INFO_WINDOWS_SERVICE_DESCRIPTION.get(getServerRoot()), Message.class);
