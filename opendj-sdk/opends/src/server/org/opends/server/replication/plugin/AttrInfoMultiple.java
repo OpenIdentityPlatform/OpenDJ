@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -465,6 +465,7 @@ public class AttrInfoMultiple extends AttributeInfo
       for (AttributeValue val : modAttr)
       {
         Boolean deleteIt = true;  // true if the delete must be done
+        Boolean addedInCurrentOp = false;
 
         /* update historical information */
         ValueInfo valInfo = new ValueInfo(val, null, changeNumber);
@@ -473,8 +474,14 @@ public class AttrInfoMultiple extends AttributeInfo
         {
           /* this value already exist in the historical information */
           ValueInfo oldValInfo  = valuesInfo.get(index);
-          if (changeNumber.newer(oldValInfo.getValueDeleteTime()) &&
-              changeNumber.newer(oldValInfo.getValueUpdateTime()))
+          if (changeNumber.equals(oldValInfo.getValueUpdateTime()))
+          {
+            // This value was added earlier in the same operation
+            // we need to keep the delete.
+            addedInCurrentOp = true;
+          }
+          if (changeNumber.newerOrEquals(oldValInfo.getValueDeleteTime()) &&
+              changeNumber.newerOrEquals(oldValInfo.getValueUpdateTime()))
           {
             valuesInfo.remove(index);
             valuesInfo.add(valInfo);
@@ -494,8 +501,8 @@ public class AttrInfoMultiple extends AttributeInfo
          * MOD to make sure the delete is going to succeed
          */
         if (!deleteIt
-            || !modifiedEntry.hasValue(modAttr.getAttributeType(), modAttr
-                .getOptions(), val))
+            || (!modifiedEntry.hasValue(modAttr.getAttributeType(), modAttr
+                .getOptions(), val) && ! addedInCurrentOp))
         {
           // this value was already deleted before and therefore
           // this should not be replayed.
@@ -587,7 +594,7 @@ public class AttrInfoMultiple extends AttributeInfo
           /* this value is marked as a deleted value
            * check if this mod is more recent the this delete
            */
-          if (changeNumber.newer(oldValueInfo.getValueDeleteTime()))
+          if (changeNumber.newerOrEquals(oldValueInfo.getValueDeleteTime()))
           {
             /* this add is more recent,
              * remove the old delete historical information
