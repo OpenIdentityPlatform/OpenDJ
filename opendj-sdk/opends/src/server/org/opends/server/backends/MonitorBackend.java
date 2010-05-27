@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -674,8 +674,26 @@ public class MonitorBackend
                                                            true);
     monitorClasses.put(monitorOC, OC_MONITOR_BRANCH);
 
+    HashMap<AttributeType,List<Attribute>> monitorUserAttrs =
+      new LinkedHashMap<AttributeType,List<Attribute>>();
+
+    RDN rdn = dn.getRDN();
+    if (rdn != null)
+    {
+      // Add the RDN values
+      for (int i=0; i<rdn.getNumValues(); i++)
+      {
+        AttributeType attributeType = rdn.getAttributeType(i);
+        AttributeValue value = rdn.getAttributeValue(attributeType);
+        Attribute attr = Attributes.create(attributeType, value);
+        List<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(attr);
+        monitorUserAttrs.put(attributeType, attrList);
+      }
+    }
+
     // Construct and return the entry.
-    Entry  e = new Entry(dn, monitorClasses, null, null);
+    Entry  e = new Entry(dn, monitorClasses, monitorUserAttrs, null);
     e.processVirtualAttributes();
     return e;
   }

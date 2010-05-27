@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -2401,15 +2401,47 @@ final class PropertyValueEditor {
     {
       if (newValues.containsAll(previousValues))
       {
-        registerAddModification(pd, newValues, previousValues);
+        if (newValues.size() <= 1)
+        {
+          registerSetModification(pd, newValues, previousValues);
+        }
+        else
+        {
+          registerAddModification(pd, newValues, previousValues);
+        }
       }
       else if (previousValues.containsAll(newValues))
       {
         registerRemoveModification(pd, newValues, previousValues);
       }
-      else
+      else if (newValues.size() <= 1)
       {
         registerSetModification(pd, newValues, previousValues);
+      }
+      else
+      {
+        // Split into two operations: remove and add
+        SortedSet<T> removedValues = new TreeSet<T>();
+        removedValues.addAll(previousValues);
+        removedValues.removeAll(newValues);
+
+        PropertyEditorModification<T> removeMod =
+          PropertyEditorModification.createRemoveModification(pd,
+            removedValues, previousValues);
+        addModification(removeMod);
+
+        SortedSet<T> retainedValues = new TreeSet<T>();
+        retainedValues.addAll(previousValues);
+        retainedValues.retainAll(newValues);
+
+        SortedSet<T> addedValues = new TreeSet<T>();
+        addedValues.addAll(newValues);
+        addedValues.removeAll(retainedValues);
+
+        PropertyEditorModification<T> addMod =
+          PropertyEditorModification.createAddModification(pd,
+              addedValues, retainedValues);
+        addModification(addMod);
       }
     }
   }
