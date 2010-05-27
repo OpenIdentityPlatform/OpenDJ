@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -484,7 +484,7 @@ modifyDNProcessing:
         //  - apply additional modifications provided by the plugins.
         // If the operation is a synchronization operation
         //  - apply the operation as it was originally done on the master.
-        if (! isSynchronizationOperation() || (modifications.size() == 0))
+        if (! isSynchronizationOperation())
         {
           // Apply any changes to the entry based on the change in its RDN.
           // Also perform schema checking on the updated entry.
@@ -507,44 +507,42 @@ modifyDNProcessing:
           // Check for a request to cancel this operation.
           checkIfCanceled(false);
 
-          if (! isSynchronizationOperation())
+
+          // Get a count of the current number of modifications.  The
+          // pre-operation plugins may alter this list, and we need to be able
+          // to identify which changes were made after they're done.
+          int modCount = modifications.size();
+
+          executePostOpPlugins = true;
+          PluginResult.PreOperation preOpResult =
+            pluginConfigManager.invokePreOperationModifyDNPlugins(this);
+          if (!preOpResult.continueProcessing())
           {
-            // Get a count of the current number of modifications.  The
-            // pre-operation plugins may alter this list, and we need to be able
-            // to identify which changes were made after they're done.
-            int modCount = modifications.size();
+            setResultCode(preOpResult.getResultCode());
+            appendErrorMessage(preOpResult.getErrorMessage());
+            setMatchedDN(preOpResult.getMatchedDN());
+            setReferralURLs(preOpResult.getReferralURLs());
+            break modifyDNProcessing;
+          }
 
-            executePostOpPlugins = true;
-            PluginResult.PreOperation preOpResult =
-              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-            if (!preOpResult.continueProcessing())
+
+          // Check to see if any of the pre-operation plugins made any changes
+          // to the entry.  If so, then apply them.
+          if (modifications.size() > modCount)
+          {
+            try
             {
-              setResultCode(preOpResult.getResultCode());
-              appendErrorMessage(preOpResult.getErrorMessage());
-              setMatchedDN(preOpResult.getMatchedDN());
-              setReferralURLs(preOpResult.getReferralURLs());
-              break modifyDNProcessing;
+              applyPreOpModifications(modifications, modCount, true);
             }
-
-
-            // Check to see if any of the pre-operation plugins made any changes
-            // to the entry.  If so, then apply them.
-            if (modifications.size() > modCount)
+            catch (DirectoryException de)
             {
-              try
+              if (debugEnabled())
               {
-                applyPreOpModifications(modifications, modCount);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
 
-                setResponseData(de);
-                break modifyDNProcessing;
-              }
+              setResponseData(de);
+              break modifyDNProcessing;
             }
           }
         }
@@ -554,7 +552,8 @@ modifyDNProcessing:
           // Apply the modifications as they were originally done.
           try
           {
-            applyPreOpModifications(modifications, 0);
+            applyRDNChanges(modifications);
+            applyPreOpModifications(modifications, 0, false);
           }
           catch (DirectoryException de)
           {
@@ -1019,12 +1018,14 @@ modifyDNProcessing:
    *                        entry.
    * @param  startPos       The position in the list at which the pre-operation
    *                        modifications start.
+   * @param  checkSchema    A boolean allowing to control if schema must be
+   *                        checked
    *
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
   protected void applyPreOpModifications(List<Modification> modifications,
-                                       int startPos)
+                                       int startPos, boolean checkSchema)
           throws DirectoryException
   {
     for (int i=startPos; i < modifications.size(); i++)
@@ -1059,7 +1060,7 @@ modifyDNProcessing:
 
     // Make sure that the updated entry still conforms to the server
     // schema.
-    if (DirectoryServer.checkSchema())
+    if (DirectoryServer.checkSchema() && checkSchema)
     {
       MessageBuilder invalidReason = new MessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,
