@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 import org.opends.messages.Message;
@@ -181,7 +181,6 @@ public class RmiAuthenticator implements JMXAuthenticator
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       SecurityException se = new SecurityException(e.getMessage());
-      se.initCause(e);
       throw se;
     }
 
