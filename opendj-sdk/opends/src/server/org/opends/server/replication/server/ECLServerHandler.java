@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -717,7 +717,12 @@ public class ECLServerHandler extends ServerHandler
 
           // skip the excluded domains
           if (excludedServiceIDs.contains(rsd.getBaseDn()))
+          {
+            // this is an excluded domain
+            if (allowUnknownDomains)
+              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
             continue;
+          }
 
           // skip unused domains
           if (rsd.getDbServerState().isEmpty())
