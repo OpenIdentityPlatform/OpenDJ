@@ -993,7 +993,7 @@ public class InstallerHelper {
 
     if (!fileProperties.containsKey("default.java-home"))
     {
-      otherProperties.put("default.java-home=", javaHome);
+      otherProperties.put("default.java-home", javaHome);
     }
 
     writeSetOpenDSJavaHome(installPath, javaHome, args, otherProperties);

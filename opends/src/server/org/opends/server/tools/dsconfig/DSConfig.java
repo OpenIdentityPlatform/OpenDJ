@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -185,11 +185,11 @@ public final class DSConfig extends ConsoleApplication {
       Message ufn = rd.getUserFriendlyName();
 
       Message ufpn = null;
-      if (rd instanceof InstantiableRelationDefinition) {
+      if (rd instanceof InstantiableRelationDefinition<?,?>) {
         InstantiableRelationDefinition<?, ?> ir =
           (InstantiableRelationDefinition<?, ?>) rd;
         ufpn = ir.getUserFriendlyPluralName();
-      } else if (rd instanceof SetRelationDefinition) {
+      } else if (rd instanceof SetRelationDefinition<?,?>) {
         SetRelationDefinition<?, ?> sr =
           (SetRelationDefinition<?, ?>) rd;
         ufpn = sr.getUserFriendlyPluralName();
@@ -1124,9 +1124,8 @@ public final class DSConfig extends ConsoleApplication {
   /**
    * Prints the contents of a command builder.  This method has been created
    * since SetPropSubCommandHandler calls it.  All the logic of DSConfig is on
-   * this method.  Currently it simply writes the content of the CommandBuilder
-   * to the standard output, but if we provide an option to write the content
-   * to a file only the implementation of this method must be changed.
+   * this method.  It writes the content of the CommandBuilder to the standard
+   * output, or to a file depending on the options provided by the user.
    * @param commandBuilder the command builder to be printed.
    */
   void printCommandBuilder(CommandBuilder commandBuilder)

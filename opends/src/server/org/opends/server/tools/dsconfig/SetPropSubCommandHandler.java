@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -388,7 +388,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     try {
       for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-        if (pd instanceof AggregationPropertyDefinition) {
+        if (pd instanceof AggregationPropertyDefinition<?,?>) {
           // Runtime cast is required to workaround a
           // bug in JDK versions prior to 1.5.0_08.
           AggregationPropertyDefinition<?, ?> apd =

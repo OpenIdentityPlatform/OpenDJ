@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util.cli;
 
@@ -645,7 +645,7 @@ public abstract class ConsoleApplication {
           String.valueOf(defaultValue));
     }
 
-    return readValidatedInput(prompt, callback);
+    return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
   }
 
   /**
