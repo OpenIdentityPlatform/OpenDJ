@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -4861,8 +4861,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         AttributeType atype = DirectoryServer.getAttributeType(name);
         List<Attribute> attrs = entry.getAttribute(atype);
-        for (Attribute a : attrs)
-          newattrs.add(a);
+        if (attrs != null)
+          for (Attribute a : attrs)
+            newattrs.add(a);
       }
       ((ModifyMsg)msg).setEclIncludes(newattrs);
     }
@@ -4876,8 +4877,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         AttributeType atype = DirectoryServer.getAttributeType(name);
         List<Attribute> attrs = entry.getAttribute(atype);
-        for (Attribute a : attrs)
-          newattrs.add(a);
+        if (attrs != null)
+          for (Attribute a : attrs)
+            newattrs.add(a);
       }
       ((ModifyDNMsg)msg).setEclIncludes(newattrs);
     }
