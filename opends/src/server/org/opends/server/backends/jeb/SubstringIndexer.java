@@ -31,6 +31,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
 import java.util.*;
+import org.opends.server.api.SubstringMatchingRule;
 
 /**
  * An implementation of an Indexer for attribute substrings.
@@ -161,18 +162,21 @@ public class SubstringIndexer extends Indexer
                               Set<byte[]> keys)
   {
     if (attrList == null) return;
-
     for (Attribute attr : attrList)
     {
       if (attr.isVirtual())
       {
         continue;
       }
+      //Get the substring matching rule.
+      SubstringMatchingRule rule =
+              attr.getAttributeType().getSubstringMatchingRule();
       for (AttributeValue value : attr)
       {
         try
         {
-          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
+          byte[] normalizedBytes = rule.normalizeValue(value.getValue()).
+                  toByteArray();
 
           substringKeys(normalizedBytes, keys);
         }
@@ -249,11 +253,16 @@ public class SubstringIndexer extends Indexer
       {
         continue;
       }
+            //Get the substring matching rule.
+      SubstringMatchingRule rule =
+              attr.getAttributeType().getSubstringMatchingRule();
+
       for (AttributeValue value : attr)
       {
         try
         {
-          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
+          byte[] normalizedBytes = rule.normalizeValue(value.getValue())
+                  .toByteArray();
 
           substringKeys(normalizedBytes, modifiedKeys, insert);
         }
