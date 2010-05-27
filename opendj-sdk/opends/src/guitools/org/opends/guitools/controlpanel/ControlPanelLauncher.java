@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
 import org.opends.messages.Message;
@@ -215,8 +214,7 @@ public class ControlPanelLauncher
         AdminToolMessages.INFO_CONTROL_PANEL_TITLE.get(
         DynamicConstants.PRODUCT_NAME), Message.class);
     Utils.setMacOSXMenuBar(title);
-    ColorAndFontConstants.initialize();
-    UIFactory.initialize();
+    UIFactory.initializeLookAndFeel();
   }
 }
 

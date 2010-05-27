@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -45,11 +45,11 @@ import java.util.TreeSet;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -60,7 +60,8 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
-import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
+import org.opends.guitools.controlpanel.ui.components.
+ SelectableLabelWithHelpIcon;
 import org.opends.guitools.controlpanel.ui.renderer.BaseDNCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.CustomCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -79,18 +80,18 @@ import org.opends.server.types.OpenDsException;
 class StatusPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -6493442314639004717L;
-  // The placeholder where we display errors.
-  private JLabel serverStatus;
-  private LabelWithHelpIcon currentConnections;
-  private JLabel hostName;
-  private JLabel administrativeUsers;
-  private JLabel installPath;
-  private JLabel instancePath;
-  private JLabel opendsVersion;
-  private LabelWithHelpIcon javaVersion;
-  private JLabel adminConnector;
-  private JLabel dbTableEmpty;
-  private JLabel connectionHandlerTableEmpty;
+  // The place holder where we display errors.
+  private JEditorPane serverStatus;
+  private SelectableLabelWithHelpIcon currentConnections;
+  private JEditorPane hostName;
+  private JEditorPane administrativeUsers;
+  private JEditorPane installPath;
+  private JEditorPane instancePath;
+  private JEditorPane opendsVersion;
+  private SelectableLabelWithHelpIcon javaVersion;
+  private JEditorPane adminConnector;
+  private JEditorPane dbTableEmpty;
+  private JEditorPane connectionHandlerTableEmpty;
   private JLabel lInstancePath;
   private JButton stopButton;
   private JButton startButton;
@@ -328,7 +329,7 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    serverStatus.setText(getStatusLabel(desc));
+    setText(serverStatus, getStatusLabel(desc));
 
     boolean isRunning = desc.getStatus() ==
       ServerDescriptor.ServerStatus.STARTED;
@@ -371,7 +372,7 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    hostName.setText(desc.getHostname());
+    setText(hostName, desc.getHostname());
 
     Set<DN> rootUsers = desc.getAdministrativeUsers();
 
@@ -390,35 +391,33 @@ class StatusPanel extends StatusGenericPanel
 
     if (rootUsers.size() > 0)
     {
-      String htmlString = "<html>"+Utilities.applyFont(
-          Utilities.getStringFromCollection(sortedRootUsers, "<br>"),
-          administrativeUsers.getFont());
-      administrativeUsers.setText(htmlString);
+      setText(administrativeUsers,
+          Utilities.getStringFromCollection(sortedRootUsers, "<br>"));
     }
     else
     {
-      administrativeUsers.setText(
+      setText(administrativeUsers,
           INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
     String install = desc.getInstallPath();
     if (install != null)
     {
-      installPath.setText(install);
+      setText(installPath, install);
     }
     else
     {
-      installPath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+      setText(installPath, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
 
     String instance = desc.getInstancePath();
 
     if (instance != null)
     {
-      instancePath.setText(instance);
+      setText(instancePath, instance);
     }
     else
     {
-      instancePath.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+      setText(instancePath, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
 
     instancePath.setVisible(!desc.sameInstallAndInstance());
@@ -426,11 +425,11 @@ class StatusPanel extends StatusGenericPanel
 
     if (desc.getOpenDSVersion() != null)
     {
-      opendsVersion.setText(desc.getOpenDSVersion());
+      setText(opendsVersion, desc.getOpenDSVersion());
     }
     else
     {
-      opendsVersion.setText(INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
+      setText(opendsVersion, INFO_NOT_AVAILABLE_SHORT_LABEL.get().toString());
     }
 
     if (!isRunning)
@@ -462,7 +461,7 @@ class StatusPanel extends StatusGenericPanel
       }
     }
 
-    adminConnector.setText(
+    setText(adminConnector,
         getAdminConnectorStringValue(desc.getAdminConnector()));
 
     Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
@@ -514,6 +513,12 @@ class StatusPanel extends StatusGenericPanel
     Utilities.updateViewPositions(pos);
   }
 
+  private void setText(JEditorPane pane, String htmlText)
+  {
+    pane.setText(Utilities.applyFont(htmlText,
+    ColorAndFontConstants.defaultFont));
+  }
+
   /**
    * Creates the server status subsection panel.
    * @return the server status subsection panel.
@@ -527,8 +532,7 @@ class StatusPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.insets = new Insets(0, 0, 0, 0);
 
-    p.setBorder(Utilities.makeTitledBorder(
-        INFO_CTRL_PANEL_SERVER_STATUS_TITLE_BORDER.get()));
+    setTitleBorder(p, INFO_CTRL_PANEL_SERVER_STATUS_TITLE_BORDER.get());
     JPanel auxPanel = new JPanel(new GridBagLayout());
     auxPanel.setOpaque(false);
     gbc.anchor = GridBagConstraints.WEST;
@@ -541,8 +545,11 @@ class StatusPanel extends StatusGenericPanel
     statusPanel.setOpaque(false);
     gbc.gridwidth = 6;
     gbc.weightx = 0.0;
-    serverStatus = Utilities.createDefaultLabel();
+    serverStatus = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
     statusPanel.add(serverStatus, gbc);
+    //l.setFocusable(true);
+    l.setLabelFor(serverStatus);
     gbc.gridwidth--;
 
     stopButton = Utilities.createButton(INFO_STOP_BUTTON_LABEL.get());
@@ -620,11 +627,14 @@ class StatusPanel extends StatusGenericPanel
     l = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_OPEN_CONNECTIONS_LABEL.get());
     auxPanel.add(l, gbc);
-    currentConnections = new LabelWithHelpIcon(Message.EMPTY, null);
+    currentConnections = new SelectableLabelWithHelpIcon(Message.EMPTY, null);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 5;
     auxPanel.add(currentConnections, gbc);
+
+    l.setFocusable(true);
+    l.setLabelFor(currentConnections);
 
     gbc.insets.top = 2;
     gbc.insets.right = 5;
@@ -653,8 +663,7 @@ class StatusPanel extends StatusGenericPanel
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.weightx = 1.0;
 
-    p.setBorder(Utilities.makeTitledBorder(
-        INFO_CTRL_PANEL_SERVER_DETAILS_TITLE_BORDER.get()));
+    setTitleBorder(p, INFO_CTRL_PANEL_SERVER_DETAILS_TITLE_BORDER.get());
     JPanel auxPanel = new JPanel(new GridBagLayout());
     auxPanel.setOpaque(false);
     gbc.anchor = GridBagConstraints.NORTHWEST;
@@ -678,13 +687,19 @@ class StatusPanel extends StatusGenericPanel
       };
     lInstancePath = leftLabels[3];
 
-    hostName = Utilities.createDefaultLabel();
-    administrativeUsers = Utilities.createDefaultLabel();
-    installPath = Utilities.createDefaultLabel();
-    instancePath = Utilities.createDefaultLabel();
-    opendsVersion = Utilities.createDefaultLabel();
-    javaVersion = new LabelWithHelpIcon(Message.EMPTY, null);
-    adminConnector = Utilities.createDefaultLabel();
+    hostName = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
+    administrativeUsers = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
+    installPath = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
+    instancePath = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
+    opendsVersion = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
+    javaVersion = new SelectableLabelWithHelpIcon(Message.EMPTY, null);
+    adminConnector = Utilities.makeHtmlPane("",
+        ColorAndFontConstants.defaultFont);
 
     JComponent[] rightLabels =
       {
@@ -706,6 +721,8 @@ class StatusPanel extends StatusGenericPanel
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.insets.left = 5;
       auxPanel.add(rightLabels[i], gbc);
+
+      leftLabels[i].setLabelFor(rightLabels[i]);
     }
 
     gbc.insets.top = 2;
@@ -750,12 +767,16 @@ class StatusPanel extends StatusGenericPanel
     p.add(connectionHandlersTable, gbc);
 
     connectionHandlerTableEmpty =
-      Utilities.createPrimaryLabel(
-          INFO_CTRL_PANEL_NO_CONNECTION_HANDLER_FOUND.get());
-    connectionHandlerTableEmpty.setHorizontalAlignment(SwingConstants.CENTER);
+      Utilities.makeHtmlPane(
+          INFO_CTRL_PANEL_NO_CONNECTION_HANDLER_FOUND.get().toString(),
+          ColorAndFontConstants.primaryFont);
     gbc.insets.top = 5;
+    gbc.anchor = GridBagConstraints.CENTER;
+    gbc.fill = GridBagConstraints.NONE;
     p.add(connectionHandlerTableEmpty, gbc);
     connectionHandlerTableEmpty.setVisible(false);
+
+    l.setLabelFor(connectionHandlersTable);
 
     return p;
   }
@@ -786,6 +807,7 @@ class StatusPanel extends StatusGenericPanel
         renderer);
     noReplicatedBaseDNsTable.setVisible(false);
     noReplicatedBaseDNsTable.getTableHeader().setVisible(false);
+
     replicationBaseDNsTable =
       Utilities.createSortableTable(dbTableModelWithReplication,
         renderer);
@@ -793,6 +815,13 @@ class StatusPanel extends StatusGenericPanel
     replicationBaseDNsTable.setCellSelectionEnabled(false);
     Utilities.addClickTooltipListener(noReplicatedBaseDNsTable);
     Utilities.addClickTooltipListener(replicationBaseDNsTable);
+
+    l.setLabelFor(replicationBaseDNsTable);
+
+    noReplicatedBaseDNsTable.getAccessibleContext().setAccessibleName(
+        l.getText());
+    replicationBaseDNsTable.getAccessibleContext().setAccessibleName(
+        l.getText());
 
     gbc.insets.top = 5;
     p.add(noReplicatedBaseDNsTable.getTableHeader(), gbc);
@@ -807,9 +836,10 @@ class StatusPanel extends StatusGenericPanel
     replicationBaseDNsTable.getTableHeader().setVisible(true);
 
     gbc.insets.top = 5;
-    dbTableEmpty = Utilities.createPrimaryLabel(
-        INFO_CTRL_PANEL_NO_DATA_SOURCES_FOUND.get());
-    dbTableEmpty.setHorizontalAlignment(SwingConstants.CENTER);
+    dbTableEmpty = Utilities.makeHtmlPane(
+        INFO_CTRL_PANEL_NO_DATA_SOURCES_FOUND.get().toString(),
+        ColorAndFontConstants.primaryFont);
+    gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.CENTER;
     p.add(dbTableEmpty, gbc);
     dbTableEmpty.setVisible(false);
@@ -868,5 +898,11 @@ class StatusPanel extends StatusGenericPanel
       throw new RuntimeException("Unknown status: "+desc.getStatus());
     }
     return status.toString();
+  }
+
+  private void setTitleBorder(JPanel p, Message title)
+  {
+    p.setBorder(Utilities.makeTitledBorder(title));
+    p.getAccessibleContext().setAccessibleName(title.toString());
   }
 }

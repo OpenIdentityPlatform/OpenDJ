@@ -207,7 +207,7 @@ public class ControlPanel
 
   private static void initLookAndFeel() throws Throwable
   {
-    UIFactory.initialize();
+    UIFactory.initializeLookAndFeel();
   }
 
   private void updateLocalOrRemotePanel(RootPaneContainer localOrRemote)

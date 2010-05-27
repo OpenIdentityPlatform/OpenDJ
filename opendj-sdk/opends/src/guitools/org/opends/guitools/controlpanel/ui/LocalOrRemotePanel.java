@@ -49,8 +49,10 @@ import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -96,7 +98,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   private JLabel dnLabel;
   private String usedUrl;
   private JLabel localInstallLabel;
-  private JLabel localInstall;
+  private JEditorPane localInstall;
 
   private JLabel localNotRunning;
 
@@ -287,12 +289,14 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             INFO_CTRL_PANEL_REMOTE_SERVER.get()}));
     combo.setSelectedIndex(0);
     gbc.gridwidth = 2;
-    add(Utilities.createDefaultLabel(INFO_CTRL_PANEL_LOCAL_OR_REMOTE.get()),
-        gbc);
+    JLabel l = Utilities.createDefaultLabel(
+        INFO_CTRL_PANEL_LOCAL_OR_REMOTE.get());
+    add(l, gbc);
     gbc.gridwidth = 1;
     gbc.insets.top = 10;
     gbc.gridy ++;
     add(combo, gbc);
+    l.setLabelFor(combo);
     gbc.gridx = 1;
 
     localNotRunning = Utilities.createDefaultLabel();
@@ -300,8 +304,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         INFO_CTRL_PANEL_LOCAL_SERVER_NOT_RUNNING.get());
     gbc.insets.left = 10;
     add(localNotRunning, gbc);
+    localNotRunning.setFocusable(true);
     hostName = Utilities.createMediumTextField();
     hostName.setText(UserData.getDefaultHostName());
+    hostName.setToolTipText(
+        INFO_CTRL_PANEL_REMOTE_SERVER_TOOLTIP.get().toString());
     add(hostName, gbc);
     gbc.insets.top = 10;
     gbc.gridy ++;
@@ -329,11 +336,16 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     add(localInstallLabel, gbc);
     gbc.gridx = 1;
     gbc.insets.left = 10;
-    gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    localInstall = Utilities.createDefaultLabel();
-    localInstall.setText(localServerInstallPath);
+    gbc.weightx = 0.1;
+    localInstall = Utilities.makeHtmlPane(localServerInstallPath,
+        ColorAndFontConstants.defaultFont);
     add(localInstall, gbc);
+    localInstallLabel.setLabelFor(localInstall);
+    gbc.gridx ++;
+    gbc.weightx = 1.0;
+    gbc.insets.left = 0;
+    add(Box.createHorizontalGlue(), gbc);
 
     gbc.gridy ++;
     gbc.insets.top = 10;
@@ -351,6 +363,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(port, gbc);
+    portLabel.setLabelFor(port);
 
     gbc.gridy ++;
     gbc.gridx = 0;
@@ -367,6 +380,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.left = 10;
     add(dn, gbc);
+    dnLabel.setLabelFor(dn);
     gbc.insets.top = 10;
     gbc.insets.left = 0;
 
@@ -384,6 +398,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(pwd, gbc);
+    pwdLabel.setLabelFor(pwd);
 
     addBottomGlue(gbc);
   }

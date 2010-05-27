@@ -22,13 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -38,6 +37,7 @@ import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -46,39 +46,41 @@ import org.opends.messages.Message;
 /**
  * A panel containing a label an a help icon.  A customized tool tip is used,
  * the tool tip is also displayed when the user clicks on the help icon.
+ * The main difference with {@code LabelWithHelpIcon} is that this uses
+ * a {@code JEditorPane} as label.
  *
  */
-public class LabelWithHelpIcon extends JPanel
+public class SelectableLabelWithHelpIcon extends JPanel
 {
-  private static final long serialVersionUID = 4502977901538910797L;
+  private static final long serialVersionUID = 4502977901098910797L;
   /**
    * The label with the text.
    */
-  protected JLabel label = Utilities.createDefaultLabel();
+  private JTextComponent label = Utilities.makeHtmlPane("",
+      ColorAndFontConstants.defaultFont);
   /**
    * The label with the icon.
    */
-  protected JLabel iconLabel = new JLabel(icon);
+  private JLabel iconLabel = new JLabel(icon);
   private static final ImageIcon icon =
     Utilities.createImageIcon("org/opends/quicksetup/images/help_small.gif");
-
 
   /**
    * The left inset of the help icon.
    */
-  protected final int INSET_WITH_ICON= 3;
+  private final int INSET_WITH_ICON= 3;
 
   /**
    * The constructor of this panel.
    * @param text the text of the panel.
    * @param tooltipIcon the tool tip of the help icon.
    */
-  public LabelWithHelpIcon(Message text, Message tooltipIcon)
+  public SelectableLabelWithHelpIcon(Message text, Message tooltipIcon)
   {
     super(new GridBagLayout());
     setOpaque(false);
-    label.setText(text.toString());
-    label.setForeground(ColorAndFontConstants.foreground);
+    label.setText(Utilities.applyFont(text.toString(),
+        label.getFont()));
     if (tooltipIcon != null)
     {
       iconLabel.setToolTipText(tooltipIcon.toString());
@@ -87,7 +89,6 @@ public class LabelWithHelpIcon extends JPanel
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.gridwidth = 1;
-    gbc.anchor = GridBagConstraints.WEST;
     add(label, gbc);
     gbc.gridx ++;
     gbc.insets.left = INSET_WITH_ICON;
@@ -95,31 +96,21 @@ public class LabelWithHelpIcon extends JPanel
     gbc.insets.left = 0;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx ++;
     add(Box.createHorizontalGlue(), gbc);
 
     Utilities.addClickTooltipListener(iconLabel);
-
-    updateAccessibleContext();
   }
 
   /**
-   * Set the component this is labeling. Can be {@code null} if this does not
-   * label a {@code Component}.
-   * @param comp the {@code Component} to be labeled.
-   */
-  public void setLabelFor(Component comp)
-  {
-    label.setLabelFor(comp);
-  }
-
-  /**
-   * Sets the text on the label.
+   * Sets the text on the label.  The text is assumed to be in HTML format
+   * but the font will be imposed by the font specified using {@link #setFont}.
    * @param text the text to be displayed.
    */
   public void setText(String text)
   {
-    label.setText(text);
-    updateAccessibleContext();
+    label.setText(Utilities.applyFont(text.toString(),
+        label.getFont()));
   }
 
   /**
@@ -137,7 +128,7 @@ public class LabelWithHelpIcon extends JPanel
    */
   public void setFont(Font font)
   {
-    // This is call by the constructor of JPanel.
+    // This is called by the constructor of JPanel.
     if (label != null)
     {
       label.setFont(font);
@@ -151,7 +142,6 @@ public class LabelWithHelpIcon extends JPanel
   public void setHelpTooltip(String tooltip)
   {
     iconLabel.setToolTipText(tooltip);
-    updateAccessibleContext();
   }
 
   /**
@@ -212,25 +202,5 @@ public class LabelWithHelpIcon extends JPanel
     {
       return null;
     }
-  }
-
-  private void updateAccessibleContext()
-  {
-    StringBuilder sb = new StringBuilder();
-    String s = label.getText();
-    if (s != null)
-    {
-      sb.append(s);
-    }
-    if (iconLabel.getIcon() != null)
-    {
-      String toolTip = iconLabel.getToolTipText();
-      toolTip = Utilities.stripHtmlToSingleLine(toolTip);
-      if (toolTip != null)
-      {
-        sb.append(" - "+toolTip);
-      }
-    }
-    getAccessibleContext().setAccessibleName(sb.toString());
   }
 }

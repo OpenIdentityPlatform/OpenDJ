@@ -169,6 +169,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     dnsToInclude = Utilities.createTextArea(Message.EMPTY, 5, 25);
     final JScrollPane scrollDns = Utilities.createScrollPane(dnsToInclude);
     panel.add(scrollDns, gbc);
+    lDnsToInclude.setLabelFor(dnsToInclude);
 
     gbc.insets.top = 2;
     gbc.gridy ++;
@@ -193,6 +194,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     attributesToInclude = Utilities.createMediumTextField();
     panel.add(attributesToInclude, gbc);
+    lAttributesToInclude.setLabelFor(attributesToInclude);
 
     gbc.insets.top = 2;
     gbc.gridy ++;
@@ -216,6 +218,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.insets.left = 10;
     inclusionFilter = Utilities.createMediumTextField();
     panel.add(inclusionFilter, gbc);
+    lInclusionFilter.setLabelFor(inclusionFilter);
 
     addExtraComponents(panel, extraComponentLabels, extraComponents, gbc,
         labelInsetLeft);
@@ -284,6 +287,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.insets.left = 10;
     dnsToExclude = Utilities.createTextArea(Message.EMPTY, 5, 0);
     final JScrollPane scrollDns = Utilities.createScrollPane(dnsToExclude);
+    lDnsToExclude.setLabelFor(dnsToExclude);
     panel.add(scrollDns, gbc);
 
     gbc.insets.top = 2;
@@ -309,12 +313,14 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.weightx = 1.0;
     attributesToExclude = Utilities.createTextField();
     panel.add(attributesToExclude, gbc);
+    lAttributesToExclude.setLabelFor(dnsToExclude);
 
     gbc.insets.top = 2;
     gbc.gridy ++;
     final JLabel lAttributesExplanation = Utilities.createInlineHelpLabel(
         INFO_CTRL_PANEL_SEPARATE_ATTRIBUTES_COMMA.get());
     panel.add(lAttributesExplanation, gbc);
+    lAttributesExplanation.setLabelFor(dnsToExclude);
 
     gbc.gridy ++;
     gbc.gridx = 0;
@@ -332,6 +338,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
     gbc.insets.left = 10;
     exclusionFilter = Utilities.createTextField();
     panel.add(exclusionFilter, gbc);
+    lExclusionFilter.setLabelFor(exclusionFilter);
 
     addExtraComponents(panel, extraComponentLabels, extraComponents, gbc,
         labelInsetLeft);
@@ -392,6 +399,8 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
         gbc.weightx = 1.0;
         gbc.insets.left = 10;
         panel.add(extraComponents[i], gbc);
+
+        extraComponentLabels[i].setLabelFor(extraComponents[i]);
       }
     }
   }
