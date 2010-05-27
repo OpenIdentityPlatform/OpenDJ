@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 import org.opends.messages.Message;
@@ -505,21 +505,30 @@ public class PersistentServerState
    Long genId = null;
    SearchResultEntry ruvEntry = null;
 
-   // Search the RUV in the DB
-   ruvEntry = searchRUVEntry();
-
-   if (ruvEntry == null)
-     return null;
-
-   // Check if the serverState is already initialized
-
-   if( !isServerStateInitilized())
+   try
    {
-     // Translate the ruv to serverState
-     // and GenerationId
-     genId = initializeStateWithRUVEntry(ruvEntry);
-   }
 
+     // Search the RUV in the DB
+     ruvEntry = searchRUVEntry();
+
+     if (ruvEntry == null)
+       return null;
+
+     // Check if the serverState is already initialized
+
+     if( !isServerStateInitilized())
+     {
+       // Translate the ruv to serverState
+       // and GenerationId
+       genId = initializeStateWithRUVEntry(ruvEntry);
+     }
+   }
+   catch (Exception e)
+   {
+     Message message = NOTE_ERR_WHILE_TRYING_TO_DECODE_RUV_IN_STATE.get(
+         baseDn.toString());
+     logError(message);
+   }
    // In any case, remove the RUV entry
    // if it exists
    DeleteOperationBasis del =  new DeleteOperationBasis(conn,
@@ -574,9 +583,24 @@ public class PersistentServerState
           {
             String[] bits = value.split(" ");
 
+            // Need to take into account when a purl is empty
             if (bits.length > 3)
             {
-              csn = bits[4];
+              if (bits[2].contains("ldap"))
+              {
+                // the ldap url is present so the max csn is the 5th element
+                // Example :
+                // {replica 5 ldap://host:port} 494b6635000000050000 4aeab8f300
+                //  0000050000
+                csn = bits[4];
+              }
+              else
+              {
+                // no ldap url so the max csn is the 4th element
+                // Example :
+                // {replica 31842} 4a0d1ff700017c620000 4a926b6500007c620000
+                csn = bits[3];
+              }
 
               String temp = csn.substring(0, 8);
               Long timeStamp = Long.parseLong(temp, 16);
