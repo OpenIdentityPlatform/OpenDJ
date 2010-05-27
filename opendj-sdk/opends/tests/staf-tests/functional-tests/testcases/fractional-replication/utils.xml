@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="get-fractional-replication-attributes" scope="local">
@@ -467,14 +467,14 @@
                   skipLine = True
               elif not skipLine:
                 refFiltered.append(f+"\n")
-            f=open('%s/%s' % (TMPDIR, filteredRefTree),'w')
+            f=open('%s/%s' % (local.temp, filteredRefTree),'w')
             f.writelines(refFiltered)
             f.close()
           </script>
           <call function="'copyFile'">
             {
             'location'   : STAXServiceMachine ,
-            'srcfile'    : '%s/%s' % (TMPDIR, filteredRefTree) ,
+            'srcfile'    : '%s/%s' % (local.temp, filteredRefTree) ,
             'destfile'   : '%s/%s' % (remote.temp, filteredRefTree) ,
             'remotehost' : dsMaster.getHostname()
             }
@@ -501,13 +501,13 @@
         <sequence>
           <script>
             filLdif = STAXResult[0][1]
-            f=open('%s/%s' % (TMPDIR, fractionalTree),'w')
+            f=open('%s/%s' % (local.temp, fractionalTree),'w')
             f.writelines(filLdif)
             f.close()
           </script>
           <call function="'copyFile'">
             { 'location'   : STAXServiceMachine ,
-              'srcfile'    : '%s/%s' % (TMPDIR, fractionalTree) ,
+              'srcfile'    : '%s/%s' % (local.temp, fractionalTree) ,
               'destfile'   : '%s/%s' % (remote.temp, fractionalTree) ,
               'remotehost' : dsMaster.getHostname()
             }

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -141,14 +141,14 @@
           </message>
           <call function="'exportLdifWithScript'">
             { 
-              'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
+             'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
              'backEnd'  : '%s' % DIRECTORY_INSTANCE_BE
             }
           </call>
           
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_default.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -236,12 +236,11 @@
             }
           </call>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/nonDefault.ldif' % remote.data,
               'backEnd'        : 'nonDefault'
             }
@@ -264,8 +263,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_nonDefault.ldif' % remote.data,
-              'dsBackEnd'   : 'nonDefault' ,
+            { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.data,
+              'backEnd'  : 'nonDefault' ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -349,8 +348,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_IncludeBranch.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_IncludeBranch.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -430,8 +429,8 @@
           </call>
           
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_IncludeBranches.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_IncludeBranches.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -511,8 +510,8 @@
           </call>
   
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_ExcludeBranch.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_ExcludeBranch.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -592,8 +591,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_ExcludeBranches.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_ExcludeBranches.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -673,8 +672,8 @@
           </call>
   
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_MixBranches.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_MixBranches.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -752,8 +751,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_IncludeAttr.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_IncludeAttr.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -831,8 +830,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_IncludeAttrs.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_IncludeAttrs.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -912,8 +911,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_ExcludeAttr.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_ExcludeAttr.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -991,8 +990,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_ExcludeAttrs.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_ExcludeAttrs.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1074,8 +1073,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FractionalMix.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FractionalMix.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1155,8 +1154,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredInclude.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredInclude.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1235,8 +1234,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1315,8 +1314,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredExclude.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredExclude.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1397,8 +1396,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredExcludes.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredExcludes.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1480,8 +1479,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1561,8 +1560,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1641,8 +1640,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1723,8 +1722,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/Export_FilteredMix.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
@@ -1803,10 +1802,10 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'  : '%s/backends/Export_FilteredMix.ldif' % remote.data,
-              'dsAppend'    : 'True' ,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
-              'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)
+            { 'ldifFile'  : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+              'append'    : 'True' ,
+              'backEnd'   : DIRECTORY_INSTANCE_BE ,
+              'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
          
@@ -1884,10 +1883,10 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'      : '%s/backends/ExportCompressed.ldif' % remote.data,
-              'dsIsCompressed'  : 'True' ,
-              'dsBackEnd'       : DIRECTORY_INSTANCE_BE ,
-              'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME)
+            { 'ldifFile'      : '%s/backends/ExportCompressed.ldif' % remote.data,
+              'isCompressed'  : 'True' ,
+              'backEnd'       : DIRECTORY_INSTANCE_BE ,
+              'dsPath'        : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
         
@@ -1965,10 +1964,10 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.data,
-              'dsIsEncrypted' : 'True' ,
-              'dsBackEnd'     : DIRECTORY_INSTANCE_BE ,
-              'dsPath'        : '%s/%s' % (DsInstanceDir, OPENDSNAME)
+            { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.data,
+              'isEncrypted' : 'True' ,
+              'backEnd'     : DIRECTORY_INSTANCE_BE ,
+              'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>
     
@@ -2089,8 +2088,8 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile' : '%s/backends/ExportWrapCol.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE ,
+            { 'ldifFile' : '%s/backends/ExportWrapCol.ldif' % remote.data,
+              'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
           </call>

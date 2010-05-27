@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -127,8 +127,8 @@
               <call function="'ImportLdifWithScript'">
                 {
                 'location'   : STAF_REMOTE_HOSTNAME ,
-                'dsLdifFile' : ldifFile ,
-                'dsBackEnd'  : 'userRoot'
+                'ldifFile'   : ldifFile ,
+                'backEnd'    : 'userRoot'
                 }
               </call>
 

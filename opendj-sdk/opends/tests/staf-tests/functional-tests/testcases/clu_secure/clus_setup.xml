@@ -109,10 +109,9 @@
                 'Add initial entries'
               </message>
 
-              <call function="'importLdif'">
-                { 
-                'ldifFile'    : '%s/clu_secure/clus_start.ldif'
-                                % remote.data
+              <call function="'ImportLdifWithScript'">
+                {
+                'ldifFile' : '%s/clu_secure/clus_start.ldif' % remote.data
                 }
               </call>
 

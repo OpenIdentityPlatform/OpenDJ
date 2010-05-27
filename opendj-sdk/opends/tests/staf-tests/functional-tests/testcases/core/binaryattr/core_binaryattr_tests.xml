@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -218,9 +218,9 @@
                                         'dsInstanceAdminPort' : server.adminport    ,
                                         'dsInstanceDn'        : server.dn           ,
                                         'dsInstancePswd'      : server.password     ,
-                                        'dsBackEnd'           : server.backend      ,
-                                        'dsLdifFile'          : binaryattrLdif          ,
-                                        'dsRejectFile'        : '%s/rejects.txt' % remote.temp }
+                                        'backEnd'             : server.backend      ,
+                                        'ldifFile'            : binaryattrLdif          ,
+                                        'rejectFile'          : '%s/rejects.txt' % remote.temp }
               }
             </call>
 

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 
 <stax>
@@ -49,12 +49,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Example.ldif' % remote.data
             }
           </call>
@@ -122,12 +121,11 @@
             }
           </call>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/nonDefault.ldif' % remote.data,
               'backEnd'        : 'nonDefault'
             }
@@ -180,12 +178,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeBranches' : ['dc=com'],
             }
@@ -238,12 +235,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeBranches' : ['dc=com','dc=example,dc=com']
             }
@@ -296,9 +292,9 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
               'taskID'          : STAXCurrentTestcase,
@@ -356,9 +352,9 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
               'taskID'          : STAXCurrentTestcase,
@@ -418,12 +414,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
               'includeBranches' : ['dc=com'],
               'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
@@ -479,12 +474,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'taskID'            : STAXCurrentTestcase,
               'ldifFile'          : '%s/backends/Include.ldif' % remote.data,
               'includeAttributes' : ['dc'],
             }
@@ -536,12 +530,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeAttributes' : ['dc','cn','ou','sn']
             }
@@ -594,12 +587,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'taskID'            : STAXCurrentTestcase,
               'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
               'excludeAttributes' : ['userpassword']
             }
@@ -651,12 +643,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'taskID'            : STAXCurrentTestcase,
               'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
               'excludeAttributes' : ['userpassword','mail','roomnumber']
             }
@@ -708,12 +699,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'taskID'            : STAXCurrentTestcase,
               'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
               'includeBranches'   : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
               'excludeBranches'   : ['ou=Departed,ou=People,dc=example,dc=com'],
@@ -770,12 +760,11 @@
 
           <call function="'testCase_Preamble'" />
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+             'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeFilters'  : ['objectclass=*'],
             }
@@ -828,12 +817,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
               'excludeFilters'  : ['objectclass=person'],
             }
@@ -888,12 +876,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeFilters'  : ['objectclass=domain*','objectclass=organizationalunit']
             }
@@ -948,12 +935,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
               'excludeFilters'  : ['objectclass=person','objectclass=organizationalunit'],
             }
@@ -1005,12 +991,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
               'includeFilters'  : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
             }
@@ -1063,12 +1048,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
               'excludeFilters'  : ['&amp;(objectclass=person)(ou=Departed)'],
             }
@@ -1120,12 +1104,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-              'taskID'            : STAXCurrentTestcase,
               'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
               'excludeFilters'    : ['&amp;(objectclass=person)(ou=Departed)'],
               'includeBranches'   : ['dc=com'],
@@ -1179,12 +1162,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Append.ldif' % remote.data,
               'append'         : 'TRUE'
             }
@@ -1237,12 +1219,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT,
+             'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'taskID'          : STAXCurrentTestcase,
               'ldifFile'        : '%s/backends/Append.ldif' % remote.data,
               'append'          : 'TRUE',
               'replaceExisting' : 'TRUE'
@@ -1296,12 +1277,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Example.ldif.gz' % remote.data,
               'isCompressed'   : 'TRUE'
             }
@@ -1354,12 +1334,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
               'isEncrypted'    : 'TRUE'
             }
@@ -1420,12 +1399,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
               'isEncrypted'    : 'TRUE'
             }
@@ -1486,14 +1464,13 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'taskID'         : STAXCurrentTestcase,
               'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
-              'rejectsFile'    : './rejects'
+              'rejectFile'                   : './rejects'
             }
           </call>
 
@@ -1545,15 +1522,14 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
-              'taskID'               : STAXCurrentTestcase,
               'ldifFile'             : '%s/backends/Example.ldif' % remote.data,
-              'rejectsFile'          : './rejects',
-              'overwriteRejectsFile' : 'TRUE'
+              'rejectFile'                    : './rejects',
+              'overwriteFile'              : 'TRUE'
             }
           </call>
 
@@ -1605,12 +1581,11 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
-              'taskID'               : STAXCurrentTestcase,
               'ldifFile'             : '%s/backends/Schema.ldif' % remote.data,
               'skipSchemaValidation' : 'TRUE'
             }
@@ -1663,14 +1638,12 @@
 
           <call function="'testCase_Preamble'"/>
 
-          <call function="'importLdifTask'">
+          <call function="'ImportLdifWithScript'">
             { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceAdminPort'   : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
-              'taskID'               : STAXCurrentTestcase,
-              'ldifFile'             : '%s/backends/Schema.ldif' % remote.data,
-              'skipSchemaValidation' : 'FALSE'
+              'ldifFile'                         : '%s/backends/Schema.ldif' % remote.data
             }
           </call>
 

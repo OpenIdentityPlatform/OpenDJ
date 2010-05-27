@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -123,13 +123,12 @@
                   Admin adding import task'
                 </message>
                 
-                <call function="'importLdifTask'">
+                <call function="'ImportLdifWithScript'">
                   { 
                   'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'taskID'           : STAXCurrentTestcase ,
                   'ldifFile'         : ldifFile1
                   }
                 </call>

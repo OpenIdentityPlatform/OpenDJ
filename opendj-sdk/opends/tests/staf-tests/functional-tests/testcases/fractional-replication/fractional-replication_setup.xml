@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -141,8 +141,8 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'     : masterHost,
                   'dsPath'       : masterPath,
-                  'dsBackEnd'    : DIRECTORY_INSTANCE_BE,
-                  'dsLdifFile'   : importDataFile
+                  'backEnd'      : DIRECTORY_INSTANCE_BE,
+                  'ldifFile'     : importDataFile
                 }
               </call>
 

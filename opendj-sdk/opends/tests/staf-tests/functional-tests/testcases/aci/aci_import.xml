@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -145,13 +145,12 @@
                    'ACI: Import: import-ldif with bad ACI, user adding import task'
                 </message>
     
-                <call function="'importLdifTask'">
-                { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD  ,
-                  'taskID'             : STAXCurrentTestcase ,
-                  'ldifFile'           : '%s/aci/aci_import/import_task.ldif' % remote.data
+                <call function="'ImportLdifWithScript'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                  'ldifFile'            : '%s/aci/aci_import/import_task.ldif' % remote.data
                 }
                 </call>
     

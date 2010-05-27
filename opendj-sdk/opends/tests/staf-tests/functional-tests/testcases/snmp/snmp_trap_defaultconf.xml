@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -78,6 +78,8 @@
           <testcase name="getTestCaseName('trap_defaultconf: trap on stop-ds')">
 
             <sequence>
+
+              <call function="'testCase_Preamble'"/>
 
               <timer duration="timerDuration">
                 <sequence>
@@ -181,6 +183,8 @@
           ('trap_defaultconf: trap on start-ds')">
 
             <sequence>
+
+              <call function="'testCase_Preamble'"/>
 
               <timer duration="timerDuration">
                 <sequence>
@@ -289,6 +293,8 @@
           ('trap_defaultconf: trap on stop-ds -R')">
 
             <sequence>
+
+              <call function="'testCase_Preamble'"/>
 
               <timer duration="timerDuration">
                 <sequence>

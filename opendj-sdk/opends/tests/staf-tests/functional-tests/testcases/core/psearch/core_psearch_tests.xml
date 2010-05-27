@@ -51,8 +51,8 @@
 
           <call function="'ImportLdifWithScript'">
             {
-              'dsLdifFile'  : '%s/core/psearch/default.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE
+              'ldifFile'  : '%s/core/psearch/default.ldif' % remote.data,
+              'backEnd'   : DIRECTORY_INSTANCE_BE
             }
           </call>
 
