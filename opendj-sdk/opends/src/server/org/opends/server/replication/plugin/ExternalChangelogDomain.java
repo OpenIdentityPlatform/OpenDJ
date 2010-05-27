@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -37,6 +37,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
+import java.util.HashSet;
 
 /**
  * This class specifies the external changelog feature for a replication
@@ -63,8 +64,12 @@ public class ExternalChangelogDomain
     this.isEnabled = configuration.isEnabled();
     configuration.addChangeListener(this);
     if (configuration.getECLInclude() != null)
+    {
+      HashSet<String> attrNames = new HashSet<String>(0);
       for (AttributeType eclInclude : configuration.getECLInclude())
-        domain.addEclInclude(eclInclude.getNormalizedPrimaryName());
+        attrNames.add(eclInclude.getNormalizedPrimaryName());
+      domain.setEclInclude(domain.getServerId(), attrNames);
+    }
   }
 
 
@@ -90,9 +95,10 @@ public class ExternalChangelogDomain
     }
 
     this.isEnabled = configuration.isEnabled();
-    if (configuration.getECLInclude() != null)
-      for (AttributeType eclInclude : configuration.getECLInclude())
-        domain.addEclInclude(eclInclude.getNormalizedPrimaryName());
+    HashSet<String> attrNames = new HashSet<String>(0);
+    for (AttributeType eclInclude : configuration.getECLInclude())
+      attrNames.add(eclInclude.getNormalizedPrimaryName());
+    domain.setEclInclude(domain.getServerId(), attrNames);
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
@@ -103,6 +109,12 @@ public class ExternalChangelogDomain
   public ConfigChangeResult applyConfigurationChange(
       ExternalChangelogDomainCfg configuration)
   {
+    // How it works with dsconfig :
+    // - after dsconfig set-external-changelog-domain-prop --set ecl-include:xx
+    //   configuration contains only attribute xx
+    // - after dsconfig set-external-changelog-domain-prop --add ecl-include:xx
+    //   configuration contains attribute xx and the previous list
+    // Hence in all cases, it is the complete list of attributes.
     try
     {
       if (domain==null)
@@ -114,9 +126,10 @@ public class ExternalChangelogDomain
       }
 
       this.isEnabled = configuration.isEnabled();
-      if (configuration.getECLInclude() != null)
-        for (AttributeType eclInclude : configuration.getECLInclude())
-          domain.addEclInclude(eclInclude.getNormalizedPrimaryName());
+      HashSet<String> attrNames = new HashSet<String>(0);
+      for (AttributeType eclInclude : configuration.getECLInclude())
+        attrNames.add(eclInclude.getNormalizedPrimaryName());
+      domain.setEclInclude(domain.getServerId(), attrNames);
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
     catch (Exception e)

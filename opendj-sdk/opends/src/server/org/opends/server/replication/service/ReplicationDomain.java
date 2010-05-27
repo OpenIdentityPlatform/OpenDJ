@@ -68,6 +68,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -302,8 +303,9 @@ public abstract class ReplicationDomain
    */
   private final ChangeNumberGenerator generator;
 
-  Set<String> cfgEclIncludes = new HashSet<String>();
-  Set<String>    eClIncludes = new HashSet<String>();
+  private final Map<Integer, Set<String>> eclIncludeByServer =
+    new ConcurrentHashMap<Integer, Set<String>>();
+  Set<String> crossServersECLIncludes = new HashSet<String>();
 
   /**
    * Returns the {@link ChangeNumberGenerator} that will be used to
@@ -2893,21 +2895,42 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Add an attribute to the list of attributes to include in the ECL.
-   * @param attribute The attribute to add.
+   * Set the attributes configured on a server  to be included in the ECL.
+   * @param serverId    server where these attributes are configured.
+   * @param attributes  the configured attributes.
    */
-  synchronized public void addEclInclude(String attribute)
+  synchronized public void setEclInclude(int serverId, Set<String> attributes)
   {
-    eClIncludes.add(attribute);
+    eclIncludeByServer.put(serverId, attributes);
+
+    // and rebuild the global list to be ready for usage
+    crossServersECLIncludes.clear();
+    for (Set<String> attributesByServer : eclIncludeByServer.values())
+      for (String attribute : attributesByServer)
+        crossServersECLIncludes.add(attribute);
   }
 
   /**
-   * Get the list of attributes to include in the ECL.
-   * @return The list of attributes.
+   * Get the attributes to include in each change for the ECL.
+   * It's a set : an attribute appears once even if configured on more than one
+   * server.
+   * @return The attributes to include in each change for the ECL.
    */
   public Set<String> getEclInclude()
   {
-    return eClIncludes;
+    System.out.println("cdECLIn=" + crossServersECLIncludes);
+    return crossServersECLIncludes;
+  }
+
+  /**
+   * Get the attributes to include in each change for the ECL
+   * for a given serverId.
+   * @param  serverId The serverId for which we want the include attributes.
+   * @return The attributes.
+   */
+  public Set<String> getEclInclude(int serverId)
+  {
+    return eclIncludeByServer.get(serverId);
   }
 
   /**

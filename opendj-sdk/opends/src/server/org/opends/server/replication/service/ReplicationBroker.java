@@ -1568,7 +1568,7 @@ public class ReplicationBroker
           domain.getAssuredMode(),
           domain.getAssuredSdLevel());
         startSessionMsg.setEclIncludes(
-          domain.getEclInclude());
+          domain.getEclInclude(domain.getServerId()));
       } else
       {
         startSessionMsg =
@@ -3027,12 +3027,7 @@ public class ReplicationBroker
     if (domain != null)
     {
       for (DSInfo info : dsList)
-      {
-        for (String attr : info.getEclIncludes())
-        {
-          domain.addEclInclude(attr);
-        }
-      }
+        domain.setEclInclude(info.getDsId(), info.getEclIncludes());
     }
   }
 
