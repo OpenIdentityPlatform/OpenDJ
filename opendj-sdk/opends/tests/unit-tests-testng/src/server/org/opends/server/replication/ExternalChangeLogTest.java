@@ -3856,10 +3856,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       replServers.add("localhost:"+replicationServerPort);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2, 1702, replServers);
-      // SortedSet<String> includeAttributes = new TreeSet<String>();
-      // includeAttributes.add("sn");
+
+      // on o=test2,sid=1702 include attrs set to : 'sn'
       SortedSet<AttributeType> eclInclude = new TreeSet<AttributeType>();
       eclInclude.add(DirectoryServer.getAttributeType("sn"));
+      eclInclude.add(DirectoryServer.getAttributeType("roomnumber"));
       ExternalChangelogDomainFakeCfg eclCfg = 
         new ExternalChangelogDomainFakeCfg(true, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
@@ -3875,6 +3876,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
       domainConf =
         new DomainFakeCfg(baseDn3, 1703, replServers);
+
+      // on o=test3,sid=1703 include attrs set to : 'objectclass'
       eclInclude = new TreeSet<AttributeType>();
       eclInclude.add(DirectoryServer.getAttributeType("objectclass"));
       eclCfg = 
@@ -3887,6 +3890,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       domain3 = MultimasterReplication.createNewDomain(domainConf);
       domain3.start();
 
+      // on o=test2,sid=1704 include attrs set to : 'cn'
       domainConf =
         new DomainFakeCfg(baseDn2, 1704, replServers);
       eclInclude = new TreeSet<AttributeType>();
@@ -3921,7 +3925,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + "telephonenumber: 12121212");
 
       Entry uentry1 = TestCaseUtils.entryFromLdifString(lentry);
-      addEntry(uentry1);
+      addEntry(uentry1); // add fiona in o=test2
 
       lentry = new String(
           "dn: cn=Robert Hue," + TEST_ROOT_DN_STRING3 + "\n"
@@ -3934,9 +3938,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + "uid: robert\n"
           + "telephonenumber: 131313");
       Entry uentry2 = TestCaseUtils.entryFromLdifString(lentry);
-      addEntry(uentry2);
+      addEntry(uentry2); // add robert in o=test3
 
-      //
+      // mod 'sn' of fiona (o=test2) with 'sn' configured as ecl-incl-att
       AttributeBuilder builder = new AttributeBuilder("sn");
       builder.add("newsn");
       Modification mod =
@@ -3948,7 +3952,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       modOpBasis.run();
       waitOpResult(modOpBasis, ResultCode.SUCCESS);
 
-      //
+      // mod 'telephonenumber' of robert (o=test3) 
       builder = new AttributeBuilder("telephonenumber");
       builder.add("555555");
       mod =
@@ -3960,7 +3964,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       modOpBasis2.run();
       waitOpResult(modOpBasis2, ResultCode.SUCCESS);
 
-      //
+      // moddn robert (o=test3) to robert2 (o=test3)
       ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
@@ -3971,7 +3975,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       modDNOp.run();
       waitOpResult(modDNOp, ResultCode.SUCCESS);
 
-      //
+      // del robert (o=test3)
       delOp = new DeleteOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(), null,
