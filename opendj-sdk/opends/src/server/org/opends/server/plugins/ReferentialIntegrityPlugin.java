@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -696,15 +696,20 @@ public class ReferentialIntegrityPlugin
     {
       if(e.hasAttribute(type))
       {
-        mods.add(new Modification(ModificationType.DELETE, Attributes
-            .create(type, oldEntryDN.toString())));
-
-        // If the new entry DN exists, create an ADD modification for
-        // it.
-        if(newEntryDN != null)
+        AttributeValue value = AttributeValues
+            .create(type, oldEntryDN.toString());
+        if (e.hasValue(type, null, value))
         {
-          mods.add(new Modification(ModificationType.ADD, Attributes
-              .create(type, newEntryDN.toString())));
+          mods.add(new Modification(ModificationType.DELETE, Attributes
+              .create(type, value)));
+
+          // If the new entry DN exists, create an ADD modification for
+          // it.
+          if(newEntryDN != null)
+          {
+            mods.add(new Modification(ModificationType.ADD, Attributes
+                .create(type, newEntryDN.toString())));
+          }
         }
       }
     }
