@@ -58,6 +58,8 @@ public class DSInfo
   private List<String> refUrls = new ArrayList<String>(0);
   // Group id
   private byte groupId = (byte) -1;
+  // Protocol version
+  private short protocolVersion = -1;
 
   private Set<String> eclIncludes = new HashSet<String>();
 
@@ -74,10 +76,12 @@ public class DSInfo
    * @param groupId DS group id
    * @param refUrls DS exported referrals URLs
    * @param eclIncludes The list of entry attributes to include in the ECL.
+   * @param protocolVersion Protocol version supported by this server.
    */
   public DSInfo(int dsId, int rsId, long generationId, ServerStatus status,
     boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
-    byte groupId, List<String> refUrls, Set<String> eclIncludes)
+    byte groupId, List<String> refUrls, Set<String> eclIncludes,
+    short protocolVersion)
   {
 
     this.dsId = dsId;
@@ -90,6 +94,7 @@ public class DSInfo
     this.groupId = groupId;
     this.refUrls = refUrls;
     this.eclIncludes = eclIncludes;
+    this.protocolVersion = protocolVersion;
   }
 
   /**
@@ -175,11 +180,21 @@ public class DSInfo
 
   /**
    * Get the entry attributes to be included in the ECL.
-   * @return a.
+   * @return The entry attributes to be included in the ECL.
    */
   public Set<String> getEclIncludes()
   {
     return eclIncludes;
+  }
+
+  /**
+   * Get the protocol version supported by this server.
+   * Returns -1 when the protocol version is not known (too old version).
+   * @return The protocol version.
+   */
+  public short getProtocolVersion()
+  {
+    return protocolVersion;
   }
 
   /**
@@ -205,6 +220,7 @@ public class DSInfo
         (assuredMode == dsInfo.getAssuredMode()) &&
         (safeDataLevel == dsInfo.getSafeDataLevel()) &&
         (groupId == dsInfo.getGroupId()) &&
+        (protocolVersion == dsInfo.getProtocolVersion()) &&
         (refUrls.equals(dsInfo.getRefUrls())) &&
          (((eclIncludes == null) && (dsInfo.getEclIncludes() == null)) ||
            ((eclIncludes != null) &&
@@ -234,6 +250,7 @@ public class DSInfo
     hash = 73 * hash + (this.refUrls != null ? this.refUrls.hashCode() : 0);
     hash = 73 * hash + (this.eclIncludes != null ? eclIncludes.hashCode() : 0);
     hash = 73 * hash + this.groupId;
+    hash = 73 * hash + this.protocolVersion;
     return hash;
   }
 
@@ -261,6 +278,8 @@ public class DSInfo
     sb.append(safeDataLevel);
     sb.append(" ; Group id: ");
     sb.append(groupId);
+    sb.append(" ; Protocol version: ");
+    sb.append(protocolVersion);
     sb.append(" ; Referral URLs: ");
     sb.append(refUrls);
     sb.append(" ; ECL Include: ");

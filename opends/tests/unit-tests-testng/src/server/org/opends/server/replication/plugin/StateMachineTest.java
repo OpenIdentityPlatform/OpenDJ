@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -99,6 +99,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationServer rs1 = null;
   // The tracer object for the debug logger
   private static final DebugTracer TRACER = getTracer();
+  private int initWindow = 100;
 
   private void debugInfo(String s)
   {
@@ -934,7 +935,7 @@ public class StateMachineTest extends ReplicationTestCase
 
       initTargetMsg =
           new InitializeTargetMsg(EXAMPLE_DN, serverId, destId,
-          serverId, nEntries);
+          serverId, nEntries, initWindow);
 
       rb.publish(initTargetMsg);
 
@@ -944,14 +945,14 @@ public class StateMachineTest extends ReplicationTestCase
         + "objectClass: domain\n"
         + "dc: example\n"
         + "entryUUID: 11111111-1111-1111-1111-111111111111\n\n";
-      EntryMsg entryMsg = new EntryMsg(serverId, destId, topEntry.getBytes());
+      EntryMsg entryMsg = new EntryMsg(serverId, destId, topEntry.getBytes(), 1);
       rb.publish(entryMsg);
     }
 
     private EntryMsg createNextEntryMsg()
     {
       String userEntryUUID = "11111111-1111-1111-1111-111111111111";
-      long curId = userId++;
+      long curId = ++userId;
       String userdn = "uid=full_update_user" + curId + "," + EXAMPLE_DN;
       String entryWithUUIDldif = "dn: " + userdn + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -972,7 +973,7 @@ public class StateMachineTest extends ReplicationTestCase
 
       // Create an entry message
       EntryMsg entryMsg = new EntryMsg(serverId, destId,
-        entryWithUUIDldif.getBytes());
+        entryWithUUIDldif.getBytes(), (int)userId);
 
       return entryMsg;
     }

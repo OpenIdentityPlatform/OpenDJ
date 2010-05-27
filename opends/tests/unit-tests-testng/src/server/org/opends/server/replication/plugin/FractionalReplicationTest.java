@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -104,6 +104,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static final int EXCLUDE_FRAC_MODE = 0;
   private static final int INCLUDE_FRAC_MODE = 1;
 
+  int initWindow = 100;
   private ChangeNumberGenerator gen = null;
 
   // The tracer object for the debug logger
@@ -688,7 +689,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       long heartbeatInterval,
       long generationId) throws ConfigException
     {
-      super(serviceID, serverID);
+      super(serviceID, serverID, 100);
       generationID = generationId;
       startPublishService(replicationServers, window, heartbeatInterval, 500);
       startListenService();

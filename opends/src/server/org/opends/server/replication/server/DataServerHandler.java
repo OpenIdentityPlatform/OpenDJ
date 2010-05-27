@@ -664,7 +664,7 @@ public class DataServerHandler extends ServerHandler
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclIncludes);
+      eclIncludes, protocolVersion);
 
     return dsInfo;
   }

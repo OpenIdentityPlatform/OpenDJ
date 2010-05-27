@@ -61,6 +61,7 @@ public class ProtocolVersion
    *   ReplicationServerDSMsg message.
    *   -> also added of the server URL in RSInfo of TopologyMsg
    * - Introduction of a StopMsg for proper connections ending.
+   * - Initialization failover/flow control
    */
   public static final short REPLICATION_PROTOCOL_V4 = 4;
 

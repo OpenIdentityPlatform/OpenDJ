@@ -689,7 +689,8 @@ public class ReplicationServerHandler extends ServerHandler
             dsInfo.getGroupId(), dsInfo.getStatus(), dsInfo.getRefUrls(),
             dsInfo.isAssured(), dsInfo.getAssuredMode(),
             dsInfo.getSafeDataLevel(),
-            dsInfo.getEclIncludes());
+            dsInfo.getEclIncludes(),
+            dsInfo.getProtocolVersion());
         lsh.startHandler();
         remoteDirectoryServers.put(lsh.getServerId(), lsh);
       }
@@ -840,20 +841,6 @@ public class ReplicationServerHandler extends ServerHandler
   public String getServerAddressURL()
   {
     return serverAddressURL;
-  }
-
-  /**
-   * Sends a message containing a generationId to a peer server.
-   * The peer is expected to be a replication server.
-   *
-   * @param  msg         The GenerationIdMessage message to be sent.
-   * @throws IOException When it occurs while sending the message,
-   *
-   */
-  public void forwardReplicationMsg(ReplicationMsg msg)
-    throws IOException
-  {
-    session.publish(msg);
   }
 
   /**

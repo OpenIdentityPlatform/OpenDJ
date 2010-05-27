@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -492,6 +492,25 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-solve-conflicts</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="initialization-window-size">
+    <adm:synopsis>
+      Specifies the window size that this Directory Server may use when
+      communicating with remote Directory Servers for initialization.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-initialization-window-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -100,9 +100,7 @@ public class ServerReader extends DirectoryThread
           ReplicationMsg msg = session.receive();
 
           if (debugEnabled())
-          {
             TRACER.debugInfo("In " + getName() + " receives " + msg);
-          }
 
           if (msg instanceof AckMsg)
           {
@@ -187,6 +185,11 @@ public class ServerReader extends DirectoryThread
             InitializeRequestMsg initializeMsg =
               (InitializeRequestMsg) msg;
             handler.process(initializeMsg);
+          } else if (msg instanceof InitializeRcvAckMsg)
+          {
+            InitializeRcvAckMsg initializeRcvAckMsg =
+              (InitializeRcvAckMsg) msg;
+            handler.process(initializeRcvAckMsg);
           } else if (msg instanceof InitializeTargetMsg)
           {
             InitializeTargetMsg initializeMsg = (InitializeTargetMsg) msg;

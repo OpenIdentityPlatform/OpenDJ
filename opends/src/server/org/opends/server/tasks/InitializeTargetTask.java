@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 
+import org.opends.messages.Message;
 import org.opends.messages.TaskMessages;
 import org.opends.server.types.ResultCode;
 
@@ -35,6 +36,7 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.List;
@@ -64,6 +66,13 @@ public class InitializeTargetTask extends Task
   private LDAPReplicationDomain domain = null;
   private int target;
   private long total;
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
+  }
 
   /**
    * {@inheritDoc}
@@ -117,9 +126,9 @@ public class InitializeTargetTask extends Task
   protected TaskState runTask()
   {
     if (debugEnabled())
-    {
-      TRACER.debugInfo("DebugInfo" + "InitializeTarget Task/runTask ");
-    }
+      TRACER.debugInfo("[IE] InitializeTargetTask is starting on domain: "+
+          domain.getServiceID());
+
     try
     {
       domain.initializeRemote(target, this);
@@ -128,7 +137,6 @@ public class InitializeTargetTask extends Task
     {
       // This log will go to the task log message
       MessageBuilder mb = new MessageBuilder();
-      mb.append("Initialize Task stopped by error");
       mb.append(de.getMessageObject());
       logError(mb.toMessage());
 

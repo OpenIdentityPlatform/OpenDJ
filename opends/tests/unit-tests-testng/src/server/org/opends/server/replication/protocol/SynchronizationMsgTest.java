@@ -581,8 +581,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     AddMsg generatedMsg = (AddMsg) ReplicationMsg.generateMsg(msg
         .getBytes(), ProtocolVersion.getCurrentVersion());
-    assertEquals(msg.getBytes(), generatedMsg.getBytes());
-    assertEquals(msg.toString(), generatedMsg.toString());
+    assertEquals(generatedMsg.getBytes(), msg.getBytes());
+    assertEquals(generatedMsg.toString(), msg.toString());
 
     // Test that generated attributes match original attributes.
     assertEquals(generatedMsg.getParentUid(), msg.getParentUid());
@@ -997,19 +997,19 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Set<String> a4 = new HashSet<String>();
 
     DSInfo dsInfo1 = new DSInfo(13, 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
-      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1);
+      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, (short)1);
 
     DSInfo dsInfo2 = new DSInfo(-436, 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
-      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2);
+      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, (short)2);
 
     DSInfo dsInfo3 = new DSInfo(2436, 591, (long)0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3);
+      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, (short)3);
 
     DSInfo dsInfo4 = new DSInfo(415, 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
-      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4);
+      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, (short)4);
 
     DSInfo dsInfo5 = new DSInfo(452436, 45591, (long)0, ServerStatus.NORMAL_STATUS,
-        false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1);
+        false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, (short)5);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
     dsList1.add(dsInfo1);
@@ -1198,7 +1198,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     MonitorRequestMsg msg = new MonitorRequestMsg(1,2);
     MonitorRequestMsg newMsg = new MonitorRequestMsg(msg.getBytes());
     assertEquals(newMsg.getDestination(), 2);
-    assertEquals(newMsg.getsenderID(), 1);
+    assertEquals(newMsg.getSenderID(), 1);
   }
 
   /**
@@ -1287,7 +1287,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       }
     }
 
-    assertEquals(newMsg.getsenderID(), msg.getsenderID());
+    assertEquals(newMsg.getSenderID(), msg.getSenderID());
     assertEquals(newMsg.getDestination(), msg.getDestination());
   }
 
@@ -1310,9 +1310,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int sender = 1;
     int target = 45678;
     byte[] entry = taskInitFromS2.getBytes();
-    EntryMsg msg = new EntryMsg(sender, target, entry);
-    EntryMsg newMsg = new EntryMsg(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
+    EntryMsg msg = new EntryMsg(sender, target, entry, 1);
+    EntryMsg newMsg = new EntryMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getEntryBytes(), newMsg.getEntryBytes());
   }
@@ -1326,9 +1326,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int sender = 1;
     int target = 56789;
     InitializeRequestMsg msg = new InitializeRequestMsg(
-        TEST_ROOT_DN_STRING, sender, target);
-    InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
+        TEST_ROOT_DN_STRING, sender, target, 100);
+    InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertTrue(msg.getBaseDn().equals(newMsg.getBaseDn()));
   }
@@ -1343,19 +1343,20 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int targetID = 2;
     int requestorID = 3;
     long entryCount = 4;
+    int initWindow = 100;
 
     InitializeTargetMsg msg = new InitializeTargetMsg(
-        TEST_ROOT_DN_STRING, senderID, targetID, requestorID, entryCount);
-    InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
+        TEST_ROOT_DN_STRING, senderID, targetID, requestorID, entryCount, initWindow);
+    InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertEquals(msg.getRequestorID(), newMsg.getRequestorID());
+    assertEquals(msg.getInitiatorID(), newMsg.getInitiatorID());
     assertEquals(msg.getEntryCount(), newMsg.getEntryCount());
     assertTrue(msg.getBaseDN().equals(newMsg.getBaseDN())) ;
 
-    assertEquals(senderID, newMsg.getsenderID());
+    assertEquals(senderID, newMsg.getSenderID());
     assertEquals(targetID, newMsg.getDestination());
-    assertEquals(requestorID, newMsg.getRequestorID());
+    assertEquals(requestorID, newMsg.getInitiatorID());
     assertEquals(entryCount, newMsg.getEntryCount());
     assertTrue(TEST_ROOT_DN_STRING.equals(newMsg.getBaseDN())) ;
 
@@ -1369,7 +1370,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     DoneMsg msg = new DoneMsg(1, 2);
     DoneMsg newMsg = new DoneMsg(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
+    assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
   }
 
@@ -1380,8 +1381,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void errorMsgTest() throws Exception
   {
     ErrorMsg msg = new ErrorMsg(1, 2, Message.raw("details"));
-    ErrorMsg newMsg = new ErrorMsg(msg.getBytes());
-    assertEquals(msg.getsenderID(), newMsg.getsenderID());
+    ErrorMsg newMsg = new ErrorMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
+    assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getMsgID(), newMsg.getMsgID());
     assertEquals(msg.getDetails(), newMsg.getDetails());

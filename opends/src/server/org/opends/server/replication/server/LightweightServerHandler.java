@@ -87,6 +87,8 @@ public class LightweightServerHandler
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) -1;
+  // The prococol version
+  private short protocolVersion = -1;
 
   private Set<String> eclInclude = new HashSet<String>();
 
@@ -107,11 +109,13 @@ public class LightweightServerHandler
    * @param assuredMode The assured mode of the remote DS
    * @param safeDataLevel The safe data level of the remote DS
    * @param eclInclude The list of entry attributes to be added to the ECL.
+   * @param protocolVersion The protocol version supported by the remote DS.
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
     int replicationServerId, int serverId, long generationId, byte groupId,
     ServerStatus status, List<String> refUrls, boolean assuredFlag,
-    AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude)
+    AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude,
+    short protocolVersion)
   {
     super("Server Handler");
     this.replServerHandler = replServerHandler;
@@ -126,6 +130,7 @@ public class LightweightServerHandler
     this.assuredMode = assuredMode;
     this.safeDataLevel = safeDataLevel;
     this.eclInclude = eclInclude;
+    this.protocolVersion = protocolVersion;
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -144,7 +149,7 @@ public class LightweightServerHandler
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclInclude);
+      eclInclude, protocolVersion);
 
     return dsInfo;
   }

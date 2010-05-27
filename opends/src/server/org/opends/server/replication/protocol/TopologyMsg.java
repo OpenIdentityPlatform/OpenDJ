@@ -175,7 +175,9 @@ public class TopologyMsg extends ReplicationMsg
             oStream.write(attr.getBytes("UTF-8"));
             oStream.write(0);
           }
+          oStream.write(dsInfo.getProtocolVersion());
         }
+
       }
 
       // Put number of following RS info entries
@@ -302,6 +304,7 @@ public class TopologyMsg extends ReplicationMsg
         }
 
         Set<String> attrs = new HashSet<String>();
+        short protocolVersion = -1;
         if (version>=ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
           byte nAttrs = in[pos++];
@@ -317,12 +320,15 @@ public class TopologyMsg extends ReplicationMsg
             pos += length + 1;
             nRead++;
           }
+          /* Read Protocol version */
+          protocolVersion = Short.valueOf(in[pos++]);
         }
 
         /* Now create DSInfo and store it in list */
 
         DSInfo dsInfo = new DSInfo(dsId, rsId, generationId, status,
-          assuredFlag, assuredMode, safeDataLevel, groupId, refUrls, attrs);
+          assuredFlag, assuredMode, safeDataLevel, groupId, refUrls, attrs,
+          protocolVersion);
         dsList.add(dsInfo);
 
         nDsInfo--;

@@ -1020,6 +1020,10 @@ public class GenerationIdTest extends ReplicationTestCase
       addTask(taskInitRemoteS2, ResultCode.SUCCESS, null);
 
       // S2 should be re-initialized and have a new valid genId
+      
+      // Signal that we just entered the full update status
+      broker2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
+
       int receivedEntriesNb = this.receiveImport(broker2, server2ID, null);
       debugInfo("broker2 has been initialized from DS with #entries=" + receivedEntriesNb);
 

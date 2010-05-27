@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -389,7 +389,18 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return this.eclIncludes;
   }
+
+  public long getInitializationHeartbeatInterval()
+  {
+    return 180;
+  }
   
+
+  public int getInitializationWindowSize()
+  {
+    return 100;
+  }
+
   public boolean hasExternalChangelogDomain() { return true; }
 
 

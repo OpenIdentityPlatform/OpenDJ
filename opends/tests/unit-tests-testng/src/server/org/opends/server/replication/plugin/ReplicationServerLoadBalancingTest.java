@@ -127,6 +127,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
   private void endTest()
   {
+    debugInfo("endTest");
     for (int i = 0 ; i < NDS; i++)
     {
       if (rd[i] != null)
@@ -155,6 +156,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       }
       rsPort[i] = -1;
     }
+    debugInfo("endTest done");
   }
 
   /**
@@ -345,7 +347,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * and check the DSs are correctly spread across the RSs
    * @throws Exception If a problem occurred
    */
-  @Test
+  @Test (enabled=true)
   public void testSpreadLoad() throws Exception
   {
     String testCase = "testSpreadLoad";
@@ -1051,7 +1053,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (groups = "slow")
+  @Test (enabled=true,groups = "slow")
   public void testNoYoyo1() throws Exception
   {
     String testCase = "testNoYoyo1";
@@ -1141,7 +1143,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (groups = "slow")
+  @Test (enabled=true, groups = "slow")
   public void testNoYoyo2() throws Exception
   {
     String testCase = "testNoYoyo2";
@@ -1234,7 +1236,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
    * disconnections/reconnections after the very first connections.
    * @throws Exception If a problem occurred
    */
-  @Test (groups = "slow")
+  @Test (enabled=true, groups = "slow")
   public void testNoYoyo3() throws Exception
   {
     String testCase = "testNoYoyo3";
