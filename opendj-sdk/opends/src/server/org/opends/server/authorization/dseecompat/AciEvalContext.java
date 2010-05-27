@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -184,7 +184,7 @@ public interface AciEvalContext
    * @param flag  The integer value specifying either a deny or allow, but not
    * both.
    *
-   * @return  {@code true} if the ACI has an targetattrfilters keyword.
+   * @return  {@code true} if the ACI has an targattrfilters keyword.
    */
     public boolean hasTargAttrFiltersMatchOp(int flag);
 
