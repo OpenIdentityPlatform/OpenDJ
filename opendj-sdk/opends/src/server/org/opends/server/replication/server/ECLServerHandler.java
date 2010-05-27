@@ -738,7 +738,7 @@ public class ECLServerHandler extends ServerHandler
           if (isPersistent ==
             StartECLSessionMsg.PERSISTENT_CHANGES_ONLY)
           {
-            newDomainCtxt.startState = rsd.getEligibleState(eligibleCN);
+            newDomainCtxt.startState = rsd.getEligibleState(eligibleCN, true);
           }
           else
           {
@@ -781,7 +781,7 @@ public class ECLServerHandler extends ServerHandler
             }
 
             // Set the stop state for the domain from the eligibleCN
-            newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN);
+            newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN, true);
           }
           newDomainCtxt.currentState = new ServerState();
 

@@ -3119,10 +3119,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *
    * The eligibleState is : s1;cn14 / s2;cn26 / s3;cn31
    *
-   * @param eligibleCN The provided eligibleCN.
+   * @param eligibleCN              The provided eligibleCN.
+   * @param allowOlderThanPurgeDate When true, the returned state can be older
+   *                                than the purge date of the domain.
    * @return The computed eligible server state.
    */
-  public ServerState getEligibleState(ChangeNumber eligibleCN)
+  public ServerState getEligibleState(ChangeNumber eligibleCN,
+      boolean allowOlderThanPurgeDate)
   {
     ServerState result = new ServerState();
 
@@ -3188,6 +3191,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         }
       }
     }
+
+    if (allowOlderThanPurgeDate == false)
+    {
+      boolean domainPurged = true;
+      long latestDomainTrimDate = getLatestDomainTrimDate();
+      Iterator<Integer> it = result.iterator();
+      while (it.hasNext())
+      {
+        int sid = it.next();
+        ChangeNumber cn = result.getMaxChangeNumber(sid);
+        if ((cn.getTime()>0) && (cn.getTime()<latestDomainTrimDate))
+          result.update(new ChangeNumber(0,0,sid));
+        else
+          domainPurged = false;
+      }
+      if (domainPurged == true)
+        result.clear();
+    }
+
     if (debugEnabled())
       TRACER.debugInfo("In " + this
         + " getEligibleState() result is " + result);
