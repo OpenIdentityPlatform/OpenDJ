@@ -2445,7 +2445,7 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Change the ReplicationDomain parameters.
+   * Change some ReplicationDomain parameters.
    *
    * @param replicationServers  The new list of Replication Servers that this
    *                           domain should now use.
@@ -2473,6 +2473,44 @@ public abstract class ReplicationDomain
     }
   }
 
+  /**
+   * Change some ReplicationDomain parameters : the ECL include attribute.
+   *
+   * @param newECLInclude The new ECL attribute.
+   */
+  public void changeConfig(Set<String> newECLInclude)
+  {
+    boolean configECLIncludeChanged = false;
+    Set<String>  currentECLInclude = this.getEclInclude(serverID);
+
+    if (newECLInclude.size() != currentECLInclude.size())
+    {
+      configECLIncludeChanged = true;
+    }
+    else
+    {
+      // compare current config and new config
+      for (String attr : currentECLInclude)
+      {
+        if (!newECLInclude.contains(attr))
+        {
+          configECLIncludeChanged = true;
+          break;
+        }
+      }
+    }
+
+    if (configECLIncludeChanged)
+    {
+      // set new config
+      this.setEclInclude(this.serverID, newECLInclude);
+      if (broker != null)
+      {
+        disableService();
+        enableService();
+      }
+    }
+  }
 
   /**
    * This method should trigger an export of the replicated data.
@@ -2918,7 +2956,6 @@ public abstract class ReplicationDomain
    */
   public Set<String> getEclInclude()
   {
-    System.out.println("cdECLIn=" + crossServersECLIncludes);
     return crossServersECLIncludes;
   }
 

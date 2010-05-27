@@ -563,7 +563,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     setGroupId((byte)configuration.getGroupId());
     setURLs(configuration.getReferralsUrl());
 
-    createECLDomainCfg(configuration);
+    storeECLConfiguration(configuration);
 
     /*
      * Modify conflicts are solved for all suffixes but the schema suffix
@@ -4235,7 +4235,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     try
     {
-      createECLDomainCfg(configuration);
+      storeECLConfiguration(configuration);
     }
     catch(Exception e)
     {
@@ -4341,29 +4341,34 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Create the ECl configuration.
-   * @param  configuration The provided configuration.
-   * @throws ConfigException a.
+   * Store the provided ECL configuration for the domain.
+   * @param  domCfg       The provided configuration.
+   * @throws ConfigException When an error occured.
    */
-  public void createECLDomainCfg(ReplicationDomainCfg configuration)
+  public void storeECLConfiguration(ReplicationDomainCfg domCfg)
   throws ConfigException
   {
+    ExternalChangelogDomainCfg eclDomCfg = null;
     // create the ecl config if it does not exist
     // There may ot be any config entry related to this domain in some
     // unit test cases
     try
     {
-      ExternalChangelogDomainCfg eclDomCfg = null;
       if (DirectoryServer.getConfigHandler().entryExists(configDn))
       {
         try
-        { eclDomCfg = configuration.getExternalChangelogDomain();
-        }catch(Exception e) {}
-        if (eclDomCfg==null)
+        { eclDomCfg = domCfg.getExternalChangelogDomain();
+        } catch(Exception e) {}
+        // domain with no config entry only when running unit tests
+        if (eclDomCfg == null)
         {
+          // no ECL config provided hence create a default one
+          // create the default one
           DN eclConfigEntryDN = DN.decode("cn=external changelog," + configDn);
           if (!DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
           {
+            // no entry exist yet for the ECL config for this domain
+            // create it
             String ldif = makeLdif(
                 "dn: cn=external changelog," + configDn,
                 "objectClass: top",
@@ -4379,8 +4384,17 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           }
         }
       }
-      eclDomCfg = configuration.getExternalChangelogDomain();
-      eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
+      eclDomCfg = domCfg.getExternalChangelogDomain();
+      if (eclDomain != null)
+      {
+        eclDomain.applyConfigurationChange(eclDomCfg);
+      }
+      else
+      {
+        // Create the ECL domain object
+        eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
+      }
+
     }
     catch(Exception de)
     {
