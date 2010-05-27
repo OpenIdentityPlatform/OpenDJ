@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -477,6 +477,7 @@ public class AddOperationBasis
           userAttributes = null;
           operationalAttributes = null;
           ldapError = true;
+          return;
         }
       }
     }
