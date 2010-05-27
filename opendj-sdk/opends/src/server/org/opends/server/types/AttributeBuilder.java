@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -275,7 +275,8 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue = value.getNormalizedValue();
+        normalizedValue =
+                matchingRule.normalizeValue(value.getValue());
       }
       catch (Exception e)
       {
@@ -294,7 +295,8 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = v.getNormalizedValue();
+          ByteString nv =
+                  matchingRule.normalizeValue(v.getValue());
           int comparisonResult = matchingRule
               .compareValues(nv, normalizedValue);
           if (comparisonResult >= 0)
@@ -357,7 +359,8 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue = value.getNormalizedValue();
+        normalizedValue =
+                matchingRule.normalizeValue(value.getValue());
       }
       catch (Exception e)
       {
@@ -376,7 +379,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = v.getNormalizedValue();
+          ByteString nv = matchingRule.normalizeValue(v.getValue());
           int comparisonResult = matchingRule
               .compareValues(nv, normalizedValue);
           if (comparisonResult <= 0)
@@ -502,7 +505,8 @@ public final class AttributeBuilder
         try
         {
           if (matchingRule.valueMatchesSubstring(
-              value.getNormalizedValue(),
+              attributeType.getSubstringMatchingRule().
+                    normalizeValue(value.getValue()),
               normalizedSubInitial,
               normalizedSubAny,
               normalizedSubFinal))

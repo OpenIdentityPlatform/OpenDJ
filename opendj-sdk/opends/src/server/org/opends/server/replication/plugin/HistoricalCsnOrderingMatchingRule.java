@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -67,13 +67,7 @@ public class HistoricalCsnOrderingMatchingRule
    */
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    String[] token1 = value1.toString().split(":", 3);
-    String[] token2 = value2.toString().split(":", 3);
-
-    if ((token1[1] == null) || (token2[1] == null))
-      return -1;
-
-    return token1[1].compareTo(token2[1]);
+    return value1.compareTo(value2);
   }
 
 
@@ -136,7 +130,6 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public ByteString normalizeValue(ByteSequence value)
   {
-
     String[] token = value.toString().split(":", 3);
 
     /* Change the format of the value to index and start

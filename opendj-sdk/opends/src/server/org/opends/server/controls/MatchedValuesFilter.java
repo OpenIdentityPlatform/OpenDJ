@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -1357,7 +1357,8 @@ public class MatchedValuesFilter
                  new ArrayList<ByteSequence>(normalizedSubAny);
 
             return substringMatchingRule.valueMatchesSubstring(
-                 value.getNormalizedValue(), normalizedSubInitial,
+                 substringMatchingRule.normalizeValue(value.getValue()),
+                 normalizedSubInitial,
                  normalizedSubAnyBS, normalizedSubFinal);
           }
           catch (Exception e)
@@ -1385,7 +1386,8 @@ public class MatchedValuesFilter
           {
             return (orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
-                         value.getNormalizedValue()) >= 0);
+                         orderingMatchingRule.normalizeValue(
+                         value.getValue())) >= 0);
           }
           catch (Exception e)
           {
@@ -1412,7 +1414,8 @@ public class MatchedValuesFilter
           {
             return (orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
-                         value.getNormalizedValue()) <= 0);
+                         orderingMatchingRule.normalizeValue(
+                         value.getValue())) <= 0);
           }
           catch (Exception e)
           {
@@ -1445,7 +1448,7 @@ public class MatchedValuesFilter
             ByteString nv1 =  approximateMatchingRule.normalizeValue(
                     assertionValue.getNormalizedValue());
             ByteString nv2 =  approximateMatchingRule.normalizeValue(
-                    value.getNormalizedValue());
+                    approximateMatchingRule.normalizeValue(value.getValue()));
 
             return approximateMatchingRule.approximatelyMatch(nv1, nv2);
           }

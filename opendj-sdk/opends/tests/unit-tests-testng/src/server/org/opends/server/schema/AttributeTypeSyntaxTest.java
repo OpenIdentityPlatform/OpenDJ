@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -34,6 +34,15 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
 import org.opends.messages.MessageBuilder;
+import java.util.ArrayList;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.Control;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchScope;
 
 import static org.testng.Assert.*;
 
@@ -148,6 +157,68 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     assertNotNull(attrType);
     assertNotNull(attrType.getApproximateMatchingRule());
     assertEquals(attrType.getApproximateMatchingRule(), testApproxRule);
+  }
+
+
+
+  /**
+   * Tests a situation when two radically different equality and substring
+   * matching rules (such as Case Ignore and Case Exact) are used to define an
+   * attribute description. For more information, look at the issue# 4468 in
+   * Issue Tracker.
+   *
+   * @throws Exception In case of an error.
+   */
+  @Test()
+  public void testMixedEqualityAndSubstringMatchingRules() throws Exception
+  {
+    //Add an attribute with directory string syntax.
+    int  resultCode = TestCaseUtils.applyModifications(true,
+      "dn: cn=schema",
+      "changetype: modify",
+      "add: attributetypes",
+      "attributeTypes: ( gvRights-oid NAME 'gvRights' DESC 'x attr' EQUALITY " +
+      "caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR " +
+      "caseExactSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
+      "USAGE userApplications )",
+      "-",
+      "add: objectclasses",
+      "objectClasses: ( gvRightsTest-oid NAME 'gvRightsTest' DESC 'Test' SUP top AUXILIARY " +
+      "MUST ( objectClass $ gvRights ) )");
+    assertTrue(resultCode == 0);
+    TestCaseUtils.initializeTestBackend(true);
+    //add the test entry.
+    TestCaseUtils.addEntry(
+    "dn: cn=gvrightstest,o=test",
+    "objectclass: person",
+    "objectclass: gvRightsTest",
+    "cn: gvrightstest",
+    "sn: test",
+    "gvRights: gvApplId=test2,ou=Applications,dc=bla$test2-T");
+
+    //Search for the entry using substring matching rule filter.
+    InternalClientConnection conn =
+       InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+       new InternalSearchOperation(
+            conn,
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(),
+            new ArrayList<Control>(),
+            ByteString.valueOf("cn=gvrightstest,o=test"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES,
+            Integer.MAX_VALUE,
+            Integer.MAX_VALUE,
+            false,
+            LDAPFilter.decode("(&(gvrights=*ApplId=test2,ou=*)" +
+            "(gvrights=*test2,ou=A*))"),
+            null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
   }
 }
 
