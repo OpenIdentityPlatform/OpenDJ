@@ -22,9 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 
 import java.io.FileInputStream;
@@ -72,6 +73,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.controls.*;
 import org.opends.server.plugins.ChangeNumberControlPlugin;
 
@@ -608,6 +610,7 @@ public class LDAPModify
     FileBasedArgument bindPasswordFile       = null;
     FileBasedArgument keyStorePasswordFile   = null;
     FileBasedArgument trustStorePasswordFile = null;
+    IntegerArgument   connectTimeout         = null;
     IntegerArgument   port                   = null;
     IntegerArgument   version                = null;
     StringArgument    assertionFilter        = null;
@@ -864,6 +867,16 @@ public class LDAPModify
                               INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
+
+      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+      connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+          null, OPTION_LONG_CONNECT_TIMEOUT,
+          false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+          defaultTimeout, null,
+          true, 0, false, Integer.MAX_VALUE,
+          INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+      connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+      argParser.addArgument(connectTimeout);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding",
                                       false, false,
@@ -1192,7 +1205,9 @@ public class LDAPModify
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions, out, err);
-      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
+      int timeout = connectTimeout.getIntValue();
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID,
+          timeout);
 
       ldapModify = new LDAPModify(fileNameValue, nextMessageID, out, err);
       ldapModify.readAndExecute(connection, fileNameValue, modifyOptions);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -429,6 +429,12 @@ public class ToolConstants
     */
     public static final String OPTION_LONG_PROTOCOL_VERSION  =
            "ldapVersion";
+
+    /**
+     * The value for the long option connect timeout attribute.
+     */
+    public static final String OPTION_LONG_CONNECT_TIMEOUT =
+      "connectTimeout";
 
     /**
      * The value for the long option version.

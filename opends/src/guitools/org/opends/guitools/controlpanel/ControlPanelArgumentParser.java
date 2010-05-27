@@ -22,29 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_BINDDN;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_BINDPWD;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_BINDPWD_FILE;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_HOST;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_PORT;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_TRUSTALL;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_BINDDN;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_BINDPWD;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_BINDPWD_FILE;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HOST;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_PORT;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_TRUSTALL;
+import static org.opends.server.tools.ToolConstants.*;
 
 import java.util.LinkedHashSet;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
@@ -91,6 +79,11 @@ public class ControlPanelArgumentParser extends ArgumentParser
    * The 'trustAllArg' global argument.
    */
   private BooleanArgument trustAllArg = null;
+
+  /**
+   * Argument to specify the connect timeout.
+   */
+  private IntegerArgument connectTimeoutArg = null;
 
   private BooleanArgument showUsageArg;
 
@@ -141,6 +134,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, INFO_PORT_PLACEHOLDER.get(),
         getDefaultAdministrationPort(), null,
+        true, 1, true, 65535,
         INFO_DESCRIPTION_ADMIN_PORT.get());
     portArg.setPropertyName(OPTION_LONG_PORT);
     addArgument(portArg);
@@ -169,6 +163,16 @@ public class ControlPanelArgumentParser extends ArgumentParser
         OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
     trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
     addArgument(trustAllArg);
+
+    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+        null, OPTION_LONG_CONNECT_TIMEOUT,
+        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+        defaultTimeout, null,
+        true, 0, false, Integer.MAX_VALUE,
+        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+    addArgument(connectTimeoutArg);
 
     showUsageArg = new BooleanArgument("help", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,
@@ -281,6 +285,26 @@ public class ControlPanelArgumentParser extends ArgumentParser
   public boolean isTrustAll()
   {
     return trustAllArg.isPresent();
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.  The method
+   * must be called after parsing the arguments.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   * @throw {@code IllegalStateException} if the method is called before
+   * parsing the arguments.
+   */
+  public int getConnectTimeout()
+  {
+    try
+    {
+      return connectTimeoutArg.getIntValue();
+    }
+    catch (ArgumentException ae)
+    {
+      throw new IllegalStateException("Argument parser is not parsed: "+ae, ae);
+    }
   }
 
 }

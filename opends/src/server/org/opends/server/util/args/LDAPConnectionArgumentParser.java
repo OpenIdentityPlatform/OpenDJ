@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util.args;
@@ -330,12 +330,15 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         connectionOptions.addSASLProperty(option);
       }
     }
+
+    int timeout = args.connectTimeoutArg.getIntValue();
+
     return connect(
             args.hostNameArg.getValue(),
             args.portArg.getIntValue(),
             args.bindDnArg.getValue(),
             getPasswordValue(args.bindPasswordArg, args.bindPasswordFileArg),
-            connectionOptions, out, err);
+            connectionOptions, timeout, out, err);
   }
 
   /**
@@ -364,7 +367,9 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
               ui.getPortNumber(),
               ui.getBindDN(),
               ui.getBindPassword(),
-              ui.populateLDAPOptions(options), out, err);
+              ui.populateLDAPOptions(options),
+              ui.getConnectTimeout(),
+              out, err);
     } catch (OpenDsException e) {
       if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
         e.getCause().getCause() instanceof SSLException) {
@@ -399,14 +404,41 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                                 PrintStream err)
           throws LDAPConnectionException
   {
+    return connect(host, port, bindDN, bindPw, options, 0, out, err);
+  }
 
+
+  /**
+   * Creates a connection from information provided.
+   *
+   * @param host of the server
+   * @param port of the server
+   * @param bindDN with which to connect
+   * @param bindPw with which to connect
+   * @param options with which to connect
+   * @param timeout the timeout to establish the connection in milliseconds.
+   *        Use {@code 0} to express no timeout
+   * @param out stream to write messages
+   * @param err stream to write messages
+   * @return LDAPConnection created by this class from parsed arguments
+   * @throws LDAPConnectionException if there was a problem connecting
+   *         to the server indicated by the input arguments
+   */
+  public LDAPConnection connect(String host, int port,
+                                String bindDN, String bindPw,
+                                LDAPConnectionOptions options,
+                                int timeout,
+                                PrintStream out,
+                                PrintStream err)
+  throws LDAPConnectionException
+  {
     // Attempt to connect and authenticate to the Directory Server.
     AtomicInteger nextMessageID = new AtomicInteger(1);
 
     LDAPConnection connection = new LDAPConnection(
             host, port, options, out, err);
 
-    connection.connectToHost(bindDN, bindPw, nextMessageID);
+    connection.connectToHost(bindDN, bindPw, nextMessageID, timeout);
 
     return connection;
   }

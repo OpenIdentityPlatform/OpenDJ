@@ -71,6 +71,8 @@ public abstract class GuiApplication extends Application {
   /** The QuickSetupDialog in control. */
   private QuickSetupDialog qs;
 
+  private String[] args = {};
+
   /**
    * Constructs an instance of an application.  Subclasses
    * of this application must have a default constructor.
@@ -632,5 +634,24 @@ public abstract class GuiApplication extends Application {
    */
   public void setQuickSetupDialog(QuickSetupDialog dialog) {
     this.qs = dialog;
+  }
+
+  /**
+   * Sets the arguments passed in the command-line to launch the application.
+   * @param args the arguments passed in the command-line to launch the
+   * application.
+   */
+  public void setUserArguments(String[] args)
+  {
+    this.args = args;
+  }
+
+  /**
+   * Returns the arguments passed in the command-line to launch the application.
+   * @return the arguments passed in the command-line to launch the application.
+   */
+  public String[] getUserArguments()
+  {
+    return args;
   }
 }

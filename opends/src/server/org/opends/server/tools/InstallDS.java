@@ -761,6 +761,7 @@ public class InstallDS extends ConsoleApplication
     uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
+    uData.setConnectTimeout(getConnectTimeout());
     //  Check the validity of the directory manager DNs
     String dmDN = argParser.directoryManagerDNArg.getValue();
 
@@ -1051,6 +1052,7 @@ public class InstallDS extends ConsoleApplication
     uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
+    uData.setConnectTimeout(getConnectTimeout());
 
     promptIfRequiredForDirectoryManager(uData);
     promptIfRequiredForPortData(uData);
@@ -2781,5 +2783,16 @@ public class InstallDS extends ConsoleApplication
       }
     }
     return hostName;
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.  The method
+   * must be called after parsing the arguments.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   */
+  private int getConnectTimeout()
+  {
+    return argParser.getConnectTimeout();
   }
 }

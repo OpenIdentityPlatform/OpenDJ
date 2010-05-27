@@ -816,13 +816,14 @@ public abstract class ConsoleApplication {
    * @param useStartTLS whether to use StartTLS or not.
    * @param bindDn the bind dn to be used.
    * @param pwd the password.
+   * @param connectTimeout the timeout in milliseconds to connect to the server.
    * @param trustManager the trust manager.
    * @return an InitialLdapContext connected.
    * @throws NamingException if there was an error establishing the connection.
    */
   protected InitialLdapContext createAdministrativeContext(String host,
       int port, boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
-      ApplicationTrustManager trustManager)
+      int connectTimeout, ApplicationTrustManager trustManager)
   throws NamingException
   {
     InitialLdapContext ctx;
@@ -830,18 +831,18 @@ public abstract class ConsoleApplication {
     if (useSSL)
     {
       ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager);
+          connectTimeout, null, trustManager);
     }
     else if (useStartTLS)
     {
       ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager,
+          connectTimeout, null, trustManager,
           null);
     }
     else
     {
       ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null);
+          connectTimeout, null);
     }
     if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
     {
@@ -901,7 +902,7 @@ public abstract class ConsoleApplication {
         try
         {
           ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
-              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+              bindPassword, ci.getConnectTimeout(), null,
               trustManager, keyManager);
           ctx.reconnect(null);
           break;

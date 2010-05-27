@@ -117,7 +117,14 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     application = Application.create();
     application.setProgressMessageFormatter(formatter);
     application.setCurrentInstallStatus(installStatus);
-
+    if (args != null)
+    {
+      application.setUserArguments(args);
+    }
+    else
+    {
+      application.setUserArguments(new String[]{});
+    }
     try
     {
       initLookAndFeel();

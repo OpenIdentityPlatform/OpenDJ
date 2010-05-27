@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -455,7 +455,7 @@ public class DeleteEntryTask extends Task
     try
     {
       ctx1 = ConnectionUtils.cloneInitialLdapContext(ctx,
-          ConnectionUtils.getDefaultLDAPTimeout(),
+          getInfo().getConnectTimeout(),
           getInfo().getTrustManager(), null);
       Control[] ctls = {
           new BasicControl(ServerConstants.OID_SUBTREE_DELETE_CONTROL)};

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -152,6 +152,30 @@ public class LDAPConnection
                             AtomicInteger nextMessageID)
                             throws LDAPConnectionException
   {
+    connectToHost(bindDN, bindPassword, nextMessageID, 0);
+  }
+
+  /**
+   * Connects to the directory server instance running on specified hostname
+   * and port number.
+   *
+   * @param  bindDN         The DN to bind with.
+   * @param  bindPassword   The password to bind with.
+   * @param  nextMessageID  The message ID counter that should be used for
+   *                        operations performed while establishing the
+   *                        connection.
+   * @param  timeout        The timeout to connect to the specified host.  The
+   *                        timeout is the timeout at the socket level in
+   *                        milliseconds.  If the timeout value is {@code 0},
+   *                        no timeout is used.
+   *
+   * @throws  LDAPConnectionException  If a problem occurs while attempting to
+   *                                   establish the connection to the server.
+   */
+  public void connectToHost(String bindDN, String bindPassword,
+                            AtomicInteger nextMessageID, int timeout)
+                            throws LDAPConnectionException
+  {
     Socket socket;
     Socket startTLSSocket = null;
     int resultCode;
@@ -276,6 +300,10 @@ public class LDAPConnection
     {
       socket.setSoLinger(true, 1);
       socket.setReuseAddress(true);
+      if (timeout > 0)
+      {
+        socket.setSoTimeout(timeout);
+      }
     } catch(IOException e)
     {
       if (debugEnabled())

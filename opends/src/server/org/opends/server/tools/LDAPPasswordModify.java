@@ -22,9 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 
 
@@ -186,6 +187,7 @@ public class LDAPPasswordModify
     StringArgument    sslKeyStorePIN;
     StringArgument    sslTrustStore;
     StringArgument    sslTrustStorePIN;
+    IntegerArgument   connectTimeout;
     StringArgument    propertiesFileArgument;
     BooleanArgument   noPropertiesFileArgument;
 
@@ -404,6 +406,16 @@ public class LDAPPasswordModify
                     null, null, INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
+
+      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+      connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+          null, OPTION_LONG_CONNECT_TIMEOUT,
+          false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+          defaultTimeout, null,
+          true, 0, false, Integer.MAX_VALUE,
+          INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+      connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+      argParser.addArgument(connectTimeout);
 
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
@@ -665,13 +677,21 @@ public class LDAPPasswordModify
 
     try
     {
-      connection.connectToHost(dn, pw, nextMessageID);
+      int timeout = connectTimeout.getIntValue();
+      connection.connectToHost(dn, pw, nextMessageID, timeout);
     }
     catch (LDAPConnectionException lce)
     {
       Message message = ERR_LDAPPWMOD_CANNOT_CONNECT.get(lce.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return lce.getResultCode();
+    }
+    catch (ArgumentException e)
+    {
+      // This should not occur because the arguments are already parsed.
+      // It is a bug
+      e.printStackTrace();
+      throw new IllegalStateException("Unexpected error: "+e, e);
     }
 
     LDAPReader reader = connection.getLDAPReader();

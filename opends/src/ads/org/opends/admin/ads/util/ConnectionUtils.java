@@ -236,7 +236,8 @@ public class ConnectionUtils
    * Clones the provided InitialLdapContext and returns a connection using
    * the same parameters.
    * @param ctx hte connection to be cloned.
-   * @param timeout the timeout to establish the connection.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    * @param trustManager the trust manager to be used to connect.
    * @param keyManager the key manager to be used to connect.
    * @return the new InitialLdapContext connected to the server.
@@ -575,11 +576,13 @@ public class ConnectionUtils
    * @param ldapUrl the ldap URL of the server.
    * @param dn the dn to be used.
    * @param pwd the password to be used.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    * @return <CODE>true</CODE> if we can connect and read the configuration and
    * <CODE>false</CODE> otherwise.
    */
   public static boolean canConnectAsAdministrativeUser(String ldapUrl,
-      String dn, String pwd)
+      String dn, String pwd, int timeout)
   {
     boolean canConnectAsAdministrativeUser = false;
     try
@@ -587,12 +590,12 @@ public class ConnectionUtils
       InitialLdapContext ctx;
       if (ldapUrl.toLowerCase().startsWith("ldap:"))
       {
-        ctx = createLdapContext(ldapUrl, dn, pwd, getDefaultLDAPTimeout(),
+        ctx = createLdapContext(ldapUrl, dn, pwd, timeout,
             null);
       }
       else
       {
-        ctx = createLdapsContext(ldapUrl, dn, pwd, getDefaultLDAPTimeout(),
+        ctx = createLdapsContext(ldapUrl, dn, pwd, timeout,
             null, null, null);
       }
 
@@ -646,8 +649,8 @@ public class ConnectionUtils
    * @param t the Thread to be used to create the InitialLdapContext.
    * @param pair an Object[] array that contains the InitialLdapContext and the
    * Throwable if any occurred.
-   * @param timeout the timeout.  If we do not get to create the connection
-   * before the timeout a CommunicationException will be thrown.
+   * @param timeout the timeout in milliseconds.  If we do not get to create the
+   * connection before the timeout a CommunicationException will be thrown.
    * @return the created InitialLdapContext
    * @throws NamingException if something goes wrong during the creation.
    */

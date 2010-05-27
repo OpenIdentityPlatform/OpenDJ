@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util.cli;
@@ -115,6 +115,9 @@ public class LDAPConnectionConsoleInteraction {
   private String truststorePath;
 
   private String truststorePassword;
+
+  // The timeout to be used to connect
+  private int connectTimeout;
 
   private Message heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
 
@@ -796,6 +799,7 @@ public class LDAPConnectionConsoleInteraction {
           copySecureArgsList.bindPasswordArg);
       }
     }
+    connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
   }
 
   /**
@@ -1453,6 +1457,15 @@ public class LDAPConnectionConsoleInteraction {
    */
   public boolean isTrustAll() {
     return this.trustAll;
+  }
+
+  /**
+   * Returns the timeout to be used to connect with the server.
+   * @return the timeout to be used to connect with the server.
+   */
+  public int getConnectTimeout()
+  {
+    return connectTimeout;
   }
 
   /**

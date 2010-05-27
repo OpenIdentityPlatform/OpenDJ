@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -62,7 +62,6 @@ import java.util.LinkedList;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.io.IOException;
-import javax.net.ssl.SSLException;
 
 /**
  * Base class for tools that are capable of operating either by running
@@ -203,7 +202,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
         null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
       argParser.addArgument(dependencyArg, taskGroup);
 
-      Set fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
+      Set<FailedDependencyAction> fdaValSet =
+        EnumSet.allOf(FailedDependencyAction.class);
       failedDependencyActionArg = new StringArgument(
         OPTION_LONG_FAILED_DEPENDENCY_ACTION,
         OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
@@ -300,7 +300,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
       String fda = failedDependencyActionArg.getValue();
       if (null == FailedDependencyAction.fromString(fda)) {
-        Set fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
+        Set<FailedDependencyAction> fdaValSet =
+          EnumSet.allOf(FailedDependencyAction.class);
         throw new ArgumentException(ERR_TASKTOOL_INVALID_FDA.get(fda,
                         StaticUtils.collectionToString(fdaValSet, ",")));
       }
@@ -501,8 +502,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
         ret = 0;
       } catch (LDAPConnectionException e) {
         Message message = null;
-        if ((e.getCause() != null) && (e.getCause().getCause() != null) &&
-          e.getCause().getCause() instanceof SSLException) {
+        if (isWrongPortException(e,
+            new Integer(argParser.getArguments().getPort())))
+        {
           message = ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
             argParser.getArguments().getHostName(),
             argParser.getArguments().getPort());
@@ -565,5 +567,32 @@ public abstract class TaskTool implements TaskScheduleInformation {
       returnValue = testIfOfflineArg.isPresent();
     }
     return returnValue;
+  }
+
+  /**
+   * Returns {@code true} if the provided exception was caused by trying to
+   * connect to the wrong port and {@code false} otherwise.
+   * @param t the exception to be analyzed.
+   * @param port the port to which we tried to connect.
+   * @return {@code true} if the provided exception was caused by trying to
+   * connect to the wrong port and {@code false} otherwise.
+   */
+  private boolean isWrongPortException(Throwable t, int port)
+  {
+    boolean isWrongPortException = false;
+    boolean isDefaultClearPort = (port - 389) % 1000 == 0;
+    while (t != null && isDefaultClearPort)
+    {
+      isWrongPortException = t instanceof java.net.SocketTimeoutException;
+      if (!isWrongPortException)
+      {
+        t = t.getCause();
+      }
+      else
+      {
+        break;
+      }
+    }
+    return isWrongPortException;
   }
 }

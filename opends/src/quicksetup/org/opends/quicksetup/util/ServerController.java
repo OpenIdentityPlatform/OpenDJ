@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -478,7 +478,7 @@ public class ServerController {
             {
               ctx = Utils.createLdapsContext(
                   ldapUrl,
-                  userDn, userPw, ConnectionUtils.getDefaultLDAPTimeout(),
+                  userDn, userPw, application.getUserData().getConnectTimeout(),
                   null, null);
               connected = true;
             }

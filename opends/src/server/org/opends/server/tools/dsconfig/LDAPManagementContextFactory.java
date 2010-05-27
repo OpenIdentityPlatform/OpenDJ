@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -174,7 +174,7 @@ public final class LDAPManagementContextFactory implements
           try
           {
             ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
-                bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+                bindPassword, ci.getConnectTimeout(), null,
                 trustManager, keyManager);
             ctx.reconnect(null);
             conn = JNDIDirContextAdaptor.adapt(ctx);

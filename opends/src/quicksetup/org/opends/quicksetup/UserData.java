@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
@@ -101,6 +102,8 @@ public class UserData
   private Map<String, JavaArguments> hmDefaultJavaArguments;
 
   private static String defaultHostName;
+
+  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
 
   /**
    * The script name to be used to get and set the java arguments for the
@@ -882,5 +885,24 @@ public class UserData
         "make-ldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
         "upgrade", "verify-index", "dbtest"
     };
+  }
+
+  /**
+   * Sets the timeout to be used to establish a connection.
+   * @param connectTimeout the timeout to be used to establish a connection.
+   */
+  public void setConnectTimeout(int connectTimeout)
+  {
+    this.connectTimeout = connectTimeout;
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   */
+  public int getConnectTimeout()
+  {
+    return connectTimeout;
   }
 }

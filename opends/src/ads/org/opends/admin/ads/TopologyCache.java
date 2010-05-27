@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -69,6 +69,7 @@ public class TopologyCache
 {
   private ADSContext adsContext;
   private ApplicationTrustManager trustManager;
+  private int timeout;
   private String dn;
   private String pwd;
   private Set<ServerDescriptor> servers = new HashSet<ServerDescriptor>();
@@ -90,12 +91,16 @@ public class TopologyCache
    * @param trustManager the ApplicationTrustManager that must be used to trust
    * certificates when we create connections to the registered servers to read
    * their configuration.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    */
   public TopologyCache(ADSContext adsContext,
-      ApplicationTrustManager trustManager)
+      ApplicationTrustManager trustManager,
+      int timeout)
   {
     this.adsContext = adsContext;
     this.trustManager = trustManager;
+    this.timeout = timeout;
     dn = ConnectionUtils.getBindDN(adsContext.getDirContext());
     pwd = ConnectionUtils.getBindPassword(adsContext.getDirContext());
   }
@@ -204,6 +209,16 @@ public class TopologyCache
   public ApplicationTrustManager getTrustManager()
   {
     return trustManager;
+  }
+
+  /**
+   * Returns the timeout to establish the connection in milliseconds.
+   * @return the timeout to establish the connection in milliseconds. Returns
+   * {@code 0} to express no timeout.
+   */
+  public int getConnectTimeout()
+  {
+    return timeout;
   }
 
   /**
@@ -373,6 +388,7 @@ public class TopologyCache
   {
     return new ServerLoader(serverProperties, dn, pwd,
         trustManager == null ? null : trustManager.createCopy(),
+            timeout,
             getPreferredConnections(), getFilter());
   }
 
@@ -464,11 +480,12 @@ public class TopologyCache
       ServerLoader loader =
         getServerLoader(replicationServer.getAdsProperties());
       ctx = loader.createContext();
-      NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<SearchResult> monitorEntries =
+        ctx.search(jndiName, filter, ctls);
 
       while(monitorEntries.hasMore())
       {
-        SearchResult sr = (SearchResult)monitorEntries.next();
+        SearchResult sr = monitorEntries.next();
 
         String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
         int replicaId = -1;

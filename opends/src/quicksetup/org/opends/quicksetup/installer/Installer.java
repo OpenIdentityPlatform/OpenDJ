@@ -242,7 +242,32 @@ public abstract class Installer extends GuiApplication {
   public UserData createUserData() {
     UserData ud = new UserData();
     ud.setServerLocation(getDefaultServerLocation());
+    initializeUserDataWithUserArguments(ud, getUserArguments());
     return ud;
+  }
+
+  private void initializeUserDataWithUserArguments(UserData ud,
+      String[] userArguments)
+  {
+    for (int i=0; i<userArguments.length; i++)
+    {
+      if (userArguments[i].equalsIgnoreCase("--connectTimeout"))
+      {
+        if (i < userArguments.length - 1)
+        {
+          String sTimeout = userArguments[i+1];
+          try
+          {
+            ud.setConnectTimeout(new Integer(sTimeout));
+          }
+          catch (Throwable t)
+          {
+            LOG.log(Level.WARNING, "Error getting connect timeout: "+t, t);
+          }
+        }
+        break;
+      }
+    }
   }
 
   /**
@@ -1553,12 +1578,12 @@ public abstract class Installer extends GuiApplication {
           ApplicationTrustManager trustManager = getTrustManager();
           trustManager.setHost(auth.getHostName());
           ctx = createLdapsContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null, trustManager);
+              getConnectTimeout(), null, trustManager);
         }
         else
         {
           ctx = createLdapContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null);
+              getConnectTimeout(), null);
         }
 
         ADSContext adsContext = new ADSContext(ctx);
@@ -2619,12 +2644,12 @@ public abstract class Installer extends GuiApplication {
           ApplicationTrustManager trustManager = getTrustManager();
           trustManager.setHost(auth.getHostName());
           remoteCtx = createLdapsContext(ldapUrl, dn, pwd,
-                  getDefaultLDAPTimeout(), null, trustManager);
+              getConnectTimeout(), null, trustManager);
         }
         else
         {
           remoteCtx = createLdapContext(ldapUrl, dn, pwd,
-                  getDefaultLDAPTimeout(), null);
+              getConnectTimeout(), null);
         }
         adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
 
@@ -3613,7 +3638,7 @@ public abstract class Installer extends GuiApplication {
       try
       {
         ctx = createLdapsContext(ldapUrl, dn, pwd,
-              getDefaultLDAPTimeout(), null, trustManager);
+            getConnectTimeout(), null, trustManager);
       }
       catch (Throwable t)
       {
@@ -3623,7 +3648,7 @@ public abstract class Installer extends GuiApplication {
           dn = ADSContext.getAdministratorDN(dn);
           effectiveDn[0] = dn;
           ctx = createLdapsContext(ldapUrl, dn, pwd,
-                getDefaultLDAPTimeout(), null, trustManager);
+              getConnectTimeout(), null, trustManager);
         }
         else
         {
@@ -4227,7 +4252,8 @@ public abstract class Installer extends GuiApplication {
     {
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
-    lastLoadedCache = new TopologyCache(adsContext, trustManager);
+    lastLoadedCache = new TopologyCache(adsContext, trustManager,
+        getConnectTimeout());
     LinkedHashSet<PreferredConnection> cnx =
       new LinkedHashSet<PreferredConnection>();
     cnx.add(PreferredConnection.getPreferredConnection(
@@ -4409,7 +4435,7 @@ public abstract class Installer extends GuiApplication {
     String dn = getUserData().getDirectoryManagerDn();
     String pwd = getUserData().getDirectoryManagerPwd();
     return createLdapsContext(ldapUrl, dn, pwd,
-        getDefaultLDAPTimeout(), null, null);
+        getConnectTimeout(), null, null);
   }
 
   /**
@@ -4458,8 +4484,8 @@ public abstract class Installer extends GuiApplication {
       }
       server.setAdsProperties(adsProperties);
     }
-    return  getRemoteConnection(server, auth.getDn(), auth.getPwd(),
-        trustManager, cnx);
+    return getRemoteConnection(server, auth.getDn(), auth.getPwd(),
+        trustManager, getConnectTimeout(), cnx);
   }
 
   /**
@@ -5032,6 +5058,16 @@ public abstract class Installer extends GuiApplication {
     {
       lastImportProgress = parsedMessage;
     }
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   */
+  protected int getConnectTimeout()
+  {
+    return getUserData().getConnectTimeout();
   }
 }
 

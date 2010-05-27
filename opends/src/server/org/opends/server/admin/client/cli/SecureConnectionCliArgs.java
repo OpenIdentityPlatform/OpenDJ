@@ -57,6 +57,7 @@ import javax.net.ssl.KeyManager;
 
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -170,6 +171,11 @@ public final class SecureConnectionCliArgs
    * Argument indicating a SASL option.
    */
   public StringArgument  saslOptionArg = null;
+
+  /**
+   * Argument to specify the connection timeout.
+   */
+  public IntegerArgument connectTimeoutArg = null;
 
   /**
    * Private container for global arguments.
@@ -483,6 +489,7 @@ public final class SecureConnectionCliArgs
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, INFO_PORT_PLACEHOLDER.get(),
         AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, null,
+        true, 1, true, 65535,
         portDescription);
     portArg.setPropertyName(OPTION_LONG_PORT);
     argList.add(portArg);
@@ -580,6 +587,16 @@ public final class SecureConnectionCliArgs
         INFO_DESCRIPTION_CERT_NICKNAME.get());
     certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
     argList.add(certNicknameArg);
+
+    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+        null, OPTION_LONG_CONNECT_TIMEOUT,
+        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+        defaultTimeout, null,
+        true, 0, false, Integer.MAX_VALUE,
+        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+    argList.add(connectTimeoutArg);
 
     return argList;
   }
