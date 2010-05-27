@@ -1615,8 +1615,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           // Monitoring information requested by a DS
           MonitorMsg monitorMsg =
-            createGlobalTopologyMonitorMsg(msg.getDestination(),
-            msg.getsenderID());
+            createGlobalTopologyMonitorMsg(
+                msg.getDestination(), msg.getsenderID(), false);
 
            if (monitorMsg != null)
           {
@@ -1763,10 +1763,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * whole topology.
    * @param sender The sender of this message.
    * @param destination The destination of this message.
+   * @param  updateMonitorData A boolean indicating if the monitor data should
+   *                           be updated. If false the last monitoring data
+   *                           that was computed will be returned. This is
+   *                           acceptable for most cases because the monitoring
+   *                           thread computes the monitoring data frequently.
+   *                           If true is used the calling thread may be
+   *                           blocked for a while.
    * @return The newly created and filled MonitorMsg. Null if a problem occurred
    * during message creation.
    */
-  public MonitorMsg createGlobalTopologyMonitorMsg(int sender, int destination)
+  public MonitorMsg createGlobalTopologyMonitorMsg(
+      int sender, int destination, boolean updateMonitorData)
   {
     MonitorMsg returnMsg =
       new MonitorMsg(sender, destination);
@@ -1776,7 +1784,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       returnMsg.setReplServerDbState(getDbServerState());
       // Update the information we have about all servers
       // in the topology.
-      MonitorData md = computeMonitorData();
+      MonitorData md = computeMonitorData(updateMonitorData);
 
       // Add the informations about the Replicas currently in
       // the topology.
@@ -2549,14 +2557,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   /**
    * Retrieves the global monitor data.
+   * @param  updateMonitorData A boolean indicating if the monitor data should
+   *                           be updated. If false the last monitoring data
+   *                           that was computed will be returned. This is
+   *                           acceptable for most cases because the monitoring
+   *                           thread computes the monitoring data frequently.
+   *                           If true is used the calling thread may be
+   *                           blocked for a while.
    * @return The monitor data.
    * @throws DirectoryException When an error occurs.
    */
-  synchronized protected MonitorData computeMonitorData()
+  synchronized protected MonitorData computeMonitorData(
+      boolean updateMonitorData)
     throws DirectoryException
   {
-    // Update the monitorData of ALL domains if this was necessary.
-    replicationServer.computeMonitorData();
+    if (updateMonitorData)
+    {
+      // Update the monitorData of ALL domains if this was necessary.
+      replicationServer.computeMonitorData();
+    }
 
     // Returns the monitorData of THIS domain
     return monitorData;
@@ -3053,7 +3072,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
-      MonitorData md = computeMonitorData();
+      MonitorData md = computeMonitorData(true);
 
       // Missing changes
       long missingChanges =

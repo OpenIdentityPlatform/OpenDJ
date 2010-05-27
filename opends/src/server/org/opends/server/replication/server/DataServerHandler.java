@@ -309,7 +309,7 @@ public class DataServerHandler extends ServerHandler
 
     try
     {
-      MonitorData md = replicationServerDomain.computeMonitorData();
+      MonitorData md = replicationServerDomain.computeMonitorData(true);
 
       // Oldest missing update
       Long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);

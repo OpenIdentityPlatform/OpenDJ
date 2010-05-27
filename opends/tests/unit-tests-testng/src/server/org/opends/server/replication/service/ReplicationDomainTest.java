@@ -197,6 +197,16 @@ public class ReplicationDomainTest extends ReplicationTestCase
               assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
             }
           }
+
+          Map<Integer, ServerState> states1 = domain1.getReplicaStates();
+          ServerState state2 = states1.get(domain2ServerId);
+          assertNotNull(state2, "getReplicaStates is not showing DS2");
+
+          Map<Integer, ServerState> states2 = domain2.getReplicaStates();
+          ServerState state1 = states2.get(domain1ServerId);
+          assertNotNull(state1, "getReplicaStates is not showing DS1");
+
+          // if we reach this point all tests are OK
           break;
         }
         catch (AssertionError e)
@@ -210,13 +220,6 @@ public class ReplicationDomainTest extends ReplicationTestCase
             throw e;
         }
       }
-      Map<Integer, ServerState> states1 = domain1.getReplicaStates();
-      ServerState state2 = states1.get(domain2ServerId);
-      assertNotNull(state2, "getReplicaStates is not showing DS2");
-
-      Map<Integer, ServerState> states2 = domain2.getReplicaStates();
-      ServerState state1 = states2.get(domain1ServerId);
-      assertNotNull(state1, "getReplicaStates is not showing DS1");
 
     }
     finally
