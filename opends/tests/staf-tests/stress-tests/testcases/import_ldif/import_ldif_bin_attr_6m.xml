@@ -174,8 +174,8 @@
               <call function="'ImportLdifWithScript'">
                 {
                 'location'   : STAF_REMOTE_HOSTNAME ,
-                'dsLdifFile' : ldifFile ,
-                'dsBackEnd'  : 'userRoot'
+                'ldifFile'   : ldifFile ,
+                'backEnd'    : 'userRoot'
                 }
               </call>
 

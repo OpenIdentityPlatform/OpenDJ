@@ -362,55 +362,64 @@
     <sequence>
 
       <call function="'getFile'">
-            {
-              'location'    : STAF_REMOTE_HOSTNAME,
-              'filename'    : user_cert_file_rfc
-            }
+        {
+        'location'    : STAF_REMOTE_HOSTNAME,
+        'filename'    : user_cert_file_rfc
+        }
       </call>
 
       <message>
-            'Certificate contents:\n %s' % cmdResult
+        'Certificate contents:\n %s' % cmdResult
       </message>
 
-          <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
+      <!-- Extract BEGIN CERTIFICATE and END CERTIFICATE -->
       <script>
-            certList=STAXResult[1].split('\n')
-            ret_str = ""
-            for line in certList:
-              index_cert = line.find("CERTIFICATE")
-              if index_cert == -1:
-                ret_str+=line.strip()
+        certList=STAXResult[1].split('\n')
+        ret_str = ""
+        for line in certList:
+          index_cert = line.find("CERTIFICATE")
+          if index_cert == -1:
+            ret_str+=line.strip()
       </script>
 
       <script>
-            listAttr = []
-            listAttr.append('dn: %s' %userdn)
-            listAttr.append('changetype: modify')
-            listAttr.append('add: objectclass')
-            listAttr.append('objectclass:ds-certificate-user')
-            listAttr.append('-')
-            listAttr.append('add: userCertificate;binary')
-            listAttr.append('userCertificate;binary:: %s' % ret_str)
+        listAttr = []
+        listAttr.append('dn: %s' %userdn)
+        listAttr.append('changetype: modify')
+        listAttr.append('add: objectclass')
+        listAttr.append('objectclass:ds-certificate-user')
+        listAttr.append('-')
+        listAttr.append('add: userCertificate;binary')
+        listAttr.append('userCertificate;binary:: %s' % ret_str)
       </script>
 
-          <!-- Write out the ldif -->
+      <!-- Create the ldif -->
       <script>
-            addCertificateldif='%s' % (ldif_path)
-            outfile = open(addCertificateldif,"w")
-            for line in listAttr:
-              outfile.write("%s\n" % line)
-            outfile.close()
+        addCertificateldif='%s/client.ldif' % local.temp
+        outfile = open(addCertificateldif,"w")
+        for line in listAttr:
+          outfile.write("%s\n" % line)
+        outfile.close()
       </script>
+
+      <call function="'copyFile'">
+        {
+        'location'   : STAXServiceMachine,
+        'srcfile'    : '%s/client-cert.ldif' % local.temp,
+        'destfile'   : ldif_path,
+        'remotehost' : STAF_REMOTE_HOSTNAME
+        }
+      </call>
 
       <call function="'modifyEntry'">
-            {
-            'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
-            'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
-            'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
-            'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-            'entryToBeModified' : addCertificateldif,
-            'expectedRC'        :  0
-            }
+        {
+          'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST,
+          'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
+          'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+          'entryToBeModified' : addCertificateldif,
+          'expectedRC'        :  0
+        }
       </call>
     </sequence>
   </function>

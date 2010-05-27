@@ -50,8 +50,8 @@
           <call function="'testCase_Preamble'"/>
               
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'  : '%s/backends/Example.ldif' % remote.data,
-              'dsBackEnd'   : DIRECTORY_INSTANCE_BE
+            { 'ldifFile'  : '%s/backends/Example.ldif' % remote.data,
+              'backEnd'   : DIRECTORY_INSTANCE_BE
             }
           </call>
   
@@ -128,8 +128,8 @@
           <call function="'StopDsWithScript'"/>
 
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'  : '%s/backends/nonDefault.ldif' % remote.data,
-              'dsBackEnd'   : 'nonDefault'
+            { 'ldifFile'  : '%s/backends/nonDefault.ldif' % remote.data,
+              'backEnd'   : 'nonDefault'
             }
           </call>
 
@@ -176,8 +176,8 @@
           <call function="'testCase_Preamble'"/>
   
           <call function="'ImportLdifWithScript'">
-            { 'dsLdifFile'      : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeBranch' : ['dc=com'] }
+            { 'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
+              'includeBranches' : ['dc=com'] }
           </call>
   
           <call function="'checkImport'">
@@ -228,9 +228,9 @@
   
           <call function="'ImportLdifWithScript'">
             { 'location'        : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'      : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeBranch' : ['dc=com'],
-              'dsBackEnd'       : DIRECTORY_INSTANCE_BE 
+              'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
+              'includeBranches' : ['dc=com'],
+              'backEnd'         : DIRECTORY_INSTANCE_BE
             }
           </call>
   
@@ -280,8 +280,8 @@
               
           <call function="'ImportLdifWithScript'">
             { 'location'        : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'      : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeBranch' : ['dc=com','dc=example,dc=com']
+              'ldifFile'        : '%s/backends/Include.ldif' % remote.data,
+              'includeBranches' : ['dc=com','dc=example,dc=com']
             }
           </call>
   
@@ -331,9 +331,9 @@
   
           <call function="'ImportLdifWithScript'">
             { 'location'        : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'      : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com'],
-              'dsBackEnd'       : DIRECTORY_INSTANCE_BE
+              'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com'],
+              'backEnd'         : DIRECTORY_INSTANCE_BE
             }
           </call>
   
@@ -386,9 +386,9 @@
 
           <call function="'ImportLdifWithScript'">
             { 'location'        : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'      : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com', 'ou=unit1, ou=People, dc=example,dc=com'],
-              'dsBackEnd'       : DIRECTORY_INSTANCE_BE
+              'ldifFile'        : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeBranches' : ['ou=Departed,ou=People,dc=example,dc=com', 'ou=unit1, ou=People, dc=example,dc=com'],
+              'backEnd'         : DIRECTORY_INSTANCE_BE
             }
           </call>
 
@@ -442,9 +442,9 @@
 
           <call function="'ImportLdifWithScript'">
               { 'location'        : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'      : '%s/backends/Exclude.ldif' % remote.data,
-              'dsIncludeBranch' : ['dc=com'],
-              'dsExcludeBranch' : ['ou=Departed,ou=People,dc=example,dc=com']
+              'ldifFile'          : '%s/backends/Exclude.ldif' % remote.data,
+              'includeBranches'   : ['dc=com'],
+              'excludeBranches'   : ['ou=Departed,ou=People,dc=example,dc=com']
               }
           </call>
 
@@ -497,9 +497,9 @@
           
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeAttribute' : ['dc'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Include.ldif' % remote.data,
+              'includeAttributes'  : ['dc'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -549,9 +549,9 @@
           
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeAttribute' : ['dc','cn','ou','sn'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Include.ldif' % remote.data,
+              'includeAttributes'  : ['dc','cn','ou','sn'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
   
@@ -601,9 +601,9 @@
                         
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeAttribute' : ['userpassword'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeAttributes'  : ['userpassword'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -653,9 +653,9 @@
                                       
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeAttribute' : ['userpassword','mail','roomnumber'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeAttributes'  : ['userpassword','mail','roomnumber'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -706,10 +706,10 @@
                                                         
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-              'dsIncludeAttribute' : ['dc','cn','ou','sn'],
-              'dsIncludeBranch'    : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
-              'dsExcludeBranch'    : ['ou=Departed,ou=People,dc=example,dc=com']
+              'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
+              'includeAttributes'  : ['dc','cn','ou','sn'],
+              'includeBranches'    : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
+              'excludeBranches'    : ['ou=Departed,ou=People,dc=example,dc=com']
               }
           </call>
 
@@ -762,9 +762,9 @@
                                                
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeFilter'    : ['objectclass=*'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Include.ldif' % remote.data,
+              'includeFilters'     : ['objectclass=*'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -815,9 +815,9 @@
                                       
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeFilter'    : ['objectclass=person'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeFilters'     : ['objectclass=person'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -870,9 +870,9 @@
                                                     
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeFilter'    : ['objectclass=domain','objectclass=organizationalunit'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Include.ldif' % remote.data,
+              'includeFilters'     : ['objectclass=domain','objectclass=organizationalunit'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -925,9 +925,9 @@
                                              
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeFilter'    : ['objectclass=person','objectclass=organizationalunit'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeFilters'     : ['objectclass=person','objectclass=organizationalunit'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -977,9 +977,9 @@
                                    
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Include.ldif' % remote.data,
-              'dsIncludeFilter'    : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Include.ldif' % remote.data,
+              'includeFilters'     : ['|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1030,9 +1030,9 @@
                                                  
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeFilter'    : ['&amp;(objectclass=person)(ou=Departed)'],
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeFilters'     : ['&amp;(objectclass=person)(ou=Departed)'],
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1082,10 +1082,10 @@
                                                                              
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Exclude.ldif' % remote.data,
-              'dsExcludeFilter'    : ['&amp;(objectclass=person)(ou=Departed)'],
-              'dsIncludeBranch'    : ['dc=com'],
-              'dsExcludeAttribute' : ['userpassword']
+              'ldifFile'           : '%s/backends/Exclude.ldif' % remote.data,
+              'excludeFilters'     : ['&amp;(objectclass=person)(ou=Departed)'],
+              'includeBranches'    : ['dc=com'],
+              'excludeAttributes'  : ['userpassword']
               }
           </call>
 
@@ -1135,9 +1135,9 @@
                                                                                            
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Append.ldif' % remote.data,
-              'dsAppend'           : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Append.ldif' % remote.data,
+              'append'             : 'TRUE',
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1188,10 +1188,10 @@
                                                                                                          
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Append.ldif' % remote.data,
-              'dsAppend'           : 'TRUE',
-              'dsReplaceExisting'  : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE,
+              'ldifFile'           : '%s/backends/Append.ldif' % remote.data,
+              'append'             : 'TRUE',
+              'replaceExisting'    : 'TRUE',
+              'backEnd'            : DIRECTORY_INSTANCE_BE,
               'knownIssue'         : '6927338'
               }
           </call>
@@ -1243,9 +1243,9 @@
                                                                                                                        
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif.gz' % remote.data,
-              'dsIsCompressed'     : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Example.ldif.gz' % remote.data,
+              'isCompressed'       : 'TRUE',
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1296,9 +1296,9 @@
                                                                                                                                      
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-              'dsIsEncrypted'      : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
+              'isEncrypted'        : 'TRUE',
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1358,9 +1358,9 @@
                                                                                                                                      
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-              'dsIsEncrypted'      : 'TRUE',
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
+              'isEncrypted'        : 'TRUE',
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1422,9 +1422,9 @@
                                                                                                                                                    
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-              'dsRejectFile'       : '%s/rejects.txt' % remote.temp,
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
+              'rejectFile'         : '%s/rejects.txt' % remote.temp,
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1475,9 +1475,9 @@
                                                                                                                                                    
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Example.ldif' % remote.data,
-              'dsRejectFile'       : '%s/rejects.txt' % remote.temp,
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
+              'rejectFile'         : '%s/rejects.txt' % remote.temp,
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1528,9 +1528,9 @@
                                                                                                                                                                  
           <call function="'ImportLdifWithScript'">
               { 'location'             : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'             : '%s/backends/Schema.ldif' % remote.data,
-              'dsSkipSchemaValidation' : 'TRUE',
-              'dsBackEnd'              : DIRECTORY_INSTANCE_BE
+              'ldifFile'               : '%s/backends/Schema.ldif' % remote.data,
+              'skipSchemaValidation'   : 'TRUE',
+              'backEnd'                : DIRECTORY_INSTANCE_BE
               }
           </call>
 
@@ -1581,8 +1581,8 @@
                                                                                                                                                                                
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
-              'dsLdifFile'         : '%s/backends/Schema.ldif' % remote.data,
-              'dsBackEnd'          : DIRECTORY_INSTANCE_BE
+              'ldifFile'           : '%s/backends/Schema.ldif' % remote.data,
+              'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
           

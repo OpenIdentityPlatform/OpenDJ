@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="replication_resynchronization"/>
@@ -213,14 +213,13 @@
                 '+++++ resynchronization on-line: import data on %s:%s' \
                 % (masterHost, master.getPort())
               </message>
-              <call function="'importLdifTask'">
+              <call function="'ImportLdifWithScript'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
                   'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceAdminPort' : master.getAdminPort(),
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'taskID'         : 'import task - tc2',
                   'ldifFile'       : '%s/replication/Example.ldif' \
                                      % masterDataDir
                 }
@@ -452,14 +451,13 @@
                 '+++++ resynchronization add server: import data on %s:%s' \
                 % (masterHost, master.getPort())
               </message>
-              <call function="'importLdifTask'">
+              <call function="'ImportLdifWithScript'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
                   'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceAdminPort' : master.getAdminPort(),
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'taskID'         : 'import task - tc3',
                   'ldifFile'       : '%s/replication/Example.ldif' \
                                      % masterDataDir
                 }

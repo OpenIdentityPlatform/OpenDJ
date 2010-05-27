@@ -63,6 +63,7 @@
               commonSuiteList.append('changelog')
               commonSuiteList.append('conflict')
               commonSuiteList.append('externalchangelog')
+              commonSuiteList.append('aci')
   
               # Safe-data mode specific test suites
               ownSuiteList = []

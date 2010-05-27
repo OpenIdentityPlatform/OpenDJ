@@ -302,37 +302,88 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-      <!-- configure the coverage dump file -->
-      <script>
-        mylog = "Didn't find the emma.jar file : '%s'\n" % os.path.join(dsPath,'lib','emma.jar')
-        if os.path.exists(os.path.join(dsPath,'lib','emma.jar')):
-          mylog= ''
-          mylog=" ::coverage on\n"
-          coveragePath = os.path.join(LOGS_ROOT,'coverage')
-          if not os.path.exists(coveragePath):
-            os.mkdir(coveragePath)
-            mylog+=" ::mkdir %s on\n" % coveragePath
-            # copying coverage.em in coveragePath
-            import shutil
-            mylog+=" ::copying %s to %s\n" % (os.path.join(dsPath,'coverage.em'),coveragePath)
-            if not os.path.exists(os.path.join(dsPath,'coverage.em')):
-              mylog+= " Didn't find %s to copy to %s\n" % (os.path.join(dsPath,'coverage.em'),coveragePath)
-            else:
-              shutil.copy(os.path.join(dsPath,'coverage.em'),coveragePath)
-          coverageGroupPath=os.path.join(coveragePath,CurrentTestPath['group'])
-          if not os.path.exists(coverageGroupPath):
-            mylog+=" ::mkdir %s on\n" % (coverageGroupPath)
-            os.mkdir(coverageGroupPath)
-          existingECs=[cf for cf in os.listdir(coverageGroupPath) if cf.startswith('coverage') and cf.endswith('.ec')]
-          newCoverageEC=os.path.join(coverageGroupPath,'coverage%s.ec' % len(existingECs))
-          coveragefh = open( '%s/classes/emma.properties' % (dsPath), 'w' )
-          coveragefh.write( 'coverage.out.file=%s\n' % (newCoverageEC) )
-          coveragefh.write( 'verbosity.level=silent\n')
-          coveragefh.write( 'coverage.out.merge=true\n')
-          coveragefh.close()
-          mylog+=" ::writing %s to %s/%s/classes/emma.properties\n" % (newCoverageEC, dsPath,OPENDSNAME)
-      </script>
-      <message>'%s' % mylog</message>
+
+      <!-- Check if 'emma.jar' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : '%s/lib/emma.jar' % dsPath ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48 and CurrentTestPath.has_key('group')">
+        <!-- 'emma.jar' exists so we can configure the coverage dump file -->
+        <sequence>
+          <script>
+            resultsCoveragePath = os.path.join(LOGS_ROOT,'coverage')
+            resultsPath = os.path.join(resultsCoveragePath,CurrentTestPath['group'])
+            remoteCoveragePath = os.path.join(remote.temp,'coverage')
+            ecPath = os.path.join(remoteCoveragePath,CurrentTestPath['group'])
+          </script>
+
+          <call function="'createFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'foldername' : resultsCoveragePath
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'foldername' : resultsPath
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'foldername' : remoteCoveragePath
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'foldername' : ecPath
+            }
+          </call>
+          
+          <call function="'listFolderByExtension'" >
+            {
+            'location'   : STAF_REMOTE_HOSTNAME,
+            'foldername' : ecPath,
+            'extension'  : 'ec'
+            }
+          </call>
+          
+          <script>
+            existingECs=STAXResult
+            newCoverageEC=os.path.join(ecPath,'coverage%s.ec' % len(existingECs))
+
+            coveragefh = open( '%s/emma.properties.%s' % (local.temp,len(existingECs)), 'w' )
+            coveragefh.write( 'coverage.out.file=%s\n' % newCoverageEC )
+            coveragefh.write( 'verbosity.level=silent\n')
+            coveragefh.write( 'coverage.out.merge=true\n')
+            coveragefh.close()
+          </script>
+
+          <call function="'copyFile'">
+            { 'srcfile'    : '%s/emma.properties.%s' % (local.temp,len(existingECs)),
+              'destfile'   : '%s/classes/emma.properties' % dsPath,
+              'remotehost' : STAF_REMOTE_HOSTNAME }
+          </call>
+
+          <call function="'copyFile'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'srcfile'    : '%s/coverage.em' % dsPath,
+              'destfile'   : '%s/coverage.em' % remoteCoveragePath,
+              'remotehost' : STAF_REMOTE_HOSTNAME }
+          </call>
+
+          <call function="'copyFile'">
+            { 'location'   : STAF_REMOTE_HOSTNAME,
+              'srcfile'    : '%s/coverage.em' % dsPath,
+              'destfile'   : '%s/coverage.em' % resultsCoveragePath,
+              'remotehost' : STAF_REMOTE_HOSTNAME }
+          </call>
+        </sequence>
+      </if>
+
+
       <call function="'runCommand'">
         { 'location'  : location,
           'command'   : STAFCmd,
@@ -635,84 +686,13 @@
     </sequence>
   </function>
 
-  <!-- Import LDIF file Function -->
-  <function name="importLdif">
-    <function-prolog>
-      This function performs an offline import of an ldif file
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="ldifFile" type="required">
-        <function-arg-description>
-          Path to the LDIF file to be imported
-        </function-arg-description>
-        <function-arg-property name="type" value="filename"/>
-      </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
-        <function-arg-description>
-          Backend ID for the backend to import
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="extraParams" type="optional" default="''">
-        <function-arg-description>
-          Optional extra parameters for specific test cases
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          Expected return code value. Default value is 0.
-          Wildcard 'noCheck' to not check the RC
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="knownIssue" type="optional" default="None">
-        <function-arg-description>
-          Known issue. Corresponds to an issue number.
-        </function-arg-description>
-      </function-arg-def>
-    </function-map-args>
-      
-    <sequence>
-      <script>
-          if dsPath:
-            dsBinPath='%s/%s' % (dsPath,fileFolder)   
-      </script>
-  
-      <message>
-        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
-      </message>
-      <call function="'runCommand'">
-        { 'location'  : location,
-          'name'      : 'Offline Import',
-          'command'   : '%s/import-ldif%s' % (dsBinPath,fileExt),
-          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams),
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
-        }
-      </call>
-      <return>RC</return>
-    </sequence>
-  </function>
-    
-  <!-- Import Function With Script-->
+  <!-- Import-ldif Function -->
   <function name="ImportLdifWithScript">
     <function-prolog>
-      This function performs an offline import of an ldif file using the script
+      This function performs an import of an ldif file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location"
+      <function-arg-def name="location" 
                         type="optional"
                         default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
@@ -720,307 +700,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath"
+      <function-arg-def name="dsPath" 
                         type="optional"
                         default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceHost" type="optional">
-        <function-arg-description>
-          Directory server hostname or IP address
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceAdminPort" type="optional">
-        <function-arg-description>
-          Directory server adminport number
-        </function-arg-description>
-        <function-arg-property name="type" value="Port number"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstanceDn" type="optional">
-        <function-arg-description>
-          Bind DN
-        </function-arg-description>
-        <function-arg-property name="type" value="DN"/>
-      </function-arg-def>
-      <function-arg-def name="dsInstancePswd" type="optional">
-        <function-arg-description>
-          Bind password
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="dsLdifFile" type="optional">
-        <function-arg-description>
-          Path to the LDIF file to be imported
-        </function-arg-description>
-        <function-arg-property name="type" value="filename"/>
-      </function-arg-def>
-      <function-arg-def name="dsTemplateFile" type="optional">
-        <function-arg-description>
-          Path to a MakeLDIF template to use to generate the import data
-        </function-arg-description>
-        <function-arg-property name="type" value="filename"/>
-      </function-arg-def>
-      <function-arg-def name="dsAppend" type="optional">
-        <function-arg-description>
-          Append to an existing database rather than overwriting it
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsReplaceExisting" type="optional">
-        <function-arg-description>
-          Replace existing entries when appending to the database
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsBackEnd" type="optional">
-        <function-arg-description>
-          Backend ID for the backend to import
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="dsBranchDN" type="optional">
-        <function-arg-description>
-          Base DN of a branch to include in the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="dsIncludeBranch" type="optional">
-        <function-arg-description>
-          Base DN of a branch to include in the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="dsExcludeBranch" type="optional">
-        <function-arg-description>
-          Base DN of a branch to exclude from the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="dsIncludeAttribute" type="optional">
-        <function-arg-description>
-          Attribute to include in the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="attribute"/>
-      </function-arg-def>
-      <function-arg-def name="dsExcludeAttribute" type="optional">
-        <function-arg-description>
-          Attribute to exclude in the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="attribute"/>
-      </function-arg-def>
-      <function-arg-def name="dsIncludeFilter" type="optional">
-        <function-arg-description>
-          Filter to identify entries to include in the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="filter"/>
-      </function-arg-def>
-      <function-arg-def name="dsExcludeFilter" type="optional">
-        <function-arg-description>
-          Filter to identify entries to exclude from the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="filter"/>
-      </function-arg-def>
-      <function-arg-def name="dsRejectFile" type="optional">
-        <function-arg-description>
-          Write rejected entries to the specified file
-        </function-arg-description>
-        <function-arg-property name="type" value="filename"/>
-      </function-arg-def>
-      <function-arg-def name="dsOverWriteRejects" type="optional">
-        <function-arg-description>
-          Overwrite an existing rejects file rather than appending to it
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsRandomSeed" type="optional">
-        <function-arg-description>
-          Seed for the MakeLDIF random number generator
-        </function-arg-description>
-        <function-arg-property name="type" value="seed"/>
-      </function-arg-def>
-      <function-arg-def name="dsSkipSchemaValidation" type="optional">
-        <function-arg-description>
-          Skip schema validation during the LDIF import
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsIsCompressed" type="optional">
-        <function-arg-description>
-          LDIF file is compressed
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsIsEncrypted" type="optional">
-        <function-arg-description>
-          LDIF file is encrypted
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsQuiet" type="optional">
-        <function-arg-description>
-          Use quiet mode (no output)
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsHelp" type="optional">
-        <function-arg-description>
-          Display usage information
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="startTask" type="optional">
-        <function-arg-description>
-          Start time for task
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          Expected return code value. Default value is 0.
-          Wildcard 'noCheck' to not check the RC
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="knownIssue" type="optional" default="None">
-        <function-arg-description>
-          Known issue. Corresponds to an issue number.
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="schedulePattern" type="optional">
-        <function-arg-description>
-          Indicates the task is recurring and will be scheduled
-          according to the value argument expressed in crontab(5)
-          compatible time/date pattern
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-    </function-map-args>
-    
-    <sequence>
-          
-      <!-- Build the Command -->
-
-      <script>
-        STAFCmdParamsList=[]
-        STAFCmdParams=''
-      </script>
-
-      <!-- Set common ldap arguments -->      
-      <call function="'_adminCommonArgs'" />
-        
-      <script>
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder) 
-          STAFCmd='%s/import-ldif%s' % (dsBinPath,fileExt)
-    
-        if dsLdifFile:
-          STAFCmdParamsList.append('-l %s' % dsLdifFile)    
-
-        if dsTemplateFile:
-          STAFCmdParamsList.append('-A %s' % dsTemplateFile)                  
-
-        if dsAppend:
-          STAFCmdParamsList.append('-a')
-          
-        if dsReplaceExisting:
-          STAFCmdParamsList.append('-r')
-                  
-        if dsIncludeBranch:
-          for InBranch in dsIncludeBranch:
-            STAFCmdParamsList.append('-b "%s" ' % InBranch) 
-          
-        if dsExcludeBranch:
-          for ExBranch in dsExcludeBranch:
-            STAFCmdParamsList.append('-B "%s" ' % ExBranch) 
-          
-        if dsIncludeAttribute:
-          for InAttr in dsIncludeAttribute:
-            STAFCmdParamsList.append('-i "%s" ' % InAttr)
-          
-        if dsExcludeAttribute:
-          for ExAttr in dsExcludeAttribute:
-            STAFCmdParamsList.append('-e "%s" ' % ExAttr)
-          
-        if dsIncludeFilter:
-          for InFilter in dsIncludeFilter:
-            STAFCmdParamsList.append('-I "%s" ' % InFilter)
-
-        if dsExcludeFilter:
-          for ExFilter in dsExcludeFilter:
-            STAFCmdParamsList.append('-E "%s" ' % ExFilter)
-          
-        if dsRejectFile:
-          STAFCmdParamsList.append('-R %s' % dsRejectFile)
-
-        if dsOverWriteRejects:
-          STAFCmdParamsList.append('-O')
-          
-        if dsRandomSeed:
-          STAFCmdParamsList.append('-s %s' % dsRandomSeed)
-
-        if dsSkipSchemaValidation:
-          STAFCmdParamsList.append('-S')
-          
-        if dsIsCompressed:
-          STAFCmdParamsList.append('-c')
-          
-        if dsIsEncrypted:
-          STAFCmdParamsList.append('-y')
-          
-        if dsQuiet:
-          STAFCmdParamsList.append('-q')
-
-        if dsHelp:
-          STAFCmdParamsList.append('-H')
-           
-        if dsBackEnd:
-          STAFCmdParamsList.append('-n %s' % dsBackEnd)
-  
-        if startTask:
-          STAFCmdParamsList.append('-t %s' % startTask)
-
-        if schedulePattern:
-          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
-
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-        
-      </script>
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-            
-      <call function="'runCommand'">
-        { 'location'  : location,
-          'name'      : 'Offline Import Script',
-          'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
-        }
-      </call>
-
-      <return>
-        STAXResult
-      </return>
-    </sequence>
-  </function>
-
-
-  <!-- Import Task Function -->
-  <function name="importLdifTask">
-    <function-prolog>
-        This function performs an on line import task of an ldif file
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1035,6 +717,12 @@
       <function-arg-def name="dsInstancePort" type="optional">
         <function-arg-description>
           Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceAdminPort" type="optional">
+        <function-arg-description>
+          Directory server admin port number
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
@@ -1062,51 +750,77 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
+      <function-arg-def name="backEnd" 
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="isCompressed" type="optional" default="'FALSE'">
+      <function-arg-def name="wrapColumn" type="optional">
         <function-arg-description>
-          Optional imported ldif data file compressed
+          Column at which to wrap long lines
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="startTask" type="optional" default="'0'">
+        <function-arg-description>
+          Optional exclude attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="isCompressed" type="optional">
+        <function-arg-description>
+          Optional exported ldif data file compressed
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="isEncrypted" type="optional" default="'FALSE'">
+      <function-arg-def name="isEncrypted" type="optional">
         <function-arg-description>
-          Optional imported ldif data file encrypted
+          Optional exported ldif data file encrypted
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="rejectsFile" type="optional">
+      <function-arg-def name="append" type="optional">
         <function-arg-description>
-          Optional name of rejects file
-        </function-arg-description>
-        <function-arg-property name="type" value="filename"/>
-      </function-arg-def>
-      <function-arg-def name="overwriteRejectsFile" type="optional" default="'FALSE'">
-        <function-arg-description>
-          Optional name of rejects file
+          Optional append exported ldif data
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="append" type="optional" default="'FALSE'">
+      <function-arg-def name="skipSchemaValidation" type="optional">
         <function-arg-description>
-          Optional append imported ldif data
+          Optional do not perform any schema validation
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="skipSchemaValidation" type="optional" default="'FALSE'">
+       <function-arg-def name="templateFile" type="optional">
         <function-arg-description>
-          Optional don't do schema validation on import
+          Optional path to a MakeLDIF template to generate the import data.
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="replaceExisting" type="optional" default="'FALSE'">
+      <function-arg-def name="skipFile" type="optional">
         <function-arg-description>
-          Optional replace existing data
+          Optional identify entries that were skipped during the import
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="overwriteFile" type="optional">
+        <function-arg-description>
+          Optional overwrite the specified skip file or reject file
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="replaceExisting" type="optional">
+        <function-arg-description>
+          Optional replace existing data with the content from the import
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="rejectFile" type="optional">
+        <function-arg-description>
+          Optional file to hold any rejected entries during the import
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
@@ -1146,6 +860,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="isSignedHash" type="optional" default="'False'">
+        <function-arg-description>
+          Optional generate a signed hash of the export data
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional" default="''">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="numLdapCheckTries" type="optional" default="10">
         <function-arg-description>
           Number of ldap check tries when checking if task is complete
@@ -1170,129 +896,153 @@
           Known issue. Corresponds to an issue number.
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="schedulePattern" type="optional">
+        <function-arg-description>
+          Indicates the task is recurring and will be scheduled
+          according to the value argument expressed in crontab(5)
+          compatible time/date pattern
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+
     </function-map-args>
+
     <sequence>
-    
+
       <!-- Local variables -->
       <script>
-        myLocation=location
-        myPath=dsPath
-
-        try:
-          import hashlib
-          m = hashlib.md5()
-        except ImportError:
-          import md5
-          m = md5.new()
-        m.update(location)
-        m.update(dsPath)
-        taskLdifFile='import-task-%s.ldif' % m.hexdigest()
-        taskLdif='%s/%s' % (remote.temp,taskLdifFile)
-        tmpTaskLdif='%s/%s' % (local.temp,taskLdifFile)
-        taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
       </script>
-      
-      <!-- Build the import task configuration object -->
-      <script>
-        ldifLines=[]
-        ldifLines.append('dn: %s' % taskDN)
-        ldifLines.append('objectclass: top')
-        ldifLines.append('objectclass: ds-task')
-        ldifLines.append('objectclass: ds-task-import')
-        ldifLines.append('ds-task-class-name: org.opends.server.tasks.ImportTask')
 
-        ldifLines.append('ds-task-import-backend-id: %s' % backEnd )
-        ldifLines.append('ds-task-import-ldif-file: %s' % ldifFile )
-        ldifLines.append('ds-task-import-is-compressed: %s' % isCompressed )
-        ldifLines.append('ds-task-import-is-encrypted: %s' % isEncrypted )
-    
-        if rejectsFile:
-          ldifLines.append('ds-task-import-reject-file: %s' % rejectsFile )
+      <!-- Set common ldap arguments -->
+      <call function="'_adminCommonArgs'" />
 
-        ldifLines.append('ds-task-import-overwrite-rejects: %s' % overwriteRejectsFile )
-        ldifLines.append('ds-task-import-append: %s' % append )
-        ldifLines.append('ds-task-import-skip-schema-validation: %s' % skipSchemaValidation )
-        ldifLines.append('ds-task-import-replace-existing: %s' % replaceExisting )
-      </script>
-  
       <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/import-ldif%s' % (dsBinPath,fileExt)
+
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+
+        if ldifFile:
+          STAFCmdParamsList.append('-l %s' % ldifFile)
+
+        if startTask:
+           STAFCmdParamsList.append('-t %s' % startTask)
+
+        if append:
+          STAFCmdParamsList.append('-a')
+
+        if backEnd:
+          STAFCmdParamsList.append('-n %s' % backEnd)
+
+        if  skipSchemaValidation:
+          STAFCmdParamsList.append('-S')
+
+        if  skipFile:
+          STAFCmdParamsList.append('--skipFile %s' % skipFile)
+
+        if  rejectFile:
+          STAFCmdParamsList.append('-R %s' % rejectFile)
+
+        if  overwriteFile:
+          STAFCmdParamsList.append('-O')
+
+        if  templateFile:
+          STAFCmdParamsList.append('-A %s' % templateFile)
+
+        if  replaceExisting:
+          STAFCmdParamsList.append('-r')
+
+        if schedulePattern:
+          STAFCmdParamsList.append('--recurringTask %s' % schedulePattern)
+
+        if isCompressed:
+          STAFCmdParamsList.append('-c')
+
+        if isEncrypted:
+          STAFCmdParamsList.append('-y')
+
+        if wrapColumn:
+          STAFCmdParamsList.append('--wrapColumn %s' % wrapColumn)
+
+        if excludeBranches:
           for branch in excludeBranches:
-            ldifLines.append('ds-task-import-exclude-branch: %s' % branch )  
+            STAFCmdParamsList.append('-B "%s"' % branch )
 
+        if includeBranches:
           for branch in includeBranches:
-            ldifLines.append('ds-task-import-include-branch: %s' % branch )
+            STAFCmdParamsList.append('-b "%s"' % branch )
 
+        if excludeAttributes:
           for attribute in excludeAttributes:
-            ldifLines.append('ds-task-import-exclude-attribute: %s' % attribute )                 
-              
+            STAFCmdParamsList.append('-e "%s"' % attribute)
+
+        if includeAttributes:
           for attribute in includeAttributes:
-            ldifLines.append('ds-task-import-include-attribute: %s' % attribute )
-            
-          for filter in excludeFilters:
-            ldifLines.append('ds-task-import-exclude-filter: %s' % filter)
-            
-          for filter in includeFilters:
-             ldifLines.append('ds-task-import-include-filter: %s' % filter)
+            STAFCmdParamsList.append('-i "%s"' % attribute)
+
+        if includeFilters:
+          for attribute in includeFilters:
+            STAFCmdParamsList.append('-I "%s"' % attribute)
+
+        if excludeFilters:
+          for attribute in excludeFilters:
+            STAFCmdParamsList.append('-E "%s"' % attribute )
+
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+
       </script>
 
-      <!-- Write out the import-task ldif -->
-      <script>
-        outfile = open(tmpTaskLdif,"w")
-          
-        for line in ldifLines:
-          outfile.write("%s\n" % line)
-          
-        outfile.close()
-      </script>
-      
-      <!-- Copy the import-task ldif to remote host -->
-      <message>'Copy import task ldif (%s) to %s' % (tmpTaskLdif,taskLdif)</message>
-      <call function="'copyFile'">
-        { 'location'   : STAXServiceMachine,
-          'srcfile'    : tmpTaskLdif,
-          'destfile'   : taskLdif,
-          'remotehost' : myLocation }
-      </call>
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      <message>
+        'Start import-ldif'
+      </message>
 
-      <!-- Start the task using ldap task interface -->
-      <call function="'StartLdapTask'">
-        { 'location'   : myLocation,
-          'dsPath'     : myPath,
-          'taskLabel'  : 'Online Import Task',
-          'dsHost'     : dsInstanceHost,
-          'dsPort'     : dsInstancePort,
-          'dsBindDn'   : dsInstanceDn,
-          'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif,
-          'expectedRC' : expectedRC }
+
+      <call function="'runCommand'">
+        { 'location'   : location,
+          'name'       : 'Import Script',
+          'command'    : STAFCmd,
+          'arguments'  : STAFCmdParams,
+          'expectedRC' : expectedRC,
+          'knownIssue' : knownIssue
+        }
       </call>
 
       <script>
-        STAFCmdRC=STAXResult[0]
+         savSTAXResult = STAXResult
+        resultString = STAXResult[0][1]
       </script>
-                      
-      <!-- Check that the ldap task is completed -->
-      <if expr="STAFCmdRC == 0">
+
+      <if expr="dsInstanceDn != None and expectedRC == 0 and schedulePattern == None">
         <sequence>
-          <call function="'CheckLdapTask'">
-            { 'location'          : myLocation,
-              'dsPath'            : myPath,
-              'dsTaskDn'          : taskDN,
-              'dsHost'            : dsInstanceHost,
-              'dsPort'            : dsInstancePort,
-              'dsBindDn'          : dsInstanceDn,
-              'dsBindPswd'        : dsInstancePswd,
-              'noOfLoops'         : numLdapCheckTries,
-              'sleepMilliSeconds' : sleepBetweenLdapCheckTries }
-          </call>
-          <message>'Check CheckLdapTask returns RC=0'</message>
-          <call function="'checktestRC'">
-             { 'returncode' : RC ,
-               'result'     : STAXResult }
+          <message>
+          'Check import-ldif task successfully completed'
+          </message>
+
+          <call function="'checkTaskExecution'">
+            {
+            'dsPath'              : dsPath,
+            'dsInstanceAdminPort' : dsInstanceAdminPort,
+            'dsInstanceHost'      : dsInstanceHost ,
+            'dsInstanceDn'        : dsInstanceDn ,
+            'dsInstancePswd'      : dsInstancePswd ,
+            'outputToCheck'       : resultString
+            }
           </call>
         </sequence>
       </if>
-      
+      <return>
+        savSTAXResult
+      </return>
     </sequence>
     
   </function>
@@ -1751,7 +1501,7 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       <message>
-        'Start exportLdifTask'
+        'Start export-ldif'
       </message>
 
 
@@ -1773,7 +1523,7 @@
       <if expr="dsInstanceDn != None and expectedRC == 0 and schedulePattern == None">
         <sequence>
           <message>
-          'Check export ldif task successfully completed'
+          'Check export-ldif task successfully completed'
           </message>
 
           <call function="'checkTaskExecution'">

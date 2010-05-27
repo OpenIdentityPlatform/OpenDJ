@@ -322,12 +322,12 @@
                   </call>
 
                   <call function="'ImportLdifWithScript'">
-                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST,
                       'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                      'dsLdifFile' : '%s/dsml/ldif-files/%s' % (remote.data,dsmlBaseDNs.get(baseDN)[0]),
-                      'dsBackEnd' : '%s' % dsmlBaseDNs.get(baseDN)[1]
+                      'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
+                      'ldifFile'            : '%s/dsml/ldif-files/%s' % (remote.data,dsmlBaseDNs.get(baseDN)[0]),
+                      'backEnd'             : '%s' % dsmlBaseDNs.get(baseDN)[1]
                     }
                   </call>
                  

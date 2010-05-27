@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -101,16 +101,25 @@
                      'Privileges: Import Tasks: import-ldif, user adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'   : 'ACIRules',
-                    'taskID'           : STAXCurrentTestcase,
-                    'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                          % remote.data,
-                    'expectedRC'       : 50
-                  }
+                  <call function="'ImportLdifWithScript'">
+                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                      'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                      'dsInstancePswd'   : 'ACIRules',
+                      'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                            % remote.data,
+                      'expectedRC'                 : 1
+                    }
+                  </call>
+
+                  <script>
+                   resultString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'searchString'">
+                  { 'expectedString' : 'Tasks cannot be\nadded due to insufficient access rights\n',
+                    'returnString'	 : resultString ,
+                    }
                   </call>
                   
                   <message>
@@ -132,15 +141,14 @@
                      'Privileges: Import Tasks: import-ldif, user adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
+                  <call function="'ImportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                    'dsInstanceDn'     : "uid=auser,o=Privileges Tests,dc=example,dc=com" ,
                     'dsInstancePswd'   : 'ACIRules',
-                    'taskID'           : STAXCurrentTestcase,
                     'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
                                           % remote.data,
-                    'expectedRC'       : 50
+                    'expectedRC'                  : 1
                   }
                   </call>
                   
@@ -167,12 +175,11 @@
                      'Privileges: Import Tasks: import-ldif, user adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
+                  <call function="'ImportLdifWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'taskID'           : STAXCurrentTestcase,
                     'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % remote.data
                   }
                   </call>
@@ -265,16 +272,25 @@
                      'Privileges: Import Tasks: import-ldif, Directory Manager, DM adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-                    'taskID'         : STAXCurrentTestcase,
-                    'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                       % remote.data,
-                    'expectedRC'     : 50
-                  }
+                  <call function="'ImportLdifWithScript'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                      'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                         % remote.data,
+                      'expectedRC'               : 1
+                    }
+                  </call>
+
+                  <script>
+                   resultString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'searchString'">
+                   { 'returnString'       : resultString ,
+                       'expectedString'   : 'You do not have sufficient privileges to initiate an LDIF import'
+                   }
                   </call>
                   
                   <message>
@@ -296,12 +312,11 @@
                      'Privileges: Import Tasks: import-ldif, Directory Manager, DM adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
+                  <call function="'ImportLdifWithScript'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-                    'taskID'         : STAXCurrentTestcase,
                     'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
                                         % remote.data
                   }
@@ -392,15 +407,24 @@
                      'Privileges: Import Tasks: import-ldif, New Root User, new root user adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
-                  { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn'   : 'cn=Zroot' ,
-                    'dsInstancePswd' : 'PrivsRule' ,
-                    'taskID'         : STAXCurrentTestcase,
-                    'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
-                                        % remote.data,
-                    'expectedRC'     : 50
+                  <call function="'ImportLdifWithScript'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                      'dsInstanceDn'   : 'cn=Zroot' ,
+                      'dsInstancePswd' : 'PrivsRule' ,
+                      'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                          % remote.data,
+                      'expectedRC'                : 1
+                      }
+                  </call>
+
+                  <script>
+                   resultString = STAXResult[0][1]
+                  </script>
+
+                  <call function="'searchString'">
+                    { 'returnString'       : resultString ,
+                       'expectedString'   : 'You do not have sufficient privileges to initiate an LDIF import'
                     }
                   </call>
                   
@@ -423,12 +447,11 @@
                      'Privileges: Import Tasks: import-ldif, New Root User, new root user adding import task'
                   </message>
       
-                  <call function="'importLdifTask'">
+                  <call function="'ImportLdifWithScript'">
                   { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                    'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'   : 'cn=Zroot' ,
                     'dsInstancePswd' : 'PrivsRule' ,
-                    'taskID'         : STAXCurrentTestcase,
                     'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
                                         % remote.data
                   }
