@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -386,7 +386,8 @@ public class DraftCNDbHandler implements Runnable
             {
               // let's get the eligible part of the domain
               ServerState startSS = domain.getStartState();
-              ServerState endSS= domain.getEligibleState(crossDomainEligibleCN);
+              ServerState endSS= domain.getEligibleState(crossDomainEligibleCN,
+                  true);
 
               ChangeNumber fcn = startSS.getMaxChangeNumber(cn.getServerId());
               ChangeNumber lcn = endSS.getMaxChangeNumber(cn.getServerId());

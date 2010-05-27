@@ -2072,7 +2072,7 @@ public class ReplicationServer
           continue;
 
         result.update(rsd.getBaseDn(), rsd.getEligibleState(
-            getEligibleCN()));
+            getEligibleCN(),false));
       }
     }
     return result;
