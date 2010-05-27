@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads.util;
@@ -60,6 +60,7 @@ public class ServerLoader extends Thread
   private TopologyCacheException lastException;
   private ServerDescriptor serverDescriptor;
   private ApplicationTrustManager trustManager;
+  private int timeout;
   private String dn;
   private String pwd;
   private LinkedHashSet<PreferredConnection> preferredLDAPURLs;
@@ -76,6 +77,8 @@ public class ServerLoader extends Thread
    * @param pwd the password that we must use to bind to the server.
    * @param trustManager the ApplicationTrustManager to be used when we try
    * to connect to the server.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    * @param preferredLDAPURLs the list of preferred LDAP URLs that we want
    * to use to connect to the server.  They will be used only if they correspond
    * to the URLs that we found in the the server properties.
@@ -84,6 +87,7 @@ public class ServerLoader extends Thread
    */
   public ServerLoader(Map<ServerProperty,Object> serverProperties,
       String dn, String pwd, ApplicationTrustManager trustManager,
+      int timeout,
       LinkedHashSet<PreferredConnection> preferredLDAPURLs,
       TopologyCacheFilter filter)
   {
@@ -91,6 +95,7 @@ public class ServerLoader extends Thread
     this.dn = dn;
     this.pwd = pwd;
     this.trustManager = trustManager;
+    this.timeout = timeout;
     this.preferredLDAPURLs =
       new LinkedHashSet<PreferredConnection>(preferredLDAPURLs);
     this.filter = filter;
@@ -276,17 +281,17 @@ public class ServerLoader extends Thread
         {
         case LDAPS:
           ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
-              ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
+              timeout, null, trustManager,
               null);
           break;
         case START_TLS:
           ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
-              ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
+              timeout, null, trustManager,
               null, null);
           break;
         default:
           ctx = ConnectionUtils.createLdapContext(lastLdapUrl, dn, pwd,
-              ConnectionUtils.getDefaultLDAPTimeout(), null);
+              timeout, null);
         }
       }
     }

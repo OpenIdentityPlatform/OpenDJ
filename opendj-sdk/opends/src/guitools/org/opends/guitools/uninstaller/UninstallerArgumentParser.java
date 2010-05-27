@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -198,12 +198,11 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
-    UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
         OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
         INFO_HOST_PLACEHOLDER.get(),
-        uData.getHostName(), OPTION_LONG_REFERENCED_HOST_NAME,
+        UserData.getDefaultHostName(), OPTION_LONG_REFERENCED_HOST_NAME,
         INFO_DESCRIPTION_REFERENCED_HOST.get());
     defaultArgs.add(referencedHostNameArg);
 

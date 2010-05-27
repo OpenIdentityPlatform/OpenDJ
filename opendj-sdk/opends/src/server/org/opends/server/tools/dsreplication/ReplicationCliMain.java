@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -2541,7 +2541,7 @@ public class ReplicationCliMain extends ConsoleApplication
         InitialLdapContext ctx = createAdministrativeContext(
             uData.getHostName1(), uData.getPort1(), useSSL,
             useStartTLS, ADSContext.getAdministratorDN(adminUid),
-            adminPwd, getTrustManager());
+            adminPwd, getConnectTimeout(), getTrustManager());
         uData.setBindDn1(ADSContext.getAdministratorDN(adminUid));
         uData.setPwd1(adminPwd);
         ctx.close();
@@ -2576,7 +2576,7 @@ public class ReplicationCliMain extends ConsoleApplication
         InitialLdapContext ctx = createAdministrativeContext(
             uData.getHostName2(), uData.getPort2(), useSSL,
             useStartTLS, ADSContext.getAdministratorDN(adminUid),
-            adminPwd, getTrustManager());
+            adminPwd, getConnectTimeout(), getTrustManager());
         uData.setBindDn2(ADSContext.getAdministratorDN(adminUid));
         uData.setPwd2(adminPwd);
         ctx.close();
@@ -2873,7 +2873,7 @@ public class ReplicationCliMain extends ConsoleApplication
           // LDAPConnectionConsoleInteraction object might have changed.
 
           TopologyCache cache = new TopologyCache(adsContext,
-              getTrustManager());
+              getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.getFilter().setSearchBaseDNInformation(false);
           cache.setPreferredConnections(
@@ -2952,9 +2952,10 @@ public class ReplicationCliMain extends ConsoleApplication
                   {
                     ctx[0] = createAdministrativeContext(host, port, isSSL,
                         isStartTLS, ADSContext.getAdministratorDN(adminUid),
-                        adminPwd, getTrustManager());
+                        adminPwd, getConnectTimeout(), getTrustManager());
                     adsContext = new ADSContext(ctx[0]);
-                    cache = new TopologyCache(adsContext, getTrustManager());
+                    cache = new TopologyCache(adsContext, getTrustManager(),
+                        getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
                     cache.setPreferredConnections(
@@ -3325,7 +3326,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       ctx1 = createAdministrativeContext(host1, port1, useSSL,
           useStartTLS, uData.getBindDn1(), uData.getPwd1(),
-          getTrustManager());
+          getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3338,7 +3339,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       ctx2 = createAdministrativeContext(host2, port2, useSSL,
           useStartTLS, uData.getBindDn2(), uData.getPwd2(),
-          getTrustManager());
+          getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3566,7 +3567,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
-          useSSL, useStartTLS, bindDn, uData.getAdminPwd(),
+          useSSL, useStartTLS, bindDn, uData.getAdminPwd(), getConnectTimeout(),
           getTrustManager());
     }
     catch (NamingException ne)
@@ -3691,7 +3692,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           useSSL, useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3757,7 +3758,7 @@ public class ReplicationCliMain extends ConsoleApplication
           uData.getPortSource(), useSSL,
           useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3774,7 +3775,7 @@ public class ReplicationCliMain extends ConsoleApplication
           uData.getPortDestination(), useSSL,
           useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3883,7 +3884,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           useSSL, useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -3981,7 +3982,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           useSSL, useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -4098,7 +4099,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           useSSL, useStartTLS,
           ADSContext.getAdministratorDN(uData.getAdminUid()),
-          uData.getAdminPwd(), getTrustManager());
+          uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -4982,7 +4983,8 @@ public class ReplicationCliMain extends ConsoleApplication
         cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
         if (adsCtx1.hasAdminData())
         {
-          TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager());
+          TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager(),
+              getConnectTimeout());
           cache.setPreferredConnections(cnx);
           cache.getFilter().setSearchMonitoringInformation(false);
           for (String dn : uData.getBaseDNs())
@@ -4995,7 +4997,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (adsCtx2.hasAdminData())
         {
-          TopologyCache cache = new TopologyCache(adsCtx2, getTrustManager());
+          TopologyCache cache = new TopologyCache(adsCtx2, getTrustManager(),
+              getConnectTimeout());
           cache.setPreferredConnections(cnx);
           cache.getFilter().setSearchMonitoringInformation(false);
           for (String dn : uData.getBaseDNs())
@@ -5350,7 +5353,8 @@ public class ReplicationCliMain extends ConsoleApplication
       cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
       if (adsCtx1.hasAdminData())
       {
-        cache1 = new TopologyCache(adsCtx1, getTrustManager());
+        cache1 = new TopologyCache(adsCtx1, getTrustManager(),
+            getConnectTimeout());
         cache1.setPreferredConnections(cnx);
         cache1.getFilter().setSearchMonitoringInformation(false);
         for (String dn : uData.getBaseDNs())
@@ -5363,7 +5367,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (adsCtx2.hasAdminData())
       {
-        cache2 = new TopologyCache(adsCtx2, getTrustManager());
+        cache2 = new TopologyCache(adsCtx2, getTrustManager(),
+            getConnectTimeout());
         cache2.setPreferredConnections(cnx);
         cache2.getFilter().setSearchMonitoringInformation(false);
         for (String dn : uData.getBaseDNs())
@@ -5711,7 +5716,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (adsCtx.hasAdminData() && tryToUpdateRemote)
       {
-        cache = new TopologyCache(adsCtx, getTrustManager());
+        cache = new TopologyCache(adsCtx, getTrustManager(),
+            getConnectTimeout());
         cache.setPreferredConnections(
             PreferredConnection.getPreferredConnections(ctx));
         cache.getFilter().setSearchMonitoringInformation(false);
@@ -6238,7 +6244,8 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCache cache = null;
     try
     {
-      cache = new TopologyCache(adsCtx, getTrustManager());
+      cache = new TopologyCache(adsCtx, getTrustManager(),
+          getConnectTimeout());
       cache.setPreferredConnections(
           PreferredConnection.getPreferredConnections(ctx));
       for (String dn : uData.getBaseDNs())
@@ -8161,7 +8168,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
-        pwd, getTrustManager(), cnx, filter);
+        pwd, getTrustManager(), getConnectTimeout(), cnx, filter);
     InitialLdapContext ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
@@ -9874,7 +9881,8 @@ public class ReplicationCliMain extends ConsoleApplication
         ADSContext adsContext = new ADSContext(ctx1);
         if (adsContext.hasAdminData())
         {
-          cache1 = new TopologyCache(adsContext, getTrustManager());
+          cache1 = new TopologyCache(adsContext, getTrustManager(),
+              getConnectTimeout());
           cache1.getFilter().setSearchMonitoringInformation(false);
           cache1.setPreferredConnections(
               PreferredConnection.getPreferredConnections(ctx1));
@@ -9895,7 +9903,8 @@ public class ReplicationCliMain extends ConsoleApplication
         ADSContext adsContext = new ADSContext(ctx2);
         if (adsContext.hasAdminData())
         {
-          cache2 = new TopologyCache(adsContext, getTrustManager());
+          cache2 = new TopologyCache(adsContext, getTrustManager(),
+              getConnectTimeout());
           cache2.getFilter().setSearchMonitoringInformation(false);
           cache2.setPreferredConnections(
               PreferredConnection.getPreferredConnections(ctx2));
@@ -10017,7 +10026,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx1.hasAdminData())
       {
         TopologyCache cache = new TopologyCache(adsCtx1,
-            getTrustManager());
+            getTrustManager(), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
         for (String dn : uData.getBaseDNs())
         {
@@ -10038,7 +10047,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx2.hasAdminData())
       {
         TopologyCache cache = new TopologyCache(adsCtx2,
-            getTrustManager());
+            getTrustManager(), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
         cache.reloadTopology();
         for (String dn : uData.getBaseDNs())
@@ -10131,7 +10140,8 @@ public class ReplicationCliMain extends ConsoleApplication
           adsCtx2.getDirContext()));
       // Check that there are no errors.  We do not allow to do the merge with
       // errors.
-      TopologyCache cache1 = new TopologyCache(adsCtx1, getTrustManager());
+      TopologyCache cache1 = new TopologyCache(adsCtx1, getTrustManager(),
+          getConnectTimeout());
       cache1.setPreferredConnections(cnx);
       cache1.getFilter().setSearchBaseDNInformation(false);
       try
@@ -10146,7 +10156,8 @@ public class ReplicationCliMain extends ConsoleApplication
             ERR_REPLICATION_READING_ADS.get(te.getMessageObject()),
             ERROR_UPDATING_ADS, te);
       }
-      TopologyCache cache2 = new TopologyCache(adsCtx2, getTrustManager());
+      TopologyCache cache2 = new TopologyCache(adsCtx2, getTrustManager(),
+          getConnectTimeout());
       cache2.setPreferredConnections(cnx);
       cache2.getFilter().setSearchBaseDNInformation(false);
       try
@@ -10456,8 +10467,8 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(),
-        dn, pwd, getTrustManager(), cache.getPreferredConnections(),
-        filter);
+        dn, pwd, getTrustManager(), getConnectTimeout(),
+        cache.getPreferredConnections(), filter);
     return loader.createContext();
   }
 
@@ -10558,6 +10569,17 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return false;
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.  The method
+   * must be called after parsing the arguments.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   */
+  private int getConnectTimeout()
+  {
+    return argParser.getConnectTimeout();
   }
 }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.cli;
@@ -467,5 +467,25 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   public KeyManager getKeyManager()
   {
     return secureArgsList.getKeyManager() ;
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.  The method
+   * must be called after parsing the arguments.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   * @throw {@code IllegalStateException} if the method is called before
+   * parsing the arguments.
+   */
+  public int getConnectTimeout()
+  {
+    try
+    {
+      return secureArgsList.connectTimeoutArg.getIntValue();
+    }
+    catch (ArgumentException ae)
+    {
+      throw new IllegalStateException("Argument parser is not parsed: "+ae, ae);
+    }
   }
 }

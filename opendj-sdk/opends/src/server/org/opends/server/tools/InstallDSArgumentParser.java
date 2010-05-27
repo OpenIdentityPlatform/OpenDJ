@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -99,6 +100,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    keyStorePasswordArg;
   StringArgument    certNicknameArg;
   StringArgument    progNameArg;
+  IntegerArgument   connectTimeoutArg = null;
 
   private static final Logger LOG = Logger.getLogger(
       InstallDSArgumentParser.class.getName());
@@ -410,6 +412,17 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_CERT_NICKNAME,
         INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
     addDefaultArgument(certNicknameArg);
+
+    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+        null, OPTION_LONG_CONNECT_TIMEOUT,
+        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+        defaultTimeout, null,
+        true, 1, true, 65535,
+        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+    connectTimeoutArg.setHidden(true);
+    addArgument(connectTimeoutArg);
 
     showUsageArg = new BooleanArgument(
         OPTION_LONG_HELP.toLowerCase(), OPTION_SHORT_HELP,
@@ -783,5 +796,25 @@ public class InstallDSArgumentParser extends ArgumentParser
     String root = Utils.getInstancePathFromInstallPath(a);
     String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
     return Utils.getPath(configDir, Installation.CURRENT_CONFIG_FILE_NAME);
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.  The method
+   * must be called after parsing the arguments.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   * @throw {@code IllegalStateException} if the method is called before
+   * parsing the arguments.
+   */
+  public int getConnectTimeout()
+  {
+    try
+    {
+      return connectTimeoutArg.getIntValue();
+    }
+    catch (ArgumentException ae)
+    {
+      throw new IllegalStateException("Argument parser is not parsed: "+ae, ae);
+    }
   }
 }

@@ -2363,7 +2363,7 @@ public class Utilities
           ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
     ctx = Utils.createLdapsContext(usedUrl,
-        bindDN, pwd, Utils.getDefaultLDAPTimeout(), null,
+        bindDN, pwd, controlInfo.getConnectTimeout(), null,
         controlInfo.getTrustManager());
 
     /*
@@ -2402,7 +2402,7 @@ public class Utilities
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       ctx = Utils.createStartTLSContext(usedUrl,
-          bindDN, pwd, Utils.getDefaultLDAPTimeout(), null,
+          bindDN, pwd, controlInfo.getConnectTimeout(), null,
           controlInfo.getTrustManager(), null);
     }
     else if (controlInfo.connectUsingLDAPS())
@@ -2414,7 +2414,7 @@ public class Utilities
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       ctx = Utils.createLdapsContext(usedUrl,
-          bindDN, pwd, Utils.getDefaultLDAPTimeout(), null,
+          bindDN, pwd, controlInfo.getConnectTimeout(), null,
           controlInfo.getTrustManager());
     }
     else
@@ -2426,7 +2426,7 @@ public class Utilities
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
       ctx = Utils.createLdapContext(usedUrl,
-          bindDN, pwd, Utils.getDefaultLDAPTimeout(), null);
+          bindDN, pwd, controlInfo.getConnectTimeout(), null);
     }
 
     checkCanReadConfig(ctx);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -155,6 +155,8 @@ public class UninstallCliHelper extends ConsoleApplication {
       userData.setForceOnError(args.isForceOnError());
       userData.setTrustManager(args.getTrustManager());
 
+      userData.setConnectTimeout(getConnectTimeout());
+
       /*
        * Step 2: check that the provided parameters are compatible.
        */
@@ -249,6 +251,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       info = ControlPanelInfo.getInstance();
       info.setTrustManager(userData.getTrustManager());
+      info.setConnectTimeout(getConnectTimeout());
       info.regenerateDescriptor();
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
 
@@ -1161,7 +1164,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     try
     {
       info.setTrustManager(userData.getTrustManager());
-
+      info.setConnectTimeout(getConnectTimeout());
       String host = "localhost";
       int port = 389;
       String adminUid = userData.getAdminUID();
@@ -1181,7 +1184,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         LOG.log(Level.SEVERE, "Error parsing url: "+adminConnectorUrl);
       }
       ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
-          pwd, userData.getTrustManager());
+          pwd, getConnectTimeout(),
+          userData.getTrustManager());
 
       ADSContext adsContext = new ADSContext(ctx);
       if (interactive && (userData.getTrustManager() == null))
@@ -1195,7 +1199,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       LOG.log(Level.INFO, "Reloading topology");
       TopologyCache cache = new TopologyCache(adsContext,
-          userData.getTrustManager());
+          userData.getTrustManager(), getConnectTimeout());
       cache.getFilter().setSearchMonitoringInformation(false);
       cache.reloadTopology();
 
@@ -1555,5 +1559,26 @@ public class UninstallCliHelper extends ConsoleApplication {
    {
      super.println(msg);
      LOG.log(Level.WARNING, msg.toString());
+   }
+
+   /**
+    * Returns the timeout to be used to connect in milliseconds.  The method
+    * must be called after parsing the arguments.
+    * @return the timeout to be used to connect in milliseconds.  Returns
+    * {@code 0} if there is no timeout.
+    * @throw {@code IllegalStateException} if the method is called before
+    * parsing the arguments.
+    */
+   private int getConnectTimeout()
+   {
+     try
+     {
+       return parser.getSecureArgsList().connectTimeoutArg.getIntValue();
+     }
+     catch (ArgumentException ae)
+     {
+       throw new IllegalStateException("Argument parser is not parsed: "+ae,
+           ae);
+     }
    }
 }

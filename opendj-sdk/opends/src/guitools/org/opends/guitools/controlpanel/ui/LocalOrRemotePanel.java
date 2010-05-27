@@ -593,7 +593,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                   new Integer(port.getText().trim()), true);
               ctx = Utils.createLdapsContext(usedUrl, dn.getText(),
                   String.valueOf(pwd.getPassword()),
-                  Utils.getDefaultLDAPTimeout(), null,
+                  getInfo().getConnectTimeout(), null,
                   getInfo().getTrustManager());
               checkVersion(ctx);
             }

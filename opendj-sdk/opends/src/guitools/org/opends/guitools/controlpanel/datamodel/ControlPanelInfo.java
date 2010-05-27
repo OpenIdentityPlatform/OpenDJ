@@ -83,6 +83,7 @@ public class ControlPanelInfo
   private boolean stopPooling;
   private boolean pooling;
   private ApplicationTrustManager trustManager;
+  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
   private ConnectionProtocolPolicy connectionPolicy =
     ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
   private String ldapURL;
@@ -353,7 +354,7 @@ public class ControlPanelInfo
     {
       InitialLdapContext cloneLdc =
         ConnectionUtils.cloneInitialLdapContext(userDataCtx,
-            ConnectionUtils.getDefaultLDAPTimeout(),
+            getConnectTimeout(),
             getTrustManager(), null);
       connectionPool.registerConnection(cloneLdc);
     }
@@ -579,7 +580,7 @@ public class ControlPanelInfo
             ctx = Utils.createLdapsContext(lastRemoteAdministrationURL,
                 lastWorkingBindDN,
                 lastWorkingBindPwd,
-                Utils.getDefaultLDAPTimeout(), null,
+                getConnectTimeout(), null,
                 getTrustManager());
           }
         }
@@ -882,6 +883,28 @@ public class ControlPanelInfo
   {
     this.trustManager = trustManager;
     connectionPool.setTrustManager(trustManager);
+  }
+
+  /**
+   * Returns the timeout to establish the connection in milliseconds.
+   * @return the timeout to establish the connection in milliseconds.
+   */
+  public int getConnectTimeout()
+  {
+    return connectTimeout;
+  }
+
+  /**
+   * Sets the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
+   * @param connectTimeout the timeout to establish the connection in
+   * milliseconds.
+   * Use {@code 0} to express no timeout.
+   */
+  public void setConnectTimeout(int connectTimeout)
+  {
+    this.connectTimeout = connectTimeout;
+    connectionPool.setConnectTimeout(connectTimeout);
   }
 
   /**

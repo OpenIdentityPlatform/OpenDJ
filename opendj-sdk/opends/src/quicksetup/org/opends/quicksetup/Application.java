@@ -774,6 +774,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * connection.
    * @param dn the dn to be used to authenticate.
    * @param pwd the pwd to be used to authenticate.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    * @param cnx the ordered list of preferred connections to connect to the
    * server.
    * @return the InitialLdapContext to the remote server.
@@ -781,6 +783,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected InitialLdapContext getRemoteConnection(ServerDescriptor server,
       String dn, String pwd, ApplicationTrustManager trustManager,
+      int timeout,
       LinkedHashSet<PreferredConnection> cnx)
   throws ApplicationException
   {
@@ -790,7 +793,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
-        trustManager, cnx, filter);
+        trustManager, timeout, cnx, filter);
 
     InitialLdapContext ctx = null;
     try

@@ -126,6 +126,7 @@ public class ControlPanel
     {
       info.setTrustManager(new BlindApplicationTrustManager());
     }
+    info.setConnectTimeout(argParser.getConnectTimeout());
   }
 
   /**

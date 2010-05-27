@@ -99,6 +99,7 @@ public class LoginDialog extends JDialog
   private boolean isCancelled = true;
 
   private ApplicationTrustManager trustManager;
+  private int timeout;
 
   private InitialLdapContext ctx;
 
@@ -112,8 +113,11 @@ public class LoginDialog extends JDialog
    * @param parent the parent frame for this dialog.
    * @param trustManager the trust manager to be used for the secure
    * connections.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    */
-  public LoginDialog(JFrame parent, ApplicationTrustManager trustManager)
+  public LoginDialog(JFrame parent, ApplicationTrustManager trustManager,
+      int timeout)
   {
     super(parent);
     setTitle(INFO_LOGIN_DIALOG_TITLE.get().toString());
@@ -124,6 +128,7 @@ public class LoginDialog extends JDialog
       throw new IllegalArgumentException("The trustmanager cannot be null.");
     }
     this.trustManager = trustManager;
+    this.timeout = timeout;
     /*
      * TODO: find a way to calculate this dynamically.  This is done to avoid
      * all the text in a single line.
@@ -245,8 +250,8 @@ public class LoginDialog extends JDialog
     gbc.weightx = 1.0;
     gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    UserData uData = new UserData();
-    tfHostName = UIFactory.makeJTextField(Message.raw(uData.getHostName()),
+    tfHostName = UIFactory.makeJTextField(
+        Message.raw(UserData.getDefaultHostName()),
         INFO_UNINSTALL_LOGIN_HOST_NAME_TOOLTIP.get(),
         UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
     p2.add(tfHostName, gbc);
@@ -388,6 +393,7 @@ public class LoginDialog extends JDialog
         {
           ControlPanelInfo info = ControlPanelInfo.getInstance();
           info.setTrustManager(getTrustManager());
+          info.setConnectTimeout(timeout);
           info.regenerateDescriptor();
           ConfigFromFile conf = new ConfigFromFile();
           conf.readConfiguration();
@@ -719,7 +725,8 @@ public class LoginDialog extends JDialog
     {
       LoginDialog dlg = new LoginDialog(
           org.opends.guitools.controlpanel.util.Utilities.createFrame(),
-          new ApplicationTrustManager(null));
+          new ApplicationTrustManager(null),
+          5000);
       dlg.pack();
       dlg.setVisible(true);
     } catch (Exception ex)

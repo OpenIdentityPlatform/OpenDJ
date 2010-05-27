@@ -1134,13 +1134,16 @@ public class Utils
    * @param ldapUrl the ldap URL of the server.
    * @param dn the dn to be used.
    * @param pwd the password to be used.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
    * @return <CODE>true</CODE> if we can connect and read the configuration and
    * <CODE>false</CODE> otherwise.
    */
   public static boolean canConnectAsAdministrativeUser(String ldapUrl,
-      String dn, String pwd)
+      String dn, String pwd, int timeout)
   {
-    return ConnectionUtils.canConnectAsAdministrativeUser(ldapUrl, dn, pwd);
+    return ConnectionUtils.canConnectAsAdministrativeUser(ldapUrl, dn, pwd,
+        timeout);
   }
 
 /**
@@ -1244,17 +1247,6 @@ public class Utils
        msg = ERR_CANNOT_CONNECT_TO_LOCAL_GENERIC.get(ne.toString(true));
     }
     return msg;
-  }
-
-  /**
-   * Returns the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   * @return the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   */
-  public static int getDefaultLDAPTimeout()
-  {
-    return ConnectionUtils.getDefaultLDAPTimeout();
   }
 
 

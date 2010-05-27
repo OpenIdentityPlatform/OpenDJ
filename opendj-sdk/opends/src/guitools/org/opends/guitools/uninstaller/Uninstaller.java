@@ -1593,7 +1593,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (loginDialog == null)
     {
       loginDialog = new LoginDialog(qs.getDialog().getFrame(),
-          getTrustManager());
+          getTrustManager(), getConnectTimeout());
       loginDialog.pack();
     }
     Utilities.centerOnComponent(loginDialog, qs.getDialog().getFrame());
@@ -1626,7 +1626,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO, "Loading Topology Cache in askForAuthentication");
           ADSContext adsContext = new ADSContext(ctx);
           TopologyCache cache = new TopologyCache(adsContext,
-              getTrustManager());
+              getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.reloadTopology();
           return cache;
@@ -2011,6 +2011,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             getUninstallUserData().getAdminUID());
         String pwd = getUninstallUserData().getAdminPwd();
         ctx = getRemoteConnection(server, dn, pwd, getTrustManager(),
+            getConnectTimeout(),
             new LinkedHashSet<PreferredConnection>());
 
         // Update replication servers and domains.  If the domain
@@ -2304,6 +2305,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       isServerToUninstall = hostNameEquals;
     }
     return isServerToUninstall;
+  }
+
+  /**
+   * Returns the timeout to be used to connect in milliseconds.
+   * @return the timeout to be used to connect in milliseconds.  Returns
+   * {@code 0} if there is no timeout.
+   */
+  private int getConnectTimeout()
+  {
+    return getUserData().getConnectTimeout();
   }
 }
 

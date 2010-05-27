@@ -318,6 +318,7 @@ class StatusCli extends ConsoleApplication
     } else {
       ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
       controlInfo.setTrustManager(getTrustManager());
+      controlInfo.setConnectTimeout(argParser.getConnectTimeout());
       controlInfo.regenerateDescriptor();
       boolean authProvided = false;
       if (controlInfo.getServerDescriptor().getStatus() ==

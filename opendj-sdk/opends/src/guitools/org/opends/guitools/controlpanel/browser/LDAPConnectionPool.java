@@ -80,6 +80,7 @@ public class LDAPConnectionPool {
 
   private Control[] requestControls = new Control[] {};
   private ApplicationTrustManager trustManager;
+  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
 
   /**
    * Returns <CODE>true</CODE> if the connection passed is registered in the
@@ -514,13 +515,13 @@ public class LDAPConnectionPool {
     if (isSecureLDAPUrl(ldapUrl))
     {
       ctx = ConnectionUtils.createLdapsContext(ldapUrl.toString(), ar.dn,
-          ar.password, ConnectionUtils.getDefaultLDAPTimeout(), null,
+          ar.password, getConnectTimeout(), null,
           getTrustManager() , getKeyManager());
     }
     else
     {
       ctx = ConnectionUtils.createLdapContext(ldapUrl.toString(), ar.dn,
-          ar.password, ConnectionUtils.getDefaultLDAPTimeout(), null);
+          ar.password, getConnectTimeout(), null);
     }
     return ctx;
   }
@@ -544,6 +545,27 @@ public class LDAPConnectionPool {
   public ApplicationTrustManager getTrustManager()
   {
     return trustManager;
+  }
+
+  /**
+   * Returns the timeout to establish the connection in milliseconds.
+   * @return the timeout to establish the connection in milliseconds.
+   */
+  public int getConnectTimeout()
+  {
+    return connectTimeout;
+  }
+
+  /**
+   * Sets the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
+   * @param connectTimeout the timeout to establish the connection in
+   * milliseconds.
+   * Use {@code 0} to express no timeout.
+   */
+  public void setConnectTimeout(int connectTimeout)
+  {
+    this.connectTimeout = connectTimeout;
   }
 
   private KeyManager getKeyManager()

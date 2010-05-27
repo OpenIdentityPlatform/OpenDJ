@@ -22,9 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 
 import java.io.BufferedReader;
@@ -341,6 +342,7 @@ public class LDAPDelete
     StringArgument    saslOptions            = null;
     StringArgument    trustStorePath         = null;
     StringArgument    trustStorePassword     = null;
+    IntegerArgument   connectTimeout         = null;
     StringArgument    propertiesFileArgument = null;
     BooleanArgument   noPropertiesFileArgument = null;
 
@@ -536,6 +538,16 @@ public class LDAPDelete
                                     null, INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
+
+      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+      connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
+          null, OPTION_LONG_CONNECT_TIMEOUT,
+          false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+          defaultTimeout, null,
+          true, 0, false, Integer.MAX_VALUE,
+          INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+      connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+      argParser.addArgument(connectTimeout);
 
       encodingStr = new StringArgument("encoding", 'i',
                                        OPTION_LONG_ENCODING, false,
@@ -813,7 +825,9 @@ public class LDAPDelete
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions, out, err);
-      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID);
+      int timeout = connectTimeout.getIntValue();
+      connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID,
+          timeout);
 
       ldapDelete = new LDAPDelete(nextMessageID, out, err);
       if(fileNameValue == null && dnStrings.isEmpty())
