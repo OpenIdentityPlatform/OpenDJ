@@ -1575,7 +1575,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the DEL entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn=" + cn1 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
+                "replicationcsn=" + cn1 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
             checkValue(resultEntry,"replicationcsn",cn1.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
@@ -1587,7 +1587,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the ADD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn=" + cn2 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
+                "replicationcsn=" + cn2 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
             "entryUUID: 11111111-1111-1111-1111-111111111111\n\n";
             String expectedValue2 = "entryUUID: 11111111-1111-1111-1111-111111111111\n" +
@@ -1604,7 +1604,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MOD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn=" + cn3 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
+                "replicationcsn=" + cn3 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
             String expectedValue = "replace: description\n" +
             "description: new value\n-\n";
             checkValue(resultEntry,"changes",expectedValue);
@@ -1619,7 +1619,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MODDN entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn=" + cn4 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
+                "replicationcsn=" + cn4 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
             checkValue(resultEntry,"replicationcsn",cn4.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
@@ -2987,9 +2987,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the DEL entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"),
+                "changenumber="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"),
                 "Result entry DN : actual=" + resultEntry.getDN().toNormalizedString() +
-                " expected=" + "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog");
+                " expected=" + "changenumber="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog");
             checkValue(resultEntry,"replicationcsn",cn1.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
@@ -3002,7 +3002,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the ADD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
             "entryUUID: "+user1entryUUID+"\n\n";
             String expectedValue2 = "entryUUID: "+user1entryUUID+"\n" +
@@ -3019,7 +3019,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MOD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+2)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+2)+",cn=changelog"));
             String expectedValue = "replace: description\n" +
             "description: new value\n-\n";
             checkValue(resultEntry,"changes",expectedValue);
@@ -3034,7 +3034,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MODDN entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+3)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+3)+",cn=changelog"));
             checkValue(resultEntry,"replicationcsn",cn4.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
@@ -3082,7 +3082,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the DEL entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"));
             checkValue(resultEntry,"replicationcsn",cn1.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
@@ -3095,7 +3095,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the ADD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
             "entryUUID: "+user1entryUUID+"\n\n";
             String expectedValue2 = "entryUUID: "+user1entryUUID+"\n" +
@@ -3112,7 +3112,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MOD entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+2)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+2)+",cn=changelog"));
             String expectedValue = "replace: description\n" +
             "description: new value\n-\n";
             checkValue(resultEntry,"changes",expectedValue);
@@ -3127,7 +3127,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           {
             // check the MODDN entry has the right content
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "cn="+String.valueOf(firstDraftChangeNumber+3)+",cn=changelog"));
+                "changenumber="+String.valueOf(firstDraftChangeNumber+3)+",cn=changelog"));
             checkValue(resultEntry,"replicationcsn",cn4.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
             checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
@@ -3201,7 +3201,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ldifWriter.writeEntry(resultEntry);
           // check the entry has the right content
           assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-              "cn=6,cn=changelog"));
+              "changenumber=6,cn=changelog"));
           checkValue(resultEntry,"replicationcsn",gblCN.toString());
           checkValue(resultEntry,"replicaidentifier","1201");
           checkValue(resultEntry,"changetype","add");

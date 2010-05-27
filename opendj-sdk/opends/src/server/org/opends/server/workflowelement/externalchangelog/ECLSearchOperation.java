@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -36,7 +36,6 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.needsBase64Encoding;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -909,13 +908,13 @@ public class ECLSearchOperation
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
-      dnString = "cn="+ changeNumber +"," + serviceID + "," +
-        ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
+      dnString = "replicationcsn="+ changeNumber +"," + serviceID
+        + "," + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
     {
       // Draft compat mode
-      dnString = "cn="+ draftChangenumber + "," +
+      dnString = "changenumber="+ draftChangenumber + "," +
       ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     HashMap<ObjectClass,String> oClasses =

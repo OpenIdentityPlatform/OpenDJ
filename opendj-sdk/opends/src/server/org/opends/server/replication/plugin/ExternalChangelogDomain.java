@@ -66,8 +66,8 @@ public class ExternalChangelogDomain
     if (configuration.getECLInclude() != null)
     {
       HashSet<String> attrNames = new HashSet<String>(0);
-      for (AttributeType eclInclude : configuration.getECLInclude())
-        attrNames.add(eclInclude.getNormalizedPrimaryName());
+      for (AttributeType eclIncludeAttribute : configuration.getECLInclude())
+        attrNames.add(eclIncludeAttribute.getNormalizedPrimaryName());
       domain.setEclInclude(domain.getServerId(), attrNames);
     }
   }
@@ -129,7 +129,7 @@ public class ExternalChangelogDomain
       HashSet<String> attrNames = new HashSet<String>(0);
       for (AttributeType eclInclude : configuration.getECLInclude())
         attrNames.add(eclInclude.getNormalizedPrimaryName());
-      domain.setEclInclude(domain.getServerId(), attrNames);
+      domain.changeConfig(attrNames);
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
     catch (Exception e)
