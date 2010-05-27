@@ -780,7 +780,7 @@ public class ReplicationServerHandler extends ServerHandler
     try
     {
       MonitorData md;
-      md = replicationServerDomain.computeMonitorData();
+      md = replicationServerDomain.computeMonitorData(true);
 
       // Missing changes
       long missingChanges = md.getMissingChangesRS(serverId);

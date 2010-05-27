@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -110,7 +110,7 @@ public class MonitoringPublisher extends DirectoryThread
 
       // Send global topology information to peer DSs
       MonitorMsg monitorMsg =
-        replicationServerDomain.createGlobalTopologyMonitorMsg(0, 0);
+        replicationServerDomain.createGlobalTopologyMonitorMsg(0, 0, true);
       int localServerId =
           replicationServerDomain.getReplicationServer().getServerId();
       if (monitorMsg != null)

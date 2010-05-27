@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -269,7 +269,7 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
     MonitorData md;
     try
     {
-      md = rsDomain.computeMonitorData();
+      md = rsDomain.computeMonitorData(true);
 
       ServerState remoteState = md.getLDAPServerState(serverId);
       if (remoteState == null)
