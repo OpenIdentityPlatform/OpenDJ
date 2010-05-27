@@ -54,6 +54,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
@@ -141,6 +144,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 
 /**
@@ -1078,6 +1082,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
       ServerState startState = rsd.getStartState();
       assertTrue(startState.getMaxChangeNumber(s1test.getServerId()).getSeqnum()==1);
+      assertTrue(startState.getMaxChangeNumber(s2test.getServerId()) != null);
       assertTrue(startState.getMaxChangeNumber(s2test.getServerId()).getSeqnum()==7);
 
       rsd =
