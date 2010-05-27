@@ -101,6 +101,10 @@ import org.opends.guitools.controlpanel.event.ComboKeySelectionManager;
 import org.opends.guitools.controlpanel.event.TextComponentFocusListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
+import org.opends.guitools.controlpanel.ui.components.
+ SelectableLabelWithHelpIcon;
+import org.opends.guitools.controlpanel.ui.renderer.
+ AccessibleTableHeaderRenderer;
 import org.opends.messages.Message;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
@@ -338,10 +342,33 @@ public class Utilities
   {
     JEditorPane pane = new JEditorPane();
     pane.setContentType("text/html");
+    pane.setFont(font);
     if (text != null)
     {
       pane.setText(applyFont(text, font));
     }
+    pane.setEditable(false);
+    pane.setBorder(new EmptyBorder(0, 0, 0, 0));
+    pane.setOpaque(false);
+    pane.setFocusCycleRoot(false);
+    return pane;
+  }
+
+  /**
+   * Creates a JEditorPane that displays a message.
+   * @param text the message of the editor pane in plain text format.
+   * @param font the font to be used in the message.
+   * @return a JEditorPane that displays a message.
+   */
+  public static JEditorPane makePlainTextPane(String text, Font font)
+  {
+    JEditorPane pane = new JEditorPane();
+    pane.setContentType("text/plain");
+    if (text != null)
+    {
+      pane.setText(text);
+    }
+    pane.setFont(font);
     pane.setEditable(false);
     pane.setBorder(new EmptyBorder(0, 0, 0, 0));
     pane.setOpaque(false);
@@ -434,6 +461,7 @@ public class Utilities
     JButton button = new JButton(text.toString());
     button.setOpaque(false);
     button.setForeground(ColorAndFontConstants.buttonForeground);
+    button.getAccessibleContext().setAccessibleName(text.toString());
     return button;
   }
 
@@ -447,6 +475,7 @@ public class Utilities
     JRadioButton button = new JRadioButton(text.toString());
     button.setOpaque(false);
     button.setForeground(ColorAndFontConstants.buttonForeground);
+    button.getAccessibleContext().setAccessibleName(text.toString());
     return button;
   }
 
@@ -460,6 +489,7 @@ public class Utilities
     JCheckBox cb = new JCheckBox(text.toString());
     cb.setOpaque(false);
     cb.setForeground(ColorAndFontConstants.buttonForeground);
+    cb.getAccessibleContext().setAccessibleName(text.toString());
     return cb;
   }
 
@@ -585,6 +615,9 @@ public class Utilities
           BorderFactory.createMatteBorder(1, 1, 0, 1,
               ColorAndFontConstants.gridColor));
     }
+    table.getTableHeader().setDefaultRenderer(
+        new AccessibleTableHeaderRenderer(
+            table.getTableHeader().getDefaultRenderer()));
 
     for (int i=0; i<tableModel.getColumnCount(); i++)
     {
@@ -1016,6 +1049,28 @@ public class Utilities
       frame.getRootPane().revalidate();
       frame.getRootPane().repaint();
     }
+  }
+
+  /**
+   * Strips any potential HTML markup from a given string.
+   * @param s string to strip
+   * @return resulting string
+   */
+  static public String stripHtmlToSingleLine(String s) {
+    String o = null;
+    if (s != null) {
+      s = s.replaceAll("<br>", " ");
+      // This is not a comprehensive solution but addresses
+      // the few tags that we have in Resources.properties
+      // at the moment.  Note that the following might strip
+      // out more than is intended for non-tags like
+      // '<your name here>' or for funky tags like
+      // '<tag attr="1 > 0">'. See test class for cases that
+      // might cause problems.
+      o = s.replaceAll("\\<.*?\\>","");
+
+    }
+    return o;
   }
 
   private final static String HTML_SPACE = "&nbsp;";
@@ -1715,6 +1770,36 @@ public class Utilities
   }
 
   /**
+   * Sets the not available text to a label and associates a help icon and
+   * a tooltip explaining that the data is not available because the server is
+   * down.
+   * @param l the label.
+   */
+  public static void setNotAvailableBecauseServerIsDown(
+      SelectableLabelWithHelpIcon l)
+  {
+    l.setText(INFO_CTRL_PANEL_NOT_AVAILABLE_LONG_LABEL.get().toString());
+    l.setHelpIconVisible(true);
+    l.setHelpTooltip(INFO_NOT_AVAILABLE_SERVER_DOWN_TOOLTIP.get().toString());
+  }
+
+  /**
+   * Sets the not available text to a label and associates a help icon and
+   * a tooltip explaining that the data is not available because authentication
+   * is required.
+   * @param l the label.
+   */
+  public static void setNotAvailableBecauseAuthenticationIsRequired(
+      SelectableLabelWithHelpIcon l)
+  {
+    l.setText(INFO_CTRL_PANEL_NOT_AVAILABLE_LONG_LABEL.get().toString());
+    l.setHelpIconVisible(true);
+    l.setHelpTooltip(
+            INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_TOOLTIP.get()
+                    .toString());
+  }
+
+  /**
    * Updates a label by setting a warning icon and a text.
    * @param l the label to be updated.
    * @param text the text to be set on the label.
@@ -1726,6 +1811,10 @@ public class Utilities
     {
       warningIcon =
         createImageIcon("org/opends/quicksetup/images/warning_medium.gif");
+      warningIcon.setDescription(
+          INFO_WARNING_ICON_ACCESSIBLE_DESCRIPTION.get().toString());
+      warningIcon.getAccessibleContext().setAccessibleName(
+          INFO_WARNING_ICON_ACCESSIBLE_DESCRIPTION.get().toString());
     }
     l.setIcon(warningIcon);
     l.setToolTipText(text.toString());
@@ -1749,6 +1838,29 @@ public class Utilities
    * @param text the text.
    */
   public static void setTextValue(LabelWithHelpIcon l, String text)
+  {
+    l.setText(text);
+    l.setHelpIconVisible(false);
+    l.setHelpTooltip(null);
+  }
+
+  /**
+   * Sets the not available text to a label with no icon nor tooltip.
+   * @param l the label.
+   */
+  public static void setNotAvailable(SelectableLabelWithHelpIcon l)
+  {
+    l.setText(INFO_CTRL_PANEL_NOT_AVAILABLE_LONG_LABEL.get().toString());
+    l.setHelpIconVisible(false);
+    l.setHelpTooltip(null);
+  }
+
+  /**
+   * Sets the a text to a label with no icon nor tooltip.
+   * @param l the label.
+   * @param text the text.
+   */
+  public static void setTextValue(SelectableLabelWithHelpIcon l, String text)
   {
     l.setText(text);
     l.setHelpIconVisible(false);
@@ -2396,6 +2508,10 @@ public class Utilities
     {
       requiredIcon =
         createImageIcon(IconPool.IMAGE_PATH+"/required.gif");
+      requiredIcon.setDescription(
+          INFO_REQUIRED_ICON_ACCESSIBLE_DESCRIPTION.get().toString());
+      requiredIcon.getAccessibleContext().setAccessibleName(
+          INFO_REQUIRED_ICON_ACCESSIBLE_DESCRIPTION.get().toString());
     }
     label.setIcon(requiredIcon);
     label.setHorizontalTextPosition(SwingConstants.LEADING);

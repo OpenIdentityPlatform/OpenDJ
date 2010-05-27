@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -181,6 +181,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     add(lNoBackendsFound, gbc);
     lNoBackendsFound.setVisible(false);
     gbc.insets.top = 10;
+    lBackend.setLabelFor(backends);
+    lNoBackendsFound.setLabelFor(lBackend);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -193,6 +195,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.gridx = 1;
     gbc.insets.left = 10;
     file = Utilities.createTextField();
+    lFile.setLabelFor(file);
     documentListener = new DocumentListener()
     {
       /**
@@ -242,6 +245,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 10;
     gbc.gridy ++;
     add(lRemoteFileHelp, gbc);
+    lRemoteFileHelp.setLabelFor(file);
 
     gbc.gridx = 1;
     gbc.gridy ++;
@@ -265,6 +269,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     overwrite = Utilities.createRadioButton(
         INFO_CTRL_PANEL_IMPORT_OVERWRITE_LABEL.get());
     overwrite.setSelected(true);
+    lImportType.setLabelFor(overwrite);
 
     append =
       Utilities.createRadioButton(INFO_CTRL_PANEL_IMPORT_APPEND_LABEL.get());
@@ -314,6 +319,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     rejectNotSchemaCompliant.setSelected(true);
     gbc.insets.left = 10;
     add(rejectNotSchemaCompliant, gbc);
+    lSchemaValidation.setLabelFor(rejectNotSchemaCompliant);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -328,6 +334,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     doDNValidationAfter.setSelected(false);
     gbc.insets.left = 10;
     add(doDNValidationAfter, gbc);
+    lDNValidation.setLabelFor(doDNValidationAfter);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -344,6 +351,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         INFO_CTRL_PANEL_IMPORT_THREADS_TOOLTIP.get().toString());
     gbc.insets.left = 10;
     add(threads, gbc);
+    lThreads.setLabelFor(threads);
 
     gbc.insets.top = 3;
     gbc.gridy ++;
@@ -365,6 +373,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     writeRejects.setSelected(false);
     gbc.insets.left = 10;
     add(writeRejects, gbc);
+    lRejectsFile.setLabelFor(writeRejects);
 
     gbc.gridx = 1;
     gbc.gridy++;
@@ -403,6 +412,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         INFO_CTRL_PANEL_OVERWRITE_REJECTS_FILE_LABEL.get());
     overwriteRejectsFile.setOpaque(false);
     add(overwriteRejectsFile, gbc);
+    lRemoteRejectsHelp.setLabelFor(overwriteRejectsFile);
 
     ChangeListener changeListener = new ChangeListener()
     {
@@ -435,6 +445,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     writeSkips.setSelected(false);
     gbc.insets.left = 10;
     add(writeSkips, gbc);
+    lSkipsFile.setLabelFor(writeSkips);
 
     gbc.gridx = 1;
     gbc.gridy++;
@@ -473,6 +484,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         INFO_CTRL_PANEL_OVERWRITE_SKIPS_FILE_LABEL.get());
     overwriteSkipsFile.setOpaque(false);
     add(overwriteSkipsFile, gbc);
+    lRemoteSkipsHelp.setLabelFor(overwriteSkipsFile);
 
     changeListener = new ChangeListener()
     {

@@ -198,7 +198,7 @@ public class ColorAndFontConstants
    */
   public static final Font expanderFont = defaultFont.deriveFont(Font.BOLD);
   /**
-   * The inline help font.
+   * The in-line help font.
    */
   public static final Font inlineHelpFont = defaultFont.deriveFont(
   (float)(defaultFont.getSize() - 2));
@@ -262,12 +262,4 @@ public class ColorAndFontConstants
    * Specifies the font for the command-line output in the detail panel.
    */
   public static final Font outputFont = Font.decode("Monospaced-PLAIN-12");
-
-  /**
-   * This method initialize the constants used by this class.  It must be called
-   * before other classes modify the UIManager constants.
-   */
-  public static void initialize()
-  {
-  }
 }

@@ -28,7 +28,6 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.messages.Message;
-import org.opends.quicksetup.util.Utils;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -554,26 +553,6 @@ public class UIFactory
   private static final HashMap<IconType, ImageIcon> hmIcons =
       new HashMap<IconType, ImageIcon>();
 
-  static {
-    if (!Utils.isCli())
-    {
-      try
-      {
-        UIManager.put("OptionPane.background",
-            getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
-        UIManager.put("Panel.background",
-            getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
-        UIManager.put("ComboBox.background",
-            getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
-      }
-      catch (Throwable t)
-      {
-        // This might occur when we do not get the display
-        LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
-      }
-    }
-  }
-
   /**
    * The following enumeration contains the different icons that we can have.
    *
@@ -731,54 +710,78 @@ public class UIFactory
   }
 
   /**
-   * This method initialize the look and feel and UI settings.
+   * This method initialize the look and feel.
+   * @throws Throwable if there is a problem initializing the look and feel.
+   */
+  public static void initializeLookAndFeel() throws Throwable
+  {
+    final Throwable[] ts = {null};
+    Runnable r = new Runnable()
+    {
+      public void run()
+      {
+        System.setProperty("swing.aatext", "true");
+        try
+        {
+          String lf = UIManager.getSystemLookAndFeelClassName();
+          if (lf.equalsIgnoreCase(
+              "com.sun.java.swing.plaf.motif.MotifLookAndFeel"))
+          {
+            lf = UIManager.getCrossPlatformLookAndFeelClassName();
+          }
+          UIManager.setLookAndFeel(lf);
+        } catch (Throwable t)
+        {
+          ts[0] = t;
+        }
+        JFrame.setDefaultLookAndFeelDecorated(false);
+      }
+    };
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      r.run();
+    }
+    else
+    {
+      try
+      {
+        SwingUtilities.invokeAndWait(r);
+      }
+      catch (Throwable t)
+      {
+        ts[0] = t;
+      }
+    }
+    if (ts[0] != null)
+    {
+      throw ts[0];
+    }
+  }
+
+  /**
+   * This method initialize the look and feel and UI settings specific to
+   * quick setup.
    * @throws Throwable if there is a problem initializing the look and feel.
    */
   public static void initialize() throws Throwable
   {
     if (!initialized)
     {
-      final Throwable[] ts = {null};
-      Runnable r = new Runnable()
+      try
       {
-        public void run()
-        {
-          System.setProperty("swing.aatext", "true");
-          try
-          {
-            String lf = UIManager.getSystemLookAndFeelClassName();
-            if (lf.equalsIgnoreCase(
-                "com.sun.java.swing.plaf.motif.MotifLookAndFeel"))
-            {
-             lf = UIManager.getCrossPlatformLookAndFeelClassName();
-            }
-            UIManager.setLookAndFeel(lf);
-          } catch (Throwable t)
-          {
-            ts[0] = t;
-          }
-          JFrame.setDefaultLookAndFeelDecorated(false);
-        }
-      };
-      if (SwingUtilities.isEventDispatchThread())
-      {
-        r.run();
+        UIManager.put("OptionPane.background",
+            getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
+        UIManager.put("Panel.background",
+            getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
+        UIManager.put("ComboBox.background",
+            getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
       }
-      else
+      catch (Throwable t)
       {
-        try
-        {
-          SwingUtilities.invokeAndWait(r);
-        }
-        catch (Throwable t)
-        {
-          ts[0] = t;
-        }
+        // This might occur when we do not get the display
+        LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
       }
-      if (ts[0] != null)
-      {
-        throw ts[0];
-      }
+      initializeLookAndFeel();
       initialized = true;
     }
   }

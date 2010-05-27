@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -53,6 +53,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -102,7 +103,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
 
   private AttributeCellEditor editor;
 
-  private JLabel lInitContents;
+  private JEditorPane lInitContents;
 
   private JCheckBox showAll;
 
@@ -225,6 +226,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         INFO_CTRL_PANEL_JAVA_HOME_LABEL.get());
     useOpenDSJavaHome = Utilities.createRadioButton(Message.EMPTY);
     useOpenDSJavaHome.setOpaque(false);
+    useOpenDSJavaHome.getAccessibleContext().setAccessibleName(
+        INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME.get().toString()+" "+
+        INFO_CTRL_PANEL_USE_OPENDS_JAVA_HOME_HELP.get());
+    lJavaHome.setLabelFor(useOpenDSJavaHome);
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.weightx = 0.0;
@@ -250,6 +255,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     gbc.gridwidth = 1;
     useSpecifiedJavaHome = Utilities.createRadioButton(Message.EMPTY);
     useSpecifiedJavaHome.setOpaque(false);
+    useSpecifiedJavaHome.getAccessibleContext().setAccessibleName(
+        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME.get().toString() +
+        " "+INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME_HELP.get());
+    useOpenDSJavaHomeLabel.setLabelFor(useSpecifiedJavaHome);
     LabelWithHelpIcon useSpecifiedJavaHomeLabel = new LabelWithHelpIcon(
         INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME.get(),
         INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_HOME_HELP.get());
@@ -260,6 +269,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     add(useSpecifiedJavaHomeLabel, gbc);
     gbc.gridx ++;
     javaHome = Utilities.createTextField();
+    useSpecifiedJavaHomeLabel.setLabelFor(javaHome);
     gbc.weightx = 1.0;
     gbc.insets.left = 5;
     add(javaHome, gbc);
@@ -300,9 +310,13 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     lJavaArgs = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_JAVA_ARGUMENTS_LABEL.get());
     useSpecifiedJavaArgs = Utilities.createRadioButton(Message.EMPTY);
+    useSpecifiedJavaArgs.getAccessibleContext().setAccessibleName(
+        INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS.get().toString() +
+        " "+INFO_CTRL_PANEL_USE_OPENDS_JAVA_ARGS_HELP.get());
     useSpecifiedJavaArgs.setOpaque(false);
     useOpenDSJavaArgs = Utilities.createRadioButton(Message.EMPTY);
     useOpenDSJavaArgs.setOpaque(false);
+    lJavaArgs.setLabelFor(useOpenDSJavaArgs);
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.gridwidth = 1;
@@ -321,12 +335,16 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     gbc.insets.left = 0;
     p.add(useOpenDSJavaArgsLabel, gbc);
 
-
     gbc.gridx = 1;
     gbc.gridy ++;
     gbc.insets.top = 10;
     gbc.insets.left = 10;
     p.add(useSpecifiedJavaArgs, gbc);
+    useOpenDSJavaArgsLabel.setLabelFor(useSpecifiedJavaArgs);
+    useSpecifiedJavaArgs.getAccessibleContext().setAccessibleName(
+        INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS.get().toString() +
+        " "+INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS_HELP.get());
+
     gbc.gridx ++;
     LabelWithHelpIcon useSpecifiedJavaArgsLabel = new LabelWithHelpIcon(
         INFO_CTRL_PANEL_USE_SPECIFIED_OPENDS_JAVA_ARGS.get(),
@@ -337,6 +355,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     group = new ButtonGroup();
     group.add(useSpecifiedJavaArgs);
     group.add(useOpenDSJavaArgs);
+    useSpecifiedJavaArgsLabel.setLabelFor(useOpenDSJavaArgs);
 
     argumentsTableModel = new JavaArgumentsTableModel();
     LDAPEntryTableCellRenderer renderer = new LDAPEntryTableCellRenderer();
@@ -359,7 +378,9 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     gbc.gridwidth = 2;
     argumentsScroll = Utilities.createScrollPane(argumentsTable);
     p.add(argumentsScroll, gbc);
-    lInitContents = Utilities.createDefaultLabel(READING_JAVA_SETTINGS);
+    lInitContents = Utilities.makePlainTextPane(
+        READING_JAVA_SETTINGS.toString(),
+        ColorAndFontConstants.defaultFont);
     gbc.fill = GridBagConstraints.NONE;
     gbc.anchor = GridBagConstraints.CENTER;
     p.add(lInitContents, gbc);

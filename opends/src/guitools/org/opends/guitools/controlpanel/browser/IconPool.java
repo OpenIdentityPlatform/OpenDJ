@@ -158,6 +158,7 @@ public class IconPool {
     if (description != null)
     {
       icon.setDescription(description);
+      icon.getAccessibleContext().setAccessibleDescription(description);
     }
     return icon;
   }

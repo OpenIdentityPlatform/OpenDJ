@@ -1157,6 +1157,7 @@ implements ConfigChangeListener
     message.setText(Utilities.applyFont(msg.toString(),
         ColorAndFontConstants.defaultFont));
     cardLayout.show(cardPanel, MESSAGE_PANEL);
+    message.requestFocusInWindow();
   }
 
   /**
@@ -1169,6 +1170,7 @@ implements ConfigChangeListener
     updateErrorPane(message, title, ColorAndFontConstants.errorTitleFont,
         msg, ColorAndFontConstants.defaultFont);
     cardLayout.show(cardPanel, MESSAGE_PANEL);
+    message.requestFocusInWindow();
   }
 
   /**
