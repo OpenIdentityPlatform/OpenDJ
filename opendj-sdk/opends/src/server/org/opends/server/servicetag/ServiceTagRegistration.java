@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.servicetag;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
@@ -100,46 +101,62 @@ public class ServiceTagRegistration {
     }
 
     /**
-     * Create the defined serviceTags for OpenDS Based Servers if
-     * the native registration is supported
-     * If the system supports service tag, stclient will be used
+     * Tests if the ST registration has already be done for the instance.
+     * @return true if the ST registration has been done, false otherwise.
+     */
+    public boolean isRegistrationAlreadyDone() {
+         File serviceTag =
+                 new File(DirectoryServer.getInstanceRoot() +
+                        File.separatorChar +
+                        "config" +
+                        File.separatorChar +
+                        "servicetag" +
+                        File.separatorChar +
+                        ServiceTagDefinition.FILE_REGISTRATION_DONE);
+
+         if (!serviceTag.exists()) {
+            return false;
+         }
+         else {
+           return true;
+         }
+    }
+
+
+   /**
+     * Create the registration file.
+     * @throws IOException if the file cannot be created.
+     */
+    public void createRegistrationDone() throws IOException {
+         File serviceTag =
+                 new File(DirectoryServer.getInstanceRoot() +
+                        File.separatorChar +
+                        "config" +
+                        File.separatorChar +
+                        "servicetag" +
+                        File.separatorChar +
+                        ServiceTagDefinition.FILE_REGISTRATION_DONE);
+
+         if (!serviceTag.exists()) {
+             serviceTag.createNewFile();
+         }
+    }
+
+
+    /**
+     * Create the defined serviceTags for OpenDS Based Servers.
+     * At this point the ST registration is supported. stclient will be used
      * to create the OpenDS service tag.
      * @param svcTag the ServiceTag to register.
      * @throws org.opends.server.servicetag.ServiceTagException
      * if the ServiceTag can not be registered
-     * @throws org.opends.server.servicetag.ServiceTagAlreadyExistsException
-     * if the ServiceTag already exists in the common registry based on
-     * the product_urn and product_defined_instanceid
-     * @throws java.lang.IllegalArgumentException if parameter is not valid.
      */
     public void registerServiceTag(ServiceTag svcTag) throws
-            ServiceTagException, IllegalArgumentException,
-            ServiceTagAlreadyExistsException {
-
-        // Test if the common registration is supported on the filesystem
-        // or not
-        if (!isCommonRegistrationSupported()) {
-            throw new ServiceTagException(
-                    WARN_REGISTRY_NOT_SUPPORTED.get());
-        }
-
-        // Parameter checking
-        if (svcTag == null) {
-            throw new IllegalArgumentException(
-                    WARN_PARAMETER_CANNOT_BE_NULL.get("svcTag").toString());
-        }
+            ServiceTagException {
         try {
-            // Add the ServiceTag if it does not exist
-            if (this.registry.existServiceTag(
-                    svcTag.getProductURN(),
-                    svcTag.getProductDefinedInstanceID())) {
-                throw new ServiceTagAlreadyExistsException
-                        (WARN_SERVICETAG_ALREADY_EXIST.get());
-            }
-
             // Add the ServiceTag in the common registry
             this.registry.addServiceTag(svcTag);
-
+            this.createRegistrationDone();
         } catch (IOException ex) {
             throw new ServiceTagException(
                     WARN_SERVICETAG_CANNOT_BE_REGISTERED.get(
@@ -164,6 +181,12 @@ public class ServiceTagRegistration {
      */
     public Set<ServiceTag> registerServiceTags(String source)
             throws ServiceTagException, IllegalArgumentException {
+
+        // Check if the registration has been done.
+        if (this.isRegistrationAlreadyDone()) {
+            throw new ServiceTagAlreadyExistsException
+                        (WARN_SERVICETAG_ALREADY_EXIST.get());
+        }
 
         // Parameter checking
         // Test if the common registration is supported on the filesystem

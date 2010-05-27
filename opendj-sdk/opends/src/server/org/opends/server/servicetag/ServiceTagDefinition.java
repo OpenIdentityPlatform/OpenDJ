@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.servicetag;
 
@@ -118,4 +118,9 @@ public class ServiceTagDefinition {
      */
     final static String PRODUCT_PARENT_URN =
             "org.opends.server.servicetag.parenturn";
+
+    /**
+     * Registration done file name.
+     */
+    final static String FILE_REGISTRATION_DONE = "st-registration.done";
 }
