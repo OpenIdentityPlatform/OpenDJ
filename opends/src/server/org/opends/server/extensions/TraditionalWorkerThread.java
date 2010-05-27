@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -59,7 +59,7 @@ public class TraditionalWorkerThread
 
   // Indicates whether the Directory Server is shutting down and this thread
   // should stop running.
-  private boolean shutdownRequested;
+  private volatile boolean shutdownRequested;
 
   // Indicates whether this thread was stopped because the server threadnumber
   // was reduced.
