@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -843,6 +843,87 @@ public class ModifyConflictTest
   }
 
   /**
+   * Test that a DEL and ADD of the same attribute same value done
+   * in a single operation correctly results in the value being kept.
+   *
+   *  This is not a conflict in the strict definition but does exert
+   *  the conflict resolution code.
+   */
+  @Test()
+  public void delAndAddSameOp() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a add of the description attribute done at time t10
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "init value", 10, true);
+    /*
+     * Now simulate a del and a add in the same operation
+     */
+
+    Attribute attr = Attributes.create(DESCRIPTION, "init value");
+    Modification mod1 = new Modification(ModificationType.DELETE, attr);
+
+    attr = Attributes.create(DESCRIPTION, "Init Value");
+    Modification mod2 = new Modification(ModificationType.ADD, attr);
+
+    List<Modification> mods = new LinkedList<Modification>();
+    mods.add(mod1);
+    mods.add(mod2);
+
+    replayModifies(entry, hist, mods, 11);
+    assertEquals(mods.size(), 2,
+      "DEL and ADD of the same attribute same value was not correct");
+    assertEquals(mods.get(0), mod1,
+      "DEL and ADD of the same attribute same value was not correct");
+    assertEquals(mods.get(1), mod2,
+      "DEL and ADD of the same attribute same value was not correct");
+  }
+
+  /**
+   * Test that a ADD and DEL of the same attribute same value done
+   * in a single operation correctly results in the value being kept.
+   *
+   * This is not a conflict in the strict definition but does exert
+   *  the conflict resolution code.
+   */
+  @Test()
+  public void AddAndDelSameOp() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * Now simulate a del and a add in the same operation
+     */
+
+    Attribute attr = Attributes.create(DESCRIPTION, "init value");
+    Modification mod1 = new Modification(ModificationType.ADD, attr);
+
+    attr = Attributes.create(DESCRIPTION, "Init Value");
+    Modification mod2 = new Modification(ModificationType.DELETE, attr);
+
+    List<Modification> mods = new LinkedList<Modification>();
+    mods.add(mod1);
+    mods.add(mod2);
+
+    replayModifies(entry, hist, mods, 11);
+    assertEquals(mods.size(), 2,
+      "DEL and ADD of the same attribute same value was not correct");
+    assertEquals(mods.get(0), mod1,
+      "DEL and ADD of the same attribute same value was not correct");
+    assertEquals(mods.get(1), mod2,
+      "DEL and ADD of the same attribute same value was not correct");
+  }
+
+  /**
    * Test that conflict between two modify-add with for
    * multi-valued attributes are handled correctly when some of the values
    * are the same :
@@ -1190,6 +1271,23 @@ public class ModifyConflictTest
   /**
    *
    */
+
+  private void replayModifies(
+      Entry entry, Historical hist, List<Modification> mods, int date)
+  {
+    InternalClientConnection connection =
+      InternalClientConnection.getRootConnection();
+    ChangeNumber t = new ChangeNumber(date, 0, 0);
+
+    ModifyOperationBasis modOpBasis =
+      new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
+    LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
+    ModifyContext ctx = new ModifyContext(t, "uniqueId");
+    modOp.setAttachment(SYNCHROCONTEXT, ctx);
+
+    hist.replayOperation(modOp, entry);
+  }
+
   private List<Modification> replayModify(
       Entry entry, Historical hist, Modification mod, int date)
   {
