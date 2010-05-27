@@ -22,7 +22,7 @@
 * CDDL HEADER END
 *
 *
-*      Copyright 2008 Sun Microsystems, Inc.
+*      Copyright 2008-2010 Sun Microsystems, Inc.
 */
 
 // Just some functions and constants to be used by winlauncher.c
@@ -33,9 +33,13 @@
 
 #include <Windows.h>
 
-int spawn(const char* command, BOOL background);
+int spawn(char* command, BOOL background);
 BOOL createChildProcess(char* command, BOOL background,
+PROCESS_INFORMATION* procInfo);
+BOOL createBatchFileChildProcess(char* batchFile, BOOL background,
 PROCESS_INFORMATION* procInfo);
 void debug(const char *msg, ...);
 void debugError(const char *msg, ...);
 void updateDebugFlag(char* argv[], int argc);
+BOOL waitForProcess(PROCESS_INFORMATION* procInfo, DWORD waitTime,
+  DWORD* exitCode);

@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Copyright 2006-2010 Sun Microsystems, Inc.
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
@@ -59,6 +59,7 @@ set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=uninstall"
 
 rem return part
 if %errorlevel% == 50 goto version
+if NOT %errorlevel% == 0 exit /B %errorlevel%
 goto end
 
 :version

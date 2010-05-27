@@ -518,43 +518,102 @@ ServiceReturnCode doStartApplication()
   // init out params
   char* relativePath = "\\bat\\start-ds.bat";
   char command[COMMAND_SIZE];
+  PROCESS_INFORMATION procInfo; // info on the new process
+  BOOL createOk;
+  BOOL waitOk;
 
-
-  debug("doStartApplication called.");
-
+  debug("doStartApplication called");
 
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
-    sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
+	sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
+    debug("doStartApplication: Launching batch file: %s", command);
+    createOk = createBatchFileChildProcess(command, FALSE, &procInfo);
 
-    // launch the command
-    debug("doStartApplication attempting to spawn '%s'", command);
-    if (spawn(command, FALSE) != -1)
+    if (createOk)
     {
-      // Try to see if server is really running
-      int nTries = 100;
-      char * nTriesEnv = getenv("OPENDS_WINDOWS_SERVICE_START_NTRIES");
-      BOOL running = FALSE;
-      if (nTriesEnv != NULL)
+      // At this point start-ds.bat has been launched.  Try to wait till it
+      // returns.  At the end of start-ds.bat we can be sure that the server (at
+      // least) tried to start: the script checks that the file created during
+      // startup is deleted (file logs\server.starting).
+      const DWORD STARTDS_WAIT_DEFAULT_VALUE = 300000;
+      DWORD wait = STARTDS_WAIT_DEFAULT_VALUE;
+      char * nWaitForStartDS = getenv("OPENDS_WINDOWS_SERVICE_STARTDS_WAIT");
+      DWORD startDSExit;
+      if (nWaitForStartDS != NULL)
       {
-        nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
-        if (nTries <= 0)
+        debug("doStartApplication: OPENDS_WINDOWS_SERVICE_STARTDS_WAIT env var set to %s",
+            nWaitForStartDS);
+        wait = (int)strtol(nWaitForStartDS, (char **)NULL, 10);
+        if (wait <= 0)
         {
-          nTries = 100;
+          wait = STARTDS_WAIT_DEFAULT_VALUE;
         }
       }
       else
       {
-        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default 100 tries.");
+        debug("doStartApplication: OPENDS_WINDOWS_SERVICE_STARTDS_WAIT is not set. Using default %d milliseconds.",
+            STARTDS_WAIT_DEFAULT_VALUE);
+      }
+      waitOk = waitForProcess(&procInfo, wait, &startDSExit);
+      if (waitOk)
+      {
+        debug("doStartApplication: waited properly for process end.");
+        debug("doStartApplication: exit code of script: %d", startDSExit);
+        if (startDSExit != 0)
+        {
+          createOk = FALSE;
+        }
+      }
+    }
+    else
+    {
+      debug("The batch file process could not be created property");
+    }
+
+	if (createOk && waitOk)
+    {
+	  BOOL running;
+      // Just check once if the server is running or not: since the wait
+      // wait was successful, if the server is getting the lock, it already
+      // got it.
+	  isServerRunning(&running, TRUE);
+	  if (running)
+      {
+        returnValue = SERVICE_RETURN_OK;
+        debug("doStartApplication: server running.");
+      }
+      else
+      {
+        returnValue = SERVICE_RETURN_ERROR;
+        debug("doStartApplication: server not running.");
+      }
+	}
+    else if (createOk)
+    {
+      // Try to see if server is really running
+      const DWORD DEFAULT_TRIES = 100;
+      int nTries = DEFAULT_TRIES;
+      char * nTriesEnv = getenv("OPENDS_WINDOWS_SERVICE_START_NTRIES");
+      BOOL running = FALSE;
+      if (nTriesEnv != NULL)
+      {
+        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES env var set to %s", nTriesEnv);
+        nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
+        if (nTries <= 0)
+        {
+          nTries = DEFAULT_TRIES;
+        }
+      }
+      else
+      {
+        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default %d tries.", nTries);
       }	
 
       debug(
-          "doStartApplication: the spawn of the process worked.  Command: '%s'",
+          "doStartApplication: the spawn of the batch command worked.  Command: '%s'",
           command);
-      // Wait to be able to launch the java process in order it to get the lock
-      // on the file.
-      debug("Sleeping for 5 seconds to allow the process to get the lock.");
-      Sleep(5000);
+
       while ((nTries > 0) && !running)
       {
         nTries--;
@@ -584,7 +643,7 @@ ServiceReturnCode doStartApplication()
     {
 
       returnValue = SERVICE_RETURN_ERROR;
-      debug("doStartApplication: spawn failed.  Sent command: '%s'", command);
+      debug("doStartApplication: batch command spawn failed.  Sent command: '%s'", command);
     }
   }
   else
@@ -594,6 +653,8 @@ ServiceReturnCode doStartApplication()
   }
   return returnValue;
 }  // doStartApplication
+
+
 
 // ----------------------------------------------------
 // Start the application using stop-ds.bat

@@ -42,7 +42,7 @@ cd /d %CUR_DIR%
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=start-ds.bat
 
-echo %SCRIPT%: invoked > %LOG%
+echo %SCRIPT%: invoked >> %LOG%
 
 set SCRIPT_NAME=start-ds
 

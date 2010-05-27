@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Copyright 2006-2010 Sun Microsystems, Inc.
 
 setlocal
 
@@ -73,6 +73,7 @@ goto end
 
 rem return part
 if %errorlevel% == 50 goto version
+if NOT %errorlevel% == 0 exit /B %errorlevel%
 goto end
 
 :version
