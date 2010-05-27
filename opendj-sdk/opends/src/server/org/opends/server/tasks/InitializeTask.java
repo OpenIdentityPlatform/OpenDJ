@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
@@ -76,7 +76,7 @@ public class InitializeTask extends Task
   // completed
   long left = 0;
 
-  private Message initTaskError = null;
+  private Message taskCompletionError = null;
 
   /**
    * {@inheritDoc}
@@ -139,8 +139,8 @@ public class InitializeTask extends Task
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("InitializeTask is starting domain: %s source:%d",
-                domain.getServiceID(), source);
+      TRACER.debugInfo("[IE] InitializeTask is starting on domain: %s "
+          + " from source:%d", domain.getServiceID(), source);
     }
     initState = getTaskState();
     try
@@ -163,20 +163,23 @@ public class InitializeTask extends Task
       replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
       replaceAttributeValue(
           ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
+
+      // Error raised at completion time
+      if (taskCompletionError != null)
+        logError(taskCompletionError);
+
     }
     catch(InterruptedException ie) {}
     catch(DirectoryException de)
     {
+      // Error raised at submission time
       logError(de.getMessageObject());
       initState = TaskState.STOPPED_BY_ERROR;
     }
 
-    if (initTaskError != null)
-      logError(initTaskError);
-
     if (debugEnabled())
     {
-      TRACER.debugInfo("InitializeTask is ending with state:%s",
+      TRACER.debugInfo("[IE] InitializeTask is ending with state:%s",
           initState.toString());
     }
     return initState;
@@ -190,28 +193,22 @@ public class InitializeTask extends Task
    */
   public void updateTaskCompletionState(DirectoryException de)
   {
+    initState =  TaskState.STOPPED_BY_ERROR;
     try
     {
-      if (de != null)
-      {
-        initTaskError = de.getMessageObject();
-      }
       if (de == null)
         initState =  TaskState.COMPLETED_SUCCESSFULLY;
       else
-        initState =  TaskState.STOPPED_BY_ERROR;
-
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("InitializeTask/setState: %s", initState);
-      }
+        taskCompletionError = de.getMessageObject();
+    }
+    finally
+    {
+      // Wake up runTask method waiting for completion
       synchronized (initState)
       {
         initState.notify();
       }
     }
-    catch(Exception e)
-    {}
   }
 
 

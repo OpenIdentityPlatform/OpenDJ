@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -81,7 +81,8 @@ public abstract class RoutableMsg extends ReplicationMsg
   }
 
   /**
-   * Get the destination.
+   * Get the destination. The value is a serverId, or ALL_SERVERS dedicated
+   * value.
    * @return the destination
    */
   public int getDestination()
@@ -93,7 +94,7 @@ public abstract class RoutableMsg extends ReplicationMsg
    * Get the server ID of the server that sent this message.
    * @return the server id
    */
-  public int getsenderID()
+  public int getSenderID()
   {
     return this.senderID;
   }

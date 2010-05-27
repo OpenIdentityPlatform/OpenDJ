@@ -254,6 +254,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLAfterChangelogTrim();replicationServer.clearDb();
 
     // Write changes and read ECL from start
+    sleep(500); // Wait for draftCNDb to be purged also
     int ts = ECLCompatWriteReadAllOps(1);
 
     // Write additional changes and read ECL from a provided draft change number

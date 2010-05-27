@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -78,8 +78,13 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_CT_HEARTBEAT = 33;
 
   // Added for protocol version 4
+  // - New msgs types
   static final byte MSG_TYPE_REPL_SERVER_START_DS = 34;
   static final byte MSG_TYPE_STOP = 35;
+  static final byte MSG_TYPE_INITIALIZE_RCV_ACK = 36;
+  // - Modified msgs types
+  //   EntryMsg, InitializeRequestMsg, InitializeTargetMsg, ErrorMsg
+  //   TopologyMsg
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -192,19 +197,19 @@ public abstract class ReplicationMsg
         msg = new HeartbeatMsg(buffer);
       break;
       case MSG_TYPE_INITIALIZE_REQUEST:
-        msg = new InitializeRequestMsg(buffer);
+        msg = new InitializeRequestMsg(buffer, version);
       break;
       case MSG_TYPE_INITIALIZE_TARGET:
-        msg = new InitializeTargetMsg(buffer);
+        msg = new InitializeTargetMsg(buffer, version);
       break;
       case MSG_TYPE_ENTRY:
-        msg = new EntryMsg(buffer);
+        msg = new EntryMsg(buffer, version);
       break;
       case MSG_TYPE_DONE:
         msg = new DoneMsg(buffer);
       break;
       case MSG_TYPE_ERROR:
-        msg = new ErrorMsg(buffer);
+        msg = new ErrorMsg(buffer, version);
       break;
       case MSG_TYPE_RESET_GENERATION_ID:
         msg = new ResetGenerationIdMsg(buffer);
@@ -247,6 +252,9 @@ public abstract class ReplicationMsg
       break;
       case MSG_TYPE_STOP:
         msg = new StopMsg(buffer);
+      break;
+      case MSG_TYPE_INITIALIZE_RCV_ACK:
+        msg = new InitializeRcvAckMsg(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

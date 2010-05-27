@@ -867,6 +867,7 @@ public class TopologyViewTest extends ReplicationTestCase
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
     Set<String> eclIncludes = new HashSet<String>();
+    short protocolVersion = 4;
 
     switch (dsId)
       {
@@ -921,7 +922,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     return new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
-       (byte)assuredSdLevel, groupId, urls, eclIncludes);
+       (byte)assuredSdLevel, groupId, urls, eclIncludes, protocolVersion);
   }
 
   /**
@@ -1122,8 +1123,9 @@ public class TopologyViewTest extends ReplicationTestCase
      byte groupId = rd.getGroupId();
      List<String> refUrls = rd.getRefUrls();
      Set<String> eclInclude = rd.getEclInclude();
+     short protocolVersion = 4;
      DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
-       safeDataLevel, groupId, refUrls, eclInclude);
+       safeDataLevel, groupId, refUrls, eclInclude, protocolVersion);
      dsList.add(dsInfo);
 
      TopoView dsTopoView = new TopoView(dsList, rd.getRsList());

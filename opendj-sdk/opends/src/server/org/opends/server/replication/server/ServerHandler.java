@@ -49,6 +49,9 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.AckMsg;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.InitializeRequestMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.ProtocolSession;
@@ -952,7 +955,7 @@ public abstract class ServerHandler extends MessageHandler
     if (debugEnabled())
       TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
           getMonitorInstanceName() + this +
-          " processes received msg:\n" + msg);
+          " processes routable msg received:" + msg);
     replicationServerDomain.process(msg, this);
   }
 
@@ -1012,8 +1015,11 @@ public abstract class ServerHandler extends MessageHandler
           replicationServerDomain.getReplicationServer().
           getMonitorInstanceName() + this +
           " publishes message:\n" + msg);
+
     // Currently only MonitorMsg has to support a backward compatibility
-    if (msg instanceof MonitorMsg)
+    if ((msg instanceof MonitorMsg) || (msg instanceof ErrorMsg) ||
+        (msg instanceof EntryMsg) || (msg instanceof InitializeRequestMsg) ||
+        (msg instanceof InitializeTargetMsg))
     {
       session.publish(msg, protocolVersion);
     } else
