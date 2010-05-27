@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -100,7 +100,7 @@ public class TraditionalWorkQueue
   private boolean killThreads;
 
   // Indicates whether the Directory Server is shutting down.
-  private boolean shutdownRequested;
+  private volatile boolean shutdownRequested;
 
   // The thread number used for the last worker thread that was created.
   private int lastThreadNumber;
