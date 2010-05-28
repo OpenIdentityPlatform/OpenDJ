@@ -118,7 +118,7 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public String getSyntaxOID()
   {
-    return "1.3.6.1.4.1.26027.1.3.5";
+    return "1.3.6.1.4.1.1466.115.121.1.40";
   }
 
   /**
