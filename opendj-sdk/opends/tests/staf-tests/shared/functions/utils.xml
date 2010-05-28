@@ -1041,7 +1041,7 @@
             xml.createAttr(doc,xml.issue,"id",issueID)
             xml.issues.appendChild(xml.issue)
 
-        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
       </script>
 
       <call function="'queryLogs'">
@@ -1072,14 +1072,14 @@
         reportCfg.write('hostname = %s\n' % STAF_REMOTE_HOSTNAME)
         reportCfg.write('testcasesfail = %s\n' % nbFail)
         reportCfg.write('testcasesdone = %s\n' % nbDone)
-        reportCfg.write('testcasestotal = 2833\n')
+        reportCfg.write('testcasestotal = 2851\n')
         reportCfg.write('starttime = %s\n' % starttime)
         reportCfg.write('duration = %s\n' % duration)
         reportCfg.write('dsconfigduration = 0\n')
         reportCfg.write('percentage = %s\n' % percentage)
         reportCfg.write('allbugs = %s\n' % allbugs)
         reportCfg.write('os = %s\n' % TEST_OS_STRING)
-        reportCfg.write('report = reports/results2.xml\n')
+        reportCfg.write('report = reports/results_tmp.xml\n')
         reportCfg.write('istemporary = True\n')
         reportCfg.close()
       </script>
@@ -1110,7 +1110,7 @@
         xml.createAttr(doc,xml.testsuite,"shortname",ThisSuiteName)
         xml.testgroup.appendChild(xml.testsuite)
         
-        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
 
       </script>
       
@@ -1194,7 +1194,7 @@
 
         xml=xmldoc_service()
 
-        doc = xml.parseXMLfile("%s/results2.xml" % logs.reports)
+        doc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
         
         qa = doc.getDocumentElement()
         ft = qa.getChildNodes().item(1)
@@ -1229,7 +1229,7 @@
         xml.createAttr(doc,xml.testgroup,"name",ThisGroupName)
         results.appendChild(xml.testgroup)
         
-        xml.writeXMLfile(doc,"%s/results2.xml" % logs.reports)
+        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
         
       </script>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
@@ -1257,18 +1257,36 @@
       <script>
         emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
       </script>
-
-      <if expr="os.path.exists(emmaJar)">
+      <!-- Check if 'emma.jar' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : emmaJar ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'emma.jar' exists -->
         <sequence>
           <script>
-            coveragePath=os.path.join(LOGS_ROOT,'coverage')
-            coverageEm=os.path.join(DIRECTORY_INSTANCE_DIR,OPENDSNAME,'coverage.em')
-            ecPath=os.path.join(coveragePath,CurrentTestPath['group'])
-            coverageEcs=[ os.path.join(ecPath,ec) for ec in os.listdir(ecPath) if ec.startswith('coverage') and ec.endswith('.ec')]
-            coverageFiles=','.join(coverageEcs)
-            coverageXml=os.path.join(ecPath,'coverage.xml')
-            coverageHtml=os.path.join(ecPath,'coverage.html')
-            srcPathPrefix = os.path.join(TMPDIR,"..","..","..","..","..","..","src")
+            remoteCoveragePath=os.path.join(remote.temp,'coverage')
+            coverageEm=os.path.join(remoteCoveragePath,'coverage.em')
+            ecPath=os.path.join(remoteCoveragePath,CurrentTestPath['group'])
+          </script>
+
+          <call function="'listFolderByExtension'" >
+            {
+            'location'   : STAF_REMOTE_HOSTNAME,
+            'foldername' : ecPath,
+            'extension'  : 'ec'
+            }
+          </call>
+            
+          <script>
+            coverageFiles=','.join(STAXResult)
+            
+            coverageHtml=os.path.join(remoteCoveragePath,CurrentTestPath['group'],'coverage.html')
+            srcPathPrefix = os.path.join(TESTS_ROOT,"..","..","src")
             srcPaths = [ os.path.join(srcPathPrefix,"server"),
                          os.path.join(srcPathPrefix,"ads"),
                          os.path.join(srcPathPrefix,"server","org"),
@@ -1281,10 +1299,11 @@
             srcArgs = " -sp ".join(srcPaths)
           </script>
           <call function="'runCommand'">
-            { 'name' : 'Generate coverage xml report for test group %s' % CurrentTestPath['group'],
-              'command' : 'java',
-              'arguments' : ' -Xms64M -Xmx1G -cp %s emma report -r html -in %s,%s -Dreport.html.out.file=%s -sp %s' % (emmaJar, coverageEm, coverageFiles, coverageHtml, srcArgs),
-              'path' : TMPDIR
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Generate coverage html report for test group %s' % CurrentTestPath['group'],
+              'command'   : 'java',
+              'arguments' : '-Xms64M -Xmx1G -cp %s emma report -r html -in %s,%s -Dreport.html.out.file=%s -sp %s' % (emmaJar, coverageEm, coverageFiles, coverageHtml, srcArgs),
+              'path'      : ecPath
             }
           </call>
         </sequence>
@@ -1350,6 +1369,12 @@
         { 'input'       : xmlFile,
           'stylesheet'  : xslFile, 
           'output'      : htmlFile }
+      </call>
+
+      <!-- Delete the XML file -->
+      <call function="'deleteFile'">
+        { 'location' : STAXServiceMachine,
+          'filename' : xmlFile }
       </call>
 
     </sequence>

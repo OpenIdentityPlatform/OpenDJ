@@ -182,8 +182,13 @@
         ServerSystemName='unknown'
         ServerRevision='unknown'
         ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
-        ServerSNMPJarFile='%s' % SNMP_OPENDMK_JARFILE
-        
+
+        # The jdmkrt.jar can be included in the OpenDS archive
+        if not PRODUCTNAME.startswith('OpenDS'):
+          ServerSNMPJarFile='addons/jdmkrt.jar'
+        else:
+          ServerSNMPJarFile='%s' % SNMP_OPENDMK_JARFILE
+
         if ServersInfoDict.has_key(ServerPath):
           ServerInfoDict=ServersInfoDict[ServerPath]
 
@@ -242,10 +247,16 @@
 
       <message>'Server= %s' % ServerInfoDict </message>
 
-      <!-- Build the DSML Gateway Information Dictionary -->
+      <!-- Build the DSML Gateway Dictionary -->
       <script>
-        DSMLName='%s' % DSML_WARNAME
-        DSMLPackage='%s' % DSML_WARPATH
+        # The war file can be included in the OpenDS archive
+        if not PRODUCTNAME.startswith('OpenDS'):
+          DSMLName='DSML.war'
+          DSMLPackage='addons/DSML.war'
+        else:
+          DSMLName='%s' % DSML_WARNAME
+          DSMLPackage='%s' % DSML_WARPATH
+
         DSMLContainer=WC_TYPE
       </script>
 
@@ -267,7 +278,7 @@
             'Unable to retrieve LogsDir variable, RC=%s,Result=%s.' % (RC,STAFResult)
           </message>
           <script>
-            logsDir='%s' % TMPDIR
+            logsDir='%s' % local.temp
           </script>
         </sequence>
       </else>
@@ -296,10 +307,10 @@
             'No test groups have been run.'
           </message>
         </sequence>
-      <else>    
+      <else>
         <sequence>
           <iterate var="thisChild" in="listOfChildren">
-            <sequence>                              
+            <sequence>
               <stafcmd name="'STAF Command: Log Query All'">
                 <location>'%s' % STAF_LOCAL_HOSTNAME </location>
                 <service>'log'</service>
@@ -307,7 +318,7 @@
                   'QUERY ALL MACHINE %s LOGNAME STAX_Job_%s' % (STAXServiceMachine,thisChild)
                 </request>
               </stafcmd>
-    
+
               <if expr="RC == 0">
                 <sequence>
                   <script>
@@ -317,12 +328,12 @@
                     'Log Query on STAX_Job_%s Completed. RC=%s' % (thisChild,RC)
                   </message>
                   <iterate var="line" in="resultQuery">
-            
+
                     <script>
                      txtfh.write('%s\n' % line)
                     </script>
-          
-                  </iterate> 
+
+                  </iterate>
                 </sequence>
                 <else>
                   <sequence>
@@ -333,7 +344,7 @@
                   </sequence>
                 </else>
               </if>
-    
+
             </sequence>
           </iterate>
         </sequence>
@@ -466,6 +477,8 @@
 
           finally:
             txtfh.close()
+            # Delete results.txt file
+            os.remove(textfile)
 
         except IOError:
           errorfh.write('Error: Unable to open %s. Reason IOError.' % textfile )
@@ -473,7 +486,27 @@
       </script>
 
       <message>'Starting to create results XML file.'</message>
-      
+
+      <!-- Check if 'remote.temp/coverage' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_LOCAL_HOSTNAME ,
+        'entry'     : '%s/coverage' % logsDir ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'remote.temp/coverage' exists -->
+        <script>
+          coverageUrl = '%s/%s/coverage/coverage.html' % (logsURI,logsDir)
+        </script>
+        <else>
+          <script>
+            coverageUrl = ''
+          </script>
+        </else>
+      </if>
+
       <script>
         # Create the objects
         localstaf =test_env.staf(STAF_LOCAL_HOSTNAME)
@@ -633,7 +666,8 @@
         idElementList.append(['tests-dir',logsDir])
         idElementList.append(['tests-url',logsURI])
         idElementList.append(['mailto',SEND_MAIL_TO])
-        
+        idElementList.append(['coverage-url',coverageUrl])
+
         write_text_elements(id,idElementList)
         
         idElementList=[]
@@ -751,27 +785,6 @@
         'XML Report Written to %s.' % xmlfile
       </message>
 
-      <!-- Generate the standard test report showing all testcases -->
-      <script>
-        _message='Generated standard test report.'
-        xslfile= '%s/gen-alltests-report.xsl' % TESTS_XSL_DIR
-        htmlfile= '%s/results.html' % logsReportDir
-
-        standardReport=report_generation()
-
-        stringParamsDict={}
-
-        try:
-          standardReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
-        except java.io.FileNotFoundException,details:
-          _message='Unable to generate standard test report %s.' % details
-        except IOError,details:
-          _message='Unable to generate standard test report %s.' % details
-        except:
-          _message='Unable to generate standard test report !!!'
-      </script>
-      <message>_message</message>
-
       <!-- Generate the test report by test groups-->
       <script>
         _message='Generated groups test report.'
@@ -834,7 +847,7 @@
           if os.path.isdir(groupDir):
 
             import glob
-            testSuiteFilesList=glob.glob('%s/*.xml' % groupDir)
+            testSuiteFilesList=glob.glob('%s/*-log.html' % groupDir)
 
             xmlfile='%s/results.xml' % logsReportDir
             xslfile= '%s/gen-tests-report.xsl' % TESTS_XSL_DIR
@@ -842,7 +855,7 @@
             for testSuiteFile in testSuiteFilesList:
 
               if os.path.isfile(testSuiteFile):            
-                testSuiteName=os.path.basename(testSuiteFile.replace('-log.xml',''))
+                testSuiteName=os.path.basename(testSuiteFile.replace('-log.html',''))
                 try:
                   testSuiteShortName=testSuiteName.split('.')[2]
                 except:
@@ -886,24 +899,6 @@
           _message='Unable to generate product id test report %s.' % details
         except:
           _message='Unable to generate product id test report !!!'
-      </script>
-      <message>_message</message>
-
-      <!-- Generate the summary text file -->
-      <script>
-        _message='Generated the summary text report'
-        mysummaryxsl='%s/gen-text-summary.xsl' % TESTS_XSL_DIR
-        mysummarytext='%s/summary.txt' % logsReportDir
-        mysummaryxml=xmlfile
-
-        summaryReport=report_generation()
-
-        stringParamsDict={}
-
-        try:
-          summaryReport.transformReport(mysummaryxsl,mysummaryxml,mysummarytext,stringParamsDict)
-        except IOError,details:
-          _message='Unable to generate summary text file %s.' % details
       </script>
       <message>_message</message>
 
