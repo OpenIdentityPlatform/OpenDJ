@@ -8776,7 +8776,7 @@ public class DirectoryServer
   public static void printVersion(OutputStream outputStream)
   throws IOException
   {
-    outputStream.write(getBytes(PRINTABLE_VERSION_STRING));
+    outputStream.write(PRINTABLE_VERSION_STRING.getBytes());
 
     // Print extensions' extra information
     String extensionInformation =
