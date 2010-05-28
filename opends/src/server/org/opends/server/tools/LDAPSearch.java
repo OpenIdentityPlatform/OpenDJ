@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.controls.*;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
@@ -48,15 +49,6 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultReferenceProtocolOp;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -380,11 +372,22 @@ public class LDAPSearch
 
                 break;
               default:
+                if(opType == OP_TYPE_EXTENDED_RESPONSE)
+                {
+                  ExtendedResponseProtocolOp op =
+                    responseMessage.getExtendedResponseProtocolOp();
+                  if(op.getOID().equals(OID_NOTICE_OF_DISCONNECTION))
+                  {
+                    resultCode = op.getResultCode();
+                    errorMessage = op.getErrorMessage();
+                    matchedDN = op.getMatchedDN();
+                    break;
+                  }
+                }
                 // FIXME - throw exception?
                 Message msg = INFO_SEARCH_OPERATION_INVALID_PROTOCOL.get(
                         String.valueOf(opType));
                 err.println(wrapText(msg, MAX_LINE_WIDTH));
-                break;
             }
 
             if(resultCode != SUCCESS)
