@@ -859,7 +859,8 @@ public class ReplicationBroker
        * out which one is the best to connect to.
        */
       if (debugEnabled())
-        TRACER.debugInfo("phase 1 : will perform PhaseOneH with each RS in " +
+        debugInfo("serverId: " + serverId +
+            " phase 1 : will perform PhaseOneH with each RS in " +
           " order to elect the preferred one");
 
       // Get info from every available replication servers
@@ -876,8 +877,8 @@ public class ReplicationBroker
 
         // Best found, now initialize connection to this one (handshake phase 1)
         if (debugEnabled())
-          TRACER.debugInfo(
-            "phase 2 : will perform PhaseOneH with the preferred RS="
+          debugInfo("serverId: " + serverId +
+            " phase 2 : will perform PhaseOneH with the preferred RS="
               + replicationServerInfo);
         replicationServerInfo = performPhaseOneHandshake(
           replicationServerInfo.getServerURL(), true);
@@ -1111,7 +1112,7 @@ public class ReplicationBroker
 
         if (debugEnabled())
         {
-          TRACER.debugInfo("RB for dn " + baseDn +
+          debugInfo("RB for dn " + baseDn +
             " and with server id " + Integer.toString(serverId) + " computed " +
             Integer.toString(nChanges) + " changes late.");
         }
@@ -1204,7 +1205,7 @@ public class ReplicationBroker
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn +
+        debugInfo("In RB for " + baseDn +
           "\nRB HANDSHAKE SENT:\n" + serverStartMsg.toString() +
           "\nAND RECEIVED:\n" + msg.toString());
       }
@@ -1252,7 +1253,7 @@ public class ReplicationBroker
           logError(message);
         } else if (debugEnabled())
         {
-          TRACER.debugInfo(message.toString());
+          debugInfo(message.toString());
         }
       }
       error = true;
@@ -1260,7 +1261,7 @@ public class ReplicationBroker
     {
       if ((e instanceof SocketTimeoutException) && debugEnabled())
       {
-        TRACER.debugInfo("Timeout trying to connect to RS " + server +
+        debugInfo("Timeout trying to connect to RS " + server +
           " for dn: " + baseDn);
       }
       Message message = ERR_EXCEPTION_STARTING_SESSION_PHASE.get("1",
@@ -1271,7 +1272,7 @@ public class ReplicationBroker
         logError(message);
       } else if (debugEnabled())
       {
-        TRACER.debugInfo(message.toString());
+        debugInfo(message.toString());
       }
       error = true;
     }
@@ -1282,7 +1283,7 @@ public class ReplicationBroker
       if (localSession != null)
       {
         if (debugEnabled())
-          TRACER.debugInfo("In RB, closing session after phase 1");
+          debugInfo("In RB, closing session after phase 1");
 
         if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
@@ -1379,7 +1380,7 @@ public class ReplicationBroker
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn +
+        debugInfo("In RB for " + baseDn +
           "\nRB HANDSHAKE SENT:\n" + serverStartECLMsg.toString() +
           "\nAND RECEIVED:\n" + replServerStartDSMsg.toString());
       }
@@ -1424,7 +1425,7 @@ public class ReplicationBroker
           logError(message);
         } else if (debugEnabled())
         {
-          TRACER.debugInfo(message.toString());
+          debugInfo(message.toString());
         }
       }
       error = true;
@@ -1432,7 +1433,7 @@ public class ReplicationBroker
     {
       if ((e instanceof SocketTimeoutException) && debugEnabled())
       {
-        TRACER.debugInfo("Timeout trying to connect to RS " + server +
+        debugInfo("Timeout trying to connect to RS " + server +
           " for dn: " + baseDn);
       }
       Message message = ERR_EXCEPTION_STARTING_SESSION_PHASE.get("1",
@@ -1443,7 +1444,7 @@ public class ReplicationBroker
         logError(message);
       } else if (debugEnabled())
       {
-        TRACER.debugInfo(message.toString());
+        debugInfo(message.toString());
       }
       error = true;
     }
@@ -1454,7 +1455,7 @@ public class ReplicationBroker
       if (localSession != null)
       {
         if (debugEnabled())
-          TRACER.debugInfo("In RB, closing session after phase 1");
+          debugInfo("In RB, closing session after phase 1");
 
         // V4 protocol introduces a StopMsg to properly end communications
         if (!error)
@@ -1521,7 +1522,7 @@ public class ReplicationBroker
        */
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn +
+        debugInfo("In RB for " + baseDn +
           "\nRB HANDSHAKE SENT:\n" + startECLSessionMsg.toString());
         //  +   "\nAND RECEIVED:\n" + topologyMsg.toString());
       }
@@ -1602,7 +1603,7 @@ public class ReplicationBroker
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn +
+        debugInfo("In RB for " + baseDn +
           "\nRB HANDSHAKE SENT:\n" + startSessionMsg.toString() +
           "\nAND RECEIVED:\n" + topologyMsg.toString());
       }
@@ -2318,7 +2319,7 @@ public class ReplicationBroker
       }
     }
     if (debugEnabled())
-      TRACER.debugInfo(this +
+      debugInfo(this +
           " end restart : connected=" + connected +
           " with RSid=" + this.getRsServerId() +
           " genid=" + this.generationID);
@@ -3034,7 +3035,7 @@ public class ReplicationBroker
   public void receiveTopo(TopologyMsg topoMsg)
   {
     if (debugEnabled())
-      TRACER.debugInfo(this + " receive TopologyMsg=" + topoMsg);
+      debugInfo(this + " receive TopologyMsg=" + topoMsg);
 
     // Store new DS list
     dsList = topoMsg.getDsList();
@@ -3116,7 +3117,7 @@ public class ReplicationBroker
     } else
     {
       if (debugEnabled())
-        TRACER.debugInfo(this +
+        debugInfo(this +
         " is not configured to send CN heartbeat interval");
     }
   }

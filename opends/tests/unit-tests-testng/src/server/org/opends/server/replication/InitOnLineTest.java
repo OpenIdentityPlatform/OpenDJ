@@ -1415,20 +1415,6 @@ public class InitOnLineTest extends ReplicationTestCase
       log(testCase + " Will verify server 3 has received expected entries");
       receiveUpdatedEntries(server3, server3ID, updatedEntries);
 
-      log(testCase + " Will verify no more msgs");
-      while (true)
-      {
-        try
-        {
-          log(testCase + " Will receive");
-          ReplicationMsg msg = server3.receive();
-          fail("Receive unexpected message " + msg);
-        } catch (SocketTimeoutException e)
-        {
-          // Test is a success
-          break;
-        }
-      }
       log("Successfully ending " + testCase);
     }
     finally

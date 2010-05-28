@@ -770,7 +770,22 @@ public class ECLServerHandler extends ServerHandler
                 // changelogdb start state, it means that the replication
                 // changelog db has been trimed and the cookie is not valid
                 // anymore.
-                if (newDomainCtxt.startState.cover(rsd.getStartState())==false)
+                boolean cookieTooOld = false;
+                for (int serverId : rsd.getStartState())
+                {
+                  ChangeNumber dbOldestChange =
+                    rsd.getStartState().getMaxChangeNumber(serverId);
+                  ChangeNumber providedChange =
+                    newDomainCtxt.startState.getMaxChangeNumber(serverId);
+                  if ((providedChange != null)
+                      && (providedChange.older(dbOldestChange)))
+                  {
+                    cookieTooOld=true;
+                  }
+                }
+
+              //if (newDomainCtxt.startState.cover(rsd.getStartState())==false)
+                if (cookieTooOld)
                 {
                   // the provided start
                   throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
