@@ -3632,11 +3632,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     if (search.getResultCode() != ResultCode.SUCCESS)
     {
-      Message message = ERR_SEARCHING_GENERATION_ID.get(
-          search.getResultCode().getResultCodeName() + " " +
-          search.getErrorMessage(),
-          baseDn.toString());
-      logError(message);
+      if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
+      {
+        // nothing initialized yet
+        // don't log an error generationID will be computed.
+      }
+      else
+      {
+        //
+        Message message = ERR_SEARCHING_GENERATION_ID.get(
+            search.getResultCode().getResultCodeName() + " " +
+            search.getErrorMessage(),
+            baseDn.toString());
+        logError(message);
+      }
     }
     else
     {

@@ -142,27 +142,20 @@ public class DataServerHandler extends ServerHandler
           // method. This would lead to a reentrant lock which we do not want.
           // So simply close the session, this will make the hang up appear
           // after the reader thread that took the RSD lock realeases it.
-          try
+          if (session != null)
           {
-            if (session != null)
+            // V4 protocol introduces a StopMsg to properly close the
+            // connection between servers
+            if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
             {
-              // V4 protocol introduces a StopMsg to properly close the
-              // connection between servers
-              if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+              try
               {
-                try
-                {
-                  session.publish(new StopMsg());
-                } catch (IOException ioe)
-                {
-                  // Anyway, going to close session, so nothing to do
-                }
+                session.publish(new StopMsg());
+              } catch (IOException ioe)
+              {
+                // Anyway, going to close session, so nothing to do
               }
-              session.close();
             }
-          } catch (IOException e)
-          {
-            // ignore
           }
 
           // NOT_CONNECTED_STATUS is the last one in RS session life: handler
