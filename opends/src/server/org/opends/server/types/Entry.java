@@ -50,6 +50,7 @@ import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
+import org.opends.server.core.SubentryManager;
 import org.opends.server.util.LDIFException;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -3466,10 +3467,18 @@ public class Entry
       return;
     }
 
+    SubentryManager manager =
+            DirectoryServer.getSubentryManager();
+    if(manager == null)
+    {
+      //Subentry manager may not have been initialized by
+      //a component that doesn't require it.
+      return;
+    }
     // Get applicable collective subentries.
     List<SubEntry> collectiveAttrSubentries =
-            DirectoryServer.getSubentryManager(
-            ).getCollectiveSubentries(this);
+            manager.getCollectiveSubentries(this);
+
     if ((collectiveAttrSubentries == null) ||
          collectiveAttrSubentries.isEmpty())
     {
