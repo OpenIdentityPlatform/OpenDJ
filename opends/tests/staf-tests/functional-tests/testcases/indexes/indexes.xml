@@ -42,10 +42,10 @@
         <script>
           CurrentTestPath['group'] = 'indexes'
           envAlreadyLoaded='true'
-          _testSteps=['indexes_setup','indexes_search','indexes_dynamic_modify',
-                      'indexes_dynamic_add','indexes_remove','indexes_add',
-                      'indexes_modify','indexes_entry_limit',
-                      'indexes_vlv_add', 'indexes_cleanup']
+          _testSteps=['indexes_setup','indexes_search','indexes_modify',
+                      'indexes_dynamic_modify','indexes_add',
+                      'indexes_dynamic_add','indexes_remove',
+                      'indexes_entry_limit','indexes_vlv_add','indexes_cleanup']
         </script>
         <!---
           #@TestSuiteName      Indexes
@@ -191,6 +191,55 @@
             <call function="'loopThroughFilters'">
                 { 'filters' : 'after-modify' }
             </call>
+
+            <testcase name="getTestCaseName('Restore and rebuild uid index')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'modifyIndex',
+                    'functionMessage'   : 'Adding substring index to attribute uid',
+                    'functionArguments' : { 'operation'          : 'remove',
+                                            'indexAttribute'     : 'uid',
+                                            'indexProperty'      : 'index-type',
+                                            'indexPropertyValue' : 'substring'
+                                          }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StopDsWithScript',
+                    'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                            'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                            'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                            'dsBindDN'    : DIRECTORY_INSTANCE_DN  ,
+                                            'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'rebuildIndexWithScript' ,
+                    'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
+                                            'dsIndexList' : [ 'uid' ] ,
+                                            'knownIssue'  : '6931704'
+                                          }
+                  }
+                </call>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StartDsWithScript',
+                    'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+                  }
+                </call>
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  {
+                  'noOfLoops'        : 10 ,
+                  'noOfMilliSeconds' : 2000
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
           </sequence>
           <catch exception="'STAXException.LDAP.ModifyException'">
             <message log="1" level="'fatal'">
@@ -273,6 +322,55 @@
             <call function="'loopThroughFilters'">
               { 'filters' : 'after-modify' }
             </call>
+
+            <testcase name="getTestCaseName('Restore and rebuild uid index')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'modifyIndex',
+                    'functionMessage'   : 'Adding substring index to attribute uid',
+                    'functionArguments' : { 'operation'          : 'remove',
+                                            'indexAttribute'     : 'uid',
+                                            'indexProperty'      : 'index-type',
+                                            'indexPropertyValue' : 'substring'
+                                          }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StopDsWithScript',
+                    'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                            'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                            'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                            'dsBindDN'    : DIRECTORY_INSTANCE_DN  ,
+                                            'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'rebuildIndexWithScript' ,
+                    'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
+                                            'dsIndexList' : [ 'uid' ] ,
+                                            'knownIssue'  : '6931704'
+                                          }
+                  }
+                </call>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StartDsWithScript',
+                    'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+                  }
+                </call>
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  {
+                  'noOfLoops'        : 10 ,
+                  'noOfMilliSeconds' : 2000
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
           </sequence>
           <catch exception="'STAXException.LDAP.ModifyException'">
             <message log="1" level="'fatal'">
@@ -321,7 +419,7 @@
               { 'filters' : 'before-add' }
             </call>
 
-            <testcase name="getTestCaseName('Add and rebuild uid index')">
+            <testcase name="getTestCaseName('Add and rebuild l index')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
 
@@ -373,6 +471,21 @@
             <call function="'loopThroughFilters'">
               { 'filters' : 'after-add' }
             </call>
+
+            <testcase name="getTestCaseName('Remove l index and rebuild all indexes')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'removeIndex',
+                    'functionMessage'   : 'Removing index on attribute l' ,
+                    'functionArguments' : { 'indexAttribute'    : 'l' }
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
           </sequence>
           <catch exception="'STAXException.LDAP.AddIndexException'">
             <message log="1" level="'fatal'">
@@ -458,6 +571,21 @@
             <call function="'loopThroughFilters'">
                 { 'filters' : 'after-add' }
             </call>
+
+            <testcase name="getTestCaseName('Remove l index and rebuild all indexes')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'removeIndex',
+                    'functionMessage'   : 'Removing index on attribute l' ,
+                    'functionArguments' : { 'indexAttribute'    : 'l' }
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
           </sequence>
           <catch exception="'STAXException.LDAP.AddIndexException'">
             <message log="1" level="'fatal'">
@@ -501,6 +629,55 @@
 
         <try>
           <sequence>
+            <testcase name="getTestCaseName('Add and rebuild l index')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <call function="'runFunction'">
+                  { 'functionName'      : 'addIndex',
+                    'functionMessage'   : 'Adding presence and equality index to \
+                                           attribute l',
+                    'functionArguments' : { 'indexAttribute'    : 'l',
+                                            'indexTypes'        : [ 'presence',
+                                                                    'equality' ]
+                                          }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StopDsWithScript',
+                    'functionArguments' : { 'location'    : STAF_REMOTE_HOSTNAME,
+                                            'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                                            'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                                            'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                                            'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD
+                                          }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'rebuildIndexWithScript' ,
+                    'functionArguments' : { 'dsBaseDN'    : DIRECTORY_INSTANCE_SFX ,
+                                            'dsIndexList' : [ 'l' ] ,
+                                            'knownIssue'  : '6931704'
+                                          }
+                  }
+                </call>
+                <call function="'runFunction'">
+                  { 'functionName'      : 'StartDsWithScript',
+                    'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+                  }
+                </call>
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  {
+                  'noOfLoops'        : 10 ,
+                  'noOfMilliSeconds' : 2000
+                  }
+                </call>
+
+                <call function="'testCase_Postamble'"/>
+              </sequence>
+            </testcase>
+
             <call function="'loopThroughFilters'">
               { 'filters' : 'before-remove' }
             </call>

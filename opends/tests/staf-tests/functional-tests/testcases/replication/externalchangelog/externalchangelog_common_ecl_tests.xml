@@ -10930,7 +10930,7 @@
                 # 'employeenumber' contained no value prior to the modify op, so
                 # expect NO 'targetemployeenumber' include-attr to be present
                 # in the changelog entry
-                myMissingIncAttrs      = [incAttr[0]]
+                myMissingIncAttrs      = [incAttrs[0]]
                 
                 if ecl_mode != 'opends':
                   myChangeNumber       = searchIndex

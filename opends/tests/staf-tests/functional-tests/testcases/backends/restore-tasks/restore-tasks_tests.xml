@@ -85,7 +85,8 @@
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupDir'           : '%s/backends/backup1' % remote.data,
-              'extraParams'         : '--completionNotify foo@example.com'
+              'extraParams'         : '--completionNotify foo@example.com',
+              'knownIssue'          : '6947587'
             }
           </call>
           

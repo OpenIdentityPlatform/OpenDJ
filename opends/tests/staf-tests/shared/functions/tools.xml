@@ -1038,14 +1038,26 @@
     </function-list-args>
       
     <sequence>
-      <!-- Start the servers in the list -->    
-      <script>
-        # check if using coverage in which case we'll avoid doing parallele iterate
-        coverage = False
-        if os.path.exists(os.path.join(serverList[0].getDir(),OPENDSNAME,'lib','emma.jar')):
-          coverage = True
-        print 'tools.xml - coverage=%s' % coverage
-      </script>
+
+      <!-- Check if using coverage in which case we'll avoid doing parallele iterate -->
+      <!-- Check if 'emma.jar' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : '%s/%s/lib/emma.jar' % (serverList[0].getDir(),OPENDSNAME) ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'emma.jar' exists -->
+        <script>coverage = True</script>
+        <else>
+          <script>coverage = False</script>
+        </else>
+      </if>
+      <message>'tools.xml - coverage=%s' % coverage</message>
+
+      <!-- Start the servers in the list -->
       <if expr="coverage == True">
         <sequence>
           <message>'starting servers in sequence using "iterate"'</message>
@@ -1595,7 +1607,8 @@
               'dsInstanceDn'        : dsInstanceDn ,
               'dsInstancePswd'      : dsInstancePswd ,
               'dsInfo'              : taskId ,
-              'dsQuiet'             : 'True'
+              'dsQuiet'             : 'True' ,
+              'expectedRC'          : 'noCheck'
             }
           </call>
           
