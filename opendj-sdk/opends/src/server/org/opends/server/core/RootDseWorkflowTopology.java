@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -125,8 +125,11 @@ public class RootDseWorkflowTopology extends WorkflowTopology
     searchOp.setScope(newScope);
     DN originalBaseDN = searchOp.getBaseDN();
 
-    for (WorkflowTopologyNode namingContext:
-         namingContexts.getPublicNamingContexts())
+    Iterable<WorkflowTopologyNode> ncToSearch =
+      DirectoryServer.getRootDSEBackend().getSubordinateNamingContexts(
+          namingContexts.getPublicNamingContexts());
+
+    for (WorkflowTopologyNode namingContext: ncToSearch)
     {
       // We have to change the operation request base DN to match the
       // subordinate workflow base DN. Otherwise the workflow will

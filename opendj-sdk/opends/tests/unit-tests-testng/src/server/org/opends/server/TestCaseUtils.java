@@ -789,9 +789,32 @@ public final class TestCaseUtils {
          throws IOException, InitializationException, ConfigException,
                 DirectoryException
   {
+    initializeMemoryBackend(
+        TEST_BACKEND_ID, TEST_ROOT_DN_STRING, createBaseEntry);
+  }
+
+  /**
+   * Initializes a memory-based backend that may be used to perform operations
+   * while testing the server.  This will ensure that the memory backend is
+   * created in the server if it does not yet exist, and that it is empty.
+   *
+   * @param  backendID        the ID of the backend to create
+   * @param  namingContext    the naming context to create in the backend
+   * @param  createBaseEntry  Indicate whether to automatically create the base
+   *                          entry and add it to the backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  public static void initializeMemoryBackend(
+      String backendID,
+      String namingContext,
+      boolean createBaseEntry
+      ) throws IOException, InitializationException, ConfigException,
+                DirectoryException
+  {
     startServer();
 
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    DN baseDN = DN.decode(namingContext);
 
     // Retrieve backend. Warning: it is important to perform this each time,
     // because a test may have disabled then enabled the backend (i.e a test
@@ -800,12 +823,12 @@ public final class TestCaseUtils {
     // to memory backend must be invalidated. So to prevent this problem, we
     // retrieve the memory backend reference each time before cleaning it.
     MemoryBackend memoryBackend =
-        (MemoryBackend)DirectoryServer.getBackend(TEST_BACKEND_ID);
+        (MemoryBackend)DirectoryServer.getBackend(backendID);
 
     if (memoryBackend == null)
     {
       memoryBackend = new MemoryBackend();
-      memoryBackend.setBackendID(TEST_BACKEND_ID);
+      memoryBackend.setBackendID(backendID);
       memoryBackend.setBaseDNs(new DN[] {baseDN});
       memoryBackend.initializeBackend();
       DirectoryServer.registerBackend(memoryBackend);
@@ -818,6 +841,17 @@ public final class TestCaseUtils {
       Entry e = createEntry(baseDN);
       memoryBackend.addEntry(e, null);
     }
+  }
+
+  /**
+   * Clears a memory-based backend.
+   */
+  public static void clearMemoryBackend(String backendID) throws Exception
+  {
+    MemoryBackend memoryBackend =
+      (MemoryBackend) DirectoryServer.getBackend(backendID);
+    if (memoryBackend != null)
+      memoryBackend.clearMemoryBackend();
   }
 
   /**
