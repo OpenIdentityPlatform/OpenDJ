@@ -2110,10 +2110,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *
    * @param generationId The new value of generationId.
    */
-  synchronized public void initGenerationID(long generationId)
+  public void initGenerationID(long generationId)
   {
-    this.generationId = generationId;
-    this.generationIdSavedStatus = true;
+    synchronized (generationIDLock)
+    {
+      this.generationId = generationId;
+      this.generationIdSavedStatus = true;
+    }
   }
 
   /**
@@ -2124,21 +2127,22 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @param savedStatus  The saved status of the generationId.
    * @return The old generation id
    */
-  synchronized public long changeGenerationId(long generationId,
-    boolean savedStatus)
+  public long changeGenerationId(long generationId, boolean savedStatus)
   {
-    long oldGenerationId = this.generationId;
-
-    if (this.generationId != generationId)
+    synchronized (generationIDLock)
     {
-      // we are changing of genId
-      clearDbs();
+      long oldGenerationId = this.generationId;
 
-      this.generationId = generationId;
-      this.generationIdSavedStatus = savedStatus;
+      if (this.generationId != generationId)
+      {
+        // we are changing of genId
+        clearDbs();
+
+        this.generationId = generationId;
+        this.generationIdSavedStatus = savedStatus;
+      }
+      return oldGenerationId;
     }
-
-    return oldGenerationId;
   }
 
   /**
@@ -2564,18 +2568,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @return The monitor data.
    * @throws DirectoryException When an error occurs.
    */
-  synchronized protected MonitorData computeMonitorData(
-      boolean updateMonitorData)
+  protected MonitorData computeMonitorData(boolean updateMonitorData)
     throws DirectoryException
   {
-    if (updateMonitorData)
+    synchronized (monitoringLock)
     {
-      // Update the monitorData of ALL domains if this was necessary.
-      replicationServer.computeMonitorData();
-    }
+      if (updateMonitorData)
+      {
+        // Update the monitorData of ALL domains if this was necessary.
+        replicationServer.computeMonitorData();
+      }
 
-    // Returns the monitorData of THIS domain
-    return monitorData;
+      // Returns the monitorData of THIS domain
+      return monitorData;
+    }
   }
 
   /**
@@ -2857,6 +2863,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * - when a DS status is changing (ChangeStatusMsg received or sent)...
    */
   private ReentrantLock lock = new ReentrantLock();
+
+  /**
+   * This lock is used to protect the monitoring computing.
+   */
+  private final Object monitoringLock = new Object();
+
+  /**
+   * This lock is used to protect the generationid variable.
+   */
+  private final Object generationIDLock = new Object();
 
   /**
    * Tests if the current thread has the lock on this domain.
