@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 
@@ -77,8 +77,6 @@ public final class TimeBasedMatchingRuleTest
  private final static String TIME_ATTR = "test-time-attribute";
 
 
- GregorianCalendar cal = null;
-
   /**
    * Ensures that the Directory Server is running before executing the
    * testcases.
@@ -115,9 +113,6 @@ public final class TimeBasedMatchingRuleTest
     "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-time-attribute)"
     );
     assertTrue(resultCode == 0);
-        //Get the current time.
-   cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-   cal.setLenient(false);
   }
 
 
@@ -293,6 +288,10 @@ public final class TimeBasedMatchingRuleTest
       populateEntries();
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
+      //Get the current time.
+      GregorianCalendar cal =
+              new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+      cal.setLenient(false);
       int month = cal.get(Calendar.MONTH)+1; //month starts from 0 in the Calendar.
       String assertion = cal.get(Calendar.DATE)+"D"+month+"M";
 
@@ -414,7 +413,7 @@ public final class TimeBasedMatchingRuleTest
       {"12w-2d",false},
       {"1s2s",false},
       {"1d4s5d",false}
-      
+
     };
   }
 
@@ -454,6 +453,11 @@ public final class TimeBasedMatchingRuleTest
   @DataProvider(name="partialDateTimeSyntaxes")
   private Object[][] createPartialDateTimeSyntaxes()
   {
+   //Get the current time.
+   GregorianCalendar cal =
+           new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+   cal.setLenient(false);
+
     //Get the date today.
     int second = cal.get(Calendar.SECOND);
     int minute = cal.get(Calendar.MINUTE);
@@ -461,7 +465,7 @@ public final class TimeBasedMatchingRuleTest
     int date = cal.get(Calendar.DATE);
     int month = cal.get(Calendar.MONTH) + 1;
     int year = cal.get(Calendar.YEAR);
-    
+
     return new Object[][] {
       {"20MM30DD1978YY",false},
       {"02MM29DD2009YY",false},
@@ -490,12 +494,12 @@ public final class TimeBasedMatchingRuleTest
       {year+"Y",true},
       {month+"M"+date+"D",true},
       {year+"Y"+date+"D",true},
-      {month+"M"+year+"Y"+date+"D",true}      
+      {month+"M"+year+"Y"+date+"D",true}
     };
   }
 
 
-  
+
 //validate if the args are found in the entries list.
   private boolean dnFoundInEntryList( List<SearchResultEntry> entries,DN ... dns)
   {
