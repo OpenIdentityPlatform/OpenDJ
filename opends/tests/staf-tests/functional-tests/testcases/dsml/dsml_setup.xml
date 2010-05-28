@@ -49,17 +49,17 @@
               <call function="'createFolder'">
                 {
                 'location'   : STAXServiceMachine,
-                'foldername' : '%s/dsml/STAF-INF/jars' % TMPDIR
+                'foldername' : '%s/dsml/STAF-INF/jars' % local.temp
                 }
               </call>
 
-              <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
+              <!--- In IPS mode, get OpenDS.jar from remote machine-->
               <if expr="IPS_PKG == True">
                 <call function="'copyFile'">
                   {
                   'location'   : STAF_REMOTE_HOSTNAME,
                   'srcfile'    : '%s/%s/lib/OpenDS.jar' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME),
-                  'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                  'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp,
                   'remotehost' : STAXServiceMachine
                   }
                 </call>
@@ -70,15 +70,29 @@
                       'location' : STAXServiceMachine,
                       'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
                       'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
-                      'unzipdir' : '%s/dsml' % TMPDIR
+                      'unzipdir' : '%s/dsml' % local.temp
                       }
                     </call>
+
+                    <!-- The war file can be included in the OpenDS archive -->
+                    <if expr="not PRODUCTNAME.startswith('OpenDS')">
+                      <sequence>
+                        <call function="'unZipFile'">
+                          {
+                          'location' : STAXServiceMachine,
+                          'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
+                          'file'     : '%s/addons/DSML.war' % OPENDSNAME,
+                          'unzipdir' : '%s/dsml' % local.temp
+                          }
+                        </call>
+                      </sequence>
+                    </if>
 
                     <call function="'copyFile'">
                       {
                       'location'   : STAXServiceMachine,
-                      'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (TMPDIR,OPENDSNAME),
-                      'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR,
+                      'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (local.temp,OPENDSNAME),
+                      'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp,
                       'remotehost' : STAXServiceMachine
                       }
                     </call>
@@ -86,20 +100,25 @@
                 </else>
               </if>
 
+              <!-- The war file can be included in the OpenDS archive -->
+              <script>
+                if not PRODUCTNAME.startswith('OpenDS'):
+                  DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
+              </script>
               <call function="'unZipFile'">
                 {
                 'location' : STAXServiceMachine,
                 'zipfile'  : DSML_WARPATH,
                 'directory': 'WEB-INF/classes',
-                'unzipdir' : '%s/dsml' % TMPDIR,
+                'unzipdir' : '%s/dsml' % local.temp,
                 }
               </call>
 
               <call function="'copyFolder'">
                 {
                 'location'   : STAXServiceMachine,
-                'srcfolder'  : '%s/dsml/WEB-INF/classes' % TMPDIR,
-                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'srcfolder'  : '%s/dsml/WEB-INF/classes' % local.temp,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % local.temp,
                 'remotehost' : STAXServiceMachine
                 }
               </call>
@@ -118,9 +137,9 @@
                 else:
                   separator=':'
 
-                opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % TMPDIR
-                emmajar='%s/dsml/STAF-INF/jars/emma.jar' % TMPDIR
-                dsmlclasses='%s/dsml/STAF-INF/classes' % TMPDIR
+                opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp
+                emmajar='%s/dsml/STAF-INF/jars/emma.jar' % local.temp
+                dsmlclasses='%s/dsml/STAF-INF/classes' % local.temp
               </script>
 
               <call function="'GetVar'">
@@ -138,7 +157,7 @@
                 {
                 'location'   : STAXServiceMachine,
                 'foldername' : '%s/src' % TESTS_DSML_DIR,
-                'destfolder' : '%s/dsml/STAF-INF/classes' % TMPDIR,
+                'destfolder' : '%s/dsml/STAF-INF/classes' % local.temp,
                 'classpath'  : '%s%s%s%s%s%s%s' \
                                % (opendsjar,separator,emmajar,separator,dsmlclasses,separator,cp)
                 }
@@ -148,7 +167,7 @@
                 {
                 'location'   : STAXServiceMachine,
                 'srcfile'    : '%s/resource/errorStrings.properties' % TESTS_DSML_DIR,
-                'destfile'   : '%s/dsml/STAF-INF/classes/errorStrings.properties' % TMPDIR,
+                'destfile'   : '%s/dsml/STAF-INF/classes/errorStrings.properties' % local.temp,
                 'remotehost' : STAXServiceMachine
                 }
               </call>
@@ -164,7 +183,7 @@
                 'location'     : STAXServiceMachine,
                 'jarname'      : '%s/dsml/dsmlService.jar' % local.java,
                 'entrypoint'   : 'STAF-INF',
-                'pathfolder'   : '%s/dsml' % TMPDIR,
+                'pathfolder'   : '%s/dsml' % local.temp,
                 'manifestpath' : '%s/MANIFEST.MF' % TESTS_DSML_DIR
                 }
               </call>
@@ -421,6 +440,13 @@
               <message>
                 'setup: deploy DSML gateway webapp as described in config.py'
               </message>
+
+              <!-- The war file can be included in the OpenDS archive -->
+              <script>
+                if not PRODUCTNAME.startswith('OpenDS'):
+                  DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
+              </script>
+              
               <call function="'deployWebApplicationWAR'">
                 { 'warFilePath' : '%s' % DSML_WARPATH }
               </call>
@@ -494,6 +520,11 @@
                 }
               </call>
 
+              <!-- The war file can be included in the OpenDS archive -->
+              <script>
+                if not PRODUCTNAME.startswith('OpenDS'):
+                  DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
+              </script>
               <call function="'runSTAFCommand'">
                 { 'name'      :  'Extract DSML gateway web.xml',
                   'location'  :  STAXServiceMachine,

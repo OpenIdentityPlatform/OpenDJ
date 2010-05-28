@@ -453,7 +453,7 @@
             }
           </call>
           <!-- 'SNMP_OPENDMK_JARFILE' exists so we can continue with SNMP -->
-          <if expr="RC != 48">
+          <if expr="RC != 48 or not PRODUCTNAME.startswith('OpenDS')">
             <sequence>          
               <!---   Check if snmp java files are already compiled -->
               <call function="'listFolderByExtension'" >
@@ -468,28 +468,34 @@
                   <!--- Install DS Copy zip file -->
                   <message>
                     'Copy DS zip archive locally from %s to %s.' % \
-                      (ZIPPATH,TMPDIR)
+                      (ZIPPATH,local.temp)
                   </message>
                   <call function="'copyFile'">
                     { 
                     'srcfile'    : '%s/%s' % (ZIPPATH, ZIPNAME),
-                    'destfile'   : '%s/%s' % (TMPDIR, ZIPNAME),
+                    'destfile'   : '%s/%s' % (local.temp, ZIPNAME),
                     'remotehost' : STAXServiceMachine
                     }
                   </call>
                   
                   <!--- Install DS Extract zip file -->
                   <message>
-                    'Extract locally DS zip archive to %s' % TMPDIR
+                    'Extract locally DS zip archive to %s' % local.temp
                   </message>
                   <call function="'unZipFile'">
                     { 
                     'location' : STAXServiceMachine,
-                    'zipfile'  : '%s/%s' % (TMPDIR, ZIPNAME),
-                    'unzipdir' : TMPDIR
+                    'zipfile'  : '%s/%s' % (local.temp, ZIPNAME),
+                    'unzipdir' : local.temp
                     }
                   </call>
-                                                                     
+
+                  <!-- The jdmkrt.jar can be included in the OpenDS archive -->
+                  <script>
+                    if not PRODUCTNAME.startswith('OpenDS'):
+                      SNMP_OPENDMK_JARFILE='%s/%s/addons/jdmkrt.jar' % (local.temp,OPENDSNAME)
+                  </script>
+
                   <script>
                     if is_windows_platform(STAXServiceMachine):
                       jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
@@ -503,7 +509,7 @@
                       {
                       'location'   : STAF_REMOTE_HOSTNAME,
                       'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
-                      'destfile'   : '%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE),
+                      'destfile'   : '%s/%s' % (local.temp,SNMP_OPENDS_JARFILE),
                       'remotehost' : STAXServiceMachine
                       }
                     </call>
@@ -515,7 +521,7 @@
                     % (javaLocalDir, STAXServiceMachine)
                   </message>
                   <script>
-                    opends_jarfile='%s/%s' % (TMPDIR,SNMP_OPENDS_JARFILE)
+                    opends_jarfile='%s/%s' % (local.temp,SNMP_OPENDS_JARFILE)
                     
                     if is_windows_platform(STAXServiceMachine):
                       separator=';'
@@ -531,28 +537,6 @@
                     }
                   </call>
                   
-                  <!--  Delete the DS zip archive -->
-                  <message>
-                    'Delete %s/%s' % (TMPDIR, ZIPNAME)
-                  </message>
-                  <call function="'deleteFile'">
-                    { 
-                    'location' : STAXServiceMachine,
-                    'filename' : '%s/%s' % (TMPDIR, ZIPNAME)
-                    }
-                  </call>
-                  
-                  <!--  Delete the DS install dir -->
-                  <message>
-                    'Delete %s/%s' % (TMPDIR, OPENDSNAME)
-                  </message>
-                  <call function="'deleteFolder'">
-                    { 
-                    'location' : STAXServiceMachine,
-                    'foldername' : '%s/%s' % (TMPDIR, OPENDSNAME)
-                    }
-                  </call>
-                  
                   <!-- Archive SNMP_OPENDMK_JARFILE file -->
                   <message>
                     'Copy OpenDMK jar file %s locally to %s.' \
@@ -564,6 +548,28 @@
                     'srcfile'    : SNMP_OPENDMK_JARFILE,
                     'destfile'   : '%s/jdmkrt.jar' % javaLocalDir,
                     'remotehost' : STAXServiceMachine
+                    }
+                  </call>
+
+                  <!--  Delete the DS zip archive -->
+                  <message>
+                    'Delete %s/%s' % (local.temp, ZIPNAME)
+                  </message>
+                  <call function="'deleteFile'">
+                    { 
+                    'location' : STAXServiceMachine,
+                    'filename' : '%s/%s' % (local.temp, ZIPNAME)
+                    }
+                  </call>
+                  
+                  <!--  Delete the DS install dir -->
+                  <message>
+                    'Delete %s/%s' % (local.temp, OPENDSNAME)
+                  </message>
+                  <call function="'deleteFolder'">
+                    { 
+                    'location' : STAXServiceMachine,
+                    'foldername' : '%s/%s' % (local.temp, OPENDSNAME)
                     }
                   </call>
                 </sequence>

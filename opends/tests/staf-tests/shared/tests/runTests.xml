@@ -44,27 +44,34 @@
         returnMap['replication.eclmode'] = REPLICATION_ECL_MODE
 
         my_path='%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
-        my_report='%s/results_tmp.xml' % logs.reports
+        my_report='%s/results2.xml' % logs.reports
         my_info={}
         my_info['jvm label']=TEST_JVM_STRING
         my_info['os label']=TEST_OS_STRING
         my_info['server package']='%s/%s' % (ZIPPATH,ZIPNAME)
-        my_info['snmp jarfile']=SNMP_OPENDMK_JARFILE
+        # The jdmkrt.jar can be included in the OpenDS archive
+        if not PRODUCTNAME.startswith('OpenDS'):
+          my_info['snmp jarfile']='addons%s' % SNMP_OPENDMK_JARFILE
+        else:
+          my_info['snmp jarfile']=SNMP_OPENDMK_JARFILE
+        
 
         xml_create_report(PRODUCTNAME,TESTS_TYPE,my_path, \
           DSInfo.ServerDict,my_info,local.directory,my_report)
 
-        # Copy the content of result_tmp.xml to result2.xml
-        # add an xml-stylesheet
+        # Copy the content of results2.xml file to results_tmp.xml
+        # And add an xml-stylesheet
         testlogfh=open(my_report,'r')
         lines=testlogfh.readlines()
-        file=open('%s/results2.xml' % logs.reports,'w')
+        file=open('%s/results_tmp.xml' % logs.reports,'w')
         file.write('%s' % lines[0])
         file.write('&lt;?xml-stylesheet type="text/xsl" href="gen-groups-report.xsl"?&gt;\n')
         for l in lines[1:]:
           file.write('%s' % l)
         file.close()
         testlogfh.close()
+        # Delete results2.xml file
+        os.remove(my_report)
 
         # Create the initial report.cfg file
         # This file is used by the cgi script
@@ -80,14 +87,14 @@
         reportCfg.write('hostname = %s\n' % STAF_REMOTE_HOSTNAME)
         reportCfg.write('testcasesfail = 0\n')
         reportCfg.write('testcasesdone = 0\n')
-        reportCfg.write('testcasestotal = 2833\n')
+        reportCfg.write('testcasestotal = 2851\n')
         reportCfg.write('starttime = %s\n' % starttime)
         reportCfg.write('duration = 0\n')
         reportCfg.write('dsconfigduration = 0\n')
         reportCfg.write('percentage = 0\n')
         reportCfg.write('allbugs = []\n')
         reportCfg.write('os = %s\n' % TEST_OS_STRING)
-        reportCfg.write('report = reports/results2.xml\n')
+        reportCfg.write('report = reports/results_tmp.xml\n')
         reportCfg.write('istemporary = True\n')
         reportCfg.close()
 
@@ -153,15 +160,19 @@
            so far I could only get through this on either machines with a lot
            of memory or small sets of tests
       -->
-      <script>
-        emmaJar='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-      </script>
-      <if expr="os.path.exists(emmaJar)">
+      <!-- Check if 'remote.temp/coverage' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : '%s/coverage' % remote.temp ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'remote.temp/coverage' exists -->
         <sequence>
           <script>
-            coverageFiles=''
-            coveragePath=os.path.join(LOGS_ROOT,'coverage')
-            srcPathPrefix = os.path.join(TMPDIR,"..","..","..","..","..","..","src")
+            srcPathPrefix = os.path.join(TESTS_ROOT,"..","..","src")
             srcPaths = [ os.path.join(srcPathPrefix,"server"),
                          os.path.join(srcPathPrefix,"ads"),
                          os.path.join(srcPathPrefix,"server","org"),
@@ -172,17 +183,31 @@
                          os.path.join(srcPathPrefix,"messages","src","org")
                        ]
             srcArgs = " -sp ".join(srcPaths)
-            for group in os.listdir(coveragePath):
-              coverageGroupPath=os.path.join(coveragePath,group)
-              coverageECs=[os.path.join(coverageGroupPath,ec) for ec in os.listdir(coverageGroupPath) if ec.startswith('coverage') and ec.endswith('.ec')]
-              coverageFiles=','.join(coverageECs)
+
+            resultsCoveragePath=os.path.join(LOGS_ROOT,'coverage')
+            remoteCoveragePath=os.path.join(remote.temp,'coverage')
           </script>
+
+          <call function="'listFolderByExtension'" >
+            {
+            'location'   : STAF_REMOTE_HOSTNAME,
+            'foldername' : remoteCoveragePath,
+            'extension'  : 'ec'
+            }
+          </call>
+          
+          <script>
+            coverageFiles=','.join(STAXResult)
+            emmaJar=os.path.join(TESTS_ROOT,"..","..","ext","emma","lib","emma.jar")
+          </script>
+          
           <call function="'runCommand'">
-              { 'name'      : 'Generate global coverage xml report',
-                'command'   : 'java',
-                'arguments' : '-Xms64M -Xmx2048m -cp %s emma report -r xml,html -in %s/%s/coverage.em,%s -Dreport.xml.out.file=%s/coverage.xml -Dreport.html.out.file=%s/coverage.html -sp %s' % (emmaJar,DIRECTORY_INSTANCE_DIR,OPENDSNAME,coverageFiles,coveragePath,coveragePath,srcArgs),
-                'path'      : TMPDIR
-              }
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'name'      : 'Generate global coverage xml report',
+              'command'   : 'java',
+              'arguments' : '-Xms64M -Xmx2048m -cp %s emma report -r txt,html -in %s/coverage.em,%s -Dreport.txt.out.file=%s/coverage.txt -Dreport.html.out.file=%s/coverage.html -sp %s' % (emmaJar,remoteCoveragePath,coverageFiles,resultsCoveragePath,resultsCoveragePath,srcArgs),
+              'path'      : remoteCoveragePath
+            }
           </call>
         </sequence>
       </if>

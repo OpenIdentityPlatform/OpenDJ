@@ -60,6 +60,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="url"            select="normalize-space($id/tests-url)"/>
   <xsl:variable name="tests-dir"      select="normalize-space($id/tests-dir)"/>
   <xsl:variable name="mailto"         select="normalize-space($id/mailto)"/>
+  <xsl:variable name="coverage-url"   select="normalize-space($id/coverage-url)"/>
   <xsl:variable name="productname"    select="normalize-space($sut[@product='opends']/name)"/>
   <xsl:variable name="version"        select="normalize-space($sut[@product='opends']/version)"/>
  
@@ -745,6 +746,21 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="normalize-space($tests-dir)"/>
         </xsl:element>
       </xsl:element>          
+    </xsl:element>
+    <xsl:element name="tr">
+      <xsl:element name="td">
+        <xsl:element name="b">
+          <xsl:value-of select="'Coverage: '"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="$coverage-url"/>
+          </xsl:attribute>
+          <xsl:value-of select="$coverage-url"/>
+        </xsl:element>
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
