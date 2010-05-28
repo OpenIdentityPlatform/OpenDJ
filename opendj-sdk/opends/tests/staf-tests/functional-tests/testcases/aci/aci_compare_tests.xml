@@ -1203,9 +1203,9 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Compare Tests
-                #@TestName                  Compare Attr - targetattrfilter with add:,del:
+                #@TestName                  Compare Attr - targattrfilters with add:,del:
                 #@TestIssue                 441
-                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattrfilter with add:,del
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targattrfilters with add:,del
                 #@TestPreamble              Admin adds an aci to the dn of one existing branch.
                 #@TestStep                  Client compares an attribute in an entry in the targeted branch.
                 #@TestStep                  Client compares a second attribute in an entry in the targeted branch.
@@ -1221,7 +1221,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Compare Attr - targetattrfilter with add:,del:')">
+            <testcase name="getTestCaseName('Compare Attr - targattrfilters with add:,del:')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1231,7 +1231,7 @@
                 </script>
         
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, preamble adding aci,\n %s' % curr_aci
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1243,7 +1243,7 @@
                 </call>
     
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, user comparing attribute in targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1266,7 +1266,7 @@
                 </call>
                 
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing prohibited attribute in targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, user comparing prohibited attribute in targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1289,7 +1289,7 @@
                 </call>
                 
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in non-targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, user comparing attribute in non-targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1304,7 +1304,7 @@
                 </call>
 
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, admin deleting aci'
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, admin deleting aci'
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1316,7 +1316,7 @@
                 </call>
     
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, user comparing attribute in previously targeted branch'
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, user comparing attribute in previously targeted branch'
                 </message>
     
                 <call function="'compareEntry'">
@@ -1339,9 +1339,9 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Compare Tests
-                #@TestName                  Compare Attr - targetattrfilter with add:,del:, returns false
+                #@TestName                  Compare Attr - targattrfilters with add:,del:, returns false
                 #@TestIssue                 441
-                #@TestPurpose               Compare an attribute in an entry against an ACI with a targetattrfilter with add:,del
+                #@TestPurpose               Compare an attribute in an entry against an ACI with a targattrfilters with add:,del
                 #@TestPreamble              Admin adds an aci to the dn of one existing branch.
                 #@TestStep                  Client compares an attribute in an entry in the targeted branch.
                 #@TestStep                  Client compares a second attribute in an entry in the targeted branch.
@@ -1357,7 +1357,7 @@
             -->
             <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
             <!-- cross reference to DS6 docs -->
-            <testcase name="getTestCaseName('Compare Attr - targetattrfilter with add:,del:, returns false')">
+            <testcase name="getTestCaseName('Compare Attr - targattrfilters with add:,del:, returns false')">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -1367,7 +1367,7 @@
                 </script>
         
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, preamble adding aci,\n %s' % curr_aci
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, preamble adding aci,\n %s' % curr_aci
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1379,7 +1379,7 @@
                 </call>
     
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, user comparing attribute in targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1402,7 +1402,7 @@
                 </call>
                 
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing prohibited attribute in targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, user comparing prohibited attribute in targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1425,7 +1425,7 @@
                 </call>
                 
                 <message>
-                 'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in non-targeted branch'
+                 'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, user comparing attribute in non-targeted branch'
                 </message>
   
                 <call function="'compareEntry'">
@@ -1440,7 +1440,7 @@
                 </call>
 
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, admin deleting aci'
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, admin deleting aci'
                 </message>
     
                 <call function="'modifyEntry'">
@@ -1452,7 +1452,7 @@
                 </call>
     
                 <message>
-                   'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, user comparing attribute in previously targeted branch'
+                   'ACI: Compare: Compare Attr - targattrfilters with add:,del:, returns false, user comparing attribute in previously targeted branch'
                 </message>
     
                 <call function="'compareEntry'">
