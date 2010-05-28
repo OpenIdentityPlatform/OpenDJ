@@ -784,7 +784,6 @@ public class ECLServerHandler extends ServerHandler
                   }
                 }
 
-              //if (newDomainCtxt.startState.cover(rsd.getStartState())==false)
                 if (cookieTooOld)
                 {
                   // the provided start
