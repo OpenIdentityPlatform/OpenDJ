@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -792,6 +792,46 @@ public class RootDSEBackend
 
     e.replaceAttribute(publicNamingContextAttr);
     return e;
+  }
+
+
+
+  /**
+   * Determines the workflow nodes which handle subordinate naming contexts.
+   * A workflow node is handling a subordinate naming context if the workflow
+   * base DN is in the list of the RootDSE subordinate naming contexts.
+   *
+   * @param   nodes
+   *          The list from which we search the workflow nodes which
+   *          are handling subordinate naming contexts
+   *
+   * @return  The list of workflow nodes that are handling subordinate
+   *          naming contexts
+   */
+  public Iterable<WorkflowTopologyNode> getSubordinateNamingContexts(
+      Iterable<WorkflowTopologyNode> nodes)
+  {
+    // If the list of subordinate naming contexts is null
+    // then return the whole list of workflow nodes.
+    if (subordinateBaseDNs == null)
+    {
+      return nodes;
+    }
+
+    // The returned list of subordinate naming contexts
+    List<WorkflowTopologyNode> subNC = new ArrayList<WorkflowTopologyNode>();
+
+    // Determine which workflow node is handling a subordinate naming context.
+    for (WorkflowTopologyNode node : nodes)
+    {
+      DN dn = node.getBaseDN();
+      if (subordinateBaseDNs.containsKey(dn))
+      {
+        subNC.add(node);
+      }
+    }
+
+    return subNC;
   }
 
 

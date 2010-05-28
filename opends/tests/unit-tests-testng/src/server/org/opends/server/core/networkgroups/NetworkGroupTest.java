@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
@@ -1130,6 +1130,90 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Clean the network group
     networkGroup.deregister();
+  }
+
+
+  /**
+   * This test checks that the network group takes into account the
+   * subordinate naming context defined in the RootDSEBackend.
+   */
+  @Test
+  public void testRootDseSubordinateNamingContext()
+         throws Exception
+  {
+    // Backends for the test
+    String backend1   = "o=test-rootDSE-subordinate-naming-context-1";
+    String backend2   = "o=test-rootDSE-subordinate-naming-context-2";
+    String backendID1 = "test-rootDSE-subordinate-naming-context-1";
+    String backendID2 = "test-rootDSE-subordinate-naming-context-2";
+
+    // Clean all the backends.
+    TestCaseUtils.clearDataBackends();
+
+    // Create a client connection for the test.
+    InternalClientConnection connection =
+      InternalClientConnection.getRootConnection();
+
+    // At this point, the list of subordinate naming context is not defined
+    // yet (null): any public backend should be visible. Create a backend
+    // with a base entry and check that the test naming context is visible.
+    TestCaseUtils.initializeMemoryBackend(backendID1, backend1, true);
+    searchPublicNamingContexts(connection, true,  1);
+
+    // Create another test backend and check that the new backend is visible
+    TestCaseUtils.initializeMemoryBackend(backendID2, backend2, true);
+    searchPublicNamingContexts(connection, true,  2);
+
+    // Now put in the list of subordinate naming context the backend1
+    // naming context. This white list will prevent the backend2 to be
+    // visible.
+    TestCaseUtils.dsconfig(
+        "set-root-dse-backend-prop",
+        "--set", "subordinate-base-dn:" + backend1);
+    searchPublicNamingContexts(connection, true, 1);
+
+    // === Cleaning
+
+    // Reset the subordinate naming context list.
+    // Both naming context should be visible again.
+    TestCaseUtils.dsconfig(
+        "set-root-dse-backend-prop",
+        "--reset", "subordinate-base-dn");
+    searchPublicNamingContexts(connection, true, 2);
+    
+    // Clean the test backends. There is no more naming context.
+    TestCaseUtils.clearMemoryBackend(backendID1);
+    TestCaseUtils.clearMemoryBackend(backendID2);
+    searchPublicNamingContexts(connection, false, 0);
+  }
+
+
+  /**
+   * Searches the list of naming contexts.
+   *
+   * @param connection    the connection to use for the search request
+   * @param shouldExist   indicates whether at least one NC should be found
+   * @param expectedNamingContexts  the number of expected naming contexts
+   */
+  private void searchPublicNamingContexts(
+      InternalClientConnection connection,
+      boolean shouldExist,
+      int expectedNamingContexts
+      ) throws Exception
+  {
+    SearchOperation search = connection.processSearch(
+        DN.decode(""),
+        SearchScope.SINGLE_LEVEL,
+        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+
+    // Check the number of found naming context
+    ResultCode expectedRC =
+      (shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
+    assertEquals(search.getResultCode(), expectedRC);
+    if (shouldExist)
+    {
+      assertEquals(search.getEntriesSent(), expectedNamingContexts);
+    }
   }
 
 
