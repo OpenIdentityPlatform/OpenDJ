@@ -54,9 +54,9 @@ public final class Collections2
 
 
 
-    private TransformedCollection(Collection<M> collection,
-        Function<? super M, ? extends N, P> funcMtoN,
-        Function<? super N, ? extends M, P> funcNtoM, P p)
+    private TransformedCollection(final Collection<M> collection,
+        final Function<? super M, ? extends N, P> funcMtoN,
+        final Function<? super N, ? extends M, P> funcNtoM, final P p)
     {
       this.collection = collection;
       this.funcMtoN = funcMtoN;
@@ -69,7 +69,8 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
-    public boolean add(N e)
+    @Override
+    public boolean add(final N e)
     {
       return collection.add(funcNtoM.apply(e, p));
     }
@@ -79,6 +80,7 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     public void clear()
     {
       collection.clear();
@@ -89,10 +91,11 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     @SuppressWarnings("unchecked")
-    public boolean contains(Object o)
+    public boolean contains(final Object o)
     {
-      N tmp = (N) o;
+      final N tmp = (N) o;
       return collection.contains(funcNtoM.apply(tmp, p));
     }
 
@@ -101,6 +104,7 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isEmpty()
     {
       return collection.isEmpty();
@@ -111,6 +115,7 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     public Iterator<N> iterator()
     {
       return Iterators.transform(collection.iterator(), funcMtoN, p);
@@ -121,10 +126,11 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     @SuppressWarnings("unchecked")
-    public boolean remove(Object o)
+    public boolean remove(final Object o)
     {
-      N tmp = (N) o;
+      final N tmp = (N) o;
       return collection.remove(funcNtoM.apply(tmp, p));
     }
 
@@ -133,6 +139,7 @@ public final class Collections2
     /**
      * {@inheritDoc}
      */
+    @Override
     public int size()
     {
       return collection.size();
@@ -143,49 +150,47 @@ public final class Collections2
 
 
   /**
-   * Returns a view of {@code collection} whose values have been mapped
-   * to elements of type {@code N} using {@code funcMtoN}. The returned
-   * collection supports all operations.
+   * Returns a view of {@code collection} whose values have been mapped to
+   * elements of type {@code N} using {@code funcMtoN}. The returned collection
+   * supports all operations.
    *
    * @param <M>
    *          The type of elements contained in {@code collection}.
    * @param <N>
    *          The type of elements contained in the returned collection.
    * @param <P>
-   *          The type of the additional parameter to the function's
-   *          {@code apply} method. Use {@link java.lang.Void} for
-   *          functions that do not need an additional parameter.
+   *          The type of the additional parameter to the function's {@code
+   *          apply} method. Use {@link java.lang.Void} for functions that do
+   *          not need an additional parameter.
    * @param collection
    *          The collection to be transformed.
    * @param funcMtoN
-   *          A function which maps values of type {@code M} to values
-   *          of type {@code N}. This function will be used when
-   *          retrieving values from {@code collection}.
+   *          A function which maps values of type {@code M} to values of type
+   *          {@code N}. This function will be used when retrieving values from
+   *          {@code collection}.
    * @param funcNtoM
-   *          A function which maps values of type {@code N} to values
-   *          of type {@code M}. This function will be used when
-   *          performing queries and adding values to {@code collection}
-   *          .
+   *          A function which maps values of type {@code N} to values of type
+   *          {@code M}. This function will be used when performing queries and
+   *          adding values to {@code collection} .
    * @param p
    *          A predicate specified parameter.
-   * @return A view of {@code collection} whose values have been mapped
-   *         to elements of type {@code N} using {@code funcMtoN}.
+   * @return A view of {@code collection} whose values have been mapped to
+   *         elements of type {@code N} using {@code funcMtoN}.
    */
   public static <M, N, P> Collection<N> transform(
-      Collection<M> collection,
-      Function<? super M, ? extends N, P> funcMtoN,
-      Function<? super N, ? extends M, P> funcNtoM, P p)
+      final Collection<M> collection,
+      final Function<? super M, ? extends N, P> funcMtoN,
+      final Function<? super N, ? extends M, P> funcNtoM, final P p)
   {
-    return new TransformedCollection<M, N, P>(collection, funcMtoN,
-        funcNtoM, p);
+    return new TransformedCollection<M, N, P>(collection, funcMtoN, funcNtoM, p);
   }
 
 
 
   /**
-   * Returns a view of {@code collection} whose values have been mapped
-   * to elements of type {@code N} using {@code funcMtoN}. The returned
-   * collection supports all operations.
+   * Returns a view of {@code collection} whose values have been mapped to
+   * elements of type {@code N} using {@code funcMtoN}. The returned collection
+   * supports all operations.
    *
    * @param <M>
    *          The type of elements contained in {@code collection}.
@@ -194,21 +199,19 @@ public final class Collections2
    * @param collection
    *          The collection to be transformed.
    * @param funcMtoN
-   *          A function which maps values of type {@code M} to values
-   *          of type {@code N}. This function will be used when
-   *          retrieving values from {@code collection}.
+   *          A function which maps values of type {@code M} to values of type
+   *          {@code N}. This function will be used when retrieving values from
+   *          {@code collection}.
    * @param funcNtoM
-   *          A function which maps values of type {@code N} to values
-   *          of type {@code M}. This function will be used when
-   *          performing queries and adding values to {@code collection}
-   *          .
-   * @return A view of {@code collection} whose values have been mapped
-   *         to elements of type {@code N} using {@code funcMtoN}.
+   *          A function which maps values of type {@code N} to values of type
+   *          {@code M}. This function will be used when performing queries and
+   *          adding values to {@code collection} .
+   * @return A view of {@code collection} whose values have been mapped to
+   *         elements of type {@code N} using {@code funcMtoN}.
    */
-  public static <M, N> Collection<N> transform(
-      Collection<M> collection,
-      Function<? super M, ? extends N, Void> funcMtoN,
-      Function<? super N, ? extends M, Void> funcNtoM)
+  public static <M, N> Collection<N> transform(final Collection<M> collection,
+      final Function<? super M, ? extends N, Void> funcMtoN,
+      final Function<? super N, ? extends M, Void> funcNtoM)
   {
     return new TransformedCollection<M, N, Void>(collection, funcMtoN,
         funcNtoM, null);

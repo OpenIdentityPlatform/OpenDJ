@@ -33,20 +33,44 @@ import java.io.IOException;
 
 
 
-
 /**
- * Thrown when data from an input source cannot be decoded, perhaps due
- * to the data being malformed in some way. By default decoding
- * exceptions are fatal, indicating that the associated input source is
- * no longer usable.
+ * Thrown when data from an input source cannot be decoded, perhaps due to the
+ * data being malformed in some way. By default decoding exceptions are fatal,
+ * indicating that the associated input source is no longer usable.
  */
 @SuppressWarnings("serial")
 public final class DecodeException extends IOException implements
     LocalizableException
 {
-  private final LocalizableMessage message;
+  /**
+   * Creates a new non-fatal decode exception with the provided message.
+   *
+   * @param message
+   *          The message that explains the problem that occurred.
+   * @return The new non-fatal decode exception.
+   */
+  public static DecodeException error(final LocalizableMessage message)
+  {
+    return new DecodeException(message, false, null);
+  }
 
-  private final boolean isFatal;
+
+
+  /**
+   * Creates a new non-fatal decode exception with the provided message and root
+   * cause.
+   *
+   * @param message
+   *          The message that explains the problem that occurred.
+   * @param cause
+   *          The underlying cause of this exception.
+   * @return The new non-fatal decode exception.
+   */
+  public static DecodeException error(final LocalizableMessage message,
+      final Throwable cause)
+  {
+    return new DecodeException(message, false, cause);
+  }
 
 
 
@@ -58,7 +82,7 @@ public final class DecodeException extends IOException implements
    *          The message that explains the problem that occurred.
    * @return The new fatal decode exception.
    */
-  public static DecodeException fatalError(LocalizableMessage message)
+  public static DecodeException fatalError(final LocalizableMessage message)
   {
     return new DecodeException(message, true, null);
   }
@@ -66,8 +90,8 @@ public final class DecodeException extends IOException implements
 
 
   /**
-   * Creates a new fatal decode exception with the provided message and
-   * root cause. The associated input source can no longer be used.
+   * Creates a new fatal decode exception with the provided message and root
+   * cause. The associated input source can no longer be used.
    *
    * @param message
    *          The message that explains the problem that occurred.
@@ -75,48 +99,23 @@ public final class DecodeException extends IOException implements
    *          The underlying cause of this exception.
    * @return The new fatal decode exception.
    */
-  public static DecodeException fatalError(LocalizableMessage message,
-      Throwable cause)
+  public static DecodeException fatalError(final LocalizableMessage message,
+      final Throwable cause)
   {
     return new DecodeException(message, true, cause);
   }
 
 
 
-  /**
-   * Creates a new non-fatal decode exception with the provided message.
-   *
-   * @param message
-   *          The message that explains the problem that occurred.
-   * @return The new non-fatal decode exception.
-   */
-  public static DecodeException error(LocalizableMessage message)
-  {
-    return new DecodeException(message, false, null);
-  }
+  private final LocalizableMessage message;
 
-
-
-  /**
-   * Creates a new non-fatal decode exception with the provided message
-   * and root cause.
-   *
-   * @param message
-   *          The message that explains the problem that occurred.
-   * @param cause
-   *          The underlying cause of this exception.
-   * @return The new non-fatal decode exception.
-   */
-  public static DecodeException error(LocalizableMessage message, Throwable cause)
-  {
-    return new DecodeException(message, false, cause);
-  }
+  private final boolean isFatal;
 
 
 
   // Construction is provided via factory methods.
-  private DecodeException(LocalizableMessage message, boolean isFatal,
-      Throwable cause)
+  private DecodeException(final LocalizableMessage message,
+      final boolean isFatal, final Throwable cause)
   {
     super(message.toString(), cause);
     this.message = message;
@@ -138,12 +137,11 @@ public final class DecodeException extends IOException implements
 
 
   /**
-   * Indicates whether or not the error was fatal and the associated
-   * input source can no longer be used.
+   * Indicates whether or not the error was fatal and the associated input
+   * source can no longer be used.
    *
-   * @return {@code true} if the error was fatal and the associated
-   *         input source can no longer be used, otherwise {@code false}
-   *         .
+   * @return {@code true} if the error was fatal and the associated input source
+   *         can no longer be used, otherwise {@code false} .
    */
   public boolean isFatal()
   {

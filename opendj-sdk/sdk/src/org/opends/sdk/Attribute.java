@@ -40,12 +40,11 @@ import java.util.Set;
  * An attribute, comprising of an attribute description and zero or more
  * attribute values.
  * <p>
- * Any methods which perform comparisons between attribute values use
- * the equality matching rule associated with the attribute description.
+ * Any methods which perform comparisons between attribute values use the
+ * equality matching rule associated with the attribute description.
  * <p>
- * Any methods which accept {@code Object} based attribute values
- * convert the attribute values to instances of {@code ByteString} as
- * follows:
+ * Any methods which accept {@code Object} based attribute values convert the
+ * attribute values to instances of {@code ByteString} as follows:
  *
  * <pre>
  * Object object = ...;
@@ -65,18 +64,15 @@ import java.util.Set;
 public interface Attribute extends Set<ByteString>
 {
   /**
-   * Adds {@code value} to this attribute if it is not already present
-   * (optional operation). If this attribute already contains {@code
-   * value}, the call leaves the attribute unchanged and returns {@code
-   * false}.
+   * Adds {@code value} to this attribute if it is not already present (optional
+   * operation). If this attribute already contains {@code value}, the call
+   * leaves the attribute unchanged and returns {@code false}.
    *
    * @param value
    *          The attribute value to be added to this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
+   *           If this attribute does not support addition of attribute values.
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
@@ -86,23 +82,19 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Adds all of the provided attribute values to this attribute if they
-   * are not already present (optional operation).
+   * Adds all of the provided attribute values to this attribute if they are not
+   * already present (optional operation).
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param firstValue
    *          The first attribute value to be added to this attribute.
    * @param remainingValues
-   *          The remaining attribute values to be added to this
-   *          attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   *          The remaining attribute values to be added to this attribute.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
+   *           If this attribute does not support addition of attribute values.
    * @throws NullPointerException
    *           If {@code firstValue} was {@code null}.
    */
@@ -112,9 +104,8 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Adds all of the attribute values contained in {@code values} to
-   * this attribute if they are not already present (optional
-   * operation).
+   * Adds all of the attribute values contained in {@code values} to this
+   * attribute if they are not already present (optional operation).
    * <p>
    * An invocation of this method is equivalent to:
    *
@@ -124,11 +115,9 @@ public interface Attribute extends Set<ByteString>
    *
    * @param values
    *          The attribute values to be added to this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
+   *           If this attribute does not support addition of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
@@ -138,21 +127,19 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Adds all of the attribute values contained in {@code values} to
-   * this attribute if they are not already present (optional
-   * operation). Any attribute values which are already present will be
-   * added to {@code duplicateValues} if specified.
+   * Adds all of the attribute values contained in {@code values} to this
+   * attribute if they are not already present (optional operation). Any
+   * attribute values which are already present will be added to {@code
+   * duplicateValues} if specified.
    *
    * @param values
    *          The attribute values to be added to this attribute.
    * @param duplicateValues
-   *          A collection into which duplicate values will be added, or
-   *          {@code null} if duplicate values should not be saved.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   *          A collection into which duplicate values will be added, or {@code
+   *          null} if duplicate values should not be saved.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support addition of attribute
-   *           values.
+   *           If this attribute does not support addition of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
@@ -165,6 +152,9 @@ public interface Attribute extends Set<ByteString>
   /**
    * Removes all of the attribute values from this attribute (optional
    * operation). This attribute will be empty after this call returns.
+   *
+   * @throws UnsupportedOperationException
+   *           If this attribute does not support removal of attribute values.
    */
   void clear() throws UnsupportedOperationException;
 
@@ -173,15 +163,14 @@ public interface Attribute extends Set<ByteString>
   /**
    * Returns {@code true} if this attribute contains {@code value}.
    * <p>
-   * If {@code value} is not an instance of {@code ByteString} then it
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * If {@code value} is not an instance of {@code ByteString} then it will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param value
-   *          The attribute value whose presence in this attribute is to
-   *          be tested.
-   * @return {@code true} if this attribute contains {@code value}, or
-   *         {@code false} if not.
+   *          The attribute value whose presence in this attribute is to be
+   *          tested.
+   * @return {@code true} if this attribute contains {@code value}, or {@code
+   *         false} if not.
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
@@ -190,19 +179,17 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns {@code true} if this attribute contains all of the
-   * attribute values contained in {@code values}.
+   * Returns {@code true} if this attribute contains all of the attribute values
+   * contained in {@code values}.
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param values
-   *          The attribute values whose presence in this attribute is
-   *          to be tested.
-   * @return {@code true} if this attribute contains all of the
-   *         attribute values contained in {@code values}, or {@code
-   *         false} if not.
+   *          The attribute values whose presence in this attribute is to be
+   *          tested.
+   * @return {@code true} if this attribute contains all of the attribute values
+   *         contained in {@code values}, or {@code false} if not.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
@@ -211,16 +198,16 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns {@code true} if {@code object} is an attribute which is
-   * equal to this attribute. Two attributes are considered equal if
-   * their attribute descriptions are equal, they both have the same
-   * number of attribute values, and every attribute value contained in
-   * the first attribute is also contained in the second attribute.
+   * Returns {@code true} if {@code object} is an attribute which is equal to
+   * this attribute. Two attributes are considered equal if their attribute
+   * descriptions are equal, they both have the same number of attribute values,
+   * and every attribute value contained in the first attribute is also
+   * contained in the second attribute.
    *
    * @param object
    *          The object to be tested for equality with this attribute.
-   * @return {@code true} if {@code object} is an attribute which is
-   *         equal to this attribute, or {@code false} if not.
+   * @return {@code true} if {@code object} is an attribute which is equal to
+   *         this attribute, or {@code false} if not.
    */
   boolean equals(Object object);
 
@@ -238,11 +225,11 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns the first attribute value in this attribute decoded as a
-   * UTF-8 string.
+   * Returns the first attribute value in this attribute decoded as a UTF-8
+   * string.
    *
-   * @return The first attribute value in this attribute decoded as a
-   *         UTF-8 string.
+   * @return The first attribute value in this attribute decoded as a UTF-8
+   *         string.
    * @throws NoSuchElementException
    *           If this attribute is empty.
    */
@@ -251,8 +238,8 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns the attribute description of this attribute, which includes
-   * its attribute type and any options.
+   * Returns the attribute description of this attribute, which includes its
+   * attribute type and any options.
    *
    * @return The attribute description.
    */
@@ -261,8 +248,8 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns the string representation of the attribute description of
-   * this attribute, which includes its attribute type and any options.
+   * Returns the string representation of the attribute description of this
+   * attribute, which includes its attribute type and any options.
    *
    * @return The string representation of the attribute description.
    */
@@ -271,9 +258,9 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns the hash code for this attribute. It will be calculated as
-   * the sum of the hash codes of the attribute description and all of
-   * the attribute values.
+   * Returns the hash code for this attribute. It will be calculated as the sum
+   * of the hash codes of the attribute description and all of the attribute
+   * values.
    *
    * @return The hash code for this attribute.
    */
@@ -282,20 +269,18 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns {@code true} if this attribute contains no attribute
-   * values.
+   * Returns {@code true} if this attribute contains no attribute values.
    *
-   * @return {@code true} if this attribute contains no attribute
-   *         values.
+   * @return {@code true} if this attribute contains no attribute values.
    */
   boolean isEmpty();
 
 
 
   /**
-   * Returns an iterator over the attribute values in this attribute.
-   * The attribute values are returned in no particular order, unless
-   * the implementation of this attribute provides such a guarantee.
+   * Returns an iterator over the attribute values in this attribute. The
+   * attribute values are returned in no particular order, unless the
+   * implementation of this attribute provides such a guarantee.
    *
    * @return An iterator over the attribute values in this attribute.
    */
@@ -304,22 +289,18 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Removes {@code value} from this attribute if it is present
-   * (optional operation). If this attribute does not contain {@code
-   * value}, the call leaves the attribute unchanged and returns {@code
-   * false}.
+   * Removes {@code value} from this attribute if it is present (optional
+   * operation). If this attribute does not contain {@code value}, the call
+   * leaves the attribute unchanged and returns {@code false}.
    * <p>
-   * If {@code value} is not an instance of {@code ByteString} then it
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * If {@code value} is not an instance of {@code ByteString} then it will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param value
    *          The attribute value to be removed from this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
+   *           If this attribute does not support removal of attribute values.
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
@@ -329,12 +310,11 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Removes all of the attribute values contained in {@code values}
-   * from this attribute if they are present (optional operation).
+   * Removes all of the attribute values contained in {@code values} from this
+   * attribute if they are present (optional operation).
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    * <p>
    * An invocation of this method is equivalent to:
    *
@@ -344,41 +324,36 @@ public interface Attribute extends Set<ByteString>
    *
    * @param values
    *          The attribute values to be removed from this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
+   *           If this attribute does not support removal of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean removeAll(Collection<?> values)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean removeAll(Collection<?> values) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Removes all of the attribute values contained in {@code values}
-   * from this attribute if they are present (optional operation). Any
-   * attribute values which are not already present will be added to
-   * {@code missingValues} if specified.
+   * Removes all of the attribute values contained in {@code values} from this
+   * attribute if they are present (optional operation). Any attribute values
+   * which are not already present will be added to {@code missingValues} if
+   * specified.
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param <T>
    *          The type of the attribute value objects being removed.
    * @param values
    *          The attribute values to be removed from this attribute.
    * @param missingValues
-   *          A collection into which missing values will be added, or
-   *          {@code null} if missing values should not be saved.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   *          A collection into which missing values will be added, or {@code
+   *          null} if missing values should not be saved.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
+   *           If this attribute does not support removal of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
@@ -389,12 +364,11 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Retains only the attribute values in this attribute which are
-   * contained in {@code values} (optional operation).
+   * Retains only the attribute values in this attribute which are contained in
+   * {@code values} (optional operation).
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    * <p>
    * An invocation of this method is equivalent to:
    *
@@ -404,41 +378,35 @@ public interface Attribute extends Set<ByteString>
    *
    * @param values
    *          The attribute values to be retained in this attribute.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
+   *           If this attribute does not support removal of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean retainAll(Collection<?> values)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean retainAll(Collection<?> values) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Retains only the attribute values in this attribute which are
-   * contained in {@code values} (optional operation). Any attribute
-   * values which are not already present will be added to {@code
-   * missingValues} if specified.
+   * Retains only the attribute values in this attribute which are contained in
+   * {@code values} (optional operation). Any attribute values which are not
+   * already present will be added to {@code missingValues} if specified.
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param <T>
    *          The type of the attribute value objects being retained.
    * @param values
    *          The attribute values to be retained in this attribute.
    * @param missingValues
-   *          A collection into which missing values will be added, or
-   *          {@code null} if missing values should not be saved.
-   * @return {@code true} if this attribute changed as a result of this
-   *         call.
+   *          A collection into which missing values will be added, or {@code
+   *          null} if missing values should not be saved.
+   * @return {@code true} if this attribute changed as a result of this call.
    * @throws UnsupportedOperationException
-   *           If this attribute does not support removal of attribute
-   *           values.
+   *           If this attribute does not support removal of attribute values.
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
@@ -458,45 +426,52 @@ public interface Attribute extends Set<ByteString>
 
 
   /**
-   * Returns an array containing all of the attribute values contained
-   * in this attribute.
+   * Returns an array containing all of the attribute values contained in this
+   * attribute.
    * <p>
-   * If this attribute makes any guarantees as to what order its
-   * attribute values are returned by its iterator, this method must
-   * return the attribute values in the same order.
+   * If this attribute makes any guarantees as to what order its attribute
+   * values are returned by its iterator, this method must return the attribute
+   * values in the same order.
    * <p>
    * The returned array will be "safe" in that no references to it are
    * maintained by this attribute. The caller is thus free to modify the
    * returned array.
+   *
+   * @return An array containing all of the attribute values contained in this
+   *         attribute.
    */
   ByteString[] toArray();
 
 
 
   /**
-   * Returns an array containing all of the attribute values in this
-   * attribute; the runtime type of the returned array is that of the
-   * specified array.
+   * Returns an array containing all of the attribute values in this attribute;
+   * the runtime type of the returned array is that of the specified array.
    * <p>
-   * If the set fits in the specified array, it is returned therein.
-   * Otherwise, a new array is allocated with the runtime type of the
-   * specified array and the size of this attribute. If this attribute
-   * fits in the specified array with room to spare (i.e., the array has
-   * more elements than this attribute), the elements in the array
-   * immediately following the end of the set is set to {@code null}.
+   * If the set fits in the specified array, it is returned therein. Otherwise,
+   * a new array is allocated with the runtime type of the specified array and
+   * the size of this attribute. If this attribute fits in the specified array
+   * with room to spare (i.e., the array has more elements than this attribute),
+   * the elements in the array immediately following the end of the set is set
+   * to {@code null}.
    * <p>
-   * If this attribute makes any guarantees as to what order its
-   * attribute values are returned by its iterator, this method must
-   * return the attribute values in the same order.
+   * If this attribute makes any guarantees as to what order its attribute
+   * values are returned by its iterator, this method must return the attribute
+   * values in the same order.
    *
+   * @param <T>
+   *          The type of elements contained in {@code array}.
+   * @param array
+   *          An array into which the elements of this attribute should be put.
+   * @return An array containing all of the attribute values contained in this
+   *         attribute.
    * @throws ArrayStoreException
-   *           If the runtime type of {@code array} is not a supertype
-   *           of {@code ByteString}.
+   *           If the runtime type of {@code array} is not a supertype of
+   *           {@code ByteString}.
    * @throws NullPointerException
    *           If {@code array} was {@code null}.
    */
-  <T> T[] toArray(T[] array) throws ArrayStoreException,
-      NullPointerException;
+  <T> T[] toArray(T[] array) throws ArrayStoreException, NullPointerException;
 
 
 

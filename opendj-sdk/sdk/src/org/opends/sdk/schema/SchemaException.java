@@ -34,13 +34,11 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
  * Thrown when a schema could not be decoded or validated.
  */
 @SuppressWarnings("serial")
-final class SchemaException extends Exception implements
-    LocalizableException
+final class SchemaException extends Exception implements LocalizableException
 {
   // The I18N message associated with this exception.
   private final LocalizableMessage message;
@@ -49,11 +47,11 @@ final class SchemaException extends Exception implements
 
   /**
    * Creates a new schema exception with the provided message.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public SchemaException(LocalizableMessage message)
+  public SchemaException(final LocalizableMessage message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -63,16 +61,15 @@ final class SchemaException extends Exception implements
 
   /**
    * Creates a new schema exception with the provided message and cause.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    * @param cause
-   *          The cause which may be later retrieved by the
-   *          {@link #getCause} method. A {@code null} value is
-   *          permitted, and indicates that the cause is nonexistent or
-   *          unknown.
+   *          The cause which may be later retrieved by the {@link #getCause}
+   *          method. A {@code null} value is permitted, and indicates that the
+   *          cause is nonexistent or unknown.
    */
-  public SchemaException(LocalizableMessage message, Throwable cause)
+  public SchemaException(final LocalizableMessage message, final Throwable cause)
   {
     super(String.valueOf(message), cause);
     this.message = message;

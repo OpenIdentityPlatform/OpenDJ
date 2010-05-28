@@ -36,19 +36,19 @@ import org.opends.sdk.responses.Response;
 
 
 
-
 /**
  * Thrown when an unexpected LDAP response is received.
  */
 @SuppressWarnings("serial")
-public final class UnexpectedResponseException extends IOException
+final class UnexpectedResponseException extends IOException
 {
   private final int messageID;
   private final Response response;
 
 
 
-  public UnexpectedResponseException(int messageID, Response response)
+  public UnexpectedResponseException(final int messageID,
+      final Response response)
   {
     super(LocalizableMessage.raw("Unexpected LDAP response: id=%d, message=%s",
         messageID, response).toString());

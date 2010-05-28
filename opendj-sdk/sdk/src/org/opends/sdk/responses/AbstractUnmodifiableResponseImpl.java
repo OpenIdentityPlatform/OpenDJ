@@ -29,20 +29,24 @@ package org.opends.sdk.responses;
 
 
 
-import org.opends.sdk.controls.Control;
+import java.util.Collections;
+import java.util.List;
 
-import com.sun.opends.sdk.util.Iterables;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
  * Unmodifiable response implementation.
- * 
+ *
  * @param <S>
  *          The type of response.
  */
-abstract class AbstractUnmodifiableResponseImpl<S extends Response>
-    implements Response
+abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
+    Response
 {
 
   private final S impl;
@@ -51,12 +55,11 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response>
 
   /**
    * Creates a new unmodifiable response implementation.
-   * 
+   *
    * @param impl
-   *          The underlying response implementation to be made
-   *          unmodifiable.
+   *          The underlying response implementation to be made unmodifiable.
    */
-  AbstractUnmodifiableResponseImpl(S impl)
+  AbstractUnmodifiableResponseImpl(final S impl)
   {
     this.impl = impl;
   }
@@ -66,7 +69,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response>
   /**
    * {@inheritDoc}
    */
-  public final S addControl(Control control)
+  public final S addControl(final Control control)
       throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();
@@ -77,21 +80,12 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response>
   /**
    * {@inheritDoc}
    */
-  public final S clearControls() throws UnsupportedOperationException
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control getControl(String oid)
-      throws NullPointerException
+  public final <C extends Control> C getControl(
+      final ControlDecoder<C> decoder, final DecodeOptions options)
+      throws NullPointerException, DecodeException
   {
     // FIXME: ensure that controls are immutable.
-    return impl.getControl(oid);
+    return impl.getControl(decoder, options);
   }
 
 
@@ -99,10 +93,10 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response>
   /**
    * {@inheritDoc}
    */
-  public final Iterable<Control> getControls()
+  public final List<Control> getControls()
   {
     // FIXME: ensure that controls are immutable.
-    return Iterables.unmodifiable(impl.getControls());
+    return Collections.unmodifiableList(impl.getControls());
   }
 
 
@@ -110,27 +104,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response>
   /**
    * {@inheritDoc}
    */
-  public final boolean hasControls()
-  {
-    return impl.hasControls();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public final String toString()
   {
     return impl.toString();

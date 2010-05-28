@@ -29,13 +29,18 @@ package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * A Search Result Reference represents an area not yet explored during
- * a Search operation.
+ * A Search Result Reference represents an area not yet explored during a Search
+ * operation.
  */
 public interface SearchResultReference extends Response
 {
@@ -50,13 +55,13 @@ public interface SearchResultReference extends Response
   /**
    * Adds the provided continuation reference URI to this search result
    * reference.
-   * 
+   *
    * @param uri
    *          The continuation reference URI to be added.
    * @return This search result reference.
    * @throws UnsupportedOperationException
-   *           If this search result reference does not permit
-   *           continuation reference URI to be added.
+   *           If this search result reference does not permit continuation
+   *           reference URI to be added.
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
@@ -68,84 +73,25 @@ public interface SearchResultReference extends Response
   /**
    * {@inheritDoc}
    */
-  SearchResultReference clearControls()
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Removes all the continuation reference URIs included with this
-   * search result reference.
-   * 
-   * @return This search result reference.
-   * @throws UnsupportedOperationException
-   *           If this search result reference does not permit
-   *           continuation reference URIs to be removed.
-   */
-  SearchResultReference clearURIs()
-      throws UnsupportedOperationException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  List<Control> getControls();
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns a {@code List} containing the continuation reference URIs included
+   * with this search result reference. The returned {@code List} may be
+   * modified if permitted by this search result reference.
+   *
+   * @return A {@code List} containing the continuation reference URIs.
    */
-  Iterable<Control> getControls();
-
-
-
-  /**
-   * Returns the number of continuation reference URIs in this search
-   * result reference.
-   * 
-   * @return The number of continuation reference URIs.
-   */
-  int getURICount();
-
-
-
-  /**
-   * Returns an {@code Iterable} containing the continuation reference
-   * URIs included with this search result reference. The returned
-   * {@code Iterable} may be used to remove continuation reference URIs
-   * if permitted by this search result reference.
-   * 
-   * @return An {@code Iterable} containing the continuation reference
-   *         URIs.
-   */
-  Iterable<String> getURIs();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * Indicates whether or not this search result reference has any
-   * continuation reference URIs.
-   * 
-   * @return {@code true} if this search result reference has any
-   *         continuation reference URIs, otherwise {@code false}.
-   */
-  boolean hasURIs();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  List<String> getURIs();
 
 }

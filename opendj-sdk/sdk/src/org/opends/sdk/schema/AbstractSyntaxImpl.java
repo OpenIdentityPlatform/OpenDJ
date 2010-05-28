@@ -30,8 +30,8 @@ package org.opends.sdk.schema;
 
 
 /**
- * This class defines the set of methods and structures that must be
- * implemented to define a new attribute syntax.
+ * This class defines the set of methods and structures that must be implemented
+ * to define a new attribute syntax.
  */
 abstract class AbstractSyntaxImpl implements SyntaxImpl
 {

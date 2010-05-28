@@ -29,8 +29,10 @@ package org.opends.sdk.schema;
 
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.opends.sdk.LocalizableMessage;
 
@@ -42,9 +44,9 @@ import com.sun.opends.sdk.util.Validator;
  * An abstract base class for LDAP schema definitions which contain an
  * description, and an optional set of extra properties.
  * <p>
- * This class defines common properties and behaviour of the various
- * types of schema definitions (e.g. object class definitions, and
- * attribute type definitions).
+ * This class defines common properties and behaviour of the various types of
+ * schema definitions (e.g. object class definitions, and attribute type
+ * definitions).
  */
 abstract class SchemaElement
 {
@@ -56,20 +58,22 @@ abstract class SchemaElement
 
 
 
-  SchemaElement(String description,
-      Map<String, List<String>> extraProperties)
+  SchemaElement(final String description,
+      final Map<String, List<String>> extraProperties)
   {
     Validator.ensureNotNull(description, extraProperties);
     this.description = description;
+
+    // Assumes caller has made the map unmodifiable.
     this.extraProperties = extraProperties;
   }
 
 
 
   /**
-   * Retrieves the description for this schema definition.
+   * Returns the description of this schema definition.
    *
-   * @return The description for this schema definition.
+   * @return The description of this schema definition.
    */
   public final String getDescription()
   {
@@ -80,32 +84,32 @@ abstract class SchemaElement
 
 
   /**
-   * Retrieves an iterable over the value(s) of the specified "extra"
+   * Returns an unmodifiable list containing the values of the named "extra"
    * property for this schema definition.
    *
    * @param name
-   *          The name of the "extra" property for which to retrieve the
-   *          value(s).
-   * @return Returns an iterable over the value(s) of the specified
-   *         "extra" property for this schema definition, or
-   *         <code>null</code> if no such property is defined.
+   *          The name of the "extra" property whose values are to be returned.
+   * @return Returns an unmodifiable list containing the values of the named
+   *         "extra" property for this schema definition, which may be empty if
+   *         no such property is defined.
    */
-  public final Iterable<String> getExtraProperty(String name)
+  public final List<String> getExtraProperty(final String name)
   {
 
-    return extraProperties.get(name);
+    final List<String> values = extraProperties.get(name);
+    return values != null ? values : Collections.<String> emptyList();
   }
 
 
 
   /**
-   * Retrieves an iterable over the names of "extra" properties
+   * Returns an unmodifiable set containing the names of the "extra" properties
    * associated with this schema definition.
    *
-   * @return Returns an iterable over the names of "extra" properties
-   *         associated with this schema definition.
+   * @return Returns an unmodifiable set containing the names of the "extra"
+   *         properties associated with this schema definition.
    */
-  public final Iterable<String> getExtraPropertyNames()
+  public final Set<String> getExtraPropertyNames()
   {
 
     return extraProperties.keySet();
@@ -114,11 +118,11 @@ abstract class SchemaElement
 
 
   /**
-   * Builds a string representation of this schema definition in the
-   * form specified in RFC 2252.
+   * Builds a string representation of this schema definition in the form
+   * specified in RFC 2252.
    *
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   final String buildDefinition()
   {
@@ -130,8 +134,7 @@ abstract class SchemaElement
 
     if (!extraProperties.isEmpty())
     {
-      for (final Map.Entry<String, List<String>> e : extraProperties
-          .entrySet())
+      for (final Map.Entry<String, List<String>> e : extraProperties.entrySet())
       {
 
         final String property = e.getKey();
@@ -171,8 +174,8 @@ abstract class SchemaElement
 
 
   /**
-   * Appends a string representation of this schema definition's
-   * non-generic properties to the provided buffer.
+   * Appends a string representation of this schema definition's non-generic
+   * properties to the provided buffer.
    *
    * @param buffer
    *          The buffer to which the information should be appended.

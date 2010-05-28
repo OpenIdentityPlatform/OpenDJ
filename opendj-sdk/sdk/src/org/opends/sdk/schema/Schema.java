@@ -50,8 +50,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 /**
  * This class defines a data structure that holds information about the
- * components of the LDAP schema. It includes the following kinds of
- * elements:
+ * components of the LDAP schema. It includes the following kinds of elements:
  * <UL>
  * <LI>Attribute type definitions</LI>
  * <LI>Object class definitions</LI>
@@ -65,7 +64,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  */
 public final class Schema
 {
-  private static class EmptyImpl implements Impl
+  private static final class EmptyImpl implements Impl
   {
     private final SchemaCompatOptions options;
 
@@ -78,7 +77,7 @@ public final class Schema
 
 
 
-    public AttributeType getAttributeType(String name)
+    public AttributeType getAttributeType(final String name)
     {
       // Construct an placeholder attribute type with the given name,
       // the default matching rule, and the default syntax. The OID of
@@ -89,9 +88,8 @@ public final class Schema
       builder.append("-oid");
       final String noid = builder.toString();
 
-      return new AttributeType(noid, Collections.singletonList(name),
-          "", Schema.getDefaultMatchingRule(), Schema
-              .getDefaultSyntax());
+      return new AttributeType(noid, Collections.singletonList(name), "",
+          Schema.getDefaultMatchingRule(), Schema.getDefaultSyntax());
     }
 
 
@@ -103,18 +101,17 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(String name)
+    public List<AttributeType> getAttributeTypesByName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
-    public DITContentRule getDITContentRule(String name)
+    public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
-      throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(name));
     }
 
 
@@ -126,25 +123,24 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(
-        String name)
+    public Collection<DITContentRule> getDITContentRulesByName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
-    public DITStructureRule getDITStructureRule(int ruleID)
+    public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
-      throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN
-          .get(String.valueOf(ruleID)));
+      throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN.get(String
+          .valueOf(ruleID)));
     }
 
 
 
     public Collection<DITStructureRule> getDITStructureRulesByName(
-        String name)
+        final String name)
     {
       return Collections.emptyList();
     }
@@ -152,7 +148,7 @@ public final class Schema
 
 
     public Collection<DITStructureRule> getDITStructureRulesByNameForm(
-        NameForm nameForm)
+        final NameForm nameForm)
     {
       return Collections.emptyList();
     }
@@ -166,7 +162,7 @@ public final class Schema
 
 
 
-    public MatchingRule getMatchingRule(String name)
+    public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(name));
@@ -181,14 +177,14 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(String name)
+    public Collection<MatchingRule> getMatchingRulesByName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+    public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
         throws UnknownSchemaElementException
     {
       return getMatchingRuleUse(matchingRule.getOID());
@@ -196,11 +192,10 @@ public final class Schema
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(String name)
+    public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
-      throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(name));
     }
 
 
@@ -213,24 +208,23 @@ public final class Schema
 
 
     public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
-        String name)
+        final String name)
     {
       return Collections.emptyList();
     }
 
 
 
-    public NameForm getNameForm(String name)
+    public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
-      throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
     }
 
 
 
     public Collection<NameForm> getNameFormByObjectClass(
-        ObjectClass structuralClass)
+        final ObjectClass structuralClass)
     {
       return Collections.emptyList();
     }
@@ -244,14 +238,14 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormsByName(String name)
+    public Collection<NameForm> getNameFormsByName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
-    public ObjectClass getObjectClass(String name)
+    public ObjectClass getObjectClass(final String name)
         throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN
@@ -267,7 +261,7 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(String name)
+    public Collection<ObjectClass> getObjectClassesByName(final String name)
     {
       return Collections.emptyList();
     }
@@ -291,7 +285,7 @@ public final class Schema
 
 
 
-    public Syntax getSyntax(String numericOID)
+    public Syntax getSyntax(final String numericOID)
     {
       // Fake up a syntax substituted by the default syntax.
       return new Syntax(numericOID);
@@ -313,7 +307,7 @@ public final class Schema
 
 
 
-    public boolean hasAttributeType(String name)
+    public boolean hasAttributeType(final String name)
     {
       // In theory a non-strict schema always contains the requested
       // attribute type, so we could always return true. However, we
@@ -324,49 +318,49 @@ public final class Schema
 
 
 
-    public boolean hasDITContentRule(String name)
+    public boolean hasDITContentRule(final String name)
     {
       return false;
     }
 
 
 
-    public boolean hasDITStructureRule(int ruleID)
+    public boolean hasDITStructureRule(final int ruleID)
     {
       return false;
     }
 
 
 
-    public boolean hasMatchingRule(String name)
+    public boolean hasMatchingRule(final String name)
     {
       return false;
     }
 
 
 
-    public boolean hasMatchingRuleUse(String name)
+    public boolean hasMatchingRuleUse(final String name)
     {
       return false;
     }
 
 
 
-    public boolean hasNameForm(String name)
+    public boolean hasNameForm(final String name)
     {
       return false;
     }
 
 
 
-    public boolean hasObjectClass(String name)
+    public boolean hasObjectClass(final String name)
     {
       return false;
     }
 
 
 
-    public boolean hasSyntax(String numericOID)
+    public boolean hasSyntax(final String numericOID)
     {
       return false;
     }
@@ -458,13 +452,11 @@ public final class Schema
 
 
 
-    NameForm getNameForm(String name)
-        throws UnknownSchemaElementException;
+    NameForm getNameForm(String name) throws UnknownSchemaElementException;
 
 
 
-    Collection<NameForm> getNameFormByObjectClass(
-        ObjectClass structuralClass);
+    Collection<NameForm> getNameFormByObjectClass(ObjectClass structuralClass);
 
 
 
@@ -497,8 +489,7 @@ public final class Schema
 
 
 
-    Syntax getSyntax(String numericOID)
-        throws UnknownSchemaElementException;
+    Syntax getSyntax(String numericOID) throws UnknownSchemaElementException;
 
 
 
@@ -547,20 +538,20 @@ public final class Schema
 
 
 
-  private static class NonStrictImpl implements Impl
+  private static final class NonStrictImpl implements Impl
   {
     private final Impl strictImpl;
 
 
 
-    private NonStrictImpl(Impl strictImpl)
+    private NonStrictImpl(final Impl strictImpl)
     {
       this.strictImpl = strictImpl;
     }
 
 
 
-    public AttributeType getAttributeType(String name)
+    public AttributeType getAttributeType(final String name)
         throws UnknownSchemaElementException
     {
       if (!strictImpl.hasAttributeType(name))
@@ -569,15 +560,13 @@ public final class Schema
         // the default matching rule, and the default syntax. The OID of
         // the attribute will be the normalized OID alias with "-oid"
         // appended to the given name.
-        final StringBuilder builder = new StringBuilder(
-            name.length() + 4);
+        final StringBuilder builder = new StringBuilder(name.length() + 4);
         StaticUtils.toLowerCase(name, builder);
         builder.append("-oid");
         final String noid = builder.toString();
 
-        return new AttributeType(noid, Collections.singletonList(name),
-            "", Schema.getDefaultMatchingRule(), Schema
-                .getDefaultSyntax());
+        return new AttributeType(noid, Collections.singletonList(name), "",
+            Schema.getDefaultMatchingRule(), Schema.getDefaultSyntax());
       }
       return strictImpl.getAttributeType(name);
     }
@@ -591,14 +580,14 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(String name)
+    public List<AttributeType> getAttributeTypesByName(final String name)
     {
       return strictImpl.getAttributeTypesByName(name);
     }
 
 
 
-    public DITContentRule getDITContentRule(String name)
+    public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
       return strictImpl.getDITContentRule(name);
@@ -613,15 +602,14 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(
-        String name)
+    public Collection<DITContentRule> getDITContentRulesByName(final String name)
     {
       return strictImpl.getDITContentRulesByName(name);
     }
 
 
 
-    public DITStructureRule getDITStructureRule(int ruleID)
+    public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
       return strictImpl.getDITStructureRule(ruleID);
@@ -630,7 +618,7 @@ public final class Schema
 
 
     public Collection<DITStructureRule> getDITStructureRulesByName(
-        String name)
+        final String name)
     {
       return strictImpl.getDITStructureRulesByName(name);
     }
@@ -638,7 +626,7 @@ public final class Schema
 
 
     public Collection<DITStructureRule> getDITStructureRulesByNameForm(
-        NameForm nameForm)
+        final NameForm nameForm)
     {
       return strictImpl.getDITStructureRulesByNameForm(nameForm);
     }
@@ -652,7 +640,7 @@ public final class Schema
 
 
 
-    public MatchingRule getMatchingRule(String name)
+    public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRule(name);
@@ -667,14 +655,14 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(String name)
+    public Collection<MatchingRule> getMatchingRulesByName(final String name)
     {
       return strictImpl.getMatchingRulesByName(name);
     }
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+    public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
         throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRuleUse(matchingRule);
@@ -682,7 +670,7 @@ public final class Schema
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(String name)
+    public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRuleUse(name);
@@ -698,14 +686,14 @@ public final class Schema
 
 
     public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
-        String name)
+        final String name)
     {
       return strictImpl.getMatchingRuleUsesByName(name);
     }
 
 
 
-    public NameForm getNameForm(String name)
+    public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
       return strictImpl.getNameForm(name);
@@ -714,7 +702,7 @@ public final class Schema
 
 
     public Collection<NameForm> getNameFormByObjectClass(
-        ObjectClass structuralClass)
+        final ObjectClass structuralClass)
     {
       return strictImpl.getNameFormByObjectClass(structuralClass);
     }
@@ -728,14 +716,14 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormsByName(String name)
+    public Collection<NameForm> getNameFormsByName(final String name)
     {
       return strictImpl.getNameFormsByName(name);
     }
 
 
 
-    public ObjectClass getObjectClass(String name)
+    public ObjectClass getObjectClass(final String name)
         throws UnknownSchemaElementException
     {
       return strictImpl.getObjectClass(name);
@@ -750,7 +738,7 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(String name)
+    public Collection<ObjectClass> getObjectClassesByName(final String name)
     {
       return strictImpl.getObjectClassesByName(name);
     }
@@ -771,7 +759,7 @@ public final class Schema
 
 
 
-    public Syntax getSyntax(String numericOID)
+    public Syntax getSyntax(final String numericOID)
     {
       if (!strictImpl.hasSyntax(numericOID))
       {
@@ -796,7 +784,7 @@ public final class Schema
 
 
 
-    public boolean hasAttributeType(String name)
+    public boolean hasAttributeType(final String name)
     {
       // In theory a non-strict schema always contains the requested
       // attribute type, so we could always return true. However, we
@@ -807,49 +795,49 @@ public final class Schema
 
 
 
-    public boolean hasDITContentRule(String name)
+    public boolean hasDITContentRule(final String name)
     {
       return strictImpl.hasDITContentRule(name);
     }
 
 
 
-    public boolean hasDITStructureRule(int ruleID)
+    public boolean hasDITStructureRule(final int ruleID)
     {
       return strictImpl.hasDITStructureRule(ruleID);
     }
 
 
 
-    public boolean hasMatchingRule(String name)
+    public boolean hasMatchingRule(final String name)
     {
       return strictImpl.hasMatchingRule(name);
     }
 
 
 
-    public boolean hasMatchingRuleUse(String name)
+    public boolean hasMatchingRuleUse(final String name)
     {
       return strictImpl.hasMatchingRuleUse(name);
     }
 
 
 
-    public boolean hasNameForm(String name)
+    public boolean hasNameForm(final String name)
     {
       return strictImpl.hasNameForm(name);
     }
 
 
 
-    public boolean hasObjectClass(String name)
+    public boolean hasObjectClass(final String name)
     {
       return strictImpl.hasObjectClass(name);
     }
 
 
 
-    public boolean hasSyntax(String numericOID)
+    public boolean hasSyntax(final String numericOID)
     {
       return strictImpl.hasSyntax(numericOID);
     }
@@ -864,7 +852,7 @@ public final class Schema
 
 
 
-  private static class StrictImpl implements Impl
+  private static final class StrictImpl implements Impl
   {
     private final Map<Integer, DITStructureRule> id2StructureRules;
 
@@ -908,25 +896,26 @@ public final class Schema
 
 
 
-    private StrictImpl(String schemaName,
-        Map<String, Syntax> numericOID2Syntaxes,
-        Map<String, MatchingRule> numericOID2MatchingRules,
-        Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
-        Map<String, AttributeType> numericOID2AttributeTypes,
-        Map<String, ObjectClass> numericOID2ObjectClasses,
-        Map<String, NameForm> numericOID2NameForms,
-        Map<String, DITContentRule> numericOID2ContentRules,
-        Map<Integer, DITStructureRule> id2StructureRules,
-        Map<String, List<MatchingRule>> name2MatchingRules,
-        Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
-        Map<String, List<AttributeType>> name2AttributeTypes,
-        Map<String, List<ObjectClass>> name2ObjectClasses,
-        Map<String, List<NameForm>> name2NameForms,
-        Map<String, List<DITContentRule>> name2ContentRules,
-        Map<String, List<DITStructureRule>> name2StructureRules,
-        Map<String, List<NameForm>> objectClass2NameForms,
-        Map<String, List<DITStructureRule>> nameForm2StructureRules,
-        SchemaCompatOptions options, List<LocalizableMessage> warnings)
+    private StrictImpl(final String schemaName,
+        final Map<String, Syntax> numericOID2Syntaxes,
+        final Map<String, MatchingRule> numericOID2MatchingRules,
+        final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
+        final Map<String, AttributeType> numericOID2AttributeTypes,
+        final Map<String, ObjectClass> numericOID2ObjectClasses,
+        final Map<String, NameForm> numericOID2NameForms,
+        final Map<String, DITContentRule> numericOID2ContentRules,
+        final Map<Integer, DITStructureRule> id2StructureRules,
+        final Map<String, List<MatchingRule>> name2MatchingRules,
+        final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
+        final Map<String, List<AttributeType>> name2AttributeTypes,
+        final Map<String, List<ObjectClass>> name2ObjectClasses,
+        final Map<String, List<NameForm>> name2NameForms,
+        final Map<String, List<DITContentRule>> name2ContentRules,
+        final Map<String, List<DITStructureRule>> name2StructureRules,
+        final Map<String, List<NameForm>> objectClass2NameForms,
+        final Map<String, List<DITStructureRule>> nameForm2StructureRules,
+        final SchemaCompatOptions options,
+        final List<LocalizableMessage> warnings)
     {
       this.schemaName = schemaName;
       this.numericOID2Syntaxes = Collections
@@ -943,19 +932,15 @@ public final class Schema
           .unmodifiableMap(numericOID2NameForms);
       this.numericOID2ContentRules = Collections
           .unmodifiableMap(numericOID2ContentRules);
-      this.id2StructureRules = Collections
-          .unmodifiableMap(id2StructureRules);
-      this.name2MatchingRules = Collections
-          .unmodifiableMap(name2MatchingRules);
+      this.id2StructureRules = Collections.unmodifiableMap(id2StructureRules);
+      this.name2MatchingRules = Collections.unmodifiableMap(name2MatchingRules);
       this.name2MatchingRuleUses = Collections
           .unmodifiableMap(name2MatchingRuleUses);
       this.name2AttributeTypes = Collections
           .unmodifiableMap(name2AttributeTypes);
-      this.name2ObjectClasses = Collections
-          .unmodifiableMap(name2ObjectClasses);
+      this.name2ObjectClasses = Collections.unmodifiableMap(name2ObjectClasses);
       this.name2NameForms = Collections.unmodifiableMap(name2NameForms);
-      this.name2ContentRules = Collections
-          .unmodifiableMap(name2ContentRules);
+      this.name2ContentRules = Collections.unmodifiableMap(name2ContentRules);
       this.name2StructureRules = Collections
           .unmodifiableMap(name2StructureRules);
       this.objectClass2NameForms = Collections
@@ -968,7 +953,7 @@ public final class Schema
 
 
 
-    public AttributeType getAttributeType(String name)
+    public AttributeType getAttributeType(final String name)
         throws UnknownSchemaElementException
     {
       final AttributeType type = numericOID2AttributeTypes.get(name);
@@ -984,11 +969,10 @@ public final class Schema
         {
           return attributes.get(0);
         }
-        throw new UnknownSchemaElementException(
-            WARN_ATTR_TYPE_AMBIGIOUS.get(name));
+        throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGIOUS
+            .get(name));
       }
-      throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
     }
 
 
@@ -1000,7 +984,7 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(String name)
+    public List<AttributeType> getAttributeTypesByName(final String name)
     {
       final List<AttributeType> attributes = name2AttributeTypes
           .get(StaticUtils.toLowerCase(name));
@@ -1016,7 +1000,7 @@ public final class Schema
 
 
 
-    public DITContentRule getDITContentRule(String name)
+    public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
       final DITContentRule rule = numericOID2ContentRules.get(name);
@@ -1024,19 +1008,17 @@ public final class Schema
       {
         return rule;
       }
-      final List<DITContentRule> rules = name2ContentRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<DITContentRule> rules = name2ContentRules.get(StaticUtils
+          .toLowerCase(name));
       if (rules != null)
       {
         if (rules.size() == 1)
         {
           return rules.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_DCR_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(WARN_DCR_AMBIGIOUS.get(name));
       }
-      throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(name));
     }
 
 
@@ -1048,11 +1030,10 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(
-        String name)
+    public Collection<DITContentRule> getDITContentRulesByName(final String name)
     {
-      final List<DITContentRule> rules = name2ContentRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<DITContentRule> rules = name2ContentRules.get(StaticUtils
+          .toLowerCase(name));
       if (rules == null)
       {
         return Collections.emptyList();
@@ -1065,14 +1046,14 @@ public final class Schema
 
 
 
-    public DITStructureRule getDITStructureRule(int ruleID)
+    public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
       final DITStructureRule rule = id2StructureRules.get(ruleID);
       if (rule == null)
       {
-        throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN
-            .get(String.valueOf(ruleID)));
+        throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN.get(String
+            .valueOf(ruleID)));
       }
       return rule;
     }
@@ -1080,10 +1061,10 @@ public final class Schema
 
 
     public Collection<DITStructureRule> getDITStructureRulesByName(
-        String name)
+        final String name)
     {
-      final List<DITStructureRule> rules = name2StructureRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<DITStructureRule> rules = name2StructureRules.get(StaticUtils
+          .toLowerCase(name));
       if (rules == null)
       {
         return Collections.emptyList();
@@ -1097,10 +1078,10 @@ public final class Schema
 
 
     public Collection<DITStructureRule> getDITStructureRulesByNameForm(
-        NameForm nameForm)
+        final NameForm nameForm)
     {
-      final List<DITStructureRule> rules = nameForm2StructureRules
-          .get(nameForm.getOID());
+      final List<DITStructureRule> rules = nameForm2StructureRules.get(nameForm
+          .getOID());
       if (rules == null)
       {
         return Collections.emptyList();
@@ -1120,7 +1101,7 @@ public final class Schema
 
 
 
-    public MatchingRule getMatchingRule(String name)
+    public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
       final MatchingRule rule = numericOID2MatchingRules.get(name);
@@ -1128,16 +1109,15 @@ public final class Schema
       {
         return rule;
       }
-      final List<MatchingRule> rules = name2MatchingRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils
+          .toLowerCase(name));
       if (rules != null)
       {
         if (rules.size() == 1)
         {
           return rules.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_MR_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(WARN_MR_AMBIGIOUS.get(name));
       }
       throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(name));
     }
@@ -1151,10 +1131,10 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(String name)
+    public Collection<MatchingRule> getMatchingRulesByName(final String name)
     {
-      final List<MatchingRule> rules = name2MatchingRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils
+          .toLowerCase(name));
       if (rules == null)
       {
         return Collections.emptyList();
@@ -1167,7 +1147,7 @@ public final class Schema
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+    public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
         throws UnknownSchemaElementException
     {
       return getMatchingRuleUse(matchingRule.getOID());
@@ -1175,28 +1155,25 @@ public final class Schema
 
 
 
-    public MatchingRuleUse getMatchingRuleUse(String name)
+    public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
-      final MatchingRuleUse rule = numericOID2MatchingRuleUses
-          .get(name);
+      final MatchingRuleUse rule = numericOID2MatchingRuleUses.get(name);
       if (rule != null)
       {
         return rule;
       }
-      final List<MatchingRuleUse> uses = name2MatchingRuleUses
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRuleUse> uses = name2MatchingRuleUses.get(StaticUtils
+          .toLowerCase(name));
       if (uses != null)
       {
         if (uses.size() == 1)
         {
           return uses.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_MRU_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(WARN_MRU_AMBIGIOUS.get(name));
       }
-      throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(name));
     }
 
 
@@ -1209,10 +1186,10 @@ public final class Schema
 
 
     public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
-        String name)
+        final String name)
     {
-      final List<MatchingRuleUse> rules = name2MatchingRuleUses
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRuleUse> rules = name2MatchingRuleUses.get(StaticUtils
+          .toLowerCase(name));
       if (rules == null)
       {
         return Collections.emptyList();
@@ -1225,7 +1202,7 @@ public final class Schema
 
 
 
-    public NameForm getNameForm(String name)
+    public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
       final NameForm form = numericOID2NameForms.get(name);
@@ -1244,17 +1221,16 @@ public final class Schema
         throw new UnknownSchemaElementException(WARN_NAMEFORM_AMBIGIOUS
             .get(name));
       }
-      throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
     }
 
 
 
     public Collection<NameForm> getNameFormByObjectClass(
-        ObjectClass structuralClass)
+        final ObjectClass structuralClass)
     {
-      final List<NameForm> forms = objectClass2NameForms
-          .get(structuralClass.getOID());
+      final List<NameForm> forms = objectClass2NameForms.get(structuralClass
+          .getOID());
       if (forms == null)
       {
         return Collections.emptyList();
@@ -1274,7 +1250,7 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormsByName(String name)
+    public Collection<NameForm> getNameFormsByName(final String name)
     {
       final List<NameForm> forms = name2NameForms.get(StaticUtils
           .toLowerCase(name));
@@ -1290,7 +1266,7 @@ public final class Schema
 
 
 
-    public ObjectClass getObjectClass(String name)
+    public ObjectClass getObjectClass(final String name)
         throws UnknownSchemaElementException
     {
       final ObjectClass oc = numericOID2ObjectClasses.get(name);
@@ -1298,16 +1274,16 @@ public final class Schema
       {
         return oc;
       }
-      final List<ObjectClass> classes = name2ObjectClasses
-          .get(StaticUtils.toLowerCase(name));
+      final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils
+          .toLowerCase(name));
       if (classes != null)
       {
         if (classes.size() == 1)
         {
           return classes.get(0);
         }
-        throw new UnknownSchemaElementException(
-            WARN_OBJECTCLASS_AMBIGIOUS.get(name));
+        throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGIOUS
+            .get(name));
       }
       throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN
           .get(name));
@@ -1322,10 +1298,10 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(String name)
+    public Collection<ObjectClass> getObjectClassesByName(final String name)
     {
-      final List<ObjectClass> classes = name2ObjectClasses
-          .get(StaticUtils.toLowerCase(name));
+      final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils
+          .toLowerCase(name));
       if (classes == null)
       {
         return Collections.emptyList();
@@ -1352,7 +1328,7 @@ public final class Schema
 
 
 
-    public Syntax getSyntax(String numericOID)
+    public Syntax getSyntax(final String numericOID)
         throws UnknownSchemaElementException
     {
       final Syntax syntax = numericOID2Syntaxes.get(numericOID);
@@ -1380,7 +1356,7 @@ public final class Schema
 
 
 
-    public boolean hasAttributeType(String name)
+    public boolean hasAttributeType(final String name)
     {
       if (numericOID2AttributeTypes.containsKey(name))
       {
@@ -1393,53 +1369,53 @@ public final class Schema
 
 
 
-    public boolean hasDITContentRule(String name)
+    public boolean hasDITContentRule(final String name)
     {
       if (numericOID2ContentRules.containsKey(name))
       {
         return true;
       }
-      final List<DITContentRule> rules = name2ContentRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<DITContentRule> rules = name2ContentRules.get(StaticUtils
+          .toLowerCase(name));
       return rules != null && rules.size() == 1;
     }
 
 
 
-    public boolean hasDITStructureRule(int ruleID)
+    public boolean hasDITStructureRule(final int ruleID)
     {
       return id2StructureRules.containsKey(ruleID);
     }
 
 
 
-    public boolean hasMatchingRule(String name)
+    public boolean hasMatchingRule(final String name)
     {
       if (numericOID2MatchingRules.containsKey(name))
       {
         return true;
       }
-      final List<MatchingRule> rules = name2MatchingRules
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils
+          .toLowerCase(name));
       return rules != null && rules.size() == 1;
     }
 
 
 
-    public boolean hasMatchingRuleUse(String name)
+    public boolean hasMatchingRuleUse(final String name)
     {
       if (numericOID2MatchingRuleUses.containsKey(name))
       {
         return true;
       }
-      final List<MatchingRuleUse> uses = name2MatchingRuleUses
-          .get(StaticUtils.toLowerCase(name));
+      final List<MatchingRuleUse> uses = name2MatchingRuleUses.get(StaticUtils
+          .toLowerCase(name));
       return uses != null && uses.size() == 1;
     }
 
 
 
-    public boolean hasNameForm(String name)
+    public boolean hasNameForm(final String name)
     {
       if (numericOID2NameForms.containsKey(name))
       {
@@ -1452,20 +1428,20 @@ public final class Schema
 
 
 
-    public boolean hasObjectClass(String name)
+    public boolean hasObjectClass(final String name)
     {
       if (numericOID2ObjectClasses.containsKey(name))
       {
         return true;
       }
-      final List<ObjectClass> classes = name2ObjectClasses
-          .get(StaticUtils.toLowerCase(name));
+      final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils
+          .toLowerCase(name));
       return classes != null && classes.size() == 1;
     }
 
 
 
-    public boolean hasSyntax(String numericOID)
+    public boolean hasSyntax(final String numericOID)
     {
       return numericOID2Syntaxes.containsKey(numericOID);
     }
@@ -1480,53 +1456,39 @@ public final class Schema
 
 
 
-  private static final Schema CORE_SCHEMA = CoreSchemaImpl
-      .getInstance();
+  private static final Schema CORE_SCHEMA = CoreSchemaImpl.getInstance();
 
   private static final Schema EMPTY_SCHEMA = new Schema(new EmptyImpl());
 
-  private static volatile Schema DEFAULT_SCHEMA = CoreSchemaImpl
-      .getInstance();
+  private static volatile Schema defaultSchema = CoreSchemaImpl.getInstance();
 
-  private static final AttributeDescription ATTR_ATTRIBUTE_TYPES = AttributeDescription
-      .valueOf("attributeTypes");
+  private static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
 
-  private static final AttributeDescription ATTR_DIT_CONTENT_RULES = AttributeDescription
-      .valueOf("dITContentRules");
+  private static final String ATTR_DIT_CONTENT_RULES = "dITContentRules";
 
-  private static final AttributeDescription ATTR_DIT_STRUCTURE_RULES = AttributeDescription
-      .valueOf("dITStructureRules");
+  private static final String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
 
-  private static final AttributeDescription ATTR_LDAP_SYNTAXES = AttributeDescription
-      .valueOf("ldapSyntaxes");
+  private static final String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
 
-  private static final AttributeDescription ATTR_MATCHING_RULE_USE = AttributeDescription
-      .valueOf("matchingRuleUse");
+  private static final String ATTR_MATCHING_RULE_USE = "matchingRuleUse";
 
-  private static final AttributeDescription ATTR_MATCHING_RULES = AttributeDescription
-      .valueOf("matchingRules");
+  private static final String ATTR_MATCHING_RULES = "matchingRules";
 
-  private static final AttributeDescription ATTR_NAME_FORMS = AttributeDescription
-      .valueOf("nameForms");
+  private static final String ATTR_NAME_FORMS = "nameForms";
 
-  private static final AttributeDescription ATTR_OBJECT_CLASSES = AttributeDescription
-      .valueOf("objectClasses");
+  private static final String ATTR_OBJECT_CLASSES = "objectClasses";
 
-  private static final AttributeDescription ATTR_SUBSCHEMA_SUBENTRY = AttributeDescription
-      .valueOf("subschemaSubentry");
+  private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
 
   private static final String[] SUBSCHEMA_ATTRS = new String[] {
       ATTR_LDAP_SYNTAXES.toString(), ATTR_ATTRIBUTE_TYPES.toString(),
-      ATTR_DIT_CONTENT_RULES.toString(),
-      ATTR_DIT_STRUCTURE_RULES.toString(),
-      ATTR_MATCHING_RULE_USE.toString(),
-      ATTR_MATCHING_RULES.toString(), ATTR_NAME_FORMS.toString(),
-      ATTR_OBJECT_CLASSES.toString() };
+      ATTR_DIT_CONTENT_RULES.toString(), ATTR_DIT_STRUCTURE_RULES.toString(),
+      ATTR_MATCHING_RULE_USE.toString(), ATTR_MATCHING_RULES.toString(),
+      ATTR_NAME_FORMS.toString(), ATTR_OBJECT_CLASSES.toString() };
 
-  private static final Filter SUBSCHEMA_FILTER = Filter
-      .newEqualityMatchFilter(CoreSchema.getObjectClassAttributeType()
-          .getNameOrOID(), CoreSchema.getSubschemaObjectClass()
-          .getNameOrOID());
+  private static final Filter SUBSCHEMA_FILTER = Filter.newEqualityMatchFilter(
+      CoreSchema.getObjectClassAttributeType().getNameOrOID(), CoreSchema
+          .getSubschemaObjectClass().getNameOrOID());
 
   private static final String[] SUBSCHEMA_SUBENTRY_ATTRS = new String[] { ATTR_SUBSCHEMA_SUBENTRY
       .toString() };
@@ -1534,23 +1496,19 @@ public final class Schema
 
 
   /**
-   * Returns the core schema. The core schema is non-strict and contains
-   * the following standard LDAP schema elements:
+   * Returns the core schema. The core schema is non-strict and contains the
+   * following standard LDAP schema elements:
    * <ul>
-   * <li><a href="http://tools.ietf.org/html/rfc4512">RFC 4512 -
-   * Lightweight Directory Access Protocol (LDAP): Directory Information
-   * Models </a>
-   * <li><a href="http://tools.ietf.org/html/rfc4517">RFC 4517 -
-   * Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching
-   * Rules </a>
-   * <li><a href="http://tools.ietf.org/html/rfc4519">RFC 4519 -
-   * Lightweight Directory Access Protocol (LDAP): Schema for User
-   * Applications </a>
-   * <li><a href="http://tools.ietf.org/html/rfc4530">RFC 4530 -
-   * Lightweight Directory Access Protocol (LDAP): entryUUID Operational
-   * Attribute </a>
-   * <li><a href="http://tools.ietf.org/html/rfc3045">RFC 3045 - Storing
-   * Vendor Information in the LDAP root DSE </a>
+   * <li><a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
+   * Directory Access Protocol (LDAP): Directory Information Models </a>
+   * <li><a href="http://tools.ietf.org/html/rfc4517">RFC 4517 - Lightweight
+   * Directory Access Protocol (LDAP): Syntaxes and Matching Rules </a>
+   * <li><a href="http://tools.ietf.org/html/rfc4519">RFC 4519 - Lightweight
+   * Directory Access Protocol (LDAP): Schema for User Applications </a>
+   * <li><a href="http://tools.ietf.org/html/rfc4530">RFC 4530 - Lightweight
+   * Directory Access Protocol (LDAP): entryUUID Operational Attribute </a>
+   * <li><a href="http://tools.ietf.org/html/rfc3045">RFC 3045 - Storing Vendor
+   * Information in the LDAP root DSE </a>
    * <li><a href="http://tools.ietf.org/html/rfc3112">RFC 3112 - LDAP
    * Authentication Password Schema </a>
    * </ul>
@@ -1565,23 +1523,21 @@ public final class Schema
 
 
   /**
-   * Returns the default schema which should be used by this
-   * application. The default schema is initially set to the core
-   * schema.
+   * Returns the default schema which should be used by this application. The
+   * default schema is initially set to the core schema.
    *
-   * @return The default schema which should be used by this
-   *         application.
+   * @return The default schema which should be used by this application.
    */
   public static Schema getDefaultSchema()
   {
-    return DEFAULT_SCHEMA;
+    return defaultSchema;
   }
 
 
 
   /**
-   * Returns the empty schema. The empty schema is non-strict and does
-   * not contain any schema elements.
+   * Returns the empty schema. The empty schema is non-strict and does not
+   * contain any schema elements.
    *
    * @return The empty schema.
    */
@@ -1593,49 +1549,47 @@ public final class Schema
 
 
   /**
-   * Reads the schema from the Directory Server contained in the named
-   * subschema sub-entry.
+   * Reads the schema from the Directory Server contained in the named subschema
+   * sub-entry.
    * <p>
-   * If the requested schema is not returned by the Directory Server
-   * then the request will fail with an {@link EntryNotFoundException}.
-   * More specifically, the returned future will never return {@code
-   * null}.
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}.
    * <p>
-   * Implementations may choose to perform optimizations such as
-   * caching.
+   * This method uses a Search operation to read the schema and does not perform
+   * caching. More specifically, it does not use the
+   * {@link AsynchronousConnection#readSchema} method.
    *
    * @param connection
-   *          A connection to the Directory Server whose schema is to be
-   *          read.
+   *          A connection to the Directory Server whose schema is to be read.
    * @param name
    *          The distinguished name of the subschema sub-entry.
    * @param handler
-   *          A result handler which can be used to asynchronously
-   *          process the operation result when it is received, may be
-   *          {@code null}.
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
+   *           If this connection has already been closed, i.e. if {@code
+   *           isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code
-   *           null}.
+   *           If the {@code connection} or {@code name} was {@code null}.
    */
   public static FutureResult<Schema> readSchema(
-      AsynchronousConnection connection, DN name,
-      ResultHandler<? super Schema> handler)
+      final AsynchronousConnection connection, final DN name,
+      final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
     final SearchRequest request = getReadSchemaSearchRequest(name);
 
-    final FutureResultTransformer<SearchResultEntry, Schema> future = new FutureResultTransformer<SearchResultEntry, Schema>(
-        handler)
+    final FutureResultTransformer<SearchResultEntry, Schema> future =
+      new FutureResultTransformer<SearchResultEntry, Schema>(handler)
     {
 
-      protected Schema transformResult(SearchResultEntry result)
+      @Override
+      protected Schema transformResult(final SearchResultEntry result)
           throws ErrorResultException
       {
         return valueOf(result);
@@ -1652,34 +1606,36 @@ public final class Schema
 
 
   /**
-   * Reads the schema from the Directory Server contained in the named
-   * subschema sub-entry using the provided connection.
+   * Reads the schema from the Directory Server contained in the named subschema
+   * sub-entry using the provided connection.
    * <p>
-   * If the requested schema is not returned by the Directory Server
-   * then the request will fail with an {@link EntryNotFoundException}.
-   * More specifically, this method will never return {@code null}.
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, this method will never return {@code null}.
+   * <p>
+   * This method uses a Search operation to read the schema and does not perform
+   * caching. More specifically, it does not use the
+   * {@link Connection#readSchema} method.
    *
    * @param connection
-   *          A connection to the Directory Server whose schema is to be
-   *          read.
+   *          A connection to the Directory Server whose schema is to be read.
    * @param name
    *          The distinguished name of the subschema sub-entry.
    * @return The schema from the Directory Server.
    * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
    * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
+   *           If the connection has already been closed, i.e. if {@code
+   *           isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code
-   *           null}.
+   *           If the {@code connection} or {@code name} was {@code null}.
    */
-  public static Schema readSchema(Connection connection, DN name)
+  public static Schema readSchema(final Connection connection, final DN name)
       throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -1692,52 +1648,49 @@ public final class Schema
 
 
   /**
-   * Reads the schema from the Directory Server which applies to the
-   * named entry.
+   * Reads the schema from the Directory Server which applies to the named
+   * entry.
    * <p>
-   * If the requested entry or its associated schema are not returned by
-   * the Directory Server then the request will fail with an
-   * {@link EntryNotFoundException}. More specifically, the returned
-   * future will never return {@code null}.
+   * If the requested entry or its associated schema are not returned by the
+   * Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, the returned future will
+   * never return {@code null}.
    * <p>
-   * A typical implementation will first read the {@code
-   * subschemaSubentry} attribute of the entry in order to locate the
-   * schema. However, implementations may choose to perform other
-   * optimizations, such as caching.
+   * This implementation first reads the {@code subschemaSubentry} attribute of
+   * the entry in order to identify the schema and then invokes
+   * {@link #readSchema} to read the schema. More specifically, it does not use
+   * the {@link AsynchronousConnection#readSchemaForEntry} method.
    *
    * @param connection
-   *          A connection to the Directory Server whose schema is to be
-   *          read.
+   *          A connection to the Directory Server whose schema is to be read.
    * @param name
-   *          The distinguished name of the entry whose schema is to be
-   *          located.
+   *          The distinguished name of the entry whose schema is to be located.
    * @param handler
-   *          A result handler which can be used to asynchronously
-   *          process the operation result when it is received, may be
-   *          {@code null}.
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
    * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
+   *           If this connection has already been closed, i.e. if {@code
+   *           isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code
-   *           null}.
+   *           If the {@code connection} or {@code name} was {@code null}.
    */
   public static FutureResult<Schema> readSchemaForEntry(
       final AsynchronousConnection connection, final DN name,
-      ResultHandler<Schema> handler)
+      final ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final RecursiveFutureResult<SearchResultEntry, Schema> future = new RecursiveFutureResult<SearchResultEntry, Schema>(
-        handler)
+    final RecursiveFutureResult<SearchResultEntry, Schema> future =
+      new RecursiveFutureResult<SearchResultEntry, Schema>(handler)
     {
 
+      @Override
       protected FutureResult<Schema> chainResult(
-          SearchResultEntry innerResult,
-          ResultHandler<? super Schema> handler)
+          final SearchResultEntry innerResult,
+          final ResultHandler<? super Schema> handler)
           throws ErrorResultException
       {
         final DN subschemaDN = getSubschemaSubentryDN(name, innerResult);
@@ -1756,43 +1709,40 @@ public final class Schema
 
 
   /**
-   * Reads the schema from the Directory Server which applies to the
-   * named entry using the provided connection.
+   * Reads the schema from the Directory Server which applies to the named entry
+   * using the provided connection.
    * <p>
-   * If the requested entry or its associated schema are not returned by
-   * the Directory Server then the request will fail with an
-   * {@link EntryNotFoundException}. More specifically, this method will
-   * never return {@code null}.
+   * If the requested entry or its associated schema are not returned by the
+   * Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}. More specifically, this method will never
+   * return {@code null}.
    * <p>
-   * A typical implementation will first read the {@code
-   * subschemaSubentry} attribute of the entry in order to locate the
-   * schema. However, implementations may choose to perform other
-   * optimizations, such as caching.
+   * This implementation first reads the {@code subschemaSubentry} attribute of
+   * the entry in order to identify the schema and then invokes
+   * {@link #readSchema} to read the schema. More specifically, it does not use
+   * the {@link Connection#readSchemaForEntry} method.
    *
    * @param connection
-   *          A connection to the Directory Server whose schema is to be
-   *          read.
+   *          A connection to the Directory Server whose schema is to be read.
    * @param name
-   *          The distinguished name of the entry whose schema is to be
-   *          located.
-   * @return The schema from the Directory Server which applies to the
-   *         named entry.
+   *          The distinguished name of the entry whose schema is to be located.
+   * @return The schema from the Directory Server which applies to the named
+   *         entry.
    * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
    * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
+   *           If the connection has already been closed, i.e. if {@code
+   *           isClosed() == true}.
    * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code
-   *           null}.
+   *           If the {@code connection} or {@code name} was {@code null}.
    */
-  public static Schema readSchemaForEntry(Connection connection, DN name)
-      throws ErrorResultException, InterruptedException,
+  public static Schema readSchemaForEntry(final Connection connection,
+      final DN name) throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -1806,33 +1756,31 @@ public final class Schema
 
 
   /**
-   * Sets the default schema which should be used by this application.
-   * The default schema is initially set to the core schema.
+   * Sets the default schema which should be used by this application. The
+   * default schema is initially set to the core schema.
    *
    * @param schema
-   *          The default schema which should be used by this
-   *          application.
+   *          The default schema which should be used by this application.
    */
-  public static void setDefaultSchema(Schema schema)
+  public static void setDefaultSchema(final Schema schema)
   {
-    DEFAULT_SCHEMA = schema;
+    defaultSchema = schema;
   }
 
 
 
   /**
-   * Parses the provided entry as a subschema subentry. Any problems
-   * encountered while parsing the entry can be retrieved using the
-   * returned schema's {@link #getWarnings()} method.
+   * Parses the provided entry as a subschema subentry. Any problems encountered
+   * while parsing the entry can be retrieved using the returned schema's
+   * {@link #getWarnings()} method.
    *
    * @param entry
    *          The subschema subentry to be parsed.
    * @return The parsed schema.
    */
-  public static Schema valueOf(Entry entry)
+  public static Schema valueOf(final Entry entry)
   {
-    final SchemaBuilder builder = new SchemaBuilder(entry.getName()
-        .toString());
+    final SchemaBuilder builder = new SchemaBuilder(entry.getName().toString());
 
     Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
     if (attr != null)
@@ -1967,63 +1915,6 @@ public final class Schema
 
 
 
-  // Constructs a search request for retrieving the subschemaSubentry
-  // attribute from the named entry.
-  private static SearchRequest getReadSchemaForEntrySearchRequest(DN dn)
-  {
-    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-        Filter.getObjectClassPresentFilter(), SUBSCHEMA_SUBENTRY_ATTRS);
-  }
-
-
-
-  // Constructs a search request for retrieving the named subschema
-  // sub-entry.
-  private static SearchRequest getReadSchemaSearchRequest(DN dn)
-  {
-    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
-  }
-
-
-
-  private static DN getSubschemaSubentryDN(DN name, final Entry entry)
-      throws ErrorResultException
-  {
-    final Attribute subentryAttr = entry
-        .getAttribute(ATTR_SUBSCHEMA_SUBENTRY);
-
-    if (subentryAttr == null || subentryAttr.isEmpty())
-    {
-      // Did not get the subschema sub-entry attribute.
-      final Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
-          .setDiagnosticMessage(
-              ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString())
-                  .toString());
-      throw ErrorResultException.wrap(result);
-    }
-
-    final String dnString = subentryAttr.iterator().next().toString();
-    DN subschemaDN;
-    try
-    {
-      subschemaDN = DN.valueOf(dnString);
-    }
-    catch (final LocalizedIllegalArgumentException e)
-    {
-      final Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
-          .setDiagnosticMessage(
-              ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(),
-                  dnString, e.getMessageObject()).toString());
-      throw ErrorResultException.wrap(result);
-    }
-    return subschemaDN;
-  }
-
-
-
   static MatchingRule getDefaultMatchingRule()
   {
     return CoreSchema.getOctetStringMatchingRule();
@@ -2038,44 +1929,98 @@ public final class Schema
 
 
 
-  private final Impl impl;
-
-
-
-  private Schema(Impl impl)
+  // Constructs a search request for retrieving the subschemaSubentry
+  // attribute from the named entry.
+  private static SearchRequest getReadSchemaForEntrySearchRequest(final DN dn)
   {
-    this.impl = impl;
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, Filter
+        .getObjectClassPresentFilter(), SUBSCHEMA_SUBENTRY_ATTRS);
   }
 
 
 
-  Schema(String schemaName, Map<String, Syntax> numericOID2Syntaxes,
-      Map<String, MatchingRule> numericOID2MatchingRules,
-      Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
-      Map<String, AttributeType> numericOID2AttributeTypes,
-      Map<String, ObjectClass> numericOID2ObjectClasses,
-      Map<String, NameForm> numericOID2NameForms,
-      Map<String, DITContentRule> numericOID2ContentRules,
-      Map<Integer, DITStructureRule> id2StructureRules,
-      Map<String, List<MatchingRule>> name2MatchingRules,
-      Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
-      Map<String, List<AttributeType>> name2AttributeTypes,
-      Map<String, List<ObjectClass>> name2ObjectClasses,
-      Map<String, List<NameForm>> name2NameForms,
-      Map<String, List<DITContentRule>> name2ContentRules,
-      Map<String, List<DITStructureRule>> name2StructureRules,
-      Map<String, List<NameForm>> objectClass2NameForms,
-      Map<String, List<DITStructureRule>> nameForm2StructureRules,
-      SchemaCompatOptions options, List<LocalizableMessage> warnings)
+  // Constructs a search request for retrieving the named subschema
+  // sub-entry.
+  private static SearchRequest getReadSchemaSearchRequest(final DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
+  }
+
+
+
+  private static DN getSubschemaSubentryDN(final DN name, final Entry entry)
+      throws ErrorResultException
+  {
+    final Attribute subentryAttr = entry.getAttribute(ATTR_SUBSCHEMA_SUBENTRY);
+
+    if (subentryAttr == null || subentryAttr.isEmpty())
+    {
+      // Did not get the subschema sub-entry attribute.
+      final Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
+          ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString()).toString());
+      throw ErrorResultException.wrap(result);
+    }
+
+    final String dnString = subentryAttr.iterator().next().toString();
+    DN subschemaDN;
+    try
+    {
+      subschemaDN = DN.valueOf(dnString);
+    }
+    catch (final LocalizedIllegalArgumentException e)
+    {
+      final Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
+          ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(), dnString,
+              e.getMessageObject()).toString());
+      throw ErrorResultException.wrap(result);
+    }
+    return subschemaDN;
+  }
+
+
+
+  private final Impl impl;
+
+
+
+  Schema(final String schemaName,
+      final Map<String, Syntax> numericOID2Syntaxes,
+      final Map<String, MatchingRule> numericOID2MatchingRules,
+      final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
+      final Map<String, AttributeType> numericOID2AttributeTypes,
+      final Map<String, ObjectClass> numericOID2ObjectClasses,
+      final Map<String, NameForm> numericOID2NameForms,
+      final Map<String, DITContentRule> numericOID2ContentRules,
+      final Map<Integer, DITStructureRule> id2StructureRules,
+      final Map<String, List<MatchingRule>> name2MatchingRules,
+      final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
+      final Map<String, List<AttributeType>> name2AttributeTypes,
+      final Map<String, List<ObjectClass>> name2ObjectClasses,
+      final Map<String, List<NameForm>> name2NameForms,
+      final Map<String, List<DITContentRule>> name2ContentRules,
+      final Map<String, List<DITStructureRule>> name2StructureRules,
+      final Map<String, List<NameForm>> objectClass2NameForms,
+      final Map<String, List<DITStructureRule>> nameForm2StructureRules,
+      final SchemaCompatOptions options, final List<LocalizableMessage> warnings)
   {
     impl = new StrictImpl(schemaName, numericOID2Syntaxes,
         numericOID2MatchingRules, numericOID2MatchingRuleUses,
         numericOID2AttributeTypes, numericOID2ObjectClasses,
-        numericOID2NameForms, numericOID2ContentRules,
-        id2StructureRules, name2MatchingRules, name2MatchingRuleUses,
-        name2AttributeTypes, name2ObjectClasses, name2NameForms,
-        name2ContentRules, name2StructureRules, objectClass2NameForms,
-        nameForm2StructureRules, options, warnings);
+        numericOID2NameForms, numericOID2ContentRules, id2StructureRules,
+        name2MatchingRules, name2MatchingRuleUses, name2AttributeTypes,
+        name2ObjectClasses, name2NameForms, name2ContentRules,
+        name2StructureRules, objectClass2NameForms, nameForm2StructureRules,
+        options, warnings);
+  }
+
+
+
+  private Schema(final Impl impl)
+  {
+    this.impl = impl;
   }
 
 
@@ -2087,10 +2032,10 @@ public final class Schema
    *          The name or OID of the attribute type to retrieve.
    * @return The requested attribute type.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested attribute
-   *           type was not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested attribute type was
+   *           not found or if the provided name is ambiguous.
    */
-  public AttributeType getAttributeType(String name)
+  public AttributeType getAttributeType(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getAttributeType(name);
@@ -2099,11 +2044,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the attribute
-   * types contained in this schema.
+   * Returns an unmodifiable collection containing all of the attribute types
+   * contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the attribute
-   *         types contained in this schema.
+   * @return An unmodifiable collection containing all of the attribute types
+   *         contained in this schema.
    */
   public Collection<AttributeType> getAttributeTypes()
   {
@@ -2113,15 +2058,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the attribute
-   * types having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the attribute types
+   * having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the attribute types to retrieve.
-   * @return An unmodifiable collection containing all of the attribute
-   *         types having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the attribute types
+   *         having the specified name or numeric OID.
    */
-  public List<AttributeType> getAttributeTypesByName(String name)
+  public List<AttributeType> getAttributeTypesByName(final String name)
   {
     return impl.getAttributeTypesByName(name);
   }
@@ -2129,17 +2074,16 @@ public final class Schema
 
 
   /**
-   * Returns the DIT content rule with the specified name or numeric
-   * OID.
+   * Returns the DIT content rule with the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the DIT content rule to retrieve.
    * @return The requested DIT content rule.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested DIT content
-   *           rule was not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested DIT content rule was
+   *           not found or if the provided name is ambiguous.
    */
-  public DITContentRule getDITContentRule(String name)
+  public DITContentRule getDITContentRule(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getDITContentRule(name);
@@ -2148,11 +2092,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the DIT
-   * content rules contained in this schema.
+   * Returns an unmodifiable collection containing all of the DIT content rules
+   * contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the DIT
-   *         content rules contained in this schema.
+   * @return An unmodifiable collection containing all of the DIT content rules
+   *         contained in this schema.
    */
   public Collection<DITContentRule> getDITContentRules()
   {
@@ -2162,15 +2106,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the DIT
-   * content rules having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the DIT content rules
+   * having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the DIT content rules to retrieve.
-   * @return An unmodifiable collection containing all of the DIT
-   *         content rules having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the DIT content rules
+   *         having the specified name or numeric OID.
    */
-  public Collection<DITContentRule> getDITContentRulesByName(String name)
+  public Collection<DITContentRule> getDITContentRulesByName(final String name)
   {
     return impl.getDITContentRulesByName(name);
   }
@@ -2178,17 +2122,16 @@ public final class Schema
 
 
   /**
-   * Returns the DIT structure rule with the specified name or numeric
-   * OID.
+   * Returns the DIT structure rule with the specified name or numeric OID.
    *
    * @param ruleID
    *          The ID of the DIT structure rule to retrieve.
    * @return The requested DIT structure rule.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested DIT
-   *           structure rule was not found.
+   *           If this is a strict schema and the requested DIT structure rule
+   *           was not found.
    */
-  public DITStructureRule getDITStructureRule(int ruleID)
+  public DITStructureRule getDITStructureRule(final int ruleID)
       throws UnknownSchemaElementException
   {
     return impl.getDITStructureRule(ruleID);
@@ -2197,16 +2140,16 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the DIT
-   * structure rules having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the DIT structure
+   * rules having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the DIT structure rules to retrieve.
-   * @return An unmodifiable collection containing all of the DIT
-   *         structure rules having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the DIT structure
+   *         rules having the specified name or numeric OID.
    */
   public Collection<DITStructureRule> getDITStructureRulesByName(
-      String name)
+      final String name)
   {
     return impl.getDITStructureRulesByName(name);
   }
@@ -2221,7 +2164,7 @@ public final class Schema
    * @return The requested DIT structure rules.
    */
   public Collection<DITStructureRule> getDITStructureRulesByNameForm(
-      NameForm nameForm)
+      final NameForm nameForm)
   {
     return impl.getDITStructureRulesByNameForm(nameForm);
   }
@@ -2229,11 +2172,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the DIT
-   * structure rules contained in this schema.
+   * Returns an unmodifiable collection containing all of the DIT structure
+   * rules contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the DIT
-   *         structure rules contained in this schema.
+   * @return An unmodifiable collection containing all of the DIT structure
+   *         rules contained in this schema.
    */
   public Collection<DITStructureRule> getDITStuctureRules()
   {
@@ -2249,10 +2192,10 @@ public final class Schema
    *          The name or OID of the matching rule to retrieve.
    * @return The requested matching rule.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested matching
-   *           rule was not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested matching rule was
+   *           not found or if the provided name is ambiguous.
    */
-  public MatchingRule getMatchingRule(String name)
+  public MatchingRule getMatchingRule(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getMatchingRule(name);
@@ -2261,11 +2204,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the matching
-   * rules contained in this schema.
+   * Returns an unmodifiable collection containing all of the matching rules
+   * contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the matching
-   *         rules contained in this schema.
+   * @return An unmodifiable collection containing all of the matching rules
+   *         contained in this schema.
    */
   public Collection<MatchingRule> getMatchingRules()
   {
@@ -2275,15 +2218,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the matching
-   * rules having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the matching rules
+   * having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the matching rules to retrieve.
-   * @return An unmodifiable collection containing all of the matching
-   *         rules having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the matching rules
+   *         having the specified name or numeric OID.
    */
-  public Collection<MatchingRule> getMatchingRulesByName(String name)
+  public Collection<MatchingRule> getMatchingRulesByName(final String name)
   {
     return impl.getMatchingRulesByName(name);
   }
@@ -2291,19 +2234,16 @@ public final class Schema
 
 
   /**
-   * Returns the matching rule use associated with the provided matching
-   * rule.
+   * Returns the matching rule use associated with the provided matching rule.
    *
    * @param matchingRule
-   *          The matching rule whose matching rule use is to be
-   *          retrieved.
+   *          The matching rule whose matching rule use is to be retrieved.
    * @return The requested matching rule use.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested matching
-   *           rule use was not found or if the provided name is
-   *           ambiguous.
+   *           If this is a strict schema and the requested matching rule use
+   *           was not found or if the provided name is ambiguous.
    */
-  public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
+  public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
       throws UnknownSchemaElementException
   {
     return getMatchingRuleUse(matchingRule.getOID());
@@ -2312,18 +2252,16 @@ public final class Schema
 
 
   /**
-   * Returns the matching rule use with the specified name or numeric
-   * OID.
+   * Returns the matching rule use with the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the matching rule use to retrieve.
    * @return The requested matching rule use.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested matching
-   *           rule use was not found or if the provided name is
-   *           ambiguous.
+   *           If this is a strict schema and the requested matching rule use
+   *           was not found or if the provided name is ambiguous.
    */
-  public MatchingRuleUse getMatchingRuleUse(String name)
+  public MatchingRuleUse getMatchingRuleUse(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getMatchingRuleUse(name);
@@ -2332,11 +2270,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the matching
-   * rule uses contained in this schema.
+   * Returns an unmodifiable collection containing all of the matching rule uses
+   * contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the matching
-   *         rule uses contained in this schema.
+   * @return An unmodifiable collection containing all of the matching rule uses
+   *         contained in this schema.
    */
   public Collection<MatchingRuleUse> getMatchingRuleUses()
   {
@@ -2346,16 +2284,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the matching
-   * rule uses having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the matching rule uses
+   * having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the matching rule uses to retrieve.
-   * @return An unmodifiable collection containing all of the matching
-   *         rule uses having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the matching rule uses
+   *         having the specified name or numeric OID.
    */
-  public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
-      String name)
+  public Collection<MatchingRuleUse> getMatchingRuleUsesByName(final String name)
   {
     return impl.getMatchingRuleUsesByName(name);
   }
@@ -2369,10 +2306,10 @@ public final class Schema
    *          The name or OID of the name form to retrieve.
    * @return The requested name form.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested name form
-   *           was not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested name form was not
+   *           found or if the provided name is ambiguous.
    */
-  public NameForm getNameForm(String name)
+  public NameForm getNameForm(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getNameForm(name);
@@ -2388,7 +2325,7 @@ public final class Schema
    * @return The requested name forms
    */
   public Collection<NameForm> getNameFormByObjectClass(
-      ObjectClass structuralClass)
+      final ObjectClass structuralClass)
   {
     return impl.getNameFormByObjectClass(structuralClass);
   }
@@ -2410,15 +2347,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the name forms
-   * having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the name forms having
+   * the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the name forms to retrieve.
-   * @return An unmodifiable collection containing all of the name forms
-   *         having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the name forms having
+   *         the specified name or numeric OID.
    */
-  public Collection<NameForm> getNameFormsByName(String name)
+  public Collection<NameForm> getNameFormsByName(final String name)
   {
     return impl.getNameFormsByName(name);
   }
@@ -2432,10 +2369,10 @@ public final class Schema
    *          The name or OID of the object class to retrieve.
    * @return The requested object class.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested object class
-   *           was not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested object class was not
+   *           found or if the provided name is ambiguous.
    */
-  public ObjectClass getObjectClass(String name)
+  public ObjectClass getObjectClass(final String name)
       throws UnknownSchemaElementException
   {
     return impl.getObjectClass(name);
@@ -2444,11 +2381,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the object
-   * classes contained in this schema.
+   * Returns an unmodifiable collection containing all of the object classes
+   * contained in this schema.
    *
-   * @return An unmodifiable collection containing all of the object
-   *         classes contained in this schema.
+   * @return An unmodifiable collection containing all of the object classes
+   *         contained in this schema.
    */
   public Collection<ObjectClass> getObjectClasses()
   {
@@ -2458,15 +2395,15 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the object
-   * classes having the specified name or numeric OID.
+   * Returns an unmodifiable collection containing all of the object classes
+   * having the specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the object classes to retrieve.
-   * @return An unmodifiable collection containing all of the object
-   *         classes having the specified name or numeric OID.
+   * @return An unmodifiable collection containing all of the object classes
+   *         having the specified name or numeric OID.
    */
-  public Collection<ObjectClass> getObjectClassesByName(String name)
+  public Collection<ObjectClass> getObjectClassesByName(final String name)
   {
     return impl.getObjectClassesByName(name);
   }
@@ -2475,9 +2412,9 @@ public final class Schema
 
   /**
    * Returns the user-friendly name of this schema which may be used for
-   * debugging purposes. The format of the schema name is not defined
-   * but should contain the distinguished name of the subschema
-   * sub-entry for those schemas retrieved from a Directory Server.
+   * debugging purposes. The format of the schema name is not defined but should
+   * contain the distinguished name of the subschema sub-entry for those schemas
+   * retrieved from a Directory Server.
    *
    * @return The user-friendly name of this schema which may be used for
    *         debugging purposes.
@@ -2496,10 +2433,10 @@ public final class Schema
    *          The OID of the syntax to retrieve.
    * @return The requested syntax.
    * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested syntax was
-   *           not found or if the provided name is ambiguous.
+   *           If this is a strict schema and the requested syntax was not found
+   *           or if the provided name is ambiguous.
    */
-  public Syntax getSyntax(String numericOID)
+  public Syntax getSyntax(final String numericOID)
       throws UnknownSchemaElementException
   {
     return impl.getSyntax(numericOID);
@@ -2508,11 +2445,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the syntaxes
-   * contained in this schema.
+   * Returns an unmodifiable collection containing all of the syntaxes contained
+   * in this schema.
    *
-   * @return An unmodifiable collection containing all of the syntaxes
-   *         contained in this schema.
+   * @return An unmodifiable collection containing all of the syntaxes contained
+   *         in this schema.
    */
   public Collection<Syntax> getSyntaxes()
   {
@@ -2522,11 +2459,11 @@ public final class Schema
 
 
   /**
-   * Returns an unmodifiable collection containing all of the warnings
-   * that were detected when this schema was constructed.
+   * Returns an unmodifiable collection containing all of the warnings that were
+   * detected when this schema was constructed.
    *
-   * @return An unmodifiable collection containing all of the warnings
-   *         that were detected when this schema was constructed.
+   * @return An unmodifiable collection containing all of the warnings that were
+   *         detected when this schema was constructed.
    */
   public Collection<LocalizableMessage> getWarnings()
   {
@@ -2536,15 +2473,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains an attribute type
-   * with the specified name or numeric OID.
+   * Indicates whether or not this schema contains an attribute type with the
+   * specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the attribute type.
-   * @return {@code true} if this schema contains an attribute type with
-   *         the specified name or numeric OID, otherwise {@code false}.
+   * @return {@code true} if this schema contains an attribute type with the
+   *         specified name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasAttributeType(String name)
+  public boolean hasAttributeType(final String name)
   {
     return impl.hasAttributeType(name);
   }
@@ -2552,16 +2489,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains a DIT content rule
-   * with the specified name or numeric OID.
+   * Indicates whether or not this schema contains a DIT content rule with the
+   * specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the DIT content rule.
-   * @return {@code true} if this schema contains a DIT content rule
-   *         with the specified name or numeric OID, otherwise {@code
-   *         false}.
+   * @return {@code true} if this schema contains a DIT content rule with the
+   *         specified name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasDITContentRule(String name)
+  public boolean hasDITContentRule(final String name)
   {
     return impl.hasDITContentRule(name);
   }
@@ -2569,15 +2505,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains a DIT structure rule
-   * with the specified rule ID.
+   * Indicates whether or not this schema contains a DIT structure rule with the
+   * specified rule ID.
    *
    * @param ruleID
    *          The ID of the DIT structure rule.
-   * @return {@code true} if this schema contains a DIT structure rule
-   *         with the specified rule ID, otherwise {@code false}.
+   * @return {@code true} if this schema contains a DIT structure rule with the
+   *         specified rule ID, otherwise {@code false}.
    */
-  public boolean hasDITStructureRule(int ruleID)
+  public boolean hasDITStructureRule(final int ruleID)
   {
     return impl.hasDITStructureRule(ruleID);
   }
@@ -2585,15 +2521,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains a matching rule with
-   * the specified name or numeric OID.
+   * Indicates whether or not this schema contains a matching rule with the
+   * specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the matching rule.
-   * @return {@code true} if this schema contains a matching rule with
-   *         the specified name or numeric OID, otherwise {@code false}.
+   * @return {@code true} if this schema contains a matching rule with the
+   *         specified name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasMatchingRule(String name)
+  public boolean hasMatchingRule(final String name)
   {
     return impl.hasMatchingRule(name);
   }
@@ -2601,16 +2537,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains a matching rule use
-   * with the specified name or numeric OID.
+   * Indicates whether or not this schema contains a matching rule use with the
+   * specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the matching rule use.
-   * @return {@code true} if this schema contains a matching rule use
-   *         with the specified name or numeric OID, otherwise {@code
-   *         false}.
+   * @return {@code true} if this schema contains a matching rule use with the
+   *         specified name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasMatchingRuleUse(String name)
+  public boolean hasMatchingRuleUse(final String name)
   {
     return impl.hasMatchingRuleUse(name);
   }
@@ -2623,10 +2558,10 @@ public final class Schema
    *
    * @param name
    *          The name or OID of the name form.
-   * @return {@code true} if this schema contains a name form with the
-   *         specified name or numeric OID, otherwise {@code false}.
+   * @return {@code true} if this schema contains a name form with the specified
+   *         name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasNameForm(String name)
+  public boolean hasNameForm(final String name)
   {
     return impl.hasNameForm(name);
   }
@@ -2634,15 +2569,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains an object class with
-   * the specified name or numeric OID.
+   * Indicates whether or not this schema contains an object class with the
+   * specified name or numeric OID.
    *
    * @param name
    *          The name or OID of the object class.
-   * @return {@code true} if this schema contains an object class with
-   *         the specified name or numeric OID, otherwise {@code false}.
+   * @return {@code true} if this schema contains an object class with the
+   *         specified name or numeric OID, otherwise {@code false}.
    */
-  public boolean hasObjectClass(String name)
+  public boolean hasObjectClass(final String name)
   {
     return impl.hasObjectClass(name);
   }
@@ -2650,15 +2585,15 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema contains a syntax with the
-   * specified numeric OID.
+   * Indicates whether or not this schema contains a syntax with the specified
+   * numeric OID.
    *
    * @param numericOID
    *          The OID of the syntax.
-   * @return {@code true} if this schema contains a syntax with the
-   *         specified numeric OID, otherwise {@code false}.
+   * @return {@code true} if this schema contains a syntax with the specified
+   *         numeric OID, otherwise {@code false}.
    */
-  public boolean hasSyntax(String numericOID)
+  public boolean hasSyntax(final String numericOID)
   {
     return impl.hasSyntax(numericOID);
   }
@@ -2666,13 +2601,12 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema is strict. Attribute type
-   * queries in non-strict schema always succeed: if the requested
-   * attribute type is not found then a temporary attribute type is
-   * created automatically having the Octet String syntax and associated
-   * matching rules. Strict schema, on the other hand, throw an
-   * {@link UnknownSchemaElementException} whenever an attempt is made
-   * to retrieve a non-existent attribute type.
+   * Indicates whether or not this schema is strict. Attribute type queries in
+   * non-strict schema always succeed: if the requested attribute type is not
+   * found then a temporary attribute type is created automatically having the
+   * Octet String syntax and associated matching rules. Strict schema, on the
+   * other hand, throw an {@link UnknownSchemaElementException} whenever an
+   * attempt is made to retrieve a non-existent attribute type.
    *
    * @return {@code true} if this schema is strict.
    */
@@ -2685,12 +2619,11 @@ public final class Schema
 
   /**
    * Returns a non-strict view of this schema. Attribute type queries in
-   * non-strict schema always succeed: if the requested attribute type
-   * is not found then a temporary attribute type is created
-   * automatically having the Octet String syntax and associated
-   * matching rules. Strict schema, on the other hand, throw an
-   * {@link UnknownSchemaElementException} whenever an attempt is made
-   * to retrieve a non-existent attribute type.
+   * non-strict schema always succeed: if the requested attribute type is not
+   * found then a temporary attribute type is created automatically having the
+   * Octet String syntax and associated matching rules. Strict schema, on the
+   * other hand, throw an {@link UnknownSchemaElementException} whenever an
+   * attempt is made to retrieve a non-existent attribute type.
    *
    * @return A non-strict view of this schema.
    */

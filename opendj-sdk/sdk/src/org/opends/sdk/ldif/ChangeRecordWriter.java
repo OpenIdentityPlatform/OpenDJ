@@ -41,16 +41,16 @@ import org.opends.sdk.requests.ModifyRequest;
 
 
 /**
- * An interface for writing change records to a data source, typically
- * an LDIF file.
+ * An interface for writing change records to a data source, typically an LDIF
+ * file.
  * <p>
  * TODO: FilteredChangeRecordWriter
  */
 public interface ChangeRecordWriter extends Closeable, Flushable
 {
   /**
-   * Closes this change record writer, flushing it first. Closing a
-   * previously closed change record writer has no effect.
+   * Closes this change record writer, flushing it first. Closing a previously
+   * closed change record writer has no effect.
    *
    * @throws IOException
    *           If an unexpected IO error occurred while closing.
@@ -60,16 +60,15 @@ public interface ChangeRecordWriter extends Closeable, Flushable
 
 
   /**
-   * Flushes this change record writer so that any buffered data is
-   * written immediately to underlying stream, flushing the stream if it
-   * is also {@code Flushable}.
+   * Flushes this change record writer so that any buffered data is written
+   * immediately to underlying stream, flushing the stream if it is also {@code
+   * Flushable}.
    * <p>
-   * If the intended destination of this stream is an abstraction
-   * provided by the underlying operating system, for example a file,
-   * then flushing the stream guarantees only that bytes previously
-   * written to the stream are passed to the operating system for
-   * writing; it does not guarantee that they are actually written to a
-   * physical device such as a disk drive.
+   * If the intended destination of this stream is an abstraction provided by
+   * the underlying operating system, for example a file, then flushing the
+   * stream guarantees only that bytes previously written to the stream are
+   * passed to the operating system for writing; it does not guarantee that they
+   * are actually written to a physical device such as a disk drive.
    *
    * @throws IOException
    *           If an unexpected IO error occurred while flushing.
@@ -82,17 +81,17 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * Writes an {@code Add} change record.
    *
    * @param change
-   *          The {@code AddRequest} to be written as an {@code Add}
-   *          change record.
+   *          The {@code AddRequest} to be written as an {@code Add} change
+   *          record.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           change record.
+   *           If an unexpected IO error occurred while writing the change
+   *           record.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
-  ChangeRecordWriter writeChangeRecord(AddRequest change)
-      throws IOException, NullPointerException;
+  ChangeRecordWriter writeChangeRecord(AddRequest change) throws IOException,
+      NullPointerException;
 
 
 
@@ -103,13 +102,13 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    *          The {@code ChangeRecord} to be written.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           change record.
+   *           If an unexpected IO error occurred while writing the change
+   *           record.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
-  ChangeRecordWriter writeChangeRecord(ChangeRecord change)
-      throws IOException, NullPointerException;
+  ChangeRecordWriter writeChangeRecord(ChangeRecord change) throws IOException,
+      NullPointerException;
 
 
 
@@ -117,12 +116,12 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * Writes a {@code Delete} change record.
    *
    * @param change
-   *          The {@code DeleteRequest} to be written as an {@code
-   *          Delete} change record.
+   *          The {@code DeleteRequest} to be written as an {@code Delete}
+   *          change record.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           change record.
+   *           If an unexpected IO error occurred while writing the change
+   *           record.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
@@ -135,12 +134,12 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * Writes a {@code ModifyDN} change record.
    *
    * @param change
-   *          The {@code ModifyDNRequest} to be written as an {@code
-   *          ModifyDN} change record.
+   *          The {@code ModifyDNRequest} to be written as an {@code ModifyDN}
+   *          change record.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           change record.
+   *           If an unexpected IO error occurred while writing the change
+   *           record.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
@@ -153,12 +152,12 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * Writes a {@code Modify} change record.
    *
    * @param change
-   *          The {@code ModifyRequest} to be written as an {@code
-   *          Modify} change record.
+   *          The {@code ModifyRequest} to be written as an {@code Modify}
+   *          change record.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           change record.
+   *           If an unexpected IO error occurred while writing the change
+   *           record.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
@@ -174,12 +173,11 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this change record writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           comment.
+   *           If an unexpected IO error occurred while writing the comment.
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
-  ChangeRecordWriter writeComment(CharSequence comment)
-      throws IOException, NullPointerException;
+  ChangeRecordWriter writeComment(CharSequence comment) throws IOException,
+      NullPointerException;
 
 }

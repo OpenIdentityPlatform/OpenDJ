@@ -190,61 +190,6 @@ then
   cd "${WORKING_DIR}"
 fi
 
-if test "${INSTANCE_ROOT}" = ""
-then
-  if [ -f ${INSTALL_ROOT}/configure ]
-  then
-    if [ -f /etc/opends/instance.loc ]
-    then
-      if [ "${SCRIPT_NAME}" = "configure" ]
-      then
-        isVersionOrHelp $*
-	if [ $? -eq 1 ]
-	then
-          echo "${INSTALL_ROOT}/configure has already been run. Exiting."
-          exit 0
-	fi
-      fi
-      read INSTANCE_ROOT <  /etc/opends/instance.loc
-    else
-      if [ "${SCRIPT_NAME}" != "configure" ]
-      then
-        isVersionOrHelp $*
-        if [ $? -eq 1 ]
-        then
-          echo "No instance found. Run ${INSTALL_ROOT}/configure to create it."
-          exit 1
-        fi
-      fi
-    fi
-  else
-    if [ -f ${INSTALL_ROOT}/instance.loc ]
-    then
-      read location < ${INSTALL_ROOT}/instance.loc
-      case `echo ${location}` in
-           /*)
-              INSTANCE_ROOT=${location}
-              break
-              ;;
-           *)
-              INSTANCE_ROOT=${INSTALL_ROOT}/${location}
-              break
-              ;;
-      esac
-    else
-         INSTANCE_ROOT=${INSTALL_ROOT}
-    fi
-  fi
-  if [ -d "${INSTANCE_ROOT}" ]
-  then
-      CURRENT_DIR=`pwd`
-      cd "${INSTANCE_ROOT}"
-      INSTANCE_ROOT=`pwd`
-      export INSTANCE_ROOT
-      cd "${CURRENT_DIR}"
-  fi
-fi
-
 if test "${SCRIPT_UTIL_CMD}" = "set-full-environment-and-test-java"
 then
   set_java_home_and_args

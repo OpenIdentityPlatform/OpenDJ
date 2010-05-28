@@ -27,13 +27,15 @@
 
 package org.opends.sdk.ldif;
 
+
+
 import org.opends.sdk.DN;
 
 
 
 /**
- * A request to modify the content of the Directory in some way. A
- * change record represents one of the following operations:
+ * A request to modify the content of the Directory in some way. A change record
+ * represents one of the following operations:
  * <ul>
  * <li>An {@code Add} operation.
  * <li>An {@code Delete} operation.
@@ -49,8 +51,7 @@ public interface ChangeRecord
    * @param <R>
    *          The return type of the visitor's methods.
    * @param <P>
-   *          The type of the additional parameters to the visitor's
-   *          methods.
+   *          The type of the additional parameters to the visitor's methods.
    * @param v
    *          The change record visitor.
    * @param p
@@ -62,8 +63,8 @@ public interface ChangeRecord
 
 
   /**
-   * Returns the distinguished name of the entry being modified by this
-   * {@code ChangeRecord}.
+   * Returns the distinguished name of the entry being modified by this {@code
+   * ChangeRecord}.
    *
    * @return The distinguished name of the entry being modified.
    */

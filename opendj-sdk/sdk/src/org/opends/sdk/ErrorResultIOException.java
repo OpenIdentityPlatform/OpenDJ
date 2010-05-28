@@ -36,8 +36,8 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * An {@code ErrorResultIOException} adapts an {@code
- * ErrorResultException} to an {@code IOException}.
+ * An {@code ErrorResultIOException} adapts an {@code ErrorResultException} to
+ * an {@code IOException}.
  */
 @SuppressWarnings("serial")
 public final class ErrorResultIOException extends IOException
@@ -50,12 +50,12 @@ public final class ErrorResultIOException extends IOException
    * Creates a new error result IO exception with the provided cause.
    *
    * @param cause
-   *          The cause which may be later retrieved by the
-   *          {@link #getCause} method.
+   *          The cause which may be later retrieved by the {@link #getCause}
+   *          method.
    * @throws NullPointerException
    *           If {@code cause} was {@code null}.
    */
-  public ErrorResultIOException(ErrorResultException cause)
+  public ErrorResultIOException(final ErrorResultException cause)
       throws NullPointerException
   {
     super(Validator.ensureNotNull(cause));
@@ -68,6 +68,7 @@ public final class ErrorResultIOException extends IOException
   /**
    * {@inheritDoc}
    */
+  @Override
   public ErrorResultException getCause()
   {
     return cause;

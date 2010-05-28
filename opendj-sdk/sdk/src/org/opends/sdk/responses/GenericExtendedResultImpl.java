@@ -15,14 +15,14 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * generic extended the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -32,14 +32,16 @@ package org.opends.sdk.responses;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ResultCode;
 
+import com.sun.opends.sdk.util.StaticUtils;
+
 
 
 /**
  * Generic extended result implementation.
  */
 final class GenericExtendedResultImpl extends
-    AbstractResultImpl<GenericExtendedResult> implements
-    ExtendedResult, GenericExtendedResult
+    AbstractResultImpl<GenericExtendedResult> implements ExtendedResult,
+    GenericExtendedResult
 {
 
   private String responseName = null;
@@ -49,15 +51,14 @@ final class GenericExtendedResultImpl extends
 
 
   /**
-   * Creates a new generic extended result using the provided result
-   * code.
-   * 
+   * Creates a new generic extended result using the provided result code.
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  GenericExtendedResultImpl(ResultCode resultCode)
+  GenericExtendedResultImpl(final ResultCode resultCode)
       throws NullPointerException
   {
     super(resultCode);
@@ -68,7 +69,7 @@ final class GenericExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getResponseName()
+  public String getOID()
   {
     return responseName;
   }
@@ -78,7 +79,7 @@ final class GenericExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getResponseValue()
+  public ByteString getValue()
   {
     return responseValue;
   }
@@ -88,7 +89,17 @@ final class GenericExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericExtendedResult setResponseName(String oid)
+  public boolean hasValue()
+  {
+    return responseValue != null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericExtendedResult setOID(final String oid)
       throws UnsupportedOperationException
   {
     this.responseName = oid;
@@ -100,7 +111,7 @@ final class GenericExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericExtendedResult setResponseValue(ByteString bytes)
+  public GenericExtendedResult setValue(final ByteString bytes)
       throws UnsupportedOperationException
   {
     this.responseValue = bytes;
@@ -116,7 +127,7 @@ final class GenericExtendedResultImpl extends
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append("ExtendedResult(resultCode=");
+    builder.append("GenericExtendedResult(resultCode=");
     builder.append(getResultCode());
     builder.append(", matchedDN=");
     builder.append(getMatchedDN());
@@ -125,10 +136,12 @@ final class GenericExtendedResultImpl extends
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", responseName=");
-    builder.append(getResponseName() == null ? "" : getResponseName());
-    builder.append(", responseValue=");
-    final ByteString value = getResponseValue();
-    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(getOID() == null ? "" : getOID());
+    if (hasValue())
+    {
+      builder.append(", responseValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -137,6 +150,7 @@ final class GenericExtendedResultImpl extends
 
 
 
+  @Override
   GenericExtendedResult getThis()
   {
     return this;

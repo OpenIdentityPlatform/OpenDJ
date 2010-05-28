@@ -29,35 +29,31 @@ package org.opends.sdk.requests;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.extensions.ExtendedOperation;
-import org.opends.sdk.extensions.StartTLSRequest;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.controls.ControlDecoder;
+import org.opends.sdk.responses.ExtendedResult;
+import org.opends.sdk.responses.ExtendedResultDecoder;
 
 
 
 /**
  * The Extended operation allows additional operations to be defined for
- * services not already available in the protocol; for example, to
- * implement an operation which installs transport layer security (see
- * {@link StartTLSRequest}).
- * 
+ * services not already available in the protocol; for example, to implement an
+ * operation which installs transport layer security (see
+ * {@link StartTLSExtendedRequest}).
+ *
  * @param <S>
  *          The type of result.
  */
-public interface ExtendedRequest<S extends Result> extends Request
+public interface ExtendedRequest<S extends ExtendedResult> extends Request
 {
   /**
-   * Adds the provided control to this request.
-   * 
-   * @param control
-   *          The control to be added to this request.
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * {@inheritDoc}
    */
   ExtendedRequest<S> addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
@@ -65,101 +61,60 @@ public interface ExtendedRequest<S extends Result> extends Request
 
 
   /**
-   * Removes all the controls included with this request.
-   * 
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
+   * {@inheritDoc}
    */
-  ExtendedRequest<S> clearControls()
-      throws UnsupportedOperationException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this request.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  List<Control> getControls();
 
 
 
   /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   * 
-   * @return An {@code Iterable} containing the controls.
+   * Returns the numeric OID associated with this extended request.
+   *
+   * @return The numeric OID associated with this extended request.
    */
-  Iterable<Control> getControls();
+  String getOID();
 
 
 
   /**
-   * Returns the extended operation associated with this extended
+   * Returns a decoder which can be used to decoded responses to this extended
    * request.
-   * <p>
-   * FIXME: this should not be exposed in the public API.
-   * 
-   * @return The extended operation associated with this extended
+   *
+   * @return A decoder which can be used to decoded responses to this extended
    *         request.
    */
-  ExtendedOperation<?, S> getExtendedOperation();
+  ExtendedResultDecoder<S> getResultDecoder();
 
 
 
   /**
-   * Returns the dotted-decimal representation of the unique OID
-   * corresponding to this extended request.
-   * 
-   * @return The dotted-decimal representation of the unique OID.
+   * Returns the value, if any, associated with this extended request. Its
+   * format is defined by the specification of this extended request.
+   *
+   * @return The value associated with this extended request, or {@code null} if
+   *         there is no value.
    */
-  String getRequestName();
+  ByteString getValue();
 
 
 
   /**
-   * Returns the content of this extended request in a form defined by
-   * the extended request.
-   * 
-   * @return The content of this extended request, or {@code null} if
-   *         there is no content.
+   * Returns {@code true} if this extended request has a value. In some
+   * circumstances it may be useful to determine if a extended request has a
+   * value, without actually calculating the value and incurring any performance
+   * costs.
+   *
+   * @return {@code true} if this extended request has a value, or {@code false}
+   *         if there is no value.
    */
-  ByteString getRequestValue();
-
-
-
-  /**
-   * Indicates whether or not this request has any controls.
-   * 
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean hasValue();
 
 }

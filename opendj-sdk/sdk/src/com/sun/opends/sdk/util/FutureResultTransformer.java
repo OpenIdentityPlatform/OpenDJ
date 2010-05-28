@@ -39,18 +39,17 @@ import org.opends.sdk.ResultHandler;
 
 
 /**
- * An implementation of the {@code FutureResult} interface which
- * transforms the result of an asynchronous operation from one type to
- * another. The implementation ensures that the transformed is computed
- * only once.
+ * An implementation of the {@code FutureResult} interface which transforms the
+ * result of an asynchronous operation from one type to another. The
+ * implementation ensures that the transformed is computed only once.
  *
  * @param <M>
  *          The type of the inner result.
  * @param <N>
  *          The type of the outer result.
  */
-public abstract class FutureResultTransformer<M, N> implements
-    FutureResult<N>, ResultHandler<M>
+public abstract class FutureResultTransformer<M, N> implements FutureResult<N>,
+    ResultHandler<M>
 {
 
   private final ResultHandler<? super N> handler;
@@ -66,13 +65,13 @@ public abstract class FutureResultTransformer<M, N> implements
 
 
   /**
-   * Creates a new result transformer which will transform the results
-   * of an inner asynchronous request.
+   * Creates a new result transformer which will transform the results of an
+   * inner asynchronous request.
    *
    * @param handler
    *          The outer result handler.
    */
-  protected FutureResultTransformer(ResultHandler<? super N> handler)
+  protected FutureResultTransformer(final ResultHandler<? super N> handler)
   {
     this.handler = handler;
   }
@@ -82,7 +81,7 @@ public abstract class FutureResultTransformer<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final boolean cancel(boolean mayInterruptIfRunning)
+  public final boolean cancel(final boolean mayInterruptIfRunning)
   {
     return future.cancel(mayInterruptIfRunning);
   }
@@ -92,8 +91,7 @@ public abstract class FutureResultTransformer<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final N get() throws ErrorResultException,
-      InterruptedException
+  public final N get() throws ErrorResultException, InterruptedException
   {
     future.get();
 
@@ -106,9 +104,8 @@ public abstract class FutureResultTransformer<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final N get(long timeout, TimeUnit unit)
-      throws ErrorResultException, TimeoutException,
-      InterruptedException
+  public final N get(final long timeout, final TimeUnit unit)
+      throws ErrorResultException, TimeoutException, InterruptedException
   {
     future.get(timeout, unit);
 
@@ -131,7 +128,7 @@ public abstract class FutureResultTransformer<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleErrorResult(ErrorResultException error)
+  public final void handleErrorResult(final ErrorResultException error)
   {
     transformedErrorResult = transformErrorResult(error);
     if (handler != null)
@@ -145,7 +142,7 @@ public abstract class FutureResultTransformer<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleResult(M result)
+  public final void handleResult(final M result)
   {
     try
     {
@@ -188,16 +185,46 @@ public abstract class FutureResultTransformer<M, N> implements
 
 
   /**
-   * Sets the inner future for this result transformer. This must be
-   * done before this future is published.
+   * Sets the inner future for this result transformer. This must be done before
+   * this future is published.
    *
    * @param future
    *          The inner future.
    */
-  public final void setFutureResult(FutureResult<? extends M> future)
+  public final void setFutureResult(final FutureResult<? extends M> future)
   {
     this.future = future;
   }
+
+
+
+  /**
+   * Transforms the inner error result to an outer error result. The default
+   * implementation is to return the inner error result.
+   *
+   * @param errorResult
+   *          The inner error result.
+   * @return The outer error result.
+   */
+  protected ErrorResultException transformErrorResult(
+      final ErrorResultException errorResult)
+  {
+    return errorResult;
+  }
+
+
+
+  /**
+   * Transforms the inner result to an outer result, possibly throwing an
+   * {@code ErrorResultException} if the transformation fails for some reason.
+   *
+   * @param result
+   *          The inner result.
+   * @return The outer result.
+   * @throws ErrorResultException
+   *           If the transformation fails for some reason.
+   */
+  protected abstract N transformResult(M result) throws ErrorResultException;
 
 
 
@@ -212,37 +239,5 @@ public abstract class FutureResultTransformer<M, N> implements
       return transformedResult;
     }
   }
-
-
-
-  /**
-   * Transforms the inner error result to an outer error result. The
-   * default implementation is to return the inner error result.
-   *
-   * @param errorResult
-   *          The inner error result.
-   * @return The outer error result.
-   */
-  protected ErrorResultException transformErrorResult(
-      ErrorResultException errorResult)
-  {
-    return errorResult;
-  }
-
-
-
-  /**
-   * Transforms the inner result to an outer result, possibly throwing
-   * an {@code ErrorResultException} if the transformation fails for
-   * some reason.
-   *
-   * @param result
-   *          The inner result.
-   * @return The outer result.
-   * @throws ErrorResultException
-   *           If the transformation fails for some reason.
-   */
-  protected abstract N transformResult(M result)
-      throws ErrorResultException;
 
 }

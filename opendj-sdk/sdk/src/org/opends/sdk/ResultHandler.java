@@ -27,19 +27,23 @@
 
 package org.opends.sdk;
 
+
+
 /**
- * A completion handler for consuming the result of an asynchronous
- * operation.
+ * A completion handler for consuming the result of an asynchronous operation or
+ * connection attempts.
  * <p>
- * {@link Connection} objects allow a result completion handler to be
- * specified when sending operation requests to a Directory Server. The
- * {@link #handleResult} method is invoked when the operation completes
- * successfully. The {@link #handleErrorResult} method is invoked if the
- * operation fails.
+ * A result completion handler may be specified when performing asynchronous
+ * operations using an {@link AsynchronousConnection} object or when connecting
+ * asynchronously to a remote Directory Server using an
+ * {@link ConnectionFactory}. The {@link #handleResult} method is invoked when
+ * the operation or connection attempt completes successfully. The
+ * {@link #handleErrorResult} method is invoked if the operation or connection
+ * attempt fails.
  * <p>
- * Implementations of these methods should complete in a timely manner
- * so as to avoid keeping the invoking thread from dispatching to other
- * completion handlers.
+ * Implementations of these methods should complete in a timely manner so as to
+ * avoid keeping the invoking thread from dispatching to other completion
+ * handlers.
  *
  * @param <S>
  *          The type of result handled by this result handler.

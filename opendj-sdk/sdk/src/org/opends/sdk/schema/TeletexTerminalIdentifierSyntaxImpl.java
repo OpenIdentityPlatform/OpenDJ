@@ -30,7 +30,10 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELETEX_TERM_ID_NAME;
 
 import java.util.HashSet;
 
@@ -39,15 +42,14 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the teletex terminal identifier attribute
- * syntax, which contains a printable string (the terminal identifier)
- * followed by zero or more parameters, which start with a dollar sign
- * and are followed by a parameter name, a colon, and a value. The
- * parameter value should consist of any string of bytes (the dollar
- * sign and backslash must be escaped with a preceding backslash), and
- * the parameter name must be one of the following strings:
+ * This class implements the teletex terminal identifier attribute syntax, which
+ * contains a printable string (the terminal identifier) followed by zero or
+ * more parameters, which start with a dollar sign and are followed by a
+ * parameter name, a colon, and a value. The parameter value should consist of
+ * any string of bytes (the dollar sign and backslash must be escaped with a
+ * preceding backslash), and the parameter name must be one of the following
+ * strings:
  * <UL>
  * <LI>graphic</LI>
  * <LI>control</LI>
@@ -56,15 +58,14 @@ import org.opends.sdk.LocalizableMessageBuilder;
  * <LI>private</LI>
  * </UL>
  */
-final class TeletexTerminalIdentifierSyntaxImpl extends
-    AbstractSyntaxImpl
+final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
-   * The set of allowed fax parameter values, formatted entirely in
-   * lowercase characters.
+   * The set of allowed fax parameter values, formatted entirely in lowercase
+   * characters.
    */
-  private static final HashSet<String> ALLOWED_TTX_PARAMETERS =
-      new HashSet<String>(5);
+  private static final HashSet<String> ALLOWED_TTX_PARAMETERS = new HashSet<String>(
+      5);
 
   static
   {
@@ -116,21 +117,21 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get a lowercase string representation of the value and find its
     // length.
@@ -172,8 +173,8 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c))
         {
 
-          invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE
-              .get(valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), pos));
         }
       }
     }
@@ -216,8 +217,7 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
       }
       else if (c == '$')
       {
-        final String paramStr =
-            valueString.substring(paramStartPos, pos);
+        final String paramStr = valueString.substring(paramStartPos, pos);
 
         final int colonPos = paramStr.indexOf(':');
         if (colonPos < 0)
@@ -232,9 +232,8 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
         if (!ALLOWED_TTX_PARAMETERS.contains(paramName))
         {
 
-          invalidReason
-              .append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER.get(
-                  valueString, paramName));
+          invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER.get(
+              valueString, paramName));
           return false;
         }
 
@@ -258,8 +257,8 @@ final class TeletexTerminalIdentifierSyntaxImpl extends
     if (!ALLOWED_TTX_PARAMETERS.contains(paramName))
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER
-          .get(valueString, paramName));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_ILLEGAL_PARAMETER.get(
+          valueString, paramName));
       return false;
     }
 

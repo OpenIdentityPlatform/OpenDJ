@@ -38,9 +38,9 @@ import org.opends.sdk.FutureResult;
 
 
 /**
- * An implementation of {@code FutureResult} which can be used in cases
- * where the result is known in advance, for example, if the result is
- * obtained synchronously.
+ * An implementation of {@code FutureResult} which can be used in cases where
+ * the result is known in advance, for example, if the result is obtained
+ * synchronously.
  *
  * @param <S>
  *          The type of result returned by this future.
@@ -56,29 +56,15 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
   /**
-   * Creates a new completed future which will return the provided
-   * result and request ID of {@code -1}.
-   *
-   * @param result
-   *          The result, which may be {@code null}.
-   */
-  public CompletedFutureResult(S result)
-  {
-    this(result, -1);
-  }
-
-
-
-  /**
-   * Creates a new completed future which will throw the provided error
-   * result and request ID of {@code -1}.
+   * Creates a new completed future which will throw the provided error result
+   * and request ID of {@code -1}.
    *
    * @param errorResult
    *          The error result.
    * @throws NullPointerException
    *           If {@code errorResult} was {@code null}.
    */
-  public CompletedFutureResult(ErrorResultException errorResult)
+  public CompletedFutureResult(final ErrorResultException errorResult)
       throws NullPointerException
   {
     this(errorResult, -1);
@@ -87,26 +73,8 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
   /**
-   * Creates a new completed future which will return the provided
-   * result and request ID.
-   *
-   * @param result
-   *          The result, which may be {@code null}.
-   * @param requestID
-   *          The request ID.
-   */
-  public CompletedFutureResult(S result, int requestID)
-  {
-    this.result = result;
-    this.errorResult = null;
-    this.requestID = requestID;
-  }
-
-
-
-  /**
-   * Creates a new completed future which will throw the provided error
-   * result and request ID.
+   * Creates a new completed future which will throw the provided error result
+   * and request ID.
    *
    * @param errorResult
    *          The error result.
@@ -115,8 +83,8 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
    * @throws NullPointerException
    *           If {@code errorResult} was {@code null}.
    */
-  public CompletedFutureResult(ErrorResultException errorResult,
-      int requestID) throws NullPointerException
+  public CompletedFutureResult(final ErrorResultException errorResult,
+      final int requestID) throws NullPointerException
   {
     Validator.ensureNotNull(errorResult);
     this.result = null;
@@ -126,13 +94,51 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
 
-  public boolean cancel(boolean mayInterruptIfRunning)
+  /**
+   * Creates a new completed future which will return the provided result and
+   * request ID of {@code -1}.
+   *
+   * @param result
+   *          The result, which may be {@code null}.
+   */
+  public CompletedFutureResult(final S result)
+  {
+    this(result, -1);
+  }
+
+
+
+  /**
+   * Creates a new completed future which will return the provided result and
+   * request ID.
+   *
+   * @param result
+   *          The result, which may be {@code null}.
+   * @param requestID
+   *          The request ID.
+   */
+  public CompletedFutureResult(final S result, final int requestID)
+  {
+    this.result = result;
+    this.errorResult = null;
+    this.requestID = requestID;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean cancel(final boolean mayInterruptIfRunning)
   {
     return false;
   }
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public S get() throws ErrorResultException, InterruptedException
   {
     if (errorResult == null)
@@ -148,15 +154,20 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
 
-  public S get(long timeout, TimeUnit unit)
-      throws ErrorResultException, TimeoutException,
-      InterruptedException
+  /**
+   * {@inheritDoc}
+   */
+  public S get(final long timeout, final TimeUnit unit)
+      throws ErrorResultException, TimeoutException, InterruptedException
   {
     return get();
   }
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public int getRequestID()
   {
     return requestID;
@@ -164,6 +175,9 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public boolean isCancelled()
   {
     return false;
@@ -171,6 +185,9 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   public boolean isDone()
   {
     return true;

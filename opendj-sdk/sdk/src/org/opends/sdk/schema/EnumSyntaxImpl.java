@@ -29,9 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,9 +52,9 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class provides an enumeration-based mechanism where a new syntax
- * and its corresponding matching rules can be created on-the-fly. An
- * enum syntax is an LDAPSyntaxDescriptionSyntax with X-ENUM extension.
+ * This class provides an enumeration-based mechanism where a new syntax and its
+ * corresponding matching rules can be created on-the-fly. An enum syntax is an
+ * LDAPSyntaxDescriptionSyntax with X-ENUM extension.
  */
 final class EnumSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -59,12 +64,11 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  EnumSyntaxImpl(String oid, List<String> entries)
+  EnumSyntaxImpl(final String oid, final List<String> entries)
   {
     Validator.ensureNotNull(oid, entries);
     this.oid = oid;
-    final List<String> entryStrings =
-        new ArrayList<String>(entries.size());
+    final List<String> entryStrings = new ArrayList<String>(entries.size());
 
     for (final String entry : entries)
     {
@@ -83,13 +87,6 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
   public String getApproximateMatchingRule()
   {
     return AMR_DOUBLE_METAPHONE_OID;
-  }
-
-
-
-  public Iterable<String> getEntries()
-  {
-    return entries;
   }
 
 
@@ -125,7 +122,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public int indexOf(ByteSequence value)
+  public int indexOf(final ByteSequence value)
   {
     return entries.indexOf(normalize(value));
   }
@@ -139,17 +136,16 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // The value is acceptable if it belongs to the set.
     final boolean isAllowed = entries.contains(normalize(value));
 
     if (!isAllowed)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
-              .toString(), oid);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE
+          .get(value.toString(), oid);
       invalidReason.append(message);
     }
 
@@ -158,7 +154,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  private String normalize(ByteSequence value)
+  private String normalize(final ByteSequence value)
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

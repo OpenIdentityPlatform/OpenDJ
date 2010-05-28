@@ -45,39 +45,10 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
-  {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addPatternSyntax("1.1.1",
-        "Host and Port in the format of HOST:PORT", Pattern
-            .compile("^[a-z-A-Z]+:[0-9.]+\\d$"), false);
-    return builder.toSchema().getSyntax("1.1.1");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
   {
-    return new Object[][] { { "invalid regex", false },
-        { "host:0.0.0", true }, };
-  }
-
-
-
-  @Test
-  public void testInvalidPattern()
-  {
-    // This should fail due to invalid pattern.
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addSyntax(
-        "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
-            + " X-PATTERN '^[a-z-A-Z+:[0-@.]+\\d$' )", true);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    return new Object[][] { { "invalid regex", false }, { "host:0.0.0", true }, };
   }
 
 
@@ -86,11 +57,39 @@ public class RegexSyntaxTestCase extends SyntaxTestCase
   public void testDecode()
   {
     // This should fail due to invalid pattern.
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
     builder.addSyntax(
         "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
             + " X-PATTERN '^[a-z-A-Z]+:[0-9.]+\\d$' )", true);
     builder.toSchema();
+  }
+
+
+
+  @Test
+  public void testInvalidPattern()
+  {
+    // This should fail due to invalid pattern.
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addSyntax(
+        "( 1.1.1 DESC 'Host and Port in the format of HOST:PORT' "
+            + " X-PATTERN '^[a-z-A-Z+:[0-@.]+\\d$' )", true);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addPatternSyntax("1.1.1",
+        "Host and Port in the format of HOST:PORT", Pattern
+            .compile("^[a-z-A-Z]+:[0-9.]+\\d$"), false);
+    return builder.toSchema().getSyntax("1.1.1");
   }
 
 }

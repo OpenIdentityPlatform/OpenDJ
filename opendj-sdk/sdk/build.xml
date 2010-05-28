@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2009 Sun Microsystems, Inc.
+ !      Copyright 2009-2010 Sun Microsystems, Inc.
  ! -->
 
 <project name="OpenDS LDAP SDK" basedir="." default="package">
@@ -36,7 +36,8 @@
 
     <!-- General server-wide properties -->
     <property name="src.dir" location="src" />
-    <property name="srcgen.dir" location="src-generated" />
+	<property name="examples.dir" location="examples" />
+	<property name="srcgen.dir" location="src-generated" />
     <property name="build.dir" location="build" />
     <property name="classes.dir" location="${build.dir}/classes" />
     <property name="build.lib.dir" location="${build.dir}/lib" />
@@ -105,13 +106,13 @@
 
     <!-- The build target that should be used before committing code. -->
     <target name="precommit"
-            depends="checkstyle,clean,checkprecommit,testwithcoverage"
+            depends="clean,checkprecommit,package,checkstyle,testwithcoverage"
             description="Perform all processing needed before committing code.">
     </target>
 
     <!-- The build target that should be used to build everything. -->
     <target name="all"
-            depends="checkstyle,clean,checkprecommit,srczip,javadoc,testwithcoverage"
+            depends="clean,checkprecommit,srczip,package,checkstyle,testwithcoverage"
             description="Build using all defined targets.">
     </target>
 
@@ -333,27 +334,22 @@
     </target>
 
     <!-- Ensure that the source code meets basic style requirements. -->
-    <target name="checkstyle">
-        <mkdir dir="${checkstyle.cache.dir}" />
-
+    <target name="checkstyle" depends="compile">
         <taskdef resource="checkstyletask.properties"
-                 classpath="${checkstyle.dir}/checkstyle-all-4.1.jar" />
+                 classpath="${checkstyle.dir}/checkstyle-all-5.1.jar" />
 
-        <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
-                    failOnViolation="true">
-            <fileset dir="${src.dir}">
+        <checkstyle config="${checkstyle.dir}/check-src.xml"
+                    failOnViolation="true" classpath="${classes.dir}">
+        	<fileset dir="${src.dir}">
                 <include name="**/*.java" />
             </fileset>
+        	<fileset dir="${examples.dir}">
+        	    <include name="**/*.java" />
+        	</fileset>
             <formatter type="plain" />
         </checkstyle>
 
-        <checkstyle config="${checkstyle.dir}/opends-doctarget-checkstyle.xml"
-                    failOnViolation="true">
-            <fileset dir="${src.dir}/org" includes="**/*.java" />
-            <formatter type="plain" />
-        </checkstyle>
-
-        <checkstyle config="${checkstyle.dir}/opends-unittest-checkstyle.xml"
+        <checkstyle config="${checkstyle.dir}/check-tests.xml"
                     failOnViolation="true">
             <fileset dir="${unittest.testng.src.dir}" includes="**/*.java" />
             <formatter type="plain" />
@@ -909,9 +905,16 @@
         <echo message="      The unit tests will not start to run until the debugger is attached" />
         <echo message="      unless you also specify -Dtest.remote.debug.suspend=n." />
         <echo message="" />
+        <echo message="  -Dorg.opends.sdk.ldapserver=localhost@389@cn=Directory Manager@password " />
+        <echo message="      for example will allow you to use an external LDAP server of your choice" />
+        <echo message="      for executing the server-dependent unit tests. In absence of this parameter,"/>
+        <echo message="      a local LDAP server is started and used for the unit tests. Also, if the test" />
+        <echo message="      can not establish a connection to the specified server, it will use the local" />
+        <echo message="      server instead." />
+        <echo message="" />
     </target>
 
-
+ 
 
     <!-- Internal target to execute the OpenDS LDAP SDK TestNG unit tests in text mode after everything has been initialized. -->
     <target name="runtests">
@@ -1045,6 +1048,7 @@
             <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
             <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
             <jvmarg value="-Dtest.progress=${test.progress}" />
+            <jvmarg value="-Dorg.opends.sdk.ldapserver=${org.opends.sdk.ldapserver}" />
             <jvmarg value="-Xms${MEM}" />
             <jvmarg value="-Xmx${MEM}" />
             <jvmarg value="${jvm.debug.arg1}" />

@@ -36,24 +36,22 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class defines an approximate matching rule based on the Double
- * Metaphone algorithm. The Metaphone and Double Metaphone algorithms
- * were originally devised by Lawrence Philips (published in the
- * December 1990 issue of <I>Computer Language</I> and the <A
- * HREF="http://www.cuj.com/documents/s=8038/cuj0006philips/">June 2000
- * issue of <I>C/C++ Users Journal</I></A>, respectively), and this
- * version of the algorithm is based on a version modified by Kevin
- * Atkinson to include bugfixes and additional functionality (source is
- * available <A HREF="http://aspell.net/metaphone/dmetaph.cpp">here</A>
- * and additional Metaphone and Double Metaphone information is
- * available at <A
- * HREF="http://aspell.net/metaphone/">http://aspell.net/
- * metaphone/</A>). This implementation is largely the same as the one
- * provided by Kevin Atkinson, but it has been re-written for better
- * readability, for more efficiency, to get rid of checks for conditions
- * that can't possibly happen, and to get rid of redundant checks that
- * aren't needed. It has also been updated to always only generate a
- * single value rather than one or possibly two values.
+ * This class defines an approximate matching rule based on the Double Metaphone
+ * algorithm. The Metaphone and Double Metaphone algorithms were originally
+ * devised by Lawrence Philips (published in the December 1990 issue of
+ * <I>Computer Language</I> and the <A
+ * HREF="http://www.cuj.com/documents/s=8038/cuj0006philips/">June 2000 issue of
+ * <I>C/C++ Users Journal</I></A>, respectively), and this version of the
+ * algorithm is based on a version modified by Kevin Atkinson to include
+ * bugfixes and additional functionality (source is available <A
+ * HREF="http://aspell.net/metaphone/dmetaph.cpp">here</A> and additional
+ * Metaphone and Double Metaphone information is available at <A
+ * HREF="http://aspell.net/metaphone/">http://aspell.net/ metaphone/</A>). This
+ * implementation is largely the same as the one provided by Kevin Atkinson, but
+ * it has been re-written for better readability, for more efficiency, to get
+ * rid of checks for conditions that can't possibly happen, and to get rid of
+ * redundant checks that aren't needed. It has also been updated to always only
+ * generate a single value rather than one or possibly two values.
  */
 final class DoubleMetaphoneApproximateMatchingRuleImpl extends
     AbstractMatchingRuleImpl
@@ -62,8 +60,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     String valueString = value.toString();
     final int length = valueString.length();
@@ -214,10 +212,10 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
               || (pos == 0
                   || (posMinusOne = valueString.charAt(pos - 1)) == 'A'
                   || posMinusOne == 'O' || posMinusOne == 'U' || posMinusOne == 'E')
-              && (posPlusTwo == 'L' || posPlusTwo == 'R'
-                  || posPlusTwo == 'N' || posPlusTwo == 'M'
-                  || posPlusTwo == 'B' || posPlusTwo == 'H'
-                  || posPlusTwo == 'F' || posPlusTwo == 'V' || posPlusTwo == 'W'))
+              && (posPlusTwo == 'L' || posPlusTwo == 'R' || posPlusTwo == 'N'
+                  || posPlusTwo == 'M' || posPlusTwo == 'B'
+                  || posPlusTwo == 'H' || posPlusTwo == 'F'
+                  || posPlusTwo == 'V' || posPlusTwo == 'W'))
           {
             metaphone.append("K");
             pos += 2;
@@ -246,8 +244,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // Check for "CZ" as in "czerny" but not "wicz" and map to 'S'.
-        if (posPlusOne == 'Z'
-            && !hasSubstring(valueString, pos - 2, "WI"))
+        if (posPlusOne == 'Z' && !hasSubstring(valueString, pos - 2, "WI"))
         {
           metaphone.append("S");
           pos += 2;
@@ -263,8 +260,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
 
         // Check for a double C but not in values that start with "McC"
-        if (posPlusOne == 'C'
-            && !(pos == 1 && valueString.charAt(0) == 'M'))
+        if (posPlusOne == 'C' && !(pos == 1 && valueString.charAt(0) == 'M'))
         {
           if (((posPlusTwo = valueString.charAt(pos + 2)) == 'I'
               || posPlusTwo == 'E' || posPlusTwo == 'H')
@@ -450,8 +446,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
             if (pos > 2
                 && valueString.charAt(pos - 1) == 'U'
                 && ((posMinusThree = valueString.charAt(pos - 3)) == 'C'
-                    || posMinusThree == 'G'
-                    || posMinusThree == 'L'
+                    || posMinusThree == 'G' || posMinusThree == 'L'
                     || posMinusThree == 'R' || posMinusThree == 'T'))
             {
               // Words like laugh, McLaughlin, cough, rough are mapped
@@ -524,8 +519,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         posPlusTwo = valueString.charAt(pos + 2);
         if ((posPlusOne == 'E' && posPlusTwo == 'R' || posPlusOne == 'Y')
             && (posMinusOne = valueString.charAt(pos - 1)) != 'E'
-            && posMinusOne != 'I'
-            && !hasSubstring(valueString, 0, "DANGER")
+            && posMinusOne != 'I' && !hasSubstring(valueString, 0, "DANGER")
             && !hasSubstring(valueString, 0, "RANGER")
             && !hasSubstring(valueString, 0, "MANGER")
             && !hasSubstring(valueString, pos - 1, "RGY")
@@ -655,8 +649,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         }
         else if (hasSubstring(valueString, pos - 1, "UMB"))
         {
-          if (pos + 1 == last
-              || hasSubstring(valueString, pos + 2, "ER"))
+          if (pos + 1 == last || hasSubstring(valueString, pos + 2, "ER"))
           {
             pos++;
           }
@@ -789,8 +782,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
         // Various combinations at the beginning of words will be mapped
         // to 'S'.
         if (pos == 0
-            && (posPlusOne == 'M' || posPlusOne == 'N'
-                || posPlusOne == 'L' || posPlusOne == 'W'))
+            && (posPlusOne == 'M' || posPlusOne == 'N' || posPlusOne == 'L' || posPlusOne == 'W'))
         {
           metaphone.append("S");
           pos++;
@@ -818,8 +810,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
             break;
           }
 
-          if (posPlusTwo == 'I' || posPlusTwo == 'E'
-              || posPlusTwo == 'Y')
+          if (posPlusTwo == 'I' || posPlusTwo == 'E' || posPlusTwo == 'Y')
           {
             metaphone.append("S");
             pos += 3;
@@ -1003,21 +994,19 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
   /**
    * Indicates whether the provided value has the given substring at the
    * specified position.
-   * 
+   *
    * @param value
    *          The value containing the range for which to make the
    *          determination.
    * @param start
-   *          The position in the value at which to start the
-   *          comparison.
+   *          The position in the value at which to start the comparison.
    * @param substring
-   *          The substring to compare against the specified value
-   *          range.
-   * @return <CODE>true</CODE> if the specified portion of the value
-   *         matches the given substring, or <CODE>false</CODE> if it
-   *         does not.
+   *          The substring to compare against the specified value range.
+   * @return <CODE>true</CODE> if the specified portion of the value matches the
+   *         given substring, or <CODE>false</CODE> if it does not.
    */
-  private boolean hasSubstring(String value, int start, String substring)
+  private boolean hasSubstring(final String value, final int start,
+      final String substring)
   {
     try
     {
@@ -1048,8 +1037,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
     }
     catch (final Exception e)
     {
-      StaticUtils.DEBUG_LOG.throwing(
-          "DoubleMetaphoneApproximateMatchingRule", "hasSubstring", e);
+      StaticUtils.DEBUG_LOG.throwing("DoubleMetaphoneApproximateMatchingRule",
+          "hasSubstring", e);
 
       return false;
     }
@@ -1058,31 +1047,30 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
 
   /**
-   * Indicates whether the provided string appears Germanic (starts with
-   * "VAN ", "VON ", or "SCH").
-   * 
+   * Indicates whether the provided string appears Germanic (starts with "VAN ",
+   * "VON ", or "SCH").
+   *
    * @param s
    *          The string for which to make the determination.
-   * @return <CODE>true</CODE> if the provided string appears Germanic,
-   *         or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided string appears Germanic, or
+   *         <CODE>false</CODE> if not.
    */
-  private boolean isGermanic(String s)
+  private boolean isGermanic(final String s)
   {
-    return s.startsWith("VAN ") || s.startsWith("VON ")
-        || s.startsWith("SCH");
+    return s.startsWith("VAN ") || s.startsWith("VON ") || s.startsWith("SCH");
   }
 
 
 
   /**
    * Indicates whether the provided string appears to be Slavo-Germanic.
-   * 
+   *
    * @param s
    *          The string for which to make the determination.
    * @return <CODE>true</CODE> if the provided string appears to be
    *         Slavo-Germanic, or <CODE>false</CODE> if not.
    */
-  private boolean isSlavoGermanic(String s)
+  private boolean isSlavoGermanic(final String s)
   {
     return s.contains("W") || s.contains("K") || s.contains("CZ")
         || s.contains("WITZ");
@@ -1091,15 +1079,14 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends
 
 
   /**
-   * Indicates whether the provided character is a vowel (including
-   * "Y").
-   * 
+   * Indicates whether the provided character is a vowel (including "Y").
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a vowel, or
    *         <CODE>false</CODE> if not.
    */
-  private boolean isVowel(char c)
+  private boolean isVowel(final char c)
   {
     switch (c)
     {

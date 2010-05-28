@@ -47,14 +47,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
-    final ByteString normAssertion =
-        normalizeAttributeValue(schema, value);
+    final ByteString normAssertion = normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) < 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;
@@ -65,14 +64,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getGreaterOrEqualAssertion(Schema schema,
-      ByteSequence value) throws DecodeException
+  public Assertion getGreaterOrEqualAssertion(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
-    final ByteString normAssertion =
-        normalizeAttributeValue(schema, value);
+    final ByteString normAssertion = normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) >= 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;
@@ -83,14 +81,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getLessOrEqualAssertion(Schema schema,
-      ByteSequence value) throws DecodeException
+  public Assertion getLessOrEqualAssertion(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
-    final ByteString normAssertion =
-        normalizeAttributeValue(schema, value);
+    final ByteString normAssertion = normalizeAttributeValue(schema, value);
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         return attributeValue.compareTo(normAssertion) <= 0 ? ConditionResult.TRUE
             : ConditionResult.FALSE;

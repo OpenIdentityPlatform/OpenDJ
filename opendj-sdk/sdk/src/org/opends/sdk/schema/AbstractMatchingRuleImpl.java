@@ -39,8 +39,8 @@ import org.opends.sdk.DecodeException;
 
 
 /**
- * This class implements a default equality or approximate matching rule
- * that matches normalized values in byte order.
+ * This class implements a default equality or approximate matching rule that
+ * matches normalized values in byte order.
  */
 abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 {
@@ -51,36 +51,37 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 
 
     protected DefaultEqualityAssertion(
-        ByteSequence normalizedAssertionValue)
+        final ByteSequence normalizedAssertionValue)
     {
       this.normalizedAssertionValue = normalizedAssertionValue;
     }
 
 
 
-    public ConditionResult matches(ByteSequence attributeValue)
+    public ConditionResult matches(final ByteSequence attributeValue)
     {
       return normalizedAssertionValue.equals(attributeValue) ? ConditionResult.TRUE
           : ConditionResult.FALSE;
     }
   }
 
+
+
   private static final Assertion UNDEFINED_ASSERTION = new Assertion()
   {
-    public ConditionResult matches(ByteSequence attributeValue)
+    public ConditionResult matches(final ByteSequence attributeValue)
     {
       return ConditionResult.UNDEFINED;
     }
   };
 
-  private static final Comparator<ByteSequence> DEFAULT_COMPARATOR =
-      new Comparator<ByteSequence>()
-      {
-        public int compare(ByteSequence o1, ByteSequence o2)
-        {
-          return o1.compareTo(o2);
-        }
-      };
+  private static final Comparator<ByteSequence> DEFAULT_COMPARATOR = new Comparator<ByteSequence>()
+  {
+    public int compare(final ByteSequence o1, final ByteSequence o2)
+    {
+      return o1.compareTo(o2);
+    }
+  };
 
 
 
@@ -91,41 +92,41 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl
 
 
 
-  public Comparator<ByteSequence> comparator(Schema schema)
+  public Comparator<ByteSequence> comparator(final Schema schema)
   {
     return DEFAULT_COMPARATOR;
   }
 
 
 
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
-    return new DefaultEqualityAssertion(normalizeAttributeValue(schema,
-        value));
+    return new DefaultEqualityAssertion(normalizeAttributeValue(schema, value));
   }
 
 
 
-  public Assertion getAssertion(Schema schema, ByteSequence subInitial,
-      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
-      throws DecodeException
+  public Assertion getAssertion(final Schema schema,
+      final ByteSequence subInitial,
+      final List<? extends ByteSequence> subAnyElements,
+      final ByteSequence subFinal) throws DecodeException
   {
     return UNDEFINED_ASSERTION;
   }
 
 
 
-  public Assertion getGreaterOrEqualAssertion(Schema schema,
-      ByteSequence value) throws DecodeException
+  public Assertion getGreaterOrEqualAssertion(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     return UNDEFINED_ASSERTION;
   }
 
 
 
-  public Assertion getLessOrEqualAssertion(Schema schema,
-      ByteSequence value) throws DecodeException
+  public Assertion getLessOrEqualAssertion(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     return UNDEFINED_ASSERTION;
   }

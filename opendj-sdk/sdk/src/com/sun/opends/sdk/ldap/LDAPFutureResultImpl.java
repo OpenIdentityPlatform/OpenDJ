@@ -29,9 +29,7 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.*;
 import org.opends.sdk.requests.Request;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
@@ -41,18 +39,41 @@ import org.opends.sdk.responses.Result;
 /**
  * Result future implementation.
  */
-public final class LDAPFutureResultImpl extends
-    AbstractLDAPFutureResultImpl<Result> implements FutureResult<Result>
+final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Result>
+    implements FutureResult<Result>
 {
   private final Request request;
 
 
 
-  LDAPFutureResultImpl(int messageID, Request request,
-      ResultHandler<Result> handler, LDAPConnection connection)
+  LDAPFutureResultImpl(final int messageID, final Request request,
+      final ResultHandler<Result> resultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(messageID, handler, connection);
+    super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
+  }
+
+
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("LDAPFutureResultImpl(");
+    sb.append("request = ");
+    sb.append(request);
+    super.toString(sb);
+    sb.append(")");
+    return sb.toString();
+  }
+
+
+
+  Request getRequest()
+  {
+    return request;
   }
 
 
@@ -61,17 +82,10 @@ public final class LDAPFutureResultImpl extends
    * {@inheritDoc}
    */
   @Override
-  Result newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  Result newErrorResult(final ResultCode resultCode,
+      final String diagnosticMessage, final Throwable cause)
   {
     return Responses.newResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
-  }
-
-
-
-  Request getRequest()
-  {
-    return request;
   }
 }

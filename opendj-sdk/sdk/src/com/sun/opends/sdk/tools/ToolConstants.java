@@ -26,20 +26,14 @@
  */
 package com.sun.opends.sdk.tools;
 
+
+
 /**
- * This class defines a number of constants used in one or more
- * Directory Server tools.
+ * This class defines a number of constants used in one or more Directory Server
+ * tools.
  */
 final class ToolConstants
 {
-  // Prevent instantiation.
-  private ToolConstants()
-  {
-
-  }
-
-
-
   /**
    * The name of the SASL property that can be used to provide the
    * authentication ID for the bind.
@@ -47,38 +41,38 @@ final class ToolConstants
   static final String SASL_PROPERTY_AUTHID = "authid";
 
   /**
-   * The name of the SASL property that can be used to provide the
-   * authorization ID for the bind.
+   * The name of the SASL property that can be used to provide the authorization
+   * ID for the bind.
    */
   static final String SASL_PROPERTY_AUTHZID = "authzid";
 
   /**
-   * The name of the SASL property that can be used to provide the
-   * digest URI for the bind.
+   * The name of the SASL property that can be used to provide the digest URI
+   * for the bind.
    */
   static final String SASL_PROPERTY_DIGEST_URI = "digest-uri";
 
   /**
-   * The name of the SASL property that can be used to provide the KDC
-   * for use in Kerberos authentication.
+   * The name of the SASL property that can be used to provide the KDC for use
+   * in Kerberos authentication.
    */
   static final String SASL_PROPERTY_KDC = "kdc";
 
   /**
-   * The name of the SASL property that can be used to provide the
-   * quality of protection for the bind.
+   * The name of the SASL property that can be used to provide the quality of
+   * protection for the bind.
    */
   static final String SASL_PROPERTY_QOP = "qop";
 
   /**
-   * The name of the SASL property that can be used to provide the realm
-   * for the bind.
+   * The name of the SASL property that can be used to provide the realm for the
+   * bind.
    */
   static final String SASL_PROPERTY_REALM = "realm";
 
   /**
-   * The name of the SASL property that can be used to provide trace
-   * information for a SASL ANONYMOUS request.
+   * The name of the SASL property that can be used to provide trace information
+   * for a SASL ANONYMOUS request.
    */
   static final String SASL_PROPERTY_TRACE = "trace";
 
@@ -89,8 +83,7 @@ final class ToolConstants
   static final String SASL_PROPERTY_MECH = "mech";
 
   /**
-   * The name of the opends configuration direction in the user home
-   * directory.
+   * The name of the opends configuration direction in the user home directory.
    */
   static final String DEFAULT_OPENDS_CONFIG_DIR = ".opends";
 
@@ -380,14 +373,13 @@ final class ToolConstants
   static final String OPTION_LONG_EFFECTIVERIGHTSUSER = "getEffectiveRightsAuthzid";
 
   /**
-   * The value for the short option geteffectiveights control
-   * attributes.
+   * The value for the short option geteffectiveights control attributes.
    */
   static final char OPTION_SHORT_EFFECTIVERIGHTSATTR = 'e';
 
   /**
-   * The value for the long option geteffectiverights control specific
-   * attribute list.
+   * The value for the long option geteffectiverights control specific attribute
+   * list.
    */
   static final String OPTION_LONG_EFFECTIVERIGHTSATTR = "getEffectiveRightsAttribute";
 
@@ -610,5 +602,13 @@ final class ToolConstants
    * The default separator to be used in tables.
    */
   static final String LIST_TABLE_SEPARATOR = ":";
+
+
+
+  // Prevent instantiation.
+  private ToolConstants()
+  {
+
+  }
 
 }

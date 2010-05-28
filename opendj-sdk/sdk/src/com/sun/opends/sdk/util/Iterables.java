@@ -38,83 +38,6 @@ import java.util.Iterator;
  */
 public final class Iterables
 {
-  private static final class EmptyIterable<M> implements Iterable<M>
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    public Iterator<M> iterator()
-    {
-      return Iterators.empty();
-    }
-
-  }
-
-
-
-  private static final class FilteredIterable<M, P> implements
-      Iterable<M>
-  {
-
-    private final Iterable<M> iterable;
-    private final P parameter;
-    private final Predicate<? super M, P> predicate;
-
-
-
-    // Constructed via factory methods.
-    private FilteredIterable(Iterable<M> iterable,
-        Predicate<? super M, P> predicate, P p)
-    {
-      this.iterable = iterable;
-      this.predicate = predicate;
-      this.parameter = p;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Iterator<M> iterator()
-    {
-      return Iterators
-          .filter(iterable.iterator(), predicate, parameter);
-    }
-
-  }
-
-
-
-  private static final class SingletonIterable<M> implements
-      Iterable<M>
-  {
-
-    private final M value;
-
-
-
-    // Constructed via factory methods.
-    private SingletonIterable(M value)
-    {
-      this.value = value;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Iterator<M> iterator()
-    {
-      return Iterators.singleton(value);
-    }
-
-  }
-
-
-
   private static final class ArrayIterable<M> implements Iterable<M>
   {
 
@@ -123,7 +46,7 @@ public final class Iterables
 
 
     // Constructed via factory methods.
-    private ArrayIterable(M[] a)
+    private ArrayIterable(final M[] a)
     {
       this.a = a;
     }
@@ -142,6 +65,80 @@ public final class Iterables
 
 
 
+  private static final class EmptyIterable<M> implements Iterable<M>
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.empty();
+    }
+
+  }
+
+
+
+  private static final class FilteredIterable<M, P> implements Iterable<M>
+  {
+
+    private final Iterable<M> iterable;
+    private final P parameter;
+    private final Predicate<? super M, P> predicate;
+
+
+
+    // Constructed via factory methods.
+    private FilteredIterable(final Iterable<M> iterable,
+        final Predicate<? super M, P> predicate, final P p)
+    {
+      this.iterable = iterable;
+      this.predicate = predicate;
+      this.parameter = p;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.filter(iterable.iterator(), predicate, parameter);
+    }
+
+  }
+
+
+
+  private static final class SingletonIterable<M> implements Iterable<M>
+  {
+
+    private final M value;
+
+
+
+    // Constructed via factory methods.
+    private SingletonIterable(final M value)
+    {
+      this.value = value;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Iterator<M> iterator()
+    {
+      return Iterators.singleton(value);
+    }
+
+  }
+
+
+
   private static final class TransformedIterable<M, N, P> implements
       Iterable<N>
   {
@@ -153,8 +150,8 @@ public final class Iterables
 
 
     // Constructed via factory methods.
-    private TransformedIterable(Iterable<M> iterable,
-        Function<? super M, ? extends N, P> function, P p)
+    private TransformedIterable(final Iterable<M> iterable,
+        final Function<? super M, ? extends N, P> function, final P p)
     {
       this.iterable = iterable;
       this.function = function;
@@ -168,16 +165,14 @@ public final class Iterables
      */
     public Iterator<N> iterator()
     {
-      return Iterators.transform(iterable.iterator(), function,
-          parameter);
+      return Iterators.transform(iterable.iterator(), function, parameter);
     }
 
   }
 
 
 
-  private static final class UnmodifiableIterable<M> implements
-      Iterable<M>
+  private static final class UnmodifiableIterable<M> implements Iterable<M>
   {
 
     private final Iterable<M> iterable;
@@ -185,7 +180,7 @@ public final class Iterables
 
 
     // Constructed via factory methods.
-    private UnmodifiableIterable(Iterable<M> iterable)
+    private UnmodifiableIterable(final Iterable<M> iterable)
     {
       this.iterable = iterable;
     }
@@ -202,8 +197,27 @@ public final class Iterables
 
   }
 
-  private static final Iterable<Object> EMPTY_ITERABLE =
-      new EmptyIterable<Object>();
+
+
+  private static final Iterable<Object> EMPTY_ITERABLE = new EmptyIterable<Object>();
+
+
+
+  /**
+   * Returns an iterable containing the elements of {@code a}. The returned
+   * iterable's iterator does not support element removal via the {@code
+   * remove()} method.
+   *
+   * @param <M>
+   *          The type of elements contained in {@code a}.
+   * @param a
+   *          The array of elements.
+   * @return An iterable containing the elements of {@code a}.
+   */
+  public static <M> Iterable<M> arrayIterable(final M[] a)
+  {
+    return new ArrayIterable<M>(a);
+  }
 
 
 
@@ -223,28 +237,28 @@ public final class Iterables
 
 
   /**
-   * Returns a filtered view of {@code iterable} containing only those
-   * elements which match {@code predicate}. The returned iterable's
-   * iterator supports element removal via the {@code remove()} method
-   * subject to any constraints imposed by {@code iterable}.
+   * Returns a filtered view of {@code iterable} containing only those elements
+   * which match {@code predicate}. The returned iterable's iterator supports
+   * element removal via the {@code remove()} method subject to any constraints
+   * imposed by {@code iterable}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
    * @param <P>
-   *          The type of the additional parameter to the predicate's
-   *          {@code matches} method. Use {@link java.lang.Void} for
-   *          predicates that do not need an additional parameter.
+   *          The type of the additional parameter to the predicate's {@code
+   *          matches} method. Use {@link java.lang.Void} for predicates that do
+   *          not need an additional parameter.
    * @param iterable
    *          The iterable to be filtered.
    * @param predicate
    *          The predicate.
    * @param p
    *          A predicate specified parameter.
-   * @return A filtered view of {@code iterable} containing only those
-   *         elements which match {@code predicate}.
+   * @return A filtered view of {@code iterable} containing only those elements
+   *         which match {@code predicate}.
    */
-  public static <M, P> Iterable<M> filter(Iterable<M> iterable,
-      Predicate<? super M, P> predicate, P p)
+  public static <M, P> Iterable<M> filter(final Iterable<M> iterable,
+      final Predicate<? super M, P> predicate, final P p)
   {
     return new FilteredIterable<M, P>(iterable, predicate, p);
   }
@@ -252,10 +266,10 @@ public final class Iterables
 
 
   /**
-   * Returns a filtered view of {@code iterable} containing only those
-   * elements which match {@code predicate}. The returned iterable's
-   * iterator supports element removal via the {@code remove()} method
-   * subject to any constraints imposed by {@code iterable}.
+   * Returns a filtered view of {@code iterable} containing only those elements
+   * which match {@code predicate}. The returned iterable's iterator supports
+   * element removal via the {@code remove()} method subject to any constraints
+   * imposed by {@code iterable}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
@@ -263,11 +277,11 @@ public final class Iterables
    *          The iterable to be filtered.
    * @param predicate
    *          The predicate.
-   * @return A filtered view of {@code iterable} containing only those
-   *         elements which match {@code predicate}.
+   * @return A filtered view of {@code iterable} containing only those elements
+   *         which match {@code predicate}.
    */
-  public static <M> Iterable<M> filter(Iterable<M> iterable,
-      Predicate<? super M, Void> predicate)
+  public static <M> Iterable<M> filter(final Iterable<M> iterable,
+      final Predicate<? super M, Void> predicate)
   {
     return new FilteredIterable<M, Void>(iterable, predicate, null);
   }
@@ -275,9 +289,9 @@ public final class Iterables
 
 
   /**
-   * Returns an iterable containing the single element {@code value}.
-   * The returned iterable's iterator does not support element removal
-   * via the {@code remove()} method.
+   * Returns an iterable containing the single element {@code value}. The
+   * returned iterable's iterator does not support element removal via the
+   * {@code remove()} method.
    *
    * @param <M>
    *          The type of the single element {@code value}.
@@ -285,7 +299,7 @@ public final class Iterables
    *          The single element.
    * @return An iterable containing the single element {@code value}.
    */
-  public static <M> Iterable<M> singleton(M value)
+  public static <M> Iterable<M> singleton(final M value)
   {
     return new SingletonIterable<M>(value);
   }
@@ -293,38 +307,19 @@ public final class Iterables
 
 
   /**
-   * Returns an iterable containing the elements of {@code a}. The
-   * returned iterable's iterator does not support element removal via
-   * the {@code remove()} method.
-   *
-   * @param <M>
-   *          The type of elements contained in {@code a}.
-   * @param a
-   *          The array of elements.
-   * @return An iterable containing the elements of {@code a}.
-   */
-  public static <M> Iterable<M> arrayIterable(M[] a)
-  {
-    return new ArrayIterable<M>(a);
-  }
-
-
-
-  /**
    * Returns a view of {@code iterable} whose values have been mapped to
-   * elements of type {@code N} using {@code function}. The returned
-   * iterable's iterator supports element removal via the {@code
-   * remove()} method subject to any constraints imposed by {@code
-   * iterable}.
+   * elements of type {@code N} using {@code function}. The returned iterable's
+   * iterator supports element removal via the {@code remove()} method subject
+   * to any constraints imposed by {@code iterable}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
    * @param <N>
    *          The type of elements contained in the returned iterable.
    * @param <P>
-   *          The type of the additional parameter to the function's
-   *          {@code apply} method. Use {@link java.lang.Void} for
-   *          functions that do not need an additional parameter.
+   *          The type of the additional parameter to the function's {@code
+   *          apply} method. Use {@link java.lang.Void} for functions that do
+   *          not need an additional parameter.
    * @param iterable
    *          The iterable to be transformed.
    * @param function
@@ -334,8 +329,8 @@ public final class Iterables
    * @return A view of {@code iterable} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N, P> Iterable<N> transform(Iterable<M> iterable,
-      Function<? super M, ? extends N, P> function, P p)
+  public static <M, N, P> Iterable<N> transform(final Iterable<M> iterable,
+      final Function<? super M, ? extends N, P> function, final P p)
   {
     return new TransformedIterable<M, N, P>(iterable, function, p);
   }
@@ -344,10 +339,9 @@ public final class Iterables
 
   /**
    * Returns a view of {@code iterable} whose values have been mapped to
-   * elements of type {@code N} using {@code function}. The returned
-   * iterable's iterator supports element removal via the {@code
-   * remove()} method subject to any constraints imposed by {@code
-   * iterable}.
+   * elements of type {@code N} using {@code function}. The returned iterable's
+   * iterator supports element removal via the {@code remove()} method subject
+   * to any constraints imposed by {@code iterable}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
@@ -360,8 +354,8 @@ public final class Iterables
    * @return A view of {@code iterable} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N> Iterable<N> transform(Iterable<M> iterable,
-      Function<? super M, ? extends N, Void> function)
+  public static <M, N> Iterable<N> transform(final Iterable<M> iterable,
+      final Function<? super M, ? extends N, Void> function)
   {
     return new TransformedIterable<M, N, Void>(iterable, function, null);
   }
@@ -369,19 +363,19 @@ public final class Iterables
 
 
   /**
-   * Returns a read-only view of {@code iterable} whose iterator does
-   * not support element removal via the {@code remove()}. Attempts to
-   * use the {@code remove()} method will result in a {@code
+   * Returns a read-only view of {@code iterable} whose iterator does not
+   * support element removal via the {@code remove()}. Attempts to use the
+   * {@code remove()} method will result in a {@code
    * UnsupportedOperationException}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
    * @param iterable
    *          The iterable to be made read-only.
-   * @return A read-only view of {@code iterable} whose iterator does
-   *         not support element removal via the {@code remove()}.
+   * @return A read-only view of {@code iterable} whose iterator does not
+   *         support element removal via the {@code remove()}.
    */
-  public static <M> Iterable<M> unmodifiable(Iterable<M> iterable)
+  public static <M> Iterable<M> unmodifiable(final Iterable<M> iterable)
   {
     return new UnmodifiableIterable<M>(iterable);
   }

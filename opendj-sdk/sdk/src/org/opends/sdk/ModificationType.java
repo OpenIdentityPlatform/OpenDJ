@@ -36,16 +36,13 @@ import java.util.List;
 
 
 /**
- * A Modify operation change type as defined in RFC 4511 section 4.6 is
- * used to specify the type of modification being performed on an
- * attribute.
+ * A Modify operation change type as defined in RFC 4511 section 4.6 is used to
+ * specify the type of modification being performed on an attribute.
  *
- * @see <a href="http://tools.ietf.org/html/rfc4511#section-4.6">RFC
- *      4511 - Lightweight Directory Access Protocol (LDAP): The
- *      Protocol </a>
- * @see <a href="http://tools.ietf.org/html/rfc4525">RFC 4525 -
- *      Lightweight Directory Access Protocol (LDAP) Modify-Increment
- *      Extension </a>
+ * @see <a href="http://tools.ietf.org/html/rfc4511#section-4.6">RFC 4511 -
+ *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
+ * @see <a href="http://tools.ietf.org/html/rfc4525">RFC 4525 - Lightweight
+ *      Directory Access Protocol (LDAP) Modify-Increment Extension </a>
  */
 public final class ModificationType
 {
@@ -55,67 +52,44 @@ public final class ModificationType
       .unmodifiableList(Arrays.asList(ELEMENTS));
 
   /**
-   * Add the values listed in the modification to the attribute,
-   * creating the attribute if necessary.
+   * Add the values listed in the modification to the attribute, creating the
+   * attribute if necessary.
    */
   public static final ModificationType ADD = register(0, "add");
 
   /**
-   * Delete the values listed in the modification from the attribute. If
-   * no values are listed, or if all current values of the attribute are
-   * listed, the entire attribute is removed.
+   * Delete the values listed in the modification from the attribute. If no
+   * values are listed, or if all current values of the attribute are listed,
+   * the entire attribute is removed.
    */
   public static final ModificationType DELETE = register(1, "delete");
 
   /**
-   * Replace all existing values of the attribute with the new values
-   * listed in the modification, creating the attribute if it did not
-   * already exist. A replace with no listed values will delete the
-   * entire attribute if it exists, and it is ignored if the attribute
-   * does not exist.
+   * Replace all existing values of the attribute with the new values listed in
+   * the modification, creating the attribute if it did not already exist. A
+   * replace with no listed values will delete the entire attribute if it
+   * exists, and it is ignored if the attribute does not exist.
    */
   public static final ModificationType REPLACE = register(2, "replace");
 
   /**
-   * Increment all existing values of the attribute by the amount
-   * specified in the modification value.
+   * Increment all existing values of the attribute by the amount specified in
+   * the modification value.
    */
-  public static final ModificationType INCREMENT = register(3,
-      "increment");
+  public static final ModificationType INCREMENT = register(3, "increment");
 
 
 
   /**
-   * Creates and registers a new modification change type with the
-   * application.
-   *
-   * @param intValue
-   *          The integer value of the modification change type as
-   *          defined in RFC 4511 section 4.6.
-   * @param name
-   *          The name of the modification change type.
-   * @return The new modification change type.
-   */
-  private static ModificationType register(int intValue, String name)
-  {
-    ModificationType t = new ModificationType(intValue, name);
-    ELEMENTS[intValue] = t;
-    return t;
-  }
-
-
-
-  /**
-   * Returns the modification change type having the specified integer
-   * value as defined in RFC 4511 section 4.6.
+   * Returns the modification change type having the specified integer value as
+   * defined in RFC 4511 section 4.6.
    *
    * @param intValue
    *          The integer value of the modification change type.
-   * @return The modification change type, or {@code null} if there was
-   *         no modification change type associated with {@code
-   *         intValue}.
+   * @return The modification change type, or {@code null} if there was no
+   *         modification change type associated with {@code intValue}.
    */
-  public static ModificationType valueOf(int intValue)
+  public static ModificationType valueOf(final int intValue)
   {
     if (intValue < 0 || intValue >= ELEMENTS.length)
     {
@@ -127,16 +101,35 @@ public final class ModificationType
 
 
   /**
-   * Returns an unmodifiable list containing the set of available
-   * modification change types indexed on their integer value as defined
-   * in RFC 4511 section 4.6.
+   * Returns an unmodifiable list containing the set of available modification
+   * change types indexed on their integer value as defined in RFC 4511 section
+   * 4.6.
    *
-   * @return An unmodifiable list containing the set of available
-   *         modification change types.
+   * @return An unmodifiable list containing the set of available modification
+   *         change types.
    */
   public static List<ModificationType> values()
   {
     return IMMUTABLE_ELEMENTS;
+  }
+
+
+
+  /**
+   * Creates and registers a new modification change type with the application.
+   *
+   * @param intValue
+   *          The integer value of the modification change type as defined in
+   *          RFC 4511 section 4.6.
+   * @param name
+   *          The name of the modification change type.
+   * @return The new modification change type.
+   */
+  private static ModificationType register(final int intValue, final String name)
+  {
+    final ModificationType t = new ModificationType(intValue, name);
+    ELEMENTS[intValue] = t;
+    return t;
   }
 
 
@@ -148,7 +141,7 @@ public final class ModificationType
 
 
   // Prevent direct instantiation.
-  private ModificationType(int intValue, String name)
+  private ModificationType(final int intValue, final String name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -159,7 +152,8 @@ public final class ModificationType
   /**
    * {@inheritDoc}
    */
-  public boolean equals(Object obj)
+  @Override
+  public boolean equals(final Object obj)
   {
     if (this == obj)
     {
@@ -180,6 +174,7 @@ public final class ModificationType
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     return intValue;
@@ -188,8 +183,8 @@ public final class ModificationType
 
 
   /**
-   * Returns the integer value of this modification change type as
-   * defined in RFC 4511 section 4.6.
+   * Returns the integer value of this modification change type as defined in
+   * RFC 4511 section 4.6.
    *
    * @return The integer value of this modification change type.
    */
@@ -205,6 +200,7 @@ public final class ModificationType
    *
    * @return The string representation of this modification change type.
    */
+  @Override
   public String toString()
   {
     return name;

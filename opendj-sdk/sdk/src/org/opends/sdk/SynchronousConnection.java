@@ -32,6 +32,7 @@ package org.opends.sdk;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
+import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.schema.Schema;
 
@@ -40,8 +41,8 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A {@code SynchronousConnection} adapts an {@code
- * AsynchronousConnection} into a synchronous {@code Connection}.
+ * A {@code SynchronousConnection} adapts an {@code AsynchronousConnection} into
+ * a synchronous {@code Connection}.
  */
 public class SynchronousConnection extends AbstractConnection
 {
@@ -50,15 +51,15 @@ public class SynchronousConnection extends AbstractConnection
 
 
   /**
-   * Creates a new abstract connection which will route all synchronous
-   * requests to the provided asynchronous connection.
+   * Creates a new abstract connection which will route all synchronous requests
+   * to the provided asynchronous connection.
    *
    * @param connection
    *          The asynchronous connection to be used.
    * @throws NullPointerException
    *           If {@code connection} was {@code null}.
    */
-  public SynchronousConnection(AsynchronousConnection connection)
+  public SynchronousConnection(final AsynchronousConnection connection)
       throws NullPointerException
   {
     Validator.ensureNotNull(connection);
@@ -70,11 +71,11 @@ public class SynchronousConnection extends AbstractConnection
   /**
    * {@inheritDoc}
    */
-  public Result add(AddRequest request) throws ErrorResultException,
+  public Result add(final AddRequest request) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    FutureResult<Result> future = connection.add(request, null);
+    final FutureResult<Result> future = connection.add(request, null);
     try
     {
       return future.get();
@@ -84,153 +85,6 @@ public class SynchronousConnection extends AbstractConnection
       // Cancel the request if it hasn't completed.
       future.cancel(false);
     }
-  }
-
-
-
-  public void addConnectionEventListener(
-      ConnectionEventListener listener) throws IllegalStateException,
-      NullPointerException
-  {
-    connection.addConnectionEventListener(listener);
-  }
-
-
-
-  public BindResult bind(BindRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<BindResult> future = connection.bind(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public void close()
-  {
-    connection.close();
-  }
-
-
-
-  public void close(UnbindRequest request, String reason)
-      throws NullPointerException
-  {
-    connection.close(request, reason);
-  }
-
-
-
-  public CompareResult compare(CompareRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<CompareResult> future = connection.compare(request,
-        null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public Result delete(DeleteRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<Result> future = connection.delete(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public <R extends Result> R extendedRequest(ExtendedRequest<R> request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<R> future = connection.extendedRequest(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public Result modify(ModifyRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<Result> future = connection.modify(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public Result modifyDN(ModifyDNRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    FutureResult<Result> future = connection.modifyDN(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  public void removeConnectionEventListener(
-      ConnectionEventListener listener) throws NullPointerException
-  {
-    connection.removeConnectionEventListener(listener);
   }
 
 
@@ -238,12 +92,134 @@ public class SynchronousConnection extends AbstractConnection
   /**
    * {@inheritDoc}
    */
-  public Result search(SearchRequest request,
-      SearchResultHandler handler) throws ErrorResultException,
+  public void addConnectionEventListener(final ConnectionEventListener listener)
+      throws IllegalStateException, NullPointerException
+  {
+    connection.addConnectionEventListener(listener);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public BindResult bind(final BindRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<BindResult> future = connection.bind(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close()
+  {
+    connection.close();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close(final UnbindRequest request, final String reason)
+      throws NullPointerException
+  {
+    connection.close(request, reason);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public CompareResult compare(final CompareRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<CompareResult> future = connection
+        .compare(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Result delete(final DeleteRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = connection.delete(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <R extends ExtendedResult> R extendedRequest(
+      final ExtendedRequest<R> request) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    FutureResult<Result> future = connection.search(request, null,
+    final FutureResult<R> future = connection.extendedRequest(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <R extends ExtendedResult> R extendedRequest(
+      final ExtendedRequest<R> request,
+      final IntermediateResponseHandler handler) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final FutureResult<R> future = connection.extendedRequest(request, null,
         handler);
     try
     {
@@ -261,6 +237,16 @@ public class SynchronousConnection extends AbstractConnection
   /**
    * {@inheritDoc}
    */
+  public AsynchronousConnection getAsynchronousConnection()
+  {
+    return connection;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isClosed()
   {
     return connection.isClosed();
@@ -271,12 +257,101 @@ public class SynchronousConnection extends AbstractConnection
   /**
    * {@inheritDoc}
    */
-  public Schema readSchemaForEntry(DN name)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException
+  public boolean isValid()
   {
-    FutureResult<Schema> future = connection.readSchemaForEntry(name,
+    return connection.isValid();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Result modify(final ModifyRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = connection.modify(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Result modifyDN(final ModifyDNRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = connection.modifyDN(request, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Schema readSchemaForEntry(final DN name) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException
+  {
+    final FutureResult<Schema> future = connection.readSchemaForEntry(name,
         null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void removeConnectionEventListener(
+      final ConnectionEventListener listener) throws NullPointerException
+  {
+    connection.removeConnectionEventListener(listener);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Result search(final SearchRequest request,
+      final SearchResultHandler handler) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final FutureResult<Result> future = connection.search(request, null,
+        handler);
     try
     {
       return future.get();

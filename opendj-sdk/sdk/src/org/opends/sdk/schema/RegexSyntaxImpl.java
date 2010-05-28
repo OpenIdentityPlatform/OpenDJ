@@ -29,8 +29,11 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE;
+import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 
 import java.util.regex.Pattern;
 
@@ -44,8 +47,8 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * This class provides a regex mechanism where a new syntax and its
- * corresponding matching rules can be created on-the-fly. A regex
- * syntax is an LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
+ * corresponding matching rules can be created on-the-fly. A regex syntax is an
+ * LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
  */
 final class RegexSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -54,7 +57,7 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  RegexSyntaxImpl(Pattern pattern)
+  RegexSyntaxImpl(final Pattern pattern)
   {
     Validator.ensureNotNull(pattern);
     this.pattern = pattern;
@@ -108,16 +111,15 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String strValue = value.toString();
     final boolean matches = pattern.matcher(strValue).matches();
     if (!matches)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE.get(strValue,
-              pattern.pattern());
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_VALUE
+          .get(strValue, pattern.pattern());
       invalidReason.append(message);
     }
     return matches;

@@ -22,82 +22,159 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
+
+
 
 /**
  * A sub-string reader.
  */
 public class SubstringReader
 {
-  private String source;
+  // The source string.
+  private final String source;
+  // The current position.
   private int pos;
+  // The marked position.
   private int mark;
+  // The length of the source.
+  private final int length;
 
-  public SubstringReader(String s) {
+
+
+  /**
+   * Creates an instance of SubstringReader.
+   *
+   * @param s
+   *          the source of the reader.
+   */
+  public SubstringReader(final String s)
+  {
     Validator.ensureNotNull(s);
     source = s;
+    length = s.length();
     pos = 0;
     mark = 0;
   }
 
+
+
   /**
-   * Attemps to read a substring of the specified length.
+   * Returns the source string.
    *
-   * @param length The number of characters to read.
-   * @return The substring.
+   * @return source string.
    */
-  public String read(int length)
-  {
-    String substring = source.substring(pos, pos + length);
-    pos += length;
-    return substring;
-  }
-
-  public char read()
-  {
-    return source.charAt(pos++);
-  }
-
   public String getString()
   {
     return source;
   }
 
-  public int pos()
-  {
-    return pos;
-  }
 
-  public int remaining()
-  {
-    return source.length() - pos;
-  }
 
   /**
-   * Marks the present position in the stream. Subsequent calls
-   * to reset() will reposition the stream to this point.
+   * Marks the present position in the stream. Subsequent calls to reset() will
+   * reposition the stream to this point.
    */
   public void mark()
   {
     mark = pos;
   }
 
+
+
   /**
-   * Resets the stream to the most recent mark, or to the beginning
-   * of the string if it has never been marked.
+   * Returns the current position of the reader.
+   *
+   * @return current position of the reader.
+   */
+  public int pos()
+  {
+    return pos;
+  }
+
+
+
+  /**
+   * Attemps to read a character from the current position. The caller must
+   * ensure that the source string has the data available from the current
+   * position.
+   *
+   * @return The characted at the current position.
+   * @Exception StringIndexOutOfBoundsException if there is no more data
+   *            available to read.
+   */
+  public char read()
+  {
+    if (pos >= length)
+    {
+      throw new StringIndexOutOfBoundsException();
+    }
+    return source.charAt(pos++);
+  }
+
+
+
+  /**
+   * Attemps to read a substring of the specified length from the current
+   * position. The caller must ensure that the requested length is within the
+   * bounds i.e. the requested length from the current position should not
+   * exceed the length of the source string.
+   *
+   * @param length
+   *          The number of characters to read.
+   * @return The substring.
+   * @Exception StringIndexOutOfBoundsException if the length exceeds the
+   *            allowed length.
+   */
+  public String read(final int length)
+  {
+    if (length > this.length || pos + length > this.length)
+    {
+      throw new StringIndexOutOfBoundsException();
+    }
+    final String substring = source.substring(pos, pos + length);
+    pos += length;
+    return substring;
+  }
+
+
+
+  /**
+   * Returns the remaining length of the available data.
+   *
+   * @return remaining length.
+   */
+  public int remaining()
+  {
+    return length - pos;
+  }
+
+
+
+  /**
+   * Resets the stream to the most recent mark, or to the beginning of the
+   * string if it has never been marked.
    */
   public void reset()
   {
     pos = mark;
   }
 
+
+
+  /**
+   * Skips the whitespace characters and advances the reader to the next non
+   * whitespace character.
+   *
+   * @return number of whitespace characters skipped.
+   */
   public int skipWhitespaces()
   {
     int skipped = 0;
-    while(pos < source.length() && source.charAt(pos) == ' ')
+    while (pos < length && source.charAt(pos) == ' ')
     {
       skipped++;
       pos++;

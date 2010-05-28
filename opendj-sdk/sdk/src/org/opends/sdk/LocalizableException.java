@@ -28,19 +28,15 @@ package org.opends.sdk;
 
 
 
-
-
-
-
 /**
- * This interface should be implemented by any exception interfaces that
- * expose a localizable error message.
+ * This interface should be implemented by any exception interfaces that expose
+ * a localizable error message.
  */
 public interface LocalizableException
 {
   /**
    * Returns the message that explains the problem that occurred.
-   * 
+   *
    * @return The message that explains the problem that occurred.
    */
   LocalizableMessage getMessageObject();

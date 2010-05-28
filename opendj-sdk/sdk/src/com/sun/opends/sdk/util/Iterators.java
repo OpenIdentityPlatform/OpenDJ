@@ -39,6 +39,60 @@ import java.util.NoSuchElementException;
  */
 public final class Iterators
 {
+  private static final class ArrayIterator<M> implements Iterator<M>
+  {
+    private int i = 0;
+    private final M[] a;
+
+
+
+    // Constructed via factory methods.
+    private ArrayIterator(final M[] a)
+    {
+      this.a = a;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasNext()
+    {
+      return i < a.length;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public M next()
+    {
+      if (hasNext())
+      {
+        return a[i++];
+      }
+      else
+      {
+        throw new NoSuchElementException();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void remove()
+    {
+      throw new UnsupportedOperationException();
+    }
+
+  };
+
+
+
   private static final class EmptyIterator<M> implements Iterator<M>
   {
     /**
@@ -68,12 +122,11 @@ public final class Iterators
     {
       throw new UnsupportedOperationException();
     }
-  };
+  }
 
 
 
-  private static final class FilteredIterator<M, P> implements
-      Iterator<M>
+  private static final class FilteredIterator<M, P> implements Iterator<M>
   {
 
     private boolean hasNextMustIterate = true;
@@ -86,8 +139,8 @@ public final class Iterators
 
 
     // Constructed via factory methods.
-    private FilteredIterator(Iterator<M> iterator,
-        Predicate<? super M, P> predicate, P p)
+    private FilteredIterator(final Iterator<M> iterator,
+        final Predicate<? super M, P> predicate, final P p)
     {
       this.iterator = iterator;
       this.predicate = predicate;
@@ -150,15 +203,14 @@ public final class Iterators
 
 
 
-  private static final class SingletonIterator<M> implements
-      Iterator<M>
+  private static final class SingletonIterator<M> implements Iterator<M>
   {
     private M value;
 
 
 
     // Constructed via factory methods.
-    private SingletonIterator(M value)
+    private SingletonIterator(final M value)
     {
       this.value = value;
     }
@@ -182,63 +234,9 @@ public final class Iterators
     {
       if (value != null)
       {
-        M tmp = value;
+        final M tmp = value;
         value = null;
         return tmp;
-      }
-      else
-      {
-        throw new NoSuchElementException();
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void remove()
-    {
-      throw new UnsupportedOperationException();
-    }
-
-  }
-
-
-
-  private static final class ArrayIterator<M> implements Iterator<M>
-  {
-    private int i = 0;
-    private final M[] a;
-
-
-
-    // Constructed via factory methods.
-    private ArrayIterator(M[] a)
-    {
-      this.a = a;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean hasNext()
-    {
-      return i < a.length;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public M next()
-    {
-      if (hasNext())
-      {
-        return a[i++];
       }
       else
       {
@@ -271,8 +269,8 @@ public final class Iterators
 
 
     // Constructed via factory methods.
-    private TransformedIterator(Iterator<M> iterator,
-        Function<? super M, ? extends N, P> function, P p)
+    private TransformedIterator(final Iterator<M> iterator,
+        final Function<? super M, ? extends N, P> function, final P p)
     {
       this.iterator = iterator;
       this.function = function;
@@ -313,14 +311,13 @@ public final class Iterators
 
 
 
-  private static final class UnmodifiableIterator<M> implements
-      Iterator<M>
+  private static final class UnmodifiableIterator<M> implements Iterator<M>
   {
     private final Iterator<M> iterator;
 
 
 
-    private UnmodifiableIterator(Iterator<M> iterator)
+    private UnmodifiableIterator(final Iterator<M> iterator)
     {
       this.iterator = iterator;
     }
@@ -356,8 +353,26 @@ public final class Iterators
     }
   }
 
-  private static final Iterator<Object> EMPTY_ITERATOR =
-      new EmptyIterator<Object>();
+
+
+  private static final Iterator<Object> EMPTY_ITERATOR = new EmptyIterator<Object>();
+
+
+
+  /**
+   * Returns an iterator over the elements contained in {@code a}. The returned
+   * iterator does not support element removal via the {@code remove()} method.
+   *
+   * @param <M>
+   *          The type of elements contained in {@code a}.
+   * @param a
+   *          The array of elements to be returned by the iterator.
+   * @return An iterator over the elements contained in {@code a}.
+   */
+  public static <M> Iterator<M> arrayIterator(final M[] a)
+  {
+    return new ArrayIterator<M>(a);
+  }
 
 
 
@@ -377,28 +392,28 @@ public final class Iterators
 
 
   /**
-   * Returns a filtered view of {@code iterator} containing only those
-   * elements which match {@code predicate}. The returned iterator
-   * supports element removal via the {@code remove()} method subject to
-   * any constraints imposed by {@code iterator}.
+   * Returns a filtered view of {@code iterator} containing only those elements
+   * which match {@code predicate}. The returned iterator supports element
+   * removal via the {@code remove()} method subject to any constraints imposed
+   * by {@code iterator}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterator}.
    * @param <P>
-   *          The type of the additional parameter to the predicate's
-   *          {@code matches} method. Use {@link java.lang.Void} for
-   *          predicates that do not need an additional parameter.
+   *          The type of the additional parameter to the predicate's {@code
+   *          matches} method. Use {@link java.lang.Void} for predicates that do
+   *          not need an additional parameter.
    * @param iterator
    *          The iterator to be filtered.
    * @param predicate
    *          The predicate.
    * @param p
    *          A predicate specified parameter.
-   * @return A filtered view of {@code iterator} containing only those
-   *         elements which match {@code predicate}.
+   * @return A filtered view of {@code iterator} containing only those elements
+   *         which match {@code predicate}.
    */
-  public static <M, P> Iterator<M> filter(Iterator<M> iterator,
-      Predicate<? super M, P> predicate, P p)
+  public static <M, P> Iterator<M> filter(final Iterator<M> iterator,
+      final Predicate<? super M, P> predicate, final P p)
   {
     return new FilteredIterator<M, P>(iterator, predicate, p);
   }
@@ -406,10 +421,10 @@ public final class Iterators
 
 
   /**
-   * Returns a filtered view of {@code iterator} containing only those
-   * elements which match {@code predicate}. The returned iterator
-   * supports element removal via the {@code remove()} method subject to
-   * any constraints imposed by {@code iterator}.
+   * Returns a filtered view of {@code iterator} containing only those elements
+   * which match {@code predicate}. The returned iterator supports element
+   * removal via the {@code remove()} method subject to any constraints imposed
+   * by {@code iterator}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterator}.
@@ -417,11 +432,11 @@ public final class Iterators
    *          The iterator to be filtered.
    * @param predicate
    *          The predicate.
-   * @return A filtered view of {@code iterator} containing only those
-   *         elements which match {@code predicate}.
+   * @return A filtered view of {@code iterator} containing only those elements
+   *         which match {@code predicate}.
    */
-  public static <M> Iterator<M> filter(Iterator<M> iterator,
-      Predicate<? super M, Void> predicate)
+  public static <M> Iterator<M> filter(final Iterator<M> iterator,
+      final Predicate<? super M, Void> predicate)
   {
     return new FilteredIterator<M, Void>(iterator, predicate, null);
   }
@@ -429,9 +444,9 @@ public final class Iterators
 
 
   /**
-   * Returns an iterator containing the single element {@code value}.
-   * The returned iterator does not support element removal via the
-   * {@code remove()} method.
+   * Returns an iterator containing the single element {@code value}. The
+   * returned iterator does not support element removal via the {@code remove()}
+   * method.
    *
    * @param <M>
    *          The type of the single element {@code value}.
@@ -439,7 +454,7 @@ public final class Iterators
    *          The single element to be returned by the iterator.
    * @return An iterator containing the single element {@code value}.
    */
-  public static <M> Iterator<M> singleton(M value)
+  public static <M> Iterator<M> singleton(final M value)
   {
     return new SingletonIterator<M>(value);
   }
@@ -447,37 +462,19 @@ public final class Iterators
 
 
   /**
-   * Returns an iterator over the elements contained in {@code a}. The
-   * returned iterator does not support element removal via the {@code
-   * remove()} method.
-   *
-   * @param <M>
-   *          The type of elements contained in {@code a}.
-   * @param a
-   *          The array of elements to be returned by the iterator.
-   * @return An iterator over the elements contained in {@code a}.
-   */
-  public static <M> Iterator<M> arrayIterator(M[] a)
-  {
-    return new ArrayIterator<M>(a);
-  }
-
-
-
-  /**
    * Returns a view of {@code iterator} whose values have been mapped to
-   * elements of type {@code N} using {@code function}. The returned
-   * iterator supports element removal via the {@code remove()} method
-   * subject to any constraints imposed by {@code iterator}.
+   * elements of type {@code N} using {@code function}. The returned iterator
+   * supports element removal via the {@code remove()} method subject to any
+   * constraints imposed by {@code iterator}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterator}.
    * @param <N>
    *          The type of elements contained in the returned iterator.
    * @param <P>
-   *          The type of the additional parameter to the function's
-   *          {@code apply} method. Use {@link java.lang.Void} for
-   *          functions that do not need an additional parameter.
+   *          The type of the additional parameter to the function's {@code
+   *          apply} method. Use {@link java.lang.Void} for functions that do
+   *          not need an additional parameter.
    * @param iterator
    *          The iterator to be transformed.
    * @param function
@@ -487,8 +484,8 @@ public final class Iterators
    * @return A view of {@code iterator} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N, P> Iterator<N> transform(Iterator<M> iterator,
-      Function<? super M, ? extends N, P> function, P p)
+  public static <M, N, P> Iterator<N> transform(final Iterator<M> iterator,
+      final Function<? super M, ? extends N, P> function, final P p)
   {
     return new TransformedIterator<M, N, P>(iterator, function, p);
   }
@@ -497,9 +494,9 @@ public final class Iterators
 
   /**
    * Returns a view of {@code iterator} whose values have been mapped to
-   * elements of type {@code N} using {@code function}. The returned
-   * iterator supports element removal via the {@code remove()} method
-   * subject to any constraints imposed by {@code iterator}.
+   * elements of type {@code N} using {@code function}. The returned iterator
+   * supports element removal via the {@code remove()} method subject to any
+   * constraints imposed by {@code iterator}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterator}.
@@ -512,8 +509,8 @@ public final class Iterators
    * @return A view of {@code iterator} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N> Iterator<N> transform(Iterator<M> iterator,
-      Function<? super M, ? extends N, Void> function)
+  public static <M, N> Iterator<N> transform(final Iterator<M> iterator,
+      final Function<? super M, ? extends N, Void> function)
   {
     return new TransformedIterator<M, N, Void>(iterator, function, null);
   }
@@ -521,19 +518,18 @@ public final class Iterators
 
 
   /**
-   * Returns a read-only view of {@code iterator} which does not support
-   * element removal via the {@code remove()}. Attempts to use the
-   * {@code remove()} method will result in a {@code
-   * UnsupportedOperationException}.
+   * Returns a read-only view of {@code iterator} which does not support element
+   * removal via the {@code remove()}. Attempts to use the {@code remove()}
+   * method will result in a {@code UnsupportedOperationException}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterator}.
    * @param iterator
    *          The iterator to be made read-only.
-   * @return A read-only view of {@code iterator} which does not support
-   *         element removal via the {@code remove()}.
+   * @return A read-only view of {@code iterator} which does not support element
+   *         removal via the {@code remove()}.
    */
-  public static <M> Iterator<M> unmodifiable(Iterator<M> iterator)
+  public static <M> Iterator<M> unmodifiable(final Iterator<M> iterator)
   {
     return new UnmodifiableIterator<M>(iterator);
   }

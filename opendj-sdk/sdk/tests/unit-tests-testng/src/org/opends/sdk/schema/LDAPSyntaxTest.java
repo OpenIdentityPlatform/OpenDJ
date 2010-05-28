@@ -43,17 +43,6 @@ public class LDAPSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_LDAP_SYNTAX_OID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
   {
@@ -61,20 +50,12 @@ public class LDAPSyntaxTest extends SyntaxTestCase
         {
             "( 2.5.4.3 DESC 'full syntax description' "
                 + "X-9EN ('this' 'is' 'a' 'test'))", false },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "(X-name 'this", false },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "(X-name 'this'", false },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "Y-name 'this')", false },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "X-name 'this' 'is')", false },
-        { "( 2.5.4.3 DESC 'full syntax description' " + "X-name )",
+        { "( 2.5.4.3 DESC 'full syntax description' " + "(X-name 'this", false },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "(X-name 'this'", false },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "Y-name 'this')", false },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "X-name 'this' 'is')",
             false },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "X-name )", false },
         {
             "( 2.5.4.3 DESC 'full syntax description' "
                 + "X- ('this' 'is' 'a' 'test'))", false },
@@ -105,12 +86,9 @@ public class LDAPSyntaxTest extends SyntaxTestCase
         {
             "( 2.5.4.3 DESC 'full syntax description' "
                 + "X-a-_eN_- ('this' 'is' 'a' 'test'))", true },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "X-name ('this'))", true },
-        {
-            "( 2.5.4.3 DESC 'full syntax description' "
-                + "X-name 'this')", true },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "X-name ('this'))",
+            true },
+        { "( 2.5.4.3 DESC 'full syntax description' " + "X-name 'this')", true },
         {
             "( 2.5.4.3 DESC 'full syntax description' "
                 + "X-name 'this' X-name-a 'test')", true },
@@ -121,5 +99,16 @@ public class LDAPSyntaxTest extends SyntaxTestCase
         { "(temp-oid DESC 'syntax description' )", true },
         { "2.5.4.3 DESC 'syntax description' )", false },
         { "(2.5.4.3 DESC 'syntax description' ", false }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_LDAP_SYNTAX_OID);
   }
 }

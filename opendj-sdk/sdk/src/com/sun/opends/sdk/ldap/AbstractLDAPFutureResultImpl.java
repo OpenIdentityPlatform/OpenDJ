@@ -29,11 +29,9 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.*;
 import org.opends.sdk.requests.Requests;
+import org.opends.sdk.responses.IntermediateResponse;
 import org.opends.sdk.responses.Result;
 
 import com.sun.opends.sdk.util.AbstractFutureResult;
@@ -47,42 +45,29 @@ import com.sun.opends.sdk.util.AbstractFutureResult;
  *          The type of result returned by this future.
  */
 abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
-    AbstractFutureResult<S> implements FutureResult<S>
+    AbstractFutureResult<S> implements FutureResult<S>,
+    IntermediateResponseHandler
 {
-  private final LDAPConnection connection;
+  private final AsynchronousConnection connection;
 
   private final int messageID;
 
+  private IntermediateResponseHandler intermediateResponseHandler;
+
+  private volatile long timestamp;
 
 
-  /**
-   * Creates a new LDAP result future.
-   *
-   * @param messageID
-   *          The request message ID.
-   * @param handler
-   *          The result handler, maybe {@code null}.
-   * @param connection
-   *          The client connection.
-   */
-  AbstractLDAPFutureResultImpl(int messageID,
-      ResultHandler<? super S> handler, LDAPConnection connection)
+
+  AbstractLDAPFutureResultImpl(final int messageID,
+      final ResultHandler<? super S> resultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(handler);
+    super(resultHandler);
     this.messageID = messageID;
     this.connection = connection;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  protected final ErrorResultException handleCancelRequest(
-      boolean mayInterruptIfRunning)
-  {
-    connection.abandon(Requests.newAbandonRequest(messageID));
-    return null;
+    this.intermediateResponseHandler = intermediateResponseHandler;
+    this.timestamp = System.currentTimeMillis();
   }
 
 
@@ -97,16 +82,76 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
 
 
 
-  final void adaptErrorResult(Result result)
+  public final boolean handleIntermediateResponse(
+      final IntermediateResponse response)
   {
-    S errorResult = newErrorResult(result.getResultCode(), result
+    // FIXME: there's a potential race condition here - the future could
+    // get cancelled between the isDone() call and the handler
+    // invocation. We'd need to add support for intermediate handlers in
+    // the synchronizer.
+    if (!isDone())
+    {
+      updateTimestamp();
+      if (intermediateResponseHandler != null)
+      {
+        if (!intermediateResponseHandler.handleIntermediateResponse(response))
+        {
+          intermediateResponseHandler = null;
+        }
+      }
+    }
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected final ErrorResultException handleCancelRequest(
+      final boolean mayInterruptIfRunning)
+  {
+    connection.abandon(Requests.newAbandonRequest(messageID));
+    return null;
+  }
+
+
+
+  @Override
+  protected void toString(final StringBuilder sb)
+  {
+    sb.append(" messageID = ");
+    sb.append(messageID);
+    sb.append(" timestamp = ");
+    sb.append(timestamp);
+    super.toString(sb);
+  }
+
+
+
+  final void adaptErrorResult(final Result result)
+  {
+    final S errorResult = newErrorResult(result.getResultCode(), result
         .getDiagnosticMessage(), result.getCause());
     setResultOrError(errorResult);
   }
 
 
 
-  final void setResultOrError(S result)
+  final long getTimestamp()
+  {
+    return timestamp;
+  }
+
+
+
+  abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage,
+      Throwable cause);
+
+
+
+  final void setResultOrError(final S result)
   {
     if (result.getResultCode().isExceptional())
     {
@@ -120,7 +165,9 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
 
 
 
-  abstract S newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause);
+  final void updateTimestamp()
+  {
+    timestamp = System.currentTimeMillis();
+  }
 
 }

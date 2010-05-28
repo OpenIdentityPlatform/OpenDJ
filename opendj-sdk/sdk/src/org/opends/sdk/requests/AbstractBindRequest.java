@@ -29,19 +29,15 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.DN;
-
-
-
 /**
- * An abstract Bind request which can be used as the basis for
- * implementing new authentication methods.
- * 
+ * An abstract Bind request which can be used as the basis for implementing new
+ * authentication methods.
+ *
  * @param <R>
  *          The type of Bind request.
  */
-public abstract class AbstractBindRequest<R extends BindRequest>
-    extends AbstractRequestImpl<R> implements BindRequest
+abstract class AbstractBindRequest<R extends BindRequest> extends
+    AbstractRequestImpl<R> implements BindRequest
 {
 
   /**
@@ -57,13 +53,14 @@ public abstract class AbstractBindRequest<R extends BindRequest>
   /**
    * {@inheritDoc}
    */
-  public abstract DN getName();
+  public abstract String getName();
 
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   final R getThis()
   {

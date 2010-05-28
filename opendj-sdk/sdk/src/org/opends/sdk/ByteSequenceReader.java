@@ -28,11 +28,10 @@ package org.opends.sdk;
 
 
 
-
 /**
- * An interface for iteratively reading date from a {@link ByteSequence}
- * . {@code ByteSequenceReader} must be created using the associated
- * {@code ByteSequence}'s {@code asReader()} method.
+ * An interface for iteratively reading date from a {@link ByteSequence} .
+ * {@code ByteSequenceReader} must be created using the associated {@code
+ * ByteSequence}'s {@code asReader()} method.
  */
 public final class ByteSequenceReader
 {
@@ -46,19 +45,19 @@ public final class ByteSequenceReader
 
 
   /**
-   * Creates a new byte sequence reader whose source is the provided
-   * byte sequence.
+   * Creates a new byte sequence reader whose source is the provided byte
+   * sequence.
    * <p>
-   * <b>NOTE:</b> any concurrent changes to the underlying byte sequence
-   * (if mutable) may cause subsequent reads to overrun and fail.
+   * <b>NOTE:</b> any concurrent changes to the underlying byte sequence (if
+   * mutable) may cause subsequent reads to overrun and fail.
    * <p>
-   * This constructor is package private: construction must be performed
-   * using {@link ByteSequence#asReader()}.
-   * 
+   * This constructor is package private: construction must be performed using
+   * {@link ByteSequence#asReader()}.
+   *
    * @param sequence
    *          The byte sequence to be read.
    */
-  ByteSequenceReader(ByteSequence sequence)
+  ByteSequenceReader(final ByteSequence sequence)
   {
     this.sequence = sequence;
   }
@@ -67,12 +66,12 @@ public final class ByteSequenceReader
 
   /**
    * Relative get method. Reads the byte at the current position.
-   * 
+   *
    * @return The byte at this reader's current position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < 1}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; 1}.
    */
   public byte get() throws IndexOutOfBoundsException
   {
@@ -84,28 +83,27 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative bulk get method. This method transfers bytes from this
-   * reader into the given destination array. An invocation of this
-   * method of the form:
-   * 
+   * Relative bulk get method. This method transfers bytes from this reader into
+   * the given destination array. An invocation of this method of the form:
+   *
    * <pre>
    * src.get(b);
    * </pre>
-   * 
+   *
    * Behaves in exactly the same way as the invocation:
-   * 
+   *
    * <pre>
    * src.get(b, 0, b.length);
    * </pre>
-   * 
+   *
    * @param b
    *          The byte array into which bytes are to be written.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < b.length}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; b.length}.
    */
-  public void get(byte[] b) throws IndexOutOfBoundsException
+  public void get(final byte[] b) throws IndexOutOfBoundsException
   {
     get(b, 0, b.length);
   }
@@ -113,41 +111,40 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative bulk get method. Copies {@code length} bytes from this
-   * reader into the given array, starting at the current position of
-   * this reader and at the given {@code offset} in the array. The
-   * position of this reader is then incremented by {@code length}. In
-   * other words, an invocation of this method of the form:
-   * 
+   * Relative bulk get method. Copies {@code length} bytes from this reader into
+   * the given array, starting at the current position of this reader and at the
+   * given {@code offset} in the array. The position of this reader is then
+   * incremented by {@code length}. In other words, an invocation of this method
+   * of the form:
+   *
    * <pre>
    * src.get(b, offset, length);
    * </pre>
-   * 
+   *
    * Has exactly the same effect as the loop:
-   * 
+   *
    * <pre>
    * for (int i = offset; i &lt; offset + length; i++)
    *   b[i] = src.get();
    * </pre>
-   * 
-   * Except that it first checks that there are sufficient bytes in this
-   * buffer and it is potentially much more efficient.
-   * 
+   *
+   * Except that it first checks that there are sufficient bytes in this buffer
+   * and it is potentially much more efficient.
+   *
    * @param b
    *          The byte array into which bytes are to be written.
    * @param offset
-   *          The offset within the array of the first byte to be
-   *          written; must be non-negative and no larger than {@code
-   *          b.length}.
+   *          The offset within the array of the first byte to be written; must
+   *          be non-negative and no larger than {@code b.length}.
    * @param length
-   *          The number of bytes to be written to the given array; must
-   *          be non-negative and no larger than {@code b.length} .
+   *          The number of bytes to be written to the given array; must be
+   *          non-negative and no larger than {@code b.length} .
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < length}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; length}.
    */
-  public void get(byte[] b, int offset, int length)
+  public void get(final byte[] b, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
     if (offset < 0 || length < 0 || offset + length > b.length
@@ -163,16 +160,15 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative get method for reading a multi-byte BER length. Reads the
-   * next one to five bytes at this reader's current position, composing
-   * them into a integer value and then increments the position by the
-   * number of bytes read.
-   * 
-   * @return The integer value representing the length at this reader's
-   *         current position.
+   * Relative get method for reading a multi-byte BER length. Reads the next one
+   * to five bytes at this reader's current position, composing them into a
+   * integer value and then increments the position by the number of bytes read.
+   *
+   * @return The integer value representing the length at this reader's current
+   *         position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request.
    */
   public int getBERLength() throws IndexOutOfBoundsException
   {
@@ -210,25 +206,25 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative bulk get method. Returns a {@link ByteSequence} whose
-   * content is the next {@code length} bytes from this reader, starting
-   * at the current position of this reader. The position of this reader
-   * is then incremented by {@code length}.
+   * Relative bulk get method. Returns a {@link ByteSequence} whose content is
+   * the next {@code length} bytes from this reader, starting at the current
+   * position of this reader. The position of this reader is then incremented by
+   * {@code length}.
    * <p>
-   * <b>NOTE:</b> The value returned from this method should NEVER be
-   * cached as it prevents the contents of the underlying byte stream
-   * from being garbage collected.
-   * 
+   * <b>NOTE:</b> The value returned from this method should NEVER be cached as
+   * it prevents the contents of the underlying byte stream from being garbage
+   * collected.
+   *
    * @param length
    *          The length of the byte sequence to be returned.
-   * @return The byte sequence whose content is the next {@code length}
-   *         bytes from this reader.
+   * @return The byte sequence whose content is the next {@code length} bytes
+   *         from this reader.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < length}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; length}.
    */
-  public ByteSequence getByteSequence(int length)
+  public ByteSequence getByteSequence(final int length)
       throws IndexOutOfBoundsException
   {
     final int newPos = pos + length;
@@ -240,37 +236,37 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative bulk get method. Returns a {@link ByteString} whose
-   * content is the next {@code length} bytes from this reader, starting
-   * at the current position of this reader. The position of this reader
-   * is then incremented by {@code length}.
+   * Relative bulk get method. Returns a {@link ByteString} whose content is the
+   * next {@code length} bytes from this reader, starting at the current
+   * position of this reader. The position of this reader is then incremented by
+   * {@code length}.
    * <p>
    * An invocation of this method of the form:
-   * 
+   *
    * <pre>
    * src.getByteString(length);
    * </pre>
-   * 
+   *
    * Has exactly the same effect as:
-   * 
+   *
    * <pre>
    * src.getByteSequence(length).toByteString();
    * </pre>
-   * 
-   * <b>NOTE:</b> The value returned from this method should NEVER be
-   * cached as it prevents the contents of the underlying byte stream
-   * from being garbage collected.
-   * 
+   *
+   * <b>NOTE:</b> The value returned from this method should NEVER be cached as
+   * it prevents the contents of the underlying byte stream from being garbage
+   * collected.
+   *
    * @param length
    *          The length of the byte string to be returned.
-   * @return The byte string whose content is the next {@code length}
-   *         bytes from this reader.
+   * @return The byte string whose content is the next {@code length} bytes from
+   *         this reader.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < length}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; length}.
    */
-  public ByteString getByteString(int length)
+  public ByteString getByteString(final int length)
       throws IndexOutOfBoundsException
   {
     return getByteSequence(length).toByteString();
@@ -279,16 +275,16 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative get method for reading an integer value. Reads the next
-   * four bytes at this reader's current position, composing them into
-   * an integer value according to big-endian byte order, and then
-   * increments the position by four.
-   * 
+   * Relative get method for reading an integer value. Reads the next four bytes
+   * at this reader's current position, composing them into an integer value
+   * according to big-endian byte order, and then increments the position by
+   * four.
+   *
    * @return The integer value at this reader's current position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < 4}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; 4}.
    */
   public int getInt() throws IndexOutOfBoundsException
   {
@@ -310,16 +306,15 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative get method for reading a long value. Reads the next eight
-   * bytes at this reader's current position, composing them into a long
-   * value according to big-endian byte order, and then increments the
-   * position by eight.
-   * 
+   * Relative get method for reading a long value. Reads the next eight bytes at
+   * this reader's current position, composing them into a long value according
+   * to big-endian byte order, and then increments the position by eight.
+   *
    * @return The long value at this reader's current position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < 8}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; 8}.
    */
   public long getLong() throws IndexOutOfBoundsException
   {
@@ -341,16 +336,16 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative get method for reading an short value. Reads the next 2
-   * bytes at this reader's current position, composing them into an
-   * short value according to big-endian byte order, and then increments
-   * the position by two.
-   * 
+   * Relative get method for reading an short value. Reads the next 2 bytes at
+   * this reader's current position, composing them into an short value
+   * according to big-endian byte order, and then increments the position by
+   * two.
+   *
    * @return The integer value at this reader's current position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < 2}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; 2}.
    */
   public short getShort() throws IndexOutOfBoundsException
   {
@@ -372,21 +367,21 @@ public final class ByteSequenceReader
 
 
   /**
-   * Relative get method for reading a UTF-8 encoded string. Reads the
-   * next number of specified bytes at this reader's current position,
-   * decoding them into a string using UTF-8 and then increments the
-   * position by the number of bytes read. If UTF-8 decoding fails, the
-   * platform's default encoding will be used.
-   * 
+   * Relative get method for reading a UTF-8 encoded string. Reads the next
+   * number of specified bytes at this reader's current position, decoding them
+   * into a string using UTF-8 and then increments the position by the number of
+   * bytes read. If UTF-8 decoding fails, the platform's default encoding will
+   * be used.
+   *
    * @param length
    *          The number of bytes to read and decode.
    * @return The string value at the reader's current position.
    * @throws IndexOutOfBoundsException
-   *           If there are fewer bytes remaining in this reader than
-   *           are required to satisfy the request, that is, if {@code
-   *           remaining() < length}.
+   *           If there are fewer bytes remaining in this reader than are
+   *           required to satisfy the request, that is, if {@code remaining()
+   *           &lt; length}.
    */
-  public String getString(int length) throws IndexOutOfBoundsException
+  public String getString(final int length) throws IndexOutOfBoundsException
   {
     if (remaining() < length)
     {
@@ -394,8 +389,7 @@ public final class ByteSequenceReader
     }
 
     final int newPos = pos + length;
-    final String str =
-        sequence.subSequence(pos, pos + length).toString();
+    final String str = sequence.subSequence(pos, pos + length).toString();
     pos = newPos;
     return str;
   }
@@ -404,7 +398,7 @@ public final class ByteSequenceReader
 
   /**
    * Returns this reader's position.
-   * 
+   *
    * @return The position of this reader.
    */
   public int position()
@@ -416,15 +410,15 @@ public final class ByteSequenceReader
 
   /**
    * Sets this reader's position.
-   * 
+   *
    * @param pos
-   *          The new position value; must be non-negative and no larger
-   *          than the length of the underlying byte sequence.
+   *          The new position value; must be non-negative and no larger than
+   *          the length of the underlying byte sequence.
    * @throws IndexOutOfBoundsException
-   *           If the position is negative or larger than the length of
-   *           the underlying byte sequence.
+   *           If the position is negative or larger than the length of the
+   *           underlying byte sequence.
    */
-  public void position(int pos) throws IndexOutOfBoundsException
+  public void position(final int pos) throws IndexOutOfBoundsException
   {
     if (pos > sequence.length() || pos < 0)
     {
@@ -437,11 +431,11 @@ public final class ByteSequenceReader
 
 
   /**
-   * Returns the number of bytes between the current position and the
-   * end of the underlying byte sequence.
-   * 
-   * @return The number of bytes between the current position and the
-   *         end of the underlying byte sequence.
+   * Returns the number of bytes between the current position and the end of the
+   * underlying byte sequence.
+   *
+   * @return The number of bytes between the current position and the end of the
+   *         underlying byte sequence.
    */
   public int remaining()
   {
@@ -454,13 +448,13 @@ public final class ByteSequenceReader
    * Rewinds this reader's position to zero.
    * <p>
    * An invocation of this method of the form:
-   * 
+   *
    * <pre>
    * src.rewind();
    * </pre>
-   * 
+   *
    * Has exactly the same effect as:
-   * 
+   *
    * <pre>
    * src.position(0);
    * </pre>
@@ -476,24 +470,24 @@ public final class ByteSequenceReader
    * Skips the given number of bytes. Negative values are allowed.
    * <p>
    * An invocation of this method of the form:
-   * 
+   *
    * <pre>
    * src.skip(length);
    * </pre>
-   * 
+   *
    * Has exactly the same effect as:
-   * 
+   *
    * <pre>
    * src.position(position() + length);
    * </pre>
-   * 
+   *
    * @param length
    *          The number of bytes to skip.
    * @throws IndexOutOfBoundsException
-   *           If the new position is less than 0 or greater than the
-   *           length of the underlying byte sequence.
+   *           If the new position is less than 0 or greater than the length of
+   *           the underlying byte sequence.
    */
-  public void skip(int length) throws IndexOutOfBoundsException
+  public void skip(final int length) throws IndexOutOfBoundsException
   {
     position(pos + length);
   }

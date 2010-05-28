@@ -15,32 +15,36 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * compare the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
  * An Compare result indicates the final status of an Compare operation.
  * <p>
- * If the attribute value assertion in the Compare request matched a
- * value of the attribute or sub-type according to the attribute's
- * equality matching rule then the result code is set to
- * {@link ResultCode#COMPARE_TRUE} and can be determined by invoking the
- * {@link #matched} method.
+ * If the attribute value assertion in the Compare request matched a value of
+ * the attribute or sub-type according to the attribute's equality matching rule
+ * then the result code is set to {@link ResultCode#COMPARE_TRUE} and can be
+ * determined by invoking the {@link #matched} method.
  */
 public interface CompareResult extends Result
 {
@@ -52,6 +56,9 @@ public interface CompareResult extends Result
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   CompareResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -60,15 +67,6 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  CompareResult clearControls() throws UnsupportedOperationException;
-
-
-
-  CompareResult clearReferralURIs()
-      throws UnsupportedOperationException;
-
-
-
   Throwable getCause();
 
 
@@ -76,29 +74,42 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Control> getControls();
+  List<Control> getControls();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getDiagnosticMessage();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getMatchedDN();
 
 
 
-  Iterable<String> getReferralURIs();
+  /**
+   * {@inheritDoc}
+   */
+  List<String> getReferralURIs();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   ResultCode getResultCode();
 
 
@@ -106,32 +117,27 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  boolean hasControls();
-
-
-
-  boolean hasReferralURIs();
-
-
-
   boolean isReferral();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean isSuccess();
 
 
 
   /**
-   * Indicates whether or not the attribute value assertion in the
-   * Compare request matched a value of the attribute or sub-type
-   * according to the attribute's equality matching rule.
+   * Indicates whether or not the attribute value assertion in the Compare
+   * request matched a value of the attribute or sub-type according to the
+   * attribute's equality matching rule.
    * <p>
-   * Specifically, this method returns {@code true} if the result code
-   * is equal to {@link ResultCode#COMPARE_TRUE}.
-   * 
-   * @return {@code true} if the attribute value assertion matched,
-   *         otherwise {@code false}.
+   * Specifically, this method returns {@code true} if the result code is equal
+   * to {@link ResultCode#COMPARE_TRUE}.
+   *
+   * @return {@code true} if the attribute value assertion matched, otherwise
+   *         {@code false}.
    */
   boolean matched();
 
@@ -140,26 +146,28 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareResult setCause(Throwable cause) throws UnsupportedOperationException;
 
 
 
-  CompareResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
-
-
-
+  /**
+   * {@inheritDoc}
+   */
   CompareResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
 
-  CompareResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
+  /**
+   * {@inheritDoc}
+   */
+  CompareResult setMatchedDN(String dn) throws UnsupportedOperationException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   CompareResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
 

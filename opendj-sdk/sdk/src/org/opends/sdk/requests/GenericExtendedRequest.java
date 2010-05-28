@@ -29,35 +29,40 @@ package org.opends.sdk.requests;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.extensions.ExtendedOperation;
+import org.opends.sdk.controls.ControlDecoder;
+import org.opends.sdk.responses.ExtendedResultDecoder;
 import org.opends.sdk.responses.GenericExtendedResult;
 
 
 
 /**
- * A generic Extended request which should be used for unsupported
- * extended operations. Servers list the names of Extended requests they
- * recognize in the {@code supportedExtension} attribute in the root
- * DSE. Where the name is not recognized, the server returns
- * {@link ResultCode#PROTOCOL_ERROR} (the server may return this error
- * in other cases).
+ * A generic Extended request which should be used for unsupported extended
+ * operations. Servers list the names of Extended requests they recognize in the
+ * {@code supportedExtension} attribute in the root DSE. Where the name is not
+ * recognized, the server returns
+ * {@link org.opends.sdk.ResultCode#PROTOCOL_ERROR} (the server may return this
+ * error in other cases).
  */
 public interface GenericExtendedRequest extends
     ExtendedRequest<GenericExtendedResult>
 {
   /**
-   * Adds the provided control to this request.
-   * 
-   * @param control
-   *          The control to be added to this request.
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * A decoder which can be used to decode generic extended operation requests.
+   */
+  public static final ExtendedRequestDecoder<GenericExtendedRequest,
+                                             GenericExtendedResult> DECODER =
+    new GenericExtendedRequestImpl.RequestDecoder();
+
+
+
+  /**
+   * {@inheritDoc}
    */
   GenericExtendedRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
@@ -65,124 +70,78 @@ public interface GenericExtendedRequest extends
 
 
   /**
-   * Removes all the controls included with this request.
-   * 
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
+   * {@inheritDoc}
    */
-  GenericExtendedRequest clearControls()
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this request.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control getControl(String oid) throws NullPointerException;
-
-
-
-  /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   * 
-   * @return An {@code Iterable} containing the controls.
-   */
-  Iterable<Control> getControls();
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  ExtendedOperation<GenericExtendedRequest, GenericExtendedResult> getExtendedOperation();
+  List<Control> getControls();
 
 
 
   /**
    * {@inheritDoc}
    */
-  String getRequestName();
+  String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  ByteString getRequestValue();
+  ExtendedResultDecoder<GenericExtendedResult> getResultDecoder();
 
 
 
   /**
-   * Indicates whether or not this request has any controls.
-   * 
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
+   * {@inheritDoc}
    */
-  boolean hasControls();
+  ByteString getValue();
 
 
 
   /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * {@inheritDoc}
    */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean hasValue();
 
 
 
   /**
-   * Sets the dotted-decimal representation of the unique OID
-   * corresponding to this generic extended request.
-   * 
+   * Sets the numeric OID associated with this extended request.
+   *
    * @param oid
-   *          The dotted-decimal representation of the unique OID.
+   *          The numeric OID associated with this extended request.
    * @return This generic extended request.
    * @throws UnsupportedOperationException
-   *           If this generic extended request does not permit the
-   *           request name to be set.
+   *           If this generic extended request does not permit the request name
+   *           to be set.
    * @throws NullPointerException
    *           If {@code oid} was {@code null}.
    */
-  GenericExtendedRequest setRequestName(String oid)
+  GenericExtendedRequest setOID(String oid)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
   /**
-   * Sets the content of this generic extended request in a form defined
-   * by the extended request.
-   * 
+   * Sets the value, if any, associated with this extended request. Its format
+   * is defined by the specification of this extended request.
+   *
    * @param bytes
-   *          The content of this generic extended request in a form
-   *          defined by the extended request, or {@code null} if there
-   *          is no content.
+   *          The value associated with this extended request, or {@code null}
+   *          if there is no value.
    * @return This generic extended request.
    * @throws UnsupportedOperationException
-   *           If this generic extended request does not permit the
-   *           request value to be set.
+   *           If this generic extended request does not permit the request
+   *           value to be set.
    */
-  GenericExtendedRequest setRequestValue(ByteString bytes)
+  GenericExtendedRequest setValue(ByteString bytes)
       throws UnsupportedOperationException;
 
 }

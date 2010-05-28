@@ -29,24 +29,20 @@ package org.opends.sdk;
 
 
 
-
-
-
 /**
  * A compiled attribute value assertion.
  */
 public interface Assertion
 {
   /**
-   * Indicates whether the provided attribute value should be considered
-   * a match for this assertion value according to the matching rule.
+   * Indicates whether the provided attribute value should be considered a match
+   * for this assertion value according to the matching rule.
    *
    * @param attributeValue
    *          The attribute value.
-   * @return {@code TRUE} if the attribute value should be considered a
-   *         match for the provided assertion value, {@code FALSE} if it
-   *         does not match, or {@code UNDEFINED} if the result is
-   *         undefined.
+   * @return {@code TRUE} if the attribute value should be considered a match
+   *         for the provided assertion value, {@code FALSE} if it does not
+   *         match, or {@code UNDEFINED} if the result is undefined.
    */
   public abstract ConditionResult matches(ByteSequence attributeValue);
 }

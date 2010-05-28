@@ -29,20 +29,21 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DN_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.LocalizableMessageBuilder;
-
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
 
 
 /**
- * This class defines the distinguished name attribute syntax, which is
- * used for attributes that hold distinguished names (DNs). Equality and
- * substring matching will be allowed by default.
+ * This class defines the distinguished name attribute syntax, which is used for
+ * attributes that hold distinguished names (DNs). Equality and substring
+ * matching will be allowed by default.
  */
 final class DistinguishedNameSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -76,8 +77,8 @@ final class DistinguishedNameSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     try
     {

@@ -29,19 +29,24 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
+import static org.opends.sdk.schema.SchemaConstants.EMR_INTEGER_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_INTEGER_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_INTEGER_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
  * This class defines the integer attribute syntax, which holds an
- * arbitrarily-long integer value. Equality, ordering, and substring
- * matching will be allowed by default.
+ * arbitrarily-long integer value. Equality, ordering, and substring matching
+ * will be allowed by default.
  */
 final class IntegerSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -84,21 +89,21 @@ final class IntegerSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String valueString = value.toString();
     final int length = valueString.length();
@@ -129,8 +134,8 @@ final class IntegerSyntaxImpl extends AbstractSyntaxImpl
             .get(valueString));
         return false;
       default:
-        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
-            .get(valueString, valueString.charAt(0), 0));
+        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+            valueString, valueString.charAt(0), 0));
         return false;
       }
     }
@@ -160,8 +165,8 @@ final class IntegerSyntaxImpl extends AbstractSyntaxImpl
         negative = true;
         break;
       default:
-        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
-            .get(valueString, valueString.charAt(0), 0));
+        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+            valueString, valueString.charAt(0), 0));
         return false;
       }
 
@@ -188,8 +193,8 @@ final class IntegerSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER
-            .get(valueString, valueString.charAt(0), 0));
+        invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+            valueString, valueString.charAt(0), 0));
         return false;
       }
 
@@ -210,9 +215,8 @@ final class IntegerSyntaxImpl extends AbstractSyntaxImpl
           // These are all fine.
           break;
         default:
-          invalidReason
-              .append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
-                  valueString, valueString.charAt(0), 0));
+          invalidReason.append(WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
+              valueString, valueString.charAt(0), 0));
           return false;
         }
       }

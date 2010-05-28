@@ -37,15 +37,15 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class implements the userPasswordExactMatch matching rule, which
- * will simply compare encoded hashed password values to see if they are
- * exactly equal to each other.
+ * This class implements the userPasswordExactMatch matching rule, which will
+ * simply compare encoded hashed password values to see if they are exactly
+ * equal to each other.
  */
 final class UserPasswordExactEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     // The normalized form of this matching rule is exactly equal to the
     // non-normalized form, except that the scheme needs to be converted
@@ -63,10 +63,9 @@ final class UserPasswordExactEqualityMatchingRuleImpl extends
           break;
         }
       }
-      final ByteSequence seq1 =
-          value.subSequence(0, closingBracePos + 1);
-      final ByteSequence seq2 =
-          value.subSequence(closingBracePos + 1, value.length());
+      final ByteSequence seq1 = value.subSequence(0, closingBracePos + 1);
+      final ByteSequence seq2 = value.subSequence(closingBracePos + 1, value
+          .length());
       StaticUtils.toLowerCase(seq1, builder);
       builder.append(seq2);
       return ByteString.valueOf(builder.toString());

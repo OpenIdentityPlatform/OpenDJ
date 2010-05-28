@@ -29,9 +29,7 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
+import org.opends.sdk.*;
 import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Responses;
@@ -49,24 +47,28 @@ final class LDAPCompareFutureResultImpl extends
 
 
 
-  LDAPCompareFutureResultImpl(int messageID, CompareRequest request,
-      ResultHandler<? super CompareResult> handler,
-      LDAPConnection connection)
+  LDAPCompareFutureResultImpl(final int messageID,
+      final CompareRequest request,
+      final ResultHandler<? super CompareResult> resultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(messageID, handler, connection);
+    super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  CompareResult newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  @Override
+  public String toString()
   {
-    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
-        diagnosticMessage).setCause(cause);
+    final StringBuilder sb = new StringBuilder();
+    sb.append("LDAPCompareFutureResultImpl(");
+    sb.append("request = ");
+    sb.append(request);
+    super.toString(sb);
+    sb.append(")");
+    return sb.toString();
   }
 
 
@@ -74,5 +76,18 @@ final class LDAPCompareFutureResultImpl extends
   CompareRequest getRequest()
   {
     return request;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  CompareResult newErrorResult(final ResultCode resultCode,
+      final String diagnosticMessage, final Throwable cause)
+  {
+    return Responses.newCompareResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 }

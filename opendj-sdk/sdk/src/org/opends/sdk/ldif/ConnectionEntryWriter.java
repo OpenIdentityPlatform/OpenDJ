@@ -41,17 +41,17 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A {@code ConnectionEntryWriter} is a bridge from {@code Connection}s
- * to {@code EntryWriter}s. A connection entry writer writes entries by
- * sending Add requests to an underlying connection.
+ * A {@code ConnectionEntryWriter} is a bridge from {@code Connection}s to
+ * {@code EntryWriter}s. A connection entry writer writes entries by sending Add
+ * requests to an underlying connection.
  * <p>
- * All Add requests are performed synchronously, blocking until an Add
- * result is received. If an Add result indicates that an Add request
- * has failed for some reason then the error result is propagated to the
- * caller using an {@code ErrorResultIOException}.
+ * All Add requests are performed synchronously, blocking until an Add result is
+ * received. If an Add result indicates that an Add request has failed for some
+ * reason then the error result is propagated to the caller using an {@code
+ * ErrorResultIOException}.
  * <p>
- * <b>Note:</b> comments are not supported by connection change record
- * writers. Attempts to write comments will be ignored.
+ * <b>Note:</b> comments are not supported by connection change record writers.
+ * Attempts to write comments will be ignored.
  */
 public final class ConnectionEntryWriter implements EntryWriter
 {
@@ -60,15 +60,15 @@ public final class ConnectionEntryWriter implements EntryWriter
 
 
   /**
-   * Creates a new connection entry writer whose destination is the
-   * provided connection.
+   * Creates a new connection entry writer whose destination is the provided
+   * connection.
    *
    * @param connection
    *          The connection to use.
    * @throws NullPointerException
    *           If {@code connection} was {@code null}.
    */
-  public ConnectionEntryWriter(Connection connection)
+  public ConnectionEntryWriter(final Connection connection)
       throws NullPointerException
   {
     Validator.ensureNotNull(connection);
@@ -78,8 +78,8 @@ public final class ConnectionEntryWriter implements EntryWriter
 
 
   /**
-   * Closes this connection entry writer, including the underlying
-   * connection. Closing a previously closed entry writer has no effect.
+   * Closes this connection entry writer, including the underlying connection.
+   * Closing a previously closed entry writer has no effect.
    */
   public void close()
   {
@@ -89,8 +89,8 @@ public final class ConnectionEntryWriter implements EntryWriter
 
 
   /**
-   * Connection entry writers do not require flushing, so this method
-   * has no effect.
+   * Connection entry writers do not require flushing, so this method has no
+   * effect.
    */
   public void flush()
   {
@@ -100,8 +100,8 @@ public final class ConnectionEntryWriter implements EntryWriter
 
 
   /**
-   * Connection entry writers do not support comments, so the provided
-   * comment will be ignored.
+   * Connection entry writers do not support comments, so the provided comment
+   * will be ignored.
    *
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
@@ -109,7 +109,8 @@ public final class ConnectionEntryWriter implements EntryWriter
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
-  public ConnectionEntryWriter writeComment(CharSequence comment)
+  public ConnectionEntryWriter writeComment(final CharSequence comment)
+      throws NullPointerException
   {
     Validator.ensureNotNull(comment);
 
@@ -120,21 +121,21 @@ public final class ConnectionEntryWriter implements EntryWriter
 
 
   /**
-   * Writes an entry to the underlying connection using an Add request,
-   * blocking until the request completes.
+   * Writes an entry to the underlying connection using an Add request, blocking
+   * until the request completes.
    *
    * @param entry
    *          The {@code Entry} to be written.
    * @return A reference to this connection entry writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public ConnectionEntryWriter writeEntry(Entry entry)
+  public ConnectionEntryWriter writeEntry(final Entry entry)
       throws ErrorResultIOException, InterruptedIOException,
       NullPointerException
   {
@@ -147,7 +148,7 @@ public final class ConnectionEntryWriter implements EntryWriter
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e.getMessage());
     }

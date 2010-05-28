@@ -28,7 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -37,23 +39,19 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class defines the uuidMatch matching rule defined in RFC 4530.
- * It will be used as the default equality matching rule for the UUID
- * syntax.
+ * This class defines the uuidMatch matching rule defined in RFC 4530. It will
+ * be used as the default equality matching rule for the UUID syntax.
  */
-final class UUIDEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
+final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     if (value.length() != 36)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value.toString(),
-              value.length());
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH
+          .get(value.toString(), value.length());
       throw DecodeException.error(message);
     }
 
@@ -73,9 +71,8 @@ final class UUIDEqualityMatchingRuleImpl extends
       case 23:
         if (c != '-')
         {
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value.toString(),
-                  i, String.valueOf(c));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH
+              .get(value.toString(), i, String.valueOf(c));
           throw DecodeException.error(message);
         }
         builder.append(c);
@@ -121,9 +118,8 @@ final class UUIDEqualityMatchingRuleImpl extends
           builder.append('f');
           break;
         default:
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value.toString(),
-                  i, String.valueOf(value.byteAt(i)));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX
+              .get(value.toString(), i, String.valueOf(value.byteAt(i)));
           throw DecodeException.error(message);
         }
       }

@@ -15,14 +15,14 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * compare the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -42,13 +42,13 @@ final class CompareResultImpl extends AbstractResultImpl<CompareResult>
 
   /**
    * Creates a new compare result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  CompareResultImpl(ResultCode resultCode) throws NullPointerException
+  CompareResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
   }
@@ -89,6 +89,7 @@ final class CompareResultImpl extends AbstractResultImpl<CompareResult>
 
 
 
+  @Override
   CompareResult getThis()
   {
     return this;

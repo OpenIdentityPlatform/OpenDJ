@@ -29,8 +29,16 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
@@ -43,9 +51,9 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class defines the attribute type description syntax, which is
- * used to hold attribute type definitions in the server schema. The
- * format of this syntax is defined in RFC 2252.
+ * This class defines the attribute type description syntax, which is used to
+ * hold attribute type definitions in the server schema. The format of this
+ * syntax is defined in RFC 2252.
  */
 final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -72,8 +80,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     try
     {
@@ -88,8 +96,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the definition was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE
+            .get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
             "valueIsAcceptable", e);
@@ -101,9 +109,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
             "valueIsAcceptable", e);
@@ -235,9 +242,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
               && !usageStr.equalsIgnoreCase("distributedoperation")
               && !usageStr.equalsIgnoreCase("dsaoperation"))
           {
-            final LocalizableMessage message =
-                WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE.get(
-                    String.valueOf(oid), usageStr);
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE
+                .get(String.valueOf(oid), usageStr);
             final DecodeException e = DecodeException.error(message);
             StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
                 "valueIsAcceptable", e);
@@ -255,8 +261,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
               "valueIsAcceptable", e);

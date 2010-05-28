@@ -29,7 +29,10 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_SUBSTRING_ASSERTION_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessageBuilder;
@@ -39,11 +42,10 @@ import com.sun.opends.sdk.messages.Messages;
 
 
 /**
- * This class defines the substring assertion attribute syntax, which
- * contains one or more substring components, as used in a substring
- * search filter. For the purposes of matching, it will be treated like
- * a Directory String syntax except that approximate matching will not
- * be allowed.
+ * This class defines the substring assertion attribute syntax, which contains
+ * one or more substring components, as used in a substring search filter. For
+ * the purposes of matching, it will be treated like a Directory String syntax
+ * except that approximate matching will not be allowed.
  */
 final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -87,21 +89,21 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get the string representation of the value and check its length.
     // A zero-length value is acceptable. A one-length value is
@@ -117,9 +119,8 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
     {
       if (valueString.charAt(0) == '*')
       {
-        invalidReason
-            .append(Messages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD
-                .get());
+        invalidReason.append(Messages.WARN_ATTR_SYNTAX_SUBSTRING_ONLY_WILDCARD
+            .get());
 
         return false;
       }
@@ -132,8 +133,7 @@ final class SubstringAssertionSyntaxImpl extends AbstractSyntaxImpl
     {
       for (int i = 1; i < valueLength; i++)
       {
-        if (valueString.charAt(i) == '*'
-            && valueString.charAt(i - 1) == '*')
+        if (valueString.charAt(i) == '*' && valueString.charAt(i - 1) == '*')
         {
           invalidReason
               .append(Messages.WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS

@@ -31,11 +31,15 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.extensions.ExtendedOperation;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.responses.ExtendedResult;
+import org.opends.sdk.responses.ExtendedResultDecoder;
 import org.opends.sdk.responses.GenericExtendedResult;
 import org.opends.sdk.responses.Responses;
 
+import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
 
 
@@ -43,52 +47,81 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Generic extended request implementation.
  */
-final class GenericExtendedRequestImpl
-    extends
+final class GenericExtendedRequestImpl extends
     AbstractExtendedRequest<GenericExtendedRequest, GenericExtendedResult>
     implements GenericExtendedRequest
 {
-  /**
-   * Generic extended operation singleton.
-   */
-  private static final class Operation implements
-      ExtendedOperation<GenericExtendedRequest, GenericExtendedResult>
+
+  static final class RequestDecoder implements
+      ExtendedRequestDecoder<GenericExtendedRequest, GenericExtendedResult>
   {
-
-    public GenericExtendedRequest decodeRequest(String requestName,
-        ByteString requestValue) throws DecodeException
-    {
-      return Requests.newGenericExtendedRequest(requestName,
-          requestValue);
-    }
-
-
-
-    public GenericExtendedResult decodeResponse(ResultCode resultCode,
-        String matchedDN, String diagnosticMessage)
-    {
-      return Responses.newGenericExtendedResult(resultCode)
-          .setMatchedDN(matchedDN).setDiagnosticMessage(
-              diagnosticMessage);
-    }
-
-
-
-    public GenericExtendedResult decodeResponse(ResultCode resultCode,
-        String matchedDN, String diagnosticMessage,
-        String responseName, ByteString responseValue)
+    public GenericExtendedRequest decodeExtendedRequest(
+        final ExtendedRequest<?> request, final DecodeOptions options)
         throws DecodeException
     {
-      return Responses.newGenericExtendedResult(resultCode)
-          .setMatchedDN(matchedDN).setDiagnosticMessage(
-              diagnosticMessage).setResponseName(responseName)
-          .setResponseValue(responseValue);
+      if (request instanceof GenericExtendedRequest)
+      {
+        return (GenericExtendedRequest) request;
+      }
+      else
+      {
+        final GenericExtendedRequest newRequest = new GenericExtendedRequestImpl(
+            request.getOID(), request.getValue());
+
+        for (final Control control : request.getControls())
+        {
+          newRequest.addControl(control);
+        }
+
+        return newRequest;
+      }
     }
   }
 
 
 
-  private static final Operation OPERATION = new Operation();
+  private static final class GenericExtendedResultDecoder implements
+      ExtendedResultDecoder<GenericExtendedResult>
+  {
+
+    public GenericExtendedResult adaptExtendedErrorResult(
+        final ResultCode resultCode, final String matchedDN,
+        final String diagnosticMessage)
+    {
+      return Responses.newGenericExtendedResult(resultCode).setMatchedDN(
+          matchedDN).setDiagnosticMessage(diagnosticMessage);
+    }
+
+
+
+    public GenericExtendedResult decodeExtendedResult(
+        final ExtendedResult result, final DecodeOptions options)
+        throws DecodeException
+    {
+      if (result instanceof GenericExtendedResult)
+      {
+        return (GenericExtendedResult) result;
+      }
+      else
+      {
+        final GenericExtendedResult newResult = Responses
+            .newGenericExtendedResult(result.getResultCode()).setMatchedDN(
+                result.getMatchedDN()).setDiagnosticMessage(
+                result.getDiagnosticMessage()).setOID(result.getOID())
+            .setValue(result.getValue());
+        for (final Control control : result.getControls())
+        {
+          newResult.addControl(control);
+        }
+        return newResult;
+      }
+    }
+  }
+
+
+
+  private static final GenericExtendedResultDecoder RESULT_DECODER =
+    new GenericExtendedResultDecoder();
 
   private ByteString requestValue = ByteString.empty();
 
@@ -97,21 +130,20 @@ final class GenericExtendedRequestImpl
 
 
   /**
-   * Creates a new generic extended request using the provided name and
-   * optional value.
-   * 
+   * Creates a new generic extended request using the provided name and optional
+   * value.
+   *
    * @param requestName
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this extended request.
+   *          The dotted-decimal representation of the unique OID corresponding
+   *          to this extended request.
    * @param requestValue
-   *          The content of this generic extended request in a form
-   *          defined by the extended operation, or {@code null} if
-   *          there is no content.
+   *          The content of this generic extended request in a form defined by
+   *          the extended operation, or {@code null} if there is no content.
    * @throws NullPointerException
    *           If {@code requestName} was {@code null}.
    */
-  GenericExtendedRequestImpl(String requestName, ByteString requestValue)
-      throws NullPointerException
+  GenericExtendedRequestImpl(final String requestName,
+      final ByteString requestValue) throws NullPointerException
   {
     this.requestName = requestName;
     this.requestValue = requestValue;
@@ -122,17 +154,8 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public ExtendedOperation<GenericExtendedRequest, GenericExtendedResult> getExtendedOperation()
-  {
-    return OPERATION;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getRequestName()
+  @Override
+  public String getOID()
   {
     return requestName;
   }
@@ -142,7 +165,19 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public ByteString getRequestValue()
+  @Override
+  public ExtendedResultDecoder<GenericExtendedResult> getResultDecoder()
+  {
+    return RESULT_DECODER;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ByteString getValue()
   {
     return requestValue;
   }
@@ -152,7 +187,18 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public GenericExtendedRequest setRequestName(String oid)
+  @Override
+  public boolean hasValue()
+  {
+    return requestValue != null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericExtendedRequest setOID(final String oid)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(oid);
@@ -165,7 +211,7 @@ final class GenericExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public GenericExtendedRequest setRequestValue(ByteString bytes)
+  public GenericExtendedRequest setValue(final ByteString bytes)
       throws UnsupportedOperationException
   {
     this.requestValue = bytes;
@@ -182,9 +228,12 @@ final class GenericExtendedRequestImpl
   {
     final StringBuilder builder = new StringBuilder();
     builder.append("GenericExtendedRequest(requestName=");
-    builder.append(getRequestName());
-    builder.append(", requestValue=");
-    builder.append(getRequestValue());
+    builder.append(getOID());
+    if (hasValue())
+    {
+      builder.append(", requestValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

@@ -36,19 +36,18 @@ import org.opends.sdk.requests.Request;
 
 
 
-
 /**
  * Thrown when an expected LDAP request is received.
  */
 @SuppressWarnings("serial")
-public final class UnexpectedRequestException extends IOException
+final class UnexpectedRequestException extends IOException
 {
   private final int messageID;
   private final Request request;
 
 
 
-  public UnexpectedRequestException(int messageID, Request request)
+  public UnexpectedRequestException(final int messageID, final Request request)
   {
     super(LocalizableMessage.raw("Unexpected LDAP request: id=%d, message=%s",
         messageID, request).toString());

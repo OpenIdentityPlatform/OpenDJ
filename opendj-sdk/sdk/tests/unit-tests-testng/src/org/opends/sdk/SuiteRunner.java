@@ -33,18 +33,18 @@ import org.testng.TestNG;
 
 
 /**
- * This class wraps TestNG so that we can force the process to exit if
- * there is an uncaught exception (e.g. OutOfMemoryError).
+ * This class wraps TestNG so that we can force the process to exit if there is
+ * an uncaught exception (e.g. OutOfMemoryError).
  */
 public class SuiteRunner
 {
-  public static void main(String[] args)
+  public static void main(final String[] args)
   {
     try
     {
       TestNG.main(args);
     }
-    catch (Throwable e)
+    catch (final Throwable e)
     {
       System.err.println("TestNG.main threw an expected exception:");
       e.printStackTrace(System.err);

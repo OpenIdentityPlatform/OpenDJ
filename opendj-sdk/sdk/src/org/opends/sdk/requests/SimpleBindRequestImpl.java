@@ -29,9 +29,10 @@ package org.opends.sdk.requests;
 
 
 
+import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
+
 import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.ErrorResultException;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -45,25 +46,25 @@ final class SimpleBindRequestImpl extends
 {
   private ByteString password = ByteString.empty();
 
-  private DN name = DN.rootDN();
+  private String name = "".intern();
 
 
 
   /**
-   * Creates a new simple bind request having the provided name and
-   * password suitable for name/password authentication.
-   * 
+   * Creates a new simple bind request having the provided name and password
+   * suitable for name/password authentication.
+   *
    * @param name
-   *          The distinguished name of the Directory object that the
-   *          client wishes to bind as, which may be empty.
+   *          The name of the Directory object that the client wishes to bind
+   *          as, which may be empty.
    * @param password
-   *          The password of the Directory object that the client
-   *          wishes to bind as, which may be empty indicating that an
-   *          unauthenticated bind is to be performed.
+   *          The password of the Directory object that the client wishes to
+   *          bind as, which may be empty indicating that an unauthenticated
+   *          bind is to be performed.
    * @throws NullPointerException
    *           If {@code name} or {@code password} was {@code null}.
    */
-  SimpleBindRequestImpl(DN name, ByteString password)
+  SimpleBindRequestImpl(final String name, final ByteString password)
       throws NullPointerException
   {
     this.name = name;
@@ -72,10 +73,26 @@ final class SimpleBindRequestImpl extends
 
 
 
+  public BindClient createBindClient(final String serverName)
+      throws ErrorResultException
+  {
+    return new BindClientImpl(this).setNextAuthenticationValue(password);
+  }
+
+
+
+  public byte getAuthenticationType()
+  {
+    return TYPE_AUTHENTICATION_SIMPLE;
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
-  public DN getName()
+  @Override
+  public String getName()
   {
     return name;
   }
@@ -105,11 +122,11 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SimpleBindRequest setName(DN dn)
+  public SimpleBindRequest setName(final String name)
       throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(dn);
-    this.name = dn;
+    Validator.ensureNotNull(name);
+    this.name = name;
     return this;
   }
 
@@ -118,21 +135,7 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SimpleBindRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
-  {
-    Validator.ensureNotNull(dn);
-    this.name = DN.valueOf(dn);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SimpleBindRequest setPassword(ByteString password)
+  public SimpleBindRequest setPassword(final ByteString password)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -145,7 +148,7 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SimpleBindRequest setPassword(String password)
+  public SimpleBindRequest setPassword(final String password)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);

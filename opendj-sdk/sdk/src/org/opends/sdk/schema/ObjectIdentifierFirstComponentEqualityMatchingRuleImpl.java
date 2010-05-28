@@ -28,7 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
 import org.opends.sdk.*;
 
@@ -37,35 +38,32 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the objectIdentifierFirstComponentMatch
- * matching rule defined in X.520 and referenced in RFC 2252. This rule
- * is intended for use with attributes whose values contain a set of
- * parentheses enclosing a space-delimited set of names and/or
- * name-value pairs (like attribute type or objectclass descriptions) in
- * which the "first component" is the first item after the opening
- * parenthesis.
+ * This class implements the objectIdentifierFirstComponentMatch matching rule
+ * defined in X.520 and referenced in RFC 2252. This rule is intended for use
+ * with attributes whose values contain a set of parentheses enclosing a
+ * space-delimited set of names and/or name-value pairs (like attribute type or
+ * objectclass descriptions) in which the "first component" is the first item
+ * after the opening parenthesis.
  */
-final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
-    extends AbstractMatchingRuleImpl
+final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends
+    AbstractMatchingRuleImpl
 {
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
-    final String normalized =
-        ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema,
-            SchemaUtils.readOID(reader));
+    final String normalized = ObjectIdentifierEqualityMatchingRuleImpl
+        .resolveNames(schema, SchemaUtils.readOID(reader));
 
-    return new ObjectIdentifierEqualityMatchingRuleImpl.OIDAssertion(
-        normalized);
+    return new ObjectIdentifierEqualityMatchingRuleImpl.OIDAssertion(normalized);
   }
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
@@ -87,9 +85,8 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
     final char c = reader.read();
     if (c != '(')
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
-              (reader.pos() - 1), String.valueOf(c));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS
+          .get(definition, (reader.pos() - 1), String.valueOf(c));
       throw DecodeException.error(message);
     }
 
@@ -98,9 +95,8 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl
     reader.skipWhitespaces();
 
     // The next set of characters must be the OID.
-    final String normalized =
-        ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema,
-            SchemaUtils.readOID(reader));
+    final String normalized = ObjectIdentifierEqualityMatchingRuleImpl
+        .resolveNames(schema, SchemaUtils.readOID(reader));
     return ByteString.valueOf(normalized);
   }
 }

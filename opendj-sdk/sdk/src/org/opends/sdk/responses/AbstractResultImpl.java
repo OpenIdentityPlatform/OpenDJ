@@ -40,7 +40,7 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * Modifiable result implementation.
- * 
+ *
  * @param <S>
  *          The type of result.
  */
@@ -61,15 +61,15 @@ abstract class AbstractResultImpl<S extends Result> extends
 
 
   /**
-   * Creates a new modifiable result implementation using the provided
-   * result code.
-   * 
+   * Creates a new modifiable result implementation using the provided result
+   * code.
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  AbstractResultImpl(ResultCode resultCode) throws NullPointerException
+  AbstractResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     this.resultCode = resultCode;
   }
@@ -79,22 +79,11 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S addReferralURI(String uri) throws NullPointerException
+  public final S addReferralURI(final String uri) throws NullPointerException
   {
     Validator.ensureNotNull(uri);
 
     referralURIs.add(uri);
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final S clearReferralURIs()
-  {
-    referralURIs.clear();
     return getThis();
   }
 
@@ -133,7 +122,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final Iterable<String> getReferralURIs()
+  public final List<String> getReferralURIs()
   {
     return referralURIs;
   }
@@ -146,16 +135,6 @@ abstract class AbstractResultImpl<S extends Result> extends
   public final ResultCode getResultCode()
   {
     return resultCode;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean hasReferralURIs()
-  {
-    return !referralURIs.isEmpty();
   }
 
 
@@ -185,7 +164,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S setCause(Throwable cause)
+  public final S setCause(final Throwable cause)
   {
     this.cause = cause;
     return getThis();
@@ -196,7 +175,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S setDiagnosticMessage(String message)
+  public final S setDiagnosticMessage(final String message)
   {
     if (message == null)
     {
@@ -215,7 +194,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S setMatchedDN(String dn)
+  public final S setMatchedDN(final String dn)
   {
     if (dn == null)
     {
@@ -234,7 +213,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S setResultCode(ResultCode resultCode)
+  public final S setResultCode(final ResultCode resultCode)
       throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);

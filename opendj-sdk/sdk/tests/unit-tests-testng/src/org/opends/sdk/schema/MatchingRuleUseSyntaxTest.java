@@ -43,10 +43,19 @@ public class MatchingRuleUseSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(
-        SYNTAX_MATCHING_RULE_USE_OID);
+    return new Object[][] {
+        {
+            "( 2.5.13.10 NAME 'full matching rule' "
+                + " DESC 'description of matching rule' OBSOLETE "
+                + " APPLIES 2.5.4.3 " + " X-name 'this is an extension' )",
+            true },
+        {
+            "( 2.5.13.10 NAME 'missing closing parenthesis' "
+                + " DESC 'description of matching rule' " + " SYNTAX 2.5.4.3 "
+                + " X-name ( 'this is an extension' ) ", false }, };
   }
 
 
@@ -55,19 +64,8 @@ public class MatchingRuleUseSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] {
-        {
-            "( 2.5.13.10 NAME 'full matching rule' "
-                + " DESC 'description of matching rule' OBSOLETE "
-                + " APPLIES 2.5.4.3 "
-                + " X-name 'this is an extension' )", true },
-        {
-            "( 2.5.13.10 NAME 'missing closing parenthesis' "
-                + " DESC 'description of matching rule' "
-                + " SYNTAX 2.5.4.3 "
-                + " X-name ( 'this is an extension' ) ", false }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
   }
 }

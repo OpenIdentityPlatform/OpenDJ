@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -37,14 +37,13 @@ import org.opends.sdk.DecodeException;
 
 
 /**
- * This class defines the booleanMatch matching rule defined in X.520
- * and referenced in RFC 4519.
+ * This class defines the booleanMatch matching rule defined in X.520 and
+ * referenced in RFC 4519.
  */
-final class BooleanEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
+final class BooleanEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String valueString = value.toString().toUpperCase();
     if (valueString.equals("TRUE") || valueString.equals("YES")
@@ -58,7 +57,7 @@ final class BooleanEqualityMatchingRuleImpl extends
       return SchemaConstants.FALSE_VALUE;
     }
 
-    throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN
-        .get(value.toString()));
+    throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value
+        .toString()));
   }
 }

@@ -42,87 +42,20 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends
     SubstringMatchingRuleTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @DataProvider(name = "substringMiddleMatchData")
-  public Object[][] createSubstringMiddleMatchData()
+  @DataProvider(name = "substringInvalidAssertionValues")
+  public Object[][] createMatchingRuleInvalidAssertionValues()
   {
-    return new Object[][] {
-        { "this is a value", new String[] { "this" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "is" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "a" }, ConditionResult.TRUE },
-        { "this is a value", new String[] { "value" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "THIS" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "IS" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "A" }, ConditionResult.TRUE },
-        { "this is a value", new String[] { "VALUE" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { " " }, ConditionResult.TRUE },
-        { "this is a value",
-            new String[] { "this", "is", "a", "value" },
-            ConditionResult.TRUE },
-        // The matching rule requires ordered non overlapping
-        // substrings.
-        // Issue #730 was not valid.
-        { "this is a value", new String[] { "value", "this" },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "this", "this is" },
-            ConditionResult.FALSE },
-        { "this is a value",
-            new String[] { "this", "IS", "a", "VALue" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "his IS", "A val", },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "not", },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "this", "not" },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "    " },
-            ConditionResult.TRUE }, };
+    return new Object[][] { { "12345678\uFFFD", new String[0], null },
+        { null, new String[] { "12345678\uFFFD" }, null },
+        { null, new String[0], "12345678\uFFFD" }, };
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected MatchingRule getRule()
+  @DataProvider(name = "substringInvalidAttributeValues")
+  public Object[][] createMatchingRuleInvalidAttributeValues()
   {
-    return Schema.getCoreSchema().getMatchingRule(
-        SMR_CASE_IGNORE_IA5_OID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @DataProvider(name = "substringInitialMatchData")
-  public Object[][] createSubstringInitialMatchData()
-  {
-    return new Object[][] {
-        { "this is a value", "this", ConditionResult.TRUE },
-        { "this is a value", "th", ConditionResult.TRUE },
-        { "this is a value", "t", ConditionResult.TRUE },
-        { "this is a value", "is", ConditionResult.FALSE },
-        { "this is a value", "a", ConditionResult.FALSE },
-        { "this is a value", "TH", ConditionResult.TRUE },
-        { "this is a value", "T", ConditionResult.TRUE },
-        { "this is a value", "IS", ConditionResult.FALSE },
-        { "this is a value", "A", ConditionResult.FALSE },
-        { "this is a value", "VALUE", ConditionResult.FALSE },
-        { "this is a value", " ", ConditionResult.FALSE },
-        { "this is a value", "NOT", ConditionResult.FALSE },
-        { "this is a value", "THIS", ConditionResult.TRUE }, };
+    return new Object[][] { { "12345678\uFFFD" }, };
   }
 
 
@@ -156,19 +89,75 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends
 
 
 
-  @DataProvider(name = "substringInvalidAttributeValues")
-  public Object[][] createMatchingRuleInvalidAttributeValues()
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @DataProvider(name = "substringInitialMatchData")
+  public Object[][] createSubstringInitialMatchData()
   {
-    return new Object[][] { { "12345678\uFFFD" }, };
+    return new Object[][] {
+        { "this is a value", "this", ConditionResult.TRUE },
+        { "this is a value", "th", ConditionResult.TRUE },
+        { "this is a value", "t", ConditionResult.TRUE },
+        { "this is a value", "is", ConditionResult.FALSE },
+        { "this is a value", "a", ConditionResult.FALSE },
+        { "this is a value", "TH", ConditionResult.TRUE },
+        { "this is a value", "T", ConditionResult.TRUE },
+        { "this is a value", "IS", ConditionResult.FALSE },
+        { "this is a value", "A", ConditionResult.FALSE },
+        { "this is a value", "VALUE", ConditionResult.FALSE },
+        { "this is a value", " ", ConditionResult.FALSE },
+        { "this is a value", "NOT", ConditionResult.FALSE },
+        { "this is a value", "THIS", ConditionResult.TRUE }, };
   }
 
 
 
-  @DataProvider(name = "substringInvalidAssertionValues")
-  public Object[][] createMatchingRuleInvalidAssertionValues()
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @DataProvider(name = "substringMiddleMatchData")
+  public Object[][] createSubstringMiddleMatchData()
   {
-    return new Object[][] { { "12345678\uFFFD", new String[0], null },
-        { null, new String[] { "12345678\uFFFD" }, null },
-        { null, new String[0], "12345678\uFFFD" }, };
+    return new Object[][] {
+        { "this is a value", new String[] { "this" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "is" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "a" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "value" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "THIS" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "IS" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "A" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "VALUE" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { " " }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "this", "is", "a", "value" },
+            ConditionResult.TRUE },
+        // The matching rule requires ordered non overlapping
+        // substrings.
+        // Issue #730 was not valid.
+        { "this is a value", new String[] { "value", "this" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "this", "this is" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "this", "IS", "a", "VALue" },
+            ConditionResult.TRUE },
+        { "this is a value", new String[] { "his IS", "A val", },
+            ConditionResult.TRUE },
+        { "this is a value", new String[] { "not", }, ConditionResult.FALSE },
+        { "this is a value", new String[] { "this", "not" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "    " }, ConditionResult.TRUE }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected MatchingRule getRule()
+  {
+    return Schema.getCoreSchema().getMatchingRule(SMR_CASE_IGNORE_IA5_OID);
   }
 }

@@ -33,23 +33,13 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class defines an exception that may be thrown if there is a
- * problem with an argument definition.
+ * This class defines an exception that may be thrown if there is a problem with
+ * an argument definition.
  */
-final class ArgumentException extends Exception implements
-    LocalizableException
+@SuppressWarnings("serial")
+final class ArgumentException extends Exception implements LocalizableException
 {
-  /**
-   * The serial version identifier required to satisfy the compiler
-   * because this class extends <CODE>java.lang.Exception</CODE>, which
-   * implements the <CODE>java.io.Serializable</CODE> interface. This
-   * value was generated using the <CODE>serialver</CODE> command-line
-   * utility included with the Java SDK.
-   */
-  private static final long serialVersionUID = 5623155045312160730L;
-
   // The I18N message associated with this exception.
   private final LocalizableMessage message;
 
@@ -57,11 +47,11 @@ final class ArgumentException extends Exception implements
 
   /**
    * Creates a new argument exception with the provided message.
-   * 
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
-  ArgumentException(LocalizableMessage message)
+  ArgumentException(final LocalizableMessage message)
   {
     super(String.valueOf(message));
     this.message = message;
@@ -70,15 +60,14 @@ final class ArgumentException extends Exception implements
 
 
   /**
-   * Creates a new argument exception with the provided message and root
-   * cause.
-   * 
+   * Creates a new argument exception with the provided message and root cause.
+   *
    * @param message
    *          The message that explains the problem that occurred.
    * @param cause
    *          The exception that was caught to trigger this exception.
    */
-  ArgumentException(LocalizableMessage message, Throwable cause)
+  ArgumentException(final LocalizableMessage message, final Throwable cause)
   {
     super(String.valueOf(message), cause);
     this.message = message;

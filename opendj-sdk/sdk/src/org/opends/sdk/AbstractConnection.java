@@ -29,7 +29,9 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_NO_SEARCH_RESULT_ENTRIES;
+import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
+import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -45,15 +47,13 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class provides a skeletal implementation of the {@code
- * Connection} interface, to minimize the effort required to implement
- * this interface.
+ * This class provides a skeletal implementation of the {@code Connection}
+ * interface, to minimize the effort required to implement this interface.
  */
 public abstract class AbstractConnection implements Connection
 {
 
-  private static final class SingleEntryHandler implements
-      SearchResultHandler
+  private static final class SingleEntryHandler implements SearchResultHandler
   {
     private volatile SearchResultEntry firstEntry = null;
 
@@ -63,23 +63,25 @@ public abstract class AbstractConnection implements Connection
 
 
 
-    public void handleEntry(SearchResultEntry entry)
+    public boolean handleEntry(final SearchResultEntry entry)
     {
       if (firstEntry == null)
       {
         firstEntry = entry;
       }
       entryCount++;
+      return true;
     }
 
 
 
-    public void handleReference(SearchResultReference reference)
+    public boolean handleReference(final SearchResultReference reference)
     {
       if (firstReference == null)
       {
         firstReference = reference;
       }
+      return true;
     }
 
   }
@@ -96,7 +98,10 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public Result add(Entry entry) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public Result add(final Entry entry) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
@@ -105,7 +110,10 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public Result add(String... ldifLines) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public Result add(final String... ldifLines) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       LocalizedIllegalArgumentException, IllegalStateException,
       NullPointerException
@@ -115,7 +123,10 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public BindResult bind(String name, String password)
+  /**
+   * {@inheritDoc}
+   */
+  public BindResult bind(final String name, final String password)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
@@ -125,19 +136,25 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public CompareResult compare(String name,
-      String attributeDescription, String assertionValue)
+  /**
+   * {@inheritDoc}
+   */
+  public CompareResult compare(final String name,
+      final String attributeDescription, final String assertionValue)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    return compare(Requests.newCompareRequest(name,
-        attributeDescription, assertionValue));
+    return compare(Requests.newCompareRequest(name, attributeDescription,
+        assertionValue));
   }
 
 
 
-  public Result delete(String name) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public Result delete(final String name) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -147,28 +164,37 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public GenericExtendedResult extendedRequest(String requestName,
-      ByteString requestValue) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public GenericExtendedResult extendedRequest(final String requestName,
+      final ByteString requestValue) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    return extendedRequest(Requests.newGenericExtendedRequest(
-        requestName, requestValue));
+    return extendedRequest(Requests.newGenericExtendedRequest(requestName,
+        requestValue));
   }
 
 
 
-  public Result modify(String... ldifLines)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, LocalizedIllegalArgumentException,
-      IllegalStateException, NullPointerException
+  /**
+   * {@inheritDoc}
+   */
+  public Result modify(final String... ldifLines) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      LocalizedIllegalArgumentException, IllegalStateException,
+      NullPointerException
   {
     return modify(Requests.newModifyRequest(ldifLines));
   }
 
 
 
-  public Result modifyDN(String name, String newRDN)
+  /**
+   * {@inheritDoc}
+   */
+  public Result modifyDN(final String name, final String newRDN)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
@@ -178,12 +204,15 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public SearchResultEntry readEntry(DN baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry readEntry(final DN baseObject,
+      final String... attributeDescriptions) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    SearchRequest request = Requests.newSearchRequest(baseObject,
+    final SearchRequest request = Requests.newSearchRequest(baseObject,
         SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter(),
         attributeDescriptions);
     return searchSingleEntry(request);
@@ -191,8 +220,11 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public SearchResultEntry readEntry(String baseObject,
-      String... attributeDescriptions) throws ErrorResultException,
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry readEntry(final String baseObject,
+      final String... attributeDescriptions) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -217,7 +249,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public Schema readSchema(DN name) throws ErrorResultException,
+  public Schema readSchema(final DN name) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException
   {
@@ -229,7 +261,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public Schema readSchema(String name) throws ErrorResultException,
+  public Schema readSchema(final String name) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException
   {
@@ -241,9 +273,9 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public Schema readSchemaForEntry(DN name)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException
+  public Schema readSchemaForEntry(final DN name) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException
   {
     return Schema.readSchemaForEntry(this, name);
   }
@@ -253,7 +285,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public Schema readSchemaForEntry(String name)
+  public Schema readSchemaForEntry(final String name)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException
@@ -278,8 +310,8 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public Result search(SearchRequest request,
-      Collection<? super SearchResultEntry> entries)
+  public Result search(final SearchRequest request,
+      final Collection<? super SearchResultEntry> entries)
       throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -289,7 +321,10 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public Result search(SearchRequest request,
+  /**
+   * {@inheritDoc}
+   */
+  public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries,
       final Collection<? super SearchResultReference> references)
       throws ErrorResultException, InterruptedException,
@@ -299,22 +334,24 @@ public abstract class AbstractConnection implements Connection
     Validator.ensureNotNull(request, entries);
 
     // FIXME: does this need to be thread safe?
-    SearchResultHandler handler = new SearchResultHandler()
+    final SearchResultHandler handler = new SearchResultHandler()
     {
 
-      public void handleEntry(SearchResultEntry entry)
+      public boolean handleEntry(final SearchResultEntry entry)
       {
         entries.add(entry);
+        return true;
       }
 
 
 
-      public void handleReference(SearchResultReference reference)
+      public boolean handleReference(final SearchResultReference reference)
       {
         if (references != null)
         {
           references.add(reference);
         }
+        return true;
       }
     };
 
@@ -323,52 +360,58 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public List<SearchResultEntry> search(String baseObject,
-      SearchScope scope, String filter, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+  /**
+   * {@inheritDoc}
+   */
+  public List<SearchResultEntry> search(final String baseObject,
+      final SearchScope scope, final String filter,
+      final String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
   {
-    List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
-    SearchRequest request = Requests.newSearchRequest(baseObject,
-        scope, filter, attributeDescriptions);
+    final List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
+    final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
+        filter, attributeDescriptions);
     search(request, entries);
     return entries;
   }
 
 
 
-  public SearchResultEntry searchSingleEntry(SearchRequest request)
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry searchSingleEntry(final SearchRequest request)
       throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    SingleEntryHandler handler = new SingleEntryHandler();
+    final SingleEntryHandler handler = new SingleEntryHandler();
     search(request, handler);
 
     if (handler.entryCount == 0)
     {
       // Did not find any entries.
-      Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
-          .setDiagnosticMessage(
-              ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
+      final Result result = Responses.newResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
+          ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
       throw ErrorResultException.wrap(result);
     }
     else if (handler.entryCount > 1)
     {
       // Got more entries than expected.
-      Result result = Responses.newResult(
+      final Result result = Responses.newResult(
           ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
           .setDiagnosticMessage(
-              ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(
-                  handler.entryCount).toString());
+              ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(handler.entryCount)
+                  .toString());
       throw ErrorResultException.wrap(result);
     }
     else if (handler.firstReference != null)
     {
       // Got an unexpected search result reference.
-      Result result = Responses.newResult(
+      final Result result = Responses.newResult(
           ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
           .setDiagnosticMessage(
               ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
@@ -384,14 +427,18 @@ public abstract class AbstractConnection implements Connection
 
 
 
-  public SearchResultEntry searchSingleEntry(String baseObject,
-      SearchScope scope, String filter, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+  /**
+   * {@inheritDoc}
+   */
+  public SearchResultEntry searchSingleEntry(final String baseObject,
+      final SearchScope scope, final String filter,
+      final String... attributeDescriptions) throws ErrorResultException,
+      InterruptedException, LocalizedIllegalArgumentException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
   {
-    SearchRequest request = Requests.newSearchRequest(baseObject,
-        scope, filter, attributeDescriptions);
+    final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
+        filter, attributeDescriptions);
     return searchSingleEntry(request);
   }
 

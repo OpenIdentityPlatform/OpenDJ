@@ -31,12 +31,14 @@ package org.opends.sdk.responses;
 
 import org.opends.sdk.ByteString;
 
+import com.sun.opends.sdk.util.StaticUtils;
+
 
 
 /**
  * An abstract Intermediate response which can be used as the basis for
  * implementing new Intermediate responses.
- * 
+ *
  * @param <S>
  *          The type of Intermediate response.
  */
@@ -57,28 +59,38 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
-  public abstract String getResponseName();
+  public abstract String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public abstract ByteString getResponseValue();
+  public abstract ByteString getValue();
 
 
 
   /**
    * {@inheritDoc}
    */
+  public abstract boolean hasValue();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
     builder.append("IntermediateResponse(responseName=");
-    builder.append(getResponseName() == null ? "" : getResponseName());
-    builder.append(", responseValue=");
-    final ByteString value = getResponseValue();
-    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(getOID() == null ? "" : getOID());
+    if (hasValue())
+    {
+      builder.append(", responseValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -90,6 +102,7 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   final S getThis()
   {

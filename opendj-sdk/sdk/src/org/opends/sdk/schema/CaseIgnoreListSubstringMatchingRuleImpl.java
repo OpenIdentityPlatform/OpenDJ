@@ -28,7 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -39,14 +40,14 @@ import com.sun.opends.sdk.util.StringPrepProfile;
 
 
 /**
- * This class implements the caseIgnoreListSubstringsMatch matching rule
- * defined in X.520 and referenced in RFC 2252.
+ * This class implements the caseIgnoreListSubstringsMatch matching rule defined
+ * in X.520 and referenced in RFC 2252.
  */
 final class CaseIgnoreListSubstringMatchingRuleImpl extends
     AbstractSubstringMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, StringPrepProfile.TRIM, CASE_FOLD);
@@ -98,7 +99,7 @@ final class CaseIgnoreListSubstringMatchingRuleImpl extends
 
 
   @Override
-  ByteString normalizeSubString(Schema schema, ByteSequence value)
+  ByteString normalizeSubString(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     // In this case, the process for normalizing a substring is the same

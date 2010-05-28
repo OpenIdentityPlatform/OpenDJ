@@ -29,36 +29,27 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.schema.ObjectClass;
+import java.util.Collection;
 
-import com.sun.opends.sdk.util.*;
+import com.sun.opends.sdk.util.Iterables;
+import com.sun.opends.sdk.util.Predicate;
+import com.sun.opends.sdk.util.Validator;
 
 
 
 /**
- * This class provides a skeletal implementation of the {@code Entry}
- * interface, to minimize the effort required to implement this
- * interface.
+ * This class provides a skeletal implementation of the {@code Entry} interface,
+ * to minimize the effort required to implement this interface.
  */
 public abstract class AbstractEntry implements Entry
 {
 
-  // Function used for getObjectClasses
-  private static final Function<ByteString, String, Void> BYTE_STRING_TO_STRING_FUNCTION = new Function<ByteString, String, Void>()
-  {
-
-    public String apply(ByteString value, Void p)
-    {
-      return value.toString();
-    }
-
-  };
-
   // Predicate used for findAttributes.
-  private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE = new Predicate<Attribute, AttributeDescription>()
+  private static final Predicate<Attribute, AttributeDescription>
+    FIND_ATTRIBUTES_PREDICATE = new Predicate<Attribute, AttributeDescription>()
   {
 
-    public boolean matches(Attribute value, AttributeDescription p)
+    public boolean matches(final Attribute value, final AttributeDescription p)
     {
       return value.getAttributeDescription().isSubTypeOf(p);
     }
@@ -68,20 +59,20 @@ public abstract class AbstractEntry implements Entry
 
 
   /**
-   * Returns {@code true} if {@code object} is an entry which is equal
-   * to {@code entry}. Two entry are considered equal if their
-   * distinguished names are equal, they both have the same number of
-   * attributes, and every attribute contained in the first entry is
-   * also contained in the second entry.
+   * Returns {@code true} if {@code object} is an entry which is equal to
+   * {@code entry}. Two entry are considered equal if their distinguished names
+   * are equal, they both have the same number of attributes, and every
+   * attribute contained in the first entry is also contained in the second
+   * entry.
    *
    * @param entry
    *          The entry to be tested for equality.
    * @param object
    *          The object to be tested for equality with the entry.
-   * @return {@code true} if {@code object} is an entry which is equal
-   *         to {@code entry}, or {@code false} if not.
+   * @return {@code true} if {@code object} is an entry which is equal to
+   *         {@code entry}, or {@code false} if not.
    */
-  static boolean equals(Entry entry, Object object)
+  static boolean equals(final Entry entry, final Object object)
   {
     if (entry == object)
     {
@@ -93,7 +84,7 @@ public abstract class AbstractEntry implements Entry
       return false;
     }
 
-    Entry other = (Entry) object;
+    final Entry other = (Entry) object;
     if (!entry.getName().equals(other.getName()))
     {
       return false;
@@ -105,9 +96,9 @@ public abstract class AbstractEntry implements Entry
       return false;
     }
 
-    for (Attribute attribute : entry.getAttributes())
+    for (final Attribute attribute : entry.getAllAttributes())
     {
-      Attribute otherAttribute = other.getAttribute(attribute
+      final Attribute otherAttribute = other.getAttribute(attribute
           .getAttributeDescription());
 
       if (!attribute.equals(otherAttribute))
@@ -122,18 +113,17 @@ public abstract class AbstractEntry implements Entry
 
 
   /**
-   * Returns the hash code for {@code entry}. It will be calculated as
-   * the sum of the hash codes of the distinguished name and all of the
-   * attributes.
+   * Returns the hash code for {@code entry}. It will be calculated as the sum
+   * of the hash codes of the distinguished name and all of the attributes.
    *
    * @param entry
    *          The entry whose hash code should be calculated.
    * @return The hash code for {@code entry}.
    */
-  static int hashCode(Entry entry)
+  static int hashCode(final Entry entry)
   {
     int hashCode = entry.getName().hashCode();
-    for (Attribute attribute : entry.getAttributes())
+    for (final Attribute attribute : entry.getAllAttributes())
     {
       hashCode += attribute.hashCode();
     }
@@ -149,15 +139,15 @@ public abstract class AbstractEntry implements Entry
    *          The entry whose string representation should be returned.
    * @return The string representation of {@code entry}.
    */
-  static String toString(Entry entry)
+  static String toString(final Entry entry)
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("Entry(");
     builder.append(entry.getName());
     builder.append(", {");
 
     boolean firstValue = true;
-    for (Attribute attribute : entry.getAttributes())
+    for (final Attribute attribute : entry.getAllAttributes())
     {
       if (!firstValue)
       {
@@ -187,7 +177,7 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public boolean addAttribute(Attribute attribute)
+  public boolean addAttribute(final Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
     return addAttribute(attribute, null);
@@ -198,8 +188,8 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry addAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
+  public Entry addAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
     addAttribute(new LinkedAttribute(attributeDescription, values), null);
@@ -211,11 +201,34 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public boolean containsAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
+  public boolean containsAttribute(final Attribute attribute,
+      final Collection<ByteString> missingValues) throws NullPointerException
   {
-    return containsAttribute(AttributeDescription
-        .valueOf(attributeDescription));
+    final Attribute a = getAttribute(attribute.getAttributeDescription());
+    if (a == null)
+    {
+      if (missingValues != null)
+      {
+        missingValues.addAll(attribute);
+      }
+      return false;
+    }
+    else
+    {
+      boolean result = true;
+      for (final ByteString value : attribute)
+      {
+        if (!a.contains(value))
+        {
+          if (missingValues != null)
+          {
+            missingValues.add(value);
+          }
+          result = false;
+        }
+      }
+      return result;
+    }
   }
 
 
@@ -223,10 +236,12 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public boolean containsObjectClass(ObjectClass objectClass)
-      throws NullPointerException
+  public boolean containsAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
+      NullPointerException
   {
-    return containsObjectClass(objectClass.getOID());
+    return containsAttribute(new LinkedAttribute(attributeDescription, values),
+        null);
   }
 
 
@@ -234,22 +249,8 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public boolean containsObjectClass(String objectClass)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(objectClass);
-
-    Attribute attribute = getAttribute(AttributeDescription
-        .objectClass());
-    return attribute != null ? attribute.contains(objectClass) : false;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean equals(Object object)
+  @Override
+  public boolean equals(final Object object)
   {
     return equals(this, object);
   }
@@ -259,13 +260,13 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Iterable<Attribute> findAttributes(
-      AttributeDescription attributeDescription)
+  public Iterable<Attribute> getAllAttributes(
+      final AttributeDescription attributeDescription)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
 
-    return Iterables.filter(getAttributes(), FIND_ATTRIBUTES_PREDICATE,
+    return Iterables.filter(getAllAttributes(), FIND_ATTRIBUTES_PREDICATE,
         attributeDescription);
   }
 
@@ -274,11 +275,10 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Iterable<Attribute> findAttributes(String attributeDescription)
+  public Iterable<Attribute> getAllAttributes(final String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return findAttributes(AttributeDescription
-        .valueOf(attributeDescription));
+    return getAllAttributes(AttributeDescription.valueOf(attributeDescription));
   }
 
 
@@ -286,11 +286,10 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Attribute getAttribute(String attributeDescription)
+  public Attribute getAttribute(final String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return getAttribute(AttributeDescription
-        .valueOf(attributeDescription));
+    return getAttribute(AttributeDescription.valueOf(attributeDescription));
   }
 
 
@@ -298,27 +297,7 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Iterable<String> getObjectClasses()
-  {
-    Attribute attribute = getAttribute(AttributeDescription
-        .objectClass());
-
-    if (attribute == null)
-    {
-      return Iterables.empty();
-    }
-    else
-    {
-      return Iterables.transform(attribute,
-          BYTE_STRING_TO_STRING_FUNCTION);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public int hashCode()
   {
     return hashCode(this);
@@ -329,12 +308,10 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public boolean removeAttribute(
-      AttributeDescription attributeDescription)
+  public boolean removeAttribute(final AttributeDescription attributeDescription)
       throws UnsupportedOperationException, NullPointerException
   {
-    return removeAttribute(Types.emptyAttribute(attributeDescription),
-        null);
+    return removeAttribute(Types.emptyAttribute(attributeDescription), null);
   }
 
 
@@ -342,11 +319,11 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry removeAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException,
+  public Entry removeAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
-    removeAttribute(new LinkedAttribute(attributeDescription), null);
+    removeAttribute(new LinkedAttribute(attributeDescription, values), null);
     return this;
   }
 
@@ -355,21 +332,7 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry removeAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
-  {
-    removeAttribute(new LinkedAttribute(attributeDescription, values),
-        null);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean replaceAttribute(Attribute attribute)
+  public boolean replaceAttribute(final Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
     if (attribute.isEmpty())
@@ -379,7 +342,7 @@ public abstract class AbstractEntry implements Entry
     else
     {
       removeAttribute(attribute.getAttributeDescription());
-      addAttribute(attribute);
+      addAttribute(attribute, null);
       return true;
     }
   }
@@ -389,8 +352,8 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry replaceAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
+  public Entry replaceAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
     replaceAttribute(new LinkedAttribute(attributeDescription, values));
@@ -402,9 +365,9 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
-  public Entry setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public Entry setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     return setName(DN.valueOf(dn));
   }
@@ -414,6 +377,7 @@ public abstract class AbstractEntry implements Entry
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     return toString(this);

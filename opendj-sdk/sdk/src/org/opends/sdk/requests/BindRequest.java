@@ -29,109 +29,86 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.DN;
+import java.util.List;
+
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * The Bind operation allows authentication information to be exchanged
- * between the client and server. The Bind operation should be thought
- * of as the "authenticate" operation.
+ * The Bind operation allows authentication information to be exchanged between
+ * the client and server. The Bind operation should be thought of as the
+ * "authenticate" operation.
  */
 public interface BindRequest extends Request
 {
   /**
-   * Adds the provided control to this request.
-   * 
-   * @param control
-   *          The control to be added to this request.
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * {@inheritDoc}
    */
-  BindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  BindRequest addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Removes all the controls included with this request.
-   * 
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
+   * Creates a new bind client which can be used to perform the authentication
+   * process. This method is called by protocol implementations and is not
+   * intended for use by applications.
+   *
+   * @param serverName
+   *          The non-null fully-qualified host name of the server to
+   *          authenticate to.
+   * @return The new bind client.
+   * @throws ErrorResultException
+   *           If an error occurred while creating the bind client context.
    */
-  BindRequest clearControls() throws UnsupportedOperationException;
+  BindClient createBindClient(String serverName) throws ErrorResultException;
 
 
 
   /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this request.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * Returns the authentication mechanism identifier for this generic bind
+   * request as defined by the LDAP protocol. Note that value {@code 0x80} is
+   * reserved for simple authentication and {@code 0xA3} is reserved for SASL
+   * authentication.
+   *
+   * @return The authentication mechanism identifier.
    */
-  Control getControl(String oid) throws NullPointerException;
+  byte getAuthenticationType();
 
 
 
   /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   * 
-   * @return An {@code Iterable} containing the controls.
+   * {@inheritDoc}
    */
-  Iterable<Control> getControls();
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
-   * Returns the distinguished name of the Directory object that the
-   * client wishes to bind as. The distinguished name may be empty (but
-   * never {@code null}) when used for of anonymous binds, or when using
-   * SASL authentication. The server shall not dereference any aliases
-   * in locating the named object.
-   * 
-   * @return The distinguished name of the Directory object that the
-   *         client wishes to bind as.
+   * {@inheritDoc}
    */
-  DN getName();
+  List<Control> getControls();
 
 
 
   /**
-   * Indicates whether or not this request has any controls.
-   * 
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
+   * Returns the name of the Directory object that the client wishes to bind as.
+   * The name may be empty (but never {@code null}) when used for of anonymous
+   * binds, or when using SASL authentication. The server shall not dereference
+   * any aliases in locating the named object.
+   * <p>
+   * The LDAP protocol defines the Bind name to be a distinguished name, however
+   * some LDAP implementations have relaxed this constraint and allow other
+   * identities to be used, such as the user's email address.
+   *
+   * @return The name of the Directory object that the client wishes to bind as.
    */
-  boolean hasControls();
-
-
-
-  /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  String getName();
 
 }

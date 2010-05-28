@@ -40,23 +40,23 @@ import org.opends.sdk.ResultHandler;
 
 
 /**
- * An implementation of the {@code FutureResult} interface which can be
- * used to combine a sequence of two asynchronous operations into a
- * single future result. Implementations should override the methods
- * {@link #chainResult} and {@link #chainErrorResult} in order to define
- * the second asynchronous operation.
+ * An implementation of the {@code FutureResult} interface which can be used to
+ * combine a sequence of two asynchronous operations into a single future
+ * result. Implementations should override the methods {@link #chainResult} and
+ * {@link #chainErrorResult} in order to define the second asynchronous
+ * operation.
  *
  * @param <M>
  *          The type of the inner result.
  * @param <N>
  *          The type of the outer result.
  */
-public abstract class RecursiveFutureResult<M, N> implements
-    FutureResult<N>, ResultHandler<M>
+public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>,
+    ResultHandler<M>
 {
   private final class FutureResultImpl extends AbstractFutureResult<N>
   {
-    private FutureResultImpl(ResultHandler<? super N> handler)
+    private FutureResultImpl(final ResultHandler<? super N> handler)
     {
       super(handler);
     }
@@ -67,7 +67,7 @@ public abstract class RecursiveFutureResult<M, N> implements
     {
       if (innerFuture instanceof FutureResult<?>)
       {
-        FutureResult<?> tmp = (FutureResult<?>) innerFuture;
+        final FutureResult<?> tmp = (FutureResult<?>) innerFuture;
         return tmp.getRequestID();
       }
       else
@@ -81,8 +81,9 @@ public abstract class RecursiveFutureResult<M, N> implements
     /**
      * {@inheritDoc}
      */
+    @Override
     protected ErrorResultException handleCancelRequest(
-        boolean mayInterruptIfRunning)
+        final boolean mayInterruptIfRunning)
     {
       innerFuture.cancel(mayInterruptIfRunning);
       if (outerFuture != null)
@@ -113,7 +114,7 @@ public abstract class RecursiveFutureResult<M, N> implements
    * @param handler
    *          The outer result handler.
    */
-  protected RecursiveFutureResult(ResultHandler<? super N> handler)
+  protected RecursiveFutureResult(final ResultHandler<? super N> handler)
   {
     this.impl = new FutureResultImpl(handler);
   }
@@ -123,7 +124,7 @@ public abstract class RecursiveFutureResult<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final boolean cancel(boolean mayInterruptIfRunning)
+  public final boolean cancel(final boolean mayInterruptIfRunning)
   {
     return impl.cancel(mayInterruptIfRunning);
   }
@@ -133,8 +134,7 @@ public abstract class RecursiveFutureResult<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final N get() throws ErrorResultException,
-      InterruptedException
+  public final N get() throws ErrorResultException, InterruptedException
   {
     return impl.get();
   }
@@ -144,9 +144,8 @@ public abstract class RecursiveFutureResult<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final N get(long timeout, TimeUnit unit)
-      throws ErrorResultException, TimeoutException,
-      InterruptedException
+  public final N get(final long timeout, final TimeUnit unit)
+      throws ErrorResultException, TimeoutException, InterruptedException
   {
     return impl.get(timeout, unit);
   }
@@ -166,7 +165,7 @@ public abstract class RecursiveFutureResult<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleErrorResult(ErrorResultException error)
+  public final void handleErrorResult(final ErrorResultException error)
   {
     try
     {
@@ -183,7 +182,7 @@ public abstract class RecursiveFutureResult<M, N> implements
   /**
    * {@inheritDoc}
    */
-  public final void handleResult(M result)
+  public final void handleResult(final M result)
   {
     try
     {
@@ -218,13 +217,13 @@ public abstract class RecursiveFutureResult<M, N> implements
 
 
   /**
-   * Sets the inner future for this result chain. This must be done
-   * before this future is published.
+   * Sets the inner future for this result chain. This must be done before this
+   * future is published.
    *
    * @param future
    *          The inner future.
    */
-  public final void setFutureResult(Future<?> future)
+  public final void setFutureResult(final Future<?> future)
   {
     this.innerFuture = future;
   }
@@ -232,9 +231,8 @@ public abstract class RecursiveFutureResult<M, N> implements
 
 
   /**
-   * Invokes the outer request based on the error result of the inner
-   * request and returns a future representing the result of the outer
-   * request.
+   * Invokes the outer request based on the error result of the inner request
+   * and returns a future representing the result of the outer request.
    * <p>
    * The default implementation is to terminate further processing by
    * re-throwing the inner error result.
@@ -245,12 +243,12 @@ public abstract class RecursiveFutureResult<M, N> implements
    *          The result handler to be used for the outer request.
    * @return A future representing the result of the outer request.
    * @throws ErrorResultException
-   *           If the outer request could not be invoked and processing
-   *           should terminate.
+   *           If the outer request could not be invoked and processing should
+   *           terminate.
    */
   protected FutureResult<? extends N> chainErrorResult(
-      ErrorResultException innerError, ResultHandler<? super N> handler)
-      throws ErrorResultException
+      final ErrorResultException innerError,
+      final ResultHandler<? super N> handler) throws ErrorResultException
   {
     throw innerError;
   }
@@ -258,8 +256,8 @@ public abstract class RecursiveFutureResult<M, N> implements
 
 
   /**
-   * Invokes the outer request based on the result of the inner request
-   * and returns a future representing the result of the outer request.
+   * Invokes the outer request based on the result of the inner request and
+   * returns a future representing the result of the outer request.
    *
    * @param innerResult
    *          The result of the inner request.
@@ -267,11 +265,10 @@ public abstract class RecursiveFutureResult<M, N> implements
    *          The result handler to be used for the outer request.
    * @return A future representing the result of the outer request.
    * @throws ErrorResultException
-   *           If the outer request could not be invoked and processing
-   *           should terminate.
+   *           If the outer request could not be invoked and processing should
+   *           terminate.
    */
-  protected abstract FutureResult<? extends N> chainResult(
-      M innerResult, ResultHandler<? super N> handler)
-      throws ErrorResultException;
+  protected abstract FutureResult<? extends N> chainResult(M innerResult,
+      ResultHandler<? super N> handler) throws ErrorResultException;
 
 }

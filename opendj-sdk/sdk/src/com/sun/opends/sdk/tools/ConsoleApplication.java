@@ -28,8 +28,11 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.tools.Utils.*;
+import static com.sun.opends.sdk.messages.Messages.INFO_ERROR_EMPTY_RESPONSE;
+import static com.sun.opends.sdk.messages.Messages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
+import static com.sun.opends.sdk.messages.Messages.INFO_PROMPT_SINGLE_DEFAULT;
+import static com.sun.opends.sdk.tools.Utils.MAX_LINE_WIDTH;
+import static com.sun.opends.sdk.tools.Utils.wrapText;
 
 import java.io.*;
 import java.util.logging.Level;
@@ -39,10 +42,9 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class provides an abstract base class which can be used as the
- * basis of a console-based application.
+ * This class provides an abstract base class which can be used as the basis of
+ * a console-based application.
  */
 abstract class ConsoleApplication
 {
@@ -51,13 +53,12 @@ abstract class ConsoleApplication
     /**
      * The singleton instance for this class.
      */
-    private static final NullOutputStream instance = new NullOutputStream();
+    private static final NullOutputStream INSTANCE = new NullOutputStream();
 
     /**
      * The singleton print stream tied to the null output stream.
      */
-    private static final PrintStream printStream = new PrintStream(
-        instance);
+    private static final PrintStream PRINT_STREAM = new PrintStream(INSTANCE);
 
 
 
@@ -68,7 +69,7 @@ abstract class ConsoleApplication
      */
     static PrintStream printStream()
     {
-      return printStream;
+      return PRINT_STREAM;
     }
 
 
@@ -86,6 +87,7 @@ abstract class ConsoleApplication
     /**
      * Closes the output stream. This has no effect.
      */
+    @Override
     public void close()
     {
       // No implementation is required.
@@ -96,6 +98,7 @@ abstract class ConsoleApplication
     /**
      * Flushes the output stream. This has no effect.
      */
+    @Override
     public void flush()
     {
       // No implementation is required.
@@ -104,13 +107,13 @@ abstract class ConsoleApplication
 
 
     /**
-     * Writes the provided data to this output stream. This has no
-     * effect.
+     * Writes the provided data to this output stream. This has no effect.
      *
      * @param b
      *          The byte array containing the data to be written.
      */
-    public void write(byte[] b)
+    @Override
+    public void write(final byte[] b)
     {
       // No implementation is required.
     }
@@ -118,8 +121,7 @@ abstract class ConsoleApplication
 
 
     /**
-     * Writes the provided data to this output stream. This has no
-     * effect.
+     * Writes the provided data to this output stream. This has no effect.
      *
      * @param b
      *          The byte array containing the data to be written.
@@ -128,7 +130,8 @@ abstract class ConsoleApplication
      * @param len
      *          The number of bytes to be written.
      */
-    public void write(byte[] b, int off, int len)
+    @Override
+    public void write(final byte[] b, final int off, final int len)
     {
       // No implementation is required.
     }
@@ -136,13 +139,13 @@ abstract class ConsoleApplication
 
 
     /**
-     * Writes the provided byte to this output stream. This has no
-     * effect.
+     * Writes the provided byte to this output stream. This has no effect.
      *
      * @param b
      *          The byte to be written.
      */
-    public void write(int b)
+    @Override
+    public void write(final int b)
     {
       // No implementation is required.
     }
@@ -171,7 +174,8 @@ abstract class ConsoleApplication
      * {@inheritDoc}
      */
     @Override
-    public int read(char[] cbuf, int off, int len) throws IOException
+    public int read(final char[] cbuf, final int off, final int len)
+        throws IOException
     {
       return -1;
     }
@@ -202,7 +206,8 @@ abstract class ConsoleApplication
    * @param err
    *          The application error stream.
    */
-  ConsoleApplication(InputStream in, OutputStream out, OutputStream err)
+  ConsoleApplication(final InputStream in, final OutputStream out,
+      final OutputStream err)
   {
     this.in = in;
     if (in != null)
@@ -286,19 +291,17 @@ abstract class ConsoleApplication
   /**
    * Indicates whether or not the user has requested advanced mode.
    *
-   * @return Returns <code>true</code> if the user has requested
-   *         advanced mode.
+   * @return Returns <code>true</code> if the user has requested advanced mode.
    */
   abstract boolean isAdvancedMode();
 
 
 
   /**
-   * Indicates whether or not the user has requested interactive
-   * behavior.
+   * Indicates whether or not the user has requested interactive behavior.
    *
-   * @return Returns <code>true</code> if the user has requested
-   *         interactive behavior.
+   * @return Returns <code>true</code> if the user has requested interactive
+   *         behavior.
    */
   abstract boolean isInteractive();
 
@@ -306,13 +309,12 @@ abstract class ConsoleApplication
 
   /**
    * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should
-   * go to the error stream or not. In addition, it may also dictate
-   * whether or not sub-menus should display a cancel option as well as
-   * a quit option.
+   * menu-driven mode. This can be used to dictate whether output should go to
+   * the error stream or not. In addition, it may also dictate whether or not
+   * sub-menus should display a cancel option as well as a quit option.
    *
-   * @return Returns <code>true</code> if this console application is
-   *         running in its menu-driven mode.
+   * @return Returns <code>true</code> if this console application is running in
+   *         its menu-driven mode.
    */
   abstract boolean isMenuDrivenMode();
 
@@ -321,19 +323,17 @@ abstract class ConsoleApplication
   /**
    * Indicates whether or not the user has requested quiet output.
    *
-   * @return Returns <code>true</code> if the user has requested quiet
-   *         output.
+   * @return Returns <code>true</code> if the user has requested quiet output.
    */
   abstract boolean isQuiet();
 
 
 
   /**
-   * Indicates whether or not the user has requested script-friendly
-   * output.
+   * Indicates whether or not the user has requested script-friendly output.
    *
-   * @return Returns <code>true</code> if the user has requested
-   *         script-friendly output.
+   * @return Returns <code>true</code> if the user has requested script-friendly
+   *         output.
    */
   abstract boolean isScriptFriendly();
 
@@ -342,31 +342,42 @@ abstract class ConsoleApplication
   /**
    * Indicates whether or not the user has requested verbose output.
    *
-   * @return Returns <code>true</code> if the user has requested verbose
-   *         output.
+   * @return Returns <code>true</code> if the user has requested verbose output.
    */
   abstract boolean isVerbose();
 
 
 
   /**
-   * Interactively prompts the user to press return to continue. This
-   * method should be called in situations where a user needs to be
-   * given a chance to read some documentation before continuing
-   * (continuing may cause the documentation to be scrolled out of
-   * view).
+   * Interactively prompts the user to press return to continue. This method
+   * should be called in situations where a user needs to be given a chance to
+   * read some documentation before continuing (continuing may cause the
+   * documentation to be scrolled out of view).
    */
   final void pressReturnToContinue()
   {
-    LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
+    final LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
     try
     {
       readLineOfInput(msg);
     }
-    catch (CLIException e)
+    catch (final CLIException e)
     {
       // Ignore the exception - applications don't care.
     }
+  }
+
+
+
+  /**
+   * Displays a message to the error stream.
+   *
+   * @param msg
+   *          The message.
+   */
+  final void print(final LocalizableMessage msg)
+  {
+    err.print(wrapText(msg, MAX_LINE_WIDTH));
   }
 
 
@@ -387,7 +398,7 @@ abstract class ConsoleApplication
    * @param msg
    *          The message.
    */
-  final void println(LocalizableMessage msg)
+  final void println(final LocalizableMessage msg)
   {
     err.println(wrapText(msg, MAX_LINE_WIDTH));
   }
@@ -395,21 +406,23 @@ abstract class ConsoleApplication
 
 
   /**
-   * Displays a message to the error stream.
+   * Displays a message to the error stream indented by the specified number of
+   * columns.
    *
    * @param msg
    *          The message.
+   * @param indent
+   *          The number of columns to indent.
    */
-  final void print(LocalizableMessage msg)
+  final void println(final LocalizableMessage msg, final int indent)
   {
-    err.print(wrapText(msg, MAX_LINE_WIDTH));
+    err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
   }
 
 
 
   /**
-   * Displays a blank line to the output stream if we are not in quiet
-   * mode.
+   * Displays a blank line to the output stream if we are not in quiet mode.
    */
   final void printlnProgress()
   {
@@ -422,13 +435,12 @@ abstract class ConsoleApplication
 
 
   /**
-   * Displays a message to the output stream if we are not in quiet
-   * mode.
+   * Displays a message to the output stream if we are not in quiet mode.
    *
    * @param msg
    *          The message.
    */
-  final void printProgress(LocalizableMessage msg)
+  final void printProgress(final LocalizableMessage msg)
   {
     if (!isQuiet())
     {
@@ -439,28 +451,12 @@ abstract class ConsoleApplication
 
 
   /**
-   * Displays a message to the error stream indented by the specified
-   * number of columns.
-   *
-   * @param msg
-   *          The message.
-   * @param indent
-   *          The number of columns to indent.
-   */
-  final void println(LocalizableMessage msg, int indent)
-  {
-    err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
-  }
-
-
-
-  /**
    * Displays a message to the error stream if verbose mode is enabled.
    *
    * @param msg
    *          The verbose message.
    */
-  final void printVerboseMessage(LocalizableMessage msg)
+  final void printVerboseMessage(final LocalizableMessage msg)
   {
     if (isVerbose() || isInteractive())
     {
@@ -471,73 +467,31 @@ abstract class ConsoleApplication
 
 
   /**
-   * Interactively retrieves a line of input from the console.
-   *
-   * @param prompt
-   *          The prompt.
-   * @return Returns the line of input, or <code>null</code> if the end
-   *         of input has been reached.
-   * @throws CLIException
-   *           If the line of input could not be retrieved for some
-   *           reason.
-   */
-  final String readLineOfInput(LocalizableMessage prompt) throws CLIException
-  {
-    if (prompt != null)
-    {
-      err.print(wrapText(prompt, MAX_LINE_WIDTH));
-      err.print(" ");
-    }
-    try
-    {
-      String s = reader.readLine();
-      if (s == null)
-      {
-        throw CLIException.adaptInputException(new EOFException(
-            "End of input"));
-      }
-      else
-      {
-        return s;
-      }
-    }
-    catch (IOException e)
-    {
-      throw CLIException.adaptInputException(e);
-    }
-  }
-
-
-
-  /**
-   * Commodity method that interactively prompts (on error output) the
-   * user to provide a string value. Any non-empty string will be
-   * allowed (the empty string will indicate that the default should be
-   * used, if there is one).
+   * Commodity method that interactively prompts (on error output) the user to
+   * provide a string value. Any non-empty string will be allowed (the empty
+   * string will indicate that the default should be used, if there is one).
    *
    * @param prompt
    *          The prompt to present to the user.
    * @param defaultValue
-   *          The default value to assume if the user presses ENTER
-   *          without typing anything, or <CODE>null</CODE> if there
-   *          should not be a default and the user must explicitly
-   *          provide a value.
+   *          The default value to assume if the user presses ENTER without
+   *          typing anything, or <CODE>null</CODE> if there should not be a
+   *          default and the user must explicitly provide a value.
    * @throws CLIException
-   *           If the line of input could not be retrieved for some
-   *           reason.
+   *           If the line of input could not be retrieved for some reason.
    * @return The string value read from the user.
    */
-  final String readInput(LocalizableMessage prompt, String defaultValue)
+  final String readInput(LocalizableMessage prompt, final String defaultValue)
       throws CLIException
   {
     while (true)
     {
       if (defaultValue != null)
       {
-        prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(),
-            defaultValue);
+        prompt = INFO_PROMPT_SINGLE_DEFAULT
+            .get(prompt.toString(), defaultValue);
       }
-      String response = readLineOfInput(prompt);
+      final String response = readLineOfInput(prompt);
 
       if ("".equals(response))
       {
@@ -560,36 +514,73 @@ abstract class ConsoleApplication
 
 
   /**
-   * Commodity method that interactively prompts (on error output) the
-   * user to provide a string value. Any non-empty string will be
-   * allowed (the empty string will indicate that the default should be
-   * used, if there is one). If an error occurs a message will be logged
-   * to the provided logger.
+   * Commodity method that interactively prompts (on error output) the user to
+   * provide a string value. Any non-empty string will be allowed (the empty
+   * string will indicate that the default should be used, if there is one). If
+   * an error occurs a message will be logged to the provided logger.
    *
    * @param prompt
    *          The prompt to present to the user.
    * @param defaultValue
-   *          The default value to assume if the user presses ENTER
-   *          without typing anything, or <CODE>null</CODE> if there
-   *          should not be a default and the user must explicitly
-   *          provide a value.
+   *          The default value to assume if the user presses ENTER without
+   *          typing anything, or <CODE>null</CODE> if there should not be a
+   *          default and the user must explicitly provide a value.
    * @param logger
    *          the Logger to be used to log the error message.
    * @return The string value read from the user.
    */
-  final String readInput(LocalizableMessage prompt, String defaultValue,
-      Logger logger)
+  final String readInput(final LocalizableMessage prompt,
+      final String defaultValue, final Logger logger)
   {
     String s = defaultValue;
     try
     {
       s = readInput(prompt, defaultValue);
     }
-    catch (CLIException ce)
+    catch (final CLIException ce)
     {
       logger.log(Level.WARNING, "Error reading input: " + ce, ce);
     }
     return s;
+  }
+
+
+
+  /**
+   * Interactively retrieves a line of input from the console.
+   *
+   * @param prompt
+   *          The prompt.
+   * @return Returns the line of input, or <code>null</code> if the end of input
+   *         has been reached.
+   * @throws CLIException
+   *           If the line of input could not be retrieved for some reason.
+   */
+  final String readLineOfInput(final LocalizableMessage prompt)
+      throws CLIException
+  {
+    if (prompt != null)
+    {
+      err.print(wrapText(prompt, MAX_LINE_WIDTH));
+      err.print(" ");
+    }
+    try
+    {
+      final String s = reader.readLine();
+      if (s == null)
+      {
+        throw CLIException
+            .adaptInputException(new EOFException("End of input"));
+      }
+      else
+      {
+        return s;
+      }
+    }
+    catch (final IOException e)
+    {
+      throw CLIException.adaptInputException(e);
+    }
   }
 
 }

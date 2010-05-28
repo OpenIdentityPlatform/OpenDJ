@@ -28,7 +28,6 @@ package com.sun.opends.sdk.tools;
 
 
 
-
 import org.opends.sdk.LocalizableException;
 import org.opends.sdk.LocalizableMessage;
 
@@ -37,29 +36,31 @@ import com.sun.opends.sdk.messages.Messages;
 
 
 /**
- * Thrown to indicate that a problem occurred when interacting with the
- * client. For example, if input provided by the client was invalid.
+ * Thrown to indicate that a problem occurred when interacting with the client.
+ * For example, if input provided by the client was invalid.
  */
 @SuppressWarnings("serial")
-final class CLIException extends Exception implements
-    LocalizableException
+final class CLIException extends Exception implements LocalizableException
 {
 
   /**
-   * Adapts any exception that may have occurred whilst reading input
-   * from the console.
+   * Adapts any exception that may have occurred whilst reading input from the
+   * console.
    *
    * @param cause
-   *          The exception that occurred whilst reading input from the
-   *          console.
-   * @return Returns a new CLI exception describing a problem that
-   *         occurred whilst reading input from the console.
+   *          The exception that occurred whilst reading input from the console.
+   * @return Returns a new CLI exception describing a problem that occurred
+   *         whilst reading input from the console.
    */
-  static CLIException adaptInputException(Throwable cause)
+  static CLIException adaptInputException(final Throwable cause)
   {
     return new CLIException(Messages.ERR_CONSOLE_INPUT_ERROR.get(cause
         .getMessage()), cause);
   }
+
+
+
+  private final LocalizableMessage message;
 
 
 
@@ -69,7 +70,7 @@ final class CLIException extends Exception implements
    * @param message
    *          The message explaining the problem that occurred.
    */
-  CLIException(LocalizableMessage message)
+  CLIException(final LocalizableMessage message)
   {
     super(message.toString());
     this.message = message;
@@ -85,15 +86,11 @@ final class CLIException extends Exception implements
    * @param cause
    *          The cause of this exception.
    */
-  CLIException(LocalizableMessage message, Throwable cause)
+  CLIException(final LocalizableMessage message, final Throwable cause)
   {
     super(message.toString(), cause);
     this.message = message;
   }
-
-
-
-  private final LocalizableMessage message;
 
 
 

@@ -1,46 +1,76 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2010 Sun Microsystems, Inc.
+ */
+
 package com.sun.opends.sdk.tools;
+
+
 
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
-import static com.sun.opends.sdk.tools.Utils.*;
+import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.extensions.PasswordModifyRequest;
-import org.opends.sdk.extensions.PasswordModifyResult;
-
+import org.opends.sdk.requests.PasswordModifyExtendedRequest;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.responses.PasswordModifyExtendedResult;
+import org.opends.sdk.responses.Responses;
 
 
 
 /**
- * A tool that can be used to issue LDAP password modify extended
- * requests to the Directory Server. It exposes the three primary
- * options available for this operation, which are:
+ * A tool that can be used to issue LDAP password modify extended requests to
+ * the Directory Server. It exposes the three primary options available for this
+ * operation, which are:
  * <UL>
  * <LI>The user identity whose password should be changed.</LI>
  * <LI>The current password for the user.</LI>
  * <LI>The new password for the user.
  * </UL>
- * All of these are optional components that may be included or omitted
- * from the request.
+ * All of these are optional components that may be included or omitted from the
+ * request.
  */
-public class LDAPPasswordModify extends ConsoleApplication
+public final class LDAPPasswordModify extends ConsoleApplication
 {
-  private BooleanArgument verbose;
-
   /**
    * Parses the command-line arguments, establishes a connection to the
    * Directory Server, sends the password modify request, and reads the
    * response.
    *
-   * @param  args  The command-line arguments provided to this program.
+   * @param args
+   *          The command-line arguments provided to this program.
    */
-  public static void main(String[] args)
+  public static void main(final String[] args)
   {
-    int retCode = mainPasswordModify(args, System.in, System.out, System.err);
+    final int retCode = mainPasswordModify(args, System.in, System.out,
+        System.err);
     System.exit(filterExitCode(retCode));
   }
 
@@ -51,12 +81,12 @@ public class LDAPPasswordModify extends ConsoleApplication
    * Directory Server, sends the password modify request, and reads the
    * response.
    *
-   * @param  args  The command-line arguments provided to this program.
-   *
-   * @return  An integer value of zero if everything completed successfully, or
-   *          a nonzero value if an error occurred.
+   * @param args
+   *          The command-line arguments provided to this program.
+   * @return An integer value of zero if everything completed successfully, or a
+   *         nonzero value if an error occurred.
    */
-  static int mainPasswordModify(String[] args)
+  static int mainPasswordModify(final String[] args)
   {
     return mainPasswordModify(args, System.in, System.out, System.err);
   }
@@ -64,149 +94,223 @@ public class LDAPPasswordModify extends ConsoleApplication
 
 
   /**
-   * Parses the provided command-line arguments and uses that
-   * information to run the LDAPPasswordModify tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the LDAPPasswordModify tool.
    *
    * @param args
-   *          The command-line arguments provided to this program.
-   *          specified, the number of matching entries should be
-   *          returned or not.
+   *          The command-line arguments provided to this program. specified,
+   *          the number of matching entries should be returned or not.
    * @param inStream
-   *          The input stream to use for standard input, or
-   *          <CODE>null</CODE> if standard input is not needed.
+   *          The input stream to use for standard input, or <CODE>null</CODE>
+   *          if standard input is not needed.
    * @param outStream
-   *          The output stream to use for standard output, or
-   *          <CODE>null</CODE> if standard output is not needed.
+   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          if standard output is not needed.
    * @param errStream
-   *          The output stream to use for standard error, or
-   *          <CODE>null</CODE> if standard error is not needed.
+   *          The output stream to use for standard error, or <CODE>null</CODE>
+   *          if standard error is not needed.
    * @return The error code.
    */
-  static int mainPasswordModify(String[] args, InputStream inStream,
-                                       OutputStream outStream, OutputStream errStream)
+  static int mainPasswordModify(final String[] args,
+      final InputStream inStream, final OutputStream outStream,
+      final OutputStream errStream)
   {
     return new LDAPPasswordModify(inStream, outStream, errStream).run(args);
   }
 
 
 
-  private LDAPPasswordModify(InputStream in, OutputStream out, OutputStream err)
+  private BooleanArgument verbose;
+
+
+
+  private LDAPPasswordModify(final InputStream in, final OutputStream out,
+      final OutputStream err)
   {
     super(in, out, err);
 
   }
 
-  private int run(String[] args)
+
+
+  /**
+   * Indicates whether or not the user has requested advanced mode.
+   *
+   * @return Returns <code>true</code> if the user has requested advanced mode.
+   */
+  @Override
+  public boolean isAdvancedMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested interactive behavior.
+   *
+   * @return Returns <code>true</code> if the user has requested interactive
+   *         behavior.
+   */
+  @Override
+  public boolean isInteractive()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not this console application is running in its
+   * menu-driven mode. This can be used to dictate whether output should go to
+   * the error stream or not. In addition, it may also dictate whether or not
+   * sub-menus should display a cancel option as well as a quit option.
+   *
+   * @return Returns <code>true</code> if this console application is running in
+   *         its menu-driven mode.
+   */
+  @Override
+  public boolean isMenuDrivenMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested quiet output.
+   *
+   * @return Returns <code>true</code> if the user has requested quiet output.
+   */
+  @Override
+  public boolean isQuiet()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested script-friendly output.
+   *
+   * @return Returns <code>true</code> if the user has requested script-friendly
+   *         output.
+   */
+  @Override
+  public boolean isScriptFriendly()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested verbose output.
+   *
+   * @return Returns <code>true</code> if the user has requested verbose output.
+   */
+  @Override
+  public boolean isVerbose()
+  {
+    return verbose.isPresent();
+  }
+
+
+
+  private int run(final String[] args)
   {
     // Create the command-line argument parser for use with this
     // program.
-    LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser =
-        new ArgumentParser(LDAPPasswordModify.class.getName(), toolDescription,
-            false);
+    final LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION
+        .get();
+    final ArgumentParser argParser = new ArgumentParser(
+        LDAPPasswordModify.class.getName(), toolDescription, false);
     ArgumentParserConnectionFactory connectionFactory;
 
     FileBasedArgument currentPWFile;
     FileBasedArgument newPWFile;
     BooleanArgument showUsage;
     IntegerArgument version;
-    StringArgument    currentPW;
+    StringArgument currentPW;
     StringArgument controlStr;
-    StringArgument    newPW;
+    StringArgument newPW;
     StringArgument proxyAuthzID;
     StringArgument propertiesFileArgument;
     BooleanArgument noPropertiesFileArgument;
 
     try
     {
-      connectionFactory =
-          new ArgumentParserConnectionFactory(argParser, this);
-      propertiesFileArgument =
-          new StringArgument("propertiesFilePath", null,
-              OPTION_LONG_PROP_FILE_PATH, false, false, true,
-              INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      propertiesFileArgument = new StringArgument("propertiesFilePath", null,
+          OPTION_LONG_PROP_FILE_PATH, false, false, true,
+          INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      noPropertiesFileArgument =
-          new BooleanArgument("noPropertiesFileArgument", null,
-              OPTION_LONG_NO_PROP_FILE, INFO_DESCRIPTION_NO_PROP_FILE
-                  .get());
+      noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
       newPW = new StringArgument("newpw", 'n', "newPassword", false, false,
-          true, INFO_NEW_PASSWORD_PLACEHOLDER.get(),
-          null, null,
+          true, INFO_NEW_PASSWORD_PLACEHOLDER.get(), null, null,
           INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get());
       newPW.setPropertyName("newPassword");
       argParser.addArgument(newPW);
 
-
-      newPWFile = new FileBasedArgument(
-          "newpwfile", 'F', "newPasswordFile",
+      newPWFile = new FileBasedArgument("newpwfile", 'F', "newPasswordFile",
           false, false, INFO_FILE_PLACEHOLDER.get(), null, null,
           INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get());
       newPWFile.setPropertyName("newPasswordFile");
       argParser.addArgument(newPWFile);
 
-
-      currentPW =
-          new StringArgument("currentpw", 'c', "currentPassword", false, false,
-              true, INFO_CURRENT_PASSWORD_PLACEHOLDER.get(),
-              null,  null,
-              INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
+      currentPW = new StringArgument("currentpw", 'c', "currentPassword",
+          false, false, true, INFO_CURRENT_PASSWORD_PLACEHOLDER.get(), null,
+          null, INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
       currentPW.setPropertyName("currentPassword");
       argParser.addArgument(currentPW);
 
-
-      currentPWFile =
-          new FileBasedArgument(
-              "currentpwfile", 'C', "currentPasswordFile",
-              false, false, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
+      currentPWFile = new FileBasedArgument("currentpwfile", 'C',
+          "currentPasswordFile", false, false, INFO_FILE_PLACEHOLDER.get(),
+          null, null, INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
       currentPWFile.setPropertyName("currentPasswordFile");
       argParser.addArgument(currentPWFile);
 
-      proxyAuthzID =
-          new StringArgument("authzid", 'a', "authzID", false, false,
-              true, INFO_PROXYAUTHID_PLACEHOLDER.get(),
-              null, null,
-              INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
+      proxyAuthzID = new StringArgument("authzid", 'a', "authzID", false,
+          false, true, INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
+          INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
       proxyAuthzID.setPropertyName("authzID");
       argParser.addArgument(proxyAuthzID);
 
-      controlStr =
-          new StringArgument("control", 'J', "control", false, true,
-              true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_CONTROLS.get());
+      controlStr = new StringArgument("control", 'J', "control", false, true,
+          true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
-      version =
-          new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-              OPTION_LONG_PROTOCOL_VERSION, false, false, true,
-              INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
-              INFO_DESCRIPTION_VERSION.get());
+      version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
+          OPTION_LONG_PROTOCOL_VERSION, false, false, true,
+          INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
+          INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      verbose =
-          new BooleanArgument("verbose", 'v', "verbose",
-              INFO_DESCRIPTION_VERBOSE.get());
+      verbose = new BooleanArgument("verbose", 'v', "verbose",
+          INFO_DESCRIPTION_VERBOSE.get());
       verbose.setPropertyName("verbose");
       argParser.addArgument(verbose);
 
-      showUsage =
-          new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
+          OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, getOutputStream());
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae
+          .getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -217,9 +321,10 @@ public class LDAPPasswordModify extends ConsoleApplication
       argParser.parseArguments(args);
       connectionFactory.validate();
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae
+          .getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -232,10 +337,11 @@ public class LDAPPasswordModify extends ConsoleApplication
       return 0;
     }
 
-    PasswordModifyRequest request = new PasswordModifyRequest();
+    final PasswordModifyExtendedRequest request = Requests
+        .newPasswordModifyExtendedRequest();
     try
     {
-      int versionNumber = version.getIntValue();
+      final int versionNumber = version.getIntValue();
       if (versionNumber != 2 && versionNumber != 3)
       {
         println(ERR_DESCRIPTION_INVALID_VERSION.get(String
@@ -243,26 +349,26 @@ public class LDAPPasswordModify extends ConsoleApplication
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
       }
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      println(ERR_DESCRIPTION_INVALID_VERSION.get(String
-          .valueOf(version.getValue())));
+      println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version
+          .getValue())));
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
 
     if (controlStr.isPresent())
     {
-      for (String ctrlString : controlStr.getValues())
+      for (final String ctrlString : controlStr.getValues())
       {
         try
         {
-          Control ctrl = Utils.getControl(ctrlString);
+          final Control ctrl = Utils.getControl(ctrlString);
           request.addControl(ctrl);
         }
-        catch (DecodeException de)
+        catch (final DecodeException de)
         {
-          LocalizableMessage message =
-              ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
+          final LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING
+              .get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
@@ -271,18 +377,16 @@ public class LDAPPasswordModify extends ConsoleApplication
 
     if (newPW.isPresent() && newPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-          newPW.getLongIdentifier(),
-          newPWFile.getLongIdentifier());
+      final LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+          newPW.getLongIdentifier(), newPWFile.getLongIdentifier());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
 
     if (currentPW.isPresent() && currentPWFile.isPresent())
     {
-      LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
-          currentPW.getLongIdentifier(),
-          currentPWFile.getLongIdentifier());
+      final LocalizableMessage message = ERR_LDAPPWMOD_CONFLICTING_ARGS.get(
+          currentPW.getLongIdentifier(), currentPWFile.getLongIdentifier());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -292,9 +396,16 @@ public class LDAPPasswordModify extends ConsoleApplication
     {
       connection = connectionFactory.getConnection();
     }
-    catch (ErrorResultException ere)
+    catch (final ErrorResultException ere)
     {
       return Utils.printErrorMessage(this, ere);
+    }
+    catch (final InterruptedException e)
+    {
+      // This shouldn't happen because there are no other threads to
+      // interrupt this one.
+      println(LocalizableMessage.raw(e.getLocalizedMessage()));
+      return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
     }
 
     if (proxyAuthzID.isPresent())
@@ -320,38 +431,38 @@ public class LDAPPasswordModify extends ConsoleApplication
       request.setNewPassword(ByteString.valueOf(newPWFile.getValue()));
     }
 
-    PasswordModifyResult result;
+    PasswordModifyExtendedResult result;
     try
     {
       try
       {
         result = connection.extendedRequest(request);
       }
-      catch (InterruptedException e)
+      catch (final InterruptedException e)
       {
         // This shouldn't happen because there are no other threads to
         // interrupt this one.
-        result = new PasswordModifyResult(
+        result = Responses.newPasswordModifyExtendedResult(
             ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
             .setDiagnosticMessage(e.getLocalizedMessage());
         throw ErrorResultException.wrap(result);
       }
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
-      LocalizableMessage message =
-          ERR_LDAPPWMOD_FAILED.get(e.getResult().getResultCode().intValue(),
-              e.getResult().getResultCode().toString());
+      LocalizableMessage message = ERR_LDAPPWMOD_FAILED
+          .get(e.getResult().getResultCode().intValue(), e.getResult()
+              .getResultCode().toString());
       println(message);
 
-      String errorMessage = e.getResult().getDiagnosticMessage();
+      final String errorMessage = e.getResult().getDiagnosticMessage();
       if ((errorMessage != null) && (errorMessage.length() > 0))
       {
         message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
         println(message);
       }
 
-      String matchedDN = e.getResult().getMatchedDN();
+      final String matchedDN = e.getResult().getMatchedDN();
       if (matchedDN != null && matchedDN.length() > 0)
       {
         message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN);
@@ -363,7 +474,7 @@ public class LDAPPasswordModify extends ConsoleApplication
     LocalizableMessage message = INFO_LDAPPWMOD_SUCCESSFUL.get();
     println(message);
 
-    String additionalInfo = result.getDiagnosticMessage();
+    final String additionalInfo = result.getDiagnosticMessage();
     if ((additionalInfo != null) && (additionalInfo.length() > 0))
     {
 
@@ -371,96 +482,13 @@ public class LDAPPasswordModify extends ConsoleApplication
       println(message);
     }
 
-    if(result.getGenPassword() != null)
+    if (result.getGeneratedPassword() != null)
     {
-      message = INFO_LDAPPWMOD_GENERATED_PASSWORD.get(result.getGenPassword().toString());
+      message = INFO_LDAPPWMOD_GENERATED_PASSWORD.get(result
+          .getGeneratedPasswordAsString());
       println(message);
     }
 
     return 0;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         advanced mode.
-   */
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive
-   * behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         interactive behavior.
-   */
-  public boolean isInteractive()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should
-   * go to the error stream or not. In addition, it may also dictate
-   * whether or not sub-menus should display a cancel option as well as
-   * a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is
-   *         running in its menu-driven mode.
-   */
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet
-   *         output.
-   */
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly
-   * output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         script-friendly output.
-   */
-  public boolean isScriptFriendly()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose
-   *         output.
-   */
-  public boolean isVerbose()
-  {
-    return verbose.isPresent();
   }
 }

@@ -30,12 +30,11 @@ package org.opends.sdk.schema;
 
 import static org.testng.Assert.fail;
 
-import org.opends.sdk.LocalizableMessageBuilder;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
+import org.opends.sdk.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.sdk.ByteString;
 
 
 
@@ -45,10 +44,10 @@ import org.opends.sdk.ByteString;
 public abstract class SyntaxTestCase extends SchemaTestCase
 {
   /**
-   * Create data for the testAcceptableValues test. This should be a
-   * table of tables with 2 elements. The first one should be the value
-   * to test, the second the expected result of the test.
-   * 
+   * Create data for the testAcceptableValues test. This should be a table of
+   * tables with 2 elements. The first one should be the value to test, the
+   * second the expected result of the test.
+   *
    * @return a table containing data for the testAcceptableValues Test.
    */
   @DataProvider(name = "acceptableValues")
@@ -57,33 +56,25 @@ public abstract class SyntaxTestCase extends SchemaTestCase
 
 
   /**
-   * Get an instance of the attribute syntax that muste be tested.
-   * 
-   * @return An instance of the attribute syntax that muste be tested.
-   */
-  protected abstract Syntax getRule() throws SchemaException,
-      DecodeException;
-
-
-
-  /**
    * Test the normalization and the approximate comparison.
    */
   @Test(dataProvider = "acceptableValues")
-  public void testAcceptableValues(String value, Boolean result)
+  public void testAcceptableValues(final String value, final Boolean result)
       throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
-    Syntax syntax = getRule();
+    final Syntax syntax = getRule();
 
-    LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
+    final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
     // test the valueIsAcceptable method
-    Boolean liveResult =
-        syntax.valueIsAcceptable(ByteString.valueOf(value), reason);
+    final Boolean liveResult = syntax.valueIsAcceptable(ByteString
+        .valueOf(value), reason);
 
-    if (liveResult != result)
+    if (!liveResult.equals(result))
+    {
       fail(syntax + ".valueIsAcceptable gave bad result for " + value
           + "reason : " + reason);
+    }
 
     // call the getters
     syntax.getApproximateMatchingRule();
@@ -96,4 +87,13 @@ public abstract class SyntaxTestCase extends SchemaTestCase
     syntax.isHumanReadable();
     syntax.toString();
   }
+
+
+
+  /**
+   * Get an instance of the attribute syntax that muste be tested.
+   *
+   * @return An instance of the attribute syntax that muste be tested.
+   */
+  protected abstract Syntax getRule() throws SchemaException, DecodeException;
 }

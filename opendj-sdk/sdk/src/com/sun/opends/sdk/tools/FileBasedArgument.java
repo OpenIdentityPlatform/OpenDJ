@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,28 +41,27 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines an argument whose value will be read from a file
- * rather than actually specified on the command-line. When a value is
- * specified on the command line, it will be treated as the path to the
- * file containing the actual value rather than the value itself. <BR>
+ * This class defines an argument whose value will be read from a file rather
+ * than actually specified on the command-line. When a value is specified on the
+ * command line, it will be treated as the path to the file containing the
+ * actual value rather than the value itself. <BR>
  * <BR>
- * Note that if if no filename is provided on the command line but a
- * default value is specified programatically or if the default value is
- * read from a specified property, then that default value will be taken
- * as the actual value rather than a filename. <BR>
+ * Note that if if no filename is provided on the command line but a default
+ * value is specified programatically or if the default value is read from a
+ * specified property, then that default value will be taken as the actual value
+ * rather than a filename. <BR>
  * <BR>
- * Also note that this argument type assumes that the entire value for
- * the argument is on a single line in the specified file. If the file
- * contains multiple lines, then only the first line will be read.
+ * Also note that this argument type assumes that the entire value for the
+ * argument is on a single line in the specified file. If the file contains
+ * multiple lines, then only the first line will be read.
  */
 final class FileBasedArgument extends Argument
 {
   // The mapping between filenames specified and the first lines read
   // from those
   // files.
-  private LinkedHashMap<String, String> namesToValues;
+  private final LinkedHashMap<String, String> namesToValues;
 
 
 
@@ -70,86 +69,45 @@ final class FileBasedArgument extends Argument
    * Creates a new file-based argument with the provided information.
    *
    * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
+   *          The generic name that should be used to refer to this argument.
    * @param shortIdentifier
    *          The single-character identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
    * @param isRequired
-   *          Indicates whether this argument must be specified on the
-   *          command line.
-   * @param valuePlaceholder
-   *          The placeholder for the argument value that will be
-   *          displayed in usage information, or <CODE>null</CODE> if
-   *          this argument does not require a value.
-   * @param description
-   *          LocalizableMessage for the description of this argument.
-   * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
-   */
-  public FileBasedArgument(String name, Character shortIdentifier,
-      String longIdentifier, boolean isRequired,
-      LocalizableMessage valuePlaceholder, LocalizableMessage description)
-      throws ArgumentException
-  {
-    super(name, shortIdentifier, longIdentifier, isRequired, false,
-        true, valuePlaceholder, null, null, description);
-
-    namesToValues = new LinkedHashMap<String, String>();
-  }
-
-
-
-  /**
-   * Creates a new file-based argument with the provided information.
-   *
-   * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
-   * @param shortIdentifier
-   *          The single-character identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
-   * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
-   * @param isRequired
-   *          Indicates whether this argument must be specified on the
-   *          command line.
+   *          Indicates whether this argument must be specified on the command
+   *          line.
    * @param isMultiValued
-   *          Indicates whether this argument may be specified more than
-   *          once to provide multiple values.
+   *          Indicates whether this argument may be specified more than once to
+   *          provide multiple values.
    * @param valuePlaceholder
-   *          The placeholder for the argument value that will be
-   *          displayed in usage information, or <CODE>null</CODE> if
-   *          this argument does not require a value.
+   *          The placeholder for the argument value that will be displayed in
+   *          usage information, or <CODE>null</CODE> if this argument does not
+   *          require a value.
    * @param defaultValue
-   *          The default value that should be used for this argument if
-   *          none is provided in a properties file or on the command
-   *          line. This may be <CODE>null</CODE> if there is no generic
-   *          default.
+   *          The default value that should be used for this argument if none is
+   *          provided in a properties file or on the command line. This may be
+   *          <CODE>null</CODE> if there is no generic default.
    * @param propertyName
-   *          The name of the property in a property file that may be
-   *          used to override the default value but will be overridden
-   *          by a command-line argument.
+   *          The name of the property in a property file that may be used to
+   *          override the default value but will be overridden by a
+   *          command-line argument.
    * @param description
    *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    */
-  public FileBasedArgument(String name, Character shortIdentifier,
-      String longIdentifier, boolean isRequired, boolean isMultiValued,
-      LocalizableMessage valuePlaceholder, String defaultValue,
-      String propertyName, LocalizableMessage description)
-      throws ArgumentException
+  public FileBasedArgument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final boolean isRequired,
+      final boolean isMultiValued, final LocalizableMessage valuePlaceholder,
+      final String defaultValue, final String propertyName,
+      final LocalizableMessage description) throws ArgumentException
   {
-    super(name, shortIdentifier, longIdentifier, isRequired,
-        isMultiValued, true, valuePlaceholder, defaultValue,
-        propertyName, description);
+    super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
+        true, valuePlaceholder, defaultValue, propertyName, description);
 
     namesToValues = new LinkedHashMap<String, String>();
   }
@@ -157,11 +115,71 @@ final class FileBasedArgument extends Argument
 
 
   /**
-   * Retrieves a map between the filenames specified on the command line
-   * and the first lines read from those files.
+   * Creates a new file-based argument with the provided information.
    *
-   * @return A map between the filenames specified on the command line
-   *         and the first lines read from those files.
+   * @param name
+   *          The generic name that should be used to refer to this argument.
+   * @param shortIdentifier
+   *          The single-character identifier for this argument, or
+   *          <CODE>null</CODE> if there is none.
+   * @param longIdentifier
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
+   * @param isRequired
+   *          Indicates whether this argument must be specified on the command
+   *          line.
+   * @param valuePlaceholder
+   *          The placeholder for the argument value that will be displayed in
+   *          usage information, or <CODE>null</CODE> if this argument does not
+   *          require a value.
+   * @param description
+   *          LocalizableMessage for the description of this argument.
+   * @throws ArgumentException
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
+   */
+  public FileBasedArgument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final boolean isRequired,
+      final LocalizableMessage valuePlaceholder,
+      final LocalizableMessage description) throws ArgumentException
+  {
+    super(name, shortIdentifier, longIdentifier, isRequired, false, true,
+        valuePlaceholder, null, null, description);
+
+    namesToValues = new LinkedHashMap<String, String>();
+  }
+
+
+
+  /**
+   * Adds a value to the set of values for this argument. This should only be
+   * called if the value is allowed by the <CODE>valueIsAcceptable</CODE>
+   * method. Note that in this case, correct behavior depends on a previous
+   * successful call to <CODE>valueIsAcceptable</CODE> so that the value read
+   * from the file may be stored in the name-to-value hash and used in place of
+   * the filename here.
+   *
+   * @param valueString
+   *          The string representation of the value to add to this argument.
+   */
+  @Override
+  public void addValue(final String valueString)
+  {
+    final String actualValue = namesToValues.get(valueString);
+    if (actualValue != null)
+    {
+      super.addValue(actualValue);
+    }
+  }
+
+
+
+  /**
+   * Retrieves a map between the filenames specified on the command line and the
+   * first lines read from those files.
+   *
+   * @return A map between the filenames specified on the command line and the
+   *         first lines read from those files.
    */
   public LinkedHashMap<String, String> getNameToValueMap()
   {
@@ -177,13 +195,14 @@ final class FileBasedArgument extends Argument
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
-   *          A buffer into which the invalid reason may be written if
-   *          the value is not acceptable.
-   * @return <CODE>true</CODE> if the value is acceptable, or
-   *         <CODE>false</CODE> if it is not.
+   *          A buffer into which the invalid reason may be written if the value
+   *          is not acceptable.
+   * @return <CODE>true</CODE> if the value is acceptable, or <CODE>false</CODE>
+   *         if it is not.
    */
-  public boolean valueIsAcceptable(String valueString,
-      LocalizableMessageBuilder invalidReason)
+  @Override
+  public boolean valueIsAcceptable(final String valueString,
+      final LocalizableMessageBuilder invalidReason)
   {
     // First, make sure that the specified file exists.
     File valueFile;
@@ -197,10 +216,10 @@ final class FileBasedArgument extends Argument
         return false;
       }
     }
-    catch (Exception e)
+    catch (final Exception e)
     {
-      invalidReason.append(ERR_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE
-          .get(valueString, getName(), getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE.get(
+          valueString, getName(), getExceptionMessage(e)));
       return false;
     }
 
@@ -210,10 +229,10 @@ final class FileBasedArgument extends Argument
     {
       reader = new BufferedReader(new FileReader(valueFile));
     }
-    catch (Exception e)
+    catch (final Exception e)
     {
-      invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(
-          valueString, getName(), getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(valueString,
+          getName(), getExceptionMessage(e)));
       return false;
     }
 
@@ -223,10 +242,10 @@ final class FileBasedArgument extends Argument
     {
       line = reader.readLine();
     }
-    catch (Exception e)
+    catch (final Exception e)
     {
-      invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(
-          valueString, getName(), getExceptionMessage(e)));
+      invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(valueString,
+          getName(), getExceptionMessage(e)));
       return false;
     }
     finally
@@ -235,7 +254,7 @@ final class FileBasedArgument extends Argument
       {
         reader.close();
       }
-      catch (Exception e)
+      catch (final Exception e)
       {
       }
     }
@@ -244,8 +263,7 @@ final class FileBasedArgument extends Argument
     if (line == null)
     {
 
-      invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString,
-          getName()));
+      invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, getName()));
       return false;
     }
 
@@ -256,29 +274,5 @@ final class FileBasedArgument extends Argument
     // will be considered acceptable.
     namesToValues.put(valueString, line);
     return true;
-  }
-
-
-
-  /**
-   * Adds a value to the set of values for this argument. This should
-   * only be called if the value is allowed by the
-   * <CODE>valueIsAcceptable</CODE> method. Note that in this case,
-   * correct behavior depends on a previous successful call to
-   * <CODE>valueIsAcceptable</CODE> so that the value read from the file
-   * may be stored in the name-to-value hash and used in place of the
-   * filename here.
-   *
-   * @param valueString
-   *          The string representation of the value to add to this
-   *          argument.
-   */
-  public void addValue(String valueString)
-  {
-    String actualValue = namesToValues.get(valueString);
-    if (actualValue != null)
-    {
-      super.addValue(actualValue);
-    }
   }
 }

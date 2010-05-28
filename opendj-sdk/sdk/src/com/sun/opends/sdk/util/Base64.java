@@ -28,92 +28,27 @@ package com.sun.opends.sdk.util;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.Validator.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_BASE64_DECODE_INVALID_CHARACTER;
+import static com.sun.opends.sdk.messages.Messages.ERR_BASE64_DECODE_INVALID_LENGTH;
+import static com.sun.opends.sdk.util.Validator.ensureNotNull;
 
 import org.opends.sdk.*;
 
 
 
-
 /**
- * This class provides methods for performing base64 encoding and
- * decoding. Base64 is a mechanism for encoding binary data in ASCII
- * form by converting sets of three bytes with eight significant bits
- * each to sets of four bytes with six significant bits each.
+ * This class provides methods for performing base64 encoding and decoding.
+ * Base64 is a mechanism for encoding binary data in ASCII form by converting
+ * sets of three bytes with eight significant bits each to sets of four bytes
+ * with six significant bits each.
  */
 public final class Base64
 {
   /**
    * The set of characters that may be used in base64-encoded values.
    */
-  private static final char[] BASE64_ALPHABET =
-      ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-          + "0123456789+/").toCharArray();
-
-
-
-  /**
-   * Prevent instance creation.
-   */
-  private Base64()
-  {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Encodes the provided data as a base64 string.
-   *
-   * @param bytes
-   *          The data to be encoded.
-   * @return The base64 encoded representation of {@code bytes}.
-   * @throws NullPointerException
-   *           If {@code bytes} was {@code null}.
-   */
-  public static String encode(ByteSequence bytes)
-      throws NullPointerException
-  {
-    ensureNotNull(bytes);
-
-    StringBuilder buffer = new StringBuilder(4 * bytes.length() / 3);
-
-    int pos = 0;
-    int iterations = bytes.length() / 3;
-    for (int i = 0; i < iterations; i++)
-    {
-      int value =
-          ((bytes.byteAt(pos++) & 0xFF) << 16)
-              | ((bytes.byteAt(pos++) & 0xFF) << 8)
-              | (bytes.byteAt(pos++) & 0xFF);
-
-      buffer.append(BASE64_ALPHABET[(value >>> 18) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[(value >>> 12) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[(value >>> 6) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[value & 0x3F]);
-    }
-
-    switch (bytes.length() % 3)
-    {
-    case 1:
-      buffer.append(BASE64_ALPHABET[(bytes.byteAt(pos) >>> 2) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[(bytes.byteAt(pos) << 4) & 0x3F]);
-      buffer.append("==");
-      break;
-    case 2:
-      int value =
-          ((bytes.byteAt(pos++) & 0xFF) << 8)
-              | (bytes.byteAt(pos) & 0xFF);
-      buffer.append(BASE64_ALPHABET[(value >>> 10) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[(value >>> 4) & 0x3F]);
-      buffer.append(BASE64_ALPHABET[(value << 2) & 0x3F]);
-      buffer.append("=");
-      break;
-    }
-
-    return buffer.toString();
-  }
+  private static final char[] BASE64_ALPHABET = ("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      + "abcdefghijklmnopqrstuvwxyz" + "0123456789+/").toCharArray();
 
 
 
@@ -124,26 +59,26 @@ public final class Base64
    *          The base64 encoded data.
    * @return The decoded data.
    * @throws LocalizedIllegalArgumentException
-   *           If a problem occurs while attempting to decode {@code
-   *           base64}.
+   *           If a problem occurs while attempting to decode {@code base64}.
    * @throws NullPointerException
    *           If {@code base64} was {@code null}.
    */
-  public static ByteString decode(String base64)
+  public static ByteString decode(final String base64)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     ensureNotNull(base64);
 
     // The encoded value must have length that is a multiple of four
     // bytes.
-    int length = base64.length();
+    final int length = base64.length();
     if ((length % 4) != 0)
     {
-      LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH.get(base64);
+      final LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH
+          .get(base64);
       throw new LocalizedIllegalArgumentException(message);
     }
 
-    ByteStringBuilder builder = new ByteStringBuilder(length);
+    final ByteStringBuilder builder = new ByteStringBuilder(length);
     for (int i = 0; i < length; i += 4)
     {
       boolean append = true;
@@ -359,9 +294,8 @@ public final class Base64
           }
           break;
         default:
-          LocalizableMessage message =
-              ERR_BASE64_DECODE_INVALID_CHARACTER.get(base64, base64
-                  .charAt(i + j));
+          final LocalizableMessage message = ERR_BASE64_DECODE_INVALID_CHARACTER
+              .get(base64, base64.charAt(i + j));
           throw new LocalizedIllegalArgumentException(message);
         }
 
@@ -384,5 +318,66 @@ public final class Base64
     }
 
     return builder.toByteString();
+  }
+
+
+
+  /**
+   * Encodes the provided data as a base64 string.
+   *
+   * @param bytes
+   *          The data to be encoded.
+   * @return The base64 encoded representation of {@code bytes}.
+   * @throws NullPointerException
+   *           If {@code bytes} was {@code null}.
+   */
+  public static String encode(final ByteSequence bytes)
+      throws NullPointerException
+  {
+    ensureNotNull(bytes);
+
+    final StringBuilder buffer = new StringBuilder(4 * bytes.length() / 3);
+
+    int pos = 0;
+    final int iterations = bytes.length() / 3;
+    for (int i = 0; i < iterations; i++)
+    {
+      final int value = ((bytes.byteAt(pos++) & 0xFF) << 16)
+          | ((bytes.byteAt(pos++) & 0xFF) << 8) | (bytes.byteAt(pos++) & 0xFF);
+
+      buffer.append(BASE64_ALPHABET[(value >>> 18) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value >>> 12) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value >>> 6) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[value & 0x3F]);
+    }
+
+    switch (bytes.length() % 3)
+    {
+    case 1:
+      buffer.append(BASE64_ALPHABET[(bytes.byteAt(pos) >>> 2) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(bytes.byteAt(pos) << 4) & 0x3F]);
+      buffer.append("==");
+      break;
+    case 2:
+      final int value = ((bytes.byteAt(pos++) & 0xFF) << 8)
+          | (bytes.byteAt(pos) & 0xFF);
+      buffer.append(BASE64_ALPHABET[(value >>> 10) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value >>> 4) & 0x3F]);
+      buffer.append(BASE64_ALPHABET[(value << 2) & 0x3F]);
+      buffer.append("=");
+      break;
+    }
+
+    return buffer.toString();
+  }
+
+
+
+  /**
+   * Prevent instance creation.
+   */
+  private Base64()
+  {
+    // No implementation required.
   }
 }

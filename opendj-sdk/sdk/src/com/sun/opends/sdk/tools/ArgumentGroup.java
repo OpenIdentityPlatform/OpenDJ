@@ -38,10 +38,9 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * Class for organizing options into logical groups when arguement usage
- * is printed. To use an argument group, create an instance and use
+ * Class for organizing options into logical groups when arguement usage is
+ * printed. To use an argument group, create an instance and use
  * {@link org.opends.server.util.args.ArgumentParser #addArgument(Argument, ArgumentGroup)}
  * when adding arguments for to the parser.
  */
@@ -55,22 +54,22 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
   private List<Argument> args = null;
 
   // Governs groups position within usage statement
-  private Integer priority;
+  private final Integer priority;
 
 
 
   /**
    * Creates a parameterized instance.
-   * 
+   *
    * @param description
    *          for options in this group that is printed before argument
    *          descriptions in usage output
    * @param priority
-   *          number governing the position of this group within the
-   *          usage statement. Groups with higher priority values appear
-   *          before groups with lower priority.
+   *          number governing the position of this group within the usage
+   *          statement. Groups with higher priority values appear before groups
+   *          with lower priority.
    */
-  ArgumentGroup(LocalizableMessage description, int priority)
+  ArgumentGroup(final LocalizableMessage description, final int priority)
   {
     this.description = description;
     this.priority = priority;
@@ -80,46 +79,9 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
 
 
   /**
-   * Gets the description for this group of arguments.
-   * 
-   * @return description for this argument group
-   */
-  LocalizableMessage getDescription()
-  {
-    return this.description;
-  }
-
-
-
-  /**
-   * Sets the description for this group of arguments.
-   * 
-   * @param description
-   *          for this argument group
-   */
-  void setDescription(LocalizableMessage description)
-  {
-    this.description = description;
-  }
-
-
-
-  /**
-   * Gets the list of arguments associated with this group.
-   * 
-   * @return list of associated arguments
-   */
-  List<Argument> getArguments()
-  {
-    return Collections.unmodifiableList(args);
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
-  public int compareTo(ArgumentGroup o)
+  public int compareTo(final ArgumentGroup o)
   {
     // Groups with higher priority numbers appear before
     // those with lower priority in the usage output
@@ -129,57 +91,25 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
 
 
   /**
-   * Indicates whether this group contains any members.
-   * 
-   * @return boolean where true means this group contains members
-   */
-  boolean containsArguments()
-  {
-    return this.args.size() > 0;
-  }
-
-
-
-  /**
-   * Indicates whether this group contains any non-hidden members.
-   * 
-   * @return boolean where true means this group contains non-hidden
-   *         members
-   */
-  boolean containsNonHiddenArguments()
-  {
-    for (Argument arg : args)
-    {
-      if (!arg.isHidden())
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
-  /**
    * Adds an argument to this group.
-   * 
+   *
    * @param arg
    *          to add
    * @return boolean where true indicates the add was successful
    */
-  boolean addArgument(Argument arg)
+  boolean addArgument(final Argument arg)
   {
     boolean success = false;
     if (arg != null)
     {
-      Character newShort = arg.getShortIdentifier();
-      String newLong = arg.getLongIdentifier();
+      final Character newShort = arg.getShortIdentifier();
+      final String newLong = arg.getLongIdentifier();
 
       // See if there is already an argument in this group that the
       // new argument should replace
-      for (Iterator<Argument> it = this.args.iterator(); it.hasNext();)
+      for (final Iterator<Argument> it = this.args.iterator(); it.hasNext();)
       {
-        Argument a = it.next();
+        final Argument a = it.next();
         if (newShort != null && newShort.equals(a.getShortIdentifier())
             || newLong != null && newLong.equals(a.getLongIdentifier()))
         {
@@ -196,15 +126,83 @@ final class ArgumentGroup implements Comparable<ArgumentGroup>
 
 
   /**
+   * Indicates whether this group contains any members.
+   *
+   * @return boolean where true means this group contains members
+   */
+  boolean containsArguments()
+  {
+    return this.args.size() > 0;
+  }
+
+
+
+  /**
+   * Indicates whether this group contains any non-hidden members.
+   *
+   * @return boolean where true means this group contains non-hidden members
+   */
+  boolean containsNonHiddenArguments()
+  {
+    for (final Argument arg : args)
+    {
+      if (!arg.isHidden())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Gets the list of arguments associated with this group.
+   *
+   * @return list of associated arguments
+   */
+  List<Argument> getArguments()
+  {
+    return Collections.unmodifiableList(args);
+  }
+
+
+
+  /**
+   * Gets the description for this group of arguments.
+   *
+   * @return description for this argument group
+   */
+  LocalizableMessage getDescription()
+  {
+    return this.description;
+  }
+
+
+
+  /**
    * Removes an argument from this group.
-   * 
+   *
    * @param arg
    *          to remove
    * @return boolean where true indicates the remove was successful
    */
-  boolean removeArgument(Argument arg)
+  boolean removeArgument(final Argument arg)
   {
     return this.args.remove(arg);
+  }
+
+
+
+  /**
+   * Sets the description for this group of arguments.
+   *
+   * @param description
+   *          for this argument group
+   */
+  void setDescription(final LocalizableMessage description)
+  {
+    this.description = description;
   }
 
 }

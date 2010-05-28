@@ -37,8 +37,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the CaseExactOrderingMatchingRule.
  */
-public class CaseExactOrderingMatchingRuleTest extends
-    OrderingMatchingRuleTest
+public class CaseExactOrderingMatchingRuleTest extends OrderingMatchingRuleTest
 {
 
   /**

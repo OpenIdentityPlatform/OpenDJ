@@ -29,7 +29,12 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,11 +49,11 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * An LDIF entry reader reads attribute value records (entries) using
- * the LDAP Data Interchange Format (LDIF) from a user defined source.
+ * An LDIF entry reader reads attribute value records (entries) using the LDAP
+ * Data Interchange Format (LDIF) from a user defined source.
  *
- * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
- *      Data Interchange Format (LDIF) - Technical Specification </a>
+ * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP Data
+ *      Interchange Format (LDIF) - Technical Specification </a>
  */
 public final class LDIFEntryReader extends AbstractLDIFReader implements
     EntryReader
@@ -61,24 +66,23 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    * @return The parsed LDIF entry.
    * @throws LocalizedIllegalArgumentException
    *           If {@code ldifLines} did not contain an LDIF entry, if it
-   *           contained multiple entries, if contained malformed LDIF,
-   *           or if the entry could not be decoded using the default
-   *           schema.
+   *           contained multiple entries, if contained malformed LDIF, or if
+   *           the entry could not be decoded using the default schema.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null}.
    */
-  public static Entry valueOfLDIFEntry(String... ldifLines)
+  public static Entry valueOfLDIFEntry(final String... ldifLines)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
+    final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
     try
     {
-      Entry entry = reader.readEntry();
+      final Entry entry = reader.readEntry();
 
       if (entry == null)
       {
         // No change record found.
-        LocalizableMessage message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
+        final LocalizableMessage message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
@@ -86,23 +90,23 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       if (reader.readEntry() != null)
       {
         // Multiple change records found.
-        LocalizableMessage message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
+        final LocalizableMessage message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
             .get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
       return entry;
     }
-    catch (DecodeException e)
+    catch (final DecodeException e)
     {
       // Badly formed LDIF.
       throw new LocalizedIllegalArgumentException(e.getMessageObject());
     }
-    catch (IOException e)
+    catch (final IOException e)
     {
       // This should never happen for a String based reader.
-      LocalizableMessage message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e
-          .getMessage());
+      final LocalizableMessage message = WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR
+          .get(e.getMessage());
       throw new LocalizedIllegalArgumentException(message);
     }
   }
@@ -110,15 +114,14 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Creates a new LDIF entry reader whose source is the provided input
-   * stream.
+   * Creates a new LDIF entry reader whose source is the provided input stream.
    *
    * @param in
    *          The input stream to use.
    * @throws NullPointerException
    *           If {@code in} was {@code null}.
    */
-  public LDIFEntryReader(InputStream in) throws NullPointerException
+  public LDIFEntryReader(final InputStream in) throws NullPointerException
   {
     super(in);
   }
@@ -126,15 +129,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Creates a new LDIF entry reader which will read lines of LDIF from
-   * the provided list of LDIF lines.
+   * Creates a new LDIF entry reader which will read lines of LDIF from the
+   * provided list of LDIF lines.
    *
    * @param ldifLines
    *          The lines of LDIF to be read.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null}.
    */
-  public LDIFEntryReader(List<String> ldifLines)
+  public LDIFEntryReader(final List<String> ldifLines)
       throws NullPointerException
   {
     super(ldifLines);
@@ -143,16 +146,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Creates a new LDIF entry reader which will read lines of LDIF from
-   * the provided array of LDIF lines.
+   * Creates a new LDIF entry reader which will read lines of LDIF from the
+   * provided array of LDIF lines.
    *
    * @param ldifLines
    *          The lines of LDIF to be read.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null}.
    */
-  public LDIFEntryReader(String... ldifLines)
-      throws NullPointerException
+  public LDIFEntryReader(final String... ldifLines) throws NullPointerException
   {
     super(Arrays.asList(ldifLines));
   }
@@ -214,7 +216,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       }
 
       // Use an Entry for the AttributeSequence.
-      final Entry entry = new SortedEntry(entryDN);
+      final Entry entry = new LinkedHashMapEntry(entryDN);
       try
       {
         while (record.iterator.hasNext())
@@ -245,17 +247,16 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Specifies whether or not all operational attributes should be
-   * excluded from any entries that are read from LDIF. The default is
-   * {@code false}.
+   * Specifies whether or not all operational attributes should be excluded from
+   * any entries that are read from LDIF. The default is {@code false}.
    *
    * @param excludeOperationalAttributes
-   *          {@code true} if all operational attributes should be
-   *          excluded, or {@code false} otherwise.
+   *          {@code true} if all operational attributes should be excluded, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setExcludeAllOperationalAttributes(
-      boolean excludeOperationalAttributes)
+      final boolean excludeOperationalAttributes)
   {
     this.excludeOperationalAttributes = excludeOperationalAttributes;
     return this;
@@ -264,17 +265,16 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Specifies whether or not all user attributes should be excluded
-   * from any entries that are read from LDIF. The default is {@code
-   * false}.
+   * Specifies whether or not all user attributes should be excluded from any
+   * entries that are read from LDIF. The default is {@code false}.
    *
    * @param excludeUserAttributes
-   *          {@code true} if all user attributes should be excluded, or
-   *          {@code false} otherwise.
+   *          {@code true} if all user attributes should be excluded, or {@code
+   *          false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setExcludeAllUserAttributes(
-      boolean excludeUserAttributes)
+      final boolean excludeUserAttributes)
   {
     this.excludeUserAttributes = excludeUserAttributes;
     return this;
@@ -283,16 +283,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Excludes the named attribute from any entries that are read from
-   * LDIF. By default all attributes are included unless explicitly
-   * excluded.
+   * Excludes the named attribute from any entries that are read from LDIF. By
+   * default all attributes are included unless explicitly excluded.
    *
    * @param attributeDescription
    *          The name of the attribute to be excluded.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setExcludeAttribute(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
     excludeAttributes.add(attributeDescription);
@@ -302,15 +301,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Excludes all entries beneath the named entry (inclusive) from being
-   * read from LDIF. By default all entries are written unless
-   * explicitly excluded or included by branches or filters.
+   * Excludes all entries beneath the named entry (inclusive) from being read
+   * from LDIF. By default all entries are written unless explicitly excluded or
+   * included by branches or filters.
    *
    * @param excludeBranch
    *          The distinguished name of the branch to be excluded.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setExcludeBranch(DN excludeBranch)
+  public LDIFEntryReader setExcludeBranch(final DN excludeBranch)
   {
     Validator.ensureNotNull(excludeBranch);
     excludeBranches.add(excludeBranch);
@@ -320,15 +319,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Excludes all entries which match the provided filter matcher from
-   * being read from LDIF. By default all entries are read unless
-   * explicitly excluded or included by branches or filters.
+   * Excludes all entries which match the provided filter matcher from being
+   * read from LDIF. By default all entries are read unless explicitly excluded
+   * or included by branches or filters.
    *
    * @param excludeFilter
    *          The filter matcher.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setExcludeFilter(Matcher excludeFilter)
+  public LDIFEntryReader setExcludeFilter(final Matcher excludeFilter)
   {
     Validator.ensureNotNull(excludeFilter);
     excludeFilters.add(excludeFilter);
@@ -338,16 +337,16 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Ensures that the named attribute is not excluded from any entries
-   * that are read from LDIF. By default all attributes are included
-   * unless explicitly excluded.
+   * Ensures that the named attribute is not excluded from any entries that are
+   * read from LDIF. By default all attributes are included unless explicitly
+   * excluded.
    *
    * @param attributeDescription
    *          The name of the attribute to be included.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setIncludeAttribute(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
     includeAttributes.add(attributeDescription);
@@ -357,15 +356,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Ensures that all entries beneath the named entry (inclusive) are
-   * read from LDIF. By default all entries are written unless
-   * explicitly excluded or included by branches or filters.
+   * Ensures that all entries beneath the named entry (inclusive) are read from
+   * LDIF. By default all entries are written unless explicitly excluded or
+   * included by branches or filters.
    *
    * @param includeBranch
    *          The distinguished name of the branch to be included.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setIncludeBranch(DN includeBranch)
+  public LDIFEntryReader setIncludeBranch(final DN includeBranch)
   {
     Validator.ensureNotNull(includeBranch);
     includeBranches.add(includeBranch);
@@ -375,15 +374,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Ensures that all entries which match the provided filter matcher
-   * are read from LDIF. By default all entries are read unless
-   * explicitly excluded or included by branches or filters.
+   * Ensures that all entries which match the provided filter matcher are read
+   * from LDIF. By default all entries are read unless explicitly excluded or
+   * included by branches or filters.
    *
    * @param includeFilter
    *          The filter matcher.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setIncludeFilter(Matcher includeFilter)
+  public LDIFEntryReader setIncludeFilter(final Matcher includeFilter)
   {
     Validator.ensureNotNull(includeFilter);
     includeFilters.add(includeFilter);
@@ -393,16 +392,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Sets the schema which should be used for decoding entries that are
-   * read from LDIF. The default schema is used if no other is
-   * specified.
+   * Sets the schema which should be used for decoding entries that are read
+   * from LDIF. The default schema is used if no other is specified.
    *
    * @param schema
-   *          The schema which should be used for decoding entries that
-   *          are read from LDIF.
+   *          The schema which should be used for decoding entries that are read
+   *          from LDIF.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setSchema(Schema schema)
+  public LDIFEntryReader setSchema(final Schema schema)
   {
     Validator.ensureNotNull(schema);
     this.schema = schema;
@@ -412,15 +410,15 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Specifies whether or not schema validation should be performed for
-   * entries that are read from LDIF. The default is {@code true}.
+   * Specifies whether or not schema validation should be performed for entries
+   * that are read from LDIF. The default is {@code true}.
    *
    * @param validateSchema
-   *          {@code true} if schema validation should be performed, or
-   *          {@code false} otherwise.
+   *          {@code true} if schema validation should be performed, or {@code
+   *          false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setValidateSchema(boolean validateSchema)
+  public LDIFEntryReader setValidateSchema(final boolean validateSchema)
   {
     this.validateSchema = validateSchema;
     return this;

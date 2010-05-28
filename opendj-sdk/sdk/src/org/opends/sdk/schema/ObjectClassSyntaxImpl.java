@@ -29,8 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_OBJECTCLASS_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
@@ -43,9 +49,9 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the object class description syntax, which is
- * used to hold objectclass definitions in the server schema. The format
- * of this syntax is defined in RFC 2252.
+ * This class implements the object class description syntax, which is used to
+ * hold objectclass definitions in the server schema. The format of this syntax
+ * is defined in RFC 2252.
  */
 final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -72,8 +78,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeObjectClass method to determine if the value
     // is acceptable.
@@ -90,8 +96,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE
+            .get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
             "valueIsAcceptable", e);
@@ -103,9 +109,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
             "valueIsAcceptable", e);
@@ -193,8 +198,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
               "valueIsAcceptable", e);

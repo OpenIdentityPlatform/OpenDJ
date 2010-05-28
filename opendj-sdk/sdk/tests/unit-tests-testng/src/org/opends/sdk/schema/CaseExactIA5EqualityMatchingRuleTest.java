@@ -38,8 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the CaseExactIA5EqualityMatchingRule.
  */
-public class CaseExactIA5EqualityMatchingRuleTest extends
-    MatchingRuleTest
+public class CaseExactIA5EqualityMatchingRuleTest extends MatchingRuleTest
 {
 
   /**
@@ -61,12 +60,10 @@ public class CaseExactIA5EqualityMatchingRuleTest extends
   @DataProvider(name = "matchingrules")
   public Object[][] createMatchingRuleTest()
   {
-    return new Object[][] {
-        { "12345678", "12345678", ConditionResult.TRUE },
+    return new Object[][] { { "12345678", "12345678", ConditionResult.TRUE },
         { "ABC45678", "ABC45678", ConditionResult.TRUE },
         { "ABC45678", "abc45678", ConditionResult.FALSE },
-        { "\u0020foo\u0020bar\u0020\u0020", "foo bar",
-            ConditionResult.TRUE },
+        { "\u0020foo\u0020bar\u0020\u0020", "foo bar", ConditionResult.TRUE },
         { "test\u00AD\u200D", "test", ConditionResult.TRUE },
         { "foo\u000Bbar", "foo\u0020bar", ConditionResult.TRUE },
         { "foo\u070Fbar", "foobar", ConditionResult.TRUE },
@@ -82,8 +79,7 @@ public class CaseExactIA5EqualityMatchingRuleTest extends
   @Override
   protected MatchingRule getRule()
   {
-    return Schema.getCoreSchema().getMatchingRule(
-        EMR_CASE_EXACT_IA5_OID);
+    return Schema.getCoreSchema().getMatchingRule(EMR_CASE_EXACT_IA5_OID);
   }
 
 }

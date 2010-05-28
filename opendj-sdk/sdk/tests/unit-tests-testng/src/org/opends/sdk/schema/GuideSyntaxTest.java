@@ -43,9 +43,17 @@ public class GuideSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_GUIDE_OID);
+    return new Object[][] { { "sn$EQ|!(sn$EQ)", true }, { "!(sn$EQ)", true },
+        { "person#sn$EQ", true }, { "(sn$EQ)", true }, { "sn$EQ", true },
+        { "sn$SUBSTR", true }, { "sn$GE", true }, { "sn$LE", true },
+        { "sn$ME", false }, { "?true", true }, { "?false", true },
+        { "true|sn$GE", false }, { "sn$APPROX", true },
+        { "sn$EQ|(sn$EQ)", true }, { "sn$EQ|(sn$EQ", false },
+        { "sn$EQ|(sn$EQ)|sn$EQ", true }, { "sn$EQ|(cn$APPROX&?false)", true },
+        { "sn$EQ|(cn$APPROX&|?false)", false }, };
   }
 
 
@@ -54,17 +62,8 @@ public class GuideSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] { { "sn$EQ|!(sn$EQ)", true },
-        { "!(sn$EQ)", true }, { "person#sn$EQ", true },
-        { "(sn$EQ)", true }, { "sn$EQ", true }, { "sn$SUBSTR", true },
-        { "sn$GE", true }, { "sn$LE", true }, { "sn$ME", false },
-        { "?true", true }, { "?false", true }, { "true|sn$GE", false },
-        { "sn$APPROX", true }, { "sn$EQ|(sn$EQ)", true },
-        { "sn$EQ|(sn$EQ", false }, { "sn$EQ|(sn$EQ)|sn$EQ", true },
-        { "sn$EQ|(cn$APPROX&?false)", true },
-        { "sn$EQ|(cn$APPROX&|?false)", false }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_GUIDE_OID);
   }
 }

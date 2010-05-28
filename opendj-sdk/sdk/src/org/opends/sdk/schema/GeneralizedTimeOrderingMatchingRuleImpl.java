@@ -35,14 +35,14 @@ import org.opends.sdk.DecodeException;
 
 
 /**
- * This class defines the generalizedTimeOrderingMatch matching rule
- * defined in X.520 and referenced in RFC 2252.
+ * This class defines the generalizedTimeOrderingMatch matching rule defined in
+ * X.520 and referenced in RFC 2252.
  */
 final class GeneralizedTimeOrderingMatchingRuleImpl extends
     AbstractOrderingMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     return ByteString.valueOf(GeneralizedTimeSyntaxImpl
         .decodeGeneralizedTimeValue(value));

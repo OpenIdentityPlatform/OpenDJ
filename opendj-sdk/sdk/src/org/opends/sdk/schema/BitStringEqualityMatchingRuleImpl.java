@@ -28,7 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -37,33 +39,30 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class defines the bitStringMatch matching rule defined in X.520
- * and referenced in RFC 2252.
+ * This class defines the bitStringMatch matching rule defined in X.520 and
+ * referenced in RFC 2252.
  */
-final class BitStringEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
+final class BitStringEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String valueString = value.toString().toUpperCase();
 
     final int length = valueString.length();
     if (length < 3)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value.toString());
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT
+          .get(value.toString());
       throw DecodeException.error(message);
     }
 
-    if (valueString.charAt(0) != '\''
-        || valueString.charAt(length - 2) != '\''
+    if (valueString.charAt(0) != '\'' || valueString.charAt(length - 2) != '\''
         || valueString.charAt(length - 1) != 'B')
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value.toString());
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED
+          .get(value.toString());
       throw DecodeException.error(message);
     }
 
@@ -76,9 +75,8 @@ final class BitStringEqualityMatchingRuleImpl extends
         // These characters are fine.
         break;
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value
-                .toString(), String.valueOf(valueString.charAt(i)));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT
+            .get(value.toString(), String.valueOf(valueString.charAt(i)));
         throw DecodeException.error(message);
       }
     }

@@ -26,11 +26,14 @@
  */
 package com.sun.opends.sdk.ldap;
 
+
+
 /**
  * This class defines a number of constants used in the LDAP protocol.
  */
 public final class LDAPConstants
 {
+
   /**
    * The protocol op type for bind requests.
    */
@@ -137,32 +140,31 @@ public final class LDAPConstants
   public static final byte OP_TYPE_INTERMEDIATE_RESPONSE = 0x79;
 
   /**
-   * The BER type to use for encoding the sequence of controls in an
-   * LDAP message.
+   * The BER type to use for encoding the sequence of controls in an LDAP
+   * message.
    */
   public static final byte TYPE_CONTROL_SEQUENCE = (byte) 0xA0;
 
   /**
-   * The BER type to use for encoding the sequence of referral URLs in
-   * an LDAPResult element.
+   * The BER type to use for encoding the sequence of referral URLs in an
+   * LDAPResult element.
    */
   public static final byte TYPE_REFERRAL_SEQUENCE = (byte) 0xA3;
 
   /**
-   * The BER type to use for the AuthenticationChoice element in a bind
-   * request when simple authentication is to be used.
+   * The BER type to use for the AuthenticationChoice element in a bind request
+   * when simple authentication is to be used.
    */
   public static final byte TYPE_AUTHENTICATION_SIMPLE = (byte) 0x80;
 
   /**
-   * The BER type to use for the AuthenticationChoice element in a bind
-   * request when SASL authentication is to be used.
+   * The BER type to use for the AuthenticationChoice element in a bind request
+   * when SASL authentication is to be used.
    */
   public static final byte TYPE_AUTHENTICATION_SASL = (byte) 0xA3;
 
   /**
-   * The BER type to use for the server SASL credentials in a bind
-   * response.
+   * The BER type to use for the server SASL credentials in a bind response.
    */
   public static final byte TYPE_SERVER_SASL_CREDENTIALS = (byte) 0x87;
 
@@ -217,38 +219,32 @@ public final class LDAPConstants
   public static final byte TYPE_FILTER_EXTENSIBLE_MATCH = (byte) 0xA9;
 
   /**
-   * The BER type to use for the subInitial component of a substring
-   * filter.
+   * The BER type to use for the subInitial component of a substring filter.
    */
   public static final byte TYPE_SUBINITIAL = (byte) 0x80;
 
   /**
-   * The BER type to use for the subAny component(s) of a substring
-   * filter.
+   * The BER type to use for the subAny component(s) of a substring filter.
    */
   public static final byte TYPE_SUBANY = (byte) 0x81;
 
   /**
-   * The BER type to use for the subFinal components of a substring
-   * filter.
+   * The BER type to use for the subFinal components of a substring filter.
    */
   public static final byte TYPE_SUBFINAL = (byte) 0x82;
 
   /**
-   * The BER type to use for the matching rule OID in a matching rule
-   * assertion.
+   * The BER type to use for the matching rule OID in a matching rule assertion.
    */
   public static final byte TYPE_MATCHING_RULE_ID = (byte) 0x81;
 
   /**
-   * The BER type to use for the attribute type in a matching rule
-   * assertion.
+   * The BER type to use for the attribute type in a matching rule assertion.
    */
   public static final byte TYPE_MATCHING_RULE_TYPE = (byte) 0x82;
 
   /**
-   * The BER type to use for the assertion value in a matching rule
-   * assertion.
+   * The BER type to use for the assertion value in a matching rule assertion.
    */
   public static final byte TYPE_MATCHING_RULE_VALUE = (byte) 0x83;
 
@@ -259,8 +255,7 @@ public final class LDAPConstants
   public static final byte TYPE_MATCHING_RULE_DN_ATTRIBUTES = (byte) 0x84;
 
   /**
-   * The BER type to use for the newSuperior component of a modify DN
-   * request.
+   * The BER type to use for the newSuperior component of a modify DN request.
    */
   public static final byte TYPE_MODIFY_DN_NEW_SUPERIOR = (byte) 0x80;
 
@@ -285,14 +280,12 @@ public final class LDAPConstants
   public static final byte TYPE_EXTENDED_RESPONSE_VALUE = (byte) 0x8B;
 
   /**
-   * The BER type to use for the OID of an intermediate response
-   * message.
+   * The BER type to use for the OID of an intermediate response message.
    */
   public static final byte TYPE_INTERMEDIATE_RESPONSE_OID = (byte) 0x80;
 
   /**
-   * The BER type to use for the value of an intermediate response
-   * message.
+   * The BER type to use for the value of an intermediate response message.
    */
   public static final byte TYPE_INTERMEDIATE_RESPONSE_VALUE = (byte) 0x81;
 
@@ -304,30 +297,36 @@ public final class LDAPConstants
   /**
    * The OID for the LDAP notice of disconnection extended operation.
    */
-  public static final String OID_NOTICE_OF_DISCONNECTION =
-      "1.3.6.1.4.1.1466.20036";
+  public static final String OID_NOTICE_OF_DISCONNECTION = "1.3.6.1.4.1.1466.20036";
 
   /**
-   * The ASN.1 element decoding state that indicates that the next byte
-   * read should be the BER type for a new element.
+   * The ASN.1 element decoding state that indicates that the next byte read
+   * should be the BER type for a new element.
    */
   public static final int ELEMENT_READ_STATE_NEED_TYPE = 0;
 
   /**
-   * The ASN.1 element decoding state that indicates that the next byte
-   * read should be the first byte for the element length.
+   * The ASN.1 element decoding state that indicates that the next byte read
+   * should be the first byte for the element length.
    */
   public static final int ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE = 1;
 
   /**
-   * The ASN.1 element decoding state that indicates that the next byte
-   * read should be additional bytes of a multi-byte length.
+   * The ASN.1 element decoding state that indicates that the next byte read
+   * should be additional bytes of a multi-byte length.
    */
   public static final int ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES = 2;
 
   /**
-   * The ASN.1 element decoding state that indicates that the next byte
-   * read should be applied to the value of the element.
+   * The ASN.1 element decoding state that indicates that the next byte read
+   * should be applied to the value of the element.
    */
   public static final int ELEMENT_READ_STATE_NEED_VALUE_BYTES = 3;
+
+
+
+  private LDAPConstants()
+  {
+    // Prevent instantiation.
+  }
 }

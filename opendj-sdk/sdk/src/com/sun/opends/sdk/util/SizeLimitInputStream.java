@@ -26,8 +26,12 @@
  */
 package com.sun.opends.sdk.util;
 
+
+
 import java.io.IOException;
 import java.io.InputStream;
+
+
 
 /**
  * An implementation of input stream that enforces an read size limit.
@@ -36,8 +40,10 @@ public class SizeLimitInputStream extends InputStream
 {
   private int bytesRead;
   private int markBytesRead;
-  private int readLimit;
-  private InputStream parentStream;
+  private final int readLimit;
+  private final InputStream parentStream;
+
+
 
   /**
    * Creates a new a new size limit input stream.
@@ -47,118 +53,38 @@ public class SizeLimitInputStream extends InputStream
    * @param readLimit
    *          The size limit.
    */
-  public SizeLimitInputStream(InputStream parentStream, int readLimit)
+  public SizeLimitInputStream(final InputStream parentStream,
+      final int readLimit)
   {
     this.parentStream = parentStream;
     this.readLimit = readLimit;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override
   public int available() throws IOException
   {
-    int streamAvail = parentStream.available();
-    int limitedAvail = readLimit - bytesRead;
+    final int streamAvail = parentStream.available();
+    final int limitedAvail = readLimit - bytesRead;
     return limitedAvail < streamAvail ? limitedAvail : streamAvail;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public synchronized void mark(int readlimit)
+  @Override
+  public void close() throws IOException
   {
-    parentStream.mark(readlimit);
-    markBytesRead = bytesRead;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int read() throws IOException
-  {
-    if(bytesRead >= readLimit)
-    {
-      return -1;
-    }
-
-    int b = parentStream.read();
-    if (b != -1)
-    {
-      ++bytesRead;
-    }
-    return b;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int read(byte b[], int off, int len) throws IOException
-  {
-    if(off < 0 || len < 0 || off+len > b.length)
-    {
-      throw new IndexOutOfBoundsException();
-    }
-
-    if(len == 0)
-    {
-      return 0;
-    }
-
-    if(bytesRead >= readLimit)
-    {
-      return -1;
-    }
-
-    if(bytesRead + len > readLimit)
-    {
-      len = readLimit - bytesRead;
-    }
-
-    int readLen = parentStream.read(b, off, len);
-    if(readLen > 0)
-    {
-      bytesRead += readLen;
-    }
-    return readLen;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public synchronized void reset() throws IOException
-  {
-    parentStream.reset();
-    bytesRead = markBytesRead;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long skip(long n) throws IOException
-  {
-    if(bytesRead + n > readLimit)
-    {
-      n = readLimit - bytesRead;
-    }
-
-    bytesRead += n;
-    return parentStream.skip(n);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean markSupported() {
-    return parentStream.markSupported();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void close() throws IOException {
     parentStream.close();
   }
+
+
 
   /**
    * Retrieves the number of bytes read from this stream.
@@ -170,6 +96,8 @@ public class SizeLimitInputStream extends InputStream
     return bytesRead;
   }
 
+
+
   /**
    * Retrieves the size limit of this stream.
    *
@@ -178,5 +106,114 @@ public class SizeLimitInputStream extends InputStream
   public int getSizeLimit()
   {
     return readLimit;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public synchronized void mark(final int readlimit)
+  {
+    parentStream.mark(readlimit);
+    markBytesRead = bytesRead;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean markSupported()
+  {
+    return parentStream.markSupported();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int read() throws IOException
+  {
+    if (bytesRead >= readLimit)
+    {
+      return -1;
+    }
+
+    final int b = parentStream.read();
+    if (b != -1)
+    {
+      ++bytesRead;
+    }
+    return b;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int read(final byte b[], final int off, int len) throws IOException
+  {
+    if (off < 0 || len < 0 || off + len > b.length)
+    {
+      throw new IndexOutOfBoundsException();
+    }
+
+    if (len == 0)
+    {
+      return 0;
+    }
+
+    if (bytesRead >= readLimit)
+    {
+      return -1;
+    }
+
+    if (bytesRead + len > readLimit)
+    {
+      len = readLimit - bytesRead;
+    }
+
+    final int readLen = parentStream.read(b, off, len);
+    if (readLen > 0)
+    {
+      bytesRead += readLen;
+    }
+    return readLen;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public synchronized void reset() throws IOException
+  {
+    parentStream.reset();
+    bytesRead = markBytesRead;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long skip(long n) throws IOException
+  {
+    if (bytesRead + n > readLimit)
+    {
+      n = readLimit - bytesRead;
+    }
+
+    bytesRead += n;
+    return parentStream.skip(n);
   }
 }

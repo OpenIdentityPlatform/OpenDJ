@@ -39,29 +39,28 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class provides a skeletal implementation of the {@code
- * Attribute} interface, to minimize the effort required to implement
- * this interface.
+ * This class provides a skeletal implementation of the {@code Attribute}
+ * interface, to minimize the effort required to implement this interface.
  */
 public abstract class AbstractAttribute extends AbstractSet<ByteString>
     implements Attribute
 {
 
   /**
-   * Returns {@code true} if {@code object} is an attribute which is
-   * equal to {@code attribute}. Two attributes are considered equal if
-   * their attribute descriptions are equal, they both have the same
-   * number of attribute values, and every attribute value contained in
-   * the first attribute is also contained in the second attribute.
+   * Returns {@code true} if {@code object} is an attribute which is equal to
+   * {@code attribute}. Two attributes are considered equal if their attribute
+   * descriptions are equal, they both have the same number of attribute values,
+   * and every attribute value contained in the first attribute is also
+   * contained in the second attribute.
    *
    * @param attribute
    *          The attribute to be tested for equality.
    * @param object
    *          The object to be tested for equality with the attribute.
-   * @return {@code true} if {@code object} is an attribute which is
-   *         equal to {@code attribute}, or {@code false} if not.
+   * @return {@code true} if {@code object} is an attribute which is equal to
+   *         {@code attribute}, or {@code false} if not.
    */
-  static boolean equals(Attribute attribute, Object object)
+  static boolean equals(final Attribute attribute, final Object object)
   {
     if (attribute == object)
     {
@@ -73,7 +72,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
       return false;
     }
 
-    Attribute other = (Attribute) object;
+    final Attribute other = (Attribute) object;
     if (!attribute.getAttributeDescription().equals(
         other.getAttributeDescription()))
     {
@@ -92,18 +91,18 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
 
 
   /**
-   * Returns the hash code for {@code attribute}. It will be calculated
-   * as the sum of the hash codes of the attribute description and all
-   * of the attribute values.
+   * Returns the hash code for {@code attribute}. It will be calculated as the
+   * sum of the hash codes of the attribute description and all of the attribute
+   * values.
    *
    * @param attribute
    *          The attribute whose hash code should be calculated.
    * @return The hash code for {@code attribute}.
    */
-  static int hashCode(Attribute attribute)
+  static int hashCode(final Attribute attribute)
   {
     int hashCode = attribute.getAttributeDescription().hashCode();
-    for (ByteString value : attribute)
+    for (final ByteString value : attribute)
     {
       hashCode += normalizeValue(attribute, value).hashCode();
     }
@@ -113,30 +112,30 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
 
 
   /**
-   * Returns the normalized form of {@code value} normalized using
-   * {@code attribute}'s equality matching rule.
+   * Returns the normalized form of {@code value} normalized using {@code
+   * attribute}'s equality matching rule.
    *
    * @param attribute
-   *          The attribute whose equality matching rule should be used
-   *          for normalization.
+   *          The attribute whose equality matching rule should be used for
+   *          normalization.
    * @param value
    *          The attribute value to be normalized.
-   * @return The normalized form of {@code value} normalized using
-   *         {@code attribute}'s equality matching rule.
+   * @return The normalized form of {@code value} normalized using {@code
+   *         attribute}'s equality matching rule.
    */
-  static ByteString normalizeValue(Attribute attribute, ByteString value)
+  static ByteString normalizeValue(final Attribute attribute,
+      final ByteString value)
   {
-    AttributeDescription attributeDescription = attribute
+    final AttributeDescription attributeDescription = attribute
         .getAttributeDescription();
-    AttributeType attributeType = attributeDescription
-        .getAttributeType();
-    MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+    final AttributeType attributeType = attributeDescription.getAttributeType();
+    final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
 
     try
     {
       return matchingRule.normalizeAttributeValue(value);
     }
-    catch (Exception e)
+    catch (final Exception e)
     {
       // Fall back to provided value.
       return value;
@@ -149,19 +148,18 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    * Returns a string representation of {@code attribute}.
    *
    * @param attribute
-   *          The attribute whose string representation should be
-   *          returned.
+   *          The attribute whose string representation should be returned.
    * @return The string representation of {@code attribute}.
    */
-  static String toString(Attribute attribute)
+  static String toString(final Attribute attribute)
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("Attribute(");
     builder.append(attribute.getAttributeDescriptionAsString());
     builder.append(", {");
 
     boolean firstValue = true;
-    for (ByteString value : attribute)
+    for (final ByteString value : attribute)
     {
       if (!firstValue)
       {
@@ -191,6 +189,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract boolean add(ByteString value)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -199,7 +198,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean add(Object firstValue, Object... remainingValues)
+  public boolean add(final Object firstValue, final Object... remainingValues)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(firstValue);
@@ -207,7 +206,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
     boolean modified = add(ByteString.valueOf(firstValue));
     if (remainingValues != null)
     {
-      for (Object value : remainingValues)
+      for (final Object value : remainingValues)
       {
         modified |= add(ByteString.valueOf(value));
       }
@@ -220,7 +219,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean addAll(Collection<? extends ByteString> values)
+  @Override
+  public boolean addAll(final Collection<? extends ByteString> values)
       throws UnsupportedOperationException, NullPointerException
   {
     return addAll(values, null);
@@ -231,12 +231,12 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean addAll(Collection<? extends ByteString> values,
-      Collection<? super ByteString> duplicateValues)
+  public boolean addAll(final Collection<? extends ByteString> values,
+      final Collection<? super ByteString> duplicateValues)
       throws UnsupportedOperationException, NullPointerException
   {
     boolean modified = false;
-    for (ByteString value : values)
+    for (final ByteString value : values)
     {
       if (add(value))
       {
@@ -255,18 +255,19 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public abstract boolean contains(Object value)
-      throws NullPointerException;
+  @Override
+  public abstract boolean contains(Object value) throws NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  public boolean containsAll(Collection<?> values)
+  @Override
+  public boolean containsAll(final Collection<?> values)
       throws NullPointerException
   {
-    for (Object value : values)
+    for (final Object value : values)
     {
       if (!contains(value))
       {
@@ -281,7 +282,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean equals(Object object)
+  @Override
+  public boolean equals(final Object object)
   {
     return equals(this, object);
   }
@@ -328,6 +330,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     return hashCode(this);
@@ -338,6 +341,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract Iterator<ByteString> iterator();
 
 
@@ -345,6 +349,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract boolean remove(Object value)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -353,7 +358,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean removeAll(Collection<?> values)
+  @Override
+  public boolean removeAll(final Collection<?> values)
       throws UnsupportedOperationException, NullPointerException
   {
     return removeAll(values, null);
@@ -364,12 +370,12 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public <T> boolean removeAll(Collection<T> values,
-      Collection<? super T> missingValues)
+  public <T> boolean removeAll(final Collection<T> values,
+      final Collection<? super T> missingValues)
       throws UnsupportedOperationException, NullPointerException
   {
     boolean modified = false;
-    for (T value : values)
+    for (final T value : values)
     {
       if (remove(value))
       {
@@ -388,7 +394,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public boolean retainAll(Collection<?> values)
+  @Override
+  public boolean retainAll(final Collection<?> values)
       throws UnsupportedOperationException, NullPointerException
   {
     return retainAll(values, null);
@@ -399,8 +406,8 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public <T> boolean retainAll(Collection<T> values,
-      Collection<? super T> missingValues)
+  public <T> boolean retainAll(final Collection<T> values,
+      final Collection<? super T> missingValues)
       throws UnsupportedOperationException, NullPointerException
   {
     if (values.isEmpty())
@@ -420,7 +427,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
     {
       if (missingValues != null)
       {
-        for (T value : values)
+        for (final T value : values)
         {
           missingValues.add(value);
         }
@@ -428,20 +435,20 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
       return false;
     }
 
-    Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(
-        values.size());
-    for (T value : values)
+    final Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(values
+        .size());
+    for (final T value : values)
     {
-      valuesToRetain.put(
-          normalizeValue(this, ByteString.valueOf(value)), value);
+      valuesToRetain
+          .put(normalizeValue(this, ByteString.valueOf(value)), value);
     }
 
     boolean modified = false;
-    Iterator<ByteString> iterator = iterator();
+    final Iterator<ByteString> iterator = iterator();
     while (iterator.hasNext())
     {
-      ByteString value = iterator.next();
-      ByteString normalizedValue = normalizeValue(this, value);
+      final ByteString value = iterator.next();
+      final ByteString normalizedValue = normalizeValue(this, value);
       if (valuesToRetain.remove(normalizedValue) == null)
       {
         modified = true;
@@ -462,6 +469,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract int size();
 
 
@@ -469,6 +477,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString[] toArray()
   {
     return toArray(new ByteString[size()]);
@@ -479,6 +488,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     return toString(this);

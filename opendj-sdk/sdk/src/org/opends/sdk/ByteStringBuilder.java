@@ -45,9 +45,9 @@ public final class ByteStringBuilder implements ByteSequence
 {
 
   /**
-   * A sub-sequence of the parent byte string builder. The sub-sequence
-   * will be robust against all updates to the byte string builder
-   * except for invocations of the method {@code clear()}.
+   * A sub-sequence of the parent byte string builder. The sub-sequence will be
+   * robust against all updates to the byte string builder except for
+   * invocations of the method {@code clear()}.
    */
   private final class SubSequence implements ByteSequence
   {
@@ -62,13 +62,13 @@ public final class ByteStringBuilder implements ByteSequence
 
     /**
      * Creates a new sub-sequence.
-     * 
+     *
      * @param offset
      *          The offset of the sub-sequence.
      * @param length
      *          The length of the sub-sequence.
      */
-    private SubSequence(int offset, int length)
+    private SubSequence(final int offset, final int length)
     {
       this.subOffset = offset;
       this.subLength = length;
@@ -89,7 +89,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public byte byteAt(int index) throws IndexOutOfBoundsException
+    public byte byteAt(final int index) throws IndexOutOfBoundsException
     {
       if (index >= subLength || index < 0)
       {
@@ -105,14 +105,14 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public int compareTo(byte[] b, int offset, int length)
+    public int compareTo(final byte[] b, final int offset, final int length)
         throws IndexOutOfBoundsException
     {
       ByteString.checkArrayBounds(b, offset, length);
 
       // Protect against reallocation: use builder's buffer.
-      return ByteString.compareTo(buffer, subOffset, subLength, b,
-          offset, length);
+      return ByteString.compareTo(buffer, subOffset, subLength, b, offset,
+          length);
     }
 
 
@@ -120,7 +120,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public int compareTo(ByteSequence o)
+    public int compareTo(final ByteSequence o)
     {
       if (this == o)
       {
@@ -136,7 +136,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public byte[] copyTo(byte[] b)
+    public byte[] copyTo(final byte[] b)
     {
       copyTo(b, 0);
       return b;
@@ -147,7 +147,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public byte[] copyTo(byte[] b, int offset)
+    public byte[] copyTo(final byte[] b, final int offset)
         throws IndexOutOfBoundsException
     {
       if (offset < 0)
@@ -156,8 +156,8 @@ public final class ByteStringBuilder implements ByteSequence
       }
 
       // Protect against reallocation: use builder's buffer.
-      System.arraycopy(buffer, subOffset, b, offset, Math.min(
-          subLength, b.length - offset));
+      System.arraycopy(buffer, subOffset, b, offset, Math.min(subLength,
+          b.length - offset));
       return b;
     }
 
@@ -166,7 +166,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public ByteStringBuilder copyTo(ByteStringBuilder builder)
+    public ByteStringBuilder copyTo(final ByteStringBuilder builder)
     {
       // Protect against reallocation: use builder's buffer.
       return builder.append(buffer, subOffset, subLength);
@@ -177,7 +177,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public OutputStream copyTo(OutputStream stream) throws IOException
+    public OutputStream copyTo(final OutputStream stream) throws IOException
     {
       // Protect against reallocation: use builder's buffer.
       stream.write(buffer, subOffset, subLength);
@@ -189,14 +189,13 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public boolean equals(byte[] b, int offset, int length)
+    public boolean equals(final byte[] b, final int offset, final int length)
         throws IndexOutOfBoundsException
     {
       ByteString.checkArrayBounds(b, offset, length);
 
       // Protect against reallocation: use builder's buffer.
-      return ByteString.equals(buffer, subOffset, subLength, b, offset,
-          length);
+      return ByteString.equals(buffer, subOffset, subLength, b, offset, length);
     }
 
 
@@ -205,7 +204,7 @@ public final class ByteStringBuilder implements ByteSequence
      * {@inheritDoc}
      */
     @Override
-    public boolean equals(Object o)
+    public boolean equals(final Object o)
     {
       if (this == o)
       {
@@ -251,7 +250,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public ByteSequence subSequence(int start, int end)
+    public ByteSequence subSequence(final int start, final int end)
         throws IndexOutOfBoundsException
     {
       if (start < 0 || start > end || end > subLength)
@@ -298,6 +297,8 @@ public final class ByteStringBuilder implements ByteSequence
     }
   }
 
+
+
   // These are package private so that compression and crypto
   // functionality may directly access the fields.
 
@@ -310,8 +311,7 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Creates a new byte string builder with an initial capacity of 32
-   * bytes.
+   * Creates a new byte string builder with an initial capacity of 32 bytes.
    */
   public ByteStringBuilder()
   {
@@ -322,16 +322,14 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Creates a new byte string builder with the specified initial
-   * capacity.
-   * 
+   * Creates a new byte string builder with the specified initial capacity.
+   *
    * @param capacity
    *          The initial capacity.
    * @throws IllegalArgumentException
    *           If the {@code capacity} is negative.
    */
-  public ByteStringBuilder(int capacity)
-      throws IllegalArgumentException
+  public ByteStringBuilder(final int capacity) throws IllegalArgumentException
   {
     if (capacity < 0)
     {
@@ -346,12 +344,12 @@ public final class ByteStringBuilder implements ByteSequence
 
   /**
    * Appends the provided byte to this byte string builder.
-   * 
+   *
    * @param b
    *          The byte to be appended to this byte string builder.
    * @return This byte string builder.
    */
-  public ByteStringBuilder append(byte b)
+  public ByteStringBuilder append(final byte b)
   {
     ensureAdditionalCapacity(1);
     buffer[length++] = b;
@@ -364,22 +362,22 @@ public final class ByteStringBuilder implements ByteSequence
    * Appends the provided byte array to this byte string builder.
    * <p>
    * An invocation of the form:
-   * 
+   *
    * <pre>
    * src.append(b)
    * </pre>
-   * 
+   *
    * Behaves in exactly the same way as the invocation:
-   * 
+   *
    * <pre>
    * src.append(b, 0, b.length);
    * </pre>
-   * 
+   *
    * @param b
    *          The byte array to be appended to this byte string builder.
    * @return This byte string builder.
    */
-  public ByteStringBuilder append(byte[] b)
+  public ByteStringBuilder append(final byte[] b)
   {
     return append(b, 0, b.length);
   }
@@ -388,23 +386,22 @@ public final class ByteStringBuilder implements ByteSequence
 
   /**
    * Appends the provided byte array to this byte string builder.
-   * 
+   *
    * @param b
    *          The byte array to be appended to this byte string builder.
    * @param offset
-   *          The offset of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length} .
+   *          The offset of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length} .
    * @param length
-   *          The length of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length - offset}.
+   *          The length of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length - offset}.
    * @return This byte string builder.
    * @throws IndexOutOfBoundsException
-   *           If {@code offset} is negative or if {@code length} is
-   *           negative or if {@code offset + length} is greater than
-   *           {@code b.length}.
+   *           If {@code offset} is negative or if {@code length} is negative or
+   *           if {@code offset + length} is greater than {@code b.length}.
    */
-  public ByteStringBuilder append(byte[] b, int offset, int length)
-      throws IndexOutOfBoundsException
+  public ByteStringBuilder append(final byte[] b, final int offset,
+      final int length) throws IndexOutOfBoundsException
   {
     ByteString.checkArrayBounds(b, offset, length);
 
@@ -421,20 +418,18 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the provided {@code ByteBuffer} to this byte string
-   * builder.
-   * 
+   * Appends the provided {@code ByteBuffer} to this byte string builder.
+   *
    * @param buffer
-   *          The byte buffer to be appended to this byte string
-   *          builder.
+   *          The byte buffer to be appended to this byte string builder.
    * @param length
    *          The number of bytes to be appended from {@code buffer}.
    * @return This byte string builder.
    * @throws IndexOutOfBoundsException
-   *           If {@code length} is less than zero or greater than
-   *           {@code buffer.remaining()}.
+   *           If {@code length} is less than zero or greater than {@code
+   *           buffer.remaining()}.
    */
-  public ByteStringBuilder append(ByteBuffer buffer, int length)
+  public ByteStringBuilder append(final ByteBuffer buffer, final int length)
       throws IndexOutOfBoundsException
   {
     if (length < 0 || length > buffer.remaining())
@@ -455,15 +450,13 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the provided {@link ByteSequence} to this byte string
-   * builder.
-   * 
+   * Appends the provided {@link ByteSequence} to this byte string builder.
+   *
    * @param bytes
-   *          The byte sequence to be appended to this byte string
-   *          builder.
+   *          The byte sequence to be appended to this byte string builder.
    * @return This byte string builder.
    */
-  public ByteStringBuilder append(ByteSequence bytes)
+  public ByteStringBuilder append(final ByteSequence bytes)
   {
     return bytes.copyTo(this);
   }
@@ -473,19 +466,19 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * Appends the provided {@link ByteSequenceReader} to this byte string
    * builder.
-   * 
+   *
    * @param reader
-   *          The byte sequence reader to be appended to this byte
-   *          string builder.
+   *          The byte sequence reader to be appended to this byte string
+   *          builder.
    * @param length
    *          The number of bytes to be appended from {@code reader}.
    * @return This byte string builder.
    * @throws IndexOutOfBoundsException
-   *           If {@code length} is less than zero or greater than
-   *           {@code reader.remaining()}.
+   *           If {@code length} is less than zero or greater than {@code
+   *           reader.remaining()}.
    */
-  public ByteStringBuilder append(ByteSequenceReader reader, int length)
-      throws IndexOutOfBoundsException
+  public ByteStringBuilder append(final ByteSequenceReader reader,
+      final int length) throws IndexOutOfBoundsException
   {
     if (length < 0 || length > reader.remaining())
     {
@@ -505,23 +498,20 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the provided {@code InputStream} to this byte string
-   * builder.
-   * 
+   * Appends the provided {@code InputStream} to this byte string builder.
+   *
    * @param stream
-   *          The input stream to be appended to this byte string
-   *          builder.
+   *          The input stream to be appended to this byte string builder.
    * @param length
-   *          The maximum number of bytes to be appended from {@code
-   *          buffer}.
-   * @return The number of bytes read from the input stream, or {@code
-   *         -1} if the end of the input stream has been reached.
+   *          The maximum number of bytes to be appended from {@code buffer}.
+   * @return The number of bytes read from the input stream, or {@code -1} if
+   *         the end of the input stream has been reached.
    * @throws IndexOutOfBoundsException
    *           If {@code length} is less than zero.
    * @throws IOException
    *           If an I/O error occurs.
    */
-  public int append(InputStream stream, int length)
+  public int append(final InputStream stream, final int length)
       throws IndexOutOfBoundsException, IOException
   {
     if (length < 0)
@@ -542,12 +532,12 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the big-endian encoded bytes of the provided integer to
-   * this byte string builder.
-   * 
+   * Appends the big-endian encoded bytes of the provided integer to this byte
+   * string builder.
+   *
    * @param i
-   *          The integer whose big-endian encoding is to be appended to
-   *          this byte string builder.
+   *          The integer whose big-endian encoding is to be appended to this
+   *          byte string builder.
    * @return This byte string builder.
    */
   public ByteStringBuilder append(int i)
@@ -565,12 +555,12 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the big-endian encoded bytes of the provided long to this
-   * byte string builder.
-   * 
+   * Appends the big-endian encoded bytes of the provided long to this byte
+   * string builder.
+   *
    * @param l
-   *          The long whose big-endian encoding is to be appended to
-   *          this byte string builder.
+   *          The long whose big-endian encoding is to be appended to this byte
+   *          string builder.
    * @return This byte string builder.
    */
   public ByteStringBuilder append(long l)
@@ -588,12 +578,41 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the big-endian encoded bytes of the provided short to this
-   * byte string builder.
-   * 
+   * Appends the provided object to this byte string builder. If the object is
+   * an instance of {@code ByteSequence} then its contents will be appended
+   * directly to this byte string builder using the {@code append(ByteSequence)}
+   * method. Otherwise the string representation of the object will be appended
+   * using the {@code append(String)} method.
+   *
+   * @param o
+   *          The object to be appended to this byte string builder.
+   * @return This byte string builder.
+   */
+  public ByteStringBuilder append(final Object o)
+  {
+    if (o == null)
+    {
+      return this;
+    }
+    else if (o instanceof ByteSequence)
+    {
+      return append((ByteSequence) o);
+    }
+    else
+    {
+      return append(o.toString());
+    }
+  }
+
+
+
+  /**
+   * Appends the big-endian encoded bytes of the provided short to this byte
+   * string builder.
+   *
    * @param i
-   *          The short whose big-endian encoding is to be appended to
-   *          this byte string builder.
+   *          The short whose big-endian encoding is to be appended to this byte
+   *          string builder.
    * @return This byte string builder.
    */
   public ByteStringBuilder append(short i)
@@ -611,15 +630,15 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the UTF-8 encoded bytes of the provided string to this byte
-   * string builder.
-   * 
+   * Appends the UTF-8 encoded bytes of the provided string to this byte string
+   * builder.
+   *
    * @param s
-   *          The string whose UTF-8 encoding is to be appended to this
-   *          byte string builder.
+   *          The string whose UTF-8 encoding is to be appended to this byte
+   *          string builder.
    * @return This byte string builder.
    */
-  public ByteStringBuilder append(String s)
+  public ByteStringBuilder append(final String s)
   {
     if (s == null)
     {
@@ -667,14 +686,14 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the ASN.1 BER length encoding representation of the
-   * provided integer to this byte string builder.
-   * 
+   * Appends the ASN.1 BER length encoding representation of the provided
+   * integer to this byte string builder.
+   *
    * @param length
    *          The value to encode using the BER length encoding rules.
    * @return This byte string builder.
    */
-  public ByteStringBuilder appendBERLength(int length)
+  public ByteStringBuilder appendBERLength(final int length)
   {
     if ((length & 0x0000007F) == length)
     {
@@ -722,17 +741,16 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Returns a {@link ByteSequenceReader} which can be used to
-   * incrementally read and decode data from this byte string builder.
+   * Returns a {@link ByteSequenceReader} which can be used to incrementally
+   * read and decode data from this byte string builder.
    * <p>
    * <b>NOTE:</b> all concurrent updates to this byte string builder are
-   * supported with the exception of {@link #clear()}. Any invocations
-   * of {@link #clear()} must be accompanied by a subsequent call to
-   * {@code ByteSequenceReader.rewind()}.
-   * 
-   * @return The {@link ByteSequenceReader} which can be used to
-   *         incrementally read and decode data from this byte string
-   *         builder.
+   * supported with the exception of {@link #clear()}. Any invocations of
+   * {@link #clear()} must be accompanied by a subsequent call to {@code
+   * ByteSequenceReader.rewind()}.
+   *
+   * @return The {@link ByteSequenceReader} which can be used to incrementally
+   *         read and decode data from this byte string builder.
    * @see #clear()
    */
   public ByteSequenceReader asReader()
@@ -745,7 +763,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte byteAt(int index) throws IndexOutOfBoundsException
+  public byte byteAt(final int index) throws IndexOutOfBoundsException
   {
     if (index >= length || index < 0)
     {
@@ -760,9 +778,9 @@ public final class ByteStringBuilder implements ByteSequence
    * Sets the length of this byte string builder to zero.
    * <p>
    * <b>NOTE:</b> if this method is called, then {@code
-   * ByteSequenceReader.rewind()} must also be called on any associated
-   * byte sequence readers in order for them to remain valid.
-   * 
+   * ByteSequenceReader.rewind()} must also be called on any associated byte
+   * sequence readers in order for them to remain valid.
+   *
    * @return This byte string builder.
    * @see #asReader()
    */
@@ -777,12 +795,11 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(byte[] b, int offset, int length)
+  public int compareTo(final byte[] b, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
     ByteString.checkArrayBounds(b, offset, length);
-    return ByteString.compareTo(this.buffer, 0, this.length, b, offset,
-        length);
+    return ByteString.compareTo(this.buffer, 0, this.length, b, offset, length);
   }
 
 
@@ -790,7 +807,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(ByteSequence o)
+  public int compareTo(final ByteSequence o)
   {
     if (this == o)
     {
@@ -804,7 +821,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(byte[] b)
+  public byte[] copyTo(final byte[] b)
   {
     copyTo(b, 0);
     return b;
@@ -815,15 +832,14 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(byte[] b, int offset)
+  public byte[] copyTo(final byte[] b, final int offset)
       throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
       throw new IndexOutOfBoundsException();
     }
-    System.arraycopy(buffer, 0, b, offset, Math.min(length, b.length
-        - offset));
+    System.arraycopy(buffer, 0, b, offset, Math.min(length, b.length - offset));
     return b;
   }
 
@@ -832,7 +848,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public ByteStringBuilder copyTo(ByteStringBuilder builder)
+  public ByteStringBuilder copyTo(final ByteStringBuilder builder)
   {
     builder.append(buffer, 0, length);
     return builder;
@@ -843,7 +859,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public OutputStream copyTo(OutputStream stream) throws IOException
+  public OutputStream copyTo(final OutputStream stream) throws IOException
   {
     stream.write(buffer, 0, length);
     return stream;
@@ -852,20 +868,19 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Ensures that the specified number of additional bytes will fit in
-   * this byte string builder and resizes it if necessary.
-   * 
+   * Ensures that the specified number of additional bytes will fit in this byte
+   * string builder and resizes it if necessary.
+   *
    * @param size
    *          The number of additional bytes.
    * @return This byte string builder.
    */
-  public ByteStringBuilder ensureAdditionalCapacity(int size)
+  public ByteStringBuilder ensureAdditionalCapacity(final int size)
   {
     final int newCount = this.length + size;
     if (newCount > buffer.length)
     {
-      final byte[] newbuffer =
-          new byte[Math.max(buffer.length << 1, newCount)];
+      final byte[] newbuffer = new byte[Math.max(buffer.length << 1, newCount)];
       System.arraycopy(buffer, 0, newbuffer, 0, buffer.length);
       buffer = newbuffer;
     }
@@ -877,30 +892,28 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public boolean equals(byte[] b, int offset, int length)
+  public boolean equals(final byte[] b, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
     ByteString.checkArrayBounds(b, offset, length);
-    return ByteString.equals(this.buffer, 0, this.length, b, offset,
-        length);
+    return ByteString.equals(this.buffer, 0, this.length, b, offset, length);
   }
 
 
 
   /**
-   * Indicates whether the provided object is equal to this byte string
-   * builder. In order for it to be considered equal, the provided
-   * object must be a byte sequence containing the same bytes in the
-   * same order.
-   * 
+   * Indicates whether the provided object is equal to this byte string builder.
+   * In order for it to be considered equal, the provided object must be a byte
+   * sequence containing the same bytes in the same order.
+   *
    * @param o
    *          The object for which to make the determination.
-   * @return {@code true} if the provided object is a byte sequence
-   *         whose content is equal to that of this byte string builder,
-   *         or {@code false} if not.
+   * @return {@code true} if the provided object is a byte sequence whose
+   *         content is equal to that of this byte string builder, or {@code
+   *         false} if not.
    */
   @Override
-  public boolean equals(Object o)
+  public boolean equals(final Object o)
   {
     if (this == o)
     {
@@ -920,18 +933,18 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Returns the byte array that backs this byte string builder.
-   * Modifications to this byte string builder's content may cause the
-   * returned array's content to be modified, and vice versa.
+   * Returns the byte array that backs this byte string builder. Modifications
+   * to this byte string builder's content may cause the returned array's
+   * content to be modified, and vice versa.
    * <p>
-   * Note that the length of the returned array is only guaranteed to be
-   * the same as the length of this byte string builder immediately
-   * after a call to {@link #trimToSize()}.
+   * Note that the length of the returned array is only guaranteed to be the
+   * same as the length of this byte string builder immediately after a call to
+   * {@link #trimToSize()}.
    * <p>
-   * In addition, subsequent modifications to this byte string builder
-   * may cause the backing byte array to be reallocated thus decoupling
-   * the returned byte array from this byte string builder.
-   * 
+   * In addition, subsequent modifications to this byte string builder may cause
+   * the backing byte array to be reallocated thus decoupling the returned byte
+   * array from this byte string builder.
+   *
    * @return The byte array that backs this byte string builder.
    */
   public byte[] getBackingArray()
@@ -942,12 +955,12 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Returns a hash code for this byte string builder. It will be the
-   * sum of all of the bytes contained in the byte string builder.
+   * Returns a hash code for this byte string builder. It will be the sum of all
+   * of the bytes contained in the byte string builder.
    * <p>
-   * <b>NOTE:</b> subsequent changes to this byte string builder will
-   * invalidate the returned hash code.
-   * 
+   * <b>NOTE:</b> subsequent changes to this byte string builder will invalidate
+   * the returned hash code.
+   *
    * @return A hash code for this byte string builder.
    */
   @Override
@@ -971,29 +984,28 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * Sets the length of this byte string builder.
    * <p>
-   * If the <code>newLength</code> argument is less than the current
-   * length, the length is changed to the specified length.
+   * If the <code>newLength</code> argument is less than the current length, the
+   * length is changed to the specified length.
    * <p>
-   * If the <code>newLength</code> argument is greater than or equal to
-   * the current length, then the capacity is increased and sufficient
-   * null bytes are appended so that length becomes the
-   * <code>newLength</code> argument.
+   * If the <code>newLength</code> argument is greater than or equal to the
+   * current length, then the capacity is increased and sufficient null bytes
+   * are appended so that length becomes the <code>newLength</code> argument.
    * <p>
-   * The <code>newLength</code> argument must be greater than or equal
-   * to <code>0</code>.
-   * 
+   * The <code>newLength</code> argument must be greater than or equal to
+   * <code>0</code>.
+   *
    * @param newLength
    *          The new length.
    * @return This byte string builder.
    * @throws IndexOutOfBoundsException
    *           If the <code>newLength</code> argument is negative.
    */
-  public ByteStringBuilder setLength(int newLength)
+  public ByteStringBuilder setLength(final int newLength)
+      throws IndexOutOfBoundsException
   {
     if (newLength < 0)
     {
-      throw new IndexOutOfBoundsException("Negative newLength: "
-          + newLength);
+      throw new IndexOutOfBoundsException("Negative newLength: " + newLength);
     }
 
     if (newLength > length)
@@ -1014,32 +1026,29 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Returns a new byte sequence that is a subsequence of this byte
-   * sequence.
+   * Returns a new byte sequence that is a subsequence of this byte sequence.
    * <p>
-   * The subsequence starts with the byte value at the specified {@code
-   * start} index and ends with the byte value at index {@code end - 1}.
-   * The length (in bytes) of the returned sequence is {@code end -
-   * start}, so if {@code start == end} then an empty sequence is
-   * returned.
+   * The subsequence starts with the byte value at the specified {@code start}
+   * index and ends with the byte value at index {@code end - 1}. The length (in
+   * bytes) of the returned sequence is {@code end - start}, so if {@code start
+   * == end} then an empty sequence is returned.
    * <p>
-   * <b>NOTE:</b> the returned sub-sequence will be robust against all
-   * updates to the byte string builder except for invocations of the
-   * method {@link #clear()}. If a permanent immutable byte sequence is
-   * required then callers should invoke {@code toByteString()} on the
-   * returned byte sequence.
-   * 
+   * <b>NOTE:</b> the returned sub-sequence will be robust against all updates
+   * to the byte string builder except for invocations of the method
+   * {@link #clear()}. If a permanent immutable byte sequence is required then
+   * callers should invoke {@code toByteString()} on the returned byte sequence.
+   *
    * @param start
    *          The start index, inclusive.
    * @param end
    *          The end index, exclusive.
    * @return The newly created byte subsequence.
    * @throws IndexOutOfBoundsException
-   *           If {@code start} or {@code end} are negative, if {@code
-   *           end} is greater than {@code length()}, or if {@code
-   *           start} is greater than {@code end}.
+   *           If {@code start} or {@code end} are negative, if {@code end} is
+   *           greater than {@code length()}, or if {@code start} is greater
+   *           than {@code end}.
    */
-  public ByteSequence subSequence(int start, int end)
+  public ByteSequence subSequence(final int start, final int end)
       throws IndexOutOfBoundsException
   {
     if (start < 0 || start > end || end > length)
@@ -1063,12 +1072,11 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Returns the {@link ByteString} representation of this byte string
-   * builder. Subsequent changes to this byte string builder will not
-   * modify the returned {@link ByteString}.
-   * 
-   * @return The {@link ByteString} representation of this byte
-   *         sequence.
+   * Returns the {@link ByteString} representation of this byte string builder.
+   * Subsequent changes to this byte string builder will not modify the returned
+   * {@link ByteString}.
+   *
+   * @return The {@link ByteString} representation of this byte sequence.
    */
   public ByteString toByteString()
   {
@@ -1091,10 +1099,10 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Attempts to reduce storage used for this byte string builder. If
-   * the buffer is larger than necessary to hold its current sequence of
-   * bytes, then it may be resized to become more space efficient.
-   * 
+   * Attempts to reduce storage used for this byte string builder. If the buffer
+   * is larger than necessary to hold its current sequence of bytes, then it may
+   * be resized to become more space efficient.
+   *
    * @return This byte string builder.
    */
   public ByteStringBuilder trimToSize()

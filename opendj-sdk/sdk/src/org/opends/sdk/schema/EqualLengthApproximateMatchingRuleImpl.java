@@ -33,20 +33,20 @@ import org.opends.sdk.*;
 
 
 /**
- * This class implements an extremely simple approximate matching rule
- * that will consider two values approximately equal only if they have
- * the same length. It is intended purely for testing purposes.
+ * This class implements an extremely simple approximate matching rule that will
+ * consider two values approximately equal only if they have the same length. It
+ * is intended purely for testing purposes.
  */
 final class EqualLengthApproximateMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
   @Override
-  public Assertion getAssertion(Schema schema, final ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         return attributeValue.length() == value.length() ? ConditionResult.TRUE
             : ConditionResult.FALSE;
@@ -59,8 +59,8 @@ final class EqualLengthApproximateMatchingRuleImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return value.toByteString();
   }

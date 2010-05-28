@@ -62,8 +62,7 @@ public class CaseIgnoreOrderingMatchingRuleTest extends
   {
     return new Object[][] { { "12345678", "02345678", 1 },
         { "abcdef", "bcdefa", -1 }, { "abcdef", "abcdef", 0 },
-        { "abcdef", "ABCDEF", 0 },
-        { "abcdef", "aCcdef", -1 },
+        { "abcdef", "ABCDEF", 0 }, { "abcdef", "aCcdef", -1 },
         { "aCcdef", "abcdef", 1 },
         { "foo\u0020bar\u0020\u0020", "foo bar", 0 },
         { "test\u00AD\u200D", "test", 0 },

@@ -29,11 +29,14 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-import org.opends.sdk.controls.Control;
+import java.util.List;
 
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
@@ -41,26 +44,18 @@ import org.opends.sdk.controls.Control;
  * The simple authentication method of the Bind Operation provides three
  * authentication mechanisms:
  * <ul>
- * <li>An anonymous authentication mechanism, in which both the name
- * (the bind DN) and password are zero length.
- * <li>An unauthenticated authentication mechanism using credentials
- * consisting of a name (the bind DN) and a zero length password.
- * <li>A name/password authentication mechanism using credentials
- * consisting of a name (the bind DN) and a password.
+ * <li>An anonymous authentication mechanism, in which both the name and
+ * password are zero length.
+ * <li>An unauthenticated authentication mechanism using credentials consisting
+ * of a name and a zero length password.
+ * <li>A name/password authentication mechanism using credentials consisting of
+ * a name and a password.
  * </ul>
  */
 public interface SimpleBindRequest extends BindRequest
 {
   /**
-   * Adds the provided control to this request.
-   * 
-   * @param control
-   *          The control to be added to this request.
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * {@inheritDoc}
    */
   SimpleBindRequest addControl(Control control)
       throws UnsupportedOperationException, NullPointerException;
@@ -68,163 +63,105 @@ public interface SimpleBindRequest extends BindRequest
 
 
   /**
-   * Removes all the controls included with this request.
-   * 
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
+   * {@inheritDoc}
    */
-  SimpleBindRequest clearControls()
-      throws UnsupportedOperationException;
+  BindClient createBindClient(String serverName) throws ErrorResultException;
 
 
 
   /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this request.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * Returns the authentication mechanism identifier for this simple bind
+   * request as defined by the LDAP protocol, which is always {@code 0x80}.
+   *
+   * @return The authentication mechanism identifier.
    */
-  Control getControl(String oid) throws NullPointerException;
-
-
-
-  /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   * 
-   * @return An {@code Iterable} containing the controls.
-   */
-  Iterable<Control> getControls();
+  byte getAuthenticationType();
 
 
 
   /**
    * {@inheritDoc}
    */
-  DN getName();
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
-   * Returns the password of the Directory object that the client wishes
-   * to bind as. The password may be empty (but never {@code null}) when
-   * used for of anonymous or unauthenticated binds.
-   * 
-   * @return The password of the Directory object that the client wishes
-   *         to bind as.
+   * {@inheritDoc}
+   */
+  List<Control> getControls();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  String getName();
+
+
+
+  /**
+   * Returns the password of the Directory object that the client wishes to bind
+   * as. The password may be empty (but never {@code null}) when used for of
+   * anonymous or unauthenticated binds.
+   *
+   * @return The password of the Directory object that the client wishes to bind
+   *         as.
    */
   ByteString getPassword();
 
 
 
   /**
-   * Returns the password of the Directory object that the client wishes
-   * to bind as decoded as a UTF-8 string. The password may be empty
-   * (but never {@code null}) when used for of anonymous or
-   * unauthenticated binds.
-   * 
-   * @return The password of the Directory object that the client wishes
-   *         to bind as decoded as a UTF-8 string.
+   * Returns the password of the Directory object that the client wishes to bind
+   * as decoded as a UTF-8 string. The password may be empty (but never {@code
+   * null}) when used for of anonymous or unauthenticated binds.
+   *
+   * @return The password of the Directory object that the client wishes to bind
+   *         as decoded as a UTF-8 string.
    */
   String getPasswordAsString();
 
 
 
   /**
-   * Indicates whether or not this request has any controls.
-   * 
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Sets the distinguished name of the Directory object that the client
-   * wishes to bind as. The distinguished name may be empty (but never
-   * {@code null} when used for of anonymous binds, or when using SASL
-   * authentication. The server shall not dereference any aliases in
-   * locating the named object.
-   * 
-   * @param dn
-   *          The distinguished name of the Directory object that the
-   *          client wishes to bind as.
+   * Sets the name of the Directory object that the client wishes to bind as.
+   * The name may be empty (but never {@code null} when used for of anonymous
+   * binds, or when using SASL authentication. The server shall not dereference
+   * any aliases in locating the named object.
+   * <p>
+   * The LDAP protocol defines the Bind name to be a distinguished name, however
+   * some LDAP implementations have relaxed this constraint and allow other
+   * identities to be used, such as the user's email address.
+   *
+   * @param name
+   *          The name of the Directory object that the client wishes to bind
+   *          as.
    * @return This bind request.
    * @throws UnsupportedOperationException
-   *           If this bind request does not permit the distinguished
-   *           name to be set.
+   *           If this bind request does not permit the distinguished name to be
+   *           set.
    * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
+   *           If {@code name} was {@code null}.
    */
-  SimpleBindRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException;
+  SimpleBindRequest setName(String name) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Sets the distinguished name of the Directory object that the client
-   * wishes to bind as. The distinguished name may be empty (but never
-   * {@code null} when used for of anonymous binds, or when using SASL
-   * authentication. The server shall not dereference any aliases in
-   * locating the named object.
-   * 
-   * @param dn
-   *          The distinguished name of the Directory object that the
-   *          client wishes to bind as.
-   * @return This bind request.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} could not be decoded using the default
-   *           schema.
-   * @throws UnsupportedOperationException
-   *           If this bind request does not permit the distinguished
-   *           name to be set.
-   * @throws NullPointerException
-   *           If {@code dn} was {@code null}.
-   */
-  SimpleBindRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Sets the password of the Directory object that the client wishes to
-   * bind as. The password may be empty (but never {@code null}) when
-   * used for of anonymous or unauthenticated binds.
-   * 
+   * Sets the password of the Directory object that the client wishes to bind
+   * as. The password may be empty (but never {@code null}) when used for of
+   * anonymous or unauthenticated binds.
+   *
    * @param password
-   *          The password of the Directory object that the client
-   *          wishes to bind as, which may be empty.
+   *          The password of the Directory object that the client wishes to
+   *          bind as, which may be empty.
    * @return This simple bind request.
    * @throws UnsupportedOperationException
-   *           If this simple bind request does not permit the password
-   *           to be set.
+   *           If this simple bind request does not permit the password to be
+   *           set.
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
@@ -234,18 +171,18 @@ public interface SimpleBindRequest extends BindRequest
 
 
   /**
-   * Sets the password of the Directory object that the client wishes to
-   * bind as. The password will be converted to a UTF-8 octet string.
-   * The password may be empty (but never {@code null}) when used for of
-   * anonymous or unauthenticated binds.
-   * 
+   * Sets the password of the Directory object that the client wishes to bind
+   * as. The password will be converted to a UTF-8 octet string. The password
+   * may be empty (but never {@code null}) when used for of anonymous or
+   * unauthenticated binds.
+   *
    * @param password
-   *          The password of the Directory object that the client
-   *          wishes to bind as, which may be empty.
+   *          The password of the Directory object that the client wishes to
+   *          bind as, which may be empty.
    * @return This simple bind request.
    * @throws UnsupportedOperationException
-   *           If this simple bind request does not permit the password
-   *           to be set.
+   *           If this simple bind request does not permit the password to be
+   *           set.
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */

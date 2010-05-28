@@ -30,19 +30,19 @@ package org.opends.sdk.schema;
 
 
 /**
- * This class provides various schema compatibility options which may be
- * used to facilitate interoperability with legacy LDAP applications.
+ * This class provides various schema compatibility options which may be used to
+ * facilitate interoperability with legacy LDAP applications.
  */
 public final class SchemaCompatOptions
 {
   /**
    * Creates a copy of the provided schema compatibility options.
-   * 
+   *
    * @param options
    *          The options to be copied.
    * @return The copy of the provided schema compatibility options.
    */
-  public static SchemaCompatOptions copyOf(SchemaCompatOptions options)
+  public static SchemaCompatOptions copyOf(final SchemaCompatOptions options)
   {
     return defaultOptions().assign(options);
   }
@@ -50,15 +50,16 @@ public final class SchemaCompatOptions
 
 
   /**
-   * Creates a new set of schema compatibility options with default
-   * settings.
-   * 
+   * Creates a new set of schema compatibility options with default settings.
+   *
    * @return The new schema compatibility options.
    */
   public static SchemaCompatOptions defaultOptions()
   {
     return new SchemaCompatOptions();
   }
+
+
 
   private boolean isTelephoneNumberSyntaxStrict = false;
 
@@ -75,14 +76,13 @@ public final class SchemaCompatOptions
 
 
   /**
-   * Indicates whether or not the Telephone Number syntax should ensure
-   * that all values conform to the E.123 international telephone number
-   * format. By default this compatibility option is set to {@code
-   * false}.
-   * 
-   * @return {@code true} if the Telephone Number syntax should ensure
-   *         that all values conform to the E.123 international
-   *         telephone number format, or {@code false} if not.
+   * Indicates whether or not the Telephone Number syntax should ensure that all
+   * values conform to the E.123 international telephone number format. By
+   * default this compatibility option is set to {@code false}.
+   *
+   * @return {@code true} if the Telephone Number syntax should ensure that all
+   *         values conform to the E.123 international telephone number format,
+   *         or {@code false} if not.
    */
   public boolean isTelephoneNumberSyntaxStrict()
   {
@@ -94,13 +94,13 @@ public final class SchemaCompatOptions
   /**
    * Indicates whether or not zero-length values will be allowed by the
    * Directory String syntax. This is technically forbidden by the LDAP
-   * specification, but it was allowed in earlier versions of the
-   * server, and the discussion of the directory string syntax in RFC
-   * 2252 does not explicitly state that they are not allowed. By
-   * default this compatibility option is set to {@code false}.
-   * 
-   * @return {@code true} if zero-length values will be allowed by the
-   *         Directory String syntax, or {@code false} if not.
+   * specification, but it was allowed in earlier versions of the server, and
+   * the discussion of the directory string syntax in RFC 2252 does not
+   * explicitly state that they are not allowed. By default this compatibility
+   * option is set to {@code false}.
+   *
+   * @return {@code true} if zero-length values will be allowed by the Directory
+   *         String syntax, or {@code false} if not.
    */
   public boolean isZeroLengthDirectoryStringsAllowed()
   {
@@ -110,19 +110,18 @@ public final class SchemaCompatOptions
 
 
   /**
-   * Indicates whether or not the Telephone Number syntax should ensure
-   * that all values conform to the E.123 international telephone number
-   * format. By default this compatibility option is set to {@code
-   * false}.
-   * 
+   * Indicates whether or not the Telephone Number syntax should ensure that all
+   * values conform to the E.123 international telephone number format. By
+   * default this compatibility option is set to {@code false}.
+   *
    * @param isStrict
-   *          {@code true} if the Telephone Number syntax should ensure
-   *          that all values conform to the E.123 international
-   *          telephone number format, or {@code false} if not.
+   *          {@code true} if the Telephone Number syntax should ensure that all
+   *          values conform to the E.123 international telephone number format,
+   *          or {@code false} if not.
    * @return A reference to this {@code SchemaCompat}.
    */
   public SchemaCompatOptions setTelephoneNumberSyntaxStrict(
-      boolean isStrict)
+      final boolean isStrict)
   {
     this.isTelephoneNumberSyntaxStrict = isStrict;
     return this;
@@ -133,18 +132,18 @@ public final class SchemaCompatOptions
   /**
    * Specifies whether or not zero-length values will be allowed by the
    * Directory String syntax. This is technically forbidden by the LDAP
-   * specification, but it was allowed in earlier versions of the
-   * server, and the discussion of the directory string syntax in RFC
-   * 2252 does not explicitly state that they are not allowed. By
-   * default this compatibility option is set to {@code false}.
-   * 
+   * specification, but it was allowed in earlier versions of the server, and
+   * the discussion of the directory string syntax in RFC 2252 does not
+   * explicitly state that they are not allowed. By default this compatibility
+   * option is set to {@code false}.
+   *
    * @param isAllowed
    *          {@code true} if zero-length values will be allowed by the
    *          Directory String syntax, or {@code false} if not.
    * @return A reference to this {@code SchemaCompat}.
    */
   public SchemaCompatOptions setZeroLengthDirectoryStringsAllowed(
-      boolean isAllowed)
+      final boolean isAllowed)
   {
     this.isZeroLengthDirectoryStringsAllowed = isAllowed;
     return this;
@@ -153,10 +152,9 @@ public final class SchemaCompatOptions
 
 
   // Assigns the provided options to this set of options.
-  SchemaCompatOptions assign(SchemaCompatOptions options)
+  SchemaCompatOptions assign(final SchemaCompatOptions options)
   {
-    return setTelephoneNumberSyntaxStrict(
-        options.isTelephoneNumberSyntaxStrict)
+    return setTelephoneNumberSyntaxStrict(options.isTelephoneNumberSyntaxStrict)
         .setZeroLengthDirectoryStringsAllowed(
             options.isZeroLengthDirectoryStringsAllowed);
   }

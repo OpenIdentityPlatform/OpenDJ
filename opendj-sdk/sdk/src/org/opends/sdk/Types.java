@@ -34,9 +34,11 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.opends.sdk.schema.AttributeType;
-import org.opends.sdk.schema.ObjectClass;
 
-import com.sun.opends.sdk.util.*;
+import com.sun.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Iterables;
+import com.sun.opends.sdk.util.Iterators;
+import com.sun.opends.sdk.util.Validator;
 
 
 
@@ -57,14 +59,15 @@ public final class Types
 
 
 
-    private EmptyAttribute(AttributeDescription attributeDescription)
+    private EmptyAttribute(final AttributeDescription attributeDescription)
     {
       this.attributeDescription = attributeDescription;
     }
 
 
 
-    public boolean add(ByteString value)
+    @Override
+    public boolean add(final ByteString value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -72,6 +75,7 @@ public final class Types
 
 
 
+    @Override
     public void clear() throws UnsupportedOperationException
     {
       throw new UnsupportedOperationException();
@@ -79,6 +83,15 @@ public final class Types
 
 
 
+    @Override
+    public boolean contains(final Object value) throws NullPointerException
+    {
+      return false;
+    }
+
+
+
+    @Override
     public AttributeDescription getAttributeDescription()
     {
       return attributeDescription;
@@ -86,6 +99,7 @@ public final class Types
 
 
 
+    @Override
     public boolean isEmpty()
     {
       return true;
@@ -93,6 +107,7 @@ public final class Types
 
 
 
+    @Override
     public Iterator<ByteString> iterator()
     {
       return Iterators.empty();
@@ -100,24 +115,19 @@ public final class Types
 
 
 
-    public int size()
-    {
-      return 0;
-    }
-
-
-
-    public boolean contains(Object value) throws NullPointerException
-    {
-      return false;
-    }
-
-
-
-    public boolean remove(Object value)
+    @Override
+    public boolean remove(final Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
+    }
+
+
+
+    @Override
+    public int size()
+    {
+      return 0;
     }
 
   }
@@ -136,8 +146,8 @@ public final class Types
 
 
 
-    private RenamedAttribute(Attribute attribute,
-        AttributeDescription attributeDescription)
+    private RenamedAttribute(final Attribute attribute,
+        final AttributeDescription attributeDescription)
     {
       this.attribute = attribute;
       this.attributeDescription = attributeDescription;
@@ -145,7 +155,7 @@ public final class Types
 
 
 
-    public boolean add(ByteString value)
+    public boolean add(final ByteString value)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.add(value);
@@ -153,7 +163,7 @@ public final class Types
 
 
 
-    public boolean add(Object firstValue, Object... remainingValues)
+    public boolean add(final Object firstValue, final Object... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.add(firstValue, remainingValues);
@@ -161,7 +171,7 @@ public final class Types
 
 
 
-    public boolean addAll(Collection<? extends ByteString> values)
+    public boolean addAll(final Collection<? extends ByteString> values)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.addAll(values);
@@ -169,8 +179,8 @@ public final class Types
 
 
 
-    public boolean addAll(Collection<? extends ByteString> values,
-        Collection<? super ByteString> duplicateValues)
+    public boolean addAll(final Collection<? extends ByteString> values,
+        final Collection<? super ByteString> duplicateValues)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.addAll(values, duplicateValues);
@@ -185,14 +195,14 @@ public final class Types
 
 
 
-    public boolean contains(Object value) throws NullPointerException
+    public boolean contains(final Object value) throws NullPointerException
     {
       return attribute.contains(value);
     }
 
 
 
-    public boolean containsAll(Collection<?> values)
+    public boolean containsAll(final Collection<?> values)
         throws NullPointerException
     {
       return attribute.containsAll(values);
@@ -200,7 +210,8 @@ public final class Types
 
 
 
-    public boolean equals(Object object)
+    @Override
+    public boolean equals(final Object object)
     {
       return AbstractAttribute.equals(this, object);
     }
@@ -235,6 +246,7 @@ public final class Types
 
 
 
+    @Override
     public int hashCode()
     {
       return AbstractAttribute.hashCode(this);
@@ -256,7 +268,7 @@ public final class Types
 
 
 
-    public boolean remove(Object value)
+    public boolean remove(final Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.remove(value);
@@ -264,7 +276,7 @@ public final class Types
 
 
 
-    public boolean removeAll(Collection<?> values)
+    public boolean removeAll(final Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.removeAll(values);
@@ -272,8 +284,8 @@ public final class Types
 
 
 
-    public <T> boolean removeAll(Collection<T> values,
-        Collection<? super T> missingValues)
+    public <T> boolean removeAll(final Collection<T> values,
+        final Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.removeAll(values, missingValues);
@@ -281,7 +293,7 @@ public final class Types
 
 
 
-    public boolean retainAll(Collection<?> values)
+    public boolean retainAll(final Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.retainAll(values);
@@ -289,8 +301,8 @@ public final class Types
 
 
 
-    public <T> boolean retainAll(Collection<T> values,
-        Collection<? super T> missingValues)
+    public <T> boolean retainAll(final Collection<T> values,
+        final Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       return attribute.retainAll(values, missingValues);
@@ -312,7 +324,7 @@ public final class Types
 
 
 
-    public <T> T[] toArray(T[] array) throws ArrayStoreException,
+    public <T> T[] toArray(final T[] array) throws ArrayStoreException,
         NullPointerException
     {
       return attribute.toArray(array);
@@ -320,6 +332,7 @@ public final class Types
 
 
 
+    @Override
     public String toString()
     {
       return AbstractAttribute.toString(this);
@@ -339,14 +352,14 @@ public final class Types
 
 
 
-    private UnmodifiableAttribute(Attribute attribute)
+    private UnmodifiableAttribute(final Attribute attribute)
     {
       this.attribute = attribute;
     }
 
 
 
-    public boolean add(ByteString value)
+    public boolean add(final ByteString value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -354,7 +367,7 @@ public final class Types
 
 
 
-    public boolean add(Object firstValue, Object... remainingValues)
+    public boolean add(final Object firstValue, final Object... remainingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -362,7 +375,7 @@ public final class Types
 
 
 
-    public boolean addAll(Collection<? extends ByteString> values)
+    public boolean addAll(final Collection<? extends ByteString> values)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -370,8 +383,8 @@ public final class Types
 
 
 
-    public boolean addAll(Collection<? extends ByteString> values,
-        Collection<? super ByteString> duplicateValues)
+    public boolean addAll(final Collection<? extends ByteString> values,
+        final Collection<? super ByteString> duplicateValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -386,14 +399,14 @@ public final class Types
 
 
 
-    public boolean contains(Object value) throws NullPointerException
+    public boolean contains(final Object value) throws NullPointerException
     {
       return attribute.contains(value);
     }
 
 
 
-    public boolean containsAll(Collection<?> values)
+    public boolean containsAll(final Collection<?> values)
         throws NullPointerException
     {
       return attribute.containsAll(values);
@@ -401,7 +414,8 @@ public final class Types
 
 
 
-    public boolean equals(Object object)
+    @Override
+    public boolean equals(final Object object)
     {
       return (object == this || attribute.equals(object));
     }
@@ -436,6 +450,7 @@ public final class Types
 
 
 
+    @Override
     public int hashCode()
     {
       return attribute.hashCode();
@@ -457,7 +472,7 @@ public final class Types
 
 
 
-    public boolean remove(Object value)
+    public boolean remove(final Object value)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -465,7 +480,7 @@ public final class Types
 
 
 
-    public boolean removeAll(Collection<?> values)
+    public boolean removeAll(final Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -473,8 +488,8 @@ public final class Types
 
 
 
-    public <T> boolean removeAll(Collection<T> values,
-        Collection<? super T> missingValues)
+    public <T> boolean removeAll(final Collection<T> values,
+        final Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -482,7 +497,7 @@ public final class Types
 
 
 
-    public boolean retainAll(Collection<?> values)
+    public boolean retainAll(final Collection<?> values)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -490,8 +505,8 @@ public final class Types
 
 
 
-    public <T> boolean retainAll(Collection<T> values,
-        Collection<? super T> missingValues)
+    public <T> boolean retainAll(final Collection<T> values,
+        final Collection<? super T> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -513,7 +528,7 @@ public final class Types
 
 
 
-    public <T> T[] toArray(T[] array) throws ArrayStoreException,
+    public <T> T[] toArray(final T[] array) throws ArrayStoreException,
         NullPointerException
     {
       return attribute.toArray(array);
@@ -521,6 +536,7 @@ public final class Types
 
 
 
+    @Override
     public String toString()
     {
       return attribute.toString();
@@ -536,7 +552,7 @@ public final class Types
 
 
 
-    private UnmodifiableEntry(Entry entry)
+    private UnmodifiableEntry(final Entry entry)
     {
       this.entry = entry;
     }
@@ -546,8 +562,7 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public boolean addAttribute(Attribute attribute,
-        Collection<ByteString> duplicateValues)
+    public boolean addAttribute(final Attribute attribute)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -558,7 +573,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public boolean addAttribute(Attribute attribute)
+    public boolean addAttribute(final Attribute attribute,
+        final Collection<ByteString> duplicateValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -569,8 +585,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Entry addAttribute(String attributeDescription,
-        Object... values) throws LocalizedIllegalArgumentException,
+    public Entry addAttribute(final String attributeDescription,
+        final Object... values) throws LocalizedIllegalArgumentException,
         UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -585,10 +601,19 @@ public final class Types
 
 
 
-    public boolean containsAttribute(
-        AttributeDescription attributeDescription)
+    public boolean containsAttribute(final Attribute attribute,
+        final Collection<ByteString> missingValues) throws NullPointerException
     {
-      return entry.containsAttribute(attributeDescription);
+      return entry.containsAttribute(attribute, missingValues);
+    }
+
+
+
+    public boolean containsAttribute(final String attributeDescription,
+        final Object... values) throws LocalizedIllegalArgumentException,
+        NullPointerException
+    {
+      return entry.containsAttribute(attributeDescription, values);
     }
 
 
@@ -596,43 +621,27 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public boolean containsAttribute(String attributeDescription)
-        throws LocalizedIllegalArgumentException, NullPointerException
-    {
-      return entry.containsAttribute(attributeDescription);
-    }
-
-
-
-    public boolean containsObjectClass(ObjectClass objectClass)
-    {
-      return entry.containsObjectClass(objectClass);
-    }
-
-
-
-    public boolean containsObjectClass(String objectClass)
-    {
-      return entry.containsObjectClass(objectClass);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean equals(Object object)
+    @Override
+    public boolean equals(final Object object)
     {
       return (object == this || entry.equals(object));
     }
 
 
 
-    public Iterable<Attribute> findAttributes(
-        AttributeDescription attributeDescription)
+    public Iterable<Attribute> getAllAttributes()
     {
       return Iterables.unmodifiable(Iterables.transform(entry
-          .findAttributes(attributeDescription),
+          .getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
+    }
+
+
+
+    public Iterable<Attribute> getAllAttributes(
+        final AttributeDescription attributeDescription)
+    {
+      return Iterables.unmodifiable(Iterables.transform(entry
+          .getAllAttributes(attributeDescription),
           UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
@@ -641,21 +650,21 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Iterable<Attribute> findAttributes(
-        String attributeDescription)
+    public Iterable<Attribute> getAllAttributes(
+        final String attributeDescription)
         throws LocalizedIllegalArgumentException, NullPointerException
     {
       return Iterables.unmodifiable(Iterables.transform(entry
-          .findAttributes(attributeDescription),
+          .getAllAttributes(attributeDescription),
           UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
 
 
     public Attribute getAttribute(
-        AttributeDescription attributeDescription)
+        final AttributeDescription attributeDescription)
     {
-      Attribute attribute = entry.getAttribute(attributeDescription);
+      final Attribute attribute = entry.getAttribute(attributeDescription);
       if (attribute != null)
       {
         return unmodifiableAttribute(attribute);
@@ -671,10 +680,10 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Attribute getAttribute(String attributeDescription)
+    public Attribute getAttribute(final String attributeDescription)
         throws LocalizedIllegalArgumentException, NullPointerException
     {
-      Attribute attribute = entry.getAttribute(attributeDescription);
+      final Attribute attribute = entry.getAttribute(attributeDescription);
       if (attribute != null)
       {
         return unmodifiableAttribute(attribute);
@@ -694,14 +703,6 @@ public final class Types
 
 
 
-    public Iterable<Attribute> getAttributes()
-    {
-      return Iterables.unmodifiable(Iterables.transform(entry
-          .getAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
-    }
-
-
-
     /**
      * {@inheritDoc}
      */
@@ -712,16 +713,10 @@ public final class Types
 
 
 
-    public Iterable<String> getObjectClasses()
-    {
-      return Iterables.unmodifiable(entry.getObjectClasses());
-    }
-
-
-
     /**
      * {@inheritDoc}
      */
+    @Override
     public int hashCode()
     {
       return entry.hashCode();
@@ -732,8 +727,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public boolean removeAttribute(Attribute attribute,
-        Collection<ByteString> missingValues)
+    public boolean removeAttribute(final Attribute attribute,
+        final Collection<ByteString> missingValues)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -742,7 +737,7 @@ public final class Types
 
 
     public boolean removeAttribute(
-        AttributeDescription attributeDescription)
+        final AttributeDescription attributeDescription)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -753,8 +748,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Entry removeAttribute(String attributeDescription)
-        throws LocalizedIllegalArgumentException,
+    public Entry removeAttribute(final String attributeDescription,
+        final Object... values) throws LocalizedIllegalArgumentException,
         UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -765,19 +760,7 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Entry removeAttribute(String attributeDescription,
-        Object... values) throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean replaceAttribute(Attribute attribute)
+    public boolean replaceAttribute(final Attribute attribute)
         throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -788,8 +771,8 @@ public final class Types
     /**
      * {@inheritDoc}
      */
-    public Entry replaceAttribute(String attributeDescription,
-        Object... values) throws LocalizedIllegalArgumentException,
+    public Entry replaceAttribute(final String attributeDescription,
+        final Object... values) throws LocalizedIllegalArgumentException,
         UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -797,19 +780,7 @@ public final class Types
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public Entry setName(String dn)
-        throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    public Entry setName(DN dn) throws UnsupportedOperationException,
+    public Entry setName(final DN dn) throws UnsupportedOperationException,
         NullPointerException
     {
       throw new UnsupportedOperationException();
@@ -820,6 +791,19 @@ public final class Types
     /**
      * {@inheritDoc}
      */
+    public Entry setName(final String dn)
+        throws LocalizedIllegalArgumentException,
+        UnsupportedOperationException, NullPointerException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String toString()
     {
       return entry.toString();
@@ -829,10 +813,11 @@ public final class Types
 
 
 
-  private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION = new Function<Attribute, Attribute, Void>()
+  private static final Function<Attribute, Attribute, Void>
+    UNMODIFIABLE_ATTRIBUTE_FUNCTION = new Function<Attribute, Attribute, Void>()
   {
 
-    public Attribute apply(Attribute value, Void p)
+    public Attribute apply(final Attribute value, final Void p)
     {
       return unmodifiableAttribute(value);
     }
@@ -852,7 +837,7 @@ public final class Types
    *           If {@code attributeDescription} was {@code null}.
    */
   public static final Attribute emptyAttribute(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
       throws NullPointerException
   {
     return new EmptyAttribute(attributeDescription);
@@ -862,31 +847,29 @@ public final class Types
 
   /**
    * Returns a view of {@code attribute} having a different attribute
-   * description. All operations on the returned attribute
-   * "pass-through" to the underlying attribute.
+   * description. All operations on the returned attribute "pass-through" to the
+   * underlying attribute.
    *
    * @param attribute
    *          The attribute to be renamed.
    * @param attributeDescription
-   *          The new attribute description for {@code attribute}, which
-   *          must be compatible with {@code attribute}'s attribute
-   *          description.
+   *          The new attribute description for {@code attribute}, which must be
+   *          compatible with {@code attribute}'s attribute description.
    * @return A renamed view of {@code attribute}.
    * @throws IllegalArgumentException
-   *           If {@code attributeDescription} does not have the same
-   *           attribute type as {@code attribute}'s attribute
-   *           description.
+   *           If {@code attributeDescription} does not have the same attribute
+   *           type as {@code attribute}'s attribute description.
    * @throws NullPointerException
-   *           If {@code attribute} or {@code attributeDescription} was
-   *           {@code null}.
+   *           If {@code attribute} or {@code attributeDescription} was {@code
+   *           null}.
    */
-  public static final Attribute renameAttribute(Attribute attribute,
-      AttributeDescription attributeDescription)
+  public static final Attribute renameAttribute(final Attribute attribute,
+      final AttributeDescription attributeDescription)
       throws IllegalArgumentException, NullPointerException
   {
-    AttributeType oldType = attribute.getAttributeDescription()
+    final AttributeType oldType = attribute.getAttributeDescription()
         .getAttributeType();
-    AttributeType newType = attributeDescription.getAttributeType();
+    final AttributeType newType = attributeDescription.getAttributeType();
 
     // We could relax a bit by ensuring that they are both compatible
     // (e.g. one sub-type of another, or same equality matching rule,
@@ -900,21 +883,19 @@ public final class Types
 
 
   /**
-   * Returns a read-only view of {@code attribute}. Query operations on
-   * the returned attribute "read-through" to the underlying attribute,
-   * and attempts to modify the returned attribute either directly or
-   * indirectly via an iterator result in an {@code
-   * UnsupportedOperationException}.
+   * Returns a read-only view of {@code attribute}. Query operations on the
+   * returned attribute "read-through" to the underlying attribute, and attempts
+   * to modify the returned attribute either directly or indirectly via an
+   * iterator result in an {@code UnsupportedOperationException}.
    *
    * @param attribute
-   *          The attribute for which a read-only view is to be
-   *          returned.
+   *          The attribute for which a read-only view is to be returned.
    * @return A read-only view of {@code attribute}.
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  public static final Attribute unmodifiableAttribute(
-      Attribute attribute) throws NullPointerException
+  public static final Attribute unmodifiableAttribute(final Attribute attribute)
+      throws NullPointerException
   {
     return new UnmodifiableAttribute(attribute);
   }
@@ -923,10 +904,10 @@ public final class Types
 
   /**
    * Returns a read-only view of {@code entry} and its attributes. Query
-   * operations on the returned entry and its attributes"read-through"
-   * to the underlying entry or attribute, and attempts to modify the
-   * returned entry and its attributes either directly or indirectly via
-   * an iterator result in an {@code UnsupportedOperationException}.
+   * operations on the returned entry and its attributes"read-through" to the
+   * underlying entry or attribute, and attempts to modify the returned entry
+   * and its attributes either directly or indirectly via an iterator result in
+   * an {@code UnsupportedOperationException}.
    *
    * @param entry
    *          The entry for which a read-only view is to be returned.
@@ -934,7 +915,7 @@ public final class Types
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public static final Entry unmodifiableEntry(Entry entry)
+  public static final Entry unmodifiableEntry(final Entry entry)
       throws NullPointerException
   {
     return new UnmodifiableEntry(entry);

@@ -30,7 +30,7 @@ package org.opends.sdk;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.*;
 
@@ -38,19 +38,20 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.*;
+import com.sun.opends.sdk.util.ASCIICharProp;
+import com.sun.opends.sdk.util.Iterators;
+import com.sun.opends.sdk.util.Validator;
 
 
 
 /**
- * An attribute description as defined in RFC 4512 section 2.5.
- * Attribute descriptions are used to identify an attribute in an entry
- * and are composed of an attribute type and a set of zero or more
- * attribute options.
+ * An attribute description as defined in RFC 4512 section 2.5. Attribute
+ * descriptions are used to identify an attribute in an entry and are composed
+ * of an attribute type and a set of zero or more attribute options.
  *
- * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.5">RFC
- *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
- *      Information Models </a>
+ * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.5">RFC 4512 -
+ *      Lightweight Directory Access Protocol (LDAP): Directory Information
+ *      Models </a>
  */
 public final class AttributeDescription implements
     Comparable<AttributeDescription>
@@ -112,7 +113,8 @@ public final class AttributeDescription implements
 
 
 
-    private MultiOptionImpl(String[] options, String[] normalizedOptions)
+    private MultiOptionImpl(final String[] options,
+        final String[] normalizedOptions)
     {
       if (normalizedOptions.length < 2)
       {
@@ -126,7 +128,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public int compareTo(Impl other)
+    public int compareTo(final Impl other)
     {
       final int thisSize = normalizedOptions.length;
       final int otherSize = other.size();
@@ -162,7 +164,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean containsOption(String normalizedOption)
+    public boolean containsOption(final String normalizedOption)
     {
       final int sz = normalizedOptions.length;
       for (int i = 0; i < sz; i++)
@@ -178,7 +180,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean equals(Impl other)
+    public boolean equals(final Impl other)
     {
       if (other instanceof MultiOptionImpl)
       {
@@ -218,7 +220,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSubTypeOf(Impl other)
+    public boolean isSubTypeOf(final Impl other)
     {
       // Must contain a super-set of other's options.
       if (other == ZERO_OPTION_IMPL)
@@ -254,7 +256,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSuperTypeOf(Impl other)
+    public boolean isSuperTypeOf(final Impl other)
     {
       // Must contain a sub-set of other's options.
       for (final String normalizedOption : normalizedOptions)
@@ -295,7 +297,7 @@ public final class AttributeDescription implements
 
 
 
-    private SingleOptionImpl(String option, String normalizedOption)
+    private SingleOptionImpl(final String option, final String normalizedOption)
     {
       this.option = option;
       this.normalizedOption = normalizedOption;
@@ -304,7 +306,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public int compareTo(Impl other)
+    public int compareTo(final Impl other)
     {
       if (other == ZERO_OPTION_IMPL)
       {
@@ -314,8 +316,7 @@ public final class AttributeDescription implements
       else if (other.size() == 1)
       {
         // Same number of options, so compare.
-        return normalizedOption
-            .compareTo(other.firstNormalizedOption());
+        return normalizedOption.compareTo(other.firstNormalizedOption());
       }
       else
       {
@@ -327,7 +328,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean containsOption(String normalizedOption)
+    public boolean containsOption(final String normalizedOption)
     {
       return this.normalizedOption.equals(normalizedOption);
     }
@@ -335,10 +336,9 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean equals(Impl other)
+    public boolean equals(final Impl other)
     {
-      return other.size() == 1
-          && other.containsOption(normalizedOption);
+      return other.size() == 1 && other.containsOption(normalizedOption);
     }
 
 
@@ -368,7 +368,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSubTypeOf(Impl other)
+    public boolean isSubTypeOf(final Impl other)
     {
       // Other must have no options or the same option.
       if (other == ZERO_OPTION_IMPL)
@@ -384,7 +384,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSuperTypeOf(Impl other)
+    public boolean isSuperTypeOf(final Impl other)
     {
       // Other must have this option.
       return other.containsOption(normalizedOption);
@@ -419,7 +419,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public int compareTo(Impl other)
+    public int compareTo(final Impl other)
     {
       // If other has options then this sorts before.
       return this == other ? 0 : -1;
@@ -428,7 +428,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean containsOption(String normalizedOption)
+    public boolean containsOption(final String normalizedOption)
     {
       return false;
     }
@@ -436,7 +436,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean equals(Impl other)
+    public boolean equals(final Impl other)
     {
       return this == other;
     }
@@ -470,7 +470,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSubTypeOf(Impl other)
+    public boolean isSubTypeOf(final Impl other)
     {
       // Can only be a sub-type if other has no options.
       return this == other;
@@ -479,7 +479,7 @@ public final class AttributeDescription implements
 
 
     @Override
-    public boolean isSuperTypeOf(Impl other)
+    public boolean isSuperTypeOf(final Impl other)
     {
       // Will always be a super-type.
       return true;
@@ -504,7 +504,9 @@ public final class AttributeDescription implements
 
 
 
-  private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE = new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>()
+  private static final ThreadLocal<WeakHashMap<
+    Schema, Map<String, AttributeDescription>>> CACHE =
+      new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>()
   {
 
     /**
@@ -526,8 +528,8 @@ public final class AttributeDescription implements
   {
     final AttributeType attributeType = Schema.getCoreSchema()
         .getAttributeType("2.5.4.0");
-    OBJECT_CLASS = new AttributeDescription(attributeType
-        .getNameOrOID(), attributeType, ZERO_OPTION_IMPL);
+    OBJECT_CLASS = new AttributeDescription(attributeType.getNameOrOID(),
+        attributeType, ZERO_OPTION_IMPL);
   }
 
   // This is the size of the per-thread per-schema attribute description
@@ -538,9 +540,9 @@ public final class AttributeDescription implements
 
 
   /**
-   * Creates an attribute description having the same attribute type and
-   * options as the provided attribute description and, in addition, the
-   * provided list of options.
+   * Creates an attribute description having the same attribute type and options
+   * as the provided attribute description and, in addition, the provided list
+   * of options.
    *
    * @param attributeDescription
    *          The attribute description.
@@ -548,11 +550,11 @@ public final class AttributeDescription implements
    *          The attribute options.
    * @return The new attribute description containing {@code options}.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code options} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code options} was {@code
+   *           null}.
    */
   public static AttributeDescription create(
-      AttributeDescription attributeDescription, String... options)
+      final AttributeDescription attributeDescription, final String... options)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, options);
@@ -569,9 +571,9 @@ public final class AttributeDescription implements
 
 
   /**
-   * Creates an attribute description having the same attribute type and
-   * options as the provided attribute description and, in addition, the
-   * provided new option.
+   * Creates an attribute description having the same attribute type and options
+   * as the provided attribute description and, in addition, the provided new
+   * option.
    *
    * @param attributeDescription
    *          The attribute description.
@@ -579,11 +581,11 @@ public final class AttributeDescription implements
    *          The attribute option.
    * @return The new attribute description containing {@code option}.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code option} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code option} was {@code
+   *           null}.
    */
   public static AttributeDescription create(
-      AttributeDescription attributeDescription, String option)
+      final AttributeDescription attributeDescription, final String option)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, option);
@@ -595,8 +597,9 @@ public final class AttributeDescription implements
     }
 
     final String oldAttributeDescription = attributeDescription.attributeDescription;
-    final StringBuilder builder = new StringBuilder(
-        oldAttributeDescription.length() + option.length() + 1);
+    final StringBuilder builder = new StringBuilder(oldAttributeDescription
+        .length()
+        + option.length() + 1);
     builder.append(oldAttributeDescription);
     builder.append(';');
     builder.append(option);
@@ -606,8 +609,8 @@ public final class AttributeDescription implements
     if (impl instanceof ZeroOptionImpl)
     {
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new SingleOptionImpl(
-              option, normalizedOption));
+          attributeDescription.attributeType, new SingleOptionImpl(option,
+              normalizedOption));
 
     }
     else if (impl instanceof SingleOptionImpl)
@@ -626,8 +629,8 @@ public final class AttributeDescription implements
       }
 
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new MultiOptionImpl(
-              newOptions, newNormalizedOptions));
+          attributeDescription.attributeType, new MultiOptionImpl(newOptions,
+              newNormalizedOptions));
     }
     else
     {
@@ -672,16 +675,16 @@ public final class AttributeDescription implements
       }
 
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new MultiOptionImpl(
-              newOptions, newNormalizedOptions));
+          attributeDescription.attributeType, new MultiOptionImpl(newOptions,
+              newNormalizedOptions));
     }
   }
 
 
 
   /**
-   * Creates an attribute description having the provided attribute type
-   * and no options.
+   * Creates an attribute description having the provided attribute type and no
+   * options.
    *
    * @param attributeType
    *          The attribute type.
@@ -689,7 +692,7 @@ public final class AttributeDescription implements
    * @throws NullPointerException
    *           If {@code attributeType} was {@code null}.
    */
-  public static AttributeDescription create(AttributeType attributeType)
+  public static AttributeDescription create(final AttributeType attributeType)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeType);
@@ -710,8 +713,8 @@ public final class AttributeDescription implements
 
 
   /**
-   * Creates an attribute description having the provided attribute type
-   * and single option.
+   * Creates an attribute description having the provided attribute type and
+   * single option.
    *
    * @param attributeType
    *          The attribute type.
@@ -719,12 +722,10 @@ public final class AttributeDescription implements
    *          The attribute option.
    * @return The attribute description.
    * @throws NullPointerException
-   *           If {@code attributeType} or {@code option} was {@code
-   *           null}.
+   *           If {@code attributeType} or {@code option} was {@code null}.
    */
-  public static AttributeDescription create(
-      AttributeType attributeType, String option)
-      throws NullPointerException
+  public static AttributeDescription create(final AttributeType attributeType,
+      final String option) throws NullPointerException
   {
     Validator.ensureNotNull(attributeType, option);
 
@@ -737,15 +738,15 @@ public final class AttributeDescription implements
     final String attributeDescription = builder.toString();
     final String normalizedOption = toLowerCase(option);
 
-    return new AttributeDescription(attributeDescription,
-        attributeType, new SingleOptionImpl(option, normalizedOption));
+    return new AttributeDescription(attributeDescription, attributeType,
+        new SingleOptionImpl(option, normalizedOption));
   }
 
 
 
   /**
-   * Creates an attribute description having the provided attribute type
-   * and options.
+   * Creates an attribute description having the provided attribute type and
+   * options.
    *
    * @param attributeType
    *          The attribute type.
@@ -753,12 +754,10 @@ public final class AttributeDescription implements
    *          The attribute options.
    * @return The attribute description.
    * @throws NullPointerException
-   *           If {@code attributeType} or {@code options} was {@code
-   *           null}.
+   *           If {@code attributeType} or {@code options} was {@code null}.
    */
-  public static AttributeDescription create(
-      AttributeType attributeType, String... options)
-      throws NullPointerException
+  public static AttributeDescription create(final AttributeType attributeType,
+      final String... options) throws NullPointerException
   {
     Validator.ensureNotNull(attributeType, options);
 
@@ -789,9 +788,8 @@ public final class AttributeDescription implements
       Arrays.sort(normalizedOptions);
 
       final String attributeDescription = builder.toString();
-      return new AttributeDescription(attributeDescription,
-          attributeType, new MultiOptionImpl(optionsList,
-              normalizedOptions));
+      return new AttributeDescription(attributeDescription, attributeType,
+          new MultiOptionImpl(optionsList, normalizedOptions));
     }
 
   }
@@ -799,8 +797,8 @@ public final class AttributeDescription implements
 
 
   /**
-   * Returns an attribute description representing the object class
-   * attribute type with no options.
+   * Returns an attribute description representing the object class attribute
+   * type with no options.
    *
    * @return The object class attribute description.
    */
@@ -812,20 +810,19 @@ public final class AttributeDescription implements
 
 
   /**
-   * Parses the provided LDAP string representation of an attribute
-   * description using the default schema.
+   * Parses the provided LDAP string representation of an attribute description
+   * using the default schema.
    *
    * @param attributeDescription
-   *          The LDAP string representation of an attribute
-   *          description.
+   *          The LDAP string representation of an attribute description.
    * @return The parsed attribute description.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} is not a valid LDAP
-   *           string representation of an attribute description.
+   *           If {@code attributeDescription} is not a valid LDAP string
+   *           representation of an attribute description.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  public static AttributeDescription valueOf(String attributeDescription)
+  public static AttributeDescription valueOf(final String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(attributeDescription, Schema.getDefaultSchema());
@@ -834,26 +831,25 @@ public final class AttributeDescription implements
 
 
   /**
-   * Parses the provided LDAP string representation of an attribute
-   * description using the provided schema.
+   * Parses the provided LDAP string representation of an attribute description
+   * using the provided schema.
    *
    * @param attributeDescription
-   *          The LDAP string representation of an attribute
-   *          description.
+   *          The LDAP string representation of an attribute description.
    * @param schema
    *          The schema to use when parsing the attribute description.
    * @return The parsed attribute description.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} is not a valid LDAP
-   *           string representation of an attribute description.
+   *           If {@code attributeDescription} is not a valid LDAP string
+   *           representation of an attribute description.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code schema} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code schema} was {@code
+   *           null}.
    */
   @SuppressWarnings("serial")
-  public static AttributeDescription valueOf(
-      String attributeDescription, Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
+  public static AttributeDescription valueOf(final String attributeDescription,
+      final Schema schema) throws LocalizedIllegalArgumentException,
+      NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, schema);
 
@@ -871,7 +867,7 @@ public final class AttributeDescription implements
       {
         @Override
         protected boolean removeEldestEntry(
-            Map.Entry<String, AttributeDescription> eldest)
+            final Map.Entry<String, AttributeDescription> eldest)
         {
           return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
         }
@@ -895,9 +891,8 @@ public final class AttributeDescription implements
 
 
 
-  private static int skipTrailingWhiteSpace(
-      String attributeDescription, int i, int length)
-      throws LocalizedIllegalArgumentException
+  private static int skipTrailingWhiteSpace(final String attributeDescription,
+      int i, final int length) throws LocalizedIllegalArgumentException
   {
     char c;
     while (i < length)
@@ -918,7 +913,7 @@ public final class AttributeDescription implements
 
   // Uncached valueOf implementation.
   private static AttributeDescription valueOf0(
-      String attributeDescription, Schema schema)
+      final String attributeDescription, final Schema schema)
       throws LocalizedIllegalArgumentException
   {
     int i = 0;
@@ -1028,8 +1023,8 @@ public final class AttributeDescription implements
     }
     else
     {
-      oid = attributeDescription.substring(attributeTypeStart,
-          attributeTypeEnd);
+      oid = attributeDescription
+          .substring(attributeTypeStart, attributeTypeEnd);
     }
 
     if (oid.length() == 0)
@@ -1065,8 +1060,8 @@ public final class AttributeDescription implements
       }
       else
       {
-        return new AttributeDescription(attributeDescription,
-            attributeType, ZERO_OPTION_IMPL);
+        return new AttributeDescription(attributeDescription, attributeType,
+            ZERO_OPTION_IMPL);
       }
     }
 
@@ -1135,8 +1130,8 @@ public final class AttributeDescription implements
     // only contains a single option.
     if (i == length)
     {
-      return new AttributeDescription(attributeDescription,
-          attributeType, new SingleOptionImpl(option, normalizedOption));
+      return new AttributeDescription(attributeDescription, attributeType,
+          new SingleOptionImpl(option, normalizedOption));
     }
 
     // Multiple options need sorting and duplicates removed - we could
@@ -1213,10 +1208,9 @@ public final class AttributeDescription implements
       normalizedOptions.add(normalizedOption);
     }
 
-    return new AttributeDescription(attributeDescription,
-        attributeType, new MultiOptionImpl(options
-            .toArray(new String[options.size()]), normalizedOptions
-            .toArray(new String[normalizedOptions.size()])));
+    return new AttributeDescription(attributeDescription, attributeType,
+        new MultiOptionImpl(options.toArray(new String[options.size()]),
+            normalizedOptions.toArray(new String[normalizedOptions.size()])));
   }
 
 
@@ -1230,8 +1224,8 @@ public final class AttributeDescription implements
 
 
   // Private constructor.
-  private AttributeDescription(String attributeDescription,
-      AttributeType attributeType, Impl pimpl)
+  private AttributeDescription(final String attributeDescription,
+      final AttributeType attributeType, final Impl pimpl)
   {
     this.attributeDescription = attributeDescription;
     this.attributeType = attributeType;
@@ -1241,19 +1235,19 @@ public final class AttributeDescription implements
 
 
   /**
-   * Compares this attribute description to the provided attribute
-   * description. The attribute types are compared first and then, if
-   * equal, the options are normalized, sorted, and compared.
+   * Compares this attribute description to the provided attribute description.
+   * The attribute types are compared first and then, if equal, the options are
+   * normalized, sorted, and compared.
    *
    * @param other
    *          The attribute description to be compared.
-   * @return A negative integer, zero, or a positive integer as this
-   *         attribute description is less than, equal to, or greater
-   *         than the specified attribute description.
+   * @return A negative integer, zero, or a positive integer as this attribute
+   *         description is less than, equal to, or greater than the specified
+   *         attribute description.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public int compareTo(AttributeDescription other)
+  public int compareTo(final AttributeDescription other)
       throws NullPointerException
   {
     final int result = attributeType.compareTo(other.attributeType);
@@ -1271,17 +1265,17 @@ public final class AttributeDescription implements
 
 
   /**
-   * Indicates whether or not this attribute description contains the
-   * provided option.
+   * Indicates whether or not this attribute description contains the provided
+   * option.
    *
    * @param option
    *          The option for which to make the determination.
-   * @return {@code true} if this attribute description has the provided
-   *         option, or {@code false} if not.
+   * @return {@code true} if this attribute description has the provided option,
+   *         or {@code false} if not.
    * @throws NullPointerException
    *           If {@code option} was {@code null}.
    */
-  public boolean containsOption(String option)
+  public boolean containsOption(final String option)
       throws NullPointerException
   {
     final String normalizedOption = toLowerCase(option);
@@ -1291,19 +1285,18 @@ public final class AttributeDescription implements
 
 
   /**
-   * Indicates whether the provided object is an attribute description
-   * which is equal to this attribute description. It will be considered
-   * equal if the attribute type and normalized sorted list of options
-   * are identical.
+   * Indicates whether the provided object is an attribute description which is
+   * equal to this attribute description. It will be considered equal if the
+   * attribute type and normalized sorted list of options are identical.
    *
    * @param o
    *          The object for which to make the determination.
-   * @return {@code true} if the provided object is an attribute
-   *         description that is equal to this attribute description, or
-   *         {@code false} if not.
+   * @return {@code true} if the provided object is an attribute description
+   *         that is equal to this attribute description, or {@code false} if
+   *         not.
    */
   @Override
-  public boolean equals(Object o)
+  public boolean equals(final Object o)
   {
     if (this == o)
     {
@@ -1328,11 +1321,9 @@ public final class AttributeDescription implements
 
 
   /**
-   * Returns the attribute type associated with this attribute
-   * description.
+   * Returns the attribute type associated with this attribute description.
    *
-   * @return The attribute type associated with this attribute
-   *         description.
+   * @return The attribute type associated with this attribute description.
    */
   public AttributeType getAttributeType()
   {
@@ -1342,10 +1333,10 @@ public final class AttributeDescription implements
 
 
   /**
-   * Returns an {@code Iterable} containing the options contained in
-   * this attribute description. Attempts to remove options using an
-   * iterator's {@code remove()} method are not permitted and will
-   * result in an {@code UnsupportedOperationException} being thrown.
+   * Returns an {@code Iterable} containing the options contained in this
+   * attribute description. Attempts to remove options using an iterator's
+   * {@code remove()} method are not permitted and will result in an {@code
+   * UnsupportedOperationException} being thrown.
    *
    * @return An {@code Iterable} containing the options.
    */
@@ -1357,9 +1348,9 @@ public final class AttributeDescription implements
 
 
   /**
-   * Returns the hash code for this attribute description. It will be
-   * calculated as the sum of the hash codes of the attribute type and
-   * normalized sorted list of options.
+   * Returns the hash code for this attribute description. It will be calculated
+   * as the sum of the hash codes of the attribute type and normalized sorted
+   * list of options.
    *
    * @return The hash code for this attribute description.
    */
@@ -1373,11 +1364,10 @@ public final class AttributeDescription implements
 
 
   /**
-   * Indicates whether or not this attribute description has any
-   * options.
+   * Indicates whether or not this attribute description has any options.
    *
-   * @return {@code true} if this attribute description has any options,
-   *         or {@code false} if not.
+   * @return {@code true} if this attribute description has any options, or
+   *         {@code false} if not.
    */
   public boolean hasOptions()
   {
@@ -1391,8 +1381,8 @@ public final class AttributeDescription implements
    * objectClass} attribute description with no options.
    *
    * @return {@code true} if this attribute description is the {@code
-   *         objectClass} attribute description with no options, or
-   *         {@code false} if not.
+   *         objectClass} attribute description with no options, or {@code
+   *         false} if not.
    */
   public boolean isObjectClass()
   {
@@ -1402,30 +1392,27 @@ public final class AttributeDescription implements
 
 
   /**
-   * Indicates whether or not this attribute description is a sub-type
-   * of the provided attribute description as defined in RFC 4512
-   * section 2.5. Specifically, this method will return {@code true} if
-   * and only if the following conditions are both {@code true}:
+   * Indicates whether or not this attribute description is a sub-type of the
+   * provided attribute description as defined in RFC 4512 section 2.5.
+   * Specifically, this method will return {@code true} if and only if the
+   * following conditions are both {@code true}:
    * <ul>
-   * <li>This attribute description has an attribute type which is equal
-   * to, or is a sub-type of, the attribute type in the provided
-   * attribute description.
-   * <li>This attribute description contains all of the options
-   * contained in the provided attribute description.
+   * <li>This attribute description has an attribute type which is equal to, or
+   * is a sub-type of, the attribute type in the provided attribute description.
+   * <li>This attribute description contains all of the options contained in the
+   * provided attribute description.
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
    *
    * @param other
-   *          The attribute description for which to make the
-   *          determination.
-   * @return {@code true} if this attribute description is a sub-type of
-   *         the provided attribute description, or {@code false} if
-   *         not.
+   *          The attribute description for which to make the determination.
+   * @return {@code true} if this attribute description is a sub-type of the
+   *         provided attribute description, or {@code false} if not.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public boolean isSubTypeOf(AttributeDescription other)
+  public boolean isSubTypeOf(final AttributeDescription other)
       throws NullPointerException
   {
     if (!attributeType.isSubTypeOf(other.attributeType))
@@ -1441,30 +1428,28 @@ public final class AttributeDescription implements
 
 
   /**
-   * Indicates whether or not this attribute description is a super-type
-   * of the provided attribute description as defined in RFC 4512
-   * section 2.5. Specifically, this method will return {@code true} if
-   * and only if the following conditions are both {@code true}:
+   * Indicates whether or not this attribute description is a super-type of the
+   * provided attribute description as defined in RFC 4512 section 2.5.
+   * Specifically, this method will return {@code true} if and only if the
+   * following conditions are both {@code true}:
    * <ul>
-   * <li>This attribute description has an attribute type which is equal
-   * to, or is a super-type of, the attribute type in the provided
-   * attribute description.
-   * <li>This attribute description contains a sub-set of the options
-   * contained in the provided attribute description.
+   * <li>This attribute description has an attribute type which is equal to, or
+   * is a super-type of, the attribute type in the provided attribute
+   * description.
+   * <li>This attribute description contains a sub-set of the options contained
+   * in the provided attribute description.
    * </ul>
    * Note that this method will return {@code true} if this attribute
    * description is equal to the provided attribute description.
    *
    * @param other
-   *          The attribute description for which to make the
-   *          determination.
-   * @return {@code true} if this attribute description is a super-type
-   *         of the provided attribute description, or {@code false} if
-   *         not.
+   *          The attribute description for which to make the determination.
+   * @return {@code true} if this attribute description is a super-type of the
+   *         provided attribute description, or {@code false} if not.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public boolean isSuperTypeOf(AttributeDescription other)
+  public boolean isSuperTypeOf(final AttributeDescription other)
       throws NullPointerException
   {
     if (!other.attributeType.isSubTypeOf(attributeType))
@@ -1480,8 +1465,8 @@ public final class AttributeDescription implements
 
 
   /**
-   * Returns the string representation of this attribute description as
-   * defined in RFC4512 section 2.5.
+   * Returns the string representation of this attribute description as defined
+   * in RFC4512 section 2.5.
    *
    * @return The string representation of this attribute description.
    */

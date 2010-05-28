@@ -30,46 +30,53 @@ package org.opends.sdk.responses;
 
 
 import java.util.Collection;
+import java.util.List;
 
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.schema.ObjectClass;
-
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * A Search Result Entry represents an entry found during a Search
- * operation.
+ * A Search Result Entry represents an entry found during a Search operation.
  * <p>
- * Each entry returned in a Search Result Entry will contain all
- * appropriate attributes as specified in the Search request, subject to
- * access control and other administrative policy.
+ * Each entry returned in a Search Result Entry will contain all appropriate
+ * attributes as specified in the Search request, subject to access control and
+ * other administrative policy.
  * <p>
- * Note that a Search Result Entry may hold zero attributes. This may
- * happen when none of the attributes of an entry were requested or
- * could be returned.
+ * Note that a Search Result Entry may hold zero attributes. This may happen
+ * when none of the attributes of an entry were requested or could be returned.
  * <p>
- * Note also that each returned attribute may hold zero attribute
- * values. This may happen when only attribute types are requested,
- * access controls prevent the return of values, or other reasons.
+ * Note also that each returned attribute may hold zero attribute values. This
+ * may happen when only attribute types are requested, access controls prevent
+ * the return of values, or other reasons.
  */
 public interface SearchResultEntry extends Response, Entry
 {
+  /**
+   * {@inheritDoc}
+   */
   boolean addAttribute(Attribute attribute)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean addAttribute(Attribute attribute,
       Collection<ByteString> duplicateValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
-  SearchResultEntry addAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultEntry addAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -81,114 +88,117 @@ public interface SearchResultEntry extends Response, Entry
 
 
 
-  SearchResultEntry clearAttributes()
-      throws UnsupportedOperationException;
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultEntry clearAttributes() throws UnsupportedOperationException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  SearchResultEntry clearControls()
-      throws UnsupportedOperationException;
+  boolean containsAttribute(Attribute attribute,
+      Collection<ByteString> missingValues) throws NullPointerException;
 
 
 
-  boolean containsAttribute(AttributeDescription attributeDescription)
-      throws NullPointerException;
-
-
-
-  boolean containsAttribute(String attributeDescription)
+  /**
+   * {@inheritDoc}
+   */
+  boolean containsAttribute(String attributeDescription, Object... values)
       throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
-  boolean containsObjectClass(ObjectClass objectClass)
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> getAllAttributes();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription)
       throws NullPointerException;
 
 
 
-  boolean containsObjectClass(String objectClass)
-      throws NullPointerException;
-
-
-
-  Iterable<Attribute> findAttributes(
-      AttributeDescription attributeDescription)
-      throws NullPointerException;
-
-
-
-  Iterable<Attribute> findAttributes(String attributeDescription)
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> getAllAttributes(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   Attribute getAttribute(AttributeDescription attributeDescription)
       throws NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   Attribute getAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   int getAttributeCount();
 
 
 
-  Iterable<Attribute> getAttributes();
+  /**
+   * {@inheritDoc}
+   */
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  List<Control> getControls();
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Control> getControls();
-
-
-
   DN getName();
 
 
 
-  Iterable<String> getObjectClasses();
-
-
-
   /**
    * {@inheritDoc}
    */
-  boolean hasControls();
-
-
-
   boolean removeAttribute(Attribute attribute,
       Collection<ByteString> missingValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean removeAttribute(AttributeDescription attributeDescription)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
-  SearchResultEntry removeAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
-
-
-
+  /**
+   * {@inheritDoc}
+   */
   SearchResultEntry removeAttribute(String attributeDescription,
       Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException;
@@ -198,29 +208,33 @@ public interface SearchResultEntry extends Response, Entry
   /**
    * {@inheritDoc}
    */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
   boolean replaceAttribute(Attribute attribute)
       throws UnsupportedOperationException, NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   SearchResultEntry replaceAttribute(String attributeDescription,
       Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException;
 
 
 
-  SearchResultEntry setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException;
+  /**
+   * {@inheritDoc}
+   */
+  SearchResultEntry setName(DN dn) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   SearchResultEntry setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 }

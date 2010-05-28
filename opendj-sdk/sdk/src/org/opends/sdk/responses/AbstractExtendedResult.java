@@ -32,28 +32,30 @@ package org.opends.sdk.responses;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ResultCode;
 
+import com.sun.opends.sdk.util.StaticUtils;
+
 
 
 /**
- * An abstract Extended result which can be used as the basis for
- * implementing new Extended operations.
- * 
+ * An abstract Extended result which can be used as the basis for implementing
+ * new Extended operations.
+ *
  * @param <S>
  *          The type of Extended result.
  */
-public abstract class AbstractExtendedResult<S extends ExtendedResult>
-    extends AbstractResultImpl<S> implements ExtendedResult
+public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
+    AbstractResultImpl<S> implements ExtendedResult
 {
 
   /**
    * Creates a new extended result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  protected AbstractExtendedResult(ResultCode resultCode)
+  protected AbstractExtendedResult(final ResultCode resultCode)
       throws NullPointerException
   {
     super(resultCode);
@@ -64,20 +66,28 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  public abstract String getResponseName();
+  public abstract String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public abstract ByteString getResponseValue();
+  public abstract ByteString getValue();
 
 
 
   /**
    * {@inheritDoc}
    */
+  public abstract boolean hasValue();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
@@ -90,10 +100,12 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", responseName=");
-    builder.append(getResponseName() == null ? "" : getResponseName());
-    builder.append(", responseValue=");
-    final ByteString value = getResponseValue();
-    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(getOID() == null ? "" : getOID());
+    if (hasValue())
+    {
+      builder.append(", responseValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -105,6 +117,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   final S getThis()
   {

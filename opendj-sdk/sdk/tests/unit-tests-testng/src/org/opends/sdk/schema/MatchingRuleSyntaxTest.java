@@ -43,17 +43,6 @@ public class MatchingRuleSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_MATCHING_RULE_OID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
   {
@@ -68,6 +57,17 @@ public class MatchingRuleSyntaxTest extends SyntaxTestCase
                 + " DESC 'description of matching rule' "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.17 "
                 + " X-name ( 'this is an extension' ) ", false }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_MATCHING_RULE_OID);
   }
 
 }

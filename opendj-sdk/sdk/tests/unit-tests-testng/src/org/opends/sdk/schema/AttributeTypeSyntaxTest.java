@@ -43,17 +43,6 @@ public class AttributeTypeSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
   {
@@ -97,5 +86,16 @@ public class AttributeTypeSyntaxTest extends SyntaxTestCase
                 + " SUBSTR caseIgnoreSubstringsMatch"
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
                 + " NO-USER-MODIFICATION USAGE userApplications", false }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
   }
 }

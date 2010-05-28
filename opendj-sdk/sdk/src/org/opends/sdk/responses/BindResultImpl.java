@@ -37,8 +37,8 @@ import org.opends.sdk.ResultCode;
 /**
  * Bind result implementation.
  */
-final class BindResultImpl extends AbstractResultImpl<BindResult>
-    implements BindResult
+final class BindResultImpl extends AbstractResultImpl<BindResult> implements
+    BindResult
 {
   private ByteString credentials = null;
 
@@ -46,13 +46,13 @@ final class BindResultImpl extends AbstractResultImpl<BindResult>
 
   /**
    * Creates a new bind result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  BindResultImpl(ResultCode resultCode) throws NullPointerException
+  BindResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
   }
@@ -83,7 +83,7 @@ final class BindResultImpl extends AbstractResultImpl<BindResult>
   /**
    * {@inheritDoc}
    */
-  public BindResult setServerSASLCredentials(ByteString credentials)
+  public BindResult setServerSASLCredentials(final ByteString credentials)
       throws UnsupportedOperationException
   {
     this.credentials = credentials;
@@ -108,8 +108,8 @@ final class BindResultImpl extends AbstractResultImpl<BindResult>
     builder.append(", referrals=");
     builder.append(getReferralURIs());
     builder.append(", serverSASLCreds=");
-    builder.append(getServerSASLCredentials() == null ? ByteString
-        .empty() : getServerSASLCredentials());
+    builder.append(getServerSASLCredentials() == null ? ByteString.empty()
+        : getServerSASLCredentials());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -118,6 +118,7 @@ final class BindResultImpl extends AbstractResultImpl<BindResult>
 
 
 
+  @Override
   BindResult getThis()
   {
     return this;

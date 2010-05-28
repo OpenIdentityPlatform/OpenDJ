@@ -34,97 +34,93 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 /**
- * This class defines an argument type that will accept any string
- * value.
+ * This class defines an argument type that will accept any string value.
  */
 final class StringArgument extends Argument
 {
   /**
    * Creates a new string argument with the provided information.
-   * 
+   *
    * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
+   *          The generic name that should be used to refer to this argument.
    * @param shortIdentifier
    *          The single-character identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
    * @param isRequired
-   *          Indicates whether this argument must be specified on the
-   *          command line.
+   *          Indicates whether this argument must be specified on the command
+   *          line.
+   * @param isMultiValued
+   *          Indicates whether this argument may be specified more than once to
+   *          provide multiple values.
    * @param needsValue
    *          Indicates whether this argument requires a value.
    * @param valuePlaceholder
-   *          The placeholder for the argument value that will be
-   *          displayed in usage information, or <CODE>null</CODE> if
-   *          this argument does not require a value.
+   *          The placeholder for the argument value that will be displayed in
+   *          usage information, or <CODE>null</CODE> if this argument does not
+   *          require a value.
+   * @param defaultValue
+   *          The default value that should be used for this argument if none is
+   *          provided in a properties file or on the command line. This may be
+   *          <CODE>null</CODE> if there is no generic default.
+   * @param propertyName
+   *          The name of the property in a property file that may be used to
+   *          override the default value but will be overridden by a
+   *          command-line argument.
    * @param description
    *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    */
-  public StringArgument(String name, Character shortIdentifier,
-      String longIdentifier, boolean isRequired, boolean needsValue,
-      LocalizableMessage valuePlaceholder, LocalizableMessage description)
+  public StringArgument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final boolean isRequired,
+      final boolean isMultiValued, final boolean needsValue,
+      final LocalizableMessage valuePlaceholder, final String defaultValue,
+      final String propertyName, final LocalizableMessage description)
       throws ArgumentException
   {
-    super(name, shortIdentifier, longIdentifier, isRequired, false,
-        needsValue, valuePlaceholder, null, null, description);
+    super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued,
+        needsValue, valuePlaceholder, defaultValue, propertyName, description);
   }
 
 
 
   /**
    * Creates a new string argument with the provided information.
-   * 
+   *
    * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
+   *          The generic name that should be used to refer to this argument.
    * @param shortIdentifier
    *          The single-character identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
    * @param isRequired
-   *          Indicates whether this argument must be specified on the
-   *          command line.
-   * @param isMultiValued
-   *          Indicates whether this argument may be specified more than
-   *          once to provide multiple values.
+   *          Indicates whether this argument must be specified on the command
+   *          line.
    * @param needsValue
    *          Indicates whether this argument requires a value.
    * @param valuePlaceholder
-   *          The placeholder for the argument value that will be
-   *          displayed in usage information, or <CODE>null</CODE> if
-   *          this argument does not require a value.
-   * @param defaultValue
-   *          The default value that should be used for this argument if
-   *          none is provided in a properties file or on the command
-   *          line. This may be <CODE>null</CODE> if there is no generic
-   *          default.
-   * @param propertyName
-   *          The name of the property in a property file that may be
-   *          used to override the default value but will be overridden
-   *          by a command-line argument.
+   *          The placeholder for the argument value that will be displayed in
+   *          usage information, or <CODE>null</CODE> if this argument does not
+   *          require a value.
    * @param description
    *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    */
-  public StringArgument(String name, Character shortIdentifier,
-      String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, LocalizableMessage valuePlaceholder,
-      String defaultValue, String propertyName, LocalizableMessage description)
-      throws ArgumentException
+  public StringArgument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final boolean isRequired,
+      final boolean needsValue, final LocalizableMessage valuePlaceholder,
+      final LocalizableMessage description) throws ArgumentException
   {
-    super(name, shortIdentifier, longIdentifier, isRequired,
-        isMultiValued, needsValue, valuePlaceholder, defaultValue,
-        propertyName, description);
+    super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
+        valuePlaceholder, null, null, description);
   }
 
 
@@ -132,17 +128,18 @@ final class StringArgument extends Argument
   /**
    * Indicates whether the provided value is acceptable for use in this
    * argument.
-   * 
+   *
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
-   *          A buffer into which the invalid reason may be written if
-   *          the value is not acceptable.
-   * @return <CODE>true</CODE> if the value is acceptable, or
-   *         <CODE>false</CODE> if it is not.
+   *          A buffer into which the invalid reason may be written if the value
+   *          is not acceptable.
+   * @return <CODE>true</CODE> if the value is acceptable, or <CODE>false</CODE>
+   *         if it is not.
    */
-  public boolean valueIsAcceptable(String valueString,
-      LocalizableMessageBuilder invalidReason)
+  @Override
+  public boolean valueIsAcceptable(final String valueString,
+      final LocalizableMessageBuilder invalidReason)
   {
     // All values will be acceptable for this argument.
     return true;

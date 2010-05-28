@@ -34,15 +34,15 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class defines the octetStringSubstringsMatch matching rule
- * defined in X.520. It will be used as the default substring matching
- * rule for the binary and octet string syntaxes.
+ * This class defines the octetStringSubstringsMatch matching rule defined in
+ * X.520. It will be used as the default substring matching rule for the binary
+ * and octet string syntaxes.
  */
 final class OctetStringSubstringMatchingRuleImpl extends
     AbstractSubstringMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return value.toByteString();
   }

@@ -28,18 +28,20 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.*;
 
 
 
 /**
- * This class implements the wordMatch matching rule defined in X.520.
- * That document defines "word" as implementation-specific, but in this
- * case we will consider it a match if the assertion value is contained
- * within the attribute value and is bounded by the edge of the value or
- * any of the following characters: <BR>
+ * This class implements the wordMatch matching rule defined in X.520. That
+ * document defines "word" as implementation-specific, but in this case we will
+ * consider it a match if the assertion value is contained within the attribute
+ * value and is bounded by the edge of the value or any of the following
+ * characters: <BR>
  * <UL>
  * <LI>A space</LI>
  * <LI>A period</LI>
@@ -53,18 +55,17 @@ import org.opends.sdk.*;
  * <LI>An equal sign</LI>
  * </UL>
  */
-final class WordEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
+final class WordEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
 {
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     final String normalStr = normalize(value);
 
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         // See if the assertion value is contained in the attribute
         // value. If not, then it isn't a match.
@@ -132,15 +133,15 @@ final class WordEqualityMatchingRuleImpl extends
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return ByteString.valueOf(normalize(value));
   }
 
 
 
-  private String normalize(ByteSequence value)
+  private String normalize(final ByteSequence value)
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);

@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -39,18 +39,17 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class is the ordering matching rule implementation for an enum
- * syntax implmentation. The ordering is determined by the order of the
- * entries in the X-ENUM extension value.
+ * This class is the ordering matching rule implementation for an enum syntax
+ * implmentation. The ordering is determined by the order of the entries in the
+ * X-ENUM extension value.
  */
-final class EnumOrderingMatchingRule extends
-    AbstractOrderingMatchingRuleImpl
+final class EnumOrderingMatchingRule extends AbstractOrderingMatchingRuleImpl
 {
   private final EnumSyntaxImpl syntax;
 
 
 
-  EnumOrderingMatchingRule(EnumSyntaxImpl syntax)
+  EnumOrderingMatchingRule(final EnumSyntaxImpl syntax)
   {
     Validator.ensureNotNull(syntax);
     this.syntax = syntax;
@@ -58,14 +57,14 @@ final class EnumOrderingMatchingRule extends
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final int index = syntax.indexOf(value);
     if (index < 0)
     {
-      throw DecodeException.error(
-          WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
+      throw DecodeException
+          .error(WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE.get(value
               .toString(), syntax.getName()));
     }
     return ByteString.valueOf(index);

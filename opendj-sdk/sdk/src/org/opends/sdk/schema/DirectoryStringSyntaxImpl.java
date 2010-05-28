@@ -29,7 +29,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
@@ -37,12 +38,11 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines the directory string attribute syntax, which is
- * simply a set of UTF-8 characters. By default, they will be treated in
- * a case-insensitive manner, and equality, ordering, substring, and
- * approximate matching will be allowed.
+ * This class defines the directory string attribute syntax, which is simply a
+ * set of UTF-8 characters. By default, they will be treated in a
+ * case-insensitive manner, and equality, ordering, substring, and approximate
+ * matching will be allowed.
  */
 final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -93,21 +93,21 @@ final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     if (value.length() > 0
         || schema.getSchemaCompatOptions()

@@ -45,43 +45,38 @@ import org.testng.annotations.Test;
  */
 public class AttributeTypeTest extends AbstractSchemaElementTestCase
 {
-  private Schema schema;
+  private final Schema schema;
 
 
 
   public AttributeTypeTest() throws Exception
   {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null,
-        null, null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", true,
-        false, false, AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS,
-        false);
-    builder
-        .addAttributeType(
-            "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE "
-                + " COLLECTIVE X-ORIGIN ( 'Sun Java System Identity Management' "
-                + "'user defined' ) X-SCHEMA-FILE '98sunEmp.ldif')",
-            false);
-    builder.addAttributeType("1.2.3", Collections
-        .singletonList("testType"), "", false, "1.2.2", null, null,
-        null, null, "1.3.6.1.4.1.1466.115.121.1.27", false, true,
-        false, AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS, false);
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null, null, null,
+        null, null, "1.3.6.1.4.1.1466.115.121.1.27", true, false, false,
+        AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS, false);
     builder.addAttributeType(
-        "( 1.2.4 NAME 'testType' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )",
-        false);
-    List<String> names = new LinkedList<String>();
+        "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE "
+            + " COLLECTIVE X-ORIGIN ( 'Sun Java System Identity Management' "
+            + "'user defined' ) X-SCHEMA-FILE '98sunEmp.ldif')", false);
+    builder.addAttributeType("1.2.3", Collections.singletonList("testType"),
+        "", false, "1.2.2", null, null, null, null,
+        "1.3.6.1.4.1.1466.115.121.1.27", false, true, false,
+        AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS, false);
+    builder.addAttributeType(
+        "( 1.2.4 NAME 'testType' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )", false);
+    final List<String> names = new LinkedList<String>();
     names.add("testType");
     names.add("testnamealias");
     names.add("anothernamealias");
     builder.addAttributeType("1.2.5", names, "", false, null,
         EMR_CASE_IGNORE_LIST_OID, null, SMR_CASE_IGNORE_LIST_OID,
-        AMR_DOUBLE_METAPHONE_OID, SYNTAX_INTEGER_OID, false, false,
-        true, AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
-    builder
-        .addAttributeType(
-            "( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
-                + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
+        AMR_DOUBLE_METAPHONE_OID, SYNTAX_INTEGER_OID, false, false, true,
+        AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
+    builder.addAttributeType(
+        "( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
+            + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
+            + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
     schema = builder.toSchema();
     if (!schema.getWarnings().isEmpty())
     {
@@ -91,67 +86,180 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
 
-  protected SchemaElement getElement(String description,
-      Map<String, List<String>> extraProperties) throws SchemaException
-  {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addAttributeType("1.2.3", Collections
-        .singletonList("testType"), description, false, null, null,
-        null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", false,
-        false, false, AttributeUsage.DSA_OPERATION, extraProperties,
-        false);
-    return builder.toSchema().getAttributeType("1.2.3");
-  }
-
-
-
   @DataProvider(name = "equalsTestData")
   public Object[][] createEqualsTestData() throws SchemaException,
       DecodeException
   {
     return new Object[][] {
-        { schema.getAttributeType("1.2.3"),
-            schema.getAttributeType("1.2.3"), true },
-        { schema.getAttributeType("1.2.4"),
-            schema.getAttributeType("1.2.3"), false } };
+        { schema.getAttributeType("1.2.3"), schema.getAttributeType("1.2.3"),
+            true },
+        { schema.getAttributeType("1.2.4"), schema.getAttributeType("1.2.3"),
+            false } };
   }
 
 
 
-  /**
-   * Check that the simple constructor throws an NPE when mandatory
-   * parameters are not specified.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testNoSupNorSyntax1() throws Exception
+  @Test
+  public void testADSyntax() throws Exception
   {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null,
-        null, null, null, null, null, false, false, false,
-        AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
+    // AD uses single quotes around OIDs
+    final SchemaBuilder builder = new SchemaBuilder(schema);
     builder
-        .addAttributeType(
-            "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )",
+        .addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' "
+            + " SUP '1.2.5' " + " EQUALITY 'caseIgnoreMatch' "
+            + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
             false);
+    Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
+  }
+
+
+
+  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testADSyntaxQuoteMismatch() throws Exception
+  {
+    // AD uses single quotes around OIDs
+    final SchemaBuilder builder = new SchemaBuilder(schema);
+    builder
+        .addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' "
+            + " SUP '1.2.5 " + " EQUALITY 'caseIgnoreMatch' "
+            + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
+            false);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+  }
+
+
+
+  @Test
+  public void testCollectiveOperational() throws Exception
+  {
+    // Collective can't be operational
+    final SchemaBuilder builder = new SchemaBuilder(schema);
+    builder.addAttributeType(
+        "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
+            + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+            + " SUBSTR caseIgnoreSubstringsMatch"
+            + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+            + " COLLECTIVE USAGE directoryOperation )", false);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
   /**
-   * Check that the simple constructor throws an NPE when mandatory
-   * parameters are not specified.
+   * Check constructor sets the default matching rules correctly.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void testNoSupNorSyntax2() throws Exception
+  @Test
+  public void testConstructorDefaultMatchingRules() throws Exception
   {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addAttributeType("( 1.2.2 OBSOLETE SINGLE-VALUE )", false);
+    final AttributeType type = schema.getAttributeType("1.2.1");
+
+    final Syntax syntax = schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.27");
+    Assert.assertEquals(type.getApproximateMatchingRule(), syntax
+        .getApproximateMatchingRule());
+    Assert.assertEquals(type.getEqualityMatchingRule(), syntax
+        .getEqualityMatchingRule());
+    Assert.assertEquals(type.getOrderingMatchingRule(), syntax
+        .getOrderingMatchingRule());
+    Assert.assertEquals(type.getSubstringMatchingRule(), syntax
+        .getSubstringMatchingRule());
+  }
+
+
+
+  /**
+   * Check constructor sets the default usage correctly.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testConstructorDefaultUsage() throws Exception
+  {
+    final AttributeType d = schema.getAttributeType("1.2.2");
+
+    Assert.assertEquals(d.getUsage(), AttributeUsage.USER_APPLICATIONS);
+  }
+
+
+
+  /**
+   * Check constructor inherits the matching rules from the parent type when
+   * required.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dependsOnMethods = "testConstructorMatchingRules")
+  public void testConstructorInheritsMatchingRules() throws Exception
+  {
+    final AttributeType parent = schema.getAttributeType("1.2.5");
+
+    final AttributeType child = schema.getAttributeType("1.2.6");
+
+    Assert.assertEquals(parent.getApproximateMatchingRule(), child
+        .getApproximateMatchingRule());
+    Assert.assertEquals(parent.getEqualityMatchingRule(), child
+        .getEqualityMatchingRule());
+    // It should inherit ordering rule from parent's syntax since parent
+    // didn't specify an ordering matching rule.
+    Assert.assertEquals(parent.getSyntax().getOrderingMatchingRule(), child
+        .getOrderingMatchingRule());
+    Assert.assertEquals(parent.getSubstringMatchingRule(), child
+        .getSubstringMatchingRule());
+  }
+
+
+
+  /**
+   * Check constructor inherits the syntax from the parent type when required.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dependsOnMethods = "testConstructorSyntax")
+  public void testConstructorInheritsSyntax() throws Exception
+  {
+    AttributeType parent = schema.getAttributeType("1.2.3");
+
+    AttributeType child = schema.getAttributeType("1.2.4");
+
+    Assert.assertEquals(parent.getSyntax(), child.getSyntax());
+
+    parent = schema.getAttributeType("1.2.2");
+
+    child = schema.getAttributeType("1.2.3");
+    Assert.assertFalse(parent.getSyntax().equals(child.getSyntax()));
+
+    // Make sure paren't s syntax was not inherited in this case
+    child = schema.getAttributeType("1.2.6");
+    Assert
+        .assertEquals(child.getSyntax().getOID(), SYNTAX_DIRECTORY_STRING_OID);
+  }
+
+
+
+  /**
+   * Check constructor sets the matching rules correctly.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testConstructorMatchingRules() throws Exception
+  {
+    final AttributeType type = schema.getAttributeType("1.2.5");
+
+    Assert.assertEquals(type.getEqualityMatchingRule().getOID(),
+        EMR_CASE_IGNORE_LIST_OID);
+    Assert.assertEquals(type.getOrderingMatchingRule().getOID(), type
+        .getSyntax().getOrderingMatchingRule().getOID());
+    Assert.assertEquals(type.getSubstringMatchingRule().getOID(),
+        SMR_CASE_IGNORE_LIST_OID);
+    Assert.assertEquals(type.getApproximateMatchingRule().getOID(),
+        AMR_DOUBLE_METAPHONE_OID);
   }
 
 
@@ -180,6 +288,23 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
   /**
+   * Check constructor sets the syntax correctly.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testConstructorSyntax() throws Exception
+  {
+    final AttributeType d = schema.getAttributeType("1.2.2");
+
+    Assert
+        .assertEquals(d.getSyntax().getOID(), "1.3.6.1.4.1.1466.115.121.1.15");
+  }
+
+
+
+  /**
    * Check that the type names are accessible.
    *
    * @throws Exception
@@ -199,6 +324,23 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
     Assert.assertTrue(d.hasName("testType"));
     Assert.assertTrue(d.hasName("testnamealias"));
     Assert.assertTrue(d.hasName("anothernamealias1"));
+  }
+
+
+
+  /**
+   * Check that the {@link AttributeType#getUsage()} method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetAttributeUsage() throws Exception
+  {
+    AttributeType type = schema.getAttributeType("1.2.1");
+    Assert.assertEquals(type.getUsage(), AttributeUsage.USER_APPLICATIONS);
+    type = schema.getAttributeType("1.2.6");
+    Assert.assertEquals(type.getUsage(), AttributeUsage.DSA_OPERATION);
   }
 
 
@@ -230,8 +372,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
    *           If the test failed unexpectedly.
    */
   @Test
-  public final void testGetNameOrOIDReturnsPrimaryName()
-      throws Exception
+  public final void testGetNameOrOIDReturnsPrimaryName() throws Exception
   {
     AttributeType d = schema.getAttributeType("1.2.3");
     Assert.assertEquals(d.getNameOrOID(), "testType");
@@ -242,8 +383,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
   /**
-   * Check that the {@link CommonSchemaElements#getNormalizedNames()}
-   * method.
+   * Check that the {@link CommonSchemaElements#getNormalizedNames()} method.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
@@ -285,8 +425,24 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
   /**
-   * Check that the {@link CommonSchemaElements#hasNameOrOID(String)}
-   * method.
+   * Check that the {@link AttributeType#getSuperiorType()} method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetSuperiorType() throws Exception
+  {
+    AttributeType type = schema.getAttributeType("1.2.3");
+    Assert.assertEquals(type.getSuperiorType().getOID(), "1.2.2");
+    type = schema.getAttributeType("1.2.4");
+    Assert.assertEquals(type.getSuperiorType().getOID(), "1.2.3");
+  }
+
+
+
+  /**
+   * Check that the {@link CommonSchemaElements#hasNameOrOID(String)} method.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
@@ -308,161 +464,34 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
 
-  /**
-   * Check that the {@link CommonSchemaElements#isObsolete()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
   @Test
-  public final void testIsObsolete() throws Exception
+  public void testInheritFromNonCollective() throws Exception
   {
-    AttributeType d = schema.getAttributeType("1.2.3");
-    Assert.assertFalse(d.isObsolete());
-    d = schema.getAttributeType("1.2.4");
-    Assert.assertFalse(d.isObsolete());
-
-    d = schema.getAttributeType("1.2.1");
-    Assert.assertTrue(d.isObsolete());
-    d = schema.getAttributeType("1.2.2");
-    Assert.assertTrue(d.isObsolete());
+    // Collective can't inherit from non-collective
+    final SchemaBuilder builder = new SchemaBuilder(schema);
+    builder.addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' "
+        + " OBSOLETE SUP 1.2.5 "
+        + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+        + " SUBSTR caseIgnoreSubstringsMatch"
+        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+        + " COLLECTIVE USAGE userApplications )", false);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  /**
-   * Check constructor sets the default usage correctly.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
   @Test
-  public void testConstructorDefaultUsage() throws Exception
+  public void testInheritFromUserAppUsage() throws Exception
   {
-    AttributeType d = schema.getAttributeType("1.2.2");
-
-    Assert.assertEquals(d.getUsage(), AttributeUsage.USER_APPLICATIONS);
-  }
-
-
-
-  /**
-   * Check constructor sets the syntax correctly.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testConstructorSyntax() throws Exception
-  {
-    AttributeType d = schema.getAttributeType("1.2.2");
-
-    Assert.assertEquals(d.getSyntax().getOID(),
-        "1.3.6.1.4.1.1466.115.121.1.15");
-  }
-
-
-
-  /**
-   * Check constructor inherits the syntax from the parent type when
-   * required.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dependsOnMethods = "testConstructorSyntax")
-  public void testConstructorInheritsSyntax() throws Exception
-  {
-    AttributeType parent = schema.getAttributeType("1.2.3");
-
-    AttributeType child = schema.getAttributeType("1.2.4");
-
-    Assert.assertEquals(parent.getSyntax(), child.getSyntax());
-
-    parent = schema.getAttributeType("1.2.2");
-
-    child = schema.getAttributeType("1.2.3");
-    Assert.assertFalse(parent.getSyntax().equals(child.getSyntax()));
-
-    // Make sure paren't s syntax was not inherited in this case
-    child = schema.getAttributeType("1.2.6");
-    Assert.assertEquals(child.getSyntax().getOID(),
-        SYNTAX_DIRECTORY_STRING_OID);
-  }
-
-
-
-  /**
-   * Check constructor sets the default matching rules correctly.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testConstructorDefaultMatchingRules() throws Exception
-  {
-    AttributeType type = schema.getAttributeType("1.2.1");
-
-    Syntax syntax = schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.27");
-    Assert.assertEquals(type.getApproximateMatchingRule(), syntax
-        .getApproximateMatchingRule());
-    Assert.assertEquals(type.getEqualityMatchingRule(), syntax
-        .getEqualityMatchingRule());
-    Assert.assertEquals(type.getOrderingMatchingRule(), syntax
-        .getOrderingMatchingRule());
-    Assert.assertEquals(type.getSubstringMatchingRule(), syntax
-        .getSubstringMatchingRule());
-  }
-
-
-
-  /**
-   * Check constructor sets the matching rules correctly.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testConstructorMatchingRules() throws Exception
-  {
-    AttributeType type = schema.getAttributeType("1.2.5");
-
-    Assert.assertEquals(type.getEqualityMatchingRule().getOID(),
-        EMR_CASE_IGNORE_LIST_OID);
-    Assert.assertEquals(type.getOrderingMatchingRule().getOID(), type
-        .getSyntax().getOrderingMatchingRule().getOID());
-    Assert.assertEquals(type.getSubstringMatchingRule().getOID(),
-        SMR_CASE_IGNORE_LIST_OID);
-    Assert.assertEquals(type.getApproximateMatchingRule().getOID(),
-        AMR_DOUBLE_METAPHONE_OID);
-  }
-
-
-
-  /**
-   * Check constructor inherits the matching rules from the parent type
-   * when required.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dependsOnMethods = "testConstructorMatchingRules")
-  public void testConstructorInheritsMatchingRules() throws Exception
-  {
-    AttributeType parent = schema.getAttributeType("1.2.5");
-
-    AttributeType child = schema.getAttributeType("1.2.6");
-
-    Assert.assertEquals(parent.getApproximateMatchingRule(), child
-        .getApproximateMatchingRule());
-    Assert.assertEquals(parent.getEqualityMatchingRule(), child
-        .getEqualityMatchingRule());
-    // It should inherit ordering rule from parent's syntax since parent
-    // didn't specify an ordering matching rule.
-    Assert.assertEquals(parent.getSyntax().getOrderingMatchingRule(),
-        child.getOrderingMatchingRule());
-    Assert.assertEquals(parent.getSubstringMatchingRule(), child
-        .getSubstringMatchingRule());
+    // directoryOperation can't inherit from userApplications
+    final SchemaBuilder builder = new SchemaBuilder(schema);
+    builder.addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' "
+        + " OBSOLETE SUP 1.2.1 "
+        + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+        + " SUBSTR caseIgnoreSubstringsMatch"
+        + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+        + " NO-USER-MODIFICATION USAGE directoryOperation )", false);
+    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
@@ -510,6 +539,28 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
   /**
+   * Check that the {@link CommonSchemaElements#isObsolete()} method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public final void testIsObsolete() throws Exception
+  {
+    AttributeType d = schema.getAttributeType("1.2.3");
+    Assert.assertFalse(d.isObsolete());
+    d = schema.getAttributeType("1.2.4");
+    Assert.assertFalse(d.isObsolete());
+
+    d = schema.getAttributeType("1.2.1");
+    Assert.assertTrue(d.isObsolete());
+    d = schema.getAttributeType("1.2.2");
+    Assert.assertTrue(d.isObsolete());
+  }
+
+
+
+  /**
    * Check that the {@link AttributeType#isSingleValue()} method.
    *
    * @throws Exception
@@ -531,90 +582,38 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
 
 
   /**
-   * Check that the {@link AttributeType#getUsage()} method.
+   * Check that the simple constructor throws an NPE when mandatory parameters
+   * are not specified.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  public void testGetAttributeUsage() throws Exception
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testNoSupNorSyntax1() throws Exception
   {
-    AttributeType type = schema.getAttributeType("1.2.1");
-    Assert.assertEquals(type.getUsage(),
-        AttributeUsage.USER_APPLICATIONS);
-    type = schema.getAttributeType("1.2.6");
-    Assert.assertEquals(type.getUsage(), AttributeUsage.DSA_OPERATION);
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null, null, null,
+        null, null, null, false, false, false, AttributeUsage.DSA_OPERATION,
+        EMPTY_PROPS, false);
+    builder.addAttributeType(
+        "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )",
+        false);
   }
 
 
 
   /**
-   * Check that the {@link AttributeType#getSuperiorType()} method.
+   * Check that the simple constructor throws an NPE when mandatory parameters
+   * are not specified.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test
-  public void testGetSuperiorType() throws Exception
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void testNoSupNorSyntax2() throws Exception
   {
-    AttributeType type = schema.getAttributeType("1.2.3");
-    Assert.assertEquals(type.getSuperiorType().getOID(), "1.2.2");
-    type = schema.getAttributeType("1.2.4");
-    Assert.assertEquals(type.getSuperiorType().getOID(), "1.2.3");
-  }
-
-
-
-  @Test
-  public void testInheritFromNonCollective() throws Exception
-  {
-    // Collective can't inherit from non-collective
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' "
-                + " OBSOLETE SUP 1.2.5 "
-                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
-                + " SUBSTR caseIgnoreSubstringsMatch"
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
-                + " COLLECTIVE USAGE userApplications )", false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
-  }
-
-
-
-  @Test
-  public void testCollectiveOperational() throws Exception
-  {
-    // Collective can't be operational
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
-                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
-                + " SUBSTR caseIgnoreSubstringsMatch"
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
-                + " COLLECTIVE USAGE directoryOperation )", false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
-  }
-
-
-
-  @Test
-  public void testInheritFromUserAppUsage() throws Exception
-  {
-    // directoryOperation can't inherit from userApplications
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' "
-                + " OBSOLETE SUP 1.2.1 "
-                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
-                + " SUBSTR caseIgnoreSubstringsMatch"
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
-                + " NO-USER-MODIFICATION USAGE directoryOperation )",
-            false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addAttributeType("( 1.2.2 OBSOLETE SINGLE-VALUE )", false);
   }
 
 
@@ -623,50 +622,27 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase
   public void testNoUserModNonOperational() throws Exception
   {
     // NO-USER-MODIFICATION can't have non-operational usage
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
-                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
-                + " SUBSTR caseIgnoreSubstringsMatch"
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
-                + " NO-USER-MODIFICATION USAGE userApplications )",
-            false);
+    final SchemaBuilder builder = new SchemaBuilder(schema);
+    builder.addAttributeType(
+        "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE "
+            + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+            + " SUBSTR caseIgnoreSubstringsMatch"
+            + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+            + " NO-USER-MODIFICATION USAGE userApplications )", false);
     Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
   }
 
 
 
-  @Test
-  public void testADSyntax() throws Exception
+  protected SchemaElement getElement(final String description,
+      final Map<String, List<String>> extraProperties) throws SchemaException
   {
-    // AD uses single quotes around OIDs
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' "
-                + " SUP '1.2.5' "
-                + " EQUALITY 'caseIgnoreMatch' "
-                + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
-            false);
-    Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
-  }
-
-
-
-  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-  public void testADSyntaxQuoteMismatch() throws Exception
-  {
-    // AD uses single quotes around OIDs
-    SchemaBuilder builder = new SchemaBuilder(schema);
-    builder
-        .addAttributeType(
-            "(1.2.8.5 NAME 'testtype' DESC 'full type' "
-                + " SUP '1.2.5 "
-                + " EQUALITY 'caseIgnoreMatch' "
-                + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )",
-            false);
-    Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addAttributeType("1.2.3", Collections.singletonList("testType"),
+        description, false, null, null, null, null, null,
+        "1.3.6.1.4.1.1466.115.121.1.27", false, false, false,
+        AttributeUsage.DSA_OPERATION, extraProperties, false);
+    return builder.toSchema().getAttributeType("1.2.3");
   }
 
 }

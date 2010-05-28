@@ -1,94 +1,103 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2010 Sun Microsystems, Inc.
+ */
 package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.opends.sdk.LocalizableMessage;
-
-
-
-
 /**
- * This enumeration defines the set of password policy warnings that may
- * be included in the password policy response control defined in
- * draft-behera-ldap-password-policy.
+ * A password policy error type as defined in draft-behera-ldap-password-policy
+ * is used to indicate problems concerning a user's account or password.
+ *
+ * @see PasswordPolicyRequestControl
+ * @see PasswordPolicyResponseControl
+ * @see PasswordPolicyWarningType
+ * @see <a href="http://tools.ietf.org/html/draft-behera-ldap-password-policy">
+ *      draft-behera-ldap-password-policy - Password Policy for LDAP Directories
+ *      </a>
  */
-public class PasswordPolicyErrorType
+public enum PasswordPolicyErrorType
 {
-  private static final PasswordPolicyErrorType[] ELEMENTS = new PasswordPolicyErrorType[9];
 
-  public static final PasswordPolicyErrorType PASSWORD_EXPIRED = register(
-      0, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_EXPIRED.get());
+  /**
+   * Indicates that the password has expired and must be reset.
+   */
+  PASSWORD_EXPIRED(0, "passwordExpired"),
 
-  public static final PasswordPolicyErrorType ACCOUNT_LOCKED = register(
-      1, INFO_PWPERRTYPE_DESCRIPTION_ACCOUNT_LOCKED.get());
+  /**
+   * Indicates that the user's account has been locked.
+   */
+  ACCOUNT_LOCKED(1, "accountLocked"),
 
-  public static final PasswordPolicyErrorType CHANGE_AFTER_RESET = register(
-      2, INFO_PWPERRTYPE_DESCRIPTION_CHANGE_AFTER_RESET.get());
+  /**
+   * Indicates that the password must be changed before the user will be allowed
+   * to perform any operation other than bind and modify.
+   */
+  CHANGE_AFTER_RESET(2, "changeAfterReset"),
 
-  public static final PasswordPolicyErrorType PASSWORD_MOD_NOT_ALLOWED = register(
-      3, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_MOD_NOT_ALLOWED.get());
+  /**
+   * Indicates that a user is restricted from changing her password.
+   */
+  PASSWORD_MOD_NOT_ALLOWED(3, "passwordModNotAllowed"),
 
-  public static final PasswordPolicyErrorType MUST_SUPPLY_OLD_PASSWORD = register(
-      4, INFO_PWPERRTYPE_DESCRIPTION_MUST_SUPPLY_OLD_PASSWORD.get());
+  /**
+   * Indicates that the old password must be supplied in order to modify the
+   * password.
+   */
+  MUST_SUPPLY_OLD_PASSWORD(4, "mustSupplyOldPassword"),
 
-  public static final PasswordPolicyErrorType INSUFFICIENT_PASSWORD_QUALITY = register(
-      5, INFO_PWPERRTYPE_DESCRIPTION_INSUFFICIENT_PASSWORD_QUALITY
-          .get());
+  /**
+   * Indicates that a password doesn't pass quality checking.
+   */
+  INSUFFICIENT_PASSWORD_QUALITY(5, "insufficientPasswordQuality"),
 
-  public static final PasswordPolicyErrorType PASSWORD_TOO_SHORT = register(
-      6, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_SHORT.get());
+  /**
+   * Indicates that a password is not long enough.
+   */
+  PASSWORD_TOO_SHORT(6, "passwordTooShort"),
 
-  public static final PasswordPolicyErrorType PASSWORD_TOO_YOUNG = register(
-      7, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_TOO_YOUNG.get());
+  /**
+   * Indicates that the age of the password to be modified is not yet old
+   * enough.
+   */
+  PASSWORD_TOO_YOUNG(7, "passwordTooYoung"),
 
-  public static final PasswordPolicyErrorType PASSWORD_IN_HISTORY = register(
-      8, INFO_PWPERRTYPE_DESCRIPTION_PASSWORD_IN_HISTORY.get());
-
-
-
-  public static PasswordPolicyErrorType valueOf(int intValue)
-  {
-    PasswordPolicyErrorType e = ELEMENTS[intValue];
-    if (e == null)
-    {
-      e = new PasswordPolicyErrorType(intValue, LocalizableMessage
-          .raw("undefined(" + intValue + ")"));
-    }
-    return e;
-  }
-
-
-
-  public static List<PasswordPolicyErrorType> values()
-  {
-    return Arrays.asList(ELEMENTS);
-  }
-
-
-
-  private static PasswordPolicyErrorType register(int intValue,
-      LocalizableMessage name)
-  {
-    PasswordPolicyErrorType t = new PasswordPolicyErrorType(intValue,
-        name);
-    ELEMENTS[intValue] = t;
-    return t;
-  }
-
-
+  /**
+   * Indicates that a password has already been used and the user must choose a
+   * different one.
+   */
+  PASSWORD_IN_HISTORY(8, "passwordInHistory");
 
   private final int intValue;
 
-  private final LocalizableMessage name;
+  private final String name;
 
 
 
-  private PasswordPolicyErrorType(int intValue, LocalizableMessage name)
+  private PasswordPolicyErrorType(final int intValue, final String name)
   {
     this.intValue = intValue;
     this.name = name;
@@ -96,34 +105,25 @@ public class PasswordPolicyErrorType
 
 
 
-  @Override
-  public boolean equals(Object o)
-  {
-    return (this == o)
-        || ((o instanceof PasswordPolicyErrorType) && (this.intValue == ((PasswordPolicyErrorType) o).intValue));
-
-  }
-
-
-
-  @Override
-  public int hashCode()
-  {
-    return intValue;
-  }
-
-
-
-  public int intValue()
-  {
-    return intValue;
-  }
-
-
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString()
   {
-    return name.toString();
+    return name;
   }
+
+
+
+  /**
+   * Returns the integer value for this password policy error type.
+   *
+   * @return The integer value for this password policy error type.
+   */
+  int intValue()
+  {
+    return intValue;
+  }
+
 }

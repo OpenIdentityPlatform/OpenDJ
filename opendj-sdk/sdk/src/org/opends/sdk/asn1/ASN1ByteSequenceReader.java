@@ -30,7 +30,9 @@ package org.opends.sdk.asn1;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.asn1.ASN1Constants.*;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
+import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -64,16 +66,17 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
 
   /**
-   * Creates a new ASN1 reader whose source is the provided byte
-   * sequence reader and having a user defined maximum BER element size.
+   * Creates a new ASN1 reader whose source is the provided byte sequence reader
+   * and having a user defined maximum BER element size.
    *
    * @param reader
    *          The byte sequence reader to be read.
    * @param maxElementSize
-   *          The maximum BER element size, or <code>0</code> to
-   *          indicate that there is no limit.
+   *          The maximum BER element size, or <code>0</code> to indicate that
+   *          there is no limit.
    */
-  ASN1ByteSequenceReader(ByteSequenceReader reader, int maxElementSize)
+  ASN1ByteSequenceReader(final ByteSequenceReader reader,
+      final int maxElementSize)
   {
     this.reader = reader;
     this.readerStack = new LinkedList<ByteSequenceReader>();
@@ -97,8 +100,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
    */
   public boolean elementAvailable() throws IOException
   {
-    if ((state == ELEMENT_READ_STATE_NEED_TYPE)
-        && !needTypeState(false))
+    if ((state == ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false))
     {
       return false;
     }
@@ -118,8 +120,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
    */
   public boolean hasNextElement() throws IOException
   {
-    return (state != ELEMENT_READ_STATE_NEED_TYPE)
-        || needTypeState(false);
+    return (state != ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(false);
   }
 
 
@@ -151,10 +152,10 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       // Read just the type.
       if (reader.remaining() <= 0)
       {
-        LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
+        final LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
         throw DecodeException.fatalError(message);
       }
-      int type = reader.get();
+      final int type = reader.get();
 
       peekType = (byte) type;
       state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
@@ -175,17 +176,18 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if (peekLength != 1)
     {
-      LocalizableMessage message = ERR_ASN1_BOOLEAN_INVALID_LENGTH.get(peekLength);
+      final LocalizableMessage message = ERR_ASN1_BOOLEAN_INVALID_LENGTH
+          .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_BOOLEAN_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_BOOLEAN_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
-    int readByte = reader.get();
+    final int readByte = reader.get();
 
     state = ELEMENT_READ_STATE_NEED_TYPE;
     return readByte != 0x00;
@@ -196,12 +198,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException,
-      IllegalStateException
+  public void readEndSequence() throws IOException, IllegalStateException
   {
     if (readerStack.isEmpty())
     {
-      LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED.get();
+      final LocalizableMessage message = ERR_ASN1_SEQUENCE_READ_NOT_STARTED
+          .get();
       throw new IllegalStateException(message.toString());
     }
 
@@ -242,7 +244,8 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if ((peekLength < 1) || (peekLength > 4))
     {
-      LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      final LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH
+          .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -263,13 +266,14 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if ((peekLength < 1) || (peekLength > 8))
     {
-      LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
+      final LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH
+          .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_INTEGER_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_INTEGER_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
@@ -278,7 +282,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       long longValue = 0;
       for (int i = 0; i < peekLength; i++)
       {
-        int readByte = reader.get();
+        final int readByte = reader.get();
         if ((i == 0) && (readByte < 0))
         {
           longValue = 0xFFFFFFFFFFFFFFFFL;
@@ -294,7 +298,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       int intValue = 0;
       for (int i = 0; i < peekLength; i++)
       {
-        int readByte = reader.get();
+        final int readByte = reader.get();
         if ((i == 0) && (readByte < 0))
         {
           intValue = 0xFFFFFFFF;
@@ -320,7 +324,8 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
     // Make sure that the decoded length is exactly zero byte.
     if (peekLength != 0)
     {
-      LocalizableMessage message = ERR_ASN1_NULL_INVALID_LENGTH.get(peekLength);
+      final LocalizableMessage message = ERR_ASN1_NULL_INVALID_LENGTH
+          .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -339,7 +344,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
@@ -353,7 +358,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public ByteStringBuilder readOctetString(ByteStringBuilder builder)
+  public ByteStringBuilder readOctetString(final ByteStringBuilder builder)
       throws IOException
   {
     // Read the header if haven't done so already
@@ -362,7 +367,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
     // Copy the value.
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
@@ -384,7 +389,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_OCTET_STRING_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
@@ -405,13 +410,13 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_SEQUENCE_SET_TRUNCATED_VALUE
+      final LocalizableMessage message = ERR_ASN1_SEQUENCE_SET_TRUNCATED_VALUE
           .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
-    ByteSequenceReader subByteString = reader.getByteSequence(
-        peekLength).asReader();
+    final ByteSequenceReader subByteString = reader.getByteSequence(peekLength)
+        .asReader();
     readerStack.addFirst(reader);
     reader = subByteString;
 
@@ -443,7 +448,8 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
     if (reader.remaining() < peekLength)
     {
-      LocalizableMessage message = ERR_ASN1_SKIP_TRUNCATED_VALUE.get(peekLength);
+      final LocalizableMessage message = ERR_ASN1_SKIP_TRUNCATED_VALUE
+          .get(peekLength);
       throw DecodeException.fatalError(message);
     }
 
@@ -455,25 +461,24 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
 
   /**
-   * Internal helper method reading the first length bytes and
-   * transition to the next state if successful.
+   * Internal helper method reading the first length bytes and transition to the
+   * next state if successful.
    *
    * @param throwEofException
-   *          <code>true</code> to throw an exception when the end of
-   *          the sequence is encountered.
+   *          <code>true</code> to throw an exception when the end of the
+   *          sequence is encountered.
    * @return <code>true</code> if the length bytes was successfully read
    * @throws IOException
-   *           If an error occurs while trying to decode an ASN1
-   *           element.
+   *           If an error occurs while trying to decode an ASN1 element.
    */
-  private boolean needFirstLengthByteState(boolean throwEofException)
+  private boolean needFirstLengthByteState(final boolean throwEofException)
       throws IOException
   {
     if (reader.remaining() <= 0)
     {
       if (throwEofException)
       {
-        LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
+        final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
         throw DecodeException.fatalError(message);
       }
       return false;
@@ -485,7 +490,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       int lengthBytesNeeded = peekLength;
       if (lengthBytesNeeded > 4)
       {
-        LocalizableMessage message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES
+        final LocalizableMessage message = ERR_ASN1_INVALID_NUM_LENGTH_BYTES
             .get(lengthBytesNeeded);
         throw DecodeException.fatalError(message);
       }
@@ -495,7 +500,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
       {
         if (throwEofException)
         {
-          LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTES
+          final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTES
               .get(lengthBytesNeeded);
           throw DecodeException.fatalError(message);
         }
@@ -514,7 +519,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
     // message size.
     if ((maxElementSize > 0) && (peekLength > maxElementSize))
     {
-      LocalizableMessage message = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED
+      final LocalizableMessage message = ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED
           .get(peekLength, maxElementSize);
       throw DecodeException.fatalError(message);
     }
@@ -525,18 +530,17 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
 
 
   /**
-   * Internal helper method reading the ASN.1 type byte and transition
-   * to the next state if successful.
+   * Internal helper method reading the ASN.1 type byte and transition to the
+   * next state if successful.
    *
    * @param throwEofException
-   *          <code>true</code> to throw an exception when the end of
-   *          the sequence is encountered.
+   *          <code>true</code> to throw an exception when the end of the
+   *          sequence is encountered.
    * @return <code>true</code> if the type byte was successfully read
    * @throws IOException
-   *           If an error occurs while trying to decode an ASN1
-   *           element.
+   *           If an error occurs while trying to decode an ASN1 element.
    */
-  private boolean needTypeState(boolean throwEofException)
+  private boolean needTypeState(final boolean throwEofException)
       throws IOException
   {
     // Read just the type.
@@ -544,12 +548,12 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements
     {
       if (throwEofException)
       {
-        LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
+        final LocalizableMessage message = ERR_ASN1_TRUCATED_TYPE_BYTE.get();
         throw DecodeException.fatalError(message);
       }
       return false;
     }
-    int type = reader.get();
+    final int type = reader.get();
 
     peekType = (byte) type;
     state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;

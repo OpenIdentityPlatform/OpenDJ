@@ -49,16 +49,16 @@ final class SearchResultReferenceImpl extends
 
 
   /**
-   * Creates a new search result reference using the provided
-   * continuation reference URI.
-   * 
+   * Creates a new search result reference using the provided continuation
+   * reference URI.
+   *
    * @param uri
-   *          The first continuation reference URI to be added to this
-   *          search result reference.
+   *          The first continuation reference URI to be added to this search
+   *          result reference.
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
-  SearchResultReferenceImpl(String uri) throws NullPointerException
+  SearchResultReferenceImpl(final String uri) throws NullPointerException
   {
     addURI(uri);
   }
@@ -68,7 +68,7 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultReference addURI(String uri)
+  public SearchResultReference addURI(final String uri)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(uri);
@@ -81,41 +81,9 @@ final class SearchResultReferenceImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchResultReference clearURIs()
-      throws UnsupportedOperationException
-  {
-    uris.clear();
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getURICount()
-  {
-    return uris.size();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<String> getURIs()
+  public List<String> getURIs()
   {
     return uris;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasURIs()
-  {
-    return !uris.isEmpty();
   }
 
 
@@ -137,6 +105,7 @@ final class SearchResultReferenceImpl extends
 
 
 
+  @Override
   SearchResultReference getThis()
   {
     return this;

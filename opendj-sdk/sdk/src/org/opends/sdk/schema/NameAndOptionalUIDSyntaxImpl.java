@@ -29,21 +29,23 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
+import static org.opends.sdk.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.LocalizableMessageBuilder;
-
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
 
 
 /**
- * This class implements the name and optional UID attribute syntax,
- * which holds values consisting of a DN, optionally followed by an
- * octothorpe (#) and a bit string value.
+ * This class implements the name and optional UID attribute syntax, which holds
+ * values consisting of a DN, optionally followed by an octothorpe (#) and a bit
+ * string value.
  */
 final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -79,21 +81,21 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String valueString = value.toString().trim();
     final int valueLength = valueString.length();
@@ -136,9 +138,8 @@ final class NameAndOptionalUIDSyntaxImpl extends AbstractSyntaxImpl
         if (!(c == '0' || c == '1'))
         {
 
-          invalidReason
-              .append(ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT
-                  .get(valueString, String.valueOf(c), i));
+          invalidReason.append(ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT
+              .get(valueString, String.valueOf(c), i));
           return false;
         }
       }

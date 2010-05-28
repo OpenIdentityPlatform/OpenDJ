@@ -29,8 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
@@ -43,9 +47,9 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the matching rule description syntax, which is
- * used to hold matching rule definitions in the server schema. The
- * format of this syntax is defined in RFC 2252.
+ * This class implements the matching rule description syntax, which is used to
+ * hold matching rule definitions in the server schema. The format of this
+ * syntax is defined in RFC 2252.
  */
 final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -73,21 +77,21 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeMatchingRule method to determine if the value
     // is acceptable.
@@ -116,9 +120,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleSyntax",
             "valueIsAcceptable", e);
@@ -182,8 +185,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("MatchingRuleSyntax",
               "valueIsAcceptable", e);
@@ -194,8 +197,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
       // Make sure that a syntax was specified.
       if (syntax == null)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_NO_SYNTAX
+            .get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleSyntax",
             "valueIsAcceptable", e);

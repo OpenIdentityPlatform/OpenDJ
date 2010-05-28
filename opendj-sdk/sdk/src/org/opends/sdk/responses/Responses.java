@@ -36,8 +36,7 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class contains various methods for creating and manipulating
- * responses.
+ * This class contains various methods for creating and manipulating responses.
  * <p>
  * TODO: search reference from LDAP URL.
  * <p>
@@ -61,7 +60,7 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  public static BindResult newBindResult(ResultCode resultCode)
+  public static BindResult newBindResult(final ResultCode resultCode)
       throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
@@ -79,7 +78,7 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  public static CompareResult newCompareResult(ResultCode resultCode)
+  public static CompareResult newCompareResult(final ResultCode resultCode)
       throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
@@ -89,8 +88,7 @@ public final class Responses
 
 
   /**
-   * Creates a new generic extended result using the provided result
-   * code.
+   * Creates a new generic extended result using the provided result code.
    *
    * @param resultCode
    *          The result code.
@@ -99,7 +97,7 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static GenericExtendedResult newGenericExtendedResult(
-      ResultCode resultCode) throws NullPointerException
+      final ResultCode resultCode) throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new GenericExtendedResultImpl(resultCode);
@@ -120,24 +118,42 @@ public final class Responses
 
 
   /**
-   * Creates a new generic intermediate response using the provided
-   * response name and value.
+   * Creates a new generic intermediate response using the provided response
+   * name and value.
    *
    * @param responseName
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this intermediate response, which may be
-   *          {@code null} indicating that none was provided.
-   * @param responseValue
-   *          The response value associated with this generic
-   *          intermediate response, which may be {@code null}
+   *          The dotted-decimal representation of the unique OID corresponding
+   *          to this intermediate response, which may be {@code null}
    *          indicating that none was provided.
+   * @param responseValue
+   *          The response value associated with this generic intermediate
+   *          response, which may be {@code null} indicating that none was
+   *          provided.
    * @return The new generic intermediate response.
    */
   public static GenericIntermediateResponse newGenericIntermediateResponse(
-      String responseName, ByteString responseValue)
+      final String responseName, final ByteString responseValue)
   {
-    return new GenericIntermediateResponseImpl(responseName,
-        responseValue);
+    return new GenericIntermediateResponseImpl(responseName, responseValue);
+  }
+
+
+
+  /**
+   * Creates a new password modify extended result using the provided result
+   * code, and no generated password.
+   *
+   * @param resultCode
+   *          The result code.
+   * @return The new password modify extended result.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  public static PasswordModifyExtendedResult newPasswordModifyExtendedResult(
+      final ResultCode resultCode) throws NullPointerException
+  {
+    Validator.ensureNotNull(resultCode);
+    return new PasswordModifyExtendedResultImpl(resultCode);
   }
 
 
@@ -151,7 +167,7 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  public static Result newResult(ResultCode resultCode)
+  public static Result newResult(final ResultCode resultCode)
       throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
@@ -161,8 +177,7 @@ public final class Responses
 
 
   /**
-   * Creates a new search result entry using the provided distinguished
-   * name.
+   * Creates a new search result entry using the provided distinguished name.
    *
    * @param name
    *          The distinguished name of the entry.
@@ -170,10 +185,10 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public static SearchResultEntry newSearchResultEntry(DN name)
+  public static SearchResultEntry newSearchResultEntry(final DN name)
       throws NullPointerException
   {
-    final Entry entry = new SortedEntry().setName(name);
+    final Entry entry = new LinkedHashMapEntry().setName(name);
     return new SearchResultEntryImpl(entry);
   }
 
@@ -181,10 +196,10 @@ public final class Responses
 
   /**
    * Creates a new search result entry backed by the provided entry.
-   * Modifications made to {@code entry} will be reflected in the
-   * returned search result entry. The returned search result entry
-   * supports updates to its list of controls, as well as updates to the
-   * name and attributes if the underlying entry allows.
+   * Modifications made to {@code entry} will be reflected in the returned
+   * search result entry. The returned search result entry supports updates to
+   * its list of controls, as well as updates to the name and attributes if the
+   * underlying entry allows.
    *
    * @param entry
    *          The entry.
@@ -192,7 +207,7 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  public static SearchResultEntry newSearchResultEntry(Entry entry)
+  public static SearchResultEntry newSearchResultEntry(final Entry entry)
       throws NullPointerException
   {
     Validator.ensureNotNull(entry);
@@ -202,66 +217,84 @@ public final class Responses
 
 
   /**
-   * Creates a new search result entry using the provided distinguished
-   * name decoded using the default schema.
+   * Creates a new search result entry using the provided distinguished name
+   * decoded using the default schema.
    *
    * @param name
    *          The distinguished name of the entry.
    * @return The new search result entry.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code name} could not be decoded using the default
-   *           schema.
+   *           If {@code name} could not be decoded using the default schema.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public static SearchResultEntry newSearchResultEntry(String name)
+  public static SearchResultEntry newSearchResultEntry(final String name)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    final Entry entry = new SortedEntry().setName(name);
+    final Entry entry = new LinkedHashMapEntry().setName(name);
     return new SearchResultEntryImpl(entry);
   }
 
 
 
   /**
-   * Creates a new search result entry using the provided lines of LDIF
-   * decoded using the default schema.
+   * Creates a new search result entry using the provided lines of LDIF decoded
+   * using the default schema.
    *
    * @param ldifLines
-   *          Lines of LDIF containing an LDIF add change record or an
-   *          LDIF entry record.
+   *          Lines of LDIF containing an LDIF add change record or an LDIF
+   *          entry record.
    * @return The new search result entry.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code ldifLines} was empty, or contained invalid
-   *           LDIF, or could not be decoded using the default schema.
+   *           If {@code ldifLines} was empty, or contained invalid LDIF, or
+   *           could not be decoded using the default schema.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null} .
    */
   public static SearchResultEntry newSearchResultEntry(
-      String... ldifLines) throws LocalizedIllegalArgumentException,
+      final String... ldifLines) throws LocalizedIllegalArgumentException,
       NullPointerException
   {
-    return newSearchResultEntry(new SortedEntry(ldifLines));
+    return newSearchResultEntry(new LinkedHashMapEntry(ldifLines));
   }
 
 
 
   /**
-   * Creates a new search result reference using the provided
-   * continuation reference URI.
+   * Creates a new search result reference using the provided continuation
+   * reference URI.
    *
    * @param uri
-   *          The first continuation reference URI to be added to this
-   *          search result reference.
+   *          The first continuation reference URI to be added to this search
+   *          result reference.
    * @return The new search result reference.
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
-  public static SearchResultReference newSearchResultReference(
-      String uri) throws NullPointerException
+  public static SearchResultReference newSearchResultReference(final String uri)
+      throws NullPointerException
   {
     Validator.ensureNotNull(uri);
     return new SearchResultReferenceImpl(uri);
+  }
+
+
+
+  /**
+   * Creates a new who am I extended result with the provided result code and no
+   * authorization ID.
+   *
+   * @param resultCode
+   *          The result code.
+   * @return The new who am I extended result.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null} .
+   */
+  public static final WhoAmIExtendedResult newWhoAmIExtendedResult(
+      final ResultCode resultCode) throws NullPointerException
+  {
+    Validator.ensureNotNull(resultCode);
+    return new WhoAmIExtendedResultImpl(ResultCode.SUCCESS);
   }
 
 

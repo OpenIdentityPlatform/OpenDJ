@@ -26,18 +26,25 @@
  */
 package com.sun.opends.sdk.util;
 
+
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.opends.sdk.ByteStringBuilder;
 
+
+
 /**
- * An adapter class that allows writing to an byte string builder
- * with the outputstream interface.
+ * An adapter class that allows writing to an byte string builder with the
+ * outputstream interface.
  */
-public final class ByteSequenceOutputStream extends OutputStream {
+public final class ByteSequenceOutputStream extends OutputStream
+{
 
   private final ByteStringBuilder buffer;
+
+
 
   /**
    * Creates a new byte string builder output stream.
@@ -45,71 +52,93 @@ public final class ByteSequenceOutputStream extends OutputStream {
    * @param buffer
    *          The underlying byte string builder.
    */
-  public ByteSequenceOutputStream(ByteStringBuilder buffer)
+  public ByteSequenceOutputStream(final ByteStringBuilder buffer)
   {
     this.buffer = buffer;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void write(int i) throws IOException {
-    buffer.append(((byte) (i & 0xFF)));
-  }
+
 
   /**
    * {@inheritDoc}
    */
-  public void write(byte[] bytes) throws IOException {
-    buffer.append(bytes);
+  @Override
+  public void close() throws IOException
+  {
+    buffer.clear();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void write(byte[] bytes, int i, int i1) throws IOException {
-    buffer.append(bytes, i, i1);
-  }
+
 
   /**
    * Gets the length of the underlying byte string builder.
    *
    * @return The length of the underlying byte string builder.
    */
-  public int length() {
+  public int length()
+  {
     return buffer.length();
   }
 
 
 
   /**
-   * Writes the content of the underlying byte string builder to the
-   * provided output stream.
-   *
-   * @param stream
-   *          The output stream.
-   * @throws IOException
-   *           If an I/O error occurs. In particular, an {@code
-   *           IOException} is thrown if the output stream is closed.
-   */
-  public void writeTo(OutputStream stream) throws IOException
-  {
-    buffer.copyTo(stream);
-  }
-
-  /**
-   * Resets this output stream such that the underlying byte string
-   * builder is empty.
+   * Resets this output stream such that the underlying byte string builder is
+   * empty.
    */
   public void reset()
   {
     buffer.clear();
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public void close() throws IOException {
-    buffer.clear();
+  @Override
+  public void write(final byte[] bytes) throws IOException
+  {
+    buffer.append(bytes);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void write(final byte[] bytes, final int i, final int i1)
+      throws IOException
+  {
+    buffer.append(bytes, i, i1);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void write(final int i) throws IOException
+  {
+    buffer.append(((byte) (i & 0xFF)));
+  }
+
+
+
+  /**
+   * Writes the content of the underlying byte string builder to the provided
+   * output stream.
+   *
+   * @param stream
+   *          The output stream.
+   * @throws IOException
+   *           If an I/O error occurs. In particular, an {@code IOException} is
+   *           thrown if the output stream is closed.
+   */
+  public void writeTo(final OutputStream stream) throws IOException
+  {
+    buffer.copyTo(stream);
   }
 }

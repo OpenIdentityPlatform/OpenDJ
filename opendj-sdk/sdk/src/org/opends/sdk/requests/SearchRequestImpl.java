@@ -29,7 +29,6 @@ package org.opends.sdk.requests;
 
 
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,8 +41,8 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Search request implementation.
  */
-final class SearchRequestImpl extends
-    AbstractRequestImpl<SearchRequest> implements SearchRequest
+final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
+    implements SearchRequest
 {
 
   private final List<String> attributes = new LinkedList<String>();
@@ -65,25 +64,24 @@ final class SearchRequestImpl extends
 
 
   /**
-   * Creates a new search request using the provided distinguished name,
-   * scope, and filter, decoded using the default schema.
+   * Creates a new search request using the provided distinguished name, scope,
+   * and filter, decoded using the default schema.
    *
    * @param name
-   *          The distinguished name of the base entry relative to which
-   *          the search is to be performed.
+   *          The distinguished name of the base entry relative to which the
+   *          search is to be performed.
    * @param scope
    *          The scope of the search.
    * @param filter
-   *          The filter that defines the conditions that must be
-   *          fulfilled in order for an entry to be returned.
+   *          The filter that defines the conditions that must be fulfilled in
+   *          order for an entry to be returned.
    * @param attributeDescriptions
-   *          The names of the attributes to be included with each
-   *          entry.
+   *          The names of the attributes to be included with each entry.
    * @throws NullPointerException
-   *           If the {@code name}, {@code scope}, or {@code filter}
-   *           were {@code null}.
+   *           If the {@code name}, {@code scope}, or {@code filter} were
+   *           {@code null}.
    */
-  SearchRequestImpl(DN name, SearchScope scope, Filter filter)
+  SearchRequestImpl(final DN name, final SearchScope scope, final Filter filter)
       throws NullPointerException
   {
     this.name = name;
@@ -96,26 +94,10 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest addAttribute(
-      Collection<String> attributeDescriptions)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescriptions);
-
-    attributes.addAll(attributeDescriptions);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchRequest addAttribute(String attributeDescription)
+  public SearchRequest addAttribute(final String attributeDescription)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
-
     attributes.add(attributeDescription);
     return this;
   }
@@ -125,35 +107,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest addAttribute(String... attributeDescriptions)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull((Object) attributeDescriptions);
-
-    for (final String attributeDescription : attributeDescriptions)
-    {
-      attributes.add(attributeDescription);
-    }
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public SearchRequest clearAttributes()
-  {
-    attributes.clear();
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<String> getAttributes()
+  public List<String> getAttributes()
   {
     return attributes;
   }
@@ -223,16 +177,6 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public boolean hasAttributes()
-  {
-    return !attributes.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isTypesOnly()
   {
     return typesOnly;
@@ -243,21 +187,8 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public boolean removeAttribute(String attributeDescription)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription);
-
-    return attributes.remove(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public SearchRequest setDereferenceAliasesPolicy(
-      DereferenceAliasesPolicy policy) throws NullPointerException
+      final DereferenceAliasesPolicy policy) throws NullPointerException
   {
     Validator.ensureNotNull(policy);
 
@@ -270,7 +201,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setFilter(Filter filter)
+  public SearchRequest setFilter(final Filter filter)
       throws NullPointerException
   {
     Validator.ensureNotNull(filter);
@@ -284,7 +215,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setFilter(String filter)
+  public SearchRequest setFilter(final String filter)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     this.filter = Filter.valueOf(filter);
@@ -296,7 +227,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setName(DN dn) throws NullPointerException
+  public SearchRequest setName(final DN dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
@@ -309,7 +240,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setName(String dn)
+  public SearchRequest setName(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -323,7 +254,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setScope(SearchScope scope)
+  public SearchRequest setScope(final SearchScope scope)
       throws NullPointerException
   {
     Validator.ensureNotNull(scope);
@@ -337,7 +268,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setSizeLimit(int limit)
+  public SearchRequest setSizeLimit(final int limit)
       throws LocalizedIllegalArgumentException
   {
     // FIXME: I18N error message.
@@ -352,7 +283,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setTimeLimit(int limit)
+  public SearchRequest setTimeLimit(final int limit)
       throws LocalizedIllegalArgumentException
   {
     // FIXME: I18N error message.
@@ -367,7 +298,7 @@ final class SearchRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setTypesOnly(boolean typesOnly)
+  public SearchRequest setTypesOnly(final boolean typesOnly)
   {
     this.typesOnly = typesOnly;
     return this;
@@ -406,6 +337,7 @@ final class SearchRequestImpl extends
 
 
 
+  @Override
   SearchRequest getThis()
   {
     return this;
